@@ -52,21 +52,18 @@ Trata-se de uma proposta inicial, a ser discutida com todos os interessados em s
 - Permitir a edição de um texto articulado independente do seu tamanho;
 - Definir estilos consistentes e protegidos contra alteração não intencional;
 
-## Instalação
-
-```bash
-npm i lexml-eta
-```
-
 ## Como usar
 
-```html
-<script type="module">
-  import 'lexml-eta/lexml-eta.js';
-</script>
+Ainda não está disponível para utilização em produção. Para testá-lo, basta seguir os seguintes passos:
 
-<lexml-eta></lexml-eta>
 ```
+git clone https://github.com/lexml/lexml-eta.git
+npm install
+npm start
+```
+Será aberta uma janela do browser com uma aplicação exemplo que permite testar o componente. Em breve, iremos disponibilizar um link aqui para testar a aplicação sem necessidade de baixar o projeto.
+
+Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
 
 ## Desenvolvimento
 
