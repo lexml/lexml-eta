@@ -1,0 +1,93 @@
+{
+  "name": "lexml-eta",
+  "version": "0.0.1",
+  "description": "Webcomponent lexml-eta following open-wc recommendations",
+  "author": "lexml-eta",
+  "license": "GPL-2.0-only",
+  "main": "index.js",
+  "module": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lexml/lexml-eta.git"
+  },
+  "scripts": {
+    "start": "concurrently --kill-others --names tsc,web-dev-server \"npm run tsc:watch\" \"web-dev-server --app-index demo/index.html --node-resolve --open --watch\"",
+    "tsc:watch": "tsc --watch",
+    "lint:eslint": "eslint --ext .ts,.html . --ignore-path .gitignore",
+    "format:eslint": "eslint --ext .ts,.html . --fix --ignore-path .gitignore",
+    "lint:prettier": "prettier \"**/*.js\" \"**/*.ts\" --check --ignore-path .gitignore",
+    "format:prettier": "prettier \"**/*.js\" \"**/*.ts\" --write --ignore-path .gitignore",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "format": "npm run format:eslint && npm run format:prettier",
+    "test": "tsc && web-test-runner --coverage",
+    "test:watch": "web-test-runner --watch",
+    "storybook": "concurrently --kill-others --names tsc,storybook \"npm run tsc:watch\" \"start-storybook --node-resolve --watch --open\"",
+    "storybook:build": "build-storybook",
+    "build": "rimraf dist && tsc && rollup -c rollup.config.js",
+    "start:build": "npm run build && web-dev-server --root-dir dist --app-index index.html --open --compatibility none"
+  },
+  "dependencies": {
+    "elix": "^14.1.2",
+    "font-awesome": "^4.7.0",
+    "lit-element": "^2.2.1",
+    "lit-html": "^1.1.2",
+    "pwa-helpers": "^0.9.1",
+    "quill": "^1.3.7",
+    "redux": "^4.0.5",
+    "redux-devtools-extension": "^2.13.8",
+    "reselect": "^4.0.0",
+    "sinon": "^9.2.4",
+    "ts-node": "^9.0.0"
+  },
+  "devDependencies": {
+    "@open-wc/building-rollup": "^1.9.4",
+    "@open-wc/demoing-storybook": "^2.4.7",
+    "@open-wc/eslint-config": "^2.0.0",
+    "@open-wc/testing": "^2.5.32",
+    "@open-wc/testing-karma": "^3.0.0",
+    "@types/node": "13.11.1",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
+    "@web/dev-server": "0.0.15",
+    "@web/test-runner": "^0.7.41",
+    "concurrently": "^5.1.0",
+    "deepmerge": "^4.2.2",
+    "eslint": "^6.1.0",
+    "eslint-config-prettier": "^6.15.0",
+    "husky": "^1.0.0",
+    "lint-staged": "^10.5.4",
+    "prettier": "^2.0.4",
+    "rimraf": "^2.6.3",
+    "rollup": "^2.39.0",
+    "tslib": "^1.14.1",
+    "typescript": "^3.9.9"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@open-wc/eslint-config",
+      "eslint-config-prettier"
+    ]
+  },
+  "prettier": {
+    "arrowParens": "avoid",
+    "bracketSpacing": true,
+    "printWidth": 180,
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

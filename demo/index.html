@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <style>
+    select {
+      margin-left: 50px;
+    }
+
+    #titulo {
+      margin-left: 50px;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    lexml-eta {
+      display: block;
+      padding: 0px;
+      height: calc(100vh - 80px);
+      outline: 0;
+      border: 0px solid black;
+      -webkit-box-shadow: 0px;
+      box-shadow: none;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="demo"></div>
+  <script type="module" src="../node_modules/elix/define/Toast.js"></script>
+  <script type="module" src="../node_modules/elix/define/AlertDialog.js"></script>
+  <script type="module" src="../node_modules/elix/define/MenuSeparator.js"></script>
+  <script type="module" src="../node_modules/elix/define/MenuItem.js"></script>
+  <script type="module" src="../node_modules/elix/define/MenuButton.js"></script>
+  <script type="text/javascript">
+    /* eslint-disable no-undef */
+    /* eslint-disable @typescript-eslint/explicit-function-return-type */
+    /* eslint-disable no-undef */
+    // HACK(keanulee): The Redux package assumes `process` exists - mock it here before
+    // the module is loaded.
+    window.process = {
+      env: {
+        NODE_ENV: 'production',
+      },
+    };
+  </script>
+
+  <script type="module">
+    /* eslint-disable no-undef */
+    /* eslint-disable @typescript-eslint/explicit-function-return-type */
+    import { html, LitElement } from 'lit-element';
+    import { render } from 'lit-html';
+    import '../dist/src/index.js';
+
+    class DemoView extends LitElement {
+
+      static get properties() {
+        return {
+          articulacao: { type: String },
+        };
+      }
+
+      createRenderRoot() {
+        return this;
+      }
+
+      constructor() {
+        super();
+        this.articulacao = 'codigo-civil';
+      }
+
+      onChange() {
+        const elmArticulacao = this.querySelector('#articulacao');
+
+        if (elmArticulacao) {
+          setTimeout(() => {
+            this.articulacao = elmArticulacao.value;
+          }, 0);
+        }
+      }
+
+      render() {
+        return html`
+          <div style="padding: 10px;">
+            <span style="font-size: 2em;">ETA - Editor de Texto de Articulação</span>
+            <select @change=${this.onChange} id="articulacao">
+              <option value="codigo-civil">Código Civil</option>
+              <option value="nova">Nova articulação</option>
+            </select>
+          </div>
+          <lexml-eta .articulacao=${this.articulacao}></lexml-eta>
+        `;
+      }
+    }
+    customElements.define('demo-view', DemoView);
+
+    render(html`<demo-view></demo-view>`, document.querySelector('#demo'));
+  </script>
+</body>
+
+</html>
