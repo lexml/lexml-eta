@@ -73,6 +73,12 @@ Para rodar um servidor para desenvolvimento, que serve um demo localizado em `de
 npm start
 ```
 
+Para rodar o servidor em modo de desenvolvimento:
+
+```
+npm run start:watch
+
+```
 ### Teste
 
 Para executar os testes apenas uma vez:
@@ -110,22 +116,6 @@ Para varrer o projeto em buscar de erros (lint):
 
 ```
 npm run lint
-```
-
-### Storybook
-
-Apesar da previsão de seu uso, ainda não iniciamos a documentação do projeto. 
-
-Para rodar uma instancia do Storybook:
-
-```
-npm run storybook
-```
-
-Para fazer o build:
-
-```
-npm run storybook:build
 ```
 
 ## Créditos
