@@ -49,7 +49,7 @@ class AddElemento extends ElementoAbstractAction {
   }
 }
 
-class ChangeElemento extends ElementoAbstractAction {
+export class ChangeElemento extends ElementoAbstractAction {
   descricao: string;
   tipo: string;
   nomeAcao?: string;

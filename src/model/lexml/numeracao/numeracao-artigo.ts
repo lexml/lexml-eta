@@ -2,8 +2,7 @@ import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { getArticulacao } from '../hierarquia/hierarquia-util';
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase) {
+export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
     type = 'NumeracaoArtigoLcp95';
     PREFIXO = 'Art. ';
@@ -22,8 +21,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase) {
           (getArticulacao(dispositivo) as Articulacao).artigos.length === 1
             ? this.ARTIGO_UNICO
             : this.PREFIXO + this.numero === undefined
-            ? undefined
-            : this.PREFIXO + this.numero + this.getSufixoNumeracao();
+              ? undefined
+              : this.PREFIXO + this.numero + this.getSufixoNumeracao();
       }
     }
 

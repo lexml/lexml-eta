@@ -158,7 +158,7 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
       it('Deveria apresentar 1 elemento incluído', () => {
         const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
         expect(incluido.elementos!.length).equal(1);
-        expect(incluido.elementos!![0].conteudo?.texto).equal('Texto do caput do artigo único.');
+        expect(incluido.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único.');
       });
       it('Deveria apresentar as duas versões do antigo artigo único no evento de ElementoModificado', () => {
         const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
@@ -238,7 +238,7 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
         it('Deveria apresentar 1 elemento incluído', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
           expect(incluido.elementos!.length).equal(1);
-          expect(incluido.elementos!![0].conteudo?.texto).equal('Texto do caput do artigo único.');
+          expect(incluido.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único.');
         });
         it('Deveria apresentar somente a versão mais atualizada do antigo artigo único no evento de ElementoModificado', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);

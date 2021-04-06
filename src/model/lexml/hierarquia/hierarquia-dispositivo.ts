@@ -2,8 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase) {
+export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
     pai?: Dispositivo;
     private _filhos?: Dispositivo[];

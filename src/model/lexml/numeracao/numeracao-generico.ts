@@ -1,7 +1,6 @@
 import { Numeracao } from '../../dispositivo/numeracao';
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-export function NumeracaoGenerico<TBase extends Constructor>(Base: TBase) {
+export function NumeracaoGenerico<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
     type = 'NumeracaoDispositivoGenericoLcp95';
     private SUFIXO = ' -';

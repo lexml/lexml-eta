@@ -1,7 +1,6 @@
 import { Numeracao } from '../../dispositivo/numeracao';
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-export function NumeracaoIndisponivel<TBase extends Constructor>(Base: TBase) {
+export function NumeracaoIndisponivel<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
     type = 'NumeracaoIndisponivel';
 

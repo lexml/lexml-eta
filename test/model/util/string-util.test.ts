@@ -1,10 +1,5 @@
 import { expect } from '@open-wc/testing';
-import {
-  containsTags,
-  endsWithPunctuation,
-  isValidHTML,
-  isValidHtmlParagraph,
-} from '../../../src/util/string-util';
+import { containsTags, endsWithPunctuation, isValidHTML, isValidHtmlParagraph } from '../../../src/util/string-util';
 
 describe('StringUtil', () => {
   describe('containsTags => testes de reconhecimento de tags no texto', () => {
@@ -36,11 +31,7 @@ describe('StringUtil', () => {
       expect(isValidHTML('<bas>teste</bas>')).to.true;
     });
     it('Retorna true quando é informada uma tag válida mas em formato diferente', () => {
-      expect(
-        isValidHTML(
-          '<img src="https://developer.mozilla.org/static/img/favicon144.png" alt="MDN logo">'
-        )
-      ).to.true;
+      expect(isValidHTML('<img src="https://developer.mozilla.org/static/img/favicon144.png" alt="MDN logo">')).to.true;
     });
     it('Retorna true quando é informada um link', () => {
       expect(isValidHTML('<a href="link">text</a>')).to.true;

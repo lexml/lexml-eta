@@ -34,8 +34,8 @@ export class ObjetoUtil {
     if (valor1 === valor2) {
       return true;
     }
-    const chaves1: string[] = Object.keys(valor1 as object);
-    const chaves2: string[] = Object.keys(valor2 as object);
+    const chaves1: string[] = Object.keys(valor1 as any);
+    const chaves2: string[] = Object.keys(valor2 as any);
 
     if (chaves1.length !== chaves2.length) {
       return false;

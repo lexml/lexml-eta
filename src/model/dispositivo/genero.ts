@@ -10,21 +10,21 @@ export interface Genero {
   pronome: string;
 }
 
-export function GeneroFeminino<TBase extends Constructor>(Base: TBase) {
+export function GeneroFeminino<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Genero {
     tipoGenero = 'feminino';
     pronome = 'a ';
   };
 }
 
-export function GeneroIndefinido<TBase extends Constructor>(Base: TBase) {
+export function GeneroIndefinido<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Genero {
     tipoGenero = 'indefinido';
     pronome = '';
   };
 }
 
-export function GeneroMasculino<TBase extends Constructor>(Base: TBase) {
+export function GeneroMasculino<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Genero {
     tipoGenero = 'masculino';
     pronome = 'o ';

@@ -3,8 +3,7 @@ import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
 import { getArticulacao } from './hierarquia-util';
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase) {
+export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
     pai?: Dispositivo;
     private _filhos?: Dispositivo[];

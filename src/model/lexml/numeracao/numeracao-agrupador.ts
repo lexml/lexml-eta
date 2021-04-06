@@ -2,8 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isAgrupadorGenerico } from '../../dispositivo/tipo';
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase) {
+export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
     type = 'NumeracaoAgrupadorLcp95';
     numero?: string;

@@ -5,7 +5,7 @@ export interface Validacao {
   mensagens?: Mensagem[];
 }
 
-export function ValidacaoDispositivo<TBase extends Constructor>(Base: TBase) {
+export function ValidacaoDispositivo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Validacao {
     mensagens: Mensagem[] = [];
   };

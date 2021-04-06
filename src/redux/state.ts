@@ -2,13 +2,13 @@ import { Articulacao } from '../model/dispositivo/dispositivo';
 import { Elemento } from '../model/elemento';
 
 export enum StateType {
-  DocumentoCarregado = 'Documento Carregado',
-  ElementoModificado = 'Elemento Modificado',
-  ElementoIncluido = 'Elemento Incluído',
-  ElementoRemovido = 'Elemento Removido',
-  ElementoRenumerado = 'Elemento Renumerado',
-  ElementoValidado = 'Elemento Validado',
-  ElementoSelecionado = 'Elemento Selecionado',
+  DocumentoCarregado,
+  ElementoModificado,
+  ElementoIncluido,
+  ElementoRemovido,
+  ElementoRenumerado,
+  ElementoValidado,
+  ElementoSelecionado,
 }
 export interface StateEvent {
   stateType: StateType;

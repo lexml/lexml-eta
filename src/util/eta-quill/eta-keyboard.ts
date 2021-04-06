@@ -13,7 +13,7 @@ export class EtaKeyboard extends Keyboard {
   adicionaElementoTeclaEnter: Observable<RangeStatic> = new Observable<RangeStatic>();
   removeElemento: Observable<void> = new Observable<void>();
 
-  constructor(quill: EtaQuill, options: {}) {
+  constructor(quill: EtaQuill, options: any) {
     super(quill, options);
   }
 
