@@ -98,7 +98,7 @@ npm run test:watch
 Para executar um teste apenas:
 
 ```
-npm run test -- --grep dist/test/**/parte.test.js
+npm run test -- --grep out-tsc/test/**/parte.test.js
 ```
 
 Para ver os resultado de coverage:

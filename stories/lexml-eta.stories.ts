@@ -1,9 +1,9 @@
 import { html, TemplateResult } from 'lit-html';
-import '../src/lexml-eta.js';
+import '../src/components/lexml-eta.component.js';
 
 export default {
-  title: 'LexmlEta',
-  component: 'lexml-eta',
+  title: 'Editor de Textos Articulados',
+  component: 'LexmlEtaComponent',
   argTypes: {
     backgroundColor: { control: 'color' },
   },
