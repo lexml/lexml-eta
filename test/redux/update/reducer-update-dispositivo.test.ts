@@ -5,7 +5,7 @@ import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-
 import { UPDATE_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { atualizaElemento } from '../../../src/redux/elemento-reducer';
 import { StateType } from '../../../src/redux/state';
-import { EXEMPLO_SEM_AGRUPADORES } from '../../demo/doc/exemplo-sem-agrupadores';
+import { EXEMPLO_SEM_AGRUPADORES } from '../../doc/exemplo-sem-agrupadores';
 
 let state: any;
 

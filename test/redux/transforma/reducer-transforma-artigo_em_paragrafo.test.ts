@@ -5,8 +5,8 @@ import { ADD_ELEMENTO, transformaArtigoEmParagrafo } from '../../../src/redux/el
 import { adicionaElemento, modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
-import { EXEMPLO_ARTIGO_UNICO } from '../../demo/doc/exemplo-artigo-unico';
-import { EXEMPLO_ARTIGOS } from '../../demo/doc/exemplo-artigos';
+import { EXEMPLO_ARTIGO_UNICO } from '../../doc/exemplo-artigo-unico';
+import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
 let state: any;
 

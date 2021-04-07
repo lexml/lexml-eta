@@ -5,7 +5,7 @@ import { transformaParagrafoEmArtigo } from '../../../src/redux/elemento-actions
 import { modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
-import { EXEMPLO_PARAGRAFOS } from '../../demo/doc/exemplo-paragrafos';
+import { EXEMPLO_PARAGRAFOS } from '../../doc/exemplo-paragrafos';
 
 let state: any;
 

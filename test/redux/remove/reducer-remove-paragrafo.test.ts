@@ -3,7 +3,7 @@ import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { REMOVE_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { removeElemento } from '../../../src/redux/elemento-reducer';
-import { EXEMPLO_PARAGRAFOS } from '../../demo/doc/exemplo-paragrafos';
+import { EXEMPLO_PARAGRAFOS } from '../../doc/exemplo-paragrafos';
 
 let state: any;
 

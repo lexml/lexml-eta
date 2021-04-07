@@ -5,7 +5,7 @@ import { ADD_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { adicionaElemento } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateEvent, StateType } from '../../../src/redux/state';
-import { EXEMPLO_ARTIGOS } from '../../demo/doc/exemplo-artigos';
+import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
 let state: any;
 let eventos: StateEvent[];

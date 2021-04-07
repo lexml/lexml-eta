@@ -5,7 +5,7 @@ import { transformaIncisoEmParagrafo } from '../../../src/redux/elemento-actions
 import { modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
-import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../demo/doc/exemplo-dispositivos-artigo';
+import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
 
 let state: any;
 let eventos: any;

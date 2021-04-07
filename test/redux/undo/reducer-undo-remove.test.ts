@@ -4,7 +4,7 @@ import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-
 import { REMOVE_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { removeElemento, undo } from '../../../src/redux/elemento-reducer';
 import { StateType } from '../../../src/redux/state';
-import { EXEMPLO_ARTIGOS } from '../../demo/doc/exemplo-artigos';
+import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
 let state: any;
 
