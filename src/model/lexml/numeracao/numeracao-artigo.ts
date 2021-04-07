@@ -21,8 +21,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
           (getArticulacao(dispositivo) as Articulacao).artigos.length === 1
             ? this.ARTIGO_UNICO
             : this.PREFIXO + this.numero === undefined
-              ? undefined
-              : this.PREFIXO + this.numero + this.getSufixoNumeracao();
+            ? undefined
+            : this.PREFIXO + this.numero + this.getSufixoNumeracao();
       }
     }
 

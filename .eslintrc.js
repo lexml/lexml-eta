@@ -8,6 +8,7 @@ module.exports = {
   parserOptions: {
     sourceType: 'module',
     project: './tsconfig.json',
+    extraFileExtensions: '.html',
     ecmaFeatures: {
       experimentalObjectRestSpread: true,
     },
@@ -20,15 +21,15 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'prettier/@typescript-eslint',
+    'plugin:prettier/recommended',
   ],
   rules: {
     eqeqeq: 'error',
-    "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error"],
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['error'],
     'no-extra-semi': 'error',
     semi: 'error',
     'no-trailing-spaces': 'error',
-    indent: ['error', 2, { SwitchCase: 1 }],
     'max-len': [
       'error',
       {
@@ -40,7 +41,7 @@ module.exports = {
         ignoreRegExpLiterals: true,
       },
     ],
-    // disable the rule for all files
+    // disable the rule for all the following files
     'default-case': 'off',
     'no-console': 'off',
     'no-explicit-any': 'off',
@@ -52,6 +53,6 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'warn',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off'
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
 };

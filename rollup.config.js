@@ -1,6 +1,6 @@
-import merge from 'deepmerge';
 // use createSpaConfig for bundling a Single Page App
 import { createSpaConfig } from '@open-wc/building-rollup';
+import merge from 'deepmerge';
 
 // use createBasicConfig to do regular JS to JS bundling
 // import { createBasicConfig } from '@open-wc/building-rollup';
@@ -23,7 +23,7 @@ const baseConfig = createSpaConfig({
 export default merge(baseConfig, {
   // if you use createSpaConfig, you can use your index.html as entrypoint,
   // any <script type="module"> inside will be bundled by rollup
-  input: './index.html',
+  input: './demo/index.html',
 
   // alternatively, you can use your JS as entrypoint for rollup and
   // optionally set a HTML template manually

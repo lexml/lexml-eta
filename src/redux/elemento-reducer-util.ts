@@ -89,8 +89,8 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
       ? referencia
       : getUltimoFilho(referencia)
     : dispositivo.pai!.indexOf(dispositivo) === 0
-      ? referencia
-      : getUltimoFilho(referencia);
+    ? referencia
+    : getUltimoFilho(referencia);
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {
@@ -229,8 +229,8 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
     ? isArtigoUnico(dispositivoAnterior) || isParagrafoUnico(dispositivoAnterior)
       ? dispositivoAnterior
       : isCaput(pai!)
-        ? pai!.pai!
-        : pai!
+      ? pai!.pai!
+      : pai!
     : undefined;
 
   if (articulacao.artigos.length === 1) {
