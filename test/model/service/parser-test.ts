@@ -1,5 +1,5 @@
+import { EXEMPLO_CC } from '../../../demo/doc/codigocivil-eta';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { EXEMPLO_CC } from '../../demo/doc/codigocivil-eta';
 
 describe('ArticulacaoParser', () => {
   describe('Testando a criacão da Articulacao', () => {
