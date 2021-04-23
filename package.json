@@ -13,7 +13,6 @@
   "scripts": {
     "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
     "build": "tsc",
-    "build:demo": "rimraf dist && tsc && rollup -c rollup.config.js",
     "prepublish": "tsc",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
@@ -21,9 +20,9 @@
     "test:watch": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
     "storybook:build": "tsc && build-storybook",
-    "demo": "rimraf out-tsc && tsc && cp demo/index.html out-tsc/demo/index.html",
     "postinstall": "node ./node_modules/husky/lib/installer/bin install",
-    "deploy": "git push origin `git subtree split --prefix dist main`:gh-pages --force"
+    "build:demo": "rimraf dist && tsc && rollup -c rollup.config.js",
+    "deploy:demo": "gh-pages -d dist"
   },
   "dependencies": {
     "elix": "^14.1.2",
@@ -51,6 +50,7 @@
     "eslint": "^7.23.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-prettier": "^3.3.1",
+    "gh-pages": "^3.1.0",
     "husky": "^4.3.8",
     "lint-staged": "^10.5.4",
     "prettier": "^2.2.1",
