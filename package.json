@@ -1,6 +1,6 @@
 {
   "name": "lexml-eta",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Webcomponent lexml-eta following open-wc recommendations",
   "author": "lexml-eta",
   "license": "GPL-2.0-only",
@@ -13,13 +13,17 @@
   "scripts": {
     "start": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
     "build": "tsc",
+    "build:demo": "rimraf dist && tsc && rollup -c rollup.config.js",
     "prepublish": "tsc",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "test": "tsc && wtr --coverage",
     "test:watch": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
-    "storybook:build": "tsc && build-storybook"
+    "storybook:build": "tsc && build-storybook",
+    "demo": "rimraf out-tsc && tsc && cp demo/index.html out-tsc/demo/index.html",
+    "postinstall": "node ./node_modules/husky/lib/installer/bin install",
+    "deploy": "git push origin `git subtree split --prefix dist main`:gh-pages --force"
   },
   "dependencies": {
     "elix": "^14.1.2",
