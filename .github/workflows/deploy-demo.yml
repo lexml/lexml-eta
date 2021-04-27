@@ -29,5 +29,10 @@ jobs:
       # Executa script de build do demo
       - run: npm run build:demo
       
-      # Executa o deploy do demo
-      - run: npm run deploy:demo
+      # Copiando conteúdo do dist para gh-pages
+      - name: Git push gh-pages
+        run: git push -f origin origin/main:refs/heads/gh-pages
+      
+      # Executa o deploy
+      - name: Deploy do website em gh-pages
+        run: npm run deploy
