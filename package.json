@@ -76,12 +76,11 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "rimraf dist && lint-staged"
     }
   },
   "lint-staged": {
     "*.ts": [
-      "rimraf dist",
       "prettier --write",
       "eslint --fix",
       "git add"
