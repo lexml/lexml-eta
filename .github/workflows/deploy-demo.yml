@@ -33,5 +33,5 @@ jobs:
       - name: Deploy   
         run: |
           git config --global user.name 'João Holanda'
-          git config --global user.email 'jholanda@users.noreply.github.com'
+          git config --global user.email 'joao.holanda@gmail.com'
           npm run deploy:demo
