@@ -76,7 +76,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "rimraf dist && lint-staged"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
