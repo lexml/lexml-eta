@@ -118,20 +118,6 @@ Para varrer o projeto em buscar de erros (lint):
 npm run lint
 ```
 
-## Deploy da aplicação demo
-
-É criada uma aplicação no diretório dist que é utilizada no actions do github
-
-```
-vide .github/workflows/deploy-demo.yml
-```
-
-Para rodar o servidor em modo de desenvolvimento:
-
-```
-npm run start:watch
-
-
 ## Créditos
 
 Este componente segue as recomendações do [open-wc](https://github.com/open-wc/open-wc).
