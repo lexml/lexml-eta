@@ -35,4 +35,4 @@ jobs:
       
       # Executa o deploy
       - name: Deploy do website em gh-pages
-        run: npm run deploy
+        run: npm run deploy:demo
