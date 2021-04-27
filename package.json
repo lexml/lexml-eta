@@ -22,7 +22,7 @@
     "storybook:build": "tsc && build-storybook",
     "postinstall": "node ./node_modules/husky/lib/installer/bin install",
     "build:demo": "rimraf dist && tsc && rollup -c rollup.config.js",
-    "deploy:demo": "gh-pages -d dist"
+    "deploy:demo": "git push -f origin origin/main:refs/heads/gh-pages"
   },
   "dependencies": {
     "elix": "^14.1.2",
