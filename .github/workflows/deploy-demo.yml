@@ -30,6 +30,7 @@ jobs:
       - run: npm run build:demo
       
       # Executa o deploy do demo
-      - run: npm run deploy:demo
+      - name: Deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run deploy:demo
