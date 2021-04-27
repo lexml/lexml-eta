@@ -31,7 +31,4 @@ jobs:
       
       # Executa o deploy do demo
       - name: Deploy   
-        run: |
-          git config --global user.name 'jholanda'
-          git config --global user.email 'joao.holanda@gmail.com'
-          npm run deploy:demo
+        run: git push -f origin origin/main:refs/heads/gh-pages
