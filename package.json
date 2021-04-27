@@ -81,6 +81,7 @@
   },
   "lint-staged": {
     "*.ts": [
+      "rimraf dist",
       "prettier --write",
       "eslint --fix",
       "git add"
