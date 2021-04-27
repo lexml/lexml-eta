@@ -30,7 +30,8 @@ jobs:
       - run: npm run build:demo
       
       # Executa o deploy do demo
-      - name: Deploy
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run deploy:demo
+      - name: Deploy   
+        run: |
+          git config --global user.name 'Joao Holanda'
+          git config --global user.email 'jholanda@users.noreply.github.com'
+          npm run deploy:demo
