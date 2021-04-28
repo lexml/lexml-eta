@@ -1,6 +1,6 @@
 import { createSpaConfig } from '@open-wc/building-rollup';
-import copy from 'rollup-plugin-copy';
 import merge from 'deepmerge';
+import copy from 'rollup-plugin-copy';
 
 const baseConfig = createSpaConfig({
   outputDir: 'prod',
@@ -14,9 +14,9 @@ export default merge(baseConfig, {
   plugins: [
     copy({
       targets: [
-        { src: 'assets/editor.min.css', dest: 'dist/assets' },
-        { src: 'node_modules/font-awesome/fonts/**', dest: 'dist/fonts' },
-      ]
-    })
-  ]
+        { src: 'assets/editor.min.css', dest: 'prod/assets' },
+        { src: 'node_modules/font-awesome/fonts/**', dest: 'prod/fonts' },
+      ],
+    }),
+  ],
 });
