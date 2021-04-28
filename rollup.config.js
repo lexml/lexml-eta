@@ -14,8 +14,8 @@ export default merge(baseConfig, {
   plugins: [
     copy({
       targets: [
-        { src: 'assets/editor.min.css', dest: 'prod/assets' },
-        { src: 'node_modules/font-awesome/fonts/**', dest: 'prod/fonts' },
+        { src: 'assets/css/editor.min.css', dest: 'prod/assets/css' },
+        { src: 'assets/fonts/**', dest: 'prod/assets/fonts' },
       ],
     }),
   ],
