@@ -70,8 +70,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="../../../node_modules/quill/dist/quill.snow.css" />
-      <link rel="stylesheet" href="../../../node_modules/font-awesome/css/font-awesome.min.css" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
       <style>
         #lx-eta-box {
           display: grid;
