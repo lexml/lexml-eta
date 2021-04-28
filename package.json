@@ -1,6 +1,6 @@
 {
   "name": "lexml-eta",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Webcomponent lexml-eta following open-wc recommendations",
   "author": "lexml-eta",
   "license": "GPL-2.0-only",
@@ -19,7 +19,10 @@
     "test": "tsc && wtr --coverage",
     "test:watch": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
-    "storybook:build": "tsc && build-storybook"
+    "storybook:build": "tsc && build-storybook",
+    "postinstall": "node ./node_modules/husky/lib/installer/bin install",
+    "build:demo": "rimraf app && tsc && rollup -c rollup.config.js",
+    "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force"
   },
   "dependencies": {
     "elix": "^14.1.2",
@@ -72,14 +75,13 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged && npm run build:demo"
     }
   },
   "lint-staged": {
     "*.ts": [
       "prettier --write",
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ]
   }
 }
