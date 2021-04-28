@@ -15,14 +15,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Executa npm install
-    - name: instala dependências
+    # dependências
+    - name: Instala as dependências 
       run: npm install
     
-    # Executa npm install
-    - name: executa testes unitários
-      run: npm test
-      
-    # Executa o deploy da aplicação demo
-    - name: Deploy da aplicação demo em gh-pages
-      run: npm run deploy:demo
+    # build
+    - name: Executa o build da app demo
+      run: npm run build:demo
+
+    # deploy
+    - name: Deploy app demo para o branch gh-pages
+      uses: s0/git-publish-subdir-action@develop
+      env:
+        REPO: self
+        BRANCH: gh-pages
+        FOLDER: prod
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

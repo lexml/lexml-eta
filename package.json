@@ -21,7 +21,7 @@
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
     "storybook:build": "tsc && build-storybook",
     "postinstall": "node ./node_modules/husky/lib/installer/bin install",
-    "build:demo": "rimraf app && tsc && rollup -c rollup.config.js",
+    "build:demo": "rimraf prod && tsc && rollup -c rollup.config.js",
     "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force"
   },
   "dependencies": {
@@ -75,7 +75,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run build:demo"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
