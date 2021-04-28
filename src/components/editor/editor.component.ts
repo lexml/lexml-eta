@@ -70,7 +70,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="assets/editor.min.css" />
+      <link rel="stylesheet" href="assets/css/editor.min.css" />
       <style>
         #lx-eta-box {
           display: grid;
