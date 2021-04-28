@@ -1,0 +1,28 @@
+# This script deploys your website automatically
+name: deploy-demo
+
+# Only trigger this script when you push to the master branch
+on:
+  push:
+    branches: [ main ]
+
+# Specify the tasks to run when this script gets triggered
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Download our master branch
+    steps:
+    - uses: actions/checkout@v2
+
+    # Executa npm install
+    - name: instala dependências
+      run: npm install
+    
+    # Executa npm install
+    - name: executa testes unitários
+      run: npm test
+      
+    # Executa o deploy da aplicação demo
+    - name: Deploy da aplicação demo em gh-pages
+      run: npm run deploy:demo
