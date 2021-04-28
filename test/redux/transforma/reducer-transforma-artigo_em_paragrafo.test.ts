@@ -51,8 +51,8 @@ describe('Testando a transformação de artigo em parágrafo', () => {
       it('Deveria apresentar o parágrafo do artigo para onde foi copiado o artigo como parágrafo e os artigos seguintes no array de elementos no evento de ElementoRenumerado', () => {
         const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
         expect(renumerados.elementos!.length).equal(2);
-        expect(renumerados.elementos![0].rotulo).equal('Art. 4º');
-        expect(renumerados.elementos![1].rotulo).equal('§ 1º');
+        expect(renumerados.elementos![0].rotulo).equal('§ 1º');
+        expect(renumerados.elementos![1].rotulo).equal('Art. 4º');
       });
       it('Deveria apresentar os elementos transformados no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
@@ -109,8 +109,8 @@ describe('Testando a transformação de artigo em parágrafo', () => {
         it('Deveria apresentar o parágrafo do artigo para onde foi copiado o artigo como parágrafo e o artigo seguinte no array de elementos no evento de ElementoRenumerado', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
           expect(renumerados.elementos!.length).equal(2);
-          expect(renumerados.elementos![0].rotulo).equal('Art. 5º');
-          expect(renumerados.elementos![1].rotulo).equal('Parágrafo único.');
+          expect(renumerados.elementos![0].rotulo).equal('Parágrafo único.');
+          expect(renumerados.elementos![1].rotulo).equal('Art. 5º');
         });
       });
       describe('Testando Redo', () => {
@@ -140,8 +140,8 @@ describe('Testando a transformação de artigo em parágrafo', () => {
           it('Deveria apresentar o parágrafo do artigo para onde foi copiado o artigo como parágrafo e os artigos seguintes no array de elementos no evento de ElementoRenumerado', () => {
             const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
             expect(renumerados.elementos!.length).equal(2);
-            expect(renumerados.elementos![0].rotulo).equal('Art. 4º');
-            expect(renumerados.elementos![1].rotulo).equal('§ 1º');
+            expect(renumerados.elementos![0].rotulo).equal('§ 1º');
+            expect(renumerados.elementos![1].rotulo).equal('Art. 4º');
           });
           it('Deveria apresentar os elementos transformados no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);

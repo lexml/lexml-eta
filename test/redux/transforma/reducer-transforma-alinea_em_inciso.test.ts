@@ -90,10 +90,10 @@ describe('Testando a transformação de alínea em inciso', () => {
         it('Deveria apresentar a outra alinea e o último inciso no array de elementos no evento de ElementoRenumerado', () => {
           const renumerado = getEvento(state.ui.events, StateType.ElementoRenumerado);
           expect(renumerado.elementos!.length).equal(2);
-          expect(renumerado.elementos![0].rotulo).equal('b)');
-          expect(renumerado.elementos![0].conteudo?.texto).to.equal('texto da alinea 2 do inciso 1 do caput do artigo 2:');
-          expect(renumerado.elementos![1].rotulo).equal('II –');
-          expect(renumerado.elementos![1].conteudo?.texto).to.equal('texto do inciso II do caput do Artigo 2.');
+          expect(renumerado.elementos![0].rotulo).equal('II –');
+          expect(renumerado.elementos![0].conteudo?.texto).to.equal('texto do inciso II do caput do Artigo 2.');
+          expect(renumerado.elementos![1].rotulo).equal('b)');
+          expect(renumerado.elementos![1].conteudo?.texto).to.equal('texto da alinea 2 do inciso 1 do caput do artigo 2:');
         });
       });
       describe('Testando Redo', () => {
@@ -130,10 +130,10 @@ describe('Testando a transformação de alínea em inciso', () => {
           it('Deveria apresentar a outra alinea e o último inciso no array de elementos no evento de ElementoRenumerado', () => {
             const renumerado = getEvento(state.ui.events, StateType.ElementoRenumerado);
             expect(renumerado.elementos!.length).equal(2);
-            expect(renumerado.elementos![0].rotulo).equal('a)');
-            expect(renumerado.elementos![0].conteudo?.texto).to.equal('texto da alinea 2 do inciso 1 do caput do artigo 2:');
-            expect(renumerado.elementos![1].rotulo).equal('III –');
-            expect(renumerado.elementos![1].conteudo?.texto).to.equal('texto do inciso II do caput do Artigo 2.');
+            expect(renumerado.elementos![0].rotulo).equal('III –');
+            expect(renumerado.elementos![0].conteudo?.texto).to.equal('texto do inciso II do caput do Artigo 2.');
+            expect(renumerado.elementos![1].rotulo).equal('a)');
+            expect(renumerado.elementos![1].conteudo?.texto).to.equal('texto da alinea 2 do inciso 1 do caput do artigo 2:');
           });
         });
       });

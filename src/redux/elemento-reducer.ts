@@ -283,7 +283,7 @@ export const modificaTipoElemento = (state: any, action: any): ElementoState => 
 
   const novoRenumerados = listaDispositivosRenumerados(novo);
 
-  const renumerados = atualRenumerados.concat(novoRenumerados);
+  const renumerados = novoRenumerados.concat(atualRenumerados);
 
   const validados = getElementosDoDispositivo(novo, true);
 
