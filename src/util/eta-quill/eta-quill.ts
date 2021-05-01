@@ -79,7 +79,7 @@ export class EtaQuill extends Quill {
   // Utilizado no modulo keyboard para anular eventos subrepostos durante o
   // processamento da mudança de elemento atual. Isso acontece quando o usuário
   // aperta as teclas que provocam a mudança de elemento muito rápido
-  // (tab, shift + tab, ArrowDown e ArrowUp).
+  // (ArrowDown e ArrowUp).
   private _processandoMudancaLinha = false;
   get isProcessandoMudancaLinha(): boolean {
     return this._processandoMudancaLinha;

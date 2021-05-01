@@ -12,6 +12,7 @@ export class EtaKeyboard extends Keyboard {
   operacaoTecladoInvalida: Observable<void> = new Observable<void>();
   adicionaElementoTeclaEnter: Observable<RangeStatic> = new Observable<RangeStatic>();
   removeElemento: Observable<void> = new Observable<void>();
+  transformaElemento: Observable<boolean> = new Observable<boolean>();
 
   constructor(quill: EtaQuill, options: any) {
     super(quill, options);
@@ -149,25 +150,6 @@ export class EtaKeyboard extends Keyboard {
     }
   }
 
-  private onTeclaTab(ev: KeyboardEvent): void {
-    if (!this.quill.isProcessandoMudancaLinha) {
-      if (ev.shiftKey) {
-        const linhaAnt: EtaContainerTable = this.quill.linhaAtual.prev;
-        if (linhaAnt) {
-          const index: number = this.quill.getIndex(linhaAnt.blotConteudo);
-          this.quill.setIndex(index, Quill.sources.USER);
-        }
-      } else {
-        const proxLinha: EtaContainerTable = this.quill.linhaAtual.next;
-        if (proxLinha) {
-          const index: number = this.quill.getIndex(proxLinha.blotConteudo);
-          this.quill.setIndex(index, Quill.sources.USER);
-        }
-      }
-    }
-    cancelarPropagacaoDoEvento(ev);
-  }
-
   private onTeclaHome(ev: KeyboardEvent): void {
     const index: number = this.quill.getIndex(this.quill.getPrimeiraLinha().blotConteudo);
     this.quill.setIndex(index, Quill.sources.USER);
@@ -184,6 +166,11 @@ export class EtaKeyboard extends Keyboard {
 
   private onTeclaCtrlD(ev: KeyboardEvent): void {
     this.removeElemento.notify();
+    cancelarPropagacaoDoEvento(ev);
+  }
+
+  private onTeclaTab(ev: KeyboardEvent): void {
+    this.transformaElemento.notify(ev.shiftKey);
     cancelarPropagacaoDoEvento(ev);
   }
 

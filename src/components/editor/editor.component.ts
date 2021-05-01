@@ -1,6 +1,7 @@
 import { customElement, html, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
+
 import { Elemento } from '../../model/elemento';
 import {
   addElementoAction,
@@ -329,6 +330,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
+  private transformarElemento(shiftKey: boolean): void {
+    if (shiftKey) {
+      console.log('Tecla TAB');
+    } else {
+      console.log('Teclas Shift+TAB');
+    }
+  }
+
   private elementoSelecionado(uuid: number): void {
     const elemento: Elemento = this.criarElemento(uuid, '', '');
     rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
@@ -557,6 +566,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.removeElemento.subscribe(this.removerElemento.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
   }

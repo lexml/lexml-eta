@@ -113,6 +113,7 @@ declare interface KeyboardStatic {
   operacaoTecladoInvalida: any;
   adicionaElementoTeclaEnter: any;
   removeElemento: any;
+  transformaElemento: any;
   verificarOperacaoTecladoPermitida: any;
   onBold: any;
   onItalic: any;
