@@ -332,9 +332,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private transformarElemento(shiftKey: boolean): void {
     if (shiftKey) {
-      console.log('Tecla TAB');
-    } else {
+      // rootStore.dispatch(elementoShiftTabActionexecute(elemento));
       console.log('Teclas Shift+TAB');
+    } else {
+      // rootStore.dispatch(elementoShiftTabActionexecute(elemento));
+      console.log('Tecla TAB');
     }
   }
 
