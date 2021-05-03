@@ -1,7 +1,6 @@
 import { customElement, html, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
-
 import { Elemento } from '../../model/elemento';
 import {
   addElementoAction,
@@ -11,6 +10,8 @@ import {
   isAcaoMenu,
   RedoAction,
   removeElementoAction,
+  shiftTabAction,
+  tabAction,
   UndoAction,
   updateElementoAction,
   validateElementoAction,
@@ -331,12 +332,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private transformarElemento(shiftKey: boolean): void {
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+    const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+    const textoLinha = blotConteudo.html;
+
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha);
     if (shiftKey) {
-      // rootStore.dispatch(elementoShiftTabActionexecute(elemento));
-      console.log('Teclas Shift+TAB');
+      rootStore.dispatch(shiftTabAction(elemento));
     } else {
-      // rootStore.dispatch(elementoShiftTabActionexecute(elemento));
-      console.log('Tecla TAB');
+      rootStore.dispatch(tabAction(elemento));
     }
   }
 

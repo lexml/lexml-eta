@@ -9,6 +9,10 @@ export const REMOVE_ELEMENTO = 'REMOVE_ELEMENTO';
 export const UPDATE_ELEMENTO = 'UPDATE_ELEMENTO';
 export const VALIDA_ELEMENTO = 'VALIDA_ELEMENTO';
 export const ELEMENTO_SELECIONADO = 'ELEMENTO_SELECIONADO';
+
+export const TAB = 'TAB';
+export const SHIFT_TAB = 'SHIFT_TAB';
+
 export const UNDO = 'UNDO';
 export const REDO = 'REDO';
 
@@ -129,6 +133,20 @@ class AtualizaElemento extends ElementoAbstractAction {
     };
   }
 }
+
+export const shiftTabAction = (atual: Referencia): any => {
+  return {
+    type: SHIFT_TAB,
+    atual,
+  };
+};
+
+export const tabAction = (atual: Referencia): any => {
+  return {
+    type: TAB,
+    atual,
+  };
+};
 
 export const UndoAction = (): any => {
   return {

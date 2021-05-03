@@ -2,6 +2,7 @@ import { Articulacao } from '../model/dispositivo/dispositivo';
 import { isAgrupador, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
+import { getAcaoPossivelShift, getAcaoPossivelShiftTab } from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import { getDispositivoAnterior, isArtigoUnico, isParagrafoUnico } from '../model/lexml/hierarquia/hierarquia-util';
@@ -9,12 +10,15 @@ import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
 import {
   ADD_ELEMENTO,
+  ChangeElemento,
   CHANGE_ELEMENTO,
   ELEMENTO_SELECIONADO,
   NOVA_ARTICULACAO,
   OPEN_ARTICULACAO,
   REDO,
   REMOVE_ELEMENTO,
+  SHIFT_TAB,
+  TAB,
   UNDO,
   UPDATE_ELEMENTO,
   VALIDA_ELEMENTO,
@@ -309,14 +313,36 @@ export const modificaTipoElemento = (state: any, action: any): ElementoState => 
   };
 };
 
+export const transformaDispositivoWithTab = (state: any, action: any): ElementoState => {
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+
+  if (atual === undefined) {
+    throw new Error('Elemento não encontrado');
+  }
+  const acao = action.type === TAB ? getAcaoPossivelShift(atual) : getAcaoPossivelShiftTab(atual);
+
+  if (!acao) {
+    return state;
+  }
+
+  const newAction = {
+    type: CHANGE_ELEMENTO,
+    subType: (acao as ChangeElemento).nomeAcao,
+    atual,
+    novo: {
+      tipo: acao.tipo,
+    },
+  };
+
+  return modificaTipoElemento(state, newAction);
+};
+
 const buildRenumeradosValidadosUndoRedo = (state: any, eventos: StateEvent[], renumerados: Elemento[], retorno: ElementoState): void => {
   if (renumerados.length > 0) {
     let r = retorno.ui?.events.filter((evento: StateEvent) => evento.stateType === StateType.ElementoRenumerado)[0];
 
     renumerados.forEach((element: Elemento) => {
-      //   if (!eventoContem(getEvento(eventos, StateType.ElementoIncluido), element)) {
       const d = getDispositivoFromElemento(state.articulacao, element);
-      //    if (d) {
       const el = createElemento(d!);
       if (!r) {
         retorno.ui?.events.push({ stateType: StateType.ElementoRenumerado, elementos: [] });
@@ -325,8 +351,6 @@ const buildRenumeradosValidadosUndoRedo = (state: any, eventos: StateEvent[], re
       if (r?.elementos?.length === 0 || r?.elementos?.filter((e: Elemento) => e.uuid === el.uuid).length === 0) {
         r?.elementos?.push(el);
       }
-      //   }
-      //   }
     });
   }
 
@@ -470,6 +494,9 @@ export const elementoReducer = (state = {}, action: any): any => {
       return redo(state);
     case REMOVE_ELEMENTO:
       return removeElemento(state, action);
+    case SHIFT_TAB:
+    case TAB:
+      return transformaDispositivoWithTab(state, action);
     case UNDO:
       return undo(state);
     case UPDATE_ELEMENTO:

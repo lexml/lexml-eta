@@ -51,8 +51,8 @@ export class HelpComponent extends LitElement {
       <div class="lx-eta-help">
         <button class="lx-eta-helpbtn">&quest;</button>
         <div class="lx-eta-help-content">
-          <div><b>tab</b>&nbsp;-&nbsp;Vai para o próximo dispositivo</div>
-          <div><b>shift-tab</b>&nbsp;-&nbsp;Vai para o dispositivo anterior</div>
+          <div><b>tab</b>&nbsp;-&nbsp;Indenta para a direita o dispositivo, transformando-o no tipo mais provável</div>
+          <div><b>shift-tab</b>&nbsp;-&nbsp;Recua o dispositivo para a esquerda, transformando-o no tipo mais provável</div>
           <div><b>ctrl-home</b>&nbsp;-&nbsp;Vai para o primeiro dispositivo</div>
           <div><b>ctrl-end</b>&nbsp;-&nbsp;Vai para o último dispositivo</div>
           <div><b>enter</b>&nbsp;-&nbsp;Finaliza a edição do dispositivo atual e cria um novo</div>

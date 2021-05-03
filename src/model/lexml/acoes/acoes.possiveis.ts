@@ -1,6 +1,7 @@
 import {
   acoesPossiveisDispositivo,
   addElementoAction,
+  ChangeElemento,
   ElementoAction,
   transformaAlineaEmInciso,
   transformaAlineaEmItem,
@@ -56,4 +57,23 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   return acoes.filter((acao: ElementoAction): boolean => {
     return acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo';
   });
+};
+
+export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction | undefined => {
+  if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
+    return undefined;
+  }
+  return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {
+    const acao = 'transforma' + dispositivo.tipo + 'Em' + tipoPermitido;
+    return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao && a.nomeAcao === acao)[0];
+  })[0];
+};
+
+export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoAction | undefined => {
+  if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
+    return undefined;
+  }
+
+  const acao = 'transforma' + dispositivo.tipo + 'Em' + dispositivo.pai!.tipo;
+  return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao && a.nomeAcao === acao)[0];
 };
