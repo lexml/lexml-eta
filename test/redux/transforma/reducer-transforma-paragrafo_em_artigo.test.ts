@@ -177,7 +177,6 @@ describe('Testando a transformação de parágrafo em artigo', () => {
       it('Deveria apresentar o parágrafo remanescente do artigo 1 e os artigos seguintes no array de elementos no evento de ElementoRenumerado', () => {
         const renumerado = getEvento(state.ui.events, StateType.ElementoRenumerado);
         expect(renumerado.elementos!.length).equal(3);
-        console.log(renumerado.elementos);
         expect(renumerado.elementos![0].rotulo).equal('Art. 3º');
         expect(renumerado.elementos![0].conteudo?.texto).to.equal('Texto do caput do Artigo 2 que possui DOIS incisos e um parágrafo único:');
         expect(renumerado.elementos![1].rotulo).equal('Art. 4º');
