@@ -21,6 +21,7 @@ import {
   SubsecaoLexml,
   TituloLexml,
 } from '../dispositivo/dispositivo-lexml';
+import { TipoMensagem } from '../util/mensagem';
 
 export class DispositivoLexmlFactory {
   static createArticulacao(): Articulacao {
@@ -88,6 +89,8 @@ export class DispositivoLexmlFactory {
         break;
       default: {
         dispositivo = parent && isAgrupador(parent) ? new DispositivoAgrupadorGenericoLexml('agrupadorGenerico') : new DispositivoGenericoLexml('generico');
+        dispositivo.mensagens = [];
+        dispositivo.mensagens.push({ tipo: TipoMensagem.WARNING, descricao: 'Não foi possível validar a natureza deste dispositivo com base na legislação vigente' });
       }
     }
 
