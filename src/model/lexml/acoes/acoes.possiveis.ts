@@ -10,6 +10,8 @@ import {
   transformaIncisoEmParagrafo,
   transformaItemEmAlinea,
   transformaParagrafoEmArtigo,
+  transformaParagrafoEmInciso,
+  transformaParagrafoEmIncisoCaput,
 } from '../../../redux/elemento-actions';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isAlinea, isArtigo, isInciso, isIncisoCaput, isItem, isParagrafo } from '../../dispositivo/tipo';
@@ -37,6 +39,12 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
   if (isItem(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformaItemEmAlinea);
+  }
+  if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
+    acoes.push(transformaParagrafoEmIncisoCaput);
+  }
+  if (isParagrafo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+    acoes.push(transformaParagrafoEmInciso);
   }
   if (isParagrafo(dispositivo) && isLastMesmoTipo(dispositivo)) {
     acoes.push(transformaParagrafoEmArtigo);

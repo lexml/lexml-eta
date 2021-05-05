@@ -26,8 +26,13 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
   switch (action.subType) {
     case 'transformaAlineaEmItem':
     case 'transformaIncisoEmAlinea':
+    case 'transformaParagrafoEmInciso':
       paiNovo = getDispositivoAnterior(atual)!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo);
+      break;
+    case 'transformaParagrafoEmIncisoCaput':
+      paiNovo = paiAtual!;
+      novo = DispositivoLexmlFactory.create(action.novo.tipo, (paiNovo as Artigo).caput!);
       break;
     case 'transformaArtigoEmParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
@@ -43,7 +48,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
 
   paiAtual?.removeFilho(atual);
   paiAtual?.renumeraFilhos();
-  paiNovo.renumeraFilhos();
+  paiNovo?.renumeraFilhos();
   converteFilhos(atual, novo!);
 
   return novo!;
