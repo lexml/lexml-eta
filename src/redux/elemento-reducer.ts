@@ -40,16 +40,7 @@ import {
   textoFoiModificado,
   validaDispositivosAfins,
 } from './elemento-reducer-util';
-import { StateEvent, StateType } from './state';
-
-export interface ElementoState {
-  articulacao?: Articulacao;
-  past?: StateEvent[];
-  future?: StateEvent[];
-  ui?: {
-    events: StateEvent[];
-  };
-}
+import { ElementoState, StateEvent, StateType } from './state';
 
 export const adicionaElemento = (state: any, action: any): ElementoState => {
   let textoModificado = false;
