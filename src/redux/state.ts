@@ -1,5 +1,6 @@
 import { Articulacao } from '../model/dispositivo/dispositivo';
 import { Elemento } from '../model/elemento';
+import { Mensagem } from '../model/lexml/util/mensagem';
 
 export enum StateType {
   DocumentoCarregado,
@@ -24,6 +25,7 @@ export interface ElementoState {
   future?: StateEvent[];
   ui?: {
     events: StateEvent[];
+    message?: Mensagem;
   };
 }
 

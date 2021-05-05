@@ -26,7 +26,7 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
       expect(state.articulacao.artigos.length).to.equal(4);
     });
     it('Deveria apresentar evento vazio', () => {
-      expect(state.ui).to.be.undefined;
+      expect(state.ui?.message.descricao).to.be.equal('Nessa situação, não é possível mudar o tipo do dispositivo com Tab');
     });
   });
   describe('Quando se tratar do segundo artigo', () => {

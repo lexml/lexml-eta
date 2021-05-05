@@ -8,6 +8,7 @@ import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexm
 import { getDispositivoAnterior, isArtigoUnico, isParagrafoUnico } from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
+import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
 import {
   ADD_ELEMENTO,
   ChangeElemento,
@@ -64,8 +65,12 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     textoModificado = true;
   }
 
-  if (naoPodeCriarFilho(atual) || isAgrupador(atual)) {
-    return state;
+  if (naoPodeCriarFilho(atual)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
+  }
+
+  if (isAgrupador(atual)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos a partir de agrupadores' });
   }
 
   const novo = DispositivoLexmlFactory.createFilhoByReferencia(atual);
@@ -156,6 +161,18 @@ export const validaElemento = (state: any, action: any): ElementoState => {
     future: state.future,
     ui: {
       events,
+    },
+  };
+};
+
+export const retornaEstadoAtualComMensagem = (state: any, mensagem: Mensagem): ElementoState => {
+  return {
+    articulacao: state.articulacao,
+    past: state.past,
+    future: state.future,
+    ui: {
+      events: state.ui?.events,
+      message: mensagem,
     },
   };
 };
@@ -313,7 +330,7 @@ export const transformaDispositivoWithTab = (state: any, action: any): ElementoS
   const acao = action.type === TAB ? getAcaoPossivelShift(atual) : getAcaoPossivelShiftTab(atual);
 
   if (!acao) {
-    return state;
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo com Tab' });
   }
 
   const newAction = {

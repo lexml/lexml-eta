@@ -60,6 +60,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill!.redoEstruturaVazio = (state.elementoReducer.future ?? []).length === 0;
 
     if (state.elementoReducer.ui) {
+      state.elementoReducer.ui.message ? this.alertar(state.elementoReducer.ui.message.descricao) : undefined;
       this.processarStateEvents(state.elementoReducer.ui.events);
     }
   }
