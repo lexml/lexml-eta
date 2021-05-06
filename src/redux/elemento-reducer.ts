@@ -1,7 +1,14 @@
-import { Articulacao } from '../model/dispositivo/dispositivo';
+import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { isAgrupador, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
-import { createElemento, createElementos, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
+import {
+  createElemento,
+  createElementos,
+  criaElementoValidadoSeNecessario,
+  getDispositivoFromElemento,
+  getElementos,
+  listaDispositivosRenumerados,
+} from '../model/elemento/elemento-util';
 import { getAcaoPossivelShift, getAcaoPossivelShiftTab } from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
@@ -22,6 +29,7 @@ import {
   TAB,
   UNDO,
   UPDATE_ELEMENTO,
+  VALIDA_ARTICULACAO,
   VALIDA_ELEMENTO,
 } from './elemento-actions';
 import {
@@ -125,6 +133,34 @@ export const selecionaElemento = (state: any, action: any): ElementoState => {
     {
       stateType: StateType.ElementoSelecionado,
       elementos: [elemento],
+    },
+  ];
+
+  return {
+    articulacao: state.articulacao,
+    past: state.past,
+    future: state.future,
+    ui: {
+      events,
+    },
+  };
+};
+
+const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void => {
+  filhos.forEach(filho => {
+    criaElementoValidadoSeNecessario(validados, filho);
+    filhos ? validaFilhos(validados, filho.filhos) : undefined;
+  });
+};
+
+export const validaArticulacao = (state: any): ElementoState => {
+  const elementos: Elemento[] = [];
+  validaFilhos(elementos, state.articulacao.filhos);
+
+  const events = [
+    {
+      stateType: StateType.ElementoValidado,
+      elementos: elementos,
     },
   ];
 
@@ -511,6 +547,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return atualizaElemento(state, action);
     case VALIDA_ELEMENTO:
       return validaElemento(state, action);
+    case VALIDA_ARTICULACAO:
+      return validaArticulacao(state);
     default:
       return state;
   }

@@ -7,6 +7,7 @@ export const NOVA_ARTICULACAO = 'NOVA_ARTICULACAO';
 export const OPEN_ARTICULACAO = 'OPEN_ARTICULACAO';
 export const REMOVE_ELEMENTO = 'REMOVE_ELEMENTO';
 export const UPDATE_ELEMENTO = 'UPDATE_ELEMENTO';
+export const VALIDA_ARTICULACAO = 'VALIDA_ARTICULACAO';
 export const VALIDA_ELEMENTO = 'VALIDA_ELEMENTO';
 export const ELEMENTO_SELECIONADO = 'ELEMENTO_SELECIONADO';
 
@@ -105,6 +106,18 @@ class ElementoSelecionado extends ElementoAbstractAction {
   }
 }
 
+class ValidaArticulacao extends ElementoAbstractAction {
+  constructor() {
+    super();
+    this.descricao = 'Articulação validada';
+  }
+
+  execute(): any {
+    return {
+      type: VALIDA_ARTICULACAO,
+    };
+  }
+}
 class ValidaElemento extends ElementoAbstractAction {
   constructor() {
     super();
@@ -195,6 +208,7 @@ export const addElementoAction = new AddElemento();
 export const removeElementoAction = new RemoveElemento();
 export const updateElementoAction = new AtualizaElemento();
 export const validateElementoAction = new ValidaElemento();
+export const validaArticulacaAction = new ValidaArticulacao();
 
 export const acoesPossiveisDispositivo = [addElementoAction, removeElementoAction, updateElementoAction];
 
@@ -222,7 +236,7 @@ const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(addElementoAction);
 acoesExclusivasEdicao.push(updateElementoAction);
 
-export const acoesDisponiveis = [...acoesMenu, ...acoesExclusivasEdicao];
+export const acoesDisponiveis = [...acoesMenu, ...acoesExclusivasEdicao, validaArticulacaAction];
 
 export const getAcao = (descricao: string): ElementoAction => {
   return acoesDisponiveis.filter(acao => acao.descricao === descricao.trim())[0];

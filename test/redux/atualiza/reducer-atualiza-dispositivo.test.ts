@@ -9,7 +9,7 @@ import { EXEMPLO_SEM_AGRUPADORES } from '../../doc/exemplo-sem-agrupadores';
 
 let state: any;
 
-describe('Testando a atualização de texto artigos e dispositivos de artigo', () => {
+describe('Testando a validação da articulação', () => {
   beforeEach(function () {
     const articulacao = ArticulacaoParser.load(EXEMPLO_SEM_AGRUPADORES);
     articulacao.renumeraArtigos();

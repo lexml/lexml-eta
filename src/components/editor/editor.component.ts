@@ -15,6 +15,7 @@ import {
   tabAction,
   UndoAction,
   updateElementoAction,
+  validaArticulacaAction,
   validateElementoAction,
 } from '../../redux/elemento-actions';
 import { StateEvent, StateType } from '../../redux/state';
@@ -216,6 +217,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)"><i class="fa fa-undo"></i></button>
           <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)"><i class="fa fa-undo lx-eta-rebate-180-graus"></i></button>
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
+          <button @click=${this.onClickValidacao} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Valida Articulação">Valida</button>
           <lexml-eta-help style="float:right;"></lexml-eta-help>
         </div>
         <div id="lx-eta-editor"></div>
@@ -238,6 +240,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private onClickDispositivoAtual(): void {
     this.quill.setSelection(this.quill.getIndex(this.quill.linhaAtual.blotConteudo), 0, Quill.sources.SILENT);
     this.quill.focus();
+  }
+
+  private onClickValidacao(): void {
+    rootStore.dispatch(validaArticulacaAction.execute());
   }
 
   private onSelectionChange: SelectionChangeHandler = (): void => {
