@@ -13,7 +13,7 @@ export class EtaBlotMensagem extends EtaBlot {
     if (mensagem.tipo === TipoMensagem.INFO) {
       cor = 'green';
     } else if (mensagem.tipo === TipoMensagem.WARNING) {
-      cor = '#afaf08';
+      cor = 'tomato';
     } else {
       cor = 'red';
     }

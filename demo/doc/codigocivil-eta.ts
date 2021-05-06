@@ -68,7 +68,7 @@ export const EXEMPLO_CC = {
                         Caput: {
                           '@id': 'art4_cpt',
                           p: 'São incapazes, relativamente a certos atos, ou à maneira de os exercer:',
-                          Inciso: [
+                          Incisio: [
                             {
                               '@id': 'art4_cpt_inc1',
                               Rotulo: 'I –',

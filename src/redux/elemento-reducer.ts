@@ -330,7 +330,7 @@ export const transformaDispositivoWithTab = (state: any, action: any): ElementoS
   const acao = action.type === TAB ? getAcaoPossivelShift(atual) : getAcaoPossivelShiftTab(atual);
 
   if (!acao) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo com Tab' });
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });
   }
 
   const newAction = {

@@ -1,6 +1,7 @@
 import { customElement, html, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
+import { TipoDispositivo } from '../../model/dispositivo/tipo';
 import { Elemento } from '../../model/elemento';
 import {
   addElementoAction,
@@ -583,6 +584,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.getLine(0)[0].remove();
       elementos.map((elemento: Elemento) => {
         EtaQuillUtil.criarContainerLinha(elemento).insertInto(this.quill.scroll);
+        elemento.tipo === TipoDispositivo.generico.tipo ? rootStore.dispatch(validateElementoAction.execute(elemento)) : undefined;
       });
       this.quill.limparHistory();
       setTimeout(() => {
