@@ -149,11 +149,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         .lx-eta-dropbtn {
           background-color: #ffffff;
-          font-size: 1.1em;
           color: #444444;
           width: 26px;
-          height: 22px;
-          font-size: 1.1em;
           font-weight: bold;
           vertical-align: middle;
           border: none;
