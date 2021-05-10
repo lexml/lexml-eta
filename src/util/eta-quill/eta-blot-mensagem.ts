@@ -11,9 +11,9 @@ export class EtaBlotMensagem extends EtaBlot {
     let cor = '';
 
     if (mensagem.tipo === TipoMensagem.INFO) {
-      cor = 'green';
+      cor = '#337DFF';
     } else if (mensagem.tipo === TipoMensagem.WARNING) {
-      cor = 'tomato';
+      cor = '#FF7433';
     } else {
       cor = 'red';
     }

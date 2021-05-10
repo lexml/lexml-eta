@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { isDispositivoGenerico } from '../../dispositivo/tipo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 
 const isRotuloConsistente = (dispositivo: Dispositivo): boolean => {
@@ -29,7 +30,7 @@ export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
       descricao: 'O dispositivo não contém rótulo',
     });
   }
-  if (dispositivo !== null && dispositivo.rotulo && !isRotuloConsistente(dispositivo)) {
+  if (dispositivo !== null && !isDispositivoGenerico(dispositivo) && dispositivo.rotulo && !isRotuloConsistente(dispositivo)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O rótulo informado não é consistente com a regra de formação de rótulo para este dispositivo',

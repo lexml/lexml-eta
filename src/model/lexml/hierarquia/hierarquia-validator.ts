@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupadorGenerico, isDispositivoGenerico } from '../../dispositivo/tipo';
+import { isDispositivoGenerico } from '../../dispositivo/tipo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 
 export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
@@ -24,7 +24,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   }
   if (dispositivo !== null && dispositivo.pai && !isDispositivoGenerico(dispositivo) && !dispositivo.tiposPermitidosPai!.includes(dispositivo.pai.tipo)) {
     mensagens.push({
-      tipo: isAgrupadorGenerico(dispositivo.pai) ? TipoMensagem.ERROR : TipoMensagem.WARNING,
+      tipo: TipoMensagem.ERROR,
       descricao: `Segundo a Legislação vigente, ${dispositivo.descricao} somente poderia pertencer a ${dispositivo.tiposPermitidosPai!.join(', ')}`,
     });
   }
