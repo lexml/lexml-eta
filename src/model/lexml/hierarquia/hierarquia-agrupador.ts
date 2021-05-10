@@ -1,7 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
-import { getArticulacao } from './hierarquia-util';
+import { getArticulacao, getDispositivoAnterior } from './hierarquia-util';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -20,7 +20,12 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
       this.filhos.splice(posicao, 0, filho);
-      isArtigo(filho) ? getArticulacao(filho).addArtigoOnPosition(filho, posicao) : null;
+      if (isArtigo(filho)) {
+        const anterior = getDispositivoAnterior(filho);
+        const articulacao = getArticulacao(filho);
+        const pos = anterior ? articulacao.indexOfArtigo(anterior as Artigo) + 1 : 0;
+        articulacao.addArtigoOnPosition(filho, pos);
+      }
     }
 
     hasArtigos(): boolean {

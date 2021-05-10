@@ -80,7 +80,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
         it('Deveria apresentar o antigo artigo e seus filhos', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
           expect(incluido.elementos!.length).equal(11);
-          expect(incluido.elementos![0].rotulo).to.equal('Art. 2º');
+          expect(incluido.elementos![0].rotulo).to.equal('Art. 4º');
           expect(incluido.elementos![1].rotulo).to.equal('I –');
           expect(incluido.elementos![2].rotulo).to.equal('a)');
           expect(incluido.elementos![3].rotulo).to.equal('b)');
