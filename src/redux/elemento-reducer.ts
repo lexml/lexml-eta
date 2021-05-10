@@ -57,7 +57,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (atual === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
 
   const originalmenteUnico = isArtigoUnico(atual) || isParagrafoUnico(atual);
@@ -181,7 +181,7 @@ export const validaElemento = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  validaDispositivo(atual);
+  atual.mensagens = validaDispositivo(atual);
   const elemento = createElemento(atual, true);
 
   const events = [
@@ -217,7 +217,7 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (dispositivo === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
@@ -244,7 +244,7 @@ const redoIncludedElements = (state: any, evento: StateEvent): StateEvent[] => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, elemento);
 
   if (dispositivo === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
 
   return removeAndBuildEvents(state.articulacao, dispositivo);
@@ -277,7 +277,7 @@ const redoModifiedElements = (state: any, evento: StateEvent): StateEvent[] => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, evento.elementos[0]);
 
   if (dispositivo === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
 
   dispositivo.texto = evento.elementos[0].conteudo?.texto ?? '';
@@ -301,7 +301,7 @@ export const removeElemento = (state: any, action: any): ElementoState => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (dispositivo === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
 
   const events = removeAndBuildEvents(state.articulacao, dispositivo);
@@ -320,7 +320,7 @@ export const modificaTipoElemento = (state: any, action: any): ElementoState => 
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (atual === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
 
   const removidos = [...getElementos(atual)];
@@ -361,7 +361,7 @@ export const transformaDispositivoWithTab = (state: any, action: any): ElementoS
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (atual === undefined) {
-    throw new Error('Elemento não encontrado');
+    return state;
   }
   const acao = action.type === TAB ? getAcaoPossivelShift(atual) : getAcaoPossivelShiftTab(atual);
 
