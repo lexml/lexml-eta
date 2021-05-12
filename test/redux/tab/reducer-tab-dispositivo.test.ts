@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { SHIFT_TAB, TAB } from '../../../src/redux/elemento-actions';
-import { transformaDispositivoWithTab } from '../../../src/redux/elemento-reducer';
+import { modificaTipoElementoWithTab } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
@@ -20,7 +20,7 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
   describe('Quando se tratar do primeiro artigo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
-      state = transformaDispositivoWithTab(state, { type: TAB, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
+      state = modificaTipoElementoWithTab(state, { type: TAB, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
     });
     it('não deveria fazer nada', () => {
       expect(state.articulacao.artigos.length).to.equal(4);
@@ -32,7 +32,7 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
   describe('Quando se tratar do segundo artigo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[1];
-      state = transformaDispositivoWithTab(state, { type: TAB, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
+      state = modificaTipoElementoWithTab(state, { type: TAB, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
     });
     it('Deveria apresentar um artigo a menos', () => {
       expect(state.articulacao.artigos.length).to.equal(3);
@@ -58,7 +58,7 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
     describe('Tornar o parágrafo em artigo novamente', () => {
       beforeEach(function () {
         const paragrafo = state.articulacao.artigos[0].filhos[1];
-        state = transformaDispositivoWithTab(state, { type: SHIFT_TAB, atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! } });
+        state = modificaTipoElementoWithTab(state, { type: SHIFT_TAB, atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! } });
       });
       it('deveria apresentar o parágrafo como artigo novamente', () => {
         expect(state.articulacao.artigos.length).to.equal(4);

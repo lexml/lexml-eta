@@ -3,6 +3,8 @@ import {
   addElementoAction,
   ChangeElemento,
   ElementoAction,
+  moverElementoAbaixo as moveElementoAbaixo,
+  moverElementoAcima as moveElementoAcima,
   transformaAlineaEmInciso,
   transformaAlineaEmItem,
   transformaArtigoEmParagrafo,
@@ -15,13 +17,20 @@ import {
   transformaParagrafoEmIncisoCaput,
 } from '../../../redux/elemento-actions';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isAlinea, isArtigo, isInciso, isIncisoCaput, isItem, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArtigo, isDispositivoGenerico, isInciso, isIncisoCaput, isItem, isParagrafo } from '../../dispositivo/tipo';
 import { isLastMesmoTipo, isPrimeiroMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
 
 export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   let acoes: ElementoAction[] = [];
 
   acoes.push(...acoesPossiveisDispositivo);
+
+  if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isLastMesmoTipo(dispositivo)) {
+    acoes.push(moveElementoAbaixo);
+  }
+  if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+    acoes.push(moveElementoAcima);
+  }
 
   if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformaAlineaEmInciso);
@@ -61,8 +70,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     }
   }
 
-  // TODO: Retirar esse Filter quando for implementado uma forma de identificar as ações
-  //       que podem ser adicionadas ao menu de contexto.
   return acoes.filter((acao: ElementoAction): boolean => {
     return acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo';
   });

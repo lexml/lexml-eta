@@ -84,6 +84,23 @@ export const getDispositivoAnterior = (dispositivo: Dispositivo): Dispositivo | 
   return pos > 0 ? dispositivo.pai!.filhos[pos - 1] : undefined;
 };
 
+export const getDispositivoAnteriorMesmoTipo = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const irmaos = irmaosMesmoTipo(dispositivo);
+  const pos = irmaos.indexOf(dispositivo);
+  return pos > 0 ? irmaos[pos - 1] : undefined;
+};
+
+export const getDispositivoPosterior = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+  return pos < dispositivo.pai!.filhos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
+};
+
+export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const irmaos = irmaosMesmoTipo(dispositivo);
+  const pos = irmaos.indexOf(dispositivo);
+  return pos < irmaos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
+};
+
 export const getDispositivosPosteriores = (dispositivo: Dispositivo, isExclusao = false): Dispositivo[] => {
   if (isArtigo(dispositivo)) {
     const articulacao = getArticulacao(dispositivo);

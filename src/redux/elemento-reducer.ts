@@ -12,7 +12,13 @@ import {
 import { getAcaoPossivelShift, getAcaoPossivelShiftTab } from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
-import { getDispositivoAnterior, isArtigoUnico, isParagrafoUnico } from '../model/lexml/hierarquia/hierarquia-util';
+import {
+  getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
+  getDispositivoPosteriorMesmoTipo,
+  isArtigoUnico,
+  isParagrafoUnico,
+} from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
 import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
@@ -21,6 +27,8 @@ import {
   ChangeElemento,
   CHANGE_ELEMENTO,
   ELEMENTO_SELECIONADO,
+  MOVER_ELEMENTO_ABAIXO,
+  MOVER_ELEMENTO_ACIMA,
   NOVA_ARTICULACAO,
   OPEN_ARTICULACAO,
   REDO,
@@ -33,6 +41,7 @@ import {
   VALIDA_ELEMENTO,
 } from './elemento-actions';
 import {
+  ajustaReferencia,
   buildEventoAdicionarElemento,
   buildEventoAtualizacaoElemento,
   buildEventoTransformacaooElemento,
@@ -49,6 +58,7 @@ import {
   textoFoiModificado,
   validaDispositivosAfins,
 } from './elemento-reducer-util';
+import { Eventos } from './eventos';
 import { ElementoState, StateEvent, StateType } from './state';
 
 export const adicionaElemento = (state: any, action: any): ElementoState => {
@@ -316,6 +326,106 @@ export const removeElemento = (state: any, action: any): ElementoState => {
   };
 };
 
+export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+
+  if (atual === undefined) {
+    return state;
+  }
+
+  const proximo = getDispositivoPosteriorMesmoTipo(atual);
+
+  if (proximo === undefined) {
+    return state;
+  }
+
+  const removidos = [...getElementos(atual), ...getElementos(proximo)];
+  const renumerados = listaDispositivosRenumerados(proximo);
+
+  const pai = atual.pai!;
+  const pos = pai.indexOf(atual);
+  pai.removeFilho(atual);
+  pai.removeFilho(proximo);
+
+  const um = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos);
+  um.texto = proximo.texto;
+
+  const outro = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos + 1);
+  outro.texto = action.atual.conteudo.texto;
+
+  pai.renumeraFilhos();
+
+  const referencia = pos === 0 ? pai : getDispositivoAnterior(um);
+
+  const eventos = new Eventos();
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
+  eventos.add(StateType.ElementoIncluido, getElementos(um).concat(getElementos(outro)));
+  eventos.add(StateType.ElementoRemovido, removidos);
+  eventos.add(
+    StateType.ElementoRenumerado,
+    renumerados.map(r => createElemento(r))
+  );
+
+  return {
+    articulacao: state.articulacao,
+    past: buildPast(state, eventos.build()),
+    future: state.future,
+    ui: {
+      events: eventos.build(),
+    },
+  };
+};
+
+export const moveElementoAcima = (state: any, action: any): ElementoState => {
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+
+  if (atual === undefined) {
+    return state;
+  }
+
+  const anterior = getDispositivoAnteriorMesmoTipo(atual);
+
+  if (anterior === undefined) {
+    return state;
+  }
+
+  const removidos = [...getElementos(anterior), ...getElementos(atual)];
+  const renumerados = listaDispositivosRenumerados(anterior);
+
+  const pai = atual.pai!;
+  const pos = pai.indexOf(anterior);
+  pai.removeFilho(atual);
+  pai.removeFilho(anterior);
+
+  const um = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos);
+  um.texto = action.atual.conteudo.texto;
+
+  const outro = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos + 1);
+  outro.texto = anterior.texto;
+
+  pai.renumeraFilhos();
+
+  const referencia = pos === 0 ? pai : getDispositivoAnterior(um);
+
+  const eventos = new Eventos();
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
+  eventos.add(StateType.ElementoIncluido, getElementos(um).concat(getElementos(outro)));
+  eventos.add(StateType.ElementoRemovido, removidos);
+  eventos.add(
+    StateType.ElementoRenumerado,
+    renumerados.map(r => createElemento(r))
+  );
+
+  return {
+    articulacao: state.articulacao,
+    past: buildPast(state, eventos.build()),
+    future: state.future,
+    ui: {
+      events: eventos.build(),
+    },
+  };
+};
+
 export const modificaTipoElemento = (state: any, action: any): ElementoState => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
@@ -357,7 +467,7 @@ export const modificaTipoElemento = (state: any, action: any): ElementoState => 
   };
 };
 
-export const transformaDispositivoWithTab = (state: any, action: any): ElementoState => {
+export const modificaTipoElementoWithTab = (state: any, action: any): ElementoState => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (atual === undefined) {
@@ -530,6 +640,10 @@ export const elementoReducer = (state = {}, action: any): any => {
       return modificaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:
       return selecionaElemento(state, action);
+    case MOVER_ELEMENTO_ABAIXO:
+      return moveElementoAbaixo(state, action);
+    case MOVER_ELEMENTO_ACIMA:
+      return moveElementoAcima(state, action);
     case NOVA_ARTICULACAO:
       return novaArticulacao();
     case OPEN_ARTICULACAO:
@@ -540,7 +654,7 @@ export const elementoReducer = (state = {}, action: any): any => {
       return removeElemento(state, action);
     case SHIFT_TAB:
     case TAB:
-      return transformaDispositivoWithTab(state, action);
+      return modificaTipoElementoWithTab(state, action);
     case UNDO:
       return undo(state);
     case UPDATE_ELEMENTO:

@@ -3,6 +3,8 @@ import { Referencia } from '../model/elemento';
 
 export const ADD_ELEMENTO = 'ADD_ELEMENTO';
 export const CHANGE_ELEMENTO = 'CHANGE_ELEMENTO';
+export const MOVER_ELEMENTO_ABAIXO = 'MOVER_ELEMENTO_ABAIXO';
+export const MOVER_ELEMENTO_ACIMA = 'MOVER_ELEMENTO_ACIMA';
 export const NOVA_ARTICULACAO = 'NOVA_ARTICULACAO';
 export const OPEN_ARTICULACAO = 'OPEN_ARTICULACAO';
 export const REMOVE_ELEMENTO = 'REMOVE_ELEMENTO';
@@ -147,6 +149,34 @@ class AtualizaElemento extends ElementoAbstractAction {
   }
 }
 
+class MoverElementoAbaixo extends ElementoAbstractAction {
+  constructor() {
+    super();
+    this.descricao = 'Mover para baixo';
+  }
+
+  execute(atual: Referencia): any {
+    return {
+      type: MOVER_ELEMENTO_ABAIXO,
+      atual,
+    };
+  }
+}
+
+class MoverElementoAcima extends ElementoAbstractAction {
+  constructor() {
+    super();
+    this.descricao = 'Mover para cima';
+  }
+
+  execute(atual: Referencia): any {
+    return {
+      type: MOVER_ELEMENTO_ACIMA,
+      atual,
+    };
+  }
+}
+
 export const shiftTabAction = (atual: Referencia): any => {
   return {
     type: SHIFT_TAB,
@@ -192,6 +222,9 @@ export const addInciso = new AddElemento(TipoDispositivo.inciso);
 export const addItem = new AddElemento(TipoDispositivo.item);
 export const addParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 
+export const moverElementoAbaixo = new MoverElementoAbaixo();
+export const moverElementoAcima = new MoverElementoAcima();
+
 export const transformaAlineaEmInciso = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Alínea em Inciso', 'transformaAlineaEmInciso');
 export const transformaAlineaEmItem = new ChangeElemento(TipoDispositivo.item, 'Transformar Alínea em Item', 'transformaAlineaEmItem');
 export const transformaArtigoEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Artigo em Parágrafo', 'transformaArtigoEmParagrafo');
@@ -220,6 +253,9 @@ acoesMenu.push(addAlinea);
 acoesMenu.push(addInciso);
 acoesMenu.push(addItem);
 acoesMenu.push(addParagrafo);
+
+acoesMenu.push(moverElementoAbaixo);
+acoesMenu.push(moverElementoAcima);
 
 acoesMenu.push(transformaAlineaEmInciso);
 acoesMenu.push(transformaAlineaEmItem);
