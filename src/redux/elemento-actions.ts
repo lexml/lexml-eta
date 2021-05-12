@@ -196,11 +196,12 @@ export const transformaAlineaEmInciso = new ChangeElemento(TipoDispositivo.incis
 export const transformaAlineaEmItem = new ChangeElemento(TipoDispositivo.item, 'Transformar Alínea em Item', 'transformaAlineaEmItem');
 export const transformaArtigoEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Artigo em Parágrafo', 'transformaArtigoEmParagrafo');
 export const transformaIncisoEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Inciso em Parágrafo', 'transformaIncisoEmParagrafo');
+export const transformaIncisoCaputEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Inciso em Parágrafo', 'transformaIncisoCaputEmParagrafo');
 export const transformaIncisoEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Inciso em Alínea', 'transformaIncisoEmAlinea');
 export const transformaItemEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Item em Alínea', 'transformaItemEmAlinea');
 export const transformaParagrafoEmArtigo = new ChangeElemento(TipoDispositivo.artigo, 'Transformar Parágrafo em Artigo', 'transformaParagrafoEmArtigo');
 export const transformaParagrafoEmInciso = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso', 'transformaParagrafoEmInciso');
-export const transformaParagrafoEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso de Caput', 'transformaParagrafoEmIncisoCaput');
+export const transformaParagrafoEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso', 'transformaParagrafoEmIncisoCaput');
 
 export const elementoSelecionadoAction = new ElementoSelecionado();
 
@@ -226,6 +227,7 @@ acoesMenu.push(transformaArtigoEmParagrafo);
 acoesMenu.push(transformaIncisoEmAlinea);
 acoesMenu.push(transformaIncisoEmParagrafo);
 acoesMenu.push(transformaItemEmAlinea);
+acoesMenu.push(transformaIncisoCaputEmParagrafo);
 acoesMenu.push(transformaParagrafoEmArtigo);
 acoesMenu.push(transformaParagrafoEmInciso);
 acoesMenu.push(transformaParagrafoEmIncisoCaput);

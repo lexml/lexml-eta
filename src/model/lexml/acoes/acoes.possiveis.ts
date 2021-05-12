@@ -6,6 +6,7 @@ import {
   transformaAlineaEmInciso,
   transformaAlineaEmItem,
   transformaArtigoEmParagrafo,
+  transformaIncisoCaputEmParagrafo,
   transformaIncisoEmAlinea,
   transformaIncisoEmParagrafo,
   transformaItemEmAlinea,
@@ -71,6 +72,11 @@ export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction |
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return undefined;
   }
+
+  if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
+    return transformaParagrafoEmIncisoCaput;
+  }
+
   return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {
     const acao = 'transforma' + dispositivo.tipo + 'Em' + tipoPermitido;
     return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao && a.nomeAcao === acao)[0];
@@ -80,6 +86,10 @@ export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction |
 export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoAction | undefined => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return undefined;
+  }
+
+  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+    return transformaIncisoCaputEmParagrafo;
   }
 
   const acao = 'transforma' + dispositivo.tipo + 'Em' + dispositivo.pai!.tipo;
