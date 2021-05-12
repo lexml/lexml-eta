@@ -1,10 +1,9 @@
 export function containsTags(text: string): boolean {
-  const matches = /<.+>/g.exec(text.trim());
-  return matches !== null;
+  return /<.+>/g.test(text.trim());
 }
 
 export function endsWithPunctuation(texto: string): boolean {
-  return texto.match('[.,:]$') !== null;
+  return /[.,:]\s*$/.test(texto);
 }
 
 export function isValidHTML(html: string): boolean {
@@ -27,7 +26,7 @@ export function getLastCharacter(texto: string): string {
 }
 
 export function endsWithWord(texto: string, indicadores: string[]): boolean {
-  return indicadores.map(word => new RegExp('\\' + word + '$').test(texto)).filter(r => r)[0] === true;
+  return indicadores.map(word => new RegExp(addSpaceRegex(escapeRegex(word)) + '\\s*$').test(texto)).filter(r => r)[0] === true;
 }
 
 export function converteIndicadorParaTexto(indicadores: string[]): string {
@@ -43,4 +42,12 @@ export function converteIndicadorParaTexto(indicadores: string[]): string {
     default:
       return indicadores[0].trim();
   }
+}
+
+export function escapeRegex(str: string) {
+  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+export function addSpaceRegex(str: string) {
+  return str.replace(/\s+/g, '\\s+');
 }
