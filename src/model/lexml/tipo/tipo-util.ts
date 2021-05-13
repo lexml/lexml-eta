@@ -26,7 +26,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
   switch (action.subType) {
     case 'transformaAlineaEmItem':
     case 'transformaIncisoEmAlinea':
-    case 'transformaParagrafoEmInciso':
+    case 'transformaParagrafoEmIncisoParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo);
       break;

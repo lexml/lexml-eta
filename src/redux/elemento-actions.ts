@@ -233,8 +233,12 @@ export const transformaIncisoCaputEmParagrafo = new ChangeElemento(TipoDispositi
 export const transformaIncisoEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Inciso em Alínea', 'transformaIncisoEmAlinea');
 export const transformaItemEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Item em Alínea', 'transformaItemEmAlinea');
 export const transformaParagrafoEmArtigo = new ChangeElemento(TipoDispositivo.artigo, 'Transformar Parágrafo em Artigo', 'transformaParagrafoEmArtigo');
-export const transformaParagrafoEmInciso = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso', 'transformaParagrafoEmInciso');
-export const transformaParagrafoEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso', 'transformaParagrafoEmIncisoCaput');
+export const transformaParagrafoEmIncisoParagrafo = new ChangeElemento(
+  TipoDispositivo.inciso,
+  'Transformar Parágrafo em Inciso de Parágrafo',
+  'transformaParagrafoEmIncisoParagrafo'
+);
+export const transformaParagrafoEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso de Caput', 'transformaParagrafoEmIncisoCaput');
 
 export const elementoSelecionadoAction = new ElementoSelecionado();
 
@@ -265,7 +269,7 @@ acoesMenu.push(transformaIncisoEmParagrafo);
 acoesMenu.push(transformaItemEmAlinea);
 acoesMenu.push(transformaIncisoCaputEmParagrafo);
 acoesMenu.push(transformaParagrafoEmArtigo);
-acoesMenu.push(transformaParagrafoEmInciso);
+acoesMenu.push(transformaParagrafoEmIncisoParagrafo);
 acoesMenu.push(transformaParagrafoEmIncisoCaput);
 acoesMenu.push(removeElementoAction);
 acoesMenu.push(validateElementoAction);
