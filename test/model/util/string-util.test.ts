@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { containsTags, endsWithPunctuation, isValidHTML, isValidHtmlParagraph } from '../../../src/util/string-util';
+import { containsTags, endsWithPunctuation, endsWithWord, isValidHTML, isValidHtmlParagraph } from '../../../src/util/string-util';
 
 describe('StringUtil', () => {
   describe('containsTags => testes de reconhecimento de tags no texto', () => {
@@ -60,6 +60,23 @@ describe('StringUtil', () => {
     });
     it('Retorna true quando é informado um texto terminado com pontuação', () => {
       expect(endsWithPunctuation('teste.')).to.true;
+    });
+    it('Retorna true quando é informado um texto terminado com pontuação seguida de espaços', () => {
+      expect(endsWithPunctuation('teste.  ')).to.true;
+    });
+  });
+  describe('endsWithWord => testes de reconhecimento de palavras ao final do texto', () => {
+    it('Retorna false quando é informada uma string vazia', () => {
+      expect(endsWithWord('', ['; e'])).to.false;
+    });
+    it('Retorna false quando é informado um texto terminado sem as palavras', () => {
+      expect(endsWithWord('teste', ['; e'])).to.false;
+    });
+    it('Retorna true quando é informado um texto terminado com as palavras', () => {
+      expect(endsWithWord('teste; e', ['; e'])).to.true;
+    });
+    it('Retorna true quando é informado um texto terminado com as palavras e excesso de espaços', () => {
+      expect(endsWithWord('teste;  e  ', ['; e'])).to.true;
     });
   });
 });
