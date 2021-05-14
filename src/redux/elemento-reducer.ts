@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isAgrupador, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isAgrupador, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
   createElemento,
@@ -355,7 +355,7 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
 
   pai.renumeraFilhos();
 
-  const referencia = pos === 0 ? pai : getDispositivoAnterior(um);
+  const referencia = pos === 0 ? (isIncisoCaput(um) ? pai.pai! : pai) : getDispositivoAnterior(um);
 
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
@@ -405,7 +405,7 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
 
   pai.renumeraFilhos();
 
-  const referencia = pos === 0 ? pai : getDispositivoAnterior(um);
+  const referencia = pos === 0 ? (isIncisoCaput(um) ? pai.pai! : pai) : getDispositivoAnterior(um);
 
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
