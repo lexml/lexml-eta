@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isArticulacao, isArtigo, isParagrafo } from '../../dispositivo/tipo';
+import { isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo } from '../../dispositivo/tipo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   if (isArticulacao(dispositivo)) {
@@ -53,6 +53,19 @@ export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
     return dispositivo.pai!;
   }
   return getArtigo(dispositivo.pai!);
+};
+
+export const getArtigoAnterior = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  if (!isArtigo(dispositivo)) {
+    return undefined;
+  }
+  const articulacao = getArticulacao(dispositivo);
+  const pos = articulacao.indexOfArtigo(dispositivo as Artigo) - 1;
+  return pos > 0 ? articulacao.artigos[pos] : undefined;
+};
+
+export const hasFilhoGenerico = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.filhos?.filter(d => isDispositivoGenerico(d)).length > 0;
 };
 
 export const isUnicoMesmoTipo = (dispositivo: Dispositivo): boolean => {

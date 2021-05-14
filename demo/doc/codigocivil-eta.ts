@@ -3035,7 +3035,7 @@ export const EXEMPLO_CC = {
                                     '@id': 'art206_par1_inc2',
                                     Rotulo: 'II –',
                                     p: 'a pretensão do segurado contra o segurador, ou a deste contra aquele, contado o prazo:',
-                                    Alinea: [
+                                    Aliiea: [
                                       {
                                         '@id': 'art206_par1_inc2_ali1',
                                         Rotulo: 'a)',

@@ -9,7 +9,7 @@ export function NumeracaoGenerico<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     createRotulo(): void {
-      this.rotulo = this.numero === undefined ? 'desconhecido' : this.numero + this.SUFIXO;
+      this.rotulo = this.rotulo ?? this.numero + this.SUFIXO;
     }
   };
 }

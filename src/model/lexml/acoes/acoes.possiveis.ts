@@ -1,4 +1,5 @@
 import {
+  acoesDisponiveis,
   acoesPossiveisDispositivo,
   addElementoAction,
   ChangeElemento,
@@ -17,7 +18,7 @@ import {
   transformaParagrafoEmIncisoParagrafo,
 } from '../../../redux/elemento-actions';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isAlinea, isArtigo, isDispositivoGenerico, isInciso, isIncisoCaput, isItem, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArtigo, isCaput, isDispositivoGenerico, isInciso, isIncisoCaput, isItem, isParagrafo } from '../../dispositivo/tipo';
 import { isLastMesmoTipo, isPrimeiroMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
 
 export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
@@ -32,13 +33,21 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(moveElementoAcima);
   }
 
+  if (
+    isDispositivoGenerico(dispositivo) &&
+    (isParagrafo(dispositivo.pai!) || isCaput(dispositivo.pai!) || isInciso(dispositivo.pai!) || isAlinea(dispositivo.pai!)) &&
+    dispositivo.pai!.tipoProvavelFilho!.length > 0
+  ) {
+    acoes.push(acoesDisponiveis.filter(a => a instanceof ChangeElemento && a.nomeAcao === 'transformaDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
+  }
+
   if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformaAlineaEmInciso);
   }
   if (isAlinea(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformaAlineaEmItem);
   }
-  if (isArtigo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
     acoes.push(transformaArtigoEmParagrafo);
   }
   if (isInciso(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {

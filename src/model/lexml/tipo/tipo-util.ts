@@ -30,6 +30,12 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
       paiNovo = getDispositivoAnterior(atual)!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo);
       break;
+    case 'transformaDispositivoGenericoEmInciso':
+    case 'transformaDispositivoGenericoEmAlinea':
+    case 'transformaDispositivoGenericoEmItem':
+      paiNovo = paiAtual!;
+      novo = DispositivoLexmlFactory.create(action.novo.tipo, paiAtual!, undefined, paiAtual?.indexOf(atual));
+      break;
     case 'transformaParagrafoEmIncisoCaput':
       paiNovo = paiAtual!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, (paiNovo as Artigo).caput!);

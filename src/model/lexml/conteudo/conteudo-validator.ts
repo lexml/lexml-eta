@@ -1,7 +1,7 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isDispositivoDeArtigo, isParagrafo } from '../../dispositivo/tipo';
-import { hasFilhos, isLastMesmoTipo, isPenultimoMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import { hasFilhoGenerico, hasFilhos, isLastMesmoTipo, isPenultimoMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from './conteudo-util';
 
@@ -64,6 +64,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo)) &&
+    !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
