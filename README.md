@@ -126,9 +126,9 @@ npm run lint
 
 ## Créditos
 
-Este componente segue as recomendações do [open-wc](https://github.com/open-wc/open-wc).
+Este projeto partiu de muita idéias do editor [Lexedit](https://legis.senado.leg.br/lexedit/), do projeto Lexml, e do [Editor de Articulação](https://github.com/silegis-mg/editor-articulacao) da Assembléia Legislativa de Minas Gerais, disponível como código aberto, no [github]( https://github.com/silegis-mg/editor-articulacao). Desse último editor, devemos muito à sua abordagem moderna e amigável de edição.
 
-Este componente usa os seguintes softwares:
+Este componente segue as recomendações do [open-wc](https://github.com/open-wc/open-wc) e utiliza-se dos seguintes softwares e componentes, entre outros:
 
 - [LitElement](https://lit-element.polymer-project.org/) 
 - [Quill](https://quilljs.com/docs/quickstart/)
