@@ -82,6 +82,17 @@ export const TipoDispositivo: Record<string, Tipo> = {
     INDICADOR_FIM_SEQUENCIA: ['NA'],
     INDICADOR_DESDOBRAMENTO: [':'],
   },
+  dispositivoAlteracao: {
+    tipo: 'DispositivoAlteracao',
+    name: 'DispositivoAlteracao',
+    descricao: 'DispositivoAlteracao',
+    tiposPermitidosPai: ['Artigo'],
+    tiposPermitidosFilhos: undefined,
+    tipoProvavelFilho: undefined,
+    INDICADOR_SEQUENCIA: ['NA'],
+    INDICADOR_FIM_SEQUENCIA: ['NA'],
+    INDICADOR_DESDOBRAMENTO: ['NA'],
+  },
   generico: {
     tipo: 'DispositivoGenerico',
     name: undefined,
@@ -196,6 +207,10 @@ export const TipoDispositivo: Record<string, Tipo> = {
 
 export const isArticulacao = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.articulacao.tipo;
+};
+
+export const isDispoositivoAlteracao = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.dispositivoAlteracao.name;
 };
 
 export const isDispositivoGenerico = (dispositivo: Dispositivo): boolean => {

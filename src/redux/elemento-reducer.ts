@@ -3,6 +3,7 @@ import { isAgrupador, isIncisoCaput, TipoDispositivo } from '../model/dispositiv
 import { Elemento } from '../model/elemento';
 import {
   createElemento,
+  createElementoDispositivoAlteracao,
   createElementos,
   criaElementoValidadoSeNecessario,
   getDispositivoFromElemento,
@@ -16,6 +17,7 @@ import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
+  hasFilhos,
   isArtigoUnico,
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
@@ -49,7 +51,12 @@ import {
   buildPast,
   buildUpdateEvent,
   createElementoValidado,
+  criaDispositivoAlteracao,
   getElementosDoDispositivo,
+  getUltimoDispositivoAlteracao,
+  hasIndicativoFimAlteracao,
+  hasIndicativoInicioAlteracao,
+  isElementoAlteracao,
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
@@ -61,10 +68,41 @@ import {
 import { Eventos } from './eventos';
 import { ElementoState, StateEvent, StateType } from './state';
 
-export const adicionaElemento = (state: any, action: any): ElementoState => {
+export const adicionaNovoElementoAlteracao = (state: any, action: any): ElementoState => {
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual.tipo === TipoDispositivo.dispositivoAlteracao.name ? action.atual.hierarquia.pai : action.atual);
+
+  if (!atual || hasFilhos(atual)) {
+    return state;
+  }
+
+  atual.texto = action.atual.conteudo?.texto ?? atual.texto;
+
+  if (atual.blocoAlteracao === undefined) {
+    DispositivoLexmlFactory.createBlocoAlteracaoDefault(atual);
+  }
+
+  const d = criaDispositivoAlteracao(action.novo, atual);
+
+  atual.blocoAlteracao!.addDispositivo(action.atual, d);
+  const pos = atual.blocoAlteracao?.indexOf(d);
+  const eventos = new Eventos();
+  eventos.setReferencia(pos === 0 ? createElemento(atual) : createElementoDispositivoAlteracao(atual.blocoAlteracao!.getDispositivoAnterior(d)!));
+  eventos.add(StateType.ElementoIncluido, [createElementoDispositivoAlteracao(d)]);
+
+  return {
+    articulacao: state.articulacao,
+    past: buildPast(state, eventos.build()),
+    future: state.future,
+    ui: {
+      events: eventos.build(),
+    },
+  };
+};
+
+export const adicionaNovoElemento = (state: any, action: any): ElementoState => {
   let textoModificado = false;
 
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual.tipo === TipoDispositivo.dispositivoAlteracao.tipo ? action.atual.hierarquia.pai : action.atual);
 
   if (atual === undefined) {
     return state;
@@ -91,7 +129,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos a partir de agrupadores' });
   }
 
-  const novo = DispositivoLexmlFactory.createFilhoByReferencia(atual);
+  const novo = DispositivoLexmlFactory.createByReferencia(atual);
   novo!.texto = action.novo?.conteudo?.texto ?? '';
 
   if (isNovoDispositivoDesmembrandoAtual(novo)) {
@@ -129,15 +167,25 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   };
 };
 
+export const adicionaElemento = (state: any, action: any): ElementoState => {
+  if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || (isElementoAlteracao(action.atual!) && !hasIndicativoFimAlteracao(action.atual?.conteudo?.texto))) {
+    return adicionaNovoElementoAlteracao(state, action);
+  }
+  return adicionaNovoElemento(state, action);
+};
+
 export const selecionaElemento = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual.tipo === TipoDispositivo.dispositivoAlteracao.tipo ? action.atual.hierarquia.pai : action.atual);
 
   if (atual === undefined) {
     return state;
   }
 
   validaDispositivo(atual);
-  const elemento = createElemento(atual, true);
+  const elemento =
+    action.atual.tipo === TipoDispositivo.dispositivoAlteracao.tipo
+      ? createElementoDispositivoAlteracao(atual.blocoAlteracao!.getDispositivo(action.atual.uuid)!)
+      : createElemento(atual, true);
 
   const events = [
     {
@@ -408,7 +456,11 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   const referencia = pos === 0 ? (isIncisoCaput(um) ? pai.pai! : pai) : getDispositivoAnterior(um);
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
+  eventos.setReferencia(
+    referencia?.blocoAlteracao?.hasDispositivoAlteracao()
+      ? createElementoDispositivoAlteracao(getUltimoDispositivoAlteracao(referencia)!)
+      : createElemento(ajustaReferencia(referencia!, um))
+  );
   eventos.add(StateType.ElementoIncluido, getElementos(um).concat(getElementos(outro)));
   eventos.add(StateType.ElementoRemovido, removidos);
   eventos.add(

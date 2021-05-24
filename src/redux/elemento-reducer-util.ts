@@ -1,8 +1,13 @@
+import { Alteracao } from '../model/alteracao/alteracao';
+import { BlocoAlteracao } from '../model/alteracao/bloco-alteracao';
+import { DispositivoAlteracao } from '../model/alteracao/dispositivo-alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
 import { acoesPossiveis } from '../model/lexml/acoes/acoes.possiveis';
+import { DispositivoAlteracaoLexml } from '../model/lexml/alteracao/dispositivo-alteracao-lexml';
 import { hasIndicativoDesdobramento } from '../model/lexml/conteudo/conteudo-util';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
@@ -15,6 +20,7 @@ import {
   isArtigoUnico,
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
+import { addSpaceRegex, endsWithWord, escapeRegex } from '../util/string-util';
 import { addElementoAction } from './elemento-actions';
 import { Eventos } from './eventos';
 import { StateEvent, StateType } from './state';
@@ -61,6 +67,29 @@ export const criaElementoValidado = (validados: Elemento[], dispositivo: Disposi
   }
 };
 
+export const criaDispositivoAlteracao = (novo: Elemento, pai: Dispositivo): DispositivoAlteracao => {
+  const d = new DispositivoAlteracaoLexml(novo?.conteudo?.texto && novo?.conteudo?.texto.length > 0 ? novo?.conteudo?.texto : TEXTO_OMISSIS);
+  d.subTipo = novo?.tipo;
+  d.pai = pai;
+  return d;
+};
+
+export const getAlteracao = (blocoAlteracao: BlocoAlteracao, uuid: number): Alteracao | undefined => {
+  return blocoAlteracao?.alteracoes?.filter(alteracao => alteracao.contains(uuid))[0];
+};
+
+export const isElementoAlteracao = (elemento: Elemento): boolean => {
+  return elemento.tipo === TipoDispositivo.dispositivoAlteracao.tipo;
+};
+
+export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
+  return new RegExp(addSpaceRegex(escapeRegex('passa a vigorar com a seguinte alteração:')) + '\\s*$').test(texto);
+};
+
+export const hasIndicativoFimAlteracao = (texto: string): boolean => {
+  return endsWithWord(texto, ['"(NR)']) || endsWithWord(texto, ['" (NR)']) || endsWithWord(texto, ['"']);
+};
+
 export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {
   const validados: Elemento[] = [];
 
@@ -81,6 +110,11 @@ export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, in
   }
 
   return validados;
+};
+
+export const getUltimoDispositivoAlteracao = (dispositivo: Dispositivo): DispositivoAlteracao | undefined => {
+  const a = dispositivo.blocoAlteracao?.alteracoes[dispositivo.blocoAlteracao?.alteracoes.length - 1];
+  return a && a.dispositivosAlteracao ? a.dispositivosAlteracao[a.dispositivosAlteracao.length - 1] : undefined;
 };
 
 export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {

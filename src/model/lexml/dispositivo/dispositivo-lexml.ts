@@ -1,8 +1,6 @@
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
-import { AlteracaoNaoPermitidaLexml } from '../alteracao/alteracao-lexml';
 import { ConteudoDispositivo } from '../conteudo/conteudo-dispositivo';
-import { ConteudoOmissis } from '../conteudo/conteudo-omissis';
 import { HierarquiaAgrupador } from '../hierarquia/hierarquia-agrupador';
 import { HierarquiaArtigo } from '../hierarquia/hierarquia-artigo';
 import { HierarquiaDispositivo } from '../hierarquia/hierarquia-dispositivo';
@@ -19,46 +17,19 @@ import { TipoArticulacao } from '../tipo/tipo-articulacao';
 import { TipoArtigo } from '../tipo/tipo-artigo';
 import { TipoLexml } from '../tipo/tipo-lexml';
 
-export const AlineaLexml = ValidacaoDispositivo(
-  GeneroFeminino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml))))))
-);
+export const AlineaLexml = ValidacaoDispositivo(GeneroFeminino(DispositivoNovo(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml))))));
 export const ArtigoLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(NumeracaoArtigo(HierarquiaArtigo(TipoArtigo)))));
-export const CaputLexml = ValidacaoDispositivo(
-  GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml))))))
-);
-export const DispositivoGenericoLexml = ValidacaoDispositivo(
-  GeneroIndefinido(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoGenerico(HierarquiaDispositivo(TipoLexml))))))
-);
-export const IncisoLexml = ValidacaoDispositivo(
-  GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoInciso(HierarquiaDispositivo(TipoLexml))))))
-);
-export const ItemLexml = ValidacaoDispositivo(GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoItem(HierarquiaDispositivo(TipoLexml)))))));
-export const ParagrafoLexml = ValidacaoDispositivo(
-  GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoParagrafo(HierarquiaDispositivo(TipoLexml))))))
-);
-export const ArticulacaoLexml = ValidacaoDispositivo(
-  GeneroIndefinido(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoArticulacao))))))
-);
-export const CapituloLexml = ValidacaoDispositivo(
-  GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
-export const DispositivoAgrupadorGenericoLexml = ValidacaoDispositivo(
-  GeneroIndefinido(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
-export const LivroLexml = ValidacaoDispositivo(
-  GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
-export const ParteLexml = ValidacaoDispositivo(
-  GeneroFeminino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
-export const SubsecaoLexml = ValidacaoDispositivo(
-  GeneroFeminino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
-export const SecaoLexml = ValidacaoDispositivo(
-  GeneroFeminino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
-export const TituloLexml = ValidacaoDispositivo(
-  GeneroMasculino(AlteracaoNaoPermitidaLexml(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
-);
 
-export const OmissisLexml = GeneroMasculino(DispositivoNovo(AlteracaoNaoPermitidaLexml(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml))))));
+export const CaputLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml))))));
+export const DispositivoGenericoLexml = ValidacaoDispositivo(GeneroIndefinido(DispositivoNovo(ConteudoDispositivo(NumeracaoGenerico(HierarquiaDispositivo(TipoLexml))))));
+export const IncisoLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoInciso(HierarquiaDispositivo(TipoLexml))))));
+export const ItemLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoItem(HierarquiaDispositivo(TipoLexml))))));
+export const ParagrafoLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoParagrafo(HierarquiaDispositivo(TipoLexml))))));
+export const ArticulacaoLexml = ValidacaoDispositivo(GeneroIndefinido(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoArticulacao))))));
+export const CapituloLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));
+export const DispositivoAgrupadorGenericoLexml = ValidacaoDispositivo(GeneroIndefinido(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));
+export const LivroLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));
+export const ParteLexml = ValidacaoDispositivo(GeneroFeminino(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));
+export const SubsecaoLexml = ValidacaoDispositivo(GeneroFeminino(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));
+export const SecaoLexml = ValidacaoDispositivo(GeneroFeminino(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));
+export const TituloLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))));

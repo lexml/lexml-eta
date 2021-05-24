@@ -1,3 +1,4 @@
+import { DispositivoAlteracao } from '../alteracao/dispositivo-alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, TipoDispositivo } from '../dispositivo/tipo';
 import { acoesPossiveis } from '../lexml/acoes/acoes.possiveis';
@@ -47,6 +48,29 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     index: 0,
     acoesPossiveis: acoes ? acoesPossiveis(dispositivo) : [],
     mensagens: dispositivo.mensagens,
+  };
+};
+
+export const createElementoDispositivoAlteracao = (dispositivo: DispositivoAlteracao): Elemento => {
+  const pai = dispositivo.pai!;
+  return {
+    tipo: TipoDispositivo.dispositivoAlteracao.tipo,
+    nivel: getNivel(dispositivo.pai!) + 1,
+    agrupador: false,
+    hierarquia: {
+      pai: buildElementoPai(pai!),
+      posicao: pai ? pai.blocoAlteracao?.indexOf(dispositivo) : undefined,
+    },
+    editavel: true,
+    sendoEditado: false,
+    uuid: dispositivo.uuid,
+    rotulo: '',
+    conteudo: {
+      texto: dispositivo.texto,
+    },
+    index: 0,
+    acoesPossiveis: [],
+    mensagens: [],
   };
 };
 
