@@ -53,7 +53,6 @@ import {
   createElementoValidado,
   criaDispositivoAlteracao,
   getElementosDoDispositivo,
-  getUltimoDispositivoAlteracao,
   hasIndicativoFimAlteracao,
   hasIndicativoInicioAlteracao,
   isElementoAlteracao,
@@ -456,11 +455,7 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   const referencia = pos === 0 ? (isIncisoCaput(um) ? pai.pai! : pai) : getDispositivoAnterior(um);
 
   const eventos = new Eventos();
-  eventos.setReferencia(
-    referencia?.blocoAlteracao?.hasDispositivoAlteracao()
-      ? createElementoDispositivoAlteracao(getUltimoDispositivoAlteracao(referencia)!)
-      : createElemento(ajustaReferencia(referencia!, um))
-  );
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
   eventos.add(StateType.ElementoIncluido, getElementos(um).concat(getElementos(outro)));
   eventos.add(StateType.ElementoRemovido, removidos);
   eventos.add(

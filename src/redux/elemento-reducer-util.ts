@@ -5,7 +5,14 @@ import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositi
 import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
-import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
+import {
+  buildListaElementosRenumerados,
+  createElemento,
+  createElementoDispositivoAlteracao,
+  getDispositivoFromElemento,
+  getElementos,
+  listaDispositivosRenumerados,
+} from '../model/elemento/elemento-util';
 import { acoesPossiveis } from '../model/lexml/acoes/acoes.possiveis';
 import { DispositivoAlteracaoLexml } from '../model/lexml/alteracao/dispositivo-alteracao-lexml';
 import { hasIndicativoDesdobramento } from '../model/lexml/conteudo/conteudo-util';
@@ -20,7 +27,7 @@ import {
   isArtigoUnico,
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
-import { addSpaceRegex, endsWithWord, escapeRegex } from '../util/string-util';
+import { addSpaceRegex, escapeRegex } from '../util/string-util';
 import { addElementoAction } from './elemento-actions';
 import { Eventos } from './eventos';
 import { StateEvent, StateType } from './state';
@@ -87,7 +94,8 @@ export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
 };
 
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
-  return endsWithWord(texto, ['"(NR)']) || endsWithWord(texto, ['" (NR)']) || endsWithWord(texto, ['"']);
+  // return new RegExp('/["”](?:s*(NR))?s*$/').test(escapeRegex(texto));
+  return true;
 };
 
 export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {
@@ -112,9 +120,14 @@ export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, in
   return validados;
 };
 
-export const getUltimoDispositivoAlteracao = (dispositivo: Dispositivo): DispositivoAlteracao | undefined => {
+export const getUltimoDispositivoAlteracao = (dispositivo: Dispositivo): DispositivoAlteracao => {
+  if (!dispositivo.blocoAlteracao?.hasDispositivoAlteracao()) {
+    throw new Error('Não há alteração nesse dispositivo');
+  }
+
   const a = dispositivo.blocoAlteracao?.alteracoes[dispositivo.blocoAlteracao?.alteracoes.length - 1];
-  return a && a.dispositivosAlteracao ? a.dispositivosAlteracao[a.dispositivosAlteracao.length - 1] : undefined;
+
+  return a!.dispositivosAlteracao![a!.dispositivosAlteracao!.length - 1];
 };
 
 export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {
@@ -182,7 +195,11 @@ export const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(atual, novo)));
+
+  const referencia = atual.blocoAlteracao?.hasDispositivoAlteracao()
+    ? createElementoDispositivoAlteracao(getUltimoDispositivoAlteracao(atual))
+    : createElemento(ajustaReferencia(atual!, novo));
+  eventos.setReferencia(referencia);
   eventos.add(StateType.ElementoIncluido, getElementosDoDispositivo(novo));
   eventos.add(StateType.ElementoRenumerado, buildListaElementosRenumerados(novo));
   eventos.add(StateType.ElementoValidado, validaDispositivosAfins(novo, false));
