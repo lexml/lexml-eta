@@ -94,8 +94,7 @@ export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
 };
 
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
-  // return new RegExp('/["”](?:s*(NR))?s*$/').test(escapeRegex(texto));
-  return true;
+  return /["”](?:\s*\(NR\))?\s*$/.test(texto);
 };
 
 export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {
