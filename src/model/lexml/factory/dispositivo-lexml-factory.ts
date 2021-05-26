@@ -2,6 +2,8 @@
 import { Counter } from '../../../util/counter';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
+import { AlteracaoLexml } from '../alteracao/alteracao-lexml';
+import { BlocoAlteracaoLexml } from '../alteracao/bloco-alteracao-lexml';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
   AlineaLexml,
@@ -39,8 +41,9 @@ export class DispositivoLexmlFactory {
     return dispositivo;
   }
 
-  static createAlteracaoArtigo(artigo: Artigo): void {
-    artigo.blocoAlteracao = new ArticulacaoLexml();
+  static createAlteracao(atual: Artigo): void {
+    const alteracao = new AlteracaoLexml();
+    atual.blocoAlteracao?.addAlteracao(alteracao);
   }
 
   private static createDispositivo(name: string, parent: Dispositivo): Dispositivo {
@@ -53,6 +56,7 @@ export class DispositivoLexmlFactory {
       case 'artigo':
         dispositivo = new ArtigoLexml();
         (dispositivo as Artigo).caput = DispositivoLexmlFactory.createDispositivo(TipoDispositivo.caput.tipo, dispositivo);
+        (dispositivo as Artigo).blocoAlteracao = new BlocoAlteracaoLexml();
         break;
       case 'capitulo':
         dispositivo = new CapituloLexml(name.toLowerCase());

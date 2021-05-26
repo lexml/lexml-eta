@@ -1,7 +1,15 @@
-import { Articulacao, Dispositivo } from './dispositivo';
+import { Dispositivo } from './dispositivo';
+import { Hierarquia } from './hierarquia';
 
-export interface Alteracao {
-  blocoAlteracao?: Articulacao;
+export interface Alteracao extends Hierarquia {
+  dispositivos: Dispositivo[];
 
-  dispositivosAlteracao?: Dispositivo[];
+  hasDispositivos(): boolean;
+}
+
+export interface BlocoAlteracao {
+  alteracoes?: Alteracao[];
+
+  addAlteracao(alteracao: Alteracao): void;
+  hasAlteracao(): boolean;
 }

@@ -1,4 +1,4 @@
-import { Alteracao } from './alteracao';
+import { BlocoAlteracao } from './alteracao';
 import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';
@@ -6,7 +6,7 @@ import { Numeracao } from './numeracao';
 import { Tipo } from './tipo';
 import { Validacao } from './validacao';
 
-export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Alteracao, Genero, Validacao {
+export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Validacao {
   tipo: string;
   uuid?: number;
 }
@@ -24,11 +24,5 @@ export interface Articulacao extends Dispositivo {
 export interface Artigo extends Dispositivo {
   tipo: string;
   caput?: Dispositivo;
-  blocoAtualizacao?: Alteracao;
-  dispositivosAlteracao?: Dispositivo[];
-
-  hasAlteracao(): boolean;
-  hasDispositivosAlterados(): boolean;
+  blocoAlteracao?: BlocoAlteracao;
 }
-
-export type Omissis = Dispositivo;

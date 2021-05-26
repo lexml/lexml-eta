@@ -1,18 +1,5 @@
-import { Alteracao } from '../../dispositivo/alteracao';
-import { Dispositivo } from '../../dispositivo/dispositivo';
+import { HierarquiaDispositivo } from '../hierarquia/hierarquia-dispositivo';
 
-export function AlteracaoNaoPermitidaLexml<TBase extends Constructor>(Base: TBase): any {
-  return class extends Base implements Alteracao {
-    get dispositivosAlteracao(): Dispositivo[] {
-      return [];
-    }
+class TipoAlteracao {}
 
-    hasAlteracao(): boolean {
-      return false;
-    }
-
-    hasDispositivosAlterados(): boolean {
-      return false;
-    }
-  };
-}
+export const AlteracaoLexml = HierarquiaDispositivo(TipoAlteracao);

@@ -128,7 +128,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   },
   omissis: {
     tipo: 'Omissis',
-    name: undefined,
+    name: 'Omissis',
     descricao: 'Omissis',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso'],
     tiposPermitidosFilhos: ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso', 'Item'],
