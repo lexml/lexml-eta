@@ -132,7 +132,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
     descricao: 'Omissis',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso'],
     tiposPermitidosFilhos: ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso', 'Item'],
-    tipoProvavelFilho: undefined,
+    tipoProvavelFilho: 'Omissis',
     INDICADOR_SEQUENCIA: ['NA'],
     INDICADOR_FIM_SEQUENCIA: ['NA'],
     INDICADOR_DESDOBRAMENTO: ['NA'],

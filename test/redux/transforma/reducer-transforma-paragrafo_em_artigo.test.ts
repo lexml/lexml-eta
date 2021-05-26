@@ -144,48 +144,6 @@ describe('Testando a transformação de parágrafo em artigo', () => {
       });
     });
   });
-  describe('Testando a mudança do parágrafo 1, que não possui filhos, em artigo, quando o artigo anterior não possui incisos de caput', () => {
-    beforeEach(function () {
-      const paragrafo = state.articulacao.artigos[0].filhos[0];
-      const action = transformaParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
-
-      state = modificaTipoElemento(state, action);
-    });
-    it('Deveria apresentar 4 artigos', () => {
-      expect(state.articulacao.artigos.length).to.equal(4);
-    });
-    it('Deveria apresentar um parágrafo restante no artigo 1', () => {
-      expect(state.articulacao.artigos[0].filhos.length).to.equal(1);
-      expect(state.articulacao.artigos[0].filhos[0].rotulo).to.equal('Parágrafo único.');
-    });
-    describe('Testando os eventos resultantes da ação', () => {
-      it('Deveria apresentar 4 eventos', () => {
-        expect(state.ui.events.length).to.equal(3);
-      });
-      it('Deveria apresentar o artigo incluído e já renumerado', () => {
-        const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
-        expect(incluido.elementos!.length).equal(1);
-        expect(incluido.elementos![0].rotulo).to.equal('Art. 2º');
-        expect(incluido.elementos![0].conteudo?.texto).to.equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
-      });
-      it('Deveria apresentar o paragrafo original no evento de ElementoRemoved', () => {
-        const removido = getEvento(state.ui.events, StateType.ElementoRemovido);
-        expect(removido.elementos!.length).equal(1);
-        expect(removido.elementos![0].rotulo).equal('§ 1º');
-        expect(removido.elementos![0].conteudo?.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
-      });
-      it('Deveria apresentar o parágrafo remanescente do artigo 1 e os artigos seguintes no array de elementos no evento de ElementoRenumerado', () => {
-        const renumerado = getEvento(state.ui.events, StateType.ElementoRenumerado);
-        expect(renumerado.elementos!.length).equal(3);
-        expect(renumerado.elementos![0].rotulo).equal('Art. 3º');
-        expect(renumerado.elementos![0].conteudo?.texto).to.equal('Texto do caput do Artigo 2 que possui DOIS incisos e um parágrafo único:');
-        expect(renumerado.elementos![1].rotulo).equal('Art. 4º');
-        expect(renumerado.elementos![1].conteudo?.texto).to.equal('Texto do caput do artigo 3 que possui DOIS parágrafos sendo que o primeiro tem DOIS incisos.');
-        expect(renumerado.elementos![2].rotulo).equal('Parágrafo único.');
-        expect(renumerado.elementos![2].conteudo?.texto).to.equal('Texto do parágrafo 2 do Artigo 1 que não possui incisos.');
-      });
-    });
-  });
   describe('Testando a mudança do parágrafo 2, que não possui filhos, em artigo, quando o artigo anterior não possui incisos de caput', () => {
     beforeEach(function () {
       const paragrafo = state.articulacao.artigos[0].filhos[1];

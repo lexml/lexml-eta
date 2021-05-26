@@ -1,5 +1,5 @@
 import { Tipo, TipoDispositivo } from '../model/dispositivo/tipo';
-import { Referencia } from '../model/elemento';
+import { Elemento, Referencia } from '../model/elemento';
 
 export const ADD_ELEMENTO = 'ADD_ELEMENTO';
 export const CHANGE_ELEMENTO = 'CHANGE_ELEMENTO';
@@ -242,6 +242,16 @@ export const transformaParagrafoEmIncisoParagrafo = new ChangeElemento(
   'transformaParagrafoEmIncisoParagrafo'
 );
 export const transformaParagrafoEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso de Caput', 'transformaParagrafoEmIncisoCaput');
+
+export const transforma = (elemento: Elemento, novoTipo: string): any => {
+  const action = new ChangeElemento(
+    TipoDispositivo[novoTipo.toLowerCase()],
+    'Transformar ' + elemento.tipo + 'em ' + TipoDispositivo[novoTipo.toLowerCase()].name,
+    'transforma' + elemento.tipo + 'Em' + TipoDispositivo[novoTipo.toLowerCase()].name
+  );
+
+  return action.execute(elemento);
+};
 
 export const elementoSelecionadoAction = new ElementoSelecionado();
 

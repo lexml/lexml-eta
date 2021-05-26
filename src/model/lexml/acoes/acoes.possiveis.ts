@@ -65,7 +65,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))) {
     acoes.push(transformaParagrafoEmIncisoParagrafo);
   }
-  if (isParagrafo(dispositivo) && isLastMesmoTipo(dispositivo)) {
+  if (isParagrafo(dispositivo) && (isLastMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo))) {
     acoes.push(transformaParagrafoEmArtigo);
   }
   if (isItem(dispositivo)) {
@@ -82,6 +82,19 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   return acoes.filter((acao: ElementoAction): boolean => {
     return acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo';
   });
+};
+
+export const ajustaAcaoSeCasoEspecialForInciso = (dispositivo: Dispositivo, acao: any): void => {
+  const acaoNormalizada = acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && acao.subType && acao.subType.endsWith('EmInciso'))[0];
+
+  acao.subType = acaoNormalizada && (acaoNormalizada as ChangeElemento).nomeAcao?.startsWith(acao.subType) ? (acaoNormalizada as ChangeElemento).nomeAcao : acao.subType;
+};
+
+export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, acao: any): boolean => {
+  if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
+    return false;
+  }
+  return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao === acao.subType).length > 0;
 };
 
 export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction | undefined => {

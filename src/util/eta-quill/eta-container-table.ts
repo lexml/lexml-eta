@@ -63,6 +63,15 @@ export class EtaContainerTable extends Container {
     return this._agrupador;
   }
 
+  private _hierarquia: any;
+  set hierarquia(hierarquia: any) {
+    this._hierarquia = hierarquia;
+  }
+
+  get hierarquia(): any {
+    return this._hierarquia;
+  }
+
   private _nivel: number;
   set nivel(nivel: number) {
     this._nivel = nivel;

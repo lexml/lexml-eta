@@ -13,6 +13,7 @@ import {
   removeElementoAction,
   shiftTabAction,
   tabAction,
+  transforma,
   UndoAction,
   updateElementoAction,
   validaArticulacaAction,
@@ -27,6 +28,7 @@ import { EtaBlotMenuConteudo } from '../../util/eta-quill/eta-blot-menu-conteudo
 import { EtaBlotMenuItem } from '../../util/eta-quill/eta-blot-menu-item';
 import { EtaBlotRotulo } from '../../util/eta-quill/eta-blot-rotulo';
 import { EtaContainerTable } from '../../util/eta-quill/eta-container-table';
+import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
@@ -336,15 +338,28 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  private transformarElemento(shiftKey: boolean): void {
+  private transformarElemento(ev: KeyboardEvent): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha);
-    if (shiftKey) {
+
+    if (ev.key === 'y') {
+      rootStore.dispatch(transforma(elemento, TipoDispositivo.artigo.name!));
+    } else if (ev.key === 'n') {
+      rootStore.dispatch(transforma(elemento, TipoDispositivo.inciso.name!));
+    } else if (ev.key === 'l') {
+      rootStore.dispatch(transforma(elemento, TipoDispositivo.alinea.name!));
+    } else if (ev.key === 'o') {
+      rootStore.dispatch(transforma(elemento, TipoDispositivo.omissis.name!));
+    } else if (ev.key === 'p') {
+      rootStore.dispatch(transforma(elemento, TipoDispositivo.paragrafo.name!));
+    } else if (ev.key === 'i') {
+      rootStore.dispatch(transforma(elemento, TipoDispositivo.item.name!));
+    } else if (ev.shiftKey && ev.key === Keyboard.keys.TAB) {
       rootStore.dispatch(shiftTabAction(elemento));
-    } else {
+    } else if (Keyboard.keys.TAB) {
       rootStore.dispatch(tabAction(elemento));
     }
   }

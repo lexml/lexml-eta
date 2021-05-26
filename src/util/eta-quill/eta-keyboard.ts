@@ -6,19 +6,26 @@ import { EtaQuill, TextoSelecionado } from './eta-quill';
 export const CaracteresValidos = /([a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/i;
 export const CaracteresNaoValidos = /([^a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/gi;
 
-const Keyboard = Quill.import('modules/keyboard');
+export const Keyboard = Quill.import('modules/keyboard');
 
 export class EtaKeyboard extends Keyboard {
   operacaoTecladoInvalida: Observable<void> = new Observable<void>();
   adicionaElementoTeclaEnter: Observable<RangeStatic> = new Observable<RangeStatic>();
   removeElemento: Observable<void> = new Observable<void>();
-  transformaElemento: Observable<boolean> = new Observable<boolean>();
+  transformaElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
 
   constructor(quill: EtaQuill, options: any) {
     super(quill, options);
   }
 
   listen(): void {
+    this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
+      if (ev.ctrlKey && ev.altKey) {
+        if (['y', 'i', 'l', 'n', 'o', 'p'].includes(ev.key)) {
+          this.onHotKeyTransformacaoTipo(ev);
+        }
+      }
+    });
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       if (ev.key === 'ArrowRight') {
         this.onTeclaArrowRight(ev);
@@ -170,7 +177,7 @@ export class EtaKeyboard extends Keyboard {
   }
 
   private onTeclaTab(ev: KeyboardEvent): void {
-    this.transformaElemento.notify(ev.shiftKey);
+    this.transformaElemento.notify(ev);
     cancelarPropagacaoDoEvento(ev);
   }
 
@@ -192,6 +199,11 @@ export class EtaKeyboard extends Keyboard {
 
   private onTeclaCtrlShiftA(ev: KeyboardEvent): void {
     this.quill.setSelection(this.quill.inicioConteudoAtual, this.quill.linhaAtual.blotConteudo.tamanho, Quill.sources.SILENT);
+    cancelarPropagacaoDoEvento(ev);
+  }
+
+  private onHotKeyTransformacaoTipo(ev: KeyboardEvent): void {
+    this.transformaElemento.notify(ev);
     cancelarPropagacaoDoEvento(ev);
   }
 }

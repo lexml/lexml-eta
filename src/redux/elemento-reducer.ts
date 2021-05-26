@@ -9,7 +9,7 @@ import {
   getElementos,
   listaDispositivosRenumerados,
 } from '../model/elemento/elemento-util';
-import { getAcaoPossivelShift, getAcaoPossivelShiftTab } from '../model/lexml/acoes/acoes.possiveis';
+import { ajustaAcaoSeCasoEspecialForInciso, getAcaoPossivelShift, getAcaoPossivelShiftTab, isAcaoTransformacaoPermitida } from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
@@ -430,6 +430,12 @@ export const modificaTipoElemento = (state: any, action: any): ElementoState => 
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (atual === undefined) {
+    return state;
+  }
+
+  ajustaAcaoSeCasoEspecialForInciso(atual, action);
+
+  if (!isAcaoTransformacaoPermitida(atual, action)) {
     return state;
   }
 
