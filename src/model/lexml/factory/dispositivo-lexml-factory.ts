@@ -2,8 +2,6 @@
 import { Counter } from '../../../util/counter';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
-import { AlteracaoLexml } from '../alteracao/alteracao-lexml';
-import { BlocoAlteracaoLexml } from '../alteracao/bloco-alteracao-lexml';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
   AlineaLexml,
@@ -42,8 +40,11 @@ export class DispositivoLexmlFactory {
   }
 
   static createAlteracao(atual: Artigo): void {
-    const alteracao = new AlteracaoLexml();
-    atual.blocoAlteracao?.addAlteracao(alteracao);
+    const articulacao = new ArticulacaoLexml();
+    articulacao.pai = atual;
+    const alteracao = this.createArticulacao();
+    alteracao.pai = atual;
+    atual.addAlteracao(alteracao);
   }
 
   private static createDispositivo(name: string, parent: Dispositivo): Dispositivo {
@@ -56,7 +57,6 @@ export class DispositivoLexmlFactory {
       case 'artigo':
         dispositivo = new ArtigoLexml();
         (dispositivo as Artigo).caput = DispositivoLexmlFactory.createDispositivo(TipoDispositivo.caput.tipo, dispositivo);
-        (dispositivo as Artigo).blocoAlteracao = new BlocoAlteracaoLexml();
         break;
       case 'capitulo':
         dispositivo = new CapituloLexml(name.toLowerCase());
@@ -104,16 +104,26 @@ export class DispositivoLexmlFactory {
     return dispositivo;
   }
 
-  static createFilhoByReferencia(referencia: Dispositivo): Dispositivo {
-    if (isArtigo(referencia)) {
-      return DispositivoLexmlFactory.createFilhoWhenReferenciaIsArtigo(referencia);
-    } else if (isAgrupador(referencia)) {
-      return DispositivoLexmlFactory.createFilhoWhenReferenciaIsAgrupador(referencia);
+  static createFromReferencia(referencia: Dispositivo): Dispositivo {
+    if (referencia.hasAlteracao()) {
+      return DispositivoLexmlFactory.createWhenReferenciaBlocoAlteracao(referencia);
     }
-    return DispositivoLexmlFactory.createFilhoWhenReferenciaDefault(referencia);
+    if (isArtigo(referencia)) {
+      return DispositivoLexmlFactory.createWhenReferenciaIsArtigo(referencia);
+    } else if (isAgrupador(referencia)) {
+      return DispositivoLexmlFactory.createWhenReferenciaIsAgrupador(referencia);
+    }
+    return DispositivoLexmlFactory.createFromReferenciaDefault(referencia);
   }
 
-  private static createFilhoWhenReferenciaDefault(referencia: Dispositivo): Dispositivo {
+  private static createWhenReferenciaBlocoAlteracao(referencia: Dispositivo): Dispositivo {
+    if (referencia.pai!.isLastFilho(referencia) && referencia?.pai?.pai) {
+      return DispositivoLexmlFactory.create(referencia.pai.tipo, referencia.pai.pai, referencia.pai);
+    }
+    return DispositivoLexmlFactory.create(referencia.tipo, referencia.pai!, referencia);
+  }
+
+  private static createFromReferenciaDefault(referencia: Dispositivo): Dispositivo {
     if (hasIndicativoDesdobramento(referencia)) {
       const type = referencia.tipoProvavelFilho!;
       return referencia.pai!.filhos!.length > 0 ? DispositivoLexmlFactory.create(type, referencia, undefined, 0) : DispositivoLexmlFactory.create(type, referencia);
@@ -131,7 +141,7 @@ export class DispositivoLexmlFactory {
     return DispositivoLexmlFactory.create(referencia.tipo, referencia.pai!, referencia);
   }
 
-  private static createFilhoWhenReferenciaIsArtigo(referencia: Dispositivo): Dispositivo {
+  private static createWhenReferenciaIsArtigo(referencia: Dispositivo): Dispositivo {
     if (hasIndicativoDesdobramento(referencia)) {
       const type = referencia.tipoProvavelFilho!;
 
@@ -148,7 +158,7 @@ export class DispositivoLexmlFactory {
     return DispositivoLexmlFactory.create(referencia.tipo, referencia.pai!, referencia);
   }
 
-  private static createFilhoWhenReferenciaIsAgrupador(referencia: Dispositivo): Dispositivo {
+  private static createWhenReferenciaIsAgrupador(referencia: Dispositivo): Dispositivo {
     return referencia.filhos!.length > 0
       ? DispositivoLexmlFactory.create(TipoDispositivo.ARTIGO.tipo, referencia, undefined, 0)
       : DispositivoLexmlFactory.create(TipoDispositivo.ARTIGO.tipo, referencia);

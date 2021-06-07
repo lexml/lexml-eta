@@ -15,6 +15,7 @@ export class Elemento extends Referencia {
   mensagens?: Mensagem[];
   hierarquia?: {
     pai?: Referencia;
+    uuidDispositivoAlteracao?: number;
     posicao?: number;
     numero?: string;
   };

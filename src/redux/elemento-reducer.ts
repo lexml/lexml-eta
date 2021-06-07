@@ -1,4 +1,5 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { isAgrupador, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
@@ -13,6 +14,7 @@ import { ajustaAcaoSeCasoEspecialForInciso, getAcaoPossivelShift, getAcaoPossive
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
+  getArticulacao,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
@@ -50,12 +52,16 @@ import {
   buildUpdateEvent,
   createElementoValidado,
   getElementosDoDispositivo,
+  hasIndicativoFimAlteracao,
+  hasIndicativoInicioAlteracao,
+  isDispositivoAlteracao,
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
   redoDispositivosExcluidos,
   removeAndBuildEvents,
   textoFoiModificado,
+  TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
   validaDispositivosAfins,
 } from './elemento-reducer-util';
 import { Eventos } from './eventos';
@@ -91,14 +97,40 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos a partir de agrupadores' });
   }
 
-  const novo = DispositivoLexmlFactory.createFilhoByReferencia(atual);
-  novo!.texto = action.novo?.conteudo?.texto ?? '';
+  let novo: Dispositivo;
+
+  if (isDispositivoAlteracao(atual)) {
+    if (hasIndicativoFimAlteracao(action.atual?.conteudo?.texto)) {
+      novo = DispositivoLexmlFactory.createFromReferencia(getArticulacao(atual).pai!);
+      novo!.texto = action.novo?.conteudo?.texto ?? '';
+    } else {
+      novo = DispositivoLexmlFactory.createFromReferencia(atual);
+      novo.createRotulo();
+      novo!.texto = action.novo?.conteudo?.texto.length > 0 ? action.novo?.conteudo?.texto : TEXTO_OMISSIS;
+      novo.isDispositivoAlteracao = true;
+    }
+  } else {
+    if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto)) {
+      if (!atual.hasAlteracao()) {
+        DispositivoLexmlFactory.createAlteracao(atual);
+      }
+      novo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.name!, atual.alteracoes![0]);
+      novo.createRotulo();
+      novo.texto = action.novo?.conteudo?.texto.length > 0 ? action.novo?.conteudo?.texto : TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
+      novo.isDispositivoAlteracao = true;
+    } else {
+      novo = DispositivoLexmlFactory.createFromReferencia(atual);
+      novo!.texto = action.novo?.conteudo?.texto ?? '';
+    }
+  }
 
   if (isNovoDispositivoDesmembrandoAtual(novo)) {
     copiaFilhos(atual, novo);
   }
 
-  novo.pai!.renumeraFilhos();
+  if (!isDispositivoAlteracao(novo)) {
+    novo.pai!.renumeraFilhos();
+  }
 
   const eventos = buildEventoAdicionarElemento(atual, novo);
 

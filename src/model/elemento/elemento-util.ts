@@ -1,8 +1,9 @@
+import { isDispositivoAlteracao, isElementoDispositivoAlteracao } from '../../redux/elemento-reducer-util';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, TipoDispositivo } from '../dispositivo/tipo';
 import { acoesPossiveis } from '../lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivo-validator';
-import { findDispositivoById, getDispositivosPosteriores, irmaosMesmoTipo } from '../lexml/hierarquia/hierarquia-util';
+import { findDispositivoById, getArticulacao, getDispositivosPosteriores, hasFilhos, irmaosMesmoTipo } from '../lexml/hierarquia/hierarquia-util';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -12,7 +13,7 @@ export const isValid = (elemento?: Referencia): void => {
 };
 
 const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
-  if (dispositivo?.pai === undefined || isArtigo(dispositivo) || isAgrupador(dispositivo)) {
+  if (dispositivo?.pai === undefined || (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo)) || isAgrupador(dispositivo)) {
     return atual;
   }
   atual = ++atual;
@@ -34,6 +35,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     agrupador: isAgrupador(dispositivo),
     hierarquia: {
       pai: pai ? (isCaput(pai) ? buildElementoPai(pai.pai!) : buildElementoPai(pai)) : undefined,
+      uuidDispositivoAlteracao: isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
@@ -75,12 +77,34 @@ export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
   return elementos;
 };
 
-export const getDispositivoFromElemento = (articulacao: Articulacao, elemento: Referencia): Dispositivo | undefined => {
-  if (elemento.tipo === TipoDispositivo.artigo.tipo) {
-    return articulacao.artigos!.filter(a => a.uuid === elemento.uuid)[0];
+const buildListaDispositivosAlterados = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): void => {
+  dispositivos.push(dispositivo);
+  dispositivo.filhos?.forEach(f => (hasFilhos(f) ? buildListaDispositivosAlterados(f, dispositivos) : undefined));
+};
+
+export const getDispositivoFromElemento = (articulacao: Articulacao, referencia: Partial<Elemento>): Dispositivo | undefined => {
+  if (isElementoDispositivoAlteracao(referencia)) {
+    const ref = getDispositivoFromElemento(articulacao, { uuid: referencia.hierarquia!.uuidDispositivoAlteracao });
+
+    if (!ref?.alteracoes) {
+      return undefined;
+    }
+
+    return ref.alteracoes
+      .flatMap(a => a.filhos)
+      .flatMap(f => {
+        const lista: Dispositivo[] = [];
+        buildListaDispositivosAlterados(f, lista);
+        return lista;
+      })
+      .filter(el => el.uuid === referencia.uuid)[0];
   }
 
-  const dispositivo = elemento.uuid === undefined ? articulacao : findDispositivoById(articulacao, elemento.uuid!);
+  if (referencia.tipo === TipoDispositivo.artigo.tipo) {
+    return articulacao.artigos!.filter(a => a.uuid === referencia.uuid)[0];
+  }
+
+  const dispositivo = referencia.uuid === undefined ? articulacao : findDispositivoById(articulacao, referencia.uuid!);
 
   if (dispositivo === null) {
     return undefined;

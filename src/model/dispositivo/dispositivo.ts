@@ -14,7 +14,6 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
 export interface Articulacao extends Dispositivo {
   tipo: string;
   artigos: Artigo[];
-  isBlocoAlteracao?: boolean;
   addArtigo(dispositivo: Dispositivo, referencia?: Dispositivo): void;
   addArtigoOnPosition(dispositivo: Dispositivo, posicao: number): void;
   renumeraArtigos(): void;
@@ -24,5 +23,4 @@ export interface Articulacao extends Dispositivo {
 export interface Artigo extends Dispositivo {
   tipo: string;
   caput?: Dispositivo;
-  blocoAlteracao?: BlocoAlteracao;
 }

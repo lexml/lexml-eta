@@ -44,10 +44,12 @@ export function converteIndicadorParaTexto(indicadores: string[]): string {
   }
 }
 
-export function escapeRegex(str: string) {
-  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+export function escapeRegex(str: string): string {
+  // return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+  return str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
-export function addSpaceRegex(str: string) {
+export function addSpaceRegex(str: string): string {
   return str.replace(/\s+/g, '\\s+');
 }

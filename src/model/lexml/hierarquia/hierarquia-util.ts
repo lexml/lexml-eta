@@ -130,6 +130,9 @@ export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos:
     if (hasFilhos(f)) {
       getFilhosDispositivoAsLista(dispositivos, f.filhos);
     }
+    if (f.hasAlteracao()) {
+      f.alteracoes?.forEach(a => getFilhosDispositivoAsLista(dispositivos, a.filhos));
+    }
   });
 };
 
@@ -140,19 +143,6 @@ export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispos
   getFilhosDispositivoAsLista(lista, dispositivo.filhos);
 
   return lista;
-};
-
-export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
-  const articulacao = getArticulacao(dispositivo);
-  return articulacao !== undefined && !!articulacao.isBlocoAlteracao;
-};
-
-export const getDispositivosAlteracao = (articulacao?: Articulacao): Dispositivo[] => {
-  const ff: Dispositivo[] = [];
-
-  articulacao && articulacao.isBlocoAlteracao && hasFilhos(articulacao) ? getFilhosDispositivoAsLista(ff, articulacao.filhos) : undefined;
-
-  return ff;
 };
 
 export const isArtigoUnico = (dispositivo: Dispositivo): boolean => {

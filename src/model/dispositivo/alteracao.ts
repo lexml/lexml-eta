@@ -1,11 +1,7 @@
-import { Dispositivo } from './dispositivo';
-import { Hierarquia } from './hierarquia';
+import { Articulacao } from './dispositivo';
 
-export interface Alteracao extends Hierarquia {
-  dispositivos: Dispositivo[];
-
-  hasDispositivos(): boolean;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Alteracao extends Articulacao {}
 
 export interface BlocoAlteracao {
   alteracoes?: Alteracao[];

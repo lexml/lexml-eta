@@ -4,10 +4,7 @@
     "module": "esnext",
     "moduleResolution": "node",
     "noEmitOnError": true,
-    "lib": [
-      "es2017",
-      "dom"
-    ],
+    "lib": ["es2017", "es2019", "dom"],
     "strict": true,
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
@@ -18,11 +15,6 @@
     "inlineSources": true,
     "rootDir": "./"
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "*.d.ts"
-  ]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "*.d.ts"]
 }

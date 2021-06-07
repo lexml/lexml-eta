@@ -107,6 +107,7 @@ export class EtaContainerTable extends Container {
     this._nivel = elemento.nivel;
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
+    this._hierarquia = elemento.hierarquia?.uuidDispositivoAlteracao ? elemento.hierarquia : undefined;
   }
 
   format(name: string, value: any): void {

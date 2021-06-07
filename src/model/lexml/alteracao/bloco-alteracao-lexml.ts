@@ -20,19 +20,21 @@ export function BlocoAlteracaoNaoPermitido<TBase extends Constructor>(Base: TBas
   };
 }
 
-export class BlocoAlteracaoLexml implements BlocoAlteracao {
-  _alteracoes?: Alteracao[] = [];
+export function BlocoAlteracaoPermitido<TBase extends Constructor>(Base: TBase): any {
+  return class extends Base implements BlocoAlteracao {
+    private _alteracoes: Alteracao[] = [];
 
-  get alteracoes(): Alteracao[] {
-    this._alteracoes = this._alteracoes ?? [];
-    return this._alteracoes;
-  }
+    get alteracoes(): Alteracao[] {
+      this._alteracoes = this._alteracoes ?? [];
+      return this._alteracoes;
+    }
 
-  addAlteracao(alteracao: Alteracao): void {
-    this.alteracoes?.push(alteracao);
-  }
+    addAlteracao(alteracao: Alteracao): void {
+      this.alteracoes?.push(alteracao);
+    }
 
-  hasAlteracao(): boolean {
-    return this.alteracoes?.length > 0;
-  }
+    hasAlteracao(): boolean {
+      return this.alteracoes?.length > 0;
+    }
+  };
 }

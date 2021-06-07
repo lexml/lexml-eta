@@ -249,7 +249,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
-        const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html);
+        const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html, linhaAnt.hierarquia);
         if (linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') {
           rootStore.dispatch(validateElementoAction.execute(elemento));
         } else if (linhaAnt.blotConteudo.alterado) {
@@ -308,10 +308,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
         textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
       }
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.hierarquia);
 
       if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-        const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha);
+        const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.hierarquia);
         rootStore.dispatch(updateElementoAction.execute(elemento));
       }
       rootStore.dispatch(addElementoAction.execute(elemento, textoNovaLinha));
@@ -331,7 +331,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const closeResult: any = event.detail.closeResult;
       const choice: string = closeResult && closeResult.choice;
       if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '');
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
         rootStore.dispatch(removeElementoAction.execute(elemento));
       }
       this.quill.focus();
@@ -343,7 +343,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.hierarquia);
 
     if (ev.key === 'y') {
       rootStore.dispatch(transforma(elemento, TipoDispositivo.artigo.name!));
@@ -365,7 +365,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private elementoSelecionado(uuid: number): void {
-    const elemento: Elemento = this.criarElemento(uuid, '', '');
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+    const elemento: Elemento = this.criarElemento(uuid, linha.tipo ?? '', '', linha.hierarquia);
     rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
     this.quill.processandoMudancaLinha = false;
   }
@@ -424,7 +425,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.removerElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
-      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '');
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(getAcao(itemMenu).execute(elemento));
     }
@@ -574,11 +575,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, tipo: string, html: string): Elemento {
+  private criarElemento(uuid: number, tipo: string, html: string, hierarquia?: any): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.tipo = tipo;
     elemento.conteudo = { texto: html };
+    elemento.hierarquia = hierarquia;
     return elemento;
   }
 

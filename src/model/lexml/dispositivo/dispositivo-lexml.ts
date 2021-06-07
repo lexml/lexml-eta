@@ -1,6 +1,6 @@
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
-import { BlocoAlteracaoNaoPermitido } from '../alteracao/bloco-alteracao-lexml';
+import { BlocoAlteracaoNaoPermitido, BlocoAlteracaoPermitido } from '../alteracao/bloco-alteracao-lexml';
 import { ConteudoDispositivo } from '../conteudo/conteudo-dispositivo';
 import { ConteudoOmissis } from '../conteudo/conteudo-omissis';
 import { HierarquiaAgrupador } from '../hierarquia/hierarquia-agrupador';
@@ -22,7 +22,7 @@ import { TipoLexml } from '../tipo/tipo-lexml';
 export const AlineaLexml = ValidacaoDispositivo(
   GeneroFeminino(BlocoAlteracaoNaoPermitido(DispositivoNovo(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml))))))
 );
-export const ArtigoLexml = ValidacaoDispositivo(GeneroMasculino(DispositivoNovo(NumeracaoArtigo(HierarquiaArtigo(TipoArtigo)))));
+export const ArtigoLexml = ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoPermitido(DispositivoNovo(NumeracaoArtigo(HierarquiaArtigo(TipoArtigo))))));
 export const CaputLexml = ValidacaoDispositivo(
   GeneroMasculino(BlocoAlteracaoNaoPermitido(DispositivoNovo(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml))))))
 );

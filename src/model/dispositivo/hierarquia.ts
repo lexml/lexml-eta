@@ -3,6 +3,7 @@ import { Dispositivo } from './dispositivo';
 export interface Hierarquia {
   pai?: Dispositivo;
   filhos: Dispositivo[];
+  isDispositivoAlteracao?: boolean;
 
   addFilho(filho: Dispositivo, referencia?: Dispositivo): void;
 

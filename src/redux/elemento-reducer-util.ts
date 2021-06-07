@@ -1,6 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
-import { Elemento } from '../model/elemento';
+import { Elemento as Elemento } from '../model/elemento';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
 import { acoesPossiveis } from '../model/lexml/acoes/acoes.possiveis';
 import { hasIndicativoDesdobramento } from '../model/lexml/conteudo/conteudo-util';
@@ -15,6 +16,7 @@ import {
   isArtigoUnico,
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
+import { addSpaceRegex, escapeRegex } from '../util/string-util';
 import { addElementoAction } from './elemento-actions';
 import { Eventos } from './eventos';
 import { StateEvent, StateType } from './state';
@@ -34,6 +36,9 @@ export const buildFuture = (state: any, events: any): StateEvent[] => {
 
   return count > 50 ? future.shift() : future;
 };
+
+export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = '&#8220;' + TEXTO_OMISSIS + ' &#8221; (NR)';
+export const TEXTO_OMISSIS_DISPOSITIVO_ALTERACAO = '&#8220;' + '...........................................................................................' + ' &#8221;';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any): boolean => {
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);
@@ -59,6 +64,25 @@ export const criaElementoValidado = (validados: Elemento[], dispositivo: Disposi
     elemento.mensagens = validaDispositivo(dispositivo);
     validados.push(elemento);
   }
+};
+
+export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
+  return (
+    new RegExp(addSpaceRegex(escapeRegex('passa a vigorar com a seguinte alteração:')) + '\\s*$').test(texto) ||
+    new RegExp(addSpaceRegex(escapeRegex('passa a vigorar com as seguintes alterações:')) + '\\s*$').test(texto)
+  );
+};
+
+export const hasIndicativoFimAlteracao = (texto: string): boolean => {
+  return /["”](?:\s*\(NR\))?\s*$/.test(texto);
+};
+
+export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
+  return !!dispositivo.isDispositivoAlteracao;
+};
+
+export const isElementoDispositivoAlteracao = (elemento: Partial<Elemento>): boolean => {
+  return elemento.hierarquia?.uuidDispositivoAlteracao !== undefined;
 };
 
 export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {
