@@ -73,9 +73,5 @@ describe('Alínea', () => {
       alinea.createRotulo();
       expect(alinea.rotulo).not.equal('a)');
     });
-    it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido ou executada a renumeração, a alinea gera um rótulo inválido', () => {
-      alinea.createRotulo();
-      expect(alinea.rotulo).to.equal('undefined)');
-    });
   });
 });

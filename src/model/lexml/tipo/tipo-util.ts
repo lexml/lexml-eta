@@ -33,6 +33,17 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformaDispositivoGenericoEmInciso':
     case 'transformaDispositivoGenericoEmAlinea':
     case 'transformaDispositivoGenericoEmItem':
+    case 'transformaOmissisEmAlinea':
+    case 'transformaOmissisEmArtigo':
+    case 'transformaOmissisEmIncisoParagrafo':
+    case 'transformaOmissisEmItem':
+    case 'transformaOmissisEmParagrafo':
+    case 'transformaEmOmissisAlinea':
+    case 'transformaEmOmissisItem':
+    case 'transformaEmOmissisParagrafo':
+    case 'transformaEmOmissisIncisoParagrafo':
+    case 'transformaEmOmissisIncisoCaput':
+    case 'transformaOmissisEmIncisoCaput':
       paiNovo = paiAtual!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, paiAtual!, undefined, paiAtual?.indexOf(atual));
       break;
@@ -43,7 +54,6 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformaArtigoEmParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo);
-      novo.pai?.renumeraFilhos();
       break;
     default:
       paiNovo = atual.pai!.pai!;

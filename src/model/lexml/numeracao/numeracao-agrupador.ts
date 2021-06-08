@@ -10,7 +10,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
 
     createRotulo(dispositivo: Dispositivo): void {
       if (!isAgrupadorGenerico(dispositivo)) {
-        this.rotulo = dispositivo.descricao!.toLocaleUpperCase() + ' ' + (this.numero === undefined ? 'undefined' : this.numeralToRoman(parseInt(this.numero, 10)));
+        this.rotulo = dispositivo.descricao!.toLocaleUpperCase() + ' ' + (this.numero === undefined ? '' : this.numeralToRoman(parseInt(this.numero, 10)));
       }
     }
 

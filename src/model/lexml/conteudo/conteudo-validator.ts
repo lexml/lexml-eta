@@ -1,3 +1,4 @@
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isDispositivoDeArtigo, isParagrafo } from '../../dispositivo/tipo';
@@ -45,7 +46,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (dispositivo.texto && dispositivo.texto.trim().length > 300) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
-      descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizados frases curtas e concisas`,
+      descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas`,
     });
   }
   if (
@@ -134,6 +135,46 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   return mensagens;
 };
 
+export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensagem[] => {
+  const mensagens: Mensagem[] = [];
+  if (!dispositivo.texto || dispositivo.texto.trim().length === 0) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Não foi informado um texto para ${dispositivo.pronome + dispositivo.descricao!}`,
+    });
+  }
+  if (dispositivo.texto && !isValidHTML(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O conteúdo do dispositivo não é um HTML válido',
+    });
+  }
+  if (dispositivo.texto && dispositivo.texto.trim().length > 300) {
+    mensagens.push({
+      tipo: TipoMensagem.WARNING,
+      descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas`,
+    });
+  }
+  if (dispositivo.texto && isDispositivoDeArtigo(dispositivo) && !isParagrafo(dispositivo) && !/[\\.]+/.test(dispositivo.texto) && /^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.WARNING,
+      descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
+    });
+  }
+  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && !/[\\.]+/.test(dispositivo.texto) && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
+    });
+  }
+
+  return mensagens;
+};
+
 export const validaTexto = (dispositivo: Dispositivo): Mensagem[] => {
-  return isAgrupador(dispositivo) ? validaTextoAgrupador(dispositivo) : validaTextoDispositivo(dispositivo);
+  return isAgrupador(dispositivo)
+    ? validaTextoAgrupador(dispositivo)
+    : isDispositivoAlteracao(dispositivo)
+    ? validaTextoDispositivoAlteracao(dispositivo)
+    : validaTextoDispositivo(dispositivo);
 };

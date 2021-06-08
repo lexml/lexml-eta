@@ -14,10 +14,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     createRotulo(dispositivo: Dispositivo): void {
       this.rotulo = this.PREFIXO + this.numero + this.getSufixoNumeracao();
 
-      if (this.numero === undefined) {
-        this.rotulo = this.PREFIXO;
-      } else if (!dispositivo) {
-        this.rotulo = this.PREFIXO;
+      if (this.numero === undefined || !dispositivo || (dispositivo.isDispositivoAlteracao && dispositivo.pai!.indexOf(dispositivo) === 0)) {
+        this.rotulo = '\u201C' + this.PREFIXO;
       } else {
         this.rotulo =
           (getArticulacao(dispositivo) as Articulacao).artigos.length === 1

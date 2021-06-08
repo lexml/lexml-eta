@@ -70,9 +70,5 @@ describe('Inciso', () => {
       inciso.createRotulo();
       expect(inciso.rotulo).not.equal('I –');
     });
-    it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido ou executada a renumeração, a inciso gera um rótulo inválido', () => {
-      inciso.createRotulo();
-      expect(inciso.rotulo).to.undefined;
-    });
   });
 });

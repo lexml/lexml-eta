@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { transformaAlineaEmItem } from '../../../src/redux/elemento-actions';
-import { modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
+import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
@@ -22,7 +22,7 @@ describe('Testando a transformação de alínea em item', () => {
       const alinea = state.articulacao.artigos[1].filhos[0].filhos[1];
       const action = transformaAlineaEmItem.execute({ tipo: TipoDispositivo.alinea.tipo, uuid: alinea.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
     });
     it('Deveria apresentar a única alinea restante no primeiro inciso do artigo 2', () => {
       expect(state.articulacao.artigos[1].caput.filhos[0].filhos.length).to.equal(1);

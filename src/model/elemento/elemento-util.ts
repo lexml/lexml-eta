@@ -13,7 +13,7 @@ export const isValid = (elemento?: Referencia): void => {
 };
 
 const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
-  if (dispositivo?.pai === undefined || (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo)) || isAgrupador(dispositivo)) {
+  if (dispositivo?.pai === undefined || isArtigo(dispositivo) || isAgrupador(dispositivo)) {
     return atual;
   }
   atual = ++atual;
@@ -35,7 +35,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     agrupador: isAgrupador(dispositivo),
     hierarquia: {
       pai: pai ? (isCaput(pai) ? buildElementoPai(pai.pai!) : buildElementoPai(pai)) : undefined,
-      uuidDispositivoAlteracao: isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
+      uuidDispositivoAlteracao: dispositivo.pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
@@ -79,7 +79,7 @@ export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
 
 const buildListaDispositivosAlterados = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): void => {
   dispositivos.push(dispositivo);
-  dispositivo.filhos?.forEach(f => (hasFilhos(f) ? buildListaDispositivosAlterados(f, dispositivos) : undefined));
+  dispositivo.filhos?.forEach(f => (!hasFilhos(f) ? dispositivos.push(f) : buildListaDispositivosAlterados(f, dispositivos)));
 };
 
 export const getDispositivoFromElemento = (articulacao: Articulacao, referencia: Partial<Elemento>): Dispositivo | undefined => {

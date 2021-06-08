@@ -1,4 +1,5 @@
 /* eslint-disable indent */
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
@@ -21,6 +22,7 @@ import {
   SubsecaoLexml,
   TituloLexml,
 } from '../dispositivo/dispositivo-lexml';
+import { getArticulacao } from '../hierarquia/hierarquia-util';
 import { TipoMensagem } from '../util/mensagem';
 
 export class DispositivoLexmlFactory {
@@ -45,6 +47,27 @@ export class DispositivoLexmlFactory {
     const alteracao = this.createArticulacao();
     alteracao.pai = atual;
     atual.addAlteracao(alteracao);
+  }
+
+  private static desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo: Dispositivo): void {
+    dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
+
+    if (isDispositivoAlteracao(dispositivo)) {
+      dispositivo.renumeraFilhos = (): void => {
+        dispositivo.filhos?.forEach(f => f.createRotulo(f));
+      };
+      if (isArtigo(dispositivo)) {
+        (dispositivo as Artigo).caput!.renumeraFilhos = (): void => {
+          dispositivo.filhos?.forEach(f => f.createRotulo(f));
+        };
+      }
+      getArticulacao(dispositivo).renumeraFilhos = (): void => {
+        getArticulacao(dispositivo)?.filhos?.forEach(f => f.createRotulo(f));
+      };
+      getArticulacao(dispositivo).renumeraArtigos = (): void => {
+        getArticulacao(dispositivo)?.filhos?.forEach(f => f.createRotulo(f));
+      };
+    }
   }
 
   private static createDispositivo(name: string, parent: Dispositivo): Dispositivo {
@@ -101,6 +124,9 @@ export class DispositivoLexmlFactory {
     dispositivo.uuid = Counter.next();
     dispositivo.name = name;
     dispositivo.pai = parent;
+
+    DispositivoLexmlFactory.desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);
+
     return dispositivo;
   }
 
@@ -110,10 +136,13 @@ export class DispositivoLexmlFactory {
     }
     if (isArtigo(referencia)) {
       return DispositivoLexmlFactory.createWhenReferenciaIsArtigo(referencia);
-    } else if (isAgrupador(referencia)) {
+    }
+    if (isAgrupador(referencia)) {
       return DispositivoLexmlFactory.createWhenReferenciaIsAgrupador(referencia);
     }
-    return DispositivoLexmlFactory.createFromReferenciaDefault(referencia);
+    return isDispositivoAlteracao(referencia)
+      ? DispositivoLexmlFactory.create(referencia.tipo, referencia.pai!, referencia)
+      : DispositivoLexmlFactory.createFromReferenciaDefault(referencia);
   }
 
   private static createWhenReferenciaBlocoAlteracao(referencia: Dispositivo): Dispositivo {

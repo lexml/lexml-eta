@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { transformaParagrafoEmArtigo } from '../../../src/redux/elemento-actions';
-import { modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
+import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_PARAGRAFOS } from '../../doc/exemplo-paragrafos';
@@ -25,7 +25,7 @@ describe('Testando a transformação de parágrafo em artigo', () => {
       const paragrafo = state.articulacao.artigos[1].filhos[2];
       const action = transformaParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
     });
     it('Deveria apresentar 4 artigos', () => {
       expect(state.articulacao.artigos.length).to.equal(4);
@@ -149,7 +149,7 @@ describe('Testando a transformação de parágrafo em artigo', () => {
       const paragrafo = state.articulacao.artigos[0].filhos[1];
       const action = transformaParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
     });
     it('Deveria apresentar 4 artigos', () => {
       expect(state.articulacao.artigos.length).to.equal(4);

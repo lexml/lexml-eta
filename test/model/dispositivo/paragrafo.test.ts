@@ -72,9 +72,5 @@ describe(TipoDispositivo.paragrafo.tipo, () => {
       paragrafo.createRotulo(paragrafo);
       expect(paragrafo.rotulo).not.equal('undefined');
     });
-    it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido ou executada a renumeração, a paragrafo gera um rótulo inválido', () => {
-      paragrafo.createRotulo(paragrafo);
-      expect(paragrafo.rotulo).to.undefined;
-    });
   });
 });

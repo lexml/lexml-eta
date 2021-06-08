@@ -12,8 +12,8 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     rotulo?: string;
 
     createRotulo(dispositivo: Dispositivo): void {
-      if (this.numero === undefined) {
-        this.rotulo = undefined;
+      if (this.numero === undefined || !dispositivo) {
+        this.rotulo = '§';
       } else {
         dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1
           ? (this.rotulo = this.PARAGRAFO_UNICO)

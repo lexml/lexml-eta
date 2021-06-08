@@ -34,7 +34,7 @@ abstract class ElementoAbstractAction implements ElementoAction {
 class AddElemento extends ElementoAbstractAction {
   descricao: string;
   tipo?: string;
-
+  isDispositivoAlteracao = false;
   constructor(tipo?: Tipo) {
     super();
     this.descricao = `Adicionar ${tipo?.descricao ?? ''}`;
@@ -47,12 +47,21 @@ class AddElemento extends ElementoAbstractAction {
       atual,
       novo: {
         tipo,
+        isDispositivoAlteracao: this.isDispositivoAlteracao,
         conteudo: {
           texto: conteudo,
         },
       },
       hasDesmembramento,
     };
+  }
+}
+
+class TransformaDispositivoEmAlteradorNorma extends AddElemento {
+  isDispositivoAlteracao = true;
+  constructor() {
+    super();
+    this.descricao = `Transforma em dispositivo de alteração`;
   }
 }
 
@@ -79,6 +88,16 @@ export class ChangeElemento extends ElementoAbstractAction {
     };
   }
 }
+
+export const transforma = (elemento: Elemento, novoTipo: string): any => {
+  const action = new ChangeElemento(
+    TipoDispositivo[novoTipo.toLowerCase()],
+    'Transformar ' + elemento.tipo + 'em ' + TipoDispositivo[novoTipo.toLowerCase()].name,
+    'transforma' + elemento.tipo + 'Em' + TipoDispositivo[novoTipo.toLowerCase()].name
+  );
+
+  return action.execute(elemento);
+};
 
 class RemoveElemento extends ElementoAbstractAction {
   constructor() {
@@ -220,10 +239,19 @@ export const addArtigo = new AddElemento(TipoDispositivo.artigo);
 export const addAlinea = new AddElemento(TipoDispositivo.alinea);
 export const addInciso = new AddElemento(TipoDispositivo.inciso);
 export const addItem = new AddElemento(TipoDispositivo.item);
+export const omissis = new AddElemento(TipoDispositivo.omissis);
 export const addParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
+
+export const transformaEmDispositivoAlteracaoNorma = new TransformaDispositivoEmAlteradorNorma();
+// export const transformaEmOmissis = new ChangeElemento(TipoDispositivo.omissis, 'Transforma em Omissis', 'transformaEmOmissis');
+export const transformaEmOmissisAlinea = new ChangeElemento(TipoDispositivo.omissis, 'Transforma em Omissis de Alínea', 'transformaEmOmissisAlinea');
+export const transformaEmOmissisIncisoCaput = new ChangeElemento(TipoDispositivo.omissis, 'Transforma em Omissis de Inciso de Caput', 'transformaEmOmissisIncisoCaput');
+export const transformaEmOmissisItem = new ChangeElemento(TipoDispositivo.omissis, 'Transforma em Omissis de Item', 'transformaEmOmissisItem');
+export const transformaEmOmissisParagrafo = new ChangeElemento(TipoDispositivo.omissis, 'Transforma em Omissis de Parágrafo', 'transformaEmOmissisParagrafo');
+export const transformaEmOmissisIncisoParagrafo = new ChangeElemento(TipoDispositivo.omissis, 'Transforma em Omissis de Inciso de Parágrafo', 'transformaEmOmissisIncisoParagrafo');
 
 export const transformaAlineaEmInciso = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Alínea em Inciso', 'transformaAlineaEmInciso');
 export const transformaAlineaEmItem = new ChangeElemento(TipoDispositivo.item, 'Transformar Alínea em Item', 'transformaAlineaEmItem');
@@ -234,6 +262,14 @@ export const transformaGenericoEmItem = new ChangeElemento(TipoDispositivo.item,
 export const transformaIncisoEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Inciso em Parágrafo', 'transformaIncisoEmParagrafo');
 export const transformaIncisoCaputEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Inciso em Parágrafo', 'transformaIncisoCaputEmParagrafo');
 export const transformaIncisoEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Inciso em Alínea', 'transformaIncisoEmAlinea');
+
+export const transformaOmissisEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Omissis em Alínea', 'transformaOmissisEmAlinea');
+export const transformaOmissisEmArtigo = new ChangeElemento(TipoDispositivo.artigo, 'Transformar Omissis em Artigo', 'transformaOmissisEmArtigo');
+export const transformaOmissisEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Omissis em Inciso de Caput', 'transformaOmissisEmIncisoCaput');
+export const transformaOmissisEmIncisoParagrafo = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Omissis em Inciso de Parágrafo', 'transformaOmissisEmIncisoParagrafo');
+export const transformaOmissisEmItem = new ChangeElemento(TipoDispositivo.item, 'Transformar Omissis em Item', 'transformaOmissisEmItem');
+export const transformaOmissisEmParagrafo = new ChangeElemento(TipoDispositivo.paragrafo, 'Transformar Omissis em Parágrafo', 'transformaOmissisEmParagrafo');
+
 export const transformaItemEmAlinea = new ChangeElemento(TipoDispositivo.alinea, 'Transformar Item em Alínea', 'transformaItemEmAlinea');
 export const transformaParagrafoEmArtigo = new ChangeElemento(TipoDispositivo.artigo, 'Transformar Parágrafo em Artigo', 'transformaParagrafoEmArtigo');
 export const transformaParagrafoEmIncisoParagrafo = new ChangeElemento(
@@ -242,16 +278,6 @@ export const transformaParagrafoEmIncisoParagrafo = new ChangeElemento(
   'transformaParagrafoEmIncisoParagrafo'
 );
 export const transformaParagrafoEmIncisoCaput = new ChangeElemento(TipoDispositivo.inciso, 'Transformar Parágrafo em Inciso de Caput', 'transformaParagrafoEmIncisoCaput');
-
-export const transforma = (elemento: Elemento, novoTipo: string): any => {
-  const action = new ChangeElemento(
-    TipoDispositivo[novoTipo.toLowerCase()],
-    'Transformar ' + elemento.tipo + 'em ' + TipoDispositivo[novoTipo.toLowerCase()].name,
-    'transforma' + elemento.tipo + 'Em' + TipoDispositivo[novoTipo.toLowerCase()].name
-  );
-
-  return action.execute(elemento);
-};
 
 export const elementoSelecionadoAction = new ElementoSelecionado();
 
@@ -274,6 +300,13 @@ acoesMenu.push(addParagrafo);
 acoesMenu.push(moverElementoAbaixo);
 acoesMenu.push(moverElementoAcima);
 
+acoesMenu.push(transformaEmDispositivoAlteracaoNorma);
+acoesMenu.push(transformaEmOmissisAlinea);
+acoesMenu.push(transformaEmOmissisIncisoCaput);
+acoesMenu.push(transformaEmOmissisItem);
+acoesMenu.push(transformaEmOmissisParagrafo);
+acoesMenu.push(transformaEmOmissisIncisoParagrafo);
+
 acoesMenu.push(transformaAlineaEmInciso);
 acoesMenu.push(transformaAlineaEmItem);
 acoesMenu.push(transformaArtigoEmParagrafo);
@@ -284,6 +317,12 @@ acoesMenu.push(transformaIncisoEmAlinea);
 acoesMenu.push(transformaIncisoEmParagrafo);
 acoesMenu.push(transformaItemEmAlinea);
 acoesMenu.push(transformaIncisoCaputEmParagrafo);
+acoesMenu.push(transformaOmissisEmAlinea);
+acoesMenu.push(transformaOmissisEmArtigo);
+acoesMenu.push(transformaOmissisEmIncisoCaput);
+acoesMenu.push(transformaOmissisEmIncisoParagrafo);
+acoesMenu.push(transformaOmissisEmItem);
+acoesMenu.push(transformaOmissisEmParagrafo);
 acoesMenu.push(transformaParagrafoEmArtigo);
 acoesMenu.push(transformaParagrafoEmIncisoParagrafo);
 acoesMenu.push(transformaParagrafoEmIncisoCaput);

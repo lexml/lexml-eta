@@ -9,17 +9,53 @@ import {
   transformaAlineaEmInciso,
   transformaAlineaEmItem,
   transformaArtigoEmParagrafo,
+  transformaEmDispositivoAlteracaoNorma,
+  transformaEmOmissisAlinea,
+  transformaEmOmissisIncisoCaput,
+  transformaEmOmissisIncisoParagrafo,
+  transformaEmOmissisItem,
+  transformaEmOmissisParagrafo,
   transformaIncisoCaputEmParagrafo,
   transformaIncisoEmAlinea,
   transformaIncisoEmParagrafo,
   transformaItemEmAlinea,
+  transformaOmissisEmAlinea,
+  transformaOmissisEmArtigo,
+  transformaOmissisEmIncisoCaput,
+  transformaOmissisEmIncisoParagrafo,
+  transformaOmissisEmItem,
+  transformaOmissisEmParagrafo,
   transformaParagrafoEmArtigo,
   transformaParagrafoEmIncisoCaput,
   transformaParagrafoEmIncisoParagrafo,
 } from '../../../redux/elemento-actions';
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isAlinea, isArtigo, isCaput, isDispositivoGenerico, isInciso, isIncisoCaput, isItem, isParagrafo } from '../../dispositivo/tipo';
-import { isLastMesmoTipo, isPrimeiroMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import {
+  isAgrupador,
+  isAlinea,
+  isArticulacao,
+  isArtigo,
+  isCaput,
+  isDispositivoGenerico,
+  isInciso,
+  isIncisoCaput,
+  isIncisoParagrafo,
+  isItem,
+  isOmissis,
+  isParagrafo,
+  TipoDispositivo,
+} from '../../dispositivo/tipo';
+import { getDispositivoAnterior, getDispositivoPosterior, isLastMesmoTipo, isPrimeiroMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+
+const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
+  return (
+    isDispositivoAlteracao(dispositivo.pai!) &&
+    dispositivo.tipo !== TipoDispositivo.omissis.name &&
+    getDispositivoAnterior(dispositivo) !== TipoDispositivo.omissis.name &&
+    getDispositivoPosterior(dispositivo) !== TipoDispositivo.omissis.name
+  );
+};
 
 export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   let acoes: ElementoAction[] = [];
@@ -33,6 +69,22 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(moveElementoAcima);
   }
 
+  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+    acoes.push(transformaAlineaEmInciso);
+  }
+  if (isAlinea(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+    acoes.push(transformaAlineaEmItem);
+  }
+  if (isAlinea(dispositivo) && podeConverterEmOmissis(dispositivo)) {
+    acoes.push(transformaEmOmissisAlinea);
+  }
+
+  if (isArtigo(dispositivo) && !dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo)) {
+    acoes.push(transformaEmDispositivoAlteracaoNorma);
+  }
+  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+    acoes.push(transformaArtigoEmParagrafo);
+  }
   if (
     isDispositivoGenerico(dispositivo) &&
     (isParagrafo(dispositivo.pai!) || isCaput(dispositivo.pai!) || isInciso(dispositivo.pai!) || isAlinea(dispositivo.pai!)) &&
@@ -41,23 +93,50 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(acoesDisponiveis.filter(a => a instanceof ChangeElemento && a.nomeAcao === 'transformaDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
   }
 
-  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    acoes.push(transformaAlineaEmInciso);
-  }
-  if (isAlinea(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
-    acoes.push(transformaAlineaEmItem);
-  }
-  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
-    acoes.push(transformaArtigoEmParagrafo);
-  }
   if (isInciso(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformaIncisoEmAlinea);
   }
-  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isInciso(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformaIncisoEmParagrafo);
+  }
+  if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
+    acoes.push(transformaEmOmissisIncisoCaput);
+  }
+  if (
+    isIncisoParagrafo(dispositivo) &&
+    dispositivo.tipo !== TipoDispositivo.omissis.name &&
+    getDispositivoAnterior(dispositivo) !== TipoDispositivo.omissis.name &&
+    getDispositivoPosterior(dispositivo) !== TipoDispositivo.omissis.name
+  ) {
+    acoes.push(transformaEmOmissisIncisoParagrafo);
+  }
+
+  if (isItem(dispositivo)) {
+    acoes = acoes.filter(a => a !== addElementoAction);
   }
   if (isItem(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformaItemEmAlinea);
+  }
+  if (isItem(dispositivo) && podeConverterEmOmissis(dispositivo)) {
+    acoes.push(transformaEmOmissisItem);
+  }
+  if (isOmissis(dispositivo) && isArticulacao(dispositivo.pai!) && getDispositivoAnterior(dispositivo) !== undefined) {
+    acoes.push(transformaOmissisEmArtigo);
+  }
+  if (isOmissis(dispositivo) && isCaput(dispositivo.pai!)) {
+    acoes.push(transformaOmissisEmIncisoCaput);
+  }
+  if (isOmissis(dispositivo) && isArtigo(dispositivo.pai!)) {
+    acoes.push(transformaOmissisEmParagrafo);
+  }
+  if (isOmissis(dispositivo) && isParagrafo(dispositivo.pai!)) {
+    acoes.push(transformaOmissisEmIncisoParagrafo);
+  }
+  if (isOmissis(dispositivo) && isInciso(dispositivo.pai!)) {
+    acoes.push(transformaOmissisEmAlinea);
+  }
+  if (isOmissis(dispositivo) && isAlinea(dispositivo.pai!)) {
+    acoes.push(transformaOmissisEmItem);
   }
   if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformaParagrafoEmIncisoCaput);
@@ -68,8 +147,8 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isParagrafo(dispositivo) && (isLastMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo))) {
     acoes.push(transformaParagrafoEmArtigo);
   }
-  if (isItem(dispositivo)) {
-    acoes = acoes.filter(a => a !== addElementoAction);
+  if (isParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
+    acoes.push(transformaEmOmissisParagrafo);
   }
 
   if (isAgrupador(dispositivo)) {

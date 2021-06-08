@@ -63,9 +63,5 @@ describe('Item', () => {
       item.createRotulo();
       expect(item.rotulo).not.equal('1.');
     });
-    it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido ou executada a renumeração, a item gera um rótulo inválido', () => {
-      item.createRotulo();
-      expect(item.rotulo).to.undefined;
-    });
   });
 });

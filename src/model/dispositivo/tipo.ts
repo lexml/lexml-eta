@@ -132,7 +132,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
     descricao: 'Omissis',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso'],
     tiposPermitidosFilhos: ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso', 'Item'],
-    tipoProvavelFilho: 'Omissis',
+    tipoProvavelFilho: undefined,
     INDICADOR_SEQUENCIA: ['NA'],
     INDICADOR_FIM_SEQUENCIA: ['NA'],
     INDICADOR_DESDOBRAMENTO: ['NA'],
@@ -222,12 +222,20 @@ export const isIncisoCaput = (dispositivo: Dispositivo): boolean => {
   return isInciso(dispositivo) && isCaput(dispositivo.pai!);
 };
 
+export const isIncisoParagrafo = (dispositivo: Dispositivo): boolean => {
+  return isInciso(dispositivo) && isParagrafo(dispositivo.pai!);
+};
+
 export const isAlinea = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.alinea.tipo;
 };
 
 export const isItem = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.item.tipo;
+};
+
+export const isOmissis = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.omissis.tipo;
 };
 
 export const isAgrupador = (dispositivo: Dispositivo): boolean => {

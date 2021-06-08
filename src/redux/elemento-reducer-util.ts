@@ -37,8 +37,7 @@ export const buildFuture = (state: any, events: any): StateEvent[] => {
   return count > 50 ? future.shift() : future;
 };
 
-export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = '&#8220;' + TEXTO_OMISSIS + ' &#8221; (NR)';
-export const TEXTO_OMISSIS_DISPOSITIVO_ALTERACAO = '&#8220;' + '...........................................................................................' + ' &#8221;';
+export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = TEXTO_OMISSIS + ' &#8221; (NR)';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any): boolean => {
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);
@@ -78,7 +77,17 @@ export const hasIndicativoFimAlteracao = (texto: string): boolean => {
 };
 
 export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
-  return !!dispositivo.isDispositivoAlteracao;
+  const r = !!dispositivo.isDispositivoAlteracao;
+
+  if (r) {
+    return true;
+  }
+
+  try {
+    return getArticulacao(dispositivo).pai !== undefined;
+  } catch (error) {
+    return false;
+  }
 };
 
 export const isElementoDispositivoAlteracao = (elemento: Partial<Elemento>): boolean => {
@@ -107,14 +116,12 @@ export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, in
   return validados;
 };
 
+const isPrimeiroArtigo = (dispositivo: Dispositivo): boolean => {
+  return isArtigo(dispositivo) && getArticulacao(dispositivo).indexOfArtigo(dispositivo as Artigo) === 0;
+};
+
 export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {
-  return isArtigo(dispositivo)
-    ? getArticulacao(dispositivo).indexOfArtigo(dispositivo as Artigo) === 0
-      ? referencia
-      : getUltimoFilho(referencia)
-    : dispositivo.pai!.indexOf(dispositivo) === 0
-    ? referencia
-    : getUltimoFilho(referencia);
+  return isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0 ? referencia : getUltimoFilho(referencia);
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {

@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { transformaItemEmAlinea } from '../../../src/redux/elemento-actions';
-import { modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
+import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
@@ -25,7 +25,7 @@ describe('Testando a transformação de item em alínea', () => {
       const item = state.articulacao.artigos[1].caput.filhos[0].filhos[0].filhos[0];
       const action = transformaItemEmAlinea.execute({ tipo: TipoDispositivo.item.tipo, uuid: item.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
     });
     it('Deveria apresentar 3 alíneas', () => {
       expect(state.articulacao.artigos[1].caput.filhos[0].filhos.length).to.equal(3);
@@ -140,7 +140,7 @@ describe('Testando a transformação de item em alínea', () => {
       const item = state.articulacao.artigos[1].caput.filhos[0].filhos[1].filhos[1];
       const action = transformaItemEmAlinea.execute({ tipo: TipoDispositivo.item.tipo, uuid: item.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
     });
     it('Deveria apresentar 3 alíneas pertencentes ao artigo 2', () => {
       expect(state.articulacao.artigos[1].caput.filhos[0].filhos.length).to.equal(3);

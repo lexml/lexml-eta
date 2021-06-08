@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { transformaIncisoEmParagrafo } from '../../../src/redux/elemento-actions';
-import { modificaTipoElemento, redo, undo } from '../../../src/redux/elemento-reducer';
+import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
@@ -24,7 +24,7 @@ describe('Testando a transformação de inciso em parágrafo', () => {
       const inciso = state.articulacao.artigos[0].filhos[0];
       const action = transformaIncisoEmParagrafo.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });
     it('Deveria apresentar um filho pertencente ao artigo 1', () => {
@@ -125,7 +125,7 @@ describe('Testando a transformação de inciso em parágrafo', () => {
       const inciso = state.articulacao.artigos[3].filhos[1];
       const action = transformaIncisoEmParagrafo.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! });
 
-      state = modificaTipoElemento(state, action);
+      state = transformaTipoElemento(state, action);
     });
     it('Deveria apresentar um inciso e 2 parágrafos pertencentes ao artigo 4', () => {
       expect(state.articulacao.artigos[3].filhos.length).to.equal(3);
