@@ -25,22 +25,22 @@ import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
 import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
 import {
-  ADD_ELEMENTO,
-  ChangeElemento,
-  CHANGE_ELEMENTO,
+  ABRIR_ARTICULACAO,
+  ADICIONAR_ELEMENTO,
+  ATUALIZAR_ELEMENTO,
   ELEMENTO_SELECIONADO,
   MOVER_ELEMENTO_ABAIXO,
   MOVER_ELEMENTO_ACIMA,
   NOVA_ARTICULACAO,
-  OPEN_ARTICULACAO,
   REDO,
-  REMOVE_ELEMENTO,
+  REMOVER_ELEMENTO,
   SHIFT_TAB,
   TAB,
+  TransformarElemento,
+  TRANSFORMAR_TIPO_ELEMENTO,
   UNDO,
-  UPDATE_ELEMENTO,
-  VALIDA_ARTICULACAO,
-  VALIDA_ELEMENTO,
+  VALIDAR_ARTICULACAO,
+  VALIDAR_ELEMENTO,
 } from './elemento-actions';
 import {
   ajustaReferencia,
@@ -462,7 +462,7 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (atual === undefined) {
-    return state;
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });
   }
 
   ajustaAcaoSeCasoEspecialForInciso(atual, action);
@@ -521,9 +521,9 @@ export const modificaTipoElementoWithTab = (state: any, action: any): ElementoSt
   }
 
   const newAction = {
-    type: CHANGE_ELEMENTO,
-    subType: (acao as ChangeElemento).nomeAcao,
-    atual,
+    type: TRANSFORMAR_TIPO_ELEMENTO,
+    subType: (acao as TransformarElemento).nomeAcao,
+    atual: action.atual,
     novo: {
       tipo: acao.tipo,
     },
@@ -675,9 +675,9 @@ export const openArticulacao = (state: any, action: any): ElementoState => {
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
-    case ADD_ELEMENTO:
+    case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
-    case CHANGE_ELEMENTO:
+    case TRANSFORMAR_TIPO_ELEMENTO:
       return transformaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:
       return selecionaElemento(state, action);
@@ -687,22 +687,22 @@ export const elementoReducer = (state = {}, action: any): any => {
       return moveElementoAcima(state, action);
     case NOVA_ARTICULACAO:
       return novaArticulacao();
-    case OPEN_ARTICULACAO:
+    case ABRIR_ARTICULACAO:
       return openArticulacao(state, action);
     case REDO:
       return redo(state);
-    case REMOVE_ELEMENTO:
+    case REMOVER_ELEMENTO:
       return removeElemento(state, action);
     case SHIFT_TAB:
     case TAB:
       return modificaTipoElementoWithTab(state, action);
     case UNDO:
       return undo(state);
-    case UPDATE_ELEMENTO:
+    case ATUALIZAR_ELEMENTO:
       return atualizaElemento(state, action);
-    case VALIDA_ELEMENTO:
+    case VALIDAR_ELEMENTO:
       return validaElemento(state, action);
-    case VALIDA_ARTICULACAO:
+    case VALIDAR_ARTICULACAO:
       return validaArticulacao(state);
     default:
       return state;

@@ -42,7 +42,6 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformaEmOmissisItem':
     case 'transformaEmOmissisParagrafo':
     case 'transformaEmOmissisIncisoParagrafo':
-    case 'transformaEmOmissisIncisoCaput':
     case 'transformaOmissisEmIncisoCaput':
       paiNovo = paiAtual!;
       novo = DispositivoLexmlFactory.create(action.novo.tipo, paiAtual!, undefined, paiAtual?.indexOf(atual));

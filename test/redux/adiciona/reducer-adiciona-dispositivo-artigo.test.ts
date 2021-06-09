@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { ADD_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { adicionaElemento, redo, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateEvent, StateType } from '../../../src/redux/state';
@@ -23,7 +23,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
       beforeEach(function () {
         const artigo = state.articulacao.artigos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
           novo: {
             tipo: TipoDispositivo.inciso.tipo,
@@ -124,7 +124,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
       beforeEach(function () {
         const inciso1 = state.articulacao.artigos[3].caput.filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso1.uuid },
           novo: {
             tipo: TipoDispositivo.inciso.tipo,
@@ -223,7 +223,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
       beforeEach(function () {
         const inciso1 = state.articulacao.artigos[3].caput.filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso1.uuid, conteudo: { texto: 'Teste sem pontuação ' } },
           novo: {
             tipo: TipoDispositivo.inciso.tipo,
@@ -346,7 +346,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
         const inciso = state.articulacao.artigos[1].caput.filhos[1];
 
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid },
           novo: {
             tipo: TipoDispositivo.inciso.tipo,

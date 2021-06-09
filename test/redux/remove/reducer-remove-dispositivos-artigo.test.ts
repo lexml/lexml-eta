@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { REMOVE_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { REMOVER_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { removeElemento } from '../../../src/redux/elemento-reducer';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
 
@@ -18,7 +18,7 @@ describe('Testando a exclusão de dispositivos de artigo', () => {
   describe('Testando a exclusão do inciso I do caput do artigo 1, que é único filho e não possui filhos', () => {
     beforeEach(function () {
       const inciso = state.articulacao.artigos[0].filhos[0];
-      state = removeElemento(state, { type: REMOVE_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
+      state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
     });
     describe('Verificando a estrutura resultante da ação de exclusão do único inciso do caput do artigo 1', () => {
       it('Deveria apresentar o artigo não possuindo filhos', () => {
@@ -40,7 +40,7 @@ describe('Testando a exclusão de dispositivos de artigo', () => {
   describe('Testando a exclusão do inciso I do caput do artigo 2, com duas alineas, que possui um inciso posterior ', () => {
     beforeEach(function () {
       const inciso = state.articulacao.artigos[1].filhos[0];
-      state = removeElemento(state, { type: REMOVE_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
+      state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
     });
     describe('Verificando a estrutura resultante da ação de exclusão do inciso I do caput do artigo 2', () => {
       it('Deveria apresentar o artigo possuindo um filho', () => {
@@ -74,7 +74,7 @@ describe('Testando a exclusão de dispositivos de artigo', () => {
   describe('Testando a exclusão do inciso 2 do caput do artigo 2, sem alíneas, que possui um inciso anterior com duas alineas', () => {
     beforeEach(function () {
       const inciso = state.articulacao.artigos[1].filhos[1];
-      state = removeElemento(state, { type: REMOVE_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
+      state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
     });
     describe('Verificando a estrutura resultante da ação de exclusão do inciso II do caput do artigo 2', () => {
       it('Deveria apresentar o artigo possuindo apenas 1 filho', () => {
@@ -97,7 +97,7 @@ describe('Testando a exclusão de dispositivos de artigo', () => {
   describe('Testando a exclusão do inciso 1 do caput do artigo 2, que possui duas alineas', () => {
     beforeEach(function () {
       const inciso = state.articulacao.artigos[1].filhos[0];
-      state = removeElemento(state, { type: REMOVE_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
+      state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! } });
     });
     describe('Verificando a estrutura resultante da ação de exclusão do inciso I do caput do artigo 2', () => {
       it('Deveria apresentar o artigo não possuindo filhos', () => {

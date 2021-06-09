@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { ADD_ELEMENTO, transformaArtigoEmParagrafo } from '../../../src/redux/elemento-actions';
+import { ADICIONAR_ELEMENTO, transformarArtigoEmParagrafo } from '../../../src/redux/elemento-actions';
 import { adicionaElemento, redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
@@ -24,7 +24,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
   describe('Testando a mudança do artigo 4, com filhos, em parágrafo do artigo anterior que possui filhos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[3];
-      const action = transformaArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! });
+      const action = transformarArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! });
 
       state = transformaTipoElemento(state, action);
     });
@@ -161,7 +161,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
       };
       const artigo = state.articulacao.artigos[0];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         hasDesmembramento: true,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
         novo: {
@@ -175,7 +175,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
     describe('Testando a mudança do artigo 2 em parágrafo do artigo anterior', () => {
       beforeEach(function () {
         const artigo = state.articulacao.artigos[1];
-        const action = transformaArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! });
+        const action = transformarArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! });
 
         state = transformaTipoElemento(state, action);
       });

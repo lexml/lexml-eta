@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { REMOVE_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { REMOVER_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { removeElemento } from '../../../src/redux/elemento-reducer';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
@@ -23,7 +23,7 @@ describe('Testando a exclusão de artigos', () => {
   describe('Testando a exclusão do artigo 1º, que não possui somente incisos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
-      state = removeElemento(state, { type: REMOVE_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
+      state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
     });
     describe('Testando a articulação resultante da ação de exclusão do artigo', () => {
       it('Deveria possuir 4 artigos após excluir o artigo 1º', () => {
@@ -55,7 +55,7 @@ describe('Testando a exclusão de artigos', () => {
   describe('Testando a exclusão do artigo 5º, que não possui filhos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[4];
-      state = removeElemento(state, { type: REMOVE_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
+      state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
     });
     describe('Testando a articulação resultante da ação de exclusão do artigo', () => {
       it('Deveria possuir 4 artigos após excluir o artigo 1º', () => {

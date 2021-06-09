@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { transformaParagrafoEmArtigo } from '../../../src/redux/elemento-actions';
+import { transformarParagrafoEmArtigo } from '../../../src/redux/elemento-actions';
 import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
@@ -23,7 +23,7 @@ describe('Testando a transformação de parágrafo em artigo', () => {
   describe('Testando a mudança do parágrafo único, que possui filhos, em artigo, quando o artigo anterior não possui incisos de caput', () => {
     beforeEach(function () {
       const paragrafo = state.articulacao.artigos[1].filhos[2];
-      const action = transformaParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
+      const action = transformarParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
 
       state = transformaTipoElemento(state, action);
     });
@@ -147,7 +147,7 @@ describe('Testando a transformação de parágrafo em artigo', () => {
   describe('Testando a mudança do parágrafo 2, que não possui filhos, em artigo, quando o artigo anterior não possui incisos de caput', () => {
     beforeEach(function () {
       const paragrafo = state.articulacao.artigos[0].filhos[1];
-      const action = transformaParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
+      const action = transformarParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
 
       state = transformaTipoElemento(state, action);
     });

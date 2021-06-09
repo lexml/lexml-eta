@@ -17,7 +17,7 @@ import {
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { addSpaceRegex, escapeRegex } from '../util/string-util';
-import { addElementoAction } from './elemento-actions';
+import { adicionarElementoAction } from './elemento-actions';
 import { Eventos } from './eventos';
 import { StateEvent, StateType } from './state';
 
@@ -125,7 +125,7 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {
-  return hasIndicativoDesdobramento(dispositivo) && !acoesPossiveis(dispositivo).includes(addElementoAction);
+  return hasIndicativoDesdobramento(dispositivo) && !acoesPossiveis(dispositivo).includes(adicionarElementoAction);
 };
 
 export const isNovoDispositivoDesmembrandoAtual = (novo: Dispositivo): boolean => {

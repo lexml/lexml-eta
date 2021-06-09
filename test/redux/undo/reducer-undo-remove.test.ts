@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { REMOVE_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { REMOVER_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { removeElemento, undo } from '../../../src/redux/elemento-reducer';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
@@ -34,7 +34,7 @@ describe('Testando undo de remover artigo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
       state = removeElemento(state, {
-        type: REMOVE_ELEMENTO,
+        type: REMOVER_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
       });
     });
@@ -72,7 +72,7 @@ describe('Testando undo de remover artigo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[3];
       state = removeElemento(state, {
-        type: REMOVE_ELEMENTO,
+        type: REMOVER_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
       });
     });

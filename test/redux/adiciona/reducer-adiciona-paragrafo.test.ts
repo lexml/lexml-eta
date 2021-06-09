@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { ADD_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { adicionaElemento } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
@@ -22,7 +22,7 @@ describe('Testando adicionar parágrafos', () => {
       beforeEach(function () {
         const inciso2 = state.articulacao.artigos[1].caput.filhos[1];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.inciso.tipo, uuid: inciso2.uuid },
           novo: {
             tipo: TipoDispositivo.inciso.tipo,
@@ -63,7 +63,7 @@ describe('Testando adicionar parágrafos', () => {
       beforeEach(function () {
         const paragrafo = state.articulacao.artigos[0].filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid },
         });
       });
@@ -96,7 +96,7 @@ describe('Testando adicionar parágrafos', () => {
       beforeEach(function () {
         const paragrafo = state.articulacao.artigos[0].filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid, conteudo: { texto: 'teste' } },
         });
       });
@@ -133,7 +133,7 @@ describe('Testando adicionar parágrafos', () => {
       beforeEach(function () {
         const paragrafo = state.articulacao.artigos[0].filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid, conteudo: { texto: '' } },
           novo: {
             tipo: TipoDispositivo.paragrafo.tipo,
@@ -186,7 +186,7 @@ describe('Testando adicionar parágrafos', () => {
       beforeEach(function () {
         const paragrafo = state.articulacao.artigos[0].filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid, conteudo: { texto: 'Texto do parágrafo 1 ' } },
           novo: {
             tipo: TipoDispositivo.paragrafo.tipo,
@@ -239,7 +239,7 @@ describe('Testando adicionar parágrafos', () => {
       beforeEach(function () {
         const paragrafo = state.articulacao.artigos[2].filhos[0];
         state = adicionaElemento(state, {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid, conteudo: { texto: 'Texto do parágrafo 1 do ' } },
           novo: {
             tipo: TipoDispositivo.paragrafo.tipo,

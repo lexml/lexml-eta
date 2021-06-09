@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { transformaIncisoEmParagrafo } from '../../../src/redux/elemento-actions';
+import { transformarIncisoEmParagrafo } from '../../../src/redux/elemento-actions';
 import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
@@ -22,7 +22,7 @@ describe('Testando a transformação de inciso em parágrafo', () => {
   describe('Testando a mudança de um único inciso em parágrafo único', () => {
     beforeEach(function () {
       const inciso = state.articulacao.artigos[0].filhos[0];
-      const action = transformaIncisoEmParagrafo.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! });
+      const action = transformarIncisoEmParagrafo.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! });
 
       state = transformaTipoElemento(state, action);
       eventos = getEventosQuePossuemElementos(state.ui.events);
@@ -123,7 +123,7 @@ describe('Testando a transformação de inciso em parágrafo', () => {
   describe('Testando a mudança do último inciso em parágrafo 1', () => {
     beforeEach(function () {
       const inciso = state.articulacao.artigos[3].filhos[1];
-      const action = transformaIncisoEmParagrafo.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! });
+      const action = transformarIncisoEmParagrafo.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: inciso.uuid! });
 
       state = transformaTipoElemento(state, action);
     });

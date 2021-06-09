@@ -4,20 +4,20 @@ import 'quill/dist/quill';
 import { TipoDispositivo } from '../../model/dispositivo/tipo';
 import { Elemento } from '../../model/elemento';
 import {
-  addElementoAction,
+  adicionarElementoAction,
+  atualizarElementoAction,
   ElementoAction,
   elementoSelecionadoAction,
   getAcao,
   isAcaoMenu,
   RedoAction,
-  removeElementoAction,
+  removerElementoAction,
   shiftTabAction,
   tabAction,
   transforma,
   UndoAction,
-  updateElementoAction,
-  validaArticulacaAction,
-  validateElementoAction,
+  validarArticulacaAction,
+  validarElementoAction,
 } from '../../redux/elemento-actions';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
@@ -216,7 +216,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)"><i class="fa fa-undo"></i></button>
           <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)"><i class="fa fa-undo lx-eta-rebate-180-graus"></i></button>
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
-          <button @click=${this.onClickValidacao} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Valida Articulação">V</button>
+          <button @click=${this.onClickValidacao} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Validar Articulação">V</button>
           <lexml-eta-help style="float:right;"></lexml-eta-help>
         </div>
         <div id="lx-eta-editor"></div>
@@ -242,7 +242,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private onClickValidacao(): void {
-    rootStore.dispatch(validaArticulacaAction.execute());
+    rootStore.dispatch(validarArticulacaAction.execute());
   }
 
   private onSelectionChange: SelectionChangeHandler = (): void => {
@@ -251,9 +251,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (linhaAnt) {
         const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html, linhaAnt.hierarquia);
         if (linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') {
-          rootStore.dispatch(validateElementoAction.execute(elemento));
+          rootStore.dispatch(validarElementoAction.execute(elemento));
         } else if (linhaAnt.blotConteudo.alterado) {
-          rootStore.dispatch(updateElementoAction.execute(elemento));
+          rootStore.dispatch(atualizarElementoAction.execute(elemento));
         }
       }
     }
@@ -312,9 +312,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
         const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.hierarquia);
-        rootStore.dispatch(updateElementoAction.execute(elemento));
+        rootStore.dispatch(atualizarElementoAction.execute(elemento));
       }
-      rootStore.dispatch(addElementoAction.execute(elemento, textoNovaLinha));
+      rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
     }
   }
 
@@ -332,7 +332,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const choice: string = closeResult && closeResult.choice;
       if (choice === 'Sim') {
         const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
-        rootStore.dispatch(removeElementoAction.execute(elemento));
+        rootStore.dispatch(removerElementoAction.execute(elemento));
       }
       this.quill.focus();
     });
@@ -604,7 +604,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.getLine(0)[0].remove();
       elementos.map((elemento: Elemento) => {
         EtaQuillUtil.criarContainerLinha(elemento).insertInto(this.quill.scroll);
-        elemento.tipo === TipoDispositivo.generico.tipo ? rootStore.dispatch(validateElementoAction.execute(elemento)) : undefined;
+        elemento.tipo === TipoDispositivo.generico.tipo ? rootStore.dispatch(validarElementoAction.execute(elemento)) : undefined;
       });
       this.quill.limparHistory();
       setTimeout(() => {

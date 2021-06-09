@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { ADD_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { adicionaElemento } from '../../../src/redux/elemento-reducer';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
@@ -23,7 +23,7 @@ describe('Testando a inclusão de dispositivos de alteração', () => {
       const artigo = state.articulacao.artigos[0];
       state = adicionaElemento(state, {
         atual: {
-          type: ADD_ELEMENTO,
+          type: ADICIONAR_ELEMENTO,
           tipo: TipoDispositivo.artigo.tipo,
           uuid: artigo.uuid,
           conteudo: { texto: 'abc passa a vigorar com a seguinte alteração:' },

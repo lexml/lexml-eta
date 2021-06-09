@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { ADD_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { adicionaElemento } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateEvent, StateType } from '../../../src/redux/state';
@@ -25,7 +25,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
         novo: {
           tipo: TipoDispositivo.artigo.tipo,
@@ -63,7 +63,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[4];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid, conteudo: { texto: 'Texto do caput do Artigo 5.' } },
         novo: {
           tipo: TipoDispositivo.artigo.tipo,
@@ -95,7 +95,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid, conteudo: { texto: '' } },
         novo: {
           tipo: TipoDispositivo.artigo.tipo,
@@ -144,7 +144,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[4];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         hasDesmembramento: true,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid, conteudo: { texto: 'Texto do caput ' } },
         novo: {
@@ -195,7 +195,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[3];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         hasDesmembramento: true,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid, conteudo: { texto: 'Texto do caput ' } },
         novo: {
@@ -247,7 +247,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[3];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         hasDesmembramento: true,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
         novo: {
@@ -283,7 +283,7 @@ describe('Testando a inclusão de artigos', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[3];
       state = adicionaElemento(state, {
-        type: ADD_ELEMENTO,
+        type: ADICIONAR_ELEMENTO,
         hasDesmembramento: true,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid, conteudo: { texto: 'Texto do caput do Artigo 4.' } },
         novo: {

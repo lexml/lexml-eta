@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { UPDATE_ELEMENTO } from '../../../src/redux/elemento-actions';
+import { ATUALIZAR_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { atualizaElemento, undo } from '../../../src/redux/elemento-reducer';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
@@ -33,7 +33,7 @@ describe('Testando undo de artigo atualizado', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
       state = atualizaElemento(state, {
-        type: UPDATE_ELEMENTO,
+        type: ATUALIZAR_ELEMENTO,
         atual: {
           tipo: TipoDispositivo.artigo.tipo,
           uuid: artigo.uuid,
