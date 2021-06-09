@@ -1,33 +1,33 @@
 import {
   acoesDisponiveis,
   acoesPossiveisDispositivo,
-  addElementoAction,
-  ChangeElemento,
+  adicionarElementoAction,
   ElementoAction,
   moverElementoAbaixo as moveElementoAbaixo,
   moverElementoAcima as moveElementoAcima,
-  transformaAlineaEmInciso,
   transformaAlineaEmItem,
-  transformaArtigoEmParagrafo,
-  transformaEmDispositivoAlteracaoNorma,
-  transformaEmOmissisAlinea,
-  transformaEmOmissisIncisoCaput,
-  transformaEmOmissisIncisoParagrafo,
-  transformaEmOmissisItem,
-  transformaEmOmissisParagrafo,
-  transformaIncisoCaputEmParagrafo,
-  transformaIncisoEmAlinea,
-  transformaIncisoEmParagrafo,
-  transformaItemEmAlinea,
-  transformaOmissisEmAlinea,
-  transformaOmissisEmArtigo,
-  transformaOmissisEmIncisoCaput,
-  transformaOmissisEmIncisoParagrafo,
-  transformaOmissisEmItem,
-  transformaOmissisEmParagrafo,
-  transformaParagrafoEmArtigo,
-  transformaParagrafoEmIncisoCaput,
-  transformaParagrafoEmIncisoParagrafo,
+  transformarAlineaEmInciso,
+  transformarArtigoEmParagrafo,
+  TransformarElemento,
+  transformarEmDispositivoAlteracaoNorma,
+  transformarEmOmissisAlinea,
+  transformarEmOmissisIncisoCaput,
+  transformarEmOmissisIncisoParagrafo,
+  transformarEmOmissisItem,
+  transformarEmOmissisParagrafo,
+  transformarIncisoCaputEmParagrafo,
+  transformarIncisoEmAlinea,
+  transformarIncisoEmParagrafo,
+  transformarItemEmAlinea,
+  transformarOmissisEmAlinea,
+  transformarOmissisEmArtigo,
+  transformarOmissisEmIncisoCaput,
+  transformarOmissisEmIncisoParagrafo,
+  transformarOmissisEmItem,
+  transformarOmissisEmParagrafo,
+  transformarParagrafoEmArtigo,
+  transformarParagrafoEmIncisoCaput,
+  transformarParagrafoEmIncisoParagrafo,
 } from '../../../redux/elemento-actions';
 import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
@@ -70,37 +70,37 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
 
   if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    acoes.push(transformaAlineaEmInciso);
+    acoes.push(transformarAlineaEmInciso);
   }
   if (isAlinea(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformaAlineaEmItem);
   }
   if (isAlinea(dispositivo) && podeConverterEmOmissis(dispositivo)) {
-    acoes.push(transformaEmOmissisAlinea);
+    acoes.push(transformarEmOmissisAlinea);
   }
 
   if (isArtigo(dispositivo) && !dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo)) {
-    acoes.push(transformaEmDispositivoAlteracaoNorma);
+    acoes.push(transformarEmDispositivoAlteracaoNorma);
   }
   if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
-    acoes.push(transformaArtigoEmParagrafo);
+    acoes.push(transformarArtigoEmParagrafo);
   }
   if (
     isDispositivoGenerico(dispositivo) &&
     (isParagrafo(dispositivo.pai!) || isCaput(dispositivo.pai!) || isInciso(dispositivo.pai!) || isAlinea(dispositivo.pai!)) &&
     dispositivo.pai!.tipoProvavelFilho!.length > 0
   ) {
-    acoes.push(acoesDisponiveis.filter(a => a instanceof ChangeElemento && a.nomeAcao === 'transformaDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
+    acoes.push(acoesDisponiveis.filter(a => a instanceof TransformarElemento && a.nomeAcao === 'transformaDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
   }
 
   if (isInciso(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
-    acoes.push(transformaIncisoEmAlinea);
+    acoes.push(transformarIncisoEmAlinea);
   }
   if (isInciso(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    acoes.push(transformaIncisoEmParagrafo);
+    acoes.push(transformarIncisoEmParagrafo);
   }
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
-    acoes.push(transformaEmOmissisIncisoCaput);
+    acoes.push(transformarEmOmissisIncisoCaput);
   }
   if (
     isIncisoParagrafo(dispositivo) &&
@@ -108,47 +108,47 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     getDispositivoAnterior(dispositivo) !== TipoDispositivo.omissis.name &&
     getDispositivoPosterior(dispositivo) !== TipoDispositivo.omissis.name
   ) {
-    acoes.push(transformaEmOmissisIncisoParagrafo);
+    acoes.push(transformarEmOmissisIncisoParagrafo);
   }
 
   if (isItem(dispositivo)) {
-    acoes = acoes.filter(a => a !== addElementoAction);
+    acoes = acoes.filter(a => a !== adicionarElementoAction);
   }
   if (isItem(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    acoes.push(transformaItemEmAlinea);
+    acoes.push(transformarItemEmAlinea);
   }
   if (isItem(dispositivo) && podeConverterEmOmissis(dispositivo)) {
-    acoes.push(transformaEmOmissisItem);
+    acoes.push(transformarEmOmissisItem);
   }
   if (isOmissis(dispositivo) && isArticulacao(dispositivo.pai!) && getDispositivoAnterior(dispositivo) !== undefined) {
-    acoes.push(transformaOmissisEmArtigo);
+    acoes.push(transformarOmissisEmArtigo);
   }
   if (isOmissis(dispositivo) && isCaput(dispositivo.pai!)) {
-    acoes.push(transformaOmissisEmIncisoCaput);
+    acoes.push(transformarOmissisEmIncisoCaput);
   }
   if (isOmissis(dispositivo) && isArtigo(dispositivo.pai!)) {
-    acoes.push(transformaOmissisEmParagrafo);
+    acoes.push(transformarOmissisEmParagrafo);
   }
   if (isOmissis(dispositivo) && isParagrafo(dispositivo.pai!)) {
-    acoes.push(transformaOmissisEmIncisoParagrafo);
+    acoes.push(transformarOmissisEmIncisoParagrafo);
   }
   if (isOmissis(dispositivo) && isInciso(dispositivo.pai!)) {
-    acoes.push(transformaOmissisEmAlinea);
+    acoes.push(transformarOmissisEmAlinea);
   }
   if (isOmissis(dispositivo) && isAlinea(dispositivo.pai!)) {
-    acoes.push(transformaOmissisEmItem);
+    acoes.push(transformarOmissisEmItem);
   }
   if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
-    acoes.push(transformaParagrafoEmIncisoCaput);
+    acoes.push(transformarParagrafoEmIncisoCaput);
   }
   if (isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))) {
-    acoes.push(transformaParagrafoEmIncisoParagrafo);
+    acoes.push(transformarParagrafoEmIncisoParagrafo);
   }
   if (isParagrafo(dispositivo) && (isLastMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo))) {
-    acoes.push(transformaParagrafoEmArtigo);
+    acoes.push(transformarParagrafoEmArtigo);
   }
   if (isParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
-    acoes.push(transformaEmOmissisParagrafo);
+    acoes.push(transformarEmOmissisParagrafo);
   }
 
   if (isAgrupador(dispositivo)) {
@@ -164,16 +164,16 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
 };
 
 export const ajustaAcaoSeCasoEspecialForInciso = (dispositivo: Dispositivo, acao: any): void => {
-  const acaoNormalizada = acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && acao.subType && acao.subType.endsWith('EmInciso'))[0];
+  const acaoNormalizada = acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && acao.subType && acao.subType.endsWith('EmInciso'))[0];
 
-  acao.subType = acaoNormalizada && (acaoNormalizada as ChangeElemento).nomeAcao?.startsWith(acao.subType) ? (acaoNormalizada as ChangeElemento).nomeAcao : acao.subType;
+  acao.subType = acaoNormalizada && (acaoNormalizada as TransformarElemento).nomeAcao?.startsWith(acao.subType) ? (acaoNormalizada as TransformarElemento).nomeAcao : acao.subType;
 };
 
 export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, acao: any): boolean => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return false;
   }
-  return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao === acao.subType).length > 0;
+  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao === acao.subType).length > 0;
 };
 
 export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction | undefined => {
@@ -181,13 +181,10 @@ export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction |
     return undefined;
   }
 
-  if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
-    return transformaParagrafoEmIncisoCaput;
-  }
-
   return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {
     const acao = 'transforma' + dispositivo.tipo + 'Em' + tipoPermitido;
-    return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao && a.nomeAcao === acao)[0];
+
+    return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
   })[0];
 };
 
@@ -197,9 +194,9 @@ export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoActio
   }
 
   if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    return transformaIncisoCaputEmParagrafo;
+    return transformarIncisoCaputEmParagrafo;
   }
 
   const acao = 'transforma' + dispositivo.tipo + 'Em' + dispositivo.pai!.tipo;
-  return acoesPossiveis(dispositivo).filter(a => a instanceof ChangeElemento && a.nomeAcao && a.nomeAcao === acao)[0];
+  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === acao)[0];
 };
