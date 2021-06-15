@@ -10,6 +10,7 @@ export const TRANSFORMAR_TIPO_ELEMENTO = 'TRANSFORMAR_TIPO_ELEMENTO';
 export const MOVER_ELEMENTO_ABAIXO = 'MOVER_ELEMENTO_ABAIXO';
 export const MOVER_ELEMENTO_ACIMA = 'MOVER_ELEMENTO_ACIMA';
 export const NOVA_ARTICULACAO = 'NOVA_ARTICULACAO';
+export const NUMERAR_ELEMENTO = 'NUMERAR_ELEMENTO';
 export const REMOVER_ELEMENTO = 'REMOVER_ELEMENTO';
 export const VALIDAR_ARTICULACAO = 'VALIDAR_ARTICULACAO';
 export const VALIDAR_ELEMENTO = 'VALIDAR_ELEMENTO';
@@ -215,6 +216,24 @@ class MoverElementoAcima extends ElementoAbstractAction {
   }
 }
 
+class NumerarElemento extends ElementoAbstractAction {
+  constructor() {
+    super();
+    this.descricao = 'Numerar e criar rótulo para o dispositivo ';
+  }
+
+  execute(atual: Referencia, numero: string): any {
+    this.tipo = atual.tipo;
+    return {
+      type: NUMERAR_ELEMENTO,
+      atual,
+      novo: {
+        numero,
+      },
+    };
+  }
+}
+
 export const shiftTabAction = (atual: Referencia): any => {
   return {
     type: SHIFT_TAB,
@@ -263,6 +282,8 @@ export const adicionarParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
+
+export const numerarElemento = new NumerarElemento();
 
 export const iniciarBlocoAlteracao = new BlocoAlteracao(INICIAR_BLOCO);
 export const finalizarBlocoAlteracao = new BlocoAlteracao(FINALIZAR_BLOCO);
@@ -327,7 +348,7 @@ acoesMenu.push(adicionarParagrafo);
 
 acoesMenu.push(moverElementoAbaixo);
 acoesMenu.push(moverElementoAcima);
-
+acoesMenu.push(numerarElemento);
 acoesMenu.push(iniciarBlocoAlteracao);
 acoesMenu.push(finalizarBlocoAlteracao);
 acoesMenu.push(transformarEmOmissisAlinea);

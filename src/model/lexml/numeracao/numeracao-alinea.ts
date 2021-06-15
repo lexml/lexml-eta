@@ -14,8 +14,9 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
 
     converteNumeroParaRotulo(): string | undefined {
       if (this.numero!.trim().length > 0) {
-        const n = parseInt(this.numero!, 10);
-        return String.fromCharCode(96 + n);
+        const partes = this.numero?.split('-');
+        const n = parseInt(partes![0], 10);
+        return String.fromCharCode(96 + n) + (partes!.length > 1 ? '-' + partes![1] : '');
       } else {
         return this.numero;
       }

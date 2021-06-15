@@ -11,9 +11,9 @@ let artigo: Artigo;
 describe('Inciso', () => {
   beforeEach(function () {
     const articulacao = DispositivoLexmlFactory.createArticulacao();
-    artigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, articulacao) as Artigo;
-    paragrafo = DispositivoLexmlFactory.create(TipoDispositivo.paragrafo.tipo, artigo);
-    inciso = DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, paragrafo);
+    artigo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    paragrafo = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+    inciso = DispositivoLexmlFactory.create(paragrafo, TipoDispositivo.inciso.tipo);
   });
   describe('Inicialização de Inciso', () => {
     it('quando criado a partir da factory, o dispositivo é inicializado corretamente mas sem informação de numeração e rótulo', () => {
@@ -35,12 +35,12 @@ describe('Inciso', () => {
       expect(validaHierarquia(inciso).length).to.be.equal(0);
     });
     it('quando criado a partir da factory e adicionado ao caput, o inciso é filho do caput', () => {
-      DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, artigo.caput!);
+      DispositivoLexmlFactory.create(artigo.caput!, TipoDispositivo.inciso.tipo);
 
       expect(artigo.caput!.filhos.length).to.be.equal(1);
     });
     it('quando criado a partir da factory e adicionado ao caput, o inciso é listado como filho do artigo', () => {
-      const inc = DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, artigo.caput!);
+      const inc = DispositivoLexmlFactory.create(artigo.caput!, TipoDispositivo.inciso.tipo);
       expect(artigo.filhos).includes(inc);
     });
   });
@@ -54,8 +54,8 @@ describe('Inciso', () => {
       expect(inciso.rotulo).to.equal('I –');
     });
     it('quando inicializado corretamente, o inciso gera rótulos sequenciais', () => {
-      const i2 = DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, paragrafo);
-      const i3 = DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, paragrafo);
+      const i2 = DispositivoLexmlFactory.create(paragrafo, TipoDispositivo.inciso.tipo);
+      const i3 = DispositivoLexmlFactory.create(paragrafo, TipoDispositivo.inciso.tipo);
       paragrafo.renumeraFilhos();
       expect(i2.rotulo).to.equal('II –');
       expect(i3.rotulo).to.equal('III –');

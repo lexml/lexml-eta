@@ -151,8 +151,8 @@ export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = fal
 
 export const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = DispositivoLexmlFactory.create(
-    elemento.tipo!,
     isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
+    elemento.tipo!,
     undefined,
     elemento.hierarquia!.posicao
   );

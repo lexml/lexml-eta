@@ -10,6 +10,7 @@ import {
   elementoSelecionadoAction,
   getAcao,
   isAcaoMenu,
+  numerarElemento,
   RedoAction,
   removerElementoAction,
   shiftTabAction,
@@ -318,6 +319,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private renumerarElemento(): void {
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+    const mensagem = `Informe um número para gerar o rótulo do dispositivo:`;
+
+    this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
+      const closeResult: any = event.detail.closeResult;
+      const choice: string = closeResult && closeResult.choice;
+      if (choice === 'Sim') {
+        console.log('sim');
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
+        rootStore.dispatch(numerarElemento.execute(elemento, '12-A'));
+      }
+      this.quill.focus();
+    });
+  }
+
   private removerElemento(): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}`;
@@ -421,6 +438,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarEscolhaMenu(itemMenu: string): void {
     if (itemMenu === 'Remover dispositivo') {
       this.removerElemento();
+    } else if (itemMenu === numerarElemento.descricao) {
+      this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);

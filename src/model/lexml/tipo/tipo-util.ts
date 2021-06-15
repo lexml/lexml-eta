@@ -9,8 +9,8 @@ export const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void =
   }
   atual.filhos.forEach((filho, index) => {
     const novo = DispositivoLexmlFactory.create(
-      destino.tipoProvavelFilho!,
-      isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino
+      isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
+      destino.tipoProvavelFilho!
     );
     novo.texto = filho.texto;
     filho.filhos ? converteFilhos(filho, novo) : undefined;
@@ -28,7 +28,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformaIncisoEmAlinea':
     case 'transformaParagrafoEmIncisoParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo);
+      novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
       break;
     case 'transformaDispositivoGenericoEmInciso':
     case 'transformaDispositivoGenericoEmAlinea':
@@ -44,19 +44,19 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformaEmOmissisIncisoParagrafo':
     case 'transformaOmissisEmIncisoCaput':
       paiNovo = paiAtual!;
-      novo = DispositivoLexmlFactory.create(action.novo.tipo, paiAtual!, undefined, paiAtual?.indexOf(atual));
+      novo = DispositivoLexmlFactory.create(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
       break;
     case 'transformaParagrafoEmIncisoCaput':
       paiNovo = paiAtual!;
-      novo = DispositivoLexmlFactory.create(action.novo.tipo, (paiNovo as Artigo).caput!);
+      novo = DispositivoLexmlFactory.create((paiNovo as Artigo).caput!, action.novo.tipo);
       break;
     case 'transformaArtigoEmParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo);
+      novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
       break;
     default:
       paiNovo = atual.pai!.pai!;
-      novo = DispositivoLexmlFactory.create(action.novo.tipo, paiNovo, atual.pai!);
+      novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo, atual.pai!);
       break;
   }
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
@@ -74,7 +74,7 @@ export const copiaFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
     return;
   }
   atual.filhos.forEach(filho => {
-    const novo = DispositivoLexmlFactory.create(filho.tipo, isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino);
+    const novo = DispositivoLexmlFactory.create(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
     novo.texto = filho.texto;
     atual.removeFilho(filho);
     filho.filhos ? converteFilhos(filho, novo) : undefined;

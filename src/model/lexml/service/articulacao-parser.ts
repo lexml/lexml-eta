@@ -40,7 +40,7 @@ export class ArticulacaoParser {
   }
 
   private static createDispositivo(property: string, elemento: any, parent: Dispositivo): Dispositivo {
-    const filho = DispositivoLexmlFactory.create(property, parent);
+    const filho = DispositivoLexmlFactory.create(parent, property);
 
     filho.texto = elemento['p'] ? elemento['p'] : elemento['NomeAgrupador'];
 

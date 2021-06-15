@@ -13,10 +13,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     createRotulo(dispositivo: Dispositivo): void {
-      this.rotulo = this.PREFIXO + this.numero + this.getSufixoNumeracao();
-
-      if (this.numero === undefined || !dispositivo || (dispositivo.isDispositivoAlteracao && dispositivo.pai!.indexOf(dispositivo) === 0)) {
+      if (this.numero === undefined || !dispositivo) {
         this.rotulo = '\u201C' + TipoDispositivo.artigo.name;
+      } else if (this.numero !== undefined && dispositivo.isDispositivoAlteracao) {
+        this.rotulo = '\u201C' + this.PREFIXO + this.numero + this.getSufixoNumeracao();
       } else {
         this.rotulo =
           (getArticulacao(dispositivo) as Articulacao).artigos.length === 1
@@ -28,7 +28,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     private getSufixoNumeracao(): string {
-      return parseInt(this.numero ?? '1', 10) > 9 ? '.' : this.SUFIXO;
+      const partes = this.numero?.split('-');
+      return parseInt(partes![0] ?? '1', 10) > 9 ? '.' : this.SUFIXO;
     }
   };
 }

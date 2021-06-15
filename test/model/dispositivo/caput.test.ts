@@ -11,7 +11,7 @@ let caput: Dispositivo;
 describe('Caput: inicialização', () => {
   beforeEach(function () {
     articulacao = DispositivoLexmlFactory.createArticulacao();
-    artigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, articulacao) as Artigo;
+    artigo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
     caput = artigo.caput!;
   });
   describe('Inicialização de Caput', () => {

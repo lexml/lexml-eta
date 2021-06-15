@@ -22,7 +22,8 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     }
 
     private getSufixoNumeracao(): string {
-      return parseInt(this.numero ?? '1', 10) > 9 ? '' : this.SUFIXO;
+      const partes = this.numero?.split('-');
+      return parseInt(partes![0] ?? '1', 10) > 9 ? '' : this.SUFIXO;
     }
   };
 }

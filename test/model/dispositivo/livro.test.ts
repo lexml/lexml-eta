@@ -10,7 +10,7 @@ let livro: Dispositivo;
 describe('Livro', () => {
   beforeEach(function () {
     articulacao = DispositivoLexmlFactory.createArticulacao();
-    livro = DispositivoLexmlFactory.create(TipoDispositivo.livro.tipo, articulacao);
+    livro = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.livro.tipo);
   });
   describe('Inicialização de Livro', () => {
     it('O livro é inicializado corretamente a partir da factory', () => {
@@ -26,26 +26,26 @@ describe('Livro', () => {
       });
       it('O livro possui pai apenas a Articulação, Parte, Título', () => {
         expect(livro.pai).to.be.equal(articulacao);
-        const outro = DispositivoLexmlFactory.create(TipoDispositivo.parte.tipo, articulacao);
+        const outro = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.parte.tipo);
         livro.pai = outro;
         expect(livro.pai).to.be.equal(outro);
       });
       it('O livro comanda a criação e renumeração dos dispositivos imediatamente abaixo dele', () => {
-        const artigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, livro);
+        const artigo = DispositivoLexmlFactory.create(livro, TipoDispositivo.artigo.tipo);
         livro.renumeraFilhos();
         expect(artigo.numero).to.equal('1');
         expect(artigo.rotulo).to.equal('Artigo único.');
       });
       it('O livro não comanda a renumeração de artigos que não pertençam a ele', () => {
-        const outroLivro = DispositivoLexmlFactory.create(TipoDispositivo.livro.tipo, articulacao);
-        DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, livro);
-        const outroArtigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, outroLivro);
+        const outroLivro = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.livro.tipo);
+        DispositivoLexmlFactory.create(livro, TipoDispositivo.artigo.tipo);
+        const outroArtigo = DispositivoLexmlFactory.create(outroLivro, TipoDispositivo.artigo.tipo);
         livro.renumeraFilhos();
         expect(outroArtigo.rotulo).to.equal('Art. 2º');
       });
       it('O livro pode possuir, como filhos, Titulo, Capitulo, Secao, DispositivoAgrupadorGenerico, Artigo e DispositivoGenerico', () => {
-        DispositivoLexmlFactory.create(TipoDispositivo.secao.tipo, livro);
-        DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, livro);
+        DispositivoLexmlFactory.create(livro, TipoDispositivo.secao.tipo);
+        DispositivoLexmlFactory.create(livro, TipoDispositivo.artigo.tipo);
         expect(livro.filhos?.length).to.equal(2);
       });
     });

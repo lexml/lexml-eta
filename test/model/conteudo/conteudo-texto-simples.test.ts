@@ -9,7 +9,7 @@ let capitulo: Dispositivo;
 describe('ConteudoTextoSimples', () => {
   beforeEach(function () {
     articulacao = DispositivoLexmlFactory.createArticulacao();
-    capitulo = DispositivoLexmlFactory.create(TipoDispositivo.capitulo.tipo, articulacao);
+    capitulo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.capitulo.tipo);
   });
   describe('Inicialização de ConteudoTextoSimples', () => {
     it('ConteudoTextoSimples é inicializado corretamente o dispositivo é criado a partir da factory', () => {

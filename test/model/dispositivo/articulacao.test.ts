@@ -19,13 +19,13 @@ describe('Articulacao', () => {
       expect(articulacao.pai).to.be.undefined;
     });
     it('A articulação comanda a criação e renumeração dos dispositivos imediatamente abaixo dela', () => {
-      const titulo = DispositivoLexmlFactory.create(TipoDispositivo.titulo.tipo, articulacao);
+      const titulo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.titulo.tipo);
       articulacao.renumeraFilhos();
       expect(titulo.rotulo).to.equal('TÍTULO I');
     });
     it('A articulação pode possuir, como filhos, dispositivos agrupadores e artigos', () => {
-      DispositivoLexmlFactory.create(TipoDispositivo.titulo.tipo, articulacao);
-      DispositivoLexmlFactory.create(TipoDispositivo.titulo.tipo, articulacao);
+      DispositivoLexmlFactory.create(articulacao, TipoDispositivo.titulo.tipo);
+      DispositivoLexmlFactory.create(articulacao, TipoDispositivo.titulo.tipo);
       expect(articulacao.filhos?.length).to.equal(2);
     });
   });

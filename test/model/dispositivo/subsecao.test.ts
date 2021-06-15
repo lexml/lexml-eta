@@ -11,8 +11,8 @@ let subsecao: Dispositivo;
 describe('Subsecao', () => {
   beforeEach(function () {
     articulacao = DispositivoLexmlFactory.createArticulacao();
-    const secao = DispositivoLexmlFactory.create(TipoDispositivo.secao.tipo, articulacao);
-    subsecao = DispositivoLexmlFactory.create(TipoDispositivo.subsecao.tipo, secao);
+    const secao = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.secao.tipo);
+    subsecao = DispositivoLexmlFactory.create(secao, TipoDispositivo.subsecao.tipo);
   });
   describe('Inicialização de Título', () => {
     it('A Subseção é inicializada corretamente a partir da factory', () => {
@@ -27,12 +27,12 @@ describe('Subsecao', () => {
         expect(validaHierarquia(subsecao).length).to.be.equal(0);
       });
       it('A seção comanda a criação e renumeração dos dispositivos imediatamente abaixo dela', () => {
-        const artigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, subsecao);
+        const artigo = DispositivoLexmlFactory.create(subsecao, TipoDispositivo.artigo.tipo);
         subsecao.renumeraFilhos();
         expect(artigo.numero).to.equal('1');
       });
       it('O subsecao pode possuir, como filhos, apenas Artigo', () => {
-        DispositivoLexmlFactory.create(TipoDispositivo.subsecao.tipo, subsecao);
+        DispositivoLexmlFactory.create(subsecao, TipoDispositivo.subsecao.tipo);
         expect(subsecao.filhos?.length).to.equal(1);
       });
     });

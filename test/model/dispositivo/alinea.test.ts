@@ -10,8 +10,8 @@ let alinea: Dispositivo;
 describe('Alínea', () => {
   beforeEach(function () {
     const articulacao = DispositivoLexmlFactory.createArticulacao();
-    inciso = DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, articulacao);
-    alinea = DispositivoLexmlFactory.create(TipoDispositivo.alinea.tipo, inciso);
+    inciso = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.inciso.tipo);
+    alinea = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
   });
   describe('Inicialização de Alinea', () => {
     it('quando criado a partir da factory, o dispositivo é inicializado corretamente mas sem informação de numeração e rótulo', () => {
@@ -46,20 +46,20 @@ describe('Alínea', () => {
       inciso.renumeraFilhos();
       expect(alinea.rotulo).to.equal('a)');
 
-      const a2 = DispositivoLexmlFactory.create(TipoDispositivo.alinea.tipo, inciso);
-      const a3 = DispositivoLexmlFactory.create(TipoDispositivo.alinea.tipo, inciso);
+      const a2 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
+      const a3 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
       expect(a2.rotulo).to.equal('b)');
       expect(a3.rotulo).to.equal('c)');
     });
     it('Mesmo que inicializada corretamente, a alinea não gera rótulos sequenciais quando ultrapassar o número de letras do alfabeto', () => {
       for (let i = 0; i < 24; i++) {
-        DispositivoLexmlFactory.create(TipoDispositivo.alinea.tipo, inciso);
+        DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
       }
-      const a1 = DispositivoLexmlFactory.create(TipoDispositivo.alinea.tipo, inciso);
+      const a1 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
       expect(a1.rotulo).to.equal('z)');
-      const a2 = DispositivoLexmlFactory.create(TipoDispositivo.alinea.tipo, inciso);
+      const a2 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
       expect(a2.rotulo).to.equal('{)');
     });

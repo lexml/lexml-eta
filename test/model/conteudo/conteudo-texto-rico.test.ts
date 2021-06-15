@@ -9,7 +9,7 @@ describe('ConteudoTextoRico', () => {
   describe('Inicialização de ConteudoTextoRico', () => {
     beforeEach(function () {
       const articulacao = DispositivoLexmlFactory.createArticulacao();
-      paragrafo = DispositivoLexmlFactory.create(TipoDispositivo.paragrafo.tipo, articulacao);
+      paragrafo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.paragrafo.tipo);
     });
     it('O ConteudoTextoRico é inicializado corretamente o dispositivo é criado a partir da factory', () => {
       expect(paragrafo.name).to.equal(TipoDispositivo.paragrafo.tipo);

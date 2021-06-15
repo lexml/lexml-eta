@@ -11,6 +11,7 @@ import {
   iniciarBlocoAlteracao,
   moverElementoAbaixo,
   moverElementoAcima,
+  numerarElemento,
   transformaAlineaEmItem,
   transformarAlineaEmInciso,
   transformarArtigoEmParagrafo,
@@ -34,7 +35,7 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from '../../../redux/elemento-actions';
-import { hasIndicativoFimAlteracao, isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import {
   isAgrupador,
@@ -123,12 +124,11 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(transformarArtigoEmParagrafo);
   }
 
-  if (isDispositivoAlteracao(dispositivo) && hasIndicativoFimAlteracao(dispositivo.texto) && isUltimaAlteracao(dispositivo)) {
-    acoes.push(iniciarBlocoAlteracao);
-    acoes.push(finalizarBlocoAlteracao);
+  if (isDispositivoAlteracao(dispositivo)) {
+    acoes.push(numerarElemento);
   }
 
-  if (isDispositivoAlteracao(dispositivo) && hasIndicativoFimAlteracao(dispositivo.texto) && isUltimaAlteracao(dispositivo)) {
+  if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
     acoes.push(iniciarBlocoAlteracao);
     acoes.push(finalizarBlocoAlteracao);
   }

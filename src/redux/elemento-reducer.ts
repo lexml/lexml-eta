@@ -1,5 +1,4 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { isAgrupador, isCaput, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
@@ -14,13 +13,11 @@ import { ajustaAcaoSeCasoEspecialForInciso, getAcaoPossivelShift, getAcaoPossive
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
-  getArticulacao,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
   isArtigoUnico,
   isParagrafoUnico,
-  isUltimaAlteracao,
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
@@ -30,10 +27,10 @@ import {
   ADICIONAR_ELEMENTO,
   ATUALIZAR_ELEMENTO,
   ELEMENTO_SELECIONADO,
-  INICIAR_BLOCO,
   MOVER_ELEMENTO_ABAIXO,
   MOVER_ELEMENTO_ACIMA,
   NOVA_ARTICULACAO,
+  NUMERAR_ELEMENTO,
   REDO,
   REMOVER_ELEMENTO,
   SHIFT_TAB,
@@ -54,16 +51,12 @@ import {
   buildUpdateEvent,
   createElementoValidado,
   getElementosDoDispositivo,
-  hasIndicativoFimAlteracao,
-  hasIndicativoInicioAlteracao,
-  isDispositivoAlteracao,
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
   redoDispositivosExcluidos,
   removeAndBuildEvents,
   textoFoiModificado,
-  TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
   validaDispositivosAfins,
 } from './elemento-reducer-util';
 import { Eventos } from './eventos';
@@ -99,33 +92,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos a partir de agrupadores' });
   }
 
-  let novo: Dispositivo;
-
-  if (isDispositivoAlteracao(atual)) {
-    if (hasIndicativoFimAlteracao(action.atual?.conteudo?.texto) && isUltimaAlteracao(atual)) {
-      const ref = getArticulacao(atual);
-      novo =
-        action.subType === INICIAR_BLOCO
-          ? DispositivoLexmlFactory.createDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, ref!)
-          : DispositivoLexmlFactory.createFromReferencia(ref.pai!);
-      novo!.texto = action.subType === INICIAR_BLOCO ? TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO : action.novo?.conteudo?.texto ?? '';
-    } else {
-      novo = DispositivoLexmlFactory.createFromReferencia(atual);
-      novo.createRotulo();
-      novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : TEXTO_OMISSIS;
-    }
-  } else {
-    if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {
-      if (!atual.hasAlteracao()) {
-        DispositivoLexmlFactory.createAlteracao(atual);
-      }
-      novo = DispositivoLexmlFactory.createDispositivoCabecaAlteracao(atual.tipo, atual.alteracoes!);
-      novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
-    } else {
-      novo = DispositivoLexmlFactory.createFromReferencia(atual);
-      novo!.texto = action.novo?.conteudo?.texto ?? '';
-    }
-  }
+  const novo = DispositivoLexmlFactory.createByInferencia(atual, action);
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     copiaFilhos(atual, novo);
@@ -278,6 +245,30 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
   };
 };
 
+export const numerarElemento = (state: any, action: any): ElementoState => {
+  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
+
+  if (dispositivo === undefined) {
+    return state;
+  }
+
+  const past = buildPast(state, buildUpdateEvent(dispositivo));
+  dispositivo.numero = action.novo?.numero;
+  dispositivo.createRotulo(dispositivo);
+  console.log(dispositivo);
+  dispositivo.texto = action.atual.conteudo?.texto ?? '';
+
+  const eventos = buildEventoAtualizacaoElemento(dispositivo);
+  return {
+    articulacao: state.articulacao,
+    past,
+    future: state.future,
+    ui: {
+      events: eventos.build(),
+    },
+  };
+};
+
 const redoIncludedElements = (state: any, evento: StateEvent): StateEvent[] => {
   if (evento === undefined || evento.elementos === undefined || evento.elementos[0] === undefined) {
     return [];
@@ -380,10 +371,10 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
   pai.removeFilho(atual);
   pai.removeFilho(proximo);
 
-  const um = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos);
+  const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos);
   um.texto = proximo.texto;
 
-  const outro = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos + 1);
+  const outro = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
   outro.texto = action.atual.conteudo.texto;
 
   pai.renumeraFilhos();
@@ -430,10 +421,10 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   pai.removeFilho(atual);
   pai.removeFilho(anterior);
 
-  const um = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos);
+  const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos);
   um.texto = action.atual.conteudo.texto;
 
-  const outro = DispositivoLexmlFactory.create(atual.tipo, pai, undefined, pos + 1);
+  const outro = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
   outro.texto = anterior.texto;
 
   pai.renumeraFilhos();
@@ -669,7 +660,7 @@ const load = (articulacao: Articulacao): ElementoState => {
 
 export const novaArticulacao = (): ElementoState => {
   const articulacao = DispositivoLexmlFactory.createArticulacao();
-  DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, articulacao);
+  DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo);
   articulacao.renumeraArtigos();
   return load(articulacao);
 };
@@ -680,6 +671,8 @@ export const openArticulacao = (state: any, action: any): ElementoState => {
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
+    case ATUALIZAR_ELEMENTO:
+      return atualizaElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case TRANSFORMAR_TIPO_ELEMENTO:
@@ -692,6 +685,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return moveElementoAcima(state, action);
     case NOVA_ARTICULACAO:
       return novaArticulacao();
+    case NUMERAR_ELEMENTO:
+      return numerarElemento(state, action);
     case ABRIR_ARTICULACAO:
       return openArticulacao(state, action);
     case REDO:
@@ -703,8 +698,6 @@ export const elementoReducer = (state = {}, action: any): any => {
       return modificaTipoElementoWithTab(state, action);
     case UNDO:
       return undo(state);
-    case ATUALIZAR_ELEMENTO:
-      return atualizaElemento(state, action);
     case VALIDAR_ELEMENTO:
       return validaElemento(state, action);
     case VALIDAR_ARTICULACAO:

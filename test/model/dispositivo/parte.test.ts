@@ -10,7 +10,7 @@ let parte: Dispositivo;
 describe('Parte', () => {
   beforeEach(function () {
     articulacao = DispositivoLexmlFactory.createArticulacao();
-    parte = DispositivoLexmlFactory.create(TipoDispositivo.parte.tipo, articulacao);
+    parte = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.parte.tipo);
   });
   describe('Inicialização de Parte', () => {
     it('A parte é inicializada corretamente a partir da factory', () => {
@@ -27,32 +27,32 @@ describe('Parte', () => {
       it('A parte possui como pai apenas a Articulação ou DispositivoAgrupadorGenerico', () => {
         parte.pai = articulacao;
         expect(parte.pai).to.be.equal(articulacao);
-        const outro = DispositivoLexmlFactory.create(TipoDispositivo.agrupadorGenerico.tipo, articulacao);
+        const outro = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.agrupadorGenerico.tipo);
         parte.pai = outro;
         expect(parte.pai).to.be.equal(outro);
       });
       it('A parte comanda a criação e renumeração dos dispositivos imediatamente abaixo dele', () => {
-        const artigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, parte);
+        const artigo = DispositivoLexmlFactory.create(parte, TipoDispositivo.artigo.tipo);
         parte.renumeraFilhos();
         expect(artigo.numero).to.equal('1');
         expect(artigo.rotulo).to.equal('Artigo único.');
       });
       it('A parte comanda a criação e renumeração dos dispositivos agrupadores imediatamente abaixo dele', () => {
-        DispositivoLexmlFactory.create(TipoDispositivo.titulo.tipo, parte);
-        const t2 = DispositivoLexmlFactory.create(TipoDispositivo.titulo.tipo, parte);
+        DispositivoLexmlFactory.create(parte, TipoDispositivo.titulo.tipo);
+        const t2 = DispositivoLexmlFactory.create(parte, TipoDispositivo.titulo.tipo);
         parte.renumeraFilhos();
         expect(t2.numero).to.equal('2');
       });
       it('O parte não comanda a renumeração de artigos que não pertençam a ela', () => {
-        DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, parte);
-        const outraParte = DispositivoLexmlFactory.create(TipoDispositivo.parte.tipo, articulacao);
-        const outroArtigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, outraParte);
+        DispositivoLexmlFactory.create(parte, TipoDispositivo.artigo.tipo);
+        const outraParte = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.parte.tipo);
+        const outroArtigo = DispositivoLexmlFactory.create(outraParte, TipoDispositivo.artigo.tipo);
         parte.renumeraFilhos();
         expect(outroArtigo.rotulo).to.equal('Art. 2º');
       });
       it('A parte pode possuir, como filhos, Livro, Titulo, Capitulo, Secao, DispositivoAgrupadorGenerico, Artigo e DispositivoGenerico', () => {
-        DispositivoLexmlFactory.create(TipoDispositivo.secao.tipo, parte);
-        DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, parte);
+        DispositivoLexmlFactory.create(parte, TipoDispositivo.secao.tipo);
+        DispositivoLexmlFactory.create(parte, TipoDispositivo.artigo.tipo);
         expect(parte.filhos?.length).to.equal(2);
       });
     });

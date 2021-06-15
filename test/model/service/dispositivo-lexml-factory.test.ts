@@ -10,21 +10,21 @@ let artigo: Artigo;
 describe('DispositivoLexmlFactory', () => {
   beforeEach(function () {
     articulacao = DispositivoLexmlFactory.createArticulacao();
-    secao = DispositivoLexmlFactory.create(TipoDispositivo.secao.tipo, articulacao);
-    artigo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, secao) as Artigo;
+    secao = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.secao.tipo);
+    artigo = DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo) as Artigo;
   });
   describe('Testando a inicialização dos dispositivos', () => {
     it('Quando informada uma tag válida, cria um dispositivo correspondente à tag', () => {
       expect(artigo.tipo).to.be.equal(TipoDispositivo.artigo.tipo);
     });
     it('Quando informada uma tag inválida, cria um dispositivo genérico', () => {
-      const novo = DispositivoLexmlFactory.create('artigulo', secao) as Artigo;
+      const novo = DispositivoLexmlFactory.create(secao, 'artigulo') as Artigo;
       expect(novo.tipo).to.be.equal(TipoDispositivo.agrupadorGenerico.tipo);
     });
   });
   describe('Testando a hierarquia dos dispositivos', () => {
     it('cria um dispositivo com referência ao pai que também tem referência ao Filho quando informado um parent', () => {
-      const paragrafo = DispositivoLexmlFactory.create(TipoDispositivo.paragrafo.tipo, artigo);
+      const paragrafo = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
       expect(artigo.filhos?.includes(paragrafo)).to.be.true;
       expect(paragrafo.pai).to.be.equal(artigo);
     });
