@@ -4,6 +4,8 @@ import { Elemento, Referencia } from '../model/elemento';
 export const ABRIR_ARTICULACAO = 'ABRIR_ARTICULACAO';
 export const ADICIONAR_ELEMENTO = 'ADICIONAR_ELEMENTO';
 export const ATUALIZAR_ELEMENTO = 'ATUALIZAR_ELEMENTO';
+export const INICIAR_BLOCO = 'INICIAR_BLOCO';
+export const FINALIZAR_BLOCO = 'FINALIZAR_BLOCO';
 export const TRANSFORMAR_TIPO_ELEMENTO = 'TRANSFORMAR_TIPO_ELEMENTO';
 export const MOVER_ELEMENTO_ABAIXO = 'MOVER_ELEMENTO_ABAIXO';
 export const MOVER_ELEMENTO_ACIMA = 'MOVER_ELEMENTO_ACIMA';
@@ -58,11 +60,27 @@ class AddElemento extends ElementoAbstractAction {
   }
 }
 
-class TransformaDispositivoEmAlteradorNorma extends AddElemento {
+class BlocoAlteracao extends AddElemento {
   isDispositivoAlteracao = true;
-  constructor() {
+  constructor(private tipoAcao: string) {
     super();
-    this.descricao = `Transformar em dispositivo de alteração`;
+    this.descricao = tipoAcao === INICIAR_BLOCO ? `Inserir bloco de alteração` : `Finalizar bloco de alteração`;
+  }
+
+  execute(atual: Referencia, conteudo?: string, tipo?: Referencia, hasDesmembramento = false): any {
+    return {
+      type: ADICIONAR_ELEMENTO,
+      subType: this.tipoAcao,
+      atual,
+      novo: {
+        tipo,
+        isDispositivoAlteracao: this.isDispositivoAlteracao,
+        conteudo: {
+          texto: conteudo,
+        },
+      },
+      hasDesmembramento,
+    };
   }
 }
 
@@ -246,7 +264,9 @@ export const adicionarParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
 
-export const transformarEmDispositivoAlteracaoNorma = new TransformaDispositivoEmAlteradorNorma();
+export const iniciarBlocoAlteracao = new BlocoAlteracao(INICIAR_BLOCO);
+export const finalizarBlocoAlteracao = new BlocoAlteracao(FINALIZAR_BLOCO);
+
 export const transformarEmOmissisAlinea = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Alínea', 'transformaEmOmissisAlinea');
 export const transformarEmOmissisIncisoCaput = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Inciso de Caput', 'transformaEmOmissisIncisoCaput');
 export const transformarEmOmissisItem = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Item', 'transformaEmOmissisItem');
@@ -308,7 +328,8 @@ acoesMenu.push(adicionarParagrafo);
 acoesMenu.push(moverElementoAbaixo);
 acoesMenu.push(moverElementoAcima);
 
-acoesMenu.push(transformarEmDispositivoAlteracaoNorma);
+acoesMenu.push(iniciarBlocoAlteracao);
+acoesMenu.push(finalizarBlocoAlteracao);
 acoesMenu.push(transformarEmOmissisAlinea);
 acoesMenu.push(transformarEmOmissisIncisoCaput);
 acoesMenu.push(transformarEmOmissisItem);

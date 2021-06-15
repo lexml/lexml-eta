@@ -9,7 +9,7 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     createRotulo(): void {
-      this.rotulo = (this.numero === undefined ? TipoDispositivo.item.name : this.numero) + this.SUFIXO;
+      this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : this.numero + this.SUFIXO;
     }
   };
 }

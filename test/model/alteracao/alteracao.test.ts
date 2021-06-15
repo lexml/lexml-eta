@@ -17,33 +17,33 @@ describe('Bloco de Alteração', () => {
     describe('Adicionando um artigo ao bloco de alteração', () => {
       beforeEach(function () {
         DispositivoLexmlFactory.createAlteracao(artigo);
-        artigo.alteracoes![0].addFilho(DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, artigo));
+        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, artigo));
       });
       it('O bloco de alteração tem um artigo', () => {
         expect(artigo.hasAlteracao()).to.equal(true);
-        expect(artigo.alteracoes![0].filhos.length).to.equal(1);
-        expect(artigo.alteracoes![0].filhos[0].tipo).to.equal(TipoDispositivo.artigo.tipo);
+        expect(artigo.alteracoes!.filhos.length).to.equal(1);
+        expect(artigo.alteracoes!.filhos[0].tipo).to.equal(TipoDispositivo.artigo.tipo);
       });
     });
     describe('Adicionando um artigo com uma estrutura mais complexa', () => {
       beforeEach(function () {
         DispositivoLexmlFactory.createAlteracao(artigo);
         const artigoBloco = DispositivoLexmlFactory.create(TipoDispositivo.artigo.tipo, artigo) as Artigo;
-        artigo.alteracoes![0].addFilho(artigoBloco);
-        artigo.alteracoes![0].addFilho(DispositivoLexmlFactory.create(TipoDispositivo.omissis.tipo, artigoBloco!.caput!));
-        artigo.alteracoes![0].addFilho(DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, artigoBloco!.caput!));
-        artigo.alteracoes![0].addFilho(DispositivoLexmlFactory.create(TipoDispositivo.omissis.tipo, artigoBloco!.caput!));
-        artigo.alteracoes![0].addFilho(DispositivoLexmlFactory.create(TipoDispositivo.paragrafo.tipo, artigoBloco!));
-        artigo.alteracoes![0].addFilho(DispositivoLexmlFactory.create(TipoDispositivo.omissis.tipo, artigoBloco!));
+        artigo.alteracoes!.addFilho(artigoBloco);
+        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(TipoDispositivo.omissis.tipo, artigoBloco!.caput!));
+        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, artigoBloco!.caput!));
+        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(TipoDispositivo.omissis.tipo, artigoBloco!.caput!));
+        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(TipoDispositivo.paragrafo.tipo, artigoBloco!));
+        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(TipoDispositivo.omissis.tipo, artigoBloco!));
       });
       it('O bloco de alteração tem um artigo e um omissis', () => {
-        expect(artigo.alteracoes![0].filhos.length).to.equal(6);
-        expect(artigo.alteracoes![0].filhos[0].tipo).to.equal(TipoDispositivo.artigo.name);
-        expect(artigo.alteracoes![0].filhos[1].tipo).to.equal(TipoDispositivo.omissis.name);
-        expect(artigo.alteracoes![0].filhos[2].tipo).to.equal(TipoDispositivo.inciso.name);
-        expect(artigo.alteracoes![0].filhos[3].tipo).to.equal(TipoDispositivo.omissis.name);
-        expect(artigo.alteracoes![0].filhos[4].tipo).to.equal(TipoDispositivo.paragrafo.name);
-        expect(artigo.alteracoes![0].filhos[5].tipo).to.equal(TipoDispositivo.omissis.name);
+        expect(artigo.alteracoes!.filhos.length).to.equal(6);
+        expect(artigo.alteracoes!.filhos[0].tipo).to.equal(TipoDispositivo.artigo.name);
+        expect(artigo.alteracoes!.filhos[1].tipo).to.equal(TipoDispositivo.omissis.name);
+        expect(artigo.alteracoes!.filhos[2].tipo).to.equal(TipoDispositivo.inciso.name);
+        expect(artigo.alteracoes!.filhos[3].tipo).to.equal(TipoDispositivo.omissis.name);
+        expect(artigo.alteracoes!.filhos[4].tipo).to.equal(TipoDispositivo.paragrafo.name);
+        expect(artigo.alteracoes!.filhos[5].tipo).to.equal(TipoDispositivo.omissis.name);
       });
     });
   });

@@ -41,7 +41,7 @@ describe('Testando a inclusão de dispositivos de alteração', () => {
       it('Deveria apresentar bloco de alteracao no dispositivo atualizado', () => {
         expect(state.articulacao.artigos[0].texto).to.equal('abc passa a vigorar com a seguinte alteração:');
         expect(state.articulacao.artigos[0].hasAlteracao()).to.true;
-        expect(state.articulacao.artigos[0].alteracoes[0].filhos.length === 1);
+        expect(state.articulacao.artigos[0].alteracoes!.filhos.length === 1);
       });
     });
   });

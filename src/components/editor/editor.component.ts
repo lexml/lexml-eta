@@ -357,10 +357,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(transforma(elemento, TipoDispositivo.paragrafo.name!));
     } else if (ev.key === 'i') {
       rootStore.dispatch(transforma(elemento, TipoDispositivo.item.name!));
-    } else if (ev.shiftKey && ev.key === Keyboard.keys.TAB) {
-      rootStore.dispatch(shiftTabAction(elemento));
     } else if (Keyboard.keys.TAB) {
-      rootStore.dispatch(tabAction(elemento));
+      rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
   }
 

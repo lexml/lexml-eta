@@ -131,7 +131,7 @@ export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos:
       getFilhosDispositivoAsLista(dispositivos, f.filhos);
     }
     if (f.hasAlteracao()) {
-      f.alteracoes?.forEach(a => getFilhosDispositivoAsLista(dispositivos, a.filhos));
+      f.alteracoes?.filhos.forEach(a => getFilhosDispositivoAsLista(dispositivos, a.filhos));
     }
   });
 };
@@ -151,4 +151,17 @@ export const isArtigoUnico = (dispositivo: Dispositivo): boolean => {
 
 export const isParagrafoUnico = (dispositivo: Dispositivo): boolean => {
   return isParagrafo(dispositivo) && isUnicoMesmoTipo(dispositivo);
+};
+
+export const getDispositivoCabecaAlteracao = (dispositivo: Dispositivo): Dispositivo => {
+  return isArticulacao(dispositivo.pai!) ? dispositivo : getDispositivoCabecaAlteracao(dispositivo.pai!);
+};
+
+export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {
+  const lista: Dispositivo[] = [];
+  const atual = getDispositivoCabecaAlteracao(dispositivo);
+  lista.push(atual);
+  getFilhosDispositivoAsLista(lista, atual.filhos);
+
+  return lista.length > 0 && lista[lista.length - 1] === dispositivo;
 };

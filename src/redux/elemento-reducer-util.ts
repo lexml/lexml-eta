@@ -128,8 +128,8 @@ export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {
   return hasIndicativoDesdobramento(dispositivo) && !acoesPossiveis(dispositivo).includes(adicionarElementoAction);
 };
 
-export const isNovoDispositivoDesmembrandoAtual = (novo: Dispositivo): boolean => {
-  return novo.texto !== '';
+export const isNovoDispositivoDesmembrandoAtual = (texto: string): boolean => {
+  return texto !== '';
 };
 
 export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = false): Elemento[] => {

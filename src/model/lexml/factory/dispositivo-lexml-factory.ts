@@ -1,6 +1,7 @@
 /* eslint-disable indent */
 import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
+import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
@@ -44,9 +45,16 @@ export class DispositivoLexmlFactory {
   static createAlteracao(atual: Artigo): void {
     const articulacao = new ArticulacaoLexml();
     articulacao.pai = atual;
-    const alteracao = this.createArticulacao();
-    alteracao.pai = atual;
-    atual.addAlteracao(alteracao);
+    const alteracoes = this.createArticulacao();
+    alteracoes.pai = atual;
+    atual.alteracoes = alteracoes;
+  }
+
+  static createDispositivoCabecaAlteracao(tipo: string, alteracoes: Alteracoes): Dispositivo {
+    const dispositivo = DispositivoLexmlFactory.create(tipo, alteracoes!);
+    dispositivo.createRotulo(dispositivo);
+
+    return dispositivo;
   }
 
   private static desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo: Dispositivo): void {
@@ -135,7 +143,10 @@ export class DispositivoLexmlFactory {
       return DispositivoLexmlFactory.createWhenReferenciaBlocoAlteracao(referencia);
     }
     if (isArtigo(referencia)) {
-      return DispositivoLexmlFactory.createWhenReferenciaIsArtigo(referencia);
+      if (!isDispositivoAlteracao(referencia)) {
+        return DispositivoLexmlFactory.createWhenReferenciaIsArtigo(referencia);
+      }
+      return DispositivoLexmlFactory.create(TipoDispositivo.inciso.tipo, (referencia as Artigo).caput!, undefined, 0);
     }
     if (isAgrupador(referencia)) {
       return DispositivoLexmlFactory.createWhenReferenciaIsAgrupador(referencia);

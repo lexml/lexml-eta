@@ -1,15 +1,20 @@
 import {
   acoesDisponiveis,
   acoesPossiveisDispositivo,
+  adicionarAlinea,
+  adicionarArtigo,
   adicionarElementoAction,
+  adicionarInciso,
+  adicionarItem,
   ElementoAction,
-  moverElementoAbaixo as moveElementoAbaixo,
-  moverElementoAcima as moveElementoAcima,
+  finalizarBlocoAlteracao,
+  iniciarBlocoAlteracao,
+  moverElementoAbaixo,
+  moverElementoAcima,
   transformaAlineaEmItem,
   transformarAlineaEmInciso,
   transformarArtigoEmParagrafo,
   TransformarElemento,
-  transformarEmDispositivoAlteracaoNorma,
   transformarEmOmissisAlinea,
   transformarEmOmissisIncisoCaput,
   transformarEmOmissisIncisoParagrafo,
@@ -29,7 +34,7 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from '../../../redux/elemento-actions';
-import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import {
   isAgrupador,
@@ -46,7 +51,16 @@ import {
   isParagrafo,
   TipoDispositivo,
 } from '../../dispositivo/tipo';
-import { getDispositivoAnterior, getDispositivoPosterior, isLastMesmoTipo, isPrimeiroMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudo-util';
+import {
+  getDispositivoAnterior,
+  getDispositivoPosterior,
+  hasFilhos,
+  isLastMesmoTipo,
+  isPrimeiroMesmoTipo,
+  isUltimaAlteracao,
+  isUnicoMesmoTipo,
+} from '../hierarquia/hierarquia-util';
 
 const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (
@@ -63,12 +77,21 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   acoes.push(...acoesPossiveisDispositivo);
 
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isLastMesmoTipo(dispositivo)) {
-    acoes.push(moveElementoAbaixo);
+    acoes.push(moverElementoAbaixo);
   }
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
-    acoes.push(moveElementoAcima);
+    acoes.push(moverElementoAcima);
   }
 
+  //
+  // Alínea
+  //
+  if (isAlinea(dispositivo) && (dispositivo.texto.length === 0 || hasIndicativoContinuacaoSequencia(dispositivo))) {
+    acoes.push(adicionarAlinea);
+  }
+  if (isAlinea(dispositivo) && (dispositivo.texto.length === 0 || hasIndicativoDesdobramento(dispositivo))) {
+    acoes.push(adicionarItem);
+  }
   if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformarAlineaEmInciso);
   }
@@ -79,12 +102,37 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(transformarEmOmissisAlinea);
   }
 
-  if (isArtigo(dispositivo) && !dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo)) {
-    acoes.push(transformarEmDispositivoAlteracaoNorma);
+  //
+  // Artigo
+  //
+  if (
+    isArtigo(dispositivo) &&
+    !dispositivo.hasAlteracao() &&
+    !isDispositivoAlteracao(dispositivo) &&
+    (dispositivo.texto.length === 0 || !hasIndicativoDesdobramento(dispositivo))
+  ) {
+    acoes.push(adicionarArtigo);
+  }
+  if (isArtigo(dispositivo) && !dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || hasIndicativoDesdobramento(dispositivo))) {
+    acoes.push(adicionarInciso);
+  }
+  if (isArtigo(dispositivo) && !dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && !hasFilhos(dispositivo)) {
+    acoes.push(iniciarBlocoAlteracao);
   }
   if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
     acoes.push(transformarArtigoEmParagrafo);
   }
+
+  if (isDispositivoAlteracao(dispositivo) && hasIndicativoFimAlteracao(dispositivo.texto) && isUltimaAlteracao(dispositivo)) {
+    acoes.push(iniciarBlocoAlteracao);
+    acoes.push(finalizarBlocoAlteracao);
+  }
+
+  if (isDispositivoAlteracao(dispositivo) && hasIndicativoFimAlteracao(dispositivo.texto) && isUltimaAlteracao(dispositivo)) {
+    acoes.push(iniciarBlocoAlteracao);
+    acoes.push(finalizarBlocoAlteracao);
+  }
+
   if (
     isDispositivoGenerico(dispositivo) &&
     (isParagrafo(dispositivo.pai!) || isCaput(dispositivo.pai!) || isInciso(dispositivo.pai!) || isAlinea(dispositivo.pai!)) &&

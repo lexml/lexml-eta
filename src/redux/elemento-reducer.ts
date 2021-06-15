@@ -20,6 +20,7 @@ import {
   getDispositivoPosteriorMesmoTipo,
   isArtigoUnico,
   isParagrafoUnico,
+  isUltimaAlteracao,
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
@@ -29,6 +30,7 @@ import {
   ADICIONAR_ELEMENTO,
   ATUALIZAR_ELEMENTO,
   ELEMENTO_SELECIONADO,
+  INICIAR_BLOCO,
   MOVER_ELEMENTO_ABAIXO,
   MOVER_ELEMENTO_ACIMA,
   NOVA_ARTICULACAO,
@@ -100,9 +102,13 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   let novo: Dispositivo;
 
   if (isDispositivoAlteracao(atual)) {
-    if (hasIndicativoFimAlteracao(action.atual?.conteudo?.texto)) {
-      novo = DispositivoLexmlFactory.createFromReferencia(getArticulacao(atual).pai!);
-      novo!.texto = action.novo?.conteudo?.texto ?? '';
+    if (hasIndicativoFimAlteracao(action.atual?.conteudo?.texto) && isUltimaAlteracao(atual)) {
+      const ref = getArticulacao(atual);
+      novo =
+        action.subType === INICIAR_BLOCO
+          ? DispositivoLexmlFactory.createDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, ref!)
+          : DispositivoLexmlFactory.createFromReferencia(ref.pai!);
+      novo!.texto = action.subType === INICIAR_BLOCO ? TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO : action.novo?.conteudo?.texto ?? '';
     } else {
       novo = DispositivoLexmlFactory.createFromReferencia(atual);
       novo.createRotulo();
@@ -113,8 +119,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
       if (!atual.hasAlteracao()) {
         DispositivoLexmlFactory.createAlteracao(atual);
       }
-      novo = DispositivoLexmlFactory.create(TipoDispositivo.artigo.name!, atual.alteracoes![0]);
-      novo.createRotulo(novo);
+      novo = DispositivoLexmlFactory.createDispositivoCabecaAlteracao(atual.tipo, atual.alteracoes!);
       novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
     } else {
       novo = DispositivoLexmlFactory.createFromReferencia(atual);
@@ -122,7 +127,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     }
   }
 
-  if (isNovoDispositivoDesmembrandoAtual(novo)) {
+  if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     copiaFilhos(atual, novo);
   }
 
@@ -132,11 +137,11 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
 
   const elementoAtualAtualizado = createElementoValidado(atual);
 
-  if (isNovoDispositivoDesmembrandoAtual(novo) && elementosRemovidos && elementosRemovidos.length > 0) {
+  if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && elementosRemovidos && elementosRemovidos.length > 0) {
     eventos.add(StateType.ElementoRemovido, elementosRemovidos);
   }
 
-  if (textoModificado || isNovoDispositivoDesmembrandoAtual(novo)) {
+  if (textoModificado || isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     eventos.add(StateType.ElementoModificado, [elementoAtualOriginal, elementoAtualAtualizado]);
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
   }

@@ -90,8 +90,7 @@ export const getDispositivoFromElemento = (articulacao: Articulacao, referencia:
       return undefined;
     }
 
-    return ref.alteracoes
-      .flatMap(a => a.filhos)
+    return ref.alteracoes?.filhos
       .flatMap(f => {
         const lista: Dispositivo[] = [];
         buildListaDispositivosAlterados(f, lista);

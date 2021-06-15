@@ -1,5 +1,6 @@
 import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
+import { TipoDispositivo } from '../../dispositivo/tipo';
 import { getArticulacao } from '../hierarquia/hierarquia-util';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -15,7 +16,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       this.rotulo = this.PREFIXO + this.numero + this.getSufixoNumeracao();
 
       if (this.numero === undefined || !dispositivo || (dispositivo.isDispositivoAlteracao && dispositivo.pai!.indexOf(dispositivo) === 0)) {
-        this.rotulo = '\u201C' + this.PREFIXO;
+        this.rotulo = '\u201C' + TipoDispositivo.artigo.name;
       } else {
         this.rotulo =
           (getArticulacao(dispositivo) as Articulacao).artigos.length === 1
