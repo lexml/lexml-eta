@@ -21,8 +21,27 @@ export class EtaKeyboard extends Keyboard {
   listen(): void {
     this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
       if (ev.ctrlKey && ev.altKey) {
-        if (['y', 'i', 'l', 'n', 'o', 'p'].includes(ev.key)) {
+        if (['a', 'i', 'l', 'o', 'p', 't'].includes(ev.key)) {
           this.onHotKeyTransformacaoTipo(ev);
+        }
+      }
+      if (ev.ctrlKey && !ev.altKey) {
+        if (ev.key === 'Home') {
+          this.onTeclaHome(ev);
+        } else if (ev.key === 'End') {
+          this.onTeclaEnd(ev);
+        } else if (ev.key === 'd') {
+          this.onTeclaCtrlD(ev);
+        } else if (ev.key === 'z') {
+          this.onTeclaCtrlZ(ev);
+        } else if (ev.key === 'y') {
+          this.onTeclaCtrlY(ev);
+        } else if (ev.key === 'a') {
+          this.onTeclaCtrlA(ev);
+          /* } else if (ev.key === 'A') {
+          this.onTeclaCtrlShiftA(ev); */
+        } else if (ev.key === 'b' || ev.key === 'i' || ev.key === 'x' || ev.key === 'v') {
+          this.onValidarTecla(ev);
         }
       }
     });
@@ -44,28 +63,8 @@ export class EtaKeyboard extends Keyboard {
       } else if (ev.keyCode === Keyboard.keys.TAB) {
         this.onTeclaTab(ev);
       } else {
-        if (ev.ctrlKey) {
-          if (ev.key === 'Home') {
-            this.onTeclaHome(ev);
-          } else if (ev.key === 'End') {
-            this.onTeclaEnd(ev);
-          } else if (ev.key === 'd') {
-            this.onTeclaCtrlD(ev);
-          } else if (ev.key === 'z') {
-            this.onTeclaCtrlZ(ev);
-          } else if (ev.key === 'y') {
-            this.onTeclaCtrlY(ev);
-          } else if (ev.key === 'a') {
-            this.onTeclaCtrlA(ev);
-          } else if (ev.key === 'A') {
-            this.onTeclaCtrlShiftA(ev);
-          } else if (ev.key === 'b' || ev.key === 'i' || ev.key === 'x' || ev.key === 'v') {
-            this.onValidarTecla(ev);
-          }
-        } else {
-          if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
-            this.onValidarTecla(ev);
-          }
+        if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
+          this.onValidarTecla(ev);
         }
       }
     });
