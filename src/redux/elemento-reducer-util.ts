@@ -37,7 +37,7 @@ export const buildFuture = (state: any, events: any): StateEvent[] => {
   return count > 50 ? future.shift() : future;
 };
 
-export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = TEXTO_OMISSIS + ' &#8221; (NR)';
+export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = TEXTO_OMISSIS + ' ” (NR)';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any): boolean => {
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);
@@ -87,6 +87,7 @@ export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): 
 };
 
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
+  console.log('hasIndicativoFimAlteracao(' + texto + '): ' + /["”](?:\s*\(NR\))?\s*$/.test(texto));
   return /["”](?:\s*\(NR\))?\s*$/.test(texto);
 };
 
