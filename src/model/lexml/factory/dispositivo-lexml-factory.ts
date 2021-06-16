@@ -1,6 +1,12 @@
 /* eslint-disable indent */
 import { INICIAR_BLOCO } from '../../../redux/elemento-actions';
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../../../redux/elemento-reducer-util';
+import {
+  hasIndicativoFimAlteracao,
+  hasIndicativoInicioAlteracao,
+  isDispositivoAlteracao,
+  normalizaSeForOmissis,
+  TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
+} from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
@@ -43,11 +49,11 @@ export class DispositivoLexmlFactory {
           action.subType === INICIAR_BLOCO
             ? DispositivoLexmlFactory.createDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, ref!)
             : DispositivoLexmlFactory.createFromReferencia(ref.pai!);
-        novo!.texto = action.subType === INICIAR_BLOCO ? TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO : action.novo?.conteudo?.texto ?? '';
+        novo!.texto = action.subType === INICIAR_BLOCO ? TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO : normalizaSeForOmissis(novo, action.novo?.conteudo?.texto ?? '');
       } else {
         novo = DispositivoLexmlFactory.createFromReferencia(referencia);
         novo.createRotulo();
-        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : TEXTO_OMISSIS;
+        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(novo, action.novo?.conteudo?.texto ?? '') : TEXTO_OMISSIS;
       }
     } else {
       if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {

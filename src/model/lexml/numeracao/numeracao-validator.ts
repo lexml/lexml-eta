@@ -1,3 +1,4 @@
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoGenerico } from '../../dispositivo/tipo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
@@ -10,7 +11,7 @@ const isRotuloConsistente = (dispositivo: Dispositivo): boolean => {
   return rotulo === dispositivo.rotulo;
 };
 
-export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
+export const validaNumeracaoDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
   if (dispositivo === null) {
     mensagens.push({
@@ -37,4 +38,37 @@ export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
     });
   }
   return mensagens;
+};
+
+export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): Mensagem[] => {
+  const mensagens: Mensagem[] = [];
+  if (dispositivo === null) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O dispositivo não foi informado',
+    });
+  }
+  if (dispositivo !== null && dispositivo.numero && dispositivo.numero.trim().length === 0) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O dispositivo não contém numeração',
+    });
+  }
+  if (dispositivo !== null && dispositivo.rotulo && dispositivo.rotulo.trim().length === 0) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O dispositivo não contém rótulo',
+    });
+  }
+  if (dispositivo !== null && !isDispositivoGenerico(dispositivo) && dispositivo.rotulo && dispositivo.rotulo.endsWith(dispositivo.tipo)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O rótulo informado não é válido. Numere o dispositivo',
+    });
+  }
+  return mensagens;
+};
+
+export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
+  return isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
 };

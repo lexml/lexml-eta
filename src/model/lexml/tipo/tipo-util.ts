@@ -24,33 +24,33 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
   let paiNovo: Dispositivo;
 
   switch (action.subType) {
-    case 'transformaAlineaEmItem':
-    case 'transformaIncisoEmAlinea':
-    case 'transformaParagrafoEmIncisoParagrafo':
+    case 'transformarAlineaEmItem':
+    case 'transformarIncisoEmAlinea':
+    case 'transformarParagrafoEmIncisoParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
       novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
       break;
-    case 'transformaDispositivoGenericoEmInciso':
-    case 'transformaDispositivoGenericoEmAlinea':
-    case 'transformaDispositivoGenericoEmItem':
-    case 'transformaOmissisEmAlinea':
-    case 'transformaOmissisEmArtigo':
-    case 'transformaOmissisEmIncisoParagrafo':
-    case 'transformaOmissisEmItem':
-    case 'transformaOmissisEmParagrafo':
-    case 'transformaEmOmissisAlinea':
-    case 'transformaEmOmissisItem':
-    case 'transformaEmOmissisParagrafo':
-    case 'transformaEmOmissisIncisoParagrafo':
-    case 'transformaOmissisEmIncisoCaput':
+    case 'transformarDispositivoGenericoEmInciso':
+    case 'transformarDispositivoGenericoEmAlinea':
+    case 'transformarDispositivoGenericoEmItem':
+    case 'transformarOmissisEmAlinea':
+    case 'transformarOmissisEmArtigo':
+    case 'transformarOmissisEmIncisoParagrafo':
+    case 'transformarOmissisEmItem':
+    case 'transformarOmissisEmParagrafo':
+    case 'transformarEmOmissisAlinea':
+    case 'transformarEmOmissisItem':
+    case 'transformarEmOmissisParagrafo':
+    case 'transformarEmOmissisIncisoParagrafo':
       paiNovo = paiAtual!;
       novo = DispositivoLexmlFactory.create(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
       break;
-    case 'transformaParagrafoEmIncisoCaput':
+    case 'transformarOmissisEmIncisoCaput':
+    case 'transformarParagrafoEmIncisoCaput':
       paiNovo = paiAtual!;
       novo = DispositivoLexmlFactory.create((paiNovo as Artigo).caput!, action.novo.tipo);
       break;
-    case 'transformaArtigoEmParagrafo':
+    case 'transformarArtigoEmParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
       novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
       break;

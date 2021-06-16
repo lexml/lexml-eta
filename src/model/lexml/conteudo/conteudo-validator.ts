@@ -143,12 +143,6 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
       descricao: `Não foi informado um texto para ${dispositivo.pronome + dispositivo.descricao!}`,
     });
   }
-  if (dispositivo.texto && !isValidHTML(dispositivo.texto)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: 'O conteúdo do dispositivo não é um HTML válido',
-    });
-  }
   if (dispositivo.texto && dispositivo.texto.trim().length > 300) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,

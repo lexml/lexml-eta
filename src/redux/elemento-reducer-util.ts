@@ -72,6 +72,20 @@ export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
   );
 };
 
+export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): string => {
+  if (!isDispositivoAlteracao(dispositivo)) {
+    return texto;
+  }
+  if (texto === TEXTO_OMISSIS || texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || !new RegExp('\\s*$').test(texto)) {
+    return texto;
+  }
+  if (new RegExp(addSpaceRegex(escapeRegex('(NR)'))).test(texto)) {
+    return TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
+  }
+
+  return TEXTO_OMISSIS;
+};
+
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
   return /["”](?:\s*\(NR\))?\s*$/.test(texto);
 };

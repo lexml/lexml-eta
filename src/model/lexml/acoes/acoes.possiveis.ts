@@ -66,6 +66,7 @@ import {
 const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (
     isDispositivoAlteracao(dispositivo.pai!) &&
+    dispositivo.filhos.length === 0 &&
     dispositivo.tipo !== TipoDispositivo.omissis.name &&
     getDispositivoAnterior(dispositivo) !== TipoDispositivo.omissis.name &&
     getDispositivoPosterior(dispositivo) !== TipoDispositivo.omissis.name
@@ -150,12 +151,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoCaput);
   }
-  if (
-    isIncisoParagrafo(dispositivo) &&
-    dispositivo.tipo !== TipoDispositivo.omissis.name &&
-    getDispositivoAnterior(dispositivo) !== TipoDispositivo.omissis.name &&
-    getDispositivoPosterior(dispositivo) !== TipoDispositivo.omissis.name
-  ) {
+  if (isIncisoParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
   }
 
@@ -176,6 +172,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
   if (isOmissis(dispositivo) && isArtigo(dispositivo.pai!)) {
     acoes.push(transformarOmissisEmParagrafo);
+  }
+  if (isOmissis(dispositivo) && isCaput(dispositivo.pai!)) {
+    acoes.push(transformarOmissisEmIncisoCaput);
   }
   if (isOmissis(dispositivo) && isParagrafo(dispositivo.pai!)) {
     acoes.push(transformarOmissisEmIncisoParagrafo);
@@ -206,9 +205,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     }
   }
 
-  return acoes.filter((acao: ElementoAction): boolean => {
-    return acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo';
-  });
+  return acoes
+    .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
+    .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
 };
 
 export const ajustaAcaoSeCasoEspecialForInciso = (dispositivo: Dispositivo, acao: any): void => {
@@ -230,7 +229,7 @@ export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction |
   }
 
   return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {
-    const acao = 'transforma' + dispositivo.tipo + 'Em' + tipoPermitido;
+    const acao = 'transformar' + dispositivo.tipo + 'Em' + tipoPermitido;
 
     return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
   })[0];
@@ -245,6 +244,6 @@ export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoActio
     return transformarIncisoCaputEmParagrafo;
   }
 
-  const acao = 'transforma' + dispositivo.tipo + 'Em' + dispositivo.pai!.tipo;
+  const acao = 'transformar' + dispositivo.tipo + 'Em' + dispositivo.pai!.tipo;
   return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === acao)[0];
 };

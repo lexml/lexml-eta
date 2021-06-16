@@ -54,6 +54,7 @@ import {
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
+  normalizaSeForOmissis,
   redoDispositivosExcluidos,
   removeAndBuildEvents,
   textoFoiModificado,
@@ -80,7 +81,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   createElementos(elementosRemovidos, atual);
 
   if (textoFoiModificado(atual, action)) {
-    atual!.texto = action.atual?.conteudo?.texto ?? '';
+    atual.texto = normalizaSeForOmissis(atual, action.atual.conteudo?.texto ?? '');
     textoModificado = true;
   }
 
@@ -136,7 +137,7 @@ export const selecionaElemento = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  validaDispositivo(atual);
+  atual.mensagens = validaDispositivo(atual);
   const elemento = createElemento(atual, true);
 
   const events = [
@@ -232,7 +233,7 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
 
-  dispositivo.texto = action.atual.conteudo?.texto ?? '';
+  dispositivo.texto = normalizaSeForOmissis(dispositivo, action.atual.conteudo?.texto ?? '');
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
@@ -255,8 +256,6 @@ export const numerarElemento = (state: any, action: any): ElementoState => {
   const past = buildPast(state, buildUpdateEvent(dispositivo));
   dispositivo.numero = action.novo?.numero;
   dispositivo.createRotulo(dispositivo);
-  console.log(dispositivo);
-  dispositivo.texto = action.atual.conteudo?.texto ?? '';
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {

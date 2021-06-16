@@ -15,7 +15,7 @@ import {
   removerElementoAction,
   shiftTabAction,
   tabAction,
-  transforma,
+  transformar,
   UndoAction,
   validarArticulacaAction,
   validarElementoAction,
@@ -363,17 +363,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.hierarquia);
 
     if (ev.key === 'y') {
-      rootStore.dispatch(transforma(elemento, TipoDispositivo.artigo.name!));
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.artigo.name!));
     } else if (ev.key === 'n') {
-      rootStore.dispatch(transforma(elemento, TipoDispositivo.inciso.name!));
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.inciso.name!));
     } else if (ev.key === 'l') {
-      rootStore.dispatch(transforma(elemento, TipoDispositivo.alinea.name!));
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.alinea.name!));
     } else if (ev.key === 'o') {
-      rootStore.dispatch(transforma(elemento, TipoDispositivo.omissis.name!));
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.omissis.name!));
     } else if (ev.key === 'p') {
-      rootStore.dispatch(transforma(elemento, TipoDispositivo.paragrafo.name!));
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.paragrafo.name!));
     } else if (ev.key === 'i') {
-      rootStore.dispatch(transforma(elemento, TipoDispositivo.item.name!));
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.item.name!));
     } else if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
