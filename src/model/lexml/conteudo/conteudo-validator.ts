@@ -1,8 +1,8 @@
-import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isDispositivoDeArtigo, isParagrafo } from '../../dispositivo/tipo';
-import { hasFilhoGenerico, hasFilhos, isLastMesmoTipo, isPenultimoMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import { hasFilhoGenerico, hasFilhos, isLastMesmoTipo, isPenultimoMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from './conteudo-util';
 
@@ -159,6 +159,12 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
+    });
+  }
+  if (dispositivo.texto && isUltimaAlteracao(dispositivo) && !hasIndicativoFimAlteracao(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `O último dispositivo do bloco de alteração deve terminar com &#8221; (NR)`,
     });
   }
 
