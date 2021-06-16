@@ -137,7 +137,7 @@ export const selecionaElemento = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  atual.mensagens = validaDispositivo(atual);
+  //  atual.mensagens = validaDispositivo(atual);
   const elemento = createElemento(atual, true);
 
   const events = [
