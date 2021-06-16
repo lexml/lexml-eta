@@ -10,7 +10,6 @@ import {
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
@@ -53,7 +52,7 @@ export class DispositivoLexmlFactory {
       } else {
         novo = DispositivoLexmlFactory.createFromReferencia(referencia);
         novo.createRotulo();
-        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(novo, action.novo?.conteudo?.texto ?? '') : TEXTO_OMISSIS;
+        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(novo, action.novo?.conteudo?.texto ?? '') : '';
       }
     } else {
       if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {

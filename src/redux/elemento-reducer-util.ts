@@ -76,7 +76,7 @@ export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): 
   if (!isDispositivoAlteracao(dispositivo)) {
     return texto;
   }
-  if (texto === TEXTO_OMISSIS || texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || !new RegExp('\\s*$').test(texto)) {
+  if (texto === TEXTO_OMISSIS || texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || !new RegExp('^[.]+$').test(texto)) {
     return texto;
   }
   if (new RegExp(addSpaceRegex(escapeRegex('(NR)'))).test(texto)) {
