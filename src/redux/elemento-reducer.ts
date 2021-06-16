@@ -9,7 +9,13 @@ import {
   getElementos,
   listaDispositivosRenumerados,
 } from '../model/elemento/elemento-util';
-import { ajustaAcaoSeCasoEspecialForInciso, getAcaoPossivelShift, getAcaoPossivelShiftTab, isAcaoTransformacaoPermitida } from '../model/lexml/acoes/acoes.possiveis';
+import {
+  acoesPossiveis,
+  ajustaAcaoSeCasoEspecialForInciso,
+  getAcaoPossivelShift,
+  getAcaoPossivelShiftTab,
+  isAcaoTransformacaoPermitida,
+} from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
@@ -30,9 +36,10 @@ import {
   MOVER_ELEMENTO_ABAIXO,
   MOVER_ELEMENTO_ACIMA,
   NOVA_ARTICULACAO,
-  NUMERAR_ELEMENTO,
   REDO,
   REMOVER_ELEMENTO,
+  RenumerarElemento,
+  RENUMERAR_ELEMENTO,
   SHIFT_TAB,
   TAB,
   TransformarElemento,
@@ -246,11 +253,15 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
   };
 };
 
-export const numerarElemento = (state: any, action: any): ElementoState => {
+export const renumeraElemento = (state: any, action: any): ElementoState => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
 
   if (dispositivo === undefined) {
     return state;
+  }
+
+  if (acoesPossiveis(dispositivo).filter(a => a instanceof RenumerarElemento).length === 0) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível renumerar o dispositivo' });
   }
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
@@ -684,8 +695,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return moveElementoAcima(state, action);
     case NOVA_ARTICULACAO:
       return novaArticulacao();
-    case NUMERAR_ELEMENTO:
-      return numerarElemento(state, action);
+    case RENUMERAR_ELEMENTO:
+      return renumeraElemento(state, action);
     case ABRIR_ARTICULACAO:
       return openArticulacao(state, action);
     case REDO:

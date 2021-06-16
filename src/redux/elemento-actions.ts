@@ -10,7 +10,7 @@ export const TRANSFORMAR_TIPO_ELEMENTO = 'TRANSFORMAR_TIPO_ELEMENTO';
 export const MOVER_ELEMENTO_ABAIXO = 'MOVER_ELEMENTO_ABAIXO';
 export const MOVER_ELEMENTO_ACIMA = 'MOVER_ELEMENTO_ACIMA';
 export const NOVA_ARTICULACAO = 'NOVA_ARTICULACAO';
-export const NUMERAR_ELEMENTO = 'NUMERAR_ELEMENTO';
+export const RENUMERAR_ELEMENTO = 'RENUMERAR_ELEMENTO';
 export const REMOVER_ELEMENTO = 'REMOVER_ELEMENTO';
 export const VALIDAR_ARTICULACAO = 'VALIDAR_ARTICULACAO';
 export const VALIDAR_ELEMENTO = 'VALIDAR_ELEMENTO';
@@ -216,7 +216,7 @@ class MoverElementoAcima extends ElementoAbstractAction {
   }
 }
 
-class NumerarElemento extends ElementoAbstractAction {
+export class RenumerarElemento extends ElementoAbstractAction {
   constructor() {
     super();
     this.descricao = 'Numerar e criar rótulo para o dispositivo ';
@@ -225,7 +225,7 @@ class NumerarElemento extends ElementoAbstractAction {
   execute(atual: Referencia, numero: string): any {
     this.tipo = atual.tipo;
     return {
-      type: NUMERAR_ELEMENTO,
+      type: RENUMERAR_ELEMENTO,
       atual,
       novo: {
         numero,
@@ -283,7 +283,7 @@ export const adicionarParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
 
-export const numerarElemento = new NumerarElemento();
+export const renumerarElemento = new RenumerarElemento();
 
 export const iniciarBlocoAlteracao = new BlocoAlteracao(INICIAR_BLOCO);
 export const finalizarBlocoAlteracao = new BlocoAlteracao(FINALIZAR_BLOCO);
@@ -342,7 +342,7 @@ const acoesMenu: ElementoAction[] = [];
 
 acoesMenu.push(moverElementoAbaixo);
 acoesMenu.push(moverElementoAcima);
-acoesMenu.push(numerarElemento);
+acoesMenu.push(renumerarElemento);
 acoesMenu.push(iniciarBlocoAlteracao);
 acoesMenu.push(finalizarBlocoAlteracao);
 acoesMenu.push(transformarEmOmissisAlinea);

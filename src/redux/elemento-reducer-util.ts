@@ -77,7 +77,7 @@ export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): 
     return texto;
   }
 
-  if (/.*["”](?:\s*\(NR\))?\s*$/.test(texto)) {
+  if (/[.]*["”](?:\s*\(NR\))?\s*$/.test(texto)) {
     return TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
   }
 
@@ -89,7 +89,6 @@ export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): 
 };
 
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
-  console.log('hasIndicativoFimAlteracao(' + texto + '): ' + /["”](?:\s*\(NR\))?\s*$/.test(texto));
   return /["”](?:\s*\(NR\))?\s*$/.test(texto);
 };
 

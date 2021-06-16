@@ -12,6 +12,7 @@ export class EtaKeyboard extends Keyboard {
   operacaoTecladoInvalida: Observable<void> = new Observable<void>();
   adicionaElementoTeclaEnter: Observable<RangeStatic> = new Observable<RangeStatic>();
   removeElemento: Observable<void> = new Observable<void>();
+  renumeraElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   transformaElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
 
   constructor(quill: EtaQuill, options: any) {
@@ -23,6 +24,8 @@ export class EtaKeyboard extends Keyboard {
       if (ev.ctrlKey && ev.altKey) {
         if (['a', 'i', 'l', 'o', 'p', 't'].includes(ev.key)) {
           this.onHotKeyTransformacaoTipo(ev);
+        } else if (ev.key === 'r') {
+          this.onHotKeyRenumeraDispositivo(ev);
         }
       }
       if (ev.ctrlKey && !ev.altKey) {
@@ -198,6 +201,11 @@ export class EtaKeyboard extends Keyboard {
 
   private onTeclaCtrlShiftA(ev: KeyboardEvent): void {
     this.quill.setSelection(this.quill.inicioConteudoAtual, this.quill.linhaAtual.blotConteudo.tamanho, Quill.sources.SILENT);
+    cancelarPropagacaoDoEvento(ev);
+  }
+
+  private onHotKeyRenumeraDispositivo(ev: KeyboardEvent): void {
+    this.renumeraElemento.notify(ev);
     cancelarPropagacaoDoEvento(ev);
   }
 

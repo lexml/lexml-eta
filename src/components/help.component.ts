@@ -51,6 +51,13 @@ export class HelpComponent extends LitElement {
       <div class="lx-eta-help">
         <button class="lx-eta-helpbtn">&quest;</button>
         <div class="lx-eta-help-content">
+          <div><b>ctrl-alt-a</b>&nbsp;-&nbsp;Transforma o dispositivo em artigo</div>
+          <div><b>ctrl-alt-i</b>&nbsp;-&nbsp;Transforma o dispositivo em inciso</div>
+          <div><b>ctrl-alt-l</b>&nbsp;-&nbsp;Transforma o dispositivo em alínea</div>
+          <div><b>ctrl-alt-o</b>&nbsp;-&nbsp;Transforma o dispositivo em omissis</div>
+          <div><b>ctrl-alt-p</b>&nbsp;-&nbsp;Transforma o dispositivo em parágrafo</div>
+          <div><b>ctrl-alt-r</b>&nbsp;-&nbsp;Renumera o dispositivo</div>
+          <div><b>ctrl-alt-t</b>&nbsp;-&nbsp;Transforma o dispositivo em item</div>
           <div><b>tab</b>&nbsp;-&nbsp;Indenta para a direita o dispositivo, transformando-o no tipo mais provável</div>
           <div><b>shift-tab</b>&nbsp;-&nbsp;Recua o dispositivo para a esquerda, transformando-o no tipo mais provável</div>
           <div><b>ctrl-home</b>&nbsp;-&nbsp;Vai para o primeiro dispositivo</div>

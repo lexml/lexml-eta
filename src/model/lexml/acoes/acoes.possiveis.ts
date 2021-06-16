@@ -11,7 +11,7 @@ import {
   iniciarBlocoAlteracao,
   moverElementoAbaixo,
   moverElementoAcima,
-  numerarElemento,
+  renumerarElemento,
   transformaAlineaEmItem,
   transformarAlineaEmInciso,
   transformarArtigoEmParagrafo,
@@ -126,12 +126,13 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
 
   if (isDispositivoAlteracao(dispositivo)) {
-    acoes.push(numerarElemento);
+    acoes.push(renumerarElemento);
   }
 
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
     acoes.push(iniciarBlocoAlteracao);
     acoes.push(finalizarBlocoAlteracao);
+    acoes.push(renumerarElemento);
   }
 
   if (

@@ -10,9 +10,9 @@ import {
   elementoSelecionadoAction,
   getAcao,
   isAcaoMenu,
-  numerarElemento,
   RedoAction,
   removerElementoAction,
+  renumerarElemento,
   shiftTabAction,
   tabAction,
   transformar,
@@ -329,7 +329,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (choice === 'Sim') {
         console.log('sim');
         const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
-        rootStore.dispatch(numerarElemento.execute(elemento, '12-A'));
+        rootStore.dispatch(renumerarElemento.execute(elemento, '12-A'));
       }
       this.quill.focus();
     });
@@ -438,7 +438,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarEscolhaMenu(itemMenu: string): void {
     if (itemMenu === 'Remover dispositivo') {
       this.removerElemento();
-    } else if (itemMenu === numerarElemento.descricao) {
+    } else if (itemMenu === renumerarElemento.descricao) {
       this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
@@ -611,6 +611,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.removeElemento.subscribe(this.removerElemento.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.renumeraElemento.subscribe(this.renumerarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
