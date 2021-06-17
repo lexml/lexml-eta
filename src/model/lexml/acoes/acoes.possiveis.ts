@@ -56,6 +56,7 @@ import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '.
 import {
   getDispositivoAnterior,
   getDispositivoPosterior,
+  hasDispositivosPosterioresAlteracao,
   hasFilhos,
   isLastMesmoTipo,
   isPrimeiroMesmoTipo,
@@ -131,8 +132,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
 
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
     acoes.push(iniciarBlocoAlteracao);
-    acoes.push(finalizarBlocoAlteracao);
-    acoes.push(renumerarElemento);
+    if (hasDispositivosPosterioresAlteracao(dispositivo)) {
+      acoes.push(finalizarBlocoAlteracao);
+    }
   }
 
   if (

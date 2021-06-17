@@ -165,3 +165,15 @@ export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {
 
   return lista.length > 0 && lista[lista.length - 1] === dispositivo;
 };
+
+export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): boolean => {
+  const atual = getArticulacao(dispositivo).pai;
+
+  if (!atual) {
+    return false;
+  }
+
+  const articulacao = getArticulacao(atual!);
+
+  return articulacao.indexOfArtigo(atual) === articulacao.artigos.length - 1;
+};
