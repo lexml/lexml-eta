@@ -319,20 +319,66 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private renumerarElemento(): void {
+  private async renumerarElemento() {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const mensagem = `Informe um número para gerar o rótulo do dispositivo:`;
 
-    this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
-      const closeResult: any = event.detail.closeResult;
-      const choice: string = closeResult && closeResult.choice;
-      if (choice === 'Sim') {
-        console.log('sim');
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
-        rootStore.dispatch(numerarElemento.execute(elemento, '12-A'));
+    // TODO - Preencher com a numeração atual do rótulo
+    const numeracaoAtual = '12-A';
+
+    const dialogElem = document.createElement('elix-dialog');
+
+    const content = document.createRange().createContextualFragment(`
+      <div style="padding: 15px; text-align: center">
+        <div>
+          Numeração do dispositivo:
+          <input type="text" style="width: 60px">
+        </div>
+        <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
+        <div style="margin-top: 10px;">
+          <button>Ok</button>
+          <button>Cancelar</button>
+        </div>
+      </div>
+    `);
+
+    const input = <HTMLInputElement>content.querySelector('input')
+    input.value = numeracaoAtual;
+
+    const botoes = content.querySelectorAll('button');
+    const ok = botoes[0];
+    const cancelar = botoes[1];
+
+    const erro = <HTMLDivElement>content.querySelector('.erro');
+
+    ok.onclick = () => {
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
+      rootStore.dispatch(numerarElemento.execute(elemento, input.value.trim()));
+      (<any>dialogElem).close();
+    }
+
+    cancelar.onclick = () => {
+      (<any>dialogElem).close();
+    }
+
+    const validar = (): string => {
+      // Validar aqui
+      const numeracao = input.value;
+      if(/^\s*$/.test(numeracao)) {
+        return 'A numeração não pode ser vazia.';
       }
-      this.quill.focus();
-    });
+      return '';
+    }
+
+    input.onkeyup = () => {
+      const msgErro = validar();
+      erro.innerText = msgErro;
+      erro.style.display = msgErro? 'block': 'none';
+      ok.disabled = Boolean(msgErro);
+    }
+
+    dialogElem.appendChild(content);
+
+    await (<any>dialogElem).open();
   }
 
   private removerElemento(): void {
