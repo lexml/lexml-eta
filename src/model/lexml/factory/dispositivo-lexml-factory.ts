@@ -10,7 +10,7 @@ import {
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
   AlineaLexml,
@@ -30,7 +30,7 @@ import {
   SubsecaoLexml,
   TituloLexml,
 } from '../dispositivo/dispositivo-lexml';
-import { getArticulacao, isUltimaAlteracao } from '../hierarquia/hierarquia-util';
+import { getArticulacao, getDispositivoAnterior, isUltimaAlteracao } from '../hierarquia/hierarquia-util';
 import { TipoMensagem } from '../util/mensagem';
 
 export class DispositivoLexmlFactory {
@@ -111,6 +111,86 @@ export class DispositivoLexmlFactory {
         getArticulacao(dispositivo)?.filhos?.forEach(f => f.createRotulo(f));
       };
     }
+  }
+
+  static converteFilhos(atual: Dispositivo, destino: Dispositivo): void {
+    if (destino.tipoProvavelFilho! === undefined) {
+      return;
+    }
+    atual.filhos.forEach((filho, index) => {
+      const novo = DispositivoLexmlFactory.create(
+        isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
+        destino.tipoProvavelFilho!
+      );
+      novo.texto = filho.texto;
+      filho.filhos ? DispositivoLexmlFactory.converteFilhos(filho, novo) : undefined;
+      index === atual.filhos.length - 1 ? destino.renumeraFilhos() : undefined;
+    });
+  }
+
+  static converteDispositivo(atual: Dispositivo, action: any): Dispositivo {
+    const paiAtual = atual.pai;
+    let novo: Dispositivo;
+    let paiNovo: Dispositivo;
+
+    switch (action.subType) {
+      case 'transformarAlineaEmItem':
+      case 'transformarIncisoEmAlinea':
+      case 'transformarParagrafoEmIncisoParagrafo':
+        paiNovo = getDispositivoAnterior(atual)!;
+        novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
+        break;
+      case 'transformarDispositivoGenericoEmInciso':
+      case 'transformarDispositivoGenericoEmAlinea':
+      case 'transformarDispositivoGenericoEmItem':
+      case 'transformarOmissisEmAlinea':
+      case 'transformarOmissisEmArtigo':
+      case 'transformarOmissisEmIncisoParagrafo':
+      case 'transformarOmissisEmItem':
+      case 'transformarOmissisEmParagrafo':
+      case 'transformarEmOmissisAlinea':
+      case 'transformarEmOmissisItem':
+      case 'transformarEmOmissisParagrafo':
+      case 'transformarEmOmissisIncisoParagrafo':
+        paiNovo = paiAtual!;
+        novo = DispositivoLexmlFactory.create(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
+        break;
+      case 'transformarOmissisEmIncisoCaput':
+      case 'transformarParagrafoEmIncisoCaput':
+        paiNovo = paiAtual!;
+        novo = DispositivoLexmlFactory.create((paiNovo as Artigo).caput!, action.novo.tipo);
+        break;
+      case 'transformarArtigoEmParagrafo':
+        paiNovo = getDispositivoAnterior(atual)!;
+        novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
+        break;
+      default:
+        paiNovo = atual.pai!.pai!;
+        novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo, atual.pai!);
+        break;
+    }
+    novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
+
+    paiAtual?.removeFilho(atual);
+    paiAtual?.renumeraFilhos();
+    paiNovo?.renumeraFilhos();
+    DispositivoLexmlFactory.converteFilhos(atual, novo!);
+
+    return novo!;
+  }
+
+  static copiaFilhos(atual: Dispositivo, destino: Dispositivo): void {
+    if (atual.tipo !== destino.tipo) {
+      return;
+    }
+    atual.filhos.forEach(filho => {
+      const novo = DispositivoLexmlFactory.create(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
+      novo.texto = filho.texto;
+      atual.removeFilho(filho);
+      filho.filhos ? DispositivoLexmlFactory.converteFilhos(filho, novo) : undefined;
+
+      atual.filhos.length === 0 ? destino.renumeraFilhos() : undefined;
+    });
   }
 
   private static createDispositivo(name: string, parent: Dispositivo): Dispositivo {

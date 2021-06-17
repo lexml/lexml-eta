@@ -26,7 +26,6 @@ import {
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
-import { converteDispositivo, copiaFilhos } from '../model/lexml/tipo/tipo-util';
 import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
 import {
   ABRIR_ARTICULACAO,
@@ -103,7 +102,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   const novo = DispositivoLexmlFactory.createByInferencia(atual, action);
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
-    copiaFilhos(atual, novo);
+    DispositivoLexmlFactory.copiaFilhos(atual, novo);
   }
 
   novo.pai!.renumeraFilhos();
@@ -481,7 +480,7 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
 
   const atualRenumerados = listaDispositivosRenumerados(atual);
 
-  const novo = converteDispositivo(atual, action);
+  const novo = DispositivoLexmlFactory.converteDispositivo(atual, action);
 
   const novoRenumerados = listaDispositivosRenumerados(novo);
 
