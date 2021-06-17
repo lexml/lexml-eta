@@ -79,11 +79,20 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
 
   acoes.push(...acoesPossiveisDispositivo);
 
+  //
+  // Agrupador
+  //
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isLastMesmoTipo(dispositivo)) {
     acoes.push(moverElementoAbaixo);
   }
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(moverElementoAcima);
+  }
+  if (isAgrupador(dispositivo)) {
+    const i: number = acoes.findIndex((acao: ElementoAction) => acao.descricao === 'Remover dispositivo');
+    if (i > -1) {
+      acoes = acoes.slice(i, 1);
+    }
   }
 
   //
@@ -126,10 +135,12 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(transformarArtigoEmParagrafo);
   }
 
+  //
+  // Dispositivo de alteração
+  //
   if (isDispositivoAlteracao(dispositivo)) {
     acoes.push(renumerarElemento);
   }
-
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
     acoes.push(iniciarBlocoAlteracao);
     if (hasDispositivosPosterioresAlteracao(dispositivo)) {
@@ -137,6 +148,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     }
   }
 
+  //
+  // Dispositivo genérico
+  //
   if (
     isDispositivoGenerico(dispositivo) &&
     (isParagrafo(dispositivo.pai!) || isCaput(dispositivo.pai!) || isInciso(dispositivo.pai!) || isAlinea(dispositivo.pai!)) &&
@@ -145,6 +159,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(acoesDisponiveis.filter(a => a instanceof TransformarElemento && a.nomeAcao === 'transformaDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
   }
 
+  //
+  // Inciso
+  //
   if (isInciso(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformarIncisoEmAlinea);
   }
@@ -158,6 +175,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(transformarEmOmissisIncisoParagrafo);
   }
 
+  //
+  // Item
+  //
   if (isItem(dispositivo)) {
     acoes = acoes.filter(a => a !== adicionarElementoAction);
   }
@@ -167,6 +187,10 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isItem(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisItem);
   }
+
+  //
+  // Omissis
+  //
   if (isOmissis(dispositivo) && isArticulacao(dispositivo.pai!) && getDispositivoAnterior(dispositivo) !== undefined) {
     acoes.push(transformarOmissisEmArtigo);
   }
@@ -188,6 +212,10 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isOmissis(dispositivo) && isAlinea(dispositivo.pai!)) {
     acoes.push(transformarOmissisEmItem);
   }
+
+  //
+  // Parágrafo
+  //
   if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformarParagrafoEmIncisoCaput);
   }
@@ -199,13 +227,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
   if (isParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisParagrafo);
-  }
-
-  if (isAgrupador(dispositivo)) {
-    const i: number = acoes.findIndex((acao: ElementoAction) => acao.descricao === 'Remover dispositivo');
-    if (i > -1) {
-      acoes = acoes.slice(i, 1);
-    }
   }
 
   return acoes
