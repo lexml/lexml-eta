@@ -250,7 +250,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
-        const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html, linhaAnt.hierarquia);
+        const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html, linhaAnt.numero, linhaAnt.hierarquia);
         if (linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') {
           rootStore.dispatch(validarElementoAction.execute(elemento));
         } else if (linhaAnt.blotConteudo.alterado) {
@@ -309,30 +309,73 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
         textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
       }
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
       if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-        const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.hierarquia);
+        const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
         rootStore.dispatch(atualizarElementoAction.execute(elemento));
       }
       rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
     }
   }
 
-  private renumerarElemento(): void {
+  private async renumerarElemento() {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const mensagem = `Informe um número para gerar o rótulo do dispositivo:`;
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
 
-    this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
-      const closeResult: any = event.detail.closeResult;
-      const choice: string = closeResult && closeResult.choice;
-      if (choice === 'Sim') {
-        console.log('sim');
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
-        rootStore.dispatch(renumerarElemento.execute(elemento, '12-A'));
+    const dialogElem = document.createElement('elix-dialog');
+
+    const content = document.createRange().createContextualFragment(`
+      <div style="padding: 15px; text-align: center">
+        <div>
+          Numeração do dispositivo:
+          <input type="text" style="width: 60px">
+        </div>
+        <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
+        <div style="margin-top: 10px;">
+          <button>Ok</button>
+          <button>Cancelar</button>
+        </div>
+      </div>
+    `);
+
+    const input = <HTMLInputElement>content.querySelector('input');
+    input.value = elemento.numero ?? '';
+
+    const botoes = content.querySelectorAll('button');
+    const ok = botoes[0];
+    const cancelar = botoes[1];
+
+    const erro = <HTMLDivElement>content.querySelector('.erro');
+
+    ok.onclick = () => {
+      rootStore.dispatch(renumerarElemento.execute(elemento, input.value.trim()));
+      (<any>dialogElem).close();
+    };
+
+    cancelar.onclick = () => {
+      (<any>dialogElem).close();
+    };
+
+    const validar = (): string => {
+      // Validar aqui
+      const numeracao = input.value;
+      if (/^\s*$/.test(numeracao)) {
+        return 'A numeração não pode ser vazia.';
       }
-      this.quill.focus();
-    });
+      return '';
+    };
+
+    input.onkeyup = () => {
+      const msgErro = validar();
+      erro.innerText = msgErro;
+      erro.style.display = msgErro ? 'block' : 'none';
+      ok.disabled = Boolean(msgErro);
+    };
+
+    dialogElem.appendChild(content);
+
+    await (<any>dialogElem).open();
   }
 
   private removerElemento(): void {
@@ -348,7 +391,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const closeResult: any = event.detail.closeResult;
       const choice: string = closeResult && closeResult.choice;
       if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
         rootStore.dispatch(removerElementoAction.execute(elemento));
       }
       this.quill.focus();
@@ -360,7 +403,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key === 'a') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.artigo.name!));
@@ -381,7 +424,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private elementoSelecionado(uuid: number): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(uuid, linha.tipo ?? '', '', linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(uuid, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
     rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
     this.quill.processandoMudancaLinha = false;
   }
@@ -442,7 +485,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
-      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(getAcao(itemMenu).execute(elemento));
     }
@@ -488,6 +531,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         let nivelAlerado = false;
 
         if (elemento.rotulo !== linha.blotRotulo.html) {
+          linha.numero = elemento.numero ?? '';
           linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
         }
 
@@ -592,10 +636,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, tipo: string, html: string, hierarquia?: any): Elemento {
+  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.tipo = tipo;
+    elemento.numero = numero;
     elemento.conteudo = { texto: html };
     elemento.hierarquia = hierarquia;
     return elemento;

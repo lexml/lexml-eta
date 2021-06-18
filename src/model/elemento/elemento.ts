@@ -9,6 +9,7 @@ export class Referencia {
 }
 export class Elemento extends Referencia {
   nivel = 0;
+  numero?: string;
   rotulo = '';
   agrupador = false;
   editavel = true;

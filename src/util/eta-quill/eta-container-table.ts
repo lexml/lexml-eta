@@ -81,6 +81,15 @@ export class EtaContainerTable extends Container {
     return this._nivel;
   }
 
+  private _numero: string;
+  set numero(numero: string) {
+    this._numero = numero;
+  }
+
+  get numero(): string {
+    return this._numero;
+  }
+
   private _tipo: string;
   set tipo(tipo: string) {
     this._tipo = tipo;
@@ -105,6 +114,7 @@ export class EtaContainerTable extends Container {
   constructor(elemento: Elemento) {
     super(EtaContainerTable.create(elemento));
     this._nivel = elemento.nivel;
+    this._numero = elemento.numero ?? '';
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia?.uuidDispositivoAlteracao ? elemento.hierarquia : undefined;

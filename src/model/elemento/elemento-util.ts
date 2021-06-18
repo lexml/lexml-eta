@@ -42,6 +42,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     editavel: true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
+    numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {
       texto: dispositivo.texto,
