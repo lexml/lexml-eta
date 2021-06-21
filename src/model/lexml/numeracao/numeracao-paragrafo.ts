@@ -1,6 +1,8 @@
+import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isParagrafo } from '../../dispositivo/tipo';
+import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -11,9 +13,26 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     numero?: string;
     rotulo?: string;
 
+    private normalizaNumeracao(numero: string): string {
+      return addSpaceRegex(numero)
+        .trim()
+        .replace(/\./g, '')
+        .replace(/§/i, '')
+        .replace(/par[aá]grafo [uú]nico/i, '1')
+        .replace(/[º]/i, '')
+        .trim();
+    }
+
+    createNumeroFromRotulo(rotulo: string): void {
+      const temp = this.normalizaNumeracao(rotulo!);
+      this.numero = isNumeracaoValida(temp) ? temp : undefined;
+    }
+
     createRotulo(dispositivo: Dispositivo): void {
       if (this.numero === undefined || !dispositivo) {
         this.rotulo = '§';
+      } else if (!isNumeracaoValida(this.numero)) {
+        this.rotulo = this.numero + this.SUFIXO;
       } else {
         dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1
           ? (this.rotulo = this.PARAGRAFO_UNICO)

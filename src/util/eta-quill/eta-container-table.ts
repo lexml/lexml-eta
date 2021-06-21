@@ -31,11 +31,11 @@ export class EtaContainerTable extends Container {
   [key: string]: any;
 
   get blotRotulo(): EtaBlotRotulo {
-    return this.children.head.children.head.children.head;
+    return this.children.head?.children?.head.children.head;
   }
 
   get blotConteudo(): EtaBlotConteudo {
-    return this.blotRotulo.next;
+    return this.blotRotulo?.next;
   }
 
   get containerDireito(): EtaContainerTdDireito {

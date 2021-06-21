@@ -1,5 +1,7 @@
+import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../../dispositivo/tipo';
+import { converte, converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra } from './numeracao-util';
 
 export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -8,18 +10,23 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
     numero?: string;
     rotulo?: string;
 
-    createRotulo(): void {
-      this.rotulo = this.numero === undefined ? TipoDispositivo.alinea.name : this.converteNumeroParaRotulo() + this.SUFIXO;
+    private normalizaNumeracao(numero: string): string {
+      return addSpaceRegex(numero).replace(/\)/g, '').trim();
     }
 
-    converteNumeroParaRotulo(): string | undefined {
-      if (this.numero!.trim().length > 0) {
-        const partes = this.numero?.split('-');
-        const n = parseInt(partes![0], 10);
-        return String.fromCharCode(96 + n) + (partes!.length > 1 ? '-' + partes![1] : '');
-      } else {
-        return this.numero;
+    isRotuloValido(rotulo: string): boolean {
+      if (rotulo === undefined || rotulo.trim() === '') {
+        return false;
       }
+      return /^[a-z]{1,}([-]{1}[A-Z]+)?[)]?$/.test(rotulo);
+    }
+
+    createNumeroFromRotulo(rotulo: string): void {
+      this.numero = converte(this.normalizaNumeracao(rotulo!), converteLetraParaNumeroArabico);
+    }
+
+    createRotulo(): void {
+      this.rotulo = this.numero === undefined ? TipoDispositivo.alinea.name : converte(this.numero, converteNumeroArabicoParaLetra) + this.SUFIXO;
     }
   };
 }

@@ -264,7 +264,13 @@ export const renumeraElemento = (state: any, action: any): ElementoState => {
   }
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
-  dispositivo.numero = action.novo?.numero;
+
+  try {
+    dispositivo.createNumeroFromRotulo(action.novo?.numero);
+  } catch (error) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: error });
+  }
+
   dispositivo.createRotulo(dispositivo);
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);

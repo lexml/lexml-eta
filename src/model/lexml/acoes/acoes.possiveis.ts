@@ -138,7 +138,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   //
   // Dispositivo de alteração
   //
-  if (isDispositivoAlteracao(dispositivo)) {
+  if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
     acoes.push(renumerarElemento);
   }
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {

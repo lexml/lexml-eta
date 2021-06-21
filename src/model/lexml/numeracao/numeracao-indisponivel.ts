@@ -10,5 +10,9 @@ export function NumeracaoIndisponivel<TBase extends Constructor>(Base: TBase): a
     createRotulo(): void {
       this.rotulo = undefined;
     }
+
+    createNumeroFromRotulo(): void {
+      //
+    }
   };
 }

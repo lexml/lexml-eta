@@ -340,7 +340,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     `);
 
     const input = <HTMLInputElement>content.querySelector('input');
-    input.value = elemento.numero ?? '';
+    input.value = '';
 
     const botoes = content.querySelectorAll('button');
     const ok = botoes[0];

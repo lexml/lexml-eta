@@ -1,5 +1,7 @@
+import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../../dispositivo/tipo';
+import { converte, converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -8,42 +10,24 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     numero?: string;
     rotulo?: string;
 
+    private normalizaNumeracao(numero: string): string {
+      return addSpaceRegex(numero).trim().replace(/-$/, '').trim();
+    }
+
+    createNumeroFromRotulo(rotulo: string): void {
+      const temp = converte(this.normalizaNumeracao(rotulo!), converteNumeroRomanoParaArabico);
+      this.numero = isNumeracaoValida(temp) ? temp : undefined;
+    }
+
     createRotulo(): void {
       const partes = this.numero?.split('-');
 
       this.rotulo =
-        this.numero === undefined ? TipoDispositivo.inciso.name : this.numeralToRoman(parseInt(partes![0], 10)) + (partes!.length > 1 ? '-' + partes![1] : '') + this.SUFIXO;
-    }
-
-    private numeralToRoman(numero: number): string {
-      let resultado = '';
-      let temp;
-      const romanNumList: { [key: string]: number } = {
-        M: 1000,
-        CM: 900,
-        D: 500,
-        CD: 400,
-        C: 100,
-        XC: 90,
-        L: 50,
-        XV: 40,
-        X: 10,
-        IX: 9,
-        V: 5,
-        IV: 4,
-        I: 1,
-      };
-
-      for (const key in romanNumList) {
-        temp = Math.floor(numero / romanNumList[key]);
-        if (temp >= 0) {
-          for (let i = 0; i < temp; i++) {
-            resultado += key;
-          }
-        }
-        numero = numero % romanNumList[key];
-      }
-      return resultado;
+        this.numero === undefined
+          ? TipoDispositivo.inciso.name
+          : !isNumeracaoValida(this.numero)
+          ? this.numero + this.SUFIXO
+          : converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1] : '') + this.SUFIXO;
     }
   };
 }

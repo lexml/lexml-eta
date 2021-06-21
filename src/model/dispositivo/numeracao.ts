@@ -6,4 +6,5 @@ export interface Numeracao {
   rotulo?: string;
 
   createRotulo(dispositivo?: Dispositivo): void;
+  createNumeroFromRotulo(rotulo: string): void;
 }

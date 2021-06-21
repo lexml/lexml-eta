@@ -8,6 +8,10 @@ export function NumeracaoGenerico<TBase extends Constructor>(Base: TBase): any {
     numero?: string;
     rotulo?: string;
 
+    createNumeroFromRotulo(): void {
+      //
+    }
+
     createRotulo(): void {
       this.rotulo = this.rotulo ?? this.numero + this.SUFIXO;
     }
