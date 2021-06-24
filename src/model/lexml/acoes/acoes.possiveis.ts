@@ -23,7 +23,6 @@ import {
   transformarEmOmissisParagrafo,
   transformarIncisoCaputEmParagrafo,
   transformarIncisoEmAlinea,
-  transformarIncisoEmParagrafo,
   transformarItemEmAlinea,
   transformarOmissisEmAlinea,
   transformarOmissisEmArtigo,
@@ -166,7 +165,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(transformarIncisoEmAlinea);
   }
   if (isInciso(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    acoes.push(transformarIncisoEmParagrafo);
+    acoes.push(transformarIncisoCaputEmParagrafo);
   }
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoCaput);

@@ -246,12 +246,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(validarArticulacaAction.execute());
   }
 
+  private isRotuloInvalido(tipo: string, rotulo: string): boolean {
+    return !rotulo || rotulo.replace(/["“”]?/, '') === tipo;
+  }
+
   private onSelectionChange: SelectionChangeHandler = (): void => {
     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
         const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html, linhaAnt.numero, linhaAnt.hierarquia);
-        if (linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') {
+        if ((linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') || this.isRotuloInvalido(linhaAnt.tipo, linhaAnt.blotRotulo?.rotulo)) {
           rootStore.dispatch(validarElementoAction.execute(elemento));
         } else if (linhaAnt.blotConteudo.alterado) {
           rootStore.dispatch(atualizarElementoAction.execute(elemento));
@@ -472,6 +476,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.ElementoSelecionado:
           this.montarMenuContexto(event);
+          this.atualizarMensagemQuill(event);
+
           break;
       }
       this.quill.limparHistory();

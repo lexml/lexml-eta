@@ -42,7 +42,7 @@ describe('Titulo', () => {
         const outroTitulo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.titulo.tipo);
         const outroArtigo = DispositivoLexmlFactory.create(outroTitulo, TipoDispositivo.artigo.tipo);
         titulo.renumeraFilhos();
-        expect(outroArtigo.rotulo).equals('Art. 2º');
+        expect(outroArtigo.rotulo).equals(undefined);
       });
       it('O titulo pode possuir, como filhos, Capitulo, Secao, DispositivoAgrupadorGenerico, Artigo e DispositivoGenerico', () => {
         DispositivoLexmlFactory.create(titulo, TipoDispositivo.secao.tipo);

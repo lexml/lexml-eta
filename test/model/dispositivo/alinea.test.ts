@@ -52,7 +52,7 @@ describe('Alínea', () => {
       expect(a2.rotulo).to.equal('b)');
       expect(a3.rotulo).to.equal('c)');
     });
-    it('Mesmo que inicializada corretamente, a alinea não gera rótulos sequenciais quando ultrapassar o número de letras do alfabeto', () => {
+    it('A alinea  gera rótulos sequenciais quando ultrapassar o número de letras do alfabeto', () => {
       for (let i = 0; i < 24; i++) {
         DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
       }
@@ -61,7 +61,7 @@ describe('Alínea', () => {
       expect(a1.rotulo).to.equal('z)');
       const a2 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
-      expect(a2.rotulo).to.equal('{)');
+      expect(a2.rotulo).to.equal('aa)');
     });
     it('quando for solicitada a criação de uma rótulo após ter sido definido um número válido, a alinea gera um rótulo válido', () => {
       alinea.numero = '1';

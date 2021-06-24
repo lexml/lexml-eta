@@ -1,7 +1,7 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { isParagrafo } from '../../dispositivo/tipo';
+import { isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
@@ -30,7 +30,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
 
     createRotulo(dispositivo: Dispositivo): void {
       if (this.numero === undefined || !dispositivo) {
-        this.rotulo = '§';
+        this.rotulo = TipoDispositivo.paragrafo.name;
       } else if (!isNumeracaoValida(this.numero)) {
         this.rotulo = this.numero + this.SUFIXO;
       } else {

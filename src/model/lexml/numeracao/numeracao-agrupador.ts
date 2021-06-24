@@ -24,8 +24,8 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
         this.numero === undefined
           ? dispositivo?.tipo ?? ''
           : !isNumeracaoValida(this.numero)
-          ? this.numero + this.SUFIXO
-          : converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1] : '') + this.SUFIXO;
+          ? dispositivo.descricao!.toLocaleUpperCase() + ' ' + this.numero
+          : dispositivo.descricao!.toLocaleUpperCase() + ' ' + converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1] : '');
     }
   };
 }

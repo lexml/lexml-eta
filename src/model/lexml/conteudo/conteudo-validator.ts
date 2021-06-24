@@ -1,8 +1,17 @@
-import { hasIndicativoFimAlteracao, isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../../../redux/elemento-reducer-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isAgrupador, isArtigo, isDispositivoDeArtigo, isParagrafo } from '../../dispositivo/tipo';
-import { hasFilhoGenerico, hasFilhos, isLastMesmoTipo, isPenultimoMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import {
+  getDispositivoCabecaAlteracao,
+  hasFilhoGenerico,
+  hasFilhos,
+  isLastMesmoTipo,
+  isPenultimoMesmoTipo,
+  isUltimaAlteracao,
+  isUnicoMesmoTipo,
+} from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from './conteudo-util';
 
@@ -113,13 +122,32 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
     });
   }
-  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && !hasFilhos(dispositivo) && !hasIndicativoContinuacaoSequencia(dispositivo)) {
+  if (
+    dispositivo.texto &&
+    (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
+    !hasFilhos(dispositivo) &&
+    !dispositivo.hasAlteracao() &&
+    !hasIndicativoContinuacaoSequencia(dispositivo)
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
     });
   }
-  if (dispositivo.texto && isArtigo(dispositivo) && hasFilhos(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!) && hasIndicativoDesdobramento(dispositivo)) {
+  if (dispositivo.texto && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !hasIndicativoInicioAlteracao(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} que possui bloco de alteração deveria informar isso (ex: ...passa a vigorar com a seguinte alteração:)`,
+    });
+  }
+  if (
+    dispositivo.texto &&
+    isArtigo(dispositivo) &&
+    !dispositivo.hasAlteracao() &&
+    hasFilhos(dispositivo) &&
+    !hasFilhos((dispositivo as Artigo).caput!) &&
+    hasIndicativoDesdobramento(dispositivo)
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
@@ -171,6 +199,17 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Somente o último dispositivo do bloco de alteração pode terminar com &#8221; (NR)`,
+    });
+  }
+  if (
+    dispositivo.texto &&
+    dispositivo === getDispositivoCabecaAlteracao(dispositivo) &&
+    dispositivo.filhos.length === 0 &&
+    (dispositivo.texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || dispositivo.texto === TEXTO_OMISSIS)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Não foi informada nenhuma alteração`,
     });
   }
 

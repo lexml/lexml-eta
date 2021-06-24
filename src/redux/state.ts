@@ -3,13 +3,13 @@ import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
 
 export enum StateType {
-  DocumentoCarregado,
-  ElementoModificado,
-  ElementoIncluido,
-  ElementoRemovido,
-  ElementoRenumerado,
-  ElementoValidado,
-  ElementoSelecionado,
+  DocumentoCarregado = 'DocumentoCarregado',
+  ElementoModificado = 'ElementoModificado',
+  ElementoIncluido = 'ElementoIncluido',
+  ElementoRemovido = 'ElementoRemovido',
+  ElementoRenumerado = 'ElementoRenumerado',
+  ElementoValidado = 'ElementoValidado',
+  ElementoSelecionado = 'ElementoSelecionado',
 }
 export interface StateEvent {
   stateType: StateType;

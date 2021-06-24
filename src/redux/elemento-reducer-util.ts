@@ -77,7 +77,7 @@ export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): 
     return texto;
   }
 
-  if (/[.]*["”](?:\s*\(NR\))?\s*$/.test(texto)) {
+  if (/^[.]*(?:\s*)["”](?:\s*\(NR\))?\s*$/.test(texto)) {
     return TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
   }
 
@@ -145,7 +145,7 @@ export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {
 };
 
 export const isNovoDispositivoDesmembrandoAtual = (texto: string): boolean => {
-  return texto !== '';
+  return texto !== undefined && texto !== '';
 };
 
 export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = false): Elemento[] => {
@@ -272,13 +272,9 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   pai.renumeraFilhos();
 
   const modificados = dispositivosRenumerados.map(d => createElemento(d));
-  const dispositivoValidado = dispositivoAnterior
-    ? isArtigoUnico(dispositivoAnterior) || isParagrafoUnico(dispositivoAnterior)
-      ? dispositivoAnterior
-      : isCaput(pai!)
-      ? pai!.pai!
-      : pai!
-    : undefined;
+
+  const dispositivoValidado =
+    dispositivoAnterior && (isArtigoUnico(dispositivoAnterior) || isParagrafoUnico(dispositivoAnterior)) ? dispositivoAnterior : isCaput(pai!) ? pai!.pai! : pai!;
 
   if (articulacao.artigos.length === 1) {
     modificados.push(createElemento(articulacao.artigos[0]));
