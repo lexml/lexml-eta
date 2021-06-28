@@ -1,7 +1,9 @@
 import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isDispositivoGenerico } from '../../dispositivo/tipo';
+import { isDispositivoDeArtigo, isDispositivoGenerico } from '../../dispositivo/tipo';
+import { getDispositivoAnteriorMesmoTipo, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
+import { comparaNumeracao, isNumero } from './numeracao-util';
 
 const isRotuloConsistente = (dispositivo: Dispositivo): boolean => {
   const rotulo = dispositivo.rotulo;
@@ -9,6 +11,24 @@ const isRotuloConsistente = (dispositivo: Dispositivo): boolean => {
   dispositivo.numero === undefined ? dispositivo.pai?.renumeraFilhos() : dispositivo.createRotulo(dispositivo);
 
   return rotulo === dispositivo.rotulo;
+};
+
+export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const d = getDispositivoAnteriorMesmoTipo(dispositivo);
+
+  if (!d) {
+    return d;
+  }
+  return getDispositivoAnteriorIgnorandoOmissis(d);
+};
+
+export const getDispositivoPosteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const d = getDispositivoPosteriorMesmoTipo(dispositivo);
+
+  if (!d) {
+    return d;
+  }
+  return getDispositivoPosteriorIgnorandoOmissis(d);
 };
 
 export const validaNumeracaoDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
@@ -64,6 +84,68 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O rótulo informado não é válido. Numere o dispositivo',
+    });
+  }
+
+  if (dispositivo !== null && isDispositivoDeArtigo(dispositivo) && dispositivo.numero && dispositivo.pai?.indexOf(dispositivo) === 0 && dispositivo.numero !== '1') {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'É necessário um omissis antes deste dispositivo',
+    });
+  }
+  if (
+    dispositivo !== null &&
+    isDispositivoDeArtigo(dispositivo) &&
+    dispositivo.numero &&
+    dispositivo.pai!.indexOf(dispositivo) > 0 &&
+    irmaosMesmoTipo(dispositivo)
+      .filter((d, i) => i < dispositivo.pai!.indexOf(dispositivo) && d.numero)
+      .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === -1).length > 0
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O dispositivo tem número menor do que algum dispositivo anterior',
+    });
+  }
+  if (
+    dispositivo !== null &&
+    isDispositivoDeArtigo(dispositivo) &&
+    dispositivo.numero &&
+    !dispositivo.pai!.isLastFilho(dispositivo) &&
+    irmaosMesmoTipo(dispositivo)
+      .filter((d, i) => i > dispositivo.pai!.indexOf(dispositivo) && d.numero)
+      .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === 1).length > 0
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O dispositivo tem número maior do que algum dispositivo posterior',
+    });
+  }
+  if (
+    dispositivo !== null &&
+    isDispositivoDeArtigo(dispositivo) &&
+    dispositivo.numero &&
+    irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length > 1
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'O dispositivo tem mesmo número que outro dispositivo',
+    });
+  }
+  if (
+    dispositivo !== null &&
+    isDispositivoDeArtigo(dispositivo) &&
+    dispositivo.numero &&
+    isNumero(dispositivo.numero) &&
+    parseInt(dispositivo.numero) > 2 &&
+    dispositivo.pai!.indexOf(dispositivo) > 0 &&
+    getDispositivoAnteriorMesmoTipo(dispositivo) &&
+    dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
+    parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'É necessário um omissis antes deste dispositivo',
     });
   }
   return mensagens;

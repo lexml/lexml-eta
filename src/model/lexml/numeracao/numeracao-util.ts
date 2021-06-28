@@ -22,6 +22,10 @@ const ALGARISMOS_ROMANOS: { [key: string]: number } = {
   I: 1,
 };
 
+export const isNumero = (numero: string): boolean => {
+  return /^\d+$/.test(numero);
+};
+
 export const isNumeracaoValida = (numero: string): boolean => {
   return /^\d{1,}([-]{1}[A-Z]+)?$/.test(numero);
 };
@@ -137,4 +141,16 @@ export const converte = (numero: string, func: any): string => {
   const converted = func(partes![0]);
 
   return converted + resto;
+};
+
+export const comparaNumeracao = (a?: string, b?: string): number => {
+  if (!a || (b && a < b)) {
+    return 1;
+  }
+
+  if (!b || (a && a > b)) {
+    return -1;
+  }
+
+  return 0;
 };

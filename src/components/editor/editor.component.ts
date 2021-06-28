@@ -255,10 +255,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
         const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo.html, linhaAnt.numero, linhaAnt.hierarquia);
-        if ((linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') || this.isRotuloInvalido(linhaAnt.tipo, linhaAnt.blotRotulo?.rotulo)) {
-          rootStore.dispatch(validarElementoAction.execute(elemento));
-        } else if (linhaAnt.blotConteudo.alterado) {
+        if (linhaAnt.blotConteudo.alterado) {
           rootStore.dispatch(atualizarElementoAction.execute(elemento));
+        } else if ((linhaAnt.blotConteudo.html === '' && linhaAnt.blotConteudo.htmlAnt === '') || this.isRotuloInvalido(linhaAnt.tipo, linhaAnt.blotRotulo?.rotulo)) {
+          rootStore.dispatch(validarElementoAction.execute(elemento));
         }
       }
     }

@@ -145,17 +145,18 @@ export class DispositivoLexmlFactory {
       case 'transformarDispositivoGenericoEmItem':
       case 'transformarOmissisEmAlinea':
       case 'transformarOmissisEmArtigo':
+      case 'transformarOmissisEmIncisoCaput':
       case 'transformarOmissisEmIncisoParagrafo':
       case 'transformarOmissisEmItem':
       case 'transformarOmissisEmParagrafo':
       case 'transformarEmOmissisAlinea':
       case 'transformarEmOmissisItem':
       case 'transformarEmOmissisParagrafo':
+      case 'transformarEmOmissisIncisoCaput':
       case 'transformarEmOmissisIncisoParagrafo':
         paiNovo = paiAtual!;
         novo = DispositivoLexmlFactory.create(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
         break;
-      case 'transformarOmissisEmIncisoCaput':
       case 'transformarParagrafoEmIncisoCaput':
         paiNovo = paiAtual!;
         novo = DispositivoLexmlFactory.create((paiNovo as Artigo).caput!, action.novo.tipo);

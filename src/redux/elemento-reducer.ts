@@ -9,13 +9,7 @@ import {
   getElementos,
   listaDispositivosRenumerados,
 } from '../model/elemento/elemento-util';
-import {
-  acoesPossiveis,
-  ajustaAcaoSeCasoEspecialForInciso,
-  getAcaoPossivelShift,
-  getAcaoPossivelShiftTab,
-  isAcaoTransformacaoPermitida,
-} from '../model/lexml/acoes/acoes.possiveis';
+import { acoesPossiveis, getAcaoPossivelShift, getAcaoPossivelShiftTab, isAcaoTransformacaoPermitida } from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
@@ -473,8 +467,6 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
   if (atual === undefined) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });
   }
-
-  ajustaAcaoSeCasoEspecialForInciso(atual, action);
 
   if (!isAcaoTransformacaoPermitida(atual, action)) {
     return state;

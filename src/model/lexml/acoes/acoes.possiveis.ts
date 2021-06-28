@@ -68,8 +68,8 @@ const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
     isDispositivoAlteracao(dispositivo.pai!) &&
     dispositivo.filhos.length === 0 &&
     dispositivo.tipo !== TipoDispositivo.omissis.name &&
-    getDispositivoAnterior(dispositivo) !== TipoDispositivo.omissis.name &&
-    getDispositivoPosterior(dispositivo) !== TipoDispositivo.omissis.name
+    getDispositivoAnterior(dispositivo)?.tipo !== TipoDispositivo.omissis.name &&
+    getDispositivoPosterior(dispositivo)?.tipo !== TipoDispositivo.omissis.name
   );
 };
 
@@ -199,9 +199,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isOmissis(dispositivo) && isArtigo(dispositivo.pai!)) {
     acoes.push(transformarOmissisEmParagrafo);
   }
-  if (isOmissis(dispositivo) && isCaput(dispositivo.pai!)) {
-    acoes.push(transformarOmissisEmIncisoCaput);
-  }
   if (isOmissis(dispositivo) && isParagrafo(dispositivo.pai!)) {
     acoes.push(transformarOmissisEmIncisoParagrafo);
   }
@@ -233,11 +230,11 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
 };
 
-export const ajustaAcaoSeCasoEspecialForInciso = (dispositivo: Dispositivo, acao: any): void => {
-  const acaoNormalizada = acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && acao.subType && acao.subType.endsWith('EmInciso'))[0];
+/* export const ajustaAcaoSeCasoEspecialForInciso = (dispositivo: Dispositivo, acao: any): void => {
+  const acaoNormalizada = acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && acao.subType && acao.subType.includes('Inciso'))[0];
 
   acao.subType = acaoNormalizada && (acaoNormalizada as TransformarElemento).nomeAcao?.startsWith(acao.subType) ? (acaoNormalizada as TransformarElemento).nomeAcao : acao.subType;
-};
+}; */
 
 export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, acao: any): boolean => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
@@ -252,9 +249,10 @@ export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction |
   }
 
   return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {
-    const acao = 'transformar' + dispositivo.tipo + 'Em' + tipoPermitido;
+    const complemento = isInciso(dispositivo) ? dispositivo.pai!.tipo : '';
+    const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + tipoPermitido;
 
-    return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
+    return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === acao)[0];
   })[0];
 };
 
@@ -266,7 +264,8 @@ export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoActio
   if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     return transformarIncisoCaputEmParagrafo;
   }
+  const complemento = isInciso(dispositivo) ? dispositivo.pai!.tipo : '';
+  const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + dispositivo.pai!.tipo;
 
-  const acao = 'transformar' + dispositivo.tipo + 'Em' + dispositivo.pai!.tipo;
   return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === acao)[0];
 };
