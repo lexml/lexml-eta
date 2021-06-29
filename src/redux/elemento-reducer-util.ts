@@ -137,7 +137,7 @@ const isPrimeiroArtigo = (dispositivo: Dispositivo): boolean => {
 };
 
 export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {
-  return isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0 ? referencia : getUltimoFilho(referencia);
+  return isArticulacao(referencia) || isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0 ? referencia : getUltimoFilho(referencia);
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {

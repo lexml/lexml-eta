@@ -498,7 +498,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento): void {
-    const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(referencia.uuid ?? 0);
+    // a articulação não possui uuid
+    const linhaRef: EtaContainerTable | undefined = !referencia?.uuid ? this.quill.getPrimeiraLinha() : this.quill.getLinha(referencia.uuid);
 
     if (linhaRef) {
       const novaLinha: EtaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);

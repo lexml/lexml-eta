@@ -2,6 +2,7 @@ import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { isAgrupador, isCaput, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
+  buildListaDispositivos,
   createElemento,
   createElementos,
   criaElementoValidadoSeNecessario,
@@ -378,16 +379,21 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  const removidos = [...getElementos(atual)];
-  const renumerados = listaDispositivosRenumerados(atual);
+  const removidos = [...getElementos(atual), ...getElementos(proximo)];
+  const renumerados = listaDispositivosRenumerados(proximo);
 
   const pai = atual.pai!;
   const pos = pai.indexOf(atual);
   pai.removeFilho(atual);
+  pai.removeFilho(proximo);
 
-  const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
-  um.texto = atual.texto;
-  DispositivoLexmlFactory.copiaFilhos(atual, um);
+  const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos);
+  um.texto = proximo.texto;
+  DispositivoLexmlFactory.copiaFilhos(proximo, um);
+
+  const outro = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
+  outro.texto = action.atual.conteudo.texto;
+  DispositivoLexmlFactory.copiaFilhos(atual, outro);
 
   pai.renumeraFilhos();
 
@@ -395,7 +401,15 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
 
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
-  eventos.add(StateType.ElementoIncluido, getElementos(um));
+  eventos.add(
+    StateType.ElementoIncluido,
+    buildListaDispositivos(um, [])
+      .concat(buildListaDispositivos(outro, []))
+      .map(v => {
+        v.mensagens = validaDispositivo(v);
+        return createElemento(v);
+      })
+  );
   eventos.add(StateType.ElementoRemovido, removidos);
   eventos.add(
     StateType.ElementoRenumerado,
@@ -420,27 +434,41 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   }
 
   const anterior = getDispositivoAnteriorMesmoTipo(atual);
+
   if (anterior === undefined) {
     return state;
   }
-  const removidos = [...getElementos(atual)];
-  const renumerados = listaDispositivosRenumerados(anterior);
+
+  const removidos = [...getElementos(anterior), ...getElementos(atual)];
+  const renumerados = listaDispositivosRenumerados(atual);
 
   const pai = atual.pai!;
   const pos = pai.indexOf(anterior);
   pai.removeFilho(atual);
+  pai.removeFilho(anterior);
 
   const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos);
   um.texto = action.atual.conteudo.texto;
   DispositivoLexmlFactory.copiaFilhos(atual, um);
 
+  const outro = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
+  outro.texto = anterior.texto;
+  DispositivoLexmlFactory.copiaFilhos(anterior, outro);
   pai.renumeraFilhos();
 
   const referencia = pos === 0 ? (isIncisoCaput(um) ? pai.pai! : pai) : getDispositivoAnterior(um);
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, anterior)));
-  eventos.add(StateType.ElementoIncluido, getElementos(um));
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
+  eventos.add(
+    StateType.ElementoIncluido,
+    buildListaDispositivos(um, [])
+      .concat(buildListaDispositivos(outro, []))
+      .map(v => {
+        v.mensagens = validaDispositivo(v);
+        return createElemento(v);
+      })
+  );
   eventos.add(StateType.ElementoRemovido, removidos);
   eventos.add(
     StateType.ElementoRenumerado,

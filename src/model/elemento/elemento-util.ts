@@ -78,9 +78,10 @@ export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
   return elementos;
 };
 
-const buildListaDispositivosAlterados = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): void => {
+export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   dispositivos.push(dispositivo);
-  dispositivo.filhos?.forEach(f => (!hasFilhos(f) ? dispositivos.push(f) : buildListaDispositivosAlterados(f, dispositivos)));
+  dispositivo.filhos?.forEach(f => (!hasFilhos(f) ? dispositivos.push(f) : buildListaDispositivos(f, dispositivos)));
+  return dispositivos;
 };
 
 export const getDispositivoFromElemento = (articulacao: Articulacao, referencia: Partial<Elemento>): Dispositivo | undefined => {
@@ -94,7 +95,7 @@ export const getDispositivoFromElemento = (articulacao: Articulacao, referencia:
     return ref.alteracoes?.filhos
       .flatMap(f => {
         const lista: Dispositivo[] = [];
-        buildListaDispositivosAlterados(f, lista);
+        buildListaDispositivos(f, lista);
         return lista;
       })
       .filter(el => el.uuid === referencia.uuid)[0];

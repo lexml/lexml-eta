@@ -23,6 +23,7 @@ import {
   transformarEmOmissisParagrafo,
   transformarIncisoCaputEmParagrafo,
   transformarIncisoEmAlinea,
+  transformarIncisoParagrafoEmParagrafo,
   transformarItemEmAlinea,
   transformarOmissisEmAlinea,
   transformarOmissisEmArtigo,
@@ -164,7 +165,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isInciso(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformarIncisoEmAlinea);
   }
-  if (isInciso(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformarIncisoCaputEmParagrafo);
   }
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
@@ -172,6 +173,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
   if (isIncisoParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
+  }
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+    acoes.push(transformarIncisoParagrafoEmParagrafo);
   }
 
   //
@@ -252,7 +256,7 @@ export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction |
     const complemento = isInciso(dispositivo) ? dispositivo.pai!.tipo : '';
     const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + tipoPermitido;
 
-    return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === acao)[0];
+    return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
   })[0];
 };
 
@@ -264,8 +268,13 @@ export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoActio
   if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     return transformarIncisoCaputEmParagrafo;
   }
+
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+    return transformarIncisoParagrafoEmParagrafo;
+  }
+
   const complemento = isInciso(dispositivo) ? dispositivo.pai!.tipo : '';
   const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + dispositivo.pai!.tipo;
 
-  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === acao)[0];
+  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
 };
