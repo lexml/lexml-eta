@@ -280,6 +280,6 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
     modificados.push(createElemento(articulacao.artigos[0]));
   }
 
-  const eventos = buildEventoExclusaoElemento(removidos, modificados, validaDispositivosAfins(dispositivoValidado));
+  const eventos = buildEventoExclusaoElemento(removidos, modificados, validaDispositivosAfins(dispositivoValidado, false));
   return eventos.build();
 };
