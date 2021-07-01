@@ -298,7 +298,8 @@ export const transformarEmOmissisIncisoParagrafo = new TransformarElemento(
   'transformarEmOmissisIncisoParagrafo'
 );
 
-export const transformarAlineaEmInciso = new TransformarElemento(TipoDispositivo.inciso, 'Transformar Alínea em Inciso', 'transformarAlineaEmInciso');
+export const transformarAlineaEmIncisoCaput = new TransformarElemento(TipoDispositivo.inciso, 'Transformar Alínea em Inciso', 'transformarAlineaEmIncisoCaput');
+export const transformarAlineaEmIncisoParagrafo = new TransformarElemento(TipoDispositivo.inciso, 'Transformar Alínea em Inciso', 'transformarAlineaEmIncisoParagrafo');
 export const transformaAlineaEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar Alínea em Item', 'transformarAlineaEmItem');
 export const transformarArtigoEmParagrafo = new TransformarElemento(TipoDispositivo.paragrafo, 'Transformar Artigo em Parágrafo', 'transformarArtigoEmParagrafo');
 export const transformarGenericoEmInciso = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarDispositivoGenericoEmInciso');
@@ -306,7 +307,8 @@ export const transformarGenericoEmAlinea = new TransformarElemento(TipoDispositi
 export const transformarGenericoEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar em Item', 'transformarDispositivoGenericoEmItem');
 export const transformarIncisoParagrafoEmParagrafo = new TransformarElemento(TipoDispositivo.paragrafo, 'Transformar Inciso em Parágrafo', 'transformarIncisoParagrafoEmParagrafo');
 export const transformarIncisoCaputEmParagrafo = new TransformarElemento(TipoDispositivo.paragrafo, 'Transformar Inciso Caput em Parágrafo', 'transformarIncisoCaputEmParagrafo');
-export const transformarIncisoEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar Inciso em Alínea', 'transformarIncisoEmAlinea');
+export const transformarIncisoCaputEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar Inciso de Caput em Alínea', 'transformarIncisoCaputEmAlinea');
+export const transformarIncisoParagrafoEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar Inciso de Caput em Alínea', 'transformarIncisoParagrafoEmAlinea');
 
 export const transformarOmissisEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar Omissis em Alínea', 'transformarOmissisEmAlinea');
 export const transformarOmissisEmArtigo = new TransformarElemento(TipoDispositivo.artigo, 'Transformar Omissis em Artigo', 'transformarOmissisEmArtigo');
@@ -351,13 +353,13 @@ acoesMenu.push(transformarEmOmissisItem);
 acoesMenu.push(transformarEmOmissisParagrafo);
 acoesMenu.push(transformarEmOmissisIncisoParagrafo);
 
-acoesMenu.push(transformarAlineaEmInciso);
+acoesMenu.push(transformarAlineaEmIncisoCaput);
+acoesMenu.push(transformarAlineaEmIncisoParagrafo);
 acoesMenu.push(transformaAlineaEmItem);
 acoesMenu.push(transformarArtigoEmParagrafo);
 acoesMenu.push(transformarGenericoEmInciso);
 acoesMenu.push(transformarGenericoEmAlinea);
 acoesMenu.push(transformarGenericoEmItem);
-acoesMenu.push(transformarIncisoEmAlinea);
 acoesMenu.push(transformarIncisoParagrafoEmParagrafo);
 acoesMenu.push(transformarItemEmAlinea);
 acoesMenu.push(transformarIncisoCaputEmParagrafo);

@@ -13,7 +13,8 @@ import {
   moverElementoAcima,
   renumerarElemento,
   transformaAlineaEmItem,
-  transformarAlineaEmInciso,
+  transformarAlineaEmIncisoCaput,
+  transformarAlineaEmIncisoParagrafo,
   transformarArtigoEmParagrafo,
   TransformarElemento,
   transformarEmOmissisAlinea,
@@ -21,8 +22,9 @@ import {
   transformarEmOmissisIncisoParagrafo,
   transformarEmOmissisItem,
   transformarEmOmissisParagrafo,
+  transformarIncisoCaputEmAlinea,
   transformarIncisoCaputEmParagrafo,
-  transformarIncisoEmAlinea,
+  transformarIncisoParagrafoEmAlinea,
   transformarIncisoParagrafoEmParagrafo,
   transformarItemEmAlinea,
   transformarOmissisEmAlinea,
@@ -105,7 +107,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(adicionarItem);
   }
   if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
-    acoes.push(transformarAlineaEmInciso);
+    acoes.push(isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput);
   }
   if (isAlinea(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformaAlineaEmItem);
@@ -162,14 +164,17 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   //
   // Inciso
   //
-  if (isInciso(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
-    acoes.push(transformarIncisoEmAlinea);
+  if (isIncisoCaput(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+    acoes.push(transformarIncisoCaputEmAlinea);
   }
   if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(transformarIncisoCaputEmParagrafo);
   }
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoCaput);
+  }
+  if (isIncisoParagrafo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+    acoes.push(transformarIncisoParagrafoEmAlinea);
   }
   if (isIncisoParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
@@ -234,12 +239,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
 };
 
-/* export const ajustaAcaoSeCasoEspecialForInciso = (dispositivo: Dispositivo, acao: any): void => {
-  const acaoNormalizada = acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && acao.subType && acao.subType.includes('Inciso'))[0];
-
-  acao.subType = acaoNormalizada && (acaoNormalizada as TransformarElemento).nomeAcao?.startsWith(acao.subType) ? (acaoNormalizada as TransformarElemento).nomeAcao : acao.subType;
-}; */
-
 export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, acao: any): boolean => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return false;
@@ -247,9 +246,17 @@ export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, acao: any
   return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao === acao.subType).length > 0;
 };
 
-export const getAcaoPossivelShift = (dispositivo: Dispositivo): ElementoAction | undefined => {
+export const getAcaoPossivelTab = (dispositivo: Dispositivo): ElementoAction | undefined => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return undefined;
+  }
+
+  if (isIncisoCaput(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))) {
+    return transformarIncisoCaputEmAlinea;
+  }
+
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+    return transformarIncisoParagrafoEmAlinea;
   }
 
   return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {

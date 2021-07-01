@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
-import { transformarAlineaEmInciso } from '../../../src/redux/elemento-actions';
+import { transformarAlineaEmIncisoCaput } from '../../../src/redux/elemento-actions';
 import { redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
@@ -20,7 +20,7 @@ describe('Testando a transformação de alínea em inciso', () => {
   describe('Testando a mudança da segunda alínea em inciso', () => {
     beforeEach(function () {
       const alinea = state.articulacao.artigos[1].filhos[0].filhos[1];
-      const action = transformarAlineaEmInciso.execute({ tipo: TipoDispositivo.alinea.tipo, uuid: alinea.uuid! });
+      const action = transformarAlineaEmIncisoCaput.execute({ tipo: TipoDispositivo.alinea.tipo, uuid: alinea.uuid! });
 
       state = transformaTipoElemento(state, action);
     });

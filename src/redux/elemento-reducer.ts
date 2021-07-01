@@ -10,7 +10,7 @@ import {
   getElementos,
   listaDispositivosRenumerados,
 } from '../model/elemento/elemento-util';
-import { acoesPossiveis, getAcaoPossivelShift, getAcaoPossivelShiftTab, isAcaoTransformacaoPermitida } from '../model/lexml/acoes/acoes.possiveis';
+import { acoesPossiveis, getAcaoPossivelShiftTab, getAcaoPossivelTab, isAcaoTransformacaoPermitida } from '../model/lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
@@ -485,10 +485,6 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   };
 };
 
-const foiRemovido = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.pai === undefined;
-};
-
 export const transformaTipoElemento = (state: any, action: any): ElementoState => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual);
 
@@ -514,7 +510,7 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
 
   const dispositivoAnterior = getDispositivoAnterior(novo);
 
-  const referencia = !foiRemovido(atual) ? atual : dispositivoAnterior ?? novo.pai!;
+  const referencia = dispositivoAnterior ?? novo.pai!;
   const eventos = buildEventoTransformacaooElemento(
     isCaput(referencia) ? referencia.pai! : referencia,
     novo,
@@ -543,7 +539,7 @@ export const modificaTipoElementoWithTab = (state: any, action: any): ElementoSt
   if (atual === undefined) {
     return state;
   }
-  const acao = action.type === TAB ? getAcaoPossivelShift(atual) : getAcaoPossivelShiftTab(atual);
+  const acao = action.type === TAB ? getAcaoPossivelTab(atual) : getAcaoPossivelShiftTab(atual);
 
   if (!acao) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });

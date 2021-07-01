@@ -135,7 +135,8 @@ export class DispositivoLexmlFactory {
 
     switch (action.subType) {
       case 'transformarAlineaEmItem':
-      case 'transformarIncisoEmAlinea':
+      case 'transformarIncisoCaputEmAlinea':
+      case 'transformarIncisoParagrafoEmAlinea':
       case 'transformarParagrafoEmIncisoParagrafo':
         paiNovo = getDispositivoAnterior(atual)!;
         novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
