@@ -28,9 +28,6 @@ export class EtaKeyboard extends Keyboard {
           this.onHotKeyRenumeraDispositivo(ev);
         }
       }
-      if (ev.ctrlKey && ev.key === 'A' && !ev.altKey) {
-        this.onTeclaCtrlShiftA(ev);
-      }
     });
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       if (ev.key === 'ArrowRight') {
@@ -63,6 +60,8 @@ export class EtaKeyboard extends Keyboard {
           this.onTeclaCtrlZ(ev);
         } else if (ev.key === 'y') {
           this.onTeclaCtrlY(ev);
+        } else if (ev.ctrlKey && ev.key === 'A') {
+          this.onTeclaCtrlShiftA(ev);
         } else if (ev.key === 'b' || ev.key === 'i' || ev.key === 'x' || ev.key === 'v') {
           this.onValidarTecla(ev);
         }
