@@ -375,14 +375,21 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return '';
     };
 
-    input.onkeyup = () => {
+    input.onkeyup = (evt: KeyboardEvent) => {
       const msgErro = validar();
       erro.innerText = msgErro;
       erro.style.display = msgErro ? 'block' : 'none';
       ok.disabled = Boolean(msgErro);
+      if(!ok.disabled) {
+        if(evt.key === 'Enter') {
+          ok.click();
+        }
+      }
     };
 
     dialogElem.appendChild(content);
+
+    ok.disabled = Boolean(validar());
 
     await (<any>dialogElem).open();
   }
