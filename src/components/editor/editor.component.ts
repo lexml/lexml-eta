@@ -3,6 +3,7 @@ import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
 import { TipoDispositivo } from '../../model/dispositivo/tipo';
 import { Elemento } from '../../model/elemento';
+import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracao-util';
 import {
   adicionarElementoAction,
   atualizarElementoAction,
@@ -327,6 +328,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
 
+    if (!podeRenumerar(elemento)) {
+      return;
+    }
+
     const dialogElem = document.createElement('elix-dialog');
 
     const content = document.createRange().createContextualFragment(`
@@ -344,7 +349,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     `);
 
     const input = <HTMLInputElement>content.querySelector('input');
-    input.value = '';
+    input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
 
     const botoes = content.querySelectorAll('button');
     const ok = botoes[0];

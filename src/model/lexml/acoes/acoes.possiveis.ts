@@ -173,6 +173,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoCaput);
   }
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isPrimeiroMesmoTipo(dispositivo))) {
+    acoes.push(transformarEmOmissisIncisoParagrafo);
+  }
   if (isIncisoParagrafo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
     acoes.push(transformarIncisoParagrafoEmAlinea);
   }
@@ -221,7 +224,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   //
   // Parágrafo
   //
-  if (isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) {
+  if (isParagrafo(dispositivo) && (isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo))) {
     acoes.push(transformarParagrafoEmIncisoCaput);
   }
   if (isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))) {
@@ -239,14 +242,20 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
 };
 
-export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, acao: any): boolean => {
-  if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
-    return false;
-  }
-  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao === acao.subType).length > 0;
+export const normalizaNomeAcao = (dispositivo: Dispositivo, tipo: string): any => {
+  const t = tipo === 'transformarIncisoEmOmissis' ? 'transformarIncisoEmOmissisInciso' : tipo;
+  const acoes: any = acoesPossiveis(dispositivo)
+    .filter(a => a instanceof TransformarElemento)
+    .filter((a: any) => a.nomeAcao === tipo || a.nomeAcao.replaceAll('IncisoCaput', 'Inciso').replaceAll('IncisoParagrafo', 'Inciso') === t);
+
+  return acoes[0]?.nomeAcao;
 };
 
-export const getAcaoPossivelTab = (dispositivo: Dispositivo): ElementoAction | undefined => {
+export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, nomeAcao: string): boolean => {
+  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === nomeAcao).length > 0;
+};
+
+export const getAcaoPossivelTab = (dispositivo: Dispositivo): any => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return undefined;
   }
@@ -259,15 +268,23 @@ export const getAcaoPossivelTab = (dispositivo: Dispositivo): ElementoAction | u
     return transformarIncisoParagrafoEmAlinea;
   }
 
-  return dispositivo.tiposPermitidosFilhos.map(tipoPermitido => {
+  return dispositivo.tiposPermitidosFilhos.map(tipo => {
     const complemento = isInciso(dispositivo) ? dispositivo.pai!.tipo : '';
-    const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + tipoPermitido;
 
-    return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
+    const destino = tipo.endsWith(TipoDispositivo.inciso.name!)
+      ? isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))
+        ? 'IncisoParagrafo'
+        : 'IncisoCaput'
+      : tipo;
+
+    const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + destino;
+    return acoesPossiveis(dispositivo)
+      .filter(a => a instanceof TransformarElemento)
+      .filter(a => a instanceof TransformarElemento && a.nomeAcao && acao && a.nomeAcao === acao)[0];
   })[0];
 };
 
-export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoAction | undefined => {
+export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): any => {
   if (isAgrupador(dispositivo) || !dispositivo.tiposPermitidosFilhos) {
     return undefined;
   }
@@ -280,8 +297,15 @@ export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): ElementoActio
     return transformarIncisoParagrafoEmParagrafo;
   }
 
-  const complemento = isInciso(dispositivo) ? dispositivo.pai!.tipo : '';
-  const acao = 'transformar' + dispositivo.tipo + complemento + 'Em' + dispositivo.pai!.tipo;
+  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+    return isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput;
+  }
 
-  return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao.startsWith(acao))[0];
+  return dispositivo.tiposPermitidosPai?.map(tipo => {
+    const acao = 'transformar' + dispositivo.tipo + 'Em' + tipo;
+
+    return acoesPossiveis(dispositivo)
+      .filter(a => a instanceof TransformarElemento)
+      .filter(a => a instanceof TransformarElemento && a.nomeAcao && acao && a.nomeAcao === acao)[0];
+  })[0];
 };

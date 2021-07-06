@@ -288,14 +288,18 @@ export const renumerarElemento = new RenumerarElemento();
 export const iniciarBlocoAlteracao = new BlocoAlteracao(INICIAR_BLOCO);
 export const finalizarBlocoAlteracao = new BlocoAlteracao(FINALIZAR_BLOCO);
 
-export const transformarEmOmissisAlinea = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Alínea', 'transformarEmOmissisAlinea');
-export const transformarEmOmissisIncisoCaput = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Inciso de Caput', 'transformarEmOmissisIncisoCaput');
-export const transformarEmOmissisItem = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Item', 'transformarEmOmissisItem');
-export const transformarEmOmissisParagrafo = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Parágrafo', 'transformarEmOmissisParagrafo');
+export const transformarEmOmissisAlinea = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Alínea', 'transformarAlineaEmOmissisAlinea');
+export const transformarEmOmissisIncisoCaput = new TransformarElemento(
+  TipoDispositivo.omissis,
+  'Transformar em Omissis de Inciso de Caput',
+  'transformarIncisoCaputEmOmissisIncisoCaput'
+);
+export const transformarEmOmissisItem = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Item', 'transformarItemEmOmissisItem');
+export const transformarEmOmissisParagrafo = new TransformarElemento(TipoDispositivo.omissis, 'Transformar em Omissis de Parágrafo', 'transformarParagrafoEmOmissisParagrafo');
 export const transformarEmOmissisIncisoParagrafo = new TransformarElemento(
   TipoDispositivo.omissis,
   'Transformar em Omissis de Inciso de Parágrafo',
-  'transformarEmOmissisIncisoParagrafo'
+  'transformarIncisoParagrafoEmOmissisIncisoParagrafo'
 );
 
 export const transformarAlineaEmIncisoCaput = new TransformarElemento(TipoDispositivo.inciso, 'Transformar Alínea em Inciso', 'transformarAlineaEmIncisoCaput');

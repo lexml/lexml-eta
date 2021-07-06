@@ -1,3 +1,5 @@
+import { Elemento } from '../../elemento';
+
 const I = 1,
   V = 5,
   X = 10,
@@ -153,4 +155,26 @@ export const comparaNumeracao = (a?: string, b?: string): number => {
   }
 
   return 0;
+};
+
+export const rotuloParaEdicao = (texto: string): string => {
+  return texto
+    .replace(/\./g, '')
+    .replace(/["“]/g, '')
+    .replace(/^Artigo$/i, '')
+    .replace(/^Paragrafo$/i, '')
+    .replace(/^Inciso$/i, '')
+    .replace(/^Alinea$/i, '')
+    .replace(/^Item$/i, '')
+    .replace(/Art/i, '')
+    .replace(/§/i, '')
+    .replace(/§/i, '')
+    .replace(/[º]/i, '')
+    .replace(/[–-][/s]*$/, '')
+    .replace(/[)][/s]*$/, '')
+    .trim();
+};
+
+export const podeRenumerar = (elemento: Elemento): boolean => {
+  return elemento.hierarquia?.uuidDispositivoAlteracao !== undefined;
 };

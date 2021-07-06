@@ -10,6 +10,7 @@ import {
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
@@ -30,7 +31,7 @@ import {
   SubsecaoLexml,
   TituloLexml,
 } from '../dispositivo/dispositivo-lexml';
-import { getArticulacao, getDispositivoAnterior, isUltimaAlteracao } from '../hierarquia/hierarquia-util';
+import { getArticulacao, getDispositivoAnterior, hasFilhos, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
 import { TipoMensagem } from '../util/mensagem';
 
 export class DispositivoLexmlFactory {
@@ -52,7 +53,7 @@ export class DispositivoLexmlFactory {
       } else {
         novo = DispositivoLexmlFactory.createFromReferencia(referencia);
         novo.createRotulo();
-        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(novo, action.novo?.conteudo?.texto ?? '') : '';
+        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(novo, action.novo?.conteudo?.texto ?? '') : TEXTO_OMISSIS;
       }
     } else {
       if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {
@@ -150,13 +151,22 @@ export class DispositivoLexmlFactory {
       case 'transformarOmissisEmIncisoParagrafo':
       case 'transformarOmissisEmItem':
       case 'transformarOmissisEmParagrafo':
-      case 'transformarEmOmissisAlinea':
-      case 'transformarEmOmissisItem':
-      case 'transformarEmOmissisParagrafo':
-      case 'transformarEmOmissisIncisoCaput':
-      case 'transformarEmOmissisIncisoParagrafo':
+      case 'transformarAlineaEmOmissisAlinea':
+      case 'transformarItemEmOmissisItem':
+      case 'transformarParagrafoEmOmissisParagrafo':
+      case 'transformarIncisoCaputEmOmissisIncisoCaput':
+      case 'transformarIncisoParagrafoEmOmissisIncisoParagrafo':
         paiNovo = paiAtual!;
         novo = DispositivoLexmlFactory.create(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
+        break;
+      case 'transformarParagrafoEmInciso':
+        if (isParagrafo(atual) && (isPrimeiroMesmoTipo(atual) || isUnicoMesmoTipo(atual))) {
+          paiNovo = paiAtual!;
+          novo = DispositivoLexmlFactory.create((paiNovo as Artigo).caput!, action.novo.tipo);
+          break;
+        }
+        paiNovo = getDispositivoAnterior(atual)!;
+        novo = DispositivoLexmlFactory.create(paiNovo, action.novo.tipo);
         break;
       case 'transformarParagrafoEmIncisoCaput':
         paiNovo = paiAtual!;
@@ -259,18 +269,25 @@ export class DispositivoLexmlFactory {
     if (referencia.hasAlteracao()) {
       return DispositivoLexmlFactory.createWhenReferenciaBlocoAlteracao(referencia);
     }
+
     if (isArtigo(referencia)) {
       if (!isDispositivoAlteracao(referencia)) {
         return DispositivoLexmlFactory.createWhenReferenciaIsArtigo(referencia);
       }
       return DispositivoLexmlFactory.create((referencia as Artigo).caput!, TipoDispositivo.inciso.tipo, undefined, 0);
     }
+
     if (isAgrupador(referencia)) {
       return DispositivoLexmlFactory.createWhenReferenciaIsAgrupador(referencia);
     }
-    return isDispositivoAlteracao(referencia)
-      ? DispositivoLexmlFactory.create(referencia.pai!, referencia.tipo === TipoDispositivo.omissis.tipo ? referencia.pai!.tipoProvavelFilho! : referencia.tipo, referencia)
-      : DispositivoLexmlFactory.createFromReferenciaDefault(referencia);
+
+    if (isDispositivoAlteracao(referencia)) {
+      return hasFilhos(referencia)
+        ? DispositivoLexmlFactory.create(referencia, referencia.tipoProvavelFilho!, referencia)
+        : DispositivoLexmlFactory.create(referencia.pai!, referencia.tipo === TipoDispositivo.omissis.tipo ? referencia.pai!.tipoProvavelFilho! : referencia.tipo, referencia);
+    }
+
+    return DispositivoLexmlFactory.createFromReferenciaDefault(referencia);
   }
 
   private static createWhenReferenciaBlocoAlteracao(referencia: Dispositivo): Dispositivo {
