@@ -1,3 +1,4 @@
+import { normalizaSeForOmissis, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../../../redux/elemento-reducer-util';
 import { Conteudo } from '../../dispositivo/conteudo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { TipoConteudo } from './tipo-conteudo';
@@ -12,7 +13,8 @@ export function ConteudoOmissis<TBase extends Constructor>(Base: TBase): any {
     }
 
     set texto(texto: string) {
-      // ignora
+      const t = normalizaSeForOmissis(texto);
+      this._texto = t === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO ? TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO : TEXTO_OMISSIS;
     }
   };
 }

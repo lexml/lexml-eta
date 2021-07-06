@@ -84,7 +84,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   createElementos(elementosRemovidos, atual);
 
   if (textoFoiModificado(atual, action)) {
-    atual.texto = normalizaSeForOmissis(atual, action.atual.conteudo?.texto ?? '');
+    atual.texto = !isDispositivoAlteracao(atual) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
     textoModificado = true;
   }
 
@@ -240,7 +240,7 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
 
-  dispositivo.texto = normalizaSeForOmissis(dispositivo, action.atual.conteudo?.texto ?? '');
+  dispositivo.texto = !isDispositivoAlteracao(dispositivo) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {

@@ -12,6 +12,7 @@ import {
   getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getUltimoFilho,
+  hasFilhos,
   irmaosMesmoTipo,
   isArtigoUnico,
   isParagrafoUnico,
@@ -72,11 +73,7 @@ export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
   );
 };
 
-export const normalizaSeForOmissis = (dispositivo: Dispositivo, texto: string): string => {
-  if (!isDispositivoAlteracao(dispositivo)) {
-    return texto;
-  }
-
+export const normalizaSeForOmissis = (texto: string): string => {
   if (/^[.]*(?:\s*)["”](?:\s*\(NR\))?\s*$/.test(texto)) {
     return TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
   }
@@ -116,6 +113,11 @@ export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, in
   if (!dispositivo) {
     return [];
   }
+  if (isDispositivoAlteracao(dispositivo) && hasFilhos(dispositivo) && dispositivo.filhos.filter(d => d.tipo === TipoDispositivo.omissis.tipo).length > 0) {
+    criaElementoValidado(validados, dispositivo);
+    dispositivo.filhos.filter(d => d.tipo === TipoDispositivo.omissis.tipo).forEach(o => criaElementoValidado(validados, o));
+  }
+
   if (isDispositivoDeArtigo(dispositivo) || isDispositivoGenerico(dispositivo)) {
     const parent = isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!;
     criaElementoValidado(validados, parent);

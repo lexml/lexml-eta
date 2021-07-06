@@ -1,7 +1,7 @@
 import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isDispositivoDeArtigo, isDispositivoGenerico } from '../../dispositivo/tipo';
-import { getDispositivoAnteriorMesmoTipo, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquia-util';
+import { isDispositivoDeArtigo, isDispositivoGenerico, isOmissis, TipoDispositivo } from '../../dispositivo/tipo';
+import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao, isNumero } from './numeracao-util';
 
@@ -95,6 +95,17 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
+    isDispositivoAlteracao(dispositivo) &&
+    isOmissis(dispositivo) &&
+    (getDispositivoAnterior(dispositivo)?.tipo === TipoDispositivo.omissis.name || getDispositivoPosterior(dispositivo)?.tipo === TipoDispositivo.omissis.name)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não pode haver mais de um omissis sequencialmente',
+    });
+  }
+  if (
+    dispositivo !== null &&
     isDispositivoDeArtigo(dispositivo) &&
     dispositivo.numero &&
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
@@ -129,7 +140,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'O dispositivo tem mesmo número que outro dispositivo',
+      descricao: 'O dispositivo tem número igual a de outro dispositivo',
     });
   }
   if (
@@ -141,6 +152,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
+    irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length === 0 &&
     parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
   ) {
     mensagens.push({
