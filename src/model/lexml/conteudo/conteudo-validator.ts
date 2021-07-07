@@ -1,4 +1,4 @@
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
@@ -13,7 +13,7 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from './conteudo-util';
+import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from './conteudo-util';
 
 export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
@@ -134,12 +134,18 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
     });
   }
-  if (dispositivo.texto && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !hasIndicativoInicioAlteracao(dispositivo.texto)) {
+  if (dispositivo.texto && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !hasIndicativoDesdobramento(dispositivo) && !hasIndicativoInicioAlteracao(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} que possui bloco de alteração deveria informar isso (ex: ...passa a vigorar com a seguinte alteração:)`,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
     });
   }
+  /*   if (dispositivo.texto && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !hasIndicativoInicioAlteracao(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.WARNING,
+      descricao: `${dispositivo.descricao} que possua bloco de alteração deveria informar isso explicitamente (ex: ...passa a vigorar com a seguinte alteração:)`,
+    });
+  } */
   if (
     dispositivo.texto &&
     isArtigo(dispositivo) &&

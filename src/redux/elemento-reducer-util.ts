@@ -4,7 +4,7 @@ import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, i
 import { Elemento as Elemento } from '../model/elemento';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
 import { acoesPossiveis } from '../model/lexml/acoes/acoes.possiveis';
-import { hasIndicativoDesdobramento } from '../model/lexml/conteudo/conteudo-util';
+import { hasIndicativoDesdobramento, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../model/lexml/conteudo/conteudo-util';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
@@ -37,8 +37,6 @@ export const buildFuture = (state: any, events: any): StateEvent[] => {
 
   return count > 50 ? future.shift() : future;
 };
-
-export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = TEXTO_OMISSIS + ' ” (NR)';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any): boolean => {
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);

@@ -1,6 +1,7 @@
-import { normalizaSeForOmissis, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../../../redux/elemento-reducer-util';
+import { normalizaSeForOmissis } from '../../../redux/elemento-reducer-util';
 import { Conteudo } from '../../dispositivo/conteudo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
+import { TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from './conteudo-util';
 import { TipoConteudo } from './tipo-conteudo';
 
 export function ConteudoOmissis<TBase extends Constructor>(Base: TBase): any {

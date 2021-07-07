@@ -1,18 +1,12 @@
 /* eslint-disable indent */
 import { INICIAR_BLOCO } from '../../../redux/elemento-actions';
-import {
-  hasIndicativoFimAlteracao,
-  hasIndicativoInicioAlteracao,
-  isDispositivoAlteracao,
-  normalizaSeForOmissis,
-  TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
-} from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao, normalizaSeForOmissis } from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
-import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
+import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../conteudo/conteudo-util';
 import {
   AlineaLexml,
   ArticulacaoLexml,
