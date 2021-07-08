@@ -102,7 +102,7 @@ export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
 };
 
 export const isElementoDispositivoAlteracao = (elemento: Partial<Elemento>): boolean => {
-  return elemento.hierarquia?.uuidDispositivoAlteracao !== undefined;
+  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined;
 };
 
 export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {

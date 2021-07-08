@@ -6,6 +6,7 @@ export class Referencia {
   tipo?: string;
   uuid?: number;
   conteudo?: Partial<Conteudo>;
+  uuidAlteracao?: number;
 }
 export class Elemento extends Referencia {
   nivel = 0;
@@ -16,7 +17,6 @@ export class Elemento extends Referencia {
   mensagens?: Mensagem[];
   hierarquia?: {
     pai?: Referencia;
-    uuidDispositivoAlteracao?: number;
     posicao?: number;
     numero?: string;
   };

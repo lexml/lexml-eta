@@ -20,10 +20,12 @@ const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
   return isArtigo(dispositivo?.pai) ? atual : getNivel(dispositivo.pai, atual);
 };
 
-const buildElementoPai = (pai: Dispositivo): Referencia => {
+const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
+  const pai = dispositivo.pai ? (isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai) : undefined;
   return {
-    tipo: pai.tipo,
-    uuid: pai.uuid,
+    tipo: pai?.tipo,
+    uuid: pai?.uuid,
+    uuidAlteracao: pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
   };
 };
 
@@ -34,8 +36,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     nivel: getNivel(dispositivo),
     agrupador: isAgrupador(dispositivo),
     hierarquia: {
-      pai: pai ? (isCaput(pai) ? buildElementoPai(pai.pai!) : buildElementoPai(pai)) : undefined,
-      uuidDispositivoAlteracao: dispositivo.pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
+      pai: pai ? buildElementoPai(dispositivo) : undefined,
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
@@ -84,9 +85,9 @@ export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: D
   return dispositivos;
 };
 
-export const getDispositivoFromElemento = (articulacao: Articulacao, referencia: Partial<Elemento>): Dispositivo | undefined => {
-  if (isElementoDispositivoAlteracao(referencia)) {
-    const ref = getDispositivoFromElemento(articulacao, { uuid: referencia.hierarquia!.uuidDispositivoAlteracao });
+export const getDispositivoFromElemento = (articulacao: Articulacao, referencia: Partial<Elemento>, isElementoAlteracao = false): Dispositivo | undefined => {
+  if (isElementoAlteracao || isElementoDispositivoAlteracao(referencia)) {
+    const ref = getDispositivoFromElemento(articulacao, { uuid: referencia.hierarquia!.pai!.uuidAlteracao });
 
     if (!ref?.alteracoes) {
       return undefined;

@@ -54,6 +54,7 @@ import {
   createElementoValidado,
   getElementosDoDispositivo,
   isDispositivoAlteracao,
+  isElementoDispositivoAlteracao,
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
@@ -301,13 +302,22 @@ const redoIncludedElements = (state: any, evento: StateEvent): StateEvent[] => {
 };
 
 const redoRemovedElements = (state: any, evento: StateEvent): StateEvent[] => {
+  let articulacao;
+
   if (evento === undefined || evento.elementos === undefined || evento.elementos[0] === undefined) {
     return [];
   }
   const elemento = evento.elementos[0];
   const posicao = elemento!.hierarquia!.posicao;
-  const pai = getDispositivoFromElemento(state.articulacao, elemento!.hierarquia!.pai!);
-  const novo = redoDispositivosExcluidos(state.articulacao, evento.elementos);
+
+  if (isElementoDispositivoAlteracao(elemento)) {
+    articulacao = getDispositivoFromElemento(state.articulacao, { uuid: elemento.hierarquia!.pai!.uuidAlteracao })?.alteracoes;
+  } else {
+    articulacao = state.articulacao;
+  }
+
+  const pai = getDispositivoFromElemento(articulacao, elemento!.hierarquia!.pai!);
+  const novo = redoDispositivosExcluidos(articulacao, evento.elementos);
   pai?.renumeraFilhos();
 
   const referencia = posicao === 0 ? pai : getDispositivoAnterior(novo);

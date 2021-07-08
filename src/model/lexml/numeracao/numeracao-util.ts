@@ -176,5 +176,5 @@ export const rotuloParaEdicao = (texto: string): string => {
 };
 
 export const podeRenumerar = (elemento: Elemento): boolean => {
-  return elemento.hierarquia?.uuidDispositivoAlteracao !== undefined;
+  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined;
 };
