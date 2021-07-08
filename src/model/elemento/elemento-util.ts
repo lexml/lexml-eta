@@ -1,4 +1,4 @@
-import { isDispositivoAlteracao, isElementoDispositivoAlteracao } from '../../redux/elemento-reducer-util';
+import { getArticulacaoFromElemento, isDispositivoAlteracao, isElementoDispositivoAlteracao } from '../../redux/elemento-reducer-util';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, TipoDispositivo } from '../dispositivo/tipo';
 import { acoesPossiveis } from '../lexml/acoes/acoes.possiveis';
@@ -85,8 +85,10 @@ export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: D
   return dispositivos;
 };
 
-export const getDispositivoFromElemento = (articulacao: Articulacao, referencia: Partial<Elemento>, isElementoAlteracao = false): Dispositivo | undefined => {
-  if (isElementoAlteracao || isElementoDispositivoAlteracao(referencia)) {
+export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial<Elemento>, ignorarElementoAlteracao = false): Dispositivo | undefined => {
+  const articulacao = getArticulacaoFromElemento(art, referencia);
+
+  if (!ignorarElementoAlteracao && isElementoDispositivoAlteracao(referencia)) {
     const ref = getDispositivoFromElemento(articulacao, { uuid: referencia.hierarquia!.pai!.uuidAlteracao });
 
     if (!ref?.alteracoes) {

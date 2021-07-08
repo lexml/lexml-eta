@@ -380,8 +380,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       erro.innerText = msgErro;
       erro.style.display = msgErro ? 'block' : 'none';
       ok.disabled = Boolean(msgErro);
-      if(!ok.disabled) {
-        if(evt.key === 'Enter') {
+      if (!ok.disabled) {
+        if (evt.key === 'Enter') {
           ok.click();
         }
       }
@@ -525,7 +525,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (this.quill.linhaAtual.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '') {
         this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
         this.quill.marcarLinhaAtual(novaLinha);
-        this.quill.setIndex(this.quill.getIndex(novaLinha.blotConteudo), Quill.sources.SILENT);
+
+        try {
+          this.quill.setIndex(this.quill.getIndex(novaLinha.blotConteudo), Quill.sources.SILENT);
+        } catch (e) {
+          console.log(e);
+        }
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }

@@ -70,7 +70,7 @@ import { ElementoState, StateEvent, StateType } from './state';
 export const adicionaElemento = (state: any, action: any): ElementoState => {
   let textoModificado = false;
 
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
@@ -139,13 +139,12 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
 };
 
 export const selecionaElemento = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
   }
 
-  // atual.mensagens = validaDispositivo(atual);
   const elemento = createElemento(atual, true);
 
   const events = [
@@ -194,7 +193,7 @@ export const validaArticulacao = (state: any): ElementoState => {
 };
 
 export const validaElemento = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
@@ -233,7 +232,7 @@ export const retornaEstadoAtualComMensagem = (state: any, mensagem: Mensagem): E
 };
 
 export const atualizaElemento = (state: any, action: any): ElementoState => {
-  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
+  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined) {
     return state;
@@ -255,7 +254,7 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
 };
 
 export const renumeraElemento = (state: any, action: any): ElementoState => {
-  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
+  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined) {
     return state;
@@ -358,7 +357,7 @@ const redoModifiedElements = (state: any, evento: StateEvent): StateEvent[] => {
 };
 
 export const removeElemento = (state: any, action: any): ElementoState => {
-  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual);
+  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined) {
     return state;
@@ -377,7 +376,7 @@ export const removeElemento = (state: any, action: any): ElementoState => {
 };
 
 export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;

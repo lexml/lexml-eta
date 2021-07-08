@@ -25,6 +25,7 @@ import {
   SubsecaoLexml,
   TituloLexml,
 } from '../dispositivo/dispositivo-lexml';
+import { validaDispositivo } from '../dispositivo/dispositivo-validator';
 import { getArticulacao, getDispositivoAnterior, hasFilhos, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
 import { TipoMensagem } from '../util/mensagem';
 
@@ -117,7 +118,8 @@ export class DispositivoLexmlFactory {
         isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
         destino.tipoProvavelFilho!
       );
-      novo.texto = filho.texto;
+      novo.texto = filho.texto ?? '';
+      novo.mensagens = validaDispositivo(filho);
       filho.filhos ? DispositivoLexmlFactory.converteFilhos(filho, novo) : undefined;
       index === atual.filhos.length - 1 ? destino.renumeraFilhos() : undefined;
     });
@@ -176,7 +178,7 @@ export class DispositivoLexmlFactory {
         break;
     }
     novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
-
+    novo.mensagens = validaDispositivo(novo);
     paiAtual?.removeFilho(atual);
     paiAtual?.renumeraFilhos();
     paiNovo?.renumeraFilhos();
@@ -191,7 +193,8 @@ export class DispositivoLexmlFactory {
     }
     atual.filhos.forEach(filho => {
       const novo = DispositivoLexmlFactory.create(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
-      novo.texto = filho.texto;
+      novo.texto = filho.texto ?? '';
+      novo.mensagens = validaDispositivo(filho);
       atual.removeFilho(filho);
       filho.filhos ? DispositivoLexmlFactory.converteFilhos(filho, novo) : undefined;
 

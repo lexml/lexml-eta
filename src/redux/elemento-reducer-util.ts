@@ -1,7 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
-import { Elemento as Elemento } from '../model/elemento';
+import { Elemento as Elemento, Referencia } from '../model/elemento';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../model/elemento/elemento-util';
 import { acoesPossiveis } from '../model/lexml/acoes/acoes.possiveis';
 import { hasIndicativoDesdobramento, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../model/lexml/conteudo/conteudo-util';
@@ -44,6 +44,16 @@ export const textoFoiModificado = (atual: Dispositivo, action: any): boolean => 
 
 export const isOrWasUnico = (atual: Dispositivo, originalmenteUnico: boolean): boolean => {
   return isArtigoUnico(atual) || originalmenteUnico;
+};
+
+export const isArticulacaoAlteracao = (articulacao: Articulacao): boolean => {
+  return articulacao.pai !== undefined;
+};
+
+export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: Elemento | Referencia): Articulacao => {
+  return !isElementoDispositivoAlteracao(elemento) || isArticulacaoAlteracao(articulacao)
+    ? articulacao
+    : getDispositivoFromElemento(articulacao!, { uuid: (elemento as Elemento).hierarquia!.pai!.uuidAlteracao })?.alteracoes ?? articulacao;
 };
 
 export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
