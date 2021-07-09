@@ -14,6 +14,7 @@ export class EtaKeyboard extends Keyboard {
   removeElemento: Observable<void> = new Observable<void>();
   renumeraElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   transformaElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
+  moveElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
 
   constructor(quill: EtaQuill, options: any) {
     super(quill, options);
@@ -22,7 +23,7 @@ export class EtaKeyboard extends Keyboard {
   listen(): void {
     this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
       if (ev.ctrlKey && ev.altKey) {
-        if (['a', 'i', 'l', 'o', 'p', 't'].includes(ev.key)) {
+        if (['a', 'i', 'l', 'o', 'p', 'm'].includes(ev.key)) {
           this.onHotKeyTransformacaoTipo(ev);
         } else if (ev.key === 'r') {
           this.onHotKeyRenumeraDispositivo(ev);
@@ -52,6 +53,8 @@ export class EtaKeyboard extends Keyboard {
           this.onTeclaHome(ev);
         } else if (ev.key === 'End') {
           this.onTeclaEnd(ev);
+        } else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+          this.onHotKeyMover(ev);
         } else if (ev.key === 'a') {
           this.onTeclaCtrlA(ev);
         } else if (ev.key === 'd') {
@@ -206,6 +209,11 @@ export class EtaKeyboard extends Keyboard {
 
   private onHotKeyRenumeraDispositivo(ev: KeyboardEvent): void {
     this.renumeraElemento.notify(ev);
+    cancelarPropagacaoDoEvento(ev);
+  }
+
+  private onHotKeyMover(ev: KeyboardEvent): void {
+    this.moveElemento.notify(ev);
     cancelarPropagacaoDoEvento(ev);
   }
 

@@ -11,6 +11,8 @@ import {
   elementoSelecionadoAction,
   getAcao,
   isAcaoMenu,
+  moverElementoAbaixo,
+  moverElementoAcima,
   RedoAction,
   removerElementoAction,
   renumerarElemento,
@@ -414,6 +416,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
+  private moverElemento(ev: KeyboardEvent): void {
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+    const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+    const textoLinha = blotConteudo.html;
+
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+
+    if (ev.key === 'ArrowUp') {
+      rootStore.dispatch(moverElementoAcima.execute(elemento));
+    } else if (ev.key === 'ArrowDown') {
+      rootStore.dispatch(moverElementoAbaixo.execute(elemento));
+    }
+  }
+
   private transformarElemento(ev: KeyboardEvent): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
@@ -679,6 +695,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill.on('selection-change', this.onSelectionChange);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.moveElemento.subscribe(this.moverElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.removeElemento.subscribe(this.removerElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.renumeraElemento.subscribe(this.renumerarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));

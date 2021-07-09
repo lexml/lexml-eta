@@ -195,7 +195,7 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
     });
   }
-  if (dispositivo.texto && isUltimaAlteracao(dispositivo) && !hasIndicativoFimAlteracao(dispositivo.texto)) {
+  if (isUltimaAlteracao(dispositivo) && (!dispositivo.texto || (isUltimaAlteracao(dispositivo) && !hasIndicativoFimAlteracao(dispositivo.texto)))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `O último dispositivo do bloco de alteração deve terminar com &#8221; (NR)`,

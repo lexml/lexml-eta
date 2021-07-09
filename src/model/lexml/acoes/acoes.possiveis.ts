@@ -243,7 +243,15 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
 };
 
 export const normalizaNomeAcao = (dispositivo: Dispositivo, tipo: string): any => {
-  const t = tipo === 'transformarIncisoEmOmissis' ? 'transformarIncisoEmOmissisInciso' : tipo;
+  let t: string;
+
+  if (tipo.endsWith('EmOmissis')) {
+    const tipoDispositivo = tipo.replace('transformar', '').replace('EmOmissis', '');
+    t = 'transformar' + tipoDispositivo + 'EmOmissis' + tipoDispositivo;
+  } else {
+    t = tipo;
+  }
+
   const acoes: any = acoesPossiveis(dispositivo)
     .filter(a => a instanceof TransformarElemento)
     .filter((a: any) => a.nomeAcao === tipo || a.nomeAcao.replaceAll('IncisoCaput', 'Inciso').replaceAll('IncisoParagrafo', 'Inciso') === t);

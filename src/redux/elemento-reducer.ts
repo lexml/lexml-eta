@@ -291,7 +291,7 @@ const redoIncludedElements = (state: any, evento: StateEvent): StateEvent[] => {
   }
 
   const elemento = evento.elementos[0];
-  const dispositivo = getDispositivoFromElemento(state.articulacao, elemento);
+  const dispositivo = getDispositivoFromElemento(state.articulacao, elemento, true);
 
   if (dispositivo === undefined) {
     return state;
@@ -310,7 +310,7 @@ const redoRemovedElements = (state: any, evento: StateEvent): StateEvent[] => {
   const posicao = elemento!.hierarquia!.posicao;
 
   if (isElementoDispositivoAlteracao(elemento)) {
-    articulacao = getDispositivoFromElemento(state.articulacao, { uuid: elemento.hierarquia!.pai!.uuidAlteracao })?.alteracoes;
+    articulacao = getDispositivoFromElemento(state.articulacao, { uuid: elemento.hierarquia!.pai!.uuidAlteracao }, true)?.alteracoes;
   } else {
     articulacao = state.articulacao;
   }
@@ -333,7 +333,7 @@ const redoModifiedElements = (state: any, evento: StateEvent): StateEvent[] => {
     return [];
   }
 
-  const dispositivo = getDispositivoFromElemento(state.articulacao, evento.elementos[0]);
+  const dispositivo = getDispositivoFromElemento(state.articulacao, evento.elementos[0], true);
 
   if (dispositivo === undefined) {
     return state;
@@ -436,7 +436,7 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
 };
 
 export const moveElementoAcima = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
@@ -495,7 +495,7 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
 };
 
 export const transformaTipoElemento = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });
@@ -545,7 +545,7 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
 };
 
 export const modificaTipoElementoWithTab = (state: any, action: any): ElementoState => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
@@ -573,7 +573,7 @@ const buildRenumeradosValidadosUndoRedo = (state: any, eventos: StateEvent[], re
     let r = retorno.ui?.events.filter((evento: StateEvent) => evento.stateType === StateType.ElementoRenumerado)[0];
 
     renumerados.forEach((element: Elemento) => {
-      const d = getDispositivoFromElemento(state.articulacao, element);
+      const d = getDispositivoFromElemento(state.articulacao, element, true);
       const el = createElemento(d!);
       if (!r) {
         retorno.ui?.events.push({ stateType: StateType.ElementoRenumerado, elementos: [] });
@@ -590,7 +590,7 @@ const buildRenumeradosValidadosUndoRedo = (state: any, eventos: StateEvent[], re
     v.elementos.forEach((element: Elemento) => {
       const ui = retorno.ui?.events.filter((evento: StateEvent) => evento.stateType === StateType.ElementoValidado)[0];
 
-      const d = getDispositivoFromElemento(state.articulacao, element);
+      const d = getDispositivoFromElemento(state.articulacao, element, true);
       d ? (d.mensagens = validaDispositivo(d)) : undefined;
       if (d && d.mensagens!.length > 0) {
         // se não for o próprio dispositivo já removido
