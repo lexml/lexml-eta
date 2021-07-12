@@ -19,13 +19,13 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
 
     createRotulo(dispositivo: Dispositivo): void {
       const partes = this.numero?.split('-');
-
+      const prefixo = dispositivo.descricao === undefined ? dispositivo.name ?? '' : dispositivo.descricao.toLocaleUpperCase();
       this.rotulo =
         this.numero === undefined
           ? dispositivo?.tipo ?? ''
           : !isNumeracaoValida(this.numero)
-          ? dispositivo.descricao!.toLocaleUpperCase() + ' ' + this.numero
-          : dispositivo.descricao!.toLocaleUpperCase() + ' ' + converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1] : '');
+          ? prefixo + ' ' + this.numero
+          : prefixo.toLocaleUpperCase() + ' ' + converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1] : '');
     }
   };
 }
