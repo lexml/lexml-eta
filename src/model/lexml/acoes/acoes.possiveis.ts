@@ -158,7 +158,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     (isParagrafo(dispositivo.pai!) || isCaput(dispositivo.pai!) || isInciso(dispositivo.pai!) || isAlinea(dispositivo.pai!)) &&
     dispositivo.pai!.tipoProvavelFilho!.length > 0
   ) {
-    acoes.push(acoesDisponiveis.filter(a => a instanceof TransformarElemento && a.nomeAcao === 'transformaDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
+    acoes.push(acoesDisponiveis.filter(a => a instanceof TransformarElemento && a.nomeAcao === 'transformarDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
   }
 
   //
@@ -238,6 +238,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
 
   return acoes
+    .filter(a => a !== undefined)
     .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
     .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
 };
