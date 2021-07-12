@@ -224,6 +224,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <lexml-eta-help style="float:right;"></lexml-eta-help>
         </div>
         <div id="lx-eta-editor"></div>
+        n
       </div>
       <elix-toast id="toast-alerta" duration="5000">
         <div id="toast-msg"></div>
