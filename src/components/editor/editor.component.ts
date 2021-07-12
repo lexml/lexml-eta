@@ -437,17 +437,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
-    if (ev.key === 'a') {
+    if (ev.key.toLowerCase() === 'a') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.artigo.name!));
-    } else if (ev.key === 'i') {
+    } else if (ev.key.toLowerCase() === 'i') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.inciso.name!));
-    } else if (ev.key === 'l') {
+    } else if (ev.key.toLowerCase() === 'l') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.alinea.name!));
-    } else if (ev.key === 'o') {
+    } else if (ev.key.toLowerCase() === 'o') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.omissis.name!));
-    } else if (ev.key === 'p') {
+    } else if (ev.key.toLowerCase() === 'p') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.paragrafo.name!));
-    } else if (ev.key === 't') {
+    } else if (ev.key.toLowerCase() === 't') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.item.name!));
     } else if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
