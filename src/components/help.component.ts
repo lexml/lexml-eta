@@ -64,9 +64,9 @@ export class HelpComponent extends LitElement {
           <div><b>ctrl-y</b>&nbsp;-&nbsp;Refaz alteração</div>
           <hr></hr>
           <div><b>ctrl-alt-a</b>&nbsp;-&nbsp;Transforma o dispositivo em artigo</div>
-          <div><b>ctrl-alt-i</b>&nbsp;-&nbsp;Transforma o dispositivo em inciso</div>
+          <div><b>ctrl-alt-i</b>&nbsp;-&nbsp;Transforma o dispositivo em item</div>
           <div><b>ctrl-alt-l</b>&nbsp;-&nbsp;Transforma o dispositivo em alínea</div>
-          <div><b>ctrl-alt-m</b>&nbsp;-&nbsp;Transforma o dispositivo em item</div>
+          <div><b>ctrl-alt-n</b>&nbsp;-&nbsp;Transforma o dispositivo em inciso</div>
           <div><b>ctrl-alt-o</b>&nbsp;-&nbsp;Transforma o dispositivo em omissis</div>
           <div><b>ctrl-alt-p</b>&nbsp;-&nbsp;Transforma o dispositivo em parágrafo</div>
           <div><b>ctrl-alt-r</b>&nbsp;-&nbsp;Renumera o dispositivo</div>
