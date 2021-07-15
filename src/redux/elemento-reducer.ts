@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isAgrupador, isCaput, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isAgrupador, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
   buildListaDispositivos,
@@ -119,6 +119,9 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
 
   if (textoModificado || isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     eventos.add(StateType.ElementoModificado, [elementoAtualOriginal, elementoAtualAtualizado]);
+  }
+
+  if (textoModificado || isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) || isOmissis(atual)) {
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
   }
 

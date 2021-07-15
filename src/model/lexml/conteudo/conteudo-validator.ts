@@ -195,10 +195,16 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
     });
   }
-  if (isUltimaAlteracao(dispositivo) && (!dispositivo.texto || (isUltimaAlteracao(dispositivo) && !hasIndicativoFimAlteracao(dispositivo.texto)))) {
+  if (isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `O último dispositivo do bloco de alteração deve terminar com &#8221; (NR)`,
+    });
+  }
+  if (dispositivo.texto && !isUltimaAlteracao(dispositivo) && /["”“].*/.test(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Somente o último dispositivo do bloco de alteração poderia ser finalizado com aspas`,
     });
   }
   if (dispositivo.texto && !isUltimaAlteracao(dispositivo) && /”.*(NR)/.test(dispositivo.texto)) {
