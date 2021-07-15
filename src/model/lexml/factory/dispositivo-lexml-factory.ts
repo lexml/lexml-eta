@@ -38,7 +38,7 @@ export class DispositivoLexmlFactory {
     let novo;
 
     if (isDispositivoAlteracao(referencia)) {
-      if (hasIndicativoFimAlteracao(action.atual?.conteudo?.texto) && isUltimaAlteracao(referencia)) {
+      if (hasIndicativoFimAlteracao(normalizaSeForOmissis(action.atual?.conteudo?.texto ?? '')) && isUltimaAlteracao(referencia)) {
         const ref = getArticulacao(referencia);
         novo =
           action.subType === INICIAR_BLOCO

@@ -82,7 +82,7 @@ export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
 };
 
 export const normalizaSeForOmissis = (texto: string): string => {
-  if (/^[.]*(?:\s*)["”](?:\s*\(NR\))?\s*$/.test(texto)) {
+  if (/^[.]*(?:\s*)["”“]?(\s*)?\(NR\)\s*$/.test(texto)) {
     return TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
   }
 
@@ -94,7 +94,7 @@ export const normalizaSeForOmissis = (texto: string): string => {
 };
 
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
-  return /["”](?:\s*\(NR\))?\s*$/.test(texto);
+  return /["”](?:\s*\(NR\))\s*$/.test(texto);
 };
 
 export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
