@@ -22,8 +22,8 @@ export class EtaKeyboard extends Keyboard {
 
   listen(): void {
     this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
-      if (ev.ctrlKey && ev.altKey) {
-        if (['a', 'i', 'l', 'n ', 'o', 'p'].includes(ev.key.toLowerCase())) {
+      if (ev.ctrlKey && ev.altKey && !ev.shiftKey) {
+        if (['a', 'l', 'n ', 'o', 'p', 't'].includes(ev.key.toLowerCase())) {
           this.onHotKeyTransformacaoTipo(ev);
         } else if (ev.key.toLowerCase() === 'r') {
           this.onHotKeyRenumeraDispositivo(ev);
@@ -55,15 +55,15 @@ export class EtaKeyboard extends Keyboard {
           this.onTeclaEnd(ev);
         } else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
           this.onHotKeyMover(ev);
-        } else if (ev.key === 'a') {
+        } else if (ev.key.toLowerCase() === 'a' && !ev.shiftKey) {
           this.onTeclaCtrlA(ev);
-        } else if (ev.key === 'd') {
+        } else if (ev.key.toLowerCase() === 'd') {
           this.onTeclaCtrlD(ev);
-        } else if (ev.key === 'z') {
+        } else if (ev.key.toLowerCase() === 'z') {
           this.onTeclaCtrlZ(ev);
-        } else if (ev.key === 'y') {
+        } else if (ev.key.toLowerCase() === 'y') {
           this.onTeclaCtrlY(ev);
-        } else if (ev.ctrlKey && ev.key === 'A') {
+        } else if (ev.ctrlKey && ev.shiftKey && ev.key.toLowerCase() === 'a') {
           this.onTeclaCtrlShiftA(ev);
         } else if (ev.key === 'b' || ev.key === 'i' || ev.key === 'x' || ev.key === 'v') {
           this.onValidarTecla(ev);

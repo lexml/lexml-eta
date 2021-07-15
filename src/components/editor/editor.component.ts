@@ -440,8 +440,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (ev.key.toLowerCase() === 'a') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.artigo.name!));
-    } else if (ev.key.toLowerCase() === 'i') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.item.name!));
     } else if (ev.key.toLowerCase() === 'l') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.alinea.name!));
     } else if (ev.key.toLowerCase() === 'n') {
@@ -450,6 +448,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.omissis.name!));
     } else if (ev.key.toLowerCase() === 'p') {
       rootStore.dispatch(transformar(elemento, TipoDispositivo.paragrafo.name!));
+    } else if (ev.key.toLowerCase() === 't') {
+      rootStore.dispatch(transformar(elemento, TipoDispositivo.item.name!));
     } else if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
