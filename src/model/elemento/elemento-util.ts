@@ -3,7 +3,7 @@ import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, TipoDispositivo } from '../dispositivo/tipo';
 import { acoesPossiveis } from '../lexml/acoes/acoes.possiveis';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivo-validator';
-import { findDispositivoById, getArticulacao, getDispositivosPosteriores, hasFilhos, irmaosMesmoTipo } from '../lexml/hierarquia/hierarquia-util';
+import { findDispositivoById, getArticulacao, getDispositivosPosteriores, hasFilhos, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../lexml/hierarquia/hierarquia-util';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -13,9 +13,14 @@ export const isValid = (elemento?: Referencia): void => {
 };
 
 const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
-  if (dispositivo?.pai === undefined || isArtigo(dispositivo) || isAgrupador(dispositivo)) {
+  if (dispositivo?.pai === undefined || isAgrupador(dispositivo)) {
     return atual;
   }
+
+  if (isArtigo(dispositivo)) {
+    return isDispositivoCabecaAlteracao(dispositivo) ? ++atual : atual;
+  }
+
   atual = ++atual;
   return isArtigo(dispositivo?.pai) ? atual : getNivel(dispositivo.pai, atual);
 };

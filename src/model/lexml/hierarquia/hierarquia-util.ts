@@ -154,7 +154,11 @@ export const isParagrafoUnico = (dispositivo: Dispositivo): boolean => {
 };
 
 export const getDispositivoCabecaAlteracao = (dispositivo: Dispositivo): Dispositivo => {
-  return isArticulacao(dispositivo.pai!) ? dispositivo : getDispositivoCabecaAlteracao(dispositivo.pai!);
+  return isDispositivoCabecaAlteracao(dispositivo) ? dispositivo : getDispositivoCabecaAlteracao(dispositivo.pai!);
+};
+
+export const isDispositivoCabecaAlteracao = (dispositivo: Dispositivo): boolean => {
+  return isArticulacao(dispositivo.pai!) && dispositivo.pai!.pai !== undefined;
 };
 
 export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {

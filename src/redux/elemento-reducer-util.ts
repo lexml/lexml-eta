@@ -76,6 +76,8 @@ export const criaElementoValidado = (validados: Elemento[], dispositivo: Disposi
 
 export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
   return (
+    new RegExp(addSpaceRegex(escapeRegex('o seguinte acréscimo:')) + '\\s*$').test(texto) ||
+    new RegExp(addSpaceRegex(escapeRegex('os seguintes acréscimos:')) + '\\s*$').test(texto) ||
     new RegExp(addSpaceRegex(escapeRegex('passa a vigorar com a seguinte alteração:')) + '\\s*$').test(texto) ||
     new RegExp(addSpaceRegex(escapeRegex('passa a vigorar com as seguintes alterações:')) + '\\s*$').test(texto)
   );
