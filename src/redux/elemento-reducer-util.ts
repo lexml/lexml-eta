@@ -88,6 +88,10 @@ export const normalizaSeForOmissis = (texto: string): string => {
     return TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
   }
 
+  if (/["”]?(\s*)?\(NR\)?\s*$/.test(texto)) {
+    return texto.replace(/["“](?!.*["”])/, '”');
+  }
+
   if (texto === TEXTO_OMISSIS || texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || !new RegExp('^[.]+$').test(texto)) {
     return texto;
   }
