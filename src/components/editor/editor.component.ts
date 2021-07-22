@@ -365,6 +365,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       (<any>dialogElem).close();
     };
 
+    dialogElem.onclose = () => {
+      this.onClickDispositivoAtual();
+    };
+
     cancelar.onclick = () => {
       (<any>dialogElem).close();
     };
