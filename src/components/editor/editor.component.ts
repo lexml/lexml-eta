@@ -361,20 +361,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const erro = <HTMLDivElement>content.querySelector('.erro');
 
     ok.onclick = () => {
-      rootStore.dispatch(renumerarElemento.execute(elemento, input.value.trim()));
+      this.quill.focus();
       (<any>dialogElem).close();
-    };
-
-    dialogElem.onclose = () => {
-      this.onClickDispositivoAtual();
+      rootStore.dispatch(renumerarElemento.execute(elemento, input.value.trim()));
     };
 
     cancelar.onclick = () => {
+      this.quill.focus();
       (<any>dialogElem).close();
     };
 
     const validar = (): string => {
-      // Validar aqui
       const numeracao = input.value;
       if (/^\s*$/.test(numeracao)) {
         return 'A numeração não pode ser vazia.';
