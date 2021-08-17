@@ -1,9 +1,7 @@
-import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
-import { getDispositivoPosterior } from '../hierarquia/hierarquia-util';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
@@ -14,6 +12,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     private PARAGRAFO_UNICO = 'Parágrafo único.';
     numero?: string;
     rotulo?: string;
+    informouParagrafoUnico = false;
 
     private normalizaNumeracao(numero: string): string {
       return addSpaceRegex(numero)
@@ -27,6 +26,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
+      this.informouParagrafoUnico = /par[aá]grafo [uú]nico/i.test(rotulo);
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
@@ -35,8 +35,10 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
         this.rotulo = TipoDispositivo.paragrafo.name;
       } else if (!isNumeracaoValida(this.numero)) {
         this.rotulo = this.getNumeroAndSufixoNumeracao();
+      } else if (dispositivo.isDispositivoAlteracao) {
+        this.rotulo = this.informouParagrafoUnico ? this.PARAGRAFO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
       } else {
-        dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1 && (!isDispositivoAlteracao(dispositivo) || getDispositivoPosterior(dispositivo) === undefined)
+        dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1
           ? (this.rotulo = this.PARAGRAFO_UNICO)
           : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       }
