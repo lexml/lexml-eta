@@ -32,17 +32,19 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       if (this.numero === undefined || !dispositivo) {
         this.rotulo = TipoDispositivo.paragrafo.name;
       } else if (!isNumeracaoValida(this.numero)) {
-        this.rotulo = this.numero + this.SUFIXO;
+        this.rotulo = this.getNumeroAndSufixoNumeracao();
       } else {
         dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1
           ? (this.rotulo = this.PARAGRAFO_UNICO)
-          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.numero + this.getSufixoNumeracao());
+          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       }
     }
 
-    private getSufixoNumeracao(): string {
+    private getNumeroAndSufixoNumeracao(): string {
       const partes = this.numero?.split('-');
-      return parseInt(partes![0] ?? '1', 10) > 9 ? '' : this.SUFIXO;
+      const [num, ...remaining] = partes!;
+
+      return (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) + (remaining.length > 0 ? '-' + remaining?.join('-') : '') + (parseInt(num ?? '1', 10) > 9 ? '.' : '');
     }
   };
 }

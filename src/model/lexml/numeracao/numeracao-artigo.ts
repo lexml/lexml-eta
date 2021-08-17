@@ -34,20 +34,22 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.numero + this.SUFIXO;
       } else if (this.numero !== undefined && dispositivo.isDispositivoAlteracao) {
-        this.rotulo = '\u201C' + this.PREFIXO + this.numero + this.getSufixoNumeracao();
+        this.rotulo = '\u201C' + this.PREFIXO + this.getNumeroAndSufixoNumeracao();
       } else {
         this.rotulo =
           (getArticulacao(dispositivo) as Articulacao).artigos.length === 1
             ? this.ARTIGO_UNICO
             : this.PREFIXO + this.numero === undefined
             ? undefined
-            : this.PREFIXO + this.numero + this.getSufixoNumeracao();
+            : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
       }
     }
 
-    private getSufixoNumeracao(): string {
+    private getNumeroAndSufixoNumeracao(): string {
       const partes = this.numero?.split('-');
-      return parseInt(partes![0] ?? '1', 10) > 9 ? '.' : this.SUFIXO;
+      const [num, ...remaining] = partes!;
+
+      return (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) + (remaining.length > 0 ? '-' + remaining?.join('-') : '') + (parseInt(num ?? '1', 10) > 9 ? '.' : '');
     }
   };
 }
