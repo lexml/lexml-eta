@@ -1,8 +1,6 @@
-import { addSpaceRegex } from '../../../util/string-util';
-import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
+import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { TipoDispositivo } from '../../dispositivo/tipo';
-import { getArticulacao } from '../hierarquia/hierarquia-util';
+import { isArtigo, TipoDispositivo } from '../../dispositivo/tipo';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -13,9 +11,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     private ARTIGO_UNICO = 'Artigo único.';
     numero?: string;
     rotulo?: string;
+    informouArtigoUnico = false;
 
     private normalizaNumeracao(numero: string): string {
-      return addSpaceRegex(numero)
+      return numero
         .replace(/\./g, '')
         .replace(/artigo [uú]nico/i, '1')
         .replace(/(art[.]{1})/i, '')
@@ -25,6 +24,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
+      this.informouArtigoUnico = /artigo [uú]nico/i.test(rotulo);
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
@@ -33,15 +33,12 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         this.rotulo = '\u201C' + TipoDispositivo.artigo.name;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.numero + this.SUFIXO;
-      } else if (this.numero !== undefined && dispositivo.isDispositivoAlteracao) {
-        this.rotulo = '\u201C' + this.PREFIXO + this.getNumeroAndSufixoNumeracao();
+      } else if (dispositivo.isDispositivoAlteracao) {
+        this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       } else {
-        this.rotulo =
-          (getArticulacao(dispositivo) as Articulacao).artigos.length === 1
-            ? this.ARTIGO_UNICO
-            : this.PREFIXO + this.numero === undefined
-            ? undefined
-            : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
+        dispositivo.pai!.filhos.filter(f => isArtigo(f)).length === 1
+          ? (this.rotulo = this.ARTIGO_UNICO)
+          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       }
     }
 

@@ -1,7 +1,9 @@
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
+import { getDispositivoPosterior } from '../hierarquia/hierarquia-util';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
@@ -34,7 +36,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       } else if (!isNumeracaoValida(this.numero)) {
         this.rotulo = this.getNumeroAndSufixoNumeracao();
       } else {
-        dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1
+        dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1 && (!isDispositivoAlteracao(dispositivo) || getDispositivoPosterior(dispositivo) === undefined)
           ? (this.rotulo = this.PARAGRAFO_UNICO)
           : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       }
