@@ -4,9 +4,8 @@ import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoA
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
-import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../conteudo/conteudo-util';
+import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
   AlineaLexml,
   ArticulacaoLexml,
@@ -44,11 +43,11 @@ export class DispositivoLexmlFactory {
           action.subType === INICIAR_BLOCO
             ? DispositivoLexmlFactory.createDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, ref!)
             : DispositivoLexmlFactory.createFromReferencia(ref.pai!);
-        novo!.texto = action.subType === INICIAR_BLOCO ? TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO : normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '');
+        novo!.texto = action.subType === INICIAR_BLOCO ? '' : normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '');
       } else {
         novo = DispositivoLexmlFactory.createFromReferencia(referencia);
         novo.createRotulo();
-        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '') : TEXTO_OMISSIS;
+        novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '') : '';
       }
     } else {
       if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {
@@ -56,7 +55,7 @@ export class DispositivoLexmlFactory {
           DispositivoLexmlFactory.createAlteracao(referencia);
         }
         novo = DispositivoLexmlFactory.createDispositivoCabecaAlteracao(referencia.tipo, referencia.alteracoes!);
-        novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO;
+        novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : '';
       } else {
         novo = DispositivoLexmlFactory.createFromReferencia(referencia);
         novo!.texto = action.novo?.conteudo?.texto ?? '';
