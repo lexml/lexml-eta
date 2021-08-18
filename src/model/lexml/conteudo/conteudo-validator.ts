@@ -195,6 +195,71 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
     });
   }
+  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && !hasFilhos(dispositivo) && !hasIndicativoContinuacaoSequencia(dispositivo)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
+    });
+  }
+  if (
+    dispositivo.texto &&
+    !isAgrupador(dispositivo) &&
+    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
+    !hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
+    });
+  }
+  if (
+    dispositivo.texto &&
+    isDispositivoDeArtigo(dispositivo) &&
+    !isParagrafo(dispositivo) &&
+    (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo)) &&
+    !hasFilhoGenerico(dispositivo.pai!) &&
+    !hasFilhos(dispositivo) &&
+    !hasIndicativoFinalSequencia(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}`,
+    });
+  }
+  if (
+    dispositivo.texto &&
+    isDispositivoDeArtigo(dispositivo) &&
+    !isParagrafo(dispositivo) &&
+    !isUnicoMesmoTipo(dispositivo) &&
+    isPenultimoMesmoTipo(dispositivo) &&
+    !hasFilhos(dispositivo) &&
+    !hasIndicativoContinuacaoSequencia(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com uma das seguintes possibilidades: ${dispositivo.INDICADOR_SEQUENCIA!.join('     ')}`,
+    });
+  }
+
+  if (
+    dispositivo.texto &&
+    isDispositivoDeArtigo(dispositivo) &&
+    !isParagrafo(dispositivo) &&
+    !isUnicoMesmoTipo(dispositivo) &&
+    !isLastMesmoTipo(dispositivo) &&
+    !isPenultimoMesmoTipo(dispositivo) &&
+    !hasFilhos(dispositivo) &&
+    dispositivo.INDICADOR_SEQUENCIA !== undefined &&
+    getLastCharacter(dispositivo.texto) !== dispositivo.INDICADOR_SEQUENCIA[0]
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}. ${
+        hasIndicativoContinuacaoSequencia(dispositivo) ? 'A variação informada só é permitida para o penúltimo elemento' : ''
+      }`,
+    });
+  }
+
   if (isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
