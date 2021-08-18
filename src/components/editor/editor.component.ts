@@ -329,6 +329,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private async renumerarElemento() {
     const linha: EtaContainerTable = this.quill.linhaAtual;
+    const atual = linha.blotConteudo.html;
     const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
 
     if (!podeRenumerar(elemento)) {
@@ -363,6 +364,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     ok.onclick = () => {
       this.quill.focus();
       (<any>dialogElem).close();
+      if (elemento.conteudo?.texto !== atual) {
+        elemento.conteudo!.texto = atual;
+        rootStore.dispatch(atualizarElementoAction.execute(elemento));
+      }
+
       rootStore.dispatch(renumerarElemento.execute(elemento, input.value.trim()));
     };
 
