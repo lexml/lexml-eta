@@ -79,6 +79,16 @@ export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
   if (!isArticulacao(dispositivo)) {
     elementos.push(createElemento(dispositivo));
   }
+
+  if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
+    if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
+      (dispositivo as Artigo).alteracoes?.filhos.forEach(f => {
+        elementos.push(createElemento(f));
+        createElementos(elementos, f);
+      });
+    }
+  }
+
   createElementos(elementos, dispositivo);
 
   return elementos;
