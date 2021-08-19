@@ -2,7 +2,7 @@ import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoA
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
-import { isAgrupador, isArtigo, isDispositivoDeArtigo, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
   hasFilhoGenerico,
@@ -195,7 +195,13 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
     });
   }
-  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && !hasFilhos(dispositivo) && !hasIndicativoContinuacaoSequencia(dispositivo)) {
+  if (
+    dispositivo.texto &&
+    !isOmissis(dispositivo) &&
+    (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
+    !hasFilhos(dispositivo) &&
+    !hasIndicativoContinuacaoSequencia(dispositivo)
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
@@ -204,6 +210,7 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
   if (
     dispositivo.texto &&
     !isAgrupador(dispositivo) &&
+    !isOmissis(dispositivo) &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
@@ -215,6 +222,7 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
   if (
     dispositivo.texto &&
     isDispositivoDeArtigo(dispositivo) &&
+    !isOmissis(dispositivo) &&
     !isParagrafo(dispositivo) &&
     (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo)) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
@@ -229,6 +237,7 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
   if (
     dispositivo.texto &&
     isDispositivoDeArtigo(dispositivo) &&
+    !isOmissis(dispositivo) &&
     !isParagrafo(dispositivo) &&
     !isUnicoMesmoTipo(dispositivo) &&
     isPenultimoMesmoTipo(dispositivo) &&
@@ -244,6 +253,7 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
   if (
     dispositivo.texto &&
     isDispositivoDeArtigo(dispositivo) &&
+    !isOmissis(dispositivo) &&
     !isParagrafo(dispositivo) &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isLastMesmoTipo(dispositivo) &&
