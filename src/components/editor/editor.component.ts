@@ -68,8 +68,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill!.redoEstruturaVazio = (state.elementoReducer.future ?? []).length === 0;
 
     if (state.elementoReducer.ui) {
-      state.elementoReducer.ui.message ? this.alertar(state.elementoReducer.ui.message.descricao) : undefined;
-      this.processarStateEvents(state.elementoReducer.ui.events);
+      if (state.elementoReducer.ui.message) {
+        this.alertar(state.elementoReducer.ui.message.descricao);
+      } else {
+        this.processarStateEvents(state.elementoReducer.ui.events);
+      }
     }
   }
 
@@ -226,7 +229,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         <div id="lx-eta-editor"></div>
         n
       </div>
-      <elix-toast id="toast-alerta" duration="5000">
+      <elix-toast id="toast-alerta" duration="800">
         <div id="toast-msg"></div>
       </elix-toast>
       <div id="lx-eta-buffer" style="display: none; height: 0px;"><p></p></div>
