@@ -109,7 +109,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
     acoes.push(isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput);
   }
-  if (isAlinea(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+  if (isAlinea(dispositivo) && (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!)))) {
     acoes.push(transformaAlineaEmItem);
   }
   if (isAlinea(dispositivo) && podeConverterEmOmissis(dispositivo)) {
@@ -164,7 +164,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   //
   // Inciso
   //
-  if (isIncisoCaput(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+  if (isIncisoCaput(dispositivo) && (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!)))) {
     acoes.push(transformarIncisoCaputEmAlinea);
   }
   if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
@@ -176,9 +176,13 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isPrimeiroMesmoTipo(dispositivo))) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
   }
-  if (isIncisoParagrafo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
+  if (
+    isIncisoParagrafo(dispositivo) &&
+    (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!)))
+  ) {
     acoes.push(transformarIncisoParagrafoEmAlinea);
   }
+
   if (isIncisoParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
   }
