@@ -1,4 +1,3 @@
-import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
@@ -15,7 +14,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     informouParagrafoUnico = false;
 
     private normalizaNumeracao(numero: string): string {
-      return addSpaceRegex(numero)
+      return numero
         .trim()
         .replace(/\./g, '')
         .replace(/§/i, '')

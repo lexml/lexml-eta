@@ -1,6 +1,6 @@
 import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isDispositivoDeArtigo, isDispositivoGenerico, isOmissis, TipoDispositivo } from '../../dispositivo/tipo';
+import { isDispositivoDeArtigo, isDispositivoGenerico, isOmissis, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
 import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquia-util';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao, isNumero } from './numeracao-util';
@@ -84,6 +84,12 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O rótulo informado não é válido. Numere o dispositivo',
+    });
+  }
+  if (dispositivo !== null && isDispositivoAlteracao(dispositivo) && isParagrafo(dispositivo) && dispositivo.pai!.filhos.length > 1 && dispositivo.rotulo?.endsWith('único.')) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Quando houver mais de um ${dispositivo.descricao}, não pode se tratar de '${dispositivo.descricao} único'`,
     });
   }
 
