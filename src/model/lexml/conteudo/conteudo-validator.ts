@@ -227,7 +227,8 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
     (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo)) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
-    !hasIndicativoFinalSequencia(dispositivo)
+    !hasIndicativoFinalSequencia(dispositivo) &&
+    !isUltimaAlteracao(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,

@@ -57,7 +57,9 @@ import {
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudo-util';
 import {
   getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosterior,
+  getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasDispositivosPosterioresAlteracao,
   hasFilhos,
   isLastMesmoTipo,
@@ -81,15 +83,16 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
 
   acoes.push(...acoesPossiveisDispositivo);
 
+  if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
+    acoes.push(moverElementoAbaixo);
+  }
+  if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
+    acoes.push(moverElementoAcima);
+  }
+
   //
   // Agrupador
   //
-  if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isLastMesmoTipo(dispositivo)) {
-    acoes.push(moverElementoAbaixo);
-  }
-  if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo)) {
-    acoes.push(moverElementoAcima);
-  }
   if (isAgrupador(dispositivo)) {
     const i: number = acoes.findIndex((acao: ElementoAction) => acao.descricao === 'Remover dispositivo');
     if (i > -1) {

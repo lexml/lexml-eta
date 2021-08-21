@@ -15,8 +15,8 @@ import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-valida
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
   getDispositivoAnterior,
-  getDispositivoAnteriorMesmoTipo,
-  getDispositivoPosteriorMesmoTipo,
+  getDispositivoAnteriorMesmoTipoInclusiveOmissis,
+  getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasFilhos,
   isArtigoUnico,
   isParagrafoUnico,
@@ -389,7 +389,7 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  const proximo = getDispositivoPosteriorMesmoTipo(atual);
+  const proximo = getDispositivoPosteriorMesmoTipoInclusiveOmissis(atual);
 
   if (proximo === undefined) {
     return state;
@@ -403,7 +403,7 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
   pai.removeFilho(atual);
   pai.removeFilho(proximo);
 
-  const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos);
+  const um = DispositivoLexmlFactory.create(pai, proximo.tipo, undefined, pos);
   um.texto = proximo.texto;
   DispositivoLexmlFactory.copiaFilhos(proximo, um);
 
@@ -449,7 +449,7 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  const anterior = getDispositivoAnteriorMesmoTipo(atual);
+  const anterior = getDispositivoAnteriorMesmoTipoInclusiveOmissis(atual);
 
   if (anterior === undefined) {
     return state;
@@ -467,12 +467,12 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   um.texto = action.atual.conteudo.texto;
   DispositivoLexmlFactory.copiaFilhos(atual, um);
 
-  const outro = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
+  const outro = DispositivoLexmlFactory.create(pai, anterior.tipo, undefined, pos + 1);
   outro.texto = anterior.texto;
   DispositivoLexmlFactory.copiaFilhos(anterior, outro);
   pai.renumeraFilhos();
 
-  const referencia = pos === 0 ? (isIncisoCaput(um) ? pai.pai! : pai) : getDispositivoAnterior(um);
+  const referencia = pos === 0 ? (um.pai?.tipo === TipoDispositivo.caput.tipo ? pai.pai! : pai) : getDispositivoAnterior(um);
 
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));

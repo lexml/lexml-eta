@@ -103,6 +103,17 @@ export const getDispositivoAnteriorMesmoTipo = (dispositivo: Dispositivo): Dispo
   return pos > 0 ? irmaos[pos - 1] : undefined;
 };
 
+export const getDispositivoAnteriorMesmoTipoInclusiveOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+
+  if (pos === 0) {
+    return undefined;
+  }
+
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && f.pai === dispositivo.pai);
+  return irmaos.pop();
+};
+
 export const getDispositivoPosterior = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const pos = dispositivo.pai!.indexOf(dispositivo);
   return pos < dispositivo.pai!.filhos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
@@ -112,6 +123,17 @@ export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Disp
   const irmaos = irmaosMesmoTipo(dispositivo);
   const pos = irmaos.indexOf(dispositivo);
   return pos < irmaos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
+};
+
+export const getDispositivoPosteriorMesmoTipoInclusiveOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+
+  if (pos === dispositivo.pai!.filhos.length - 1) {
+    return undefined;
+  }
+
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index > pos && f.pai === dispositivo.pai);
+  return irmaos[0];
 };
 
 export const getDispositivosPosteriores = (dispositivo: Dispositivo, isExclusao = false): Dispositivo[] => {
