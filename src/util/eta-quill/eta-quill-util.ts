@@ -3,7 +3,6 @@ import { Mensagem } from '../../model/lexml/util/mensagem';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
 import { EtaBlotEspaco } from './eta-blot-espaco';
 import { EtaBlotMensagem } from './eta-blot-mensagem';
-import { EtaBlotMensagens } from './eta-blot-mensagens';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
@@ -33,14 +32,12 @@ export class EtaQuillUtil {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(false);
     const etaTdMensagens: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(false);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito();
-    const etaBlotMensagens: EtaBlotMensagens = new EtaBlotMensagens();
 
     if (elemento.mensagens && elemento.mensagens.length > 0) {
       elemento.mensagens.forEach((mensagem: Mensagem): void => {
-        new EtaBlotMensagem(mensagem).insertInto(etaBlotMensagens);
+        new EtaBlotMensagem(mensagem).insertInto(etaTdMensagens);
       });
     }
-    etaBlotMensagens.insertInto(etaTdMensagens);
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
     etaTdMensagens.insertInto(etaTrContainer);

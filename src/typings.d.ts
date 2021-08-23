@@ -112,6 +112,7 @@ declare interface KeyboardStatic {
   bindings: any;
   operacaoTecladoInvalida: any;
   adicionaElementoTeclaEnter: any;
+  criaAlteracao: any;
   moveElemento: any;
   removeElemento: any;
   transformaElemento: any;
