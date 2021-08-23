@@ -505,7 +505,7 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });
+    return state;
   }
 
   action.subType = normalizaNomeAcao(atual, action.subType);
@@ -560,7 +560,7 @@ export const modificaTipoElementoWithTab = (state: any, action: any): ElementoSt
   const acao = action.type === TAB ? getAcaoPossivelTab(atual) : getAcaoPossivelShiftTab(atual);
 
   if (!acao) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível mudar o tipo do dispositivo' });
+    return state;
   }
 
   const newAction = {

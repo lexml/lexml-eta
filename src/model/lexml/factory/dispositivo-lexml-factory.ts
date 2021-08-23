@@ -193,8 +193,9 @@ export class DispositivoLexmlFactory {
     atual.filhos.forEach(filho => {
       const novo = DispositivoLexmlFactory.create(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
       novo.texto = filho.texto ?? '';
-      novo.mensagens = validaDispositivo(filho);
       atual.removeFilho(filho);
+      novo.mensagens = validaDispositivo(filho);
+
       filho.filhos ? DispositivoLexmlFactory.converteFilhos(filho, novo) : undefined;
 
       atual.filhos.length === 0 ? destino.renumeraFilhos() : undefined;
