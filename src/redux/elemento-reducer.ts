@@ -366,7 +366,7 @@ export const removeElemento = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  if (!isDispositivoAlteracao(dispositivo) && state.articulacao.filhos.length === 1) {
+  if (!isDispositivoAlteracao(dispositivo) && state.articulacao.filhos.length === 1 && state.articulacao.filhos[0] === dispositivo) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir o único dispositivo disponível.' });
   }
 

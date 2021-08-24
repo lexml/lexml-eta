@@ -60,7 +60,7 @@ describe(TipoDispositivo.paragrafo.tipo, () => {
       const p = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
       artigo.renumeraFilhos();
 
-      expect(p.rotulo).to.equal('§ 10');
+      expect(p.rotulo).to.equal('§ 10.');
     });
     it('quando for solicitada a criação de uma rótulo após ter sido definido um número válido, o paragrafo gera um rótulo válido', () => {
       paragrafo.numero = '1';

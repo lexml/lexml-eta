@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { isArtigo, TipoDispositivo } from '../../dispositivo/tipo';
+import { TipoDispositivo } from '../../dispositivo/tipo';
+import { getArticulacao } from '../hierarquia/hierarquia-util';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -36,7 +37,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       } else if (dispositivo.isDispositivoAlteracao) {
         this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       } else {
-        dispositivo.pai!.filhos.filter(f => isArtigo(f)).length === 1
+        getArticulacao(dispositivo).artigos.length === 1
           ? (this.rotulo = this.ARTIGO_UNICO)
           : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       }
