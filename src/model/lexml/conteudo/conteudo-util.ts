@@ -21,4 +21,4 @@ export const hasIndicativoContinuacaoSequencia = (dispositivo: Dispositivo): boo
   return endsWithWord(d.texto, d.INDICADOR_SEQUENCIA ?? []);
 };
 
-export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = TEXTO_OMISSIS + ' ” (NR)';
+export const TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO = TEXTO_OMISSIS + '.” (NR)';

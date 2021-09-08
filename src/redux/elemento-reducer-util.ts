@@ -100,7 +100,7 @@ export const normalizaSeForOmissis = (texto: string): string => {
 };
 
 export const hasIndicativoFimAlteracao = (texto: string): boolean => {
-  return /["”](?:\s*\(NR\))\s*$/.test(texto);
+  return /\.["”](?:\s*\(NR\))\s*$/.test(texto);
 };
 
 export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {

@@ -197,18 +197,6 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
   }
   if (
     dispositivo.texto &&
-    !isOmissis(dispositivo) &&
-    (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
-    !hasFilhos(dispositivo) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
-    });
-  }
-  if (
-    dispositivo.texto &&
     !isAgrupador(dispositivo) &&
     !isOmissis(dispositivo) &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
@@ -223,7 +211,6 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
     dispositivo.texto &&
     isDispositivoDeArtigo(dispositivo) &&
     !isOmissis(dispositivo) &&
-    !isParagrafo(dispositivo) &&
     (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo)) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
@@ -274,7 +261,7 @@ export const validaTextoDispositivoAlteracao = (dispositivo: Dispositivo): Mensa
   if (isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `O último dispositivo do bloco de alteração deve terminar com &#8221; (NR)`,
+      descricao: `O último dispositivo do bloco de alteração deve terminar com .&#8221; (NR). Não deve haver espaço após o ponto final!`,
     });
   }
   if (dispositivo.texto && !isUltimaAlteracao(dispositivo) && /["”“].*/.test(dispositivo.texto) && !/”.*(NR)/.test(dispositivo.texto)) {
