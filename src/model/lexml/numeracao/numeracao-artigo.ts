@@ -25,8 +25,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
-      this.informouArtigoUnico = /artigo [uú]nico/i.test(rotulo);
-      this.numero = isNumeracaoValida(temp) ? temp : undefined;
+      this.informouArtigoUnico = /.[uú]nico/i.test(rotulo);
+      this.numero = this.informouArtigoUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
     }
 
     createRotulo(dispositivo: Dispositivo): void {
