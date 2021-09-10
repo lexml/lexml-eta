@@ -50,7 +50,7 @@ export class DispositivoLexmlFactory {
         novo!.texto = action.novo?.conteudo?.texto?.length > 0 ? normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '') : '';
       }
     } else {
-      if (hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {
+      if (referencia.alteracoes || hasIndicativoInicioAlteracao(action.atual?.conteudo?.texto) || action.novo?.isDispositivoAlteracao) {
         if (!referencia.hasAlteracao()) {
           DispositivoLexmlFactory.createAlteracao(referencia);
         }
