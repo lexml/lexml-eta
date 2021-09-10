@@ -73,7 +73,7 @@ export const isUnicoMesmoTipo = (dispositivo: Dispositivo): boolean => {
   return f.length === 1;
 };
 
-export const isLastMesmoTipo = (dispositivo: Dispositivo): boolean => {
+export const isUltimoMesmoTipo = (dispositivo: Dispositivo): boolean => {
   const f = irmaosMesmoTipo(dispositivo);
   return f[f.length - 1] === dispositivo;
 };

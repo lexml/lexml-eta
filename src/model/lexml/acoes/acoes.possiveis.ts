@@ -62,9 +62,9 @@ import {
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasDispositivosPosterioresAlteracao,
   hasFilhos,
-  isLastMesmoTipo,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
+  isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquia-util';
 
@@ -109,7 +109,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isAlinea(dispositivo) && (dispositivo.texto.length === 0 || hasIndicativoDesdobramento(dispositivo))) {
     acoes.push(adicionarItem);
   }
-  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     acoes.push(isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput);
   }
   if (isAlinea(dispositivo) && (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!)))) {
@@ -170,7 +170,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isIncisoCaput(dispositivo) && (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!)))) {
     acoes.push(transformarIncisoCaputEmAlinea);
   }
-  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     acoes.push(transformarIncisoCaputEmParagrafo);
   }
   if (isIncisoCaput(dispositivo) && podeConverterEmOmissis(dispositivo)) {
@@ -189,7 +189,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isIncisoParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
   }
-  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     acoes.push(transformarIncisoParagrafoEmParagrafo);
   }
 
@@ -199,7 +199,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isItem(dispositivo)) {
     acoes = acoes.filter(a => a !== adicionarElementoAction);
   }
-  if (isItem(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isItem(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     acoes.push(transformarItemEmAlinea);
   }
   if (isItem(dispositivo) && podeConverterEmOmissis(dispositivo)) {
@@ -237,7 +237,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))) {
     acoes.push(transformarParagrafoEmIncisoParagrafo);
   }
-  if (isParagrafo(dispositivo) && (isLastMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo))) {
+  if (isParagrafo(dispositivo) && (isUltimoMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo))) {
     acoes.push(transformarParagrafoEmArtigo);
   }
   if (isParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
@@ -280,7 +280,7 @@ export const getAcaoPossivelTab = (dispositivo: Dispositivo): any => {
     return transformarIncisoCaputEmAlinea;
   }
 
-  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     return transformarIncisoParagrafoEmAlinea;
   }
 
@@ -305,15 +305,15 @@ export const getAcaoPossivelShiftTab = (dispositivo: Dispositivo): any => {
     return undefined;
   }
 
-  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isIncisoCaput(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     return transformarIncisoCaputEmParagrafo;
   }
 
-  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isIncisoParagrafo(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     return transformarIncisoParagrafoEmParagrafo;
   }
 
-  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isLastMesmoTipo(dispositivo))) {
+  if (isAlinea(dispositivo) && (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo))) {
     return isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput;
   }
 
