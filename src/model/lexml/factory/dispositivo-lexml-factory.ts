@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { INICIAR_BLOCO } from '../../../redux/elemento-actions';
+import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../../../redux/elemento-actions';
 import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao, normalizaSeForOmissis } from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
@@ -37,7 +37,7 @@ export class DispositivoLexmlFactory {
     let novo;
 
     if (isDispositivoAlteracao(referencia)) {
-      if (hasIndicativoFimAlteracao(normalizaSeForOmissis(action.atual?.conteudo?.texto ?? '')) && isUltimaAlteracao(referencia)) {
+      if (action.subType === FINALIZAR_BLOCO || (hasIndicativoFimAlteracao(normalizaSeForOmissis(action.atual?.conteudo?.texto ?? '')) && isUltimaAlteracao(referencia))) {
         const ref = getArticulacao(referencia);
         novo =
           action.subType === INICIAR_BLOCO
