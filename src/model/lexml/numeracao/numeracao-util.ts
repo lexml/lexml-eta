@@ -29,7 +29,7 @@ export const isNumero = (numero: string): boolean => {
 };
 
 export const isNumeracaoValida = (numero: string): boolean => {
-  return /^\d{1,}([-]{1}[A-Z]+)?$/.test(numero);
+  return /^\d{1,}([-]{1}[a-zA-Z]+)?$/.test(numero);
 };
 
 const isLetra = (letra: string): boolean => {
@@ -136,13 +136,13 @@ export const converteNumeroArabicoParaRomano = (numero: string): string => {
   return resultado;
 };
 
-export const converte = (numero: string, func: any): string => {
+export const trataComplemento = (numero: string, func?: any): string => {
   const partes = numero?.split('-');
 
   const resto = partes.length > 1 ? numero.substring(numero.indexOf('-')) : '';
-  const converted = func(partes![0]);
+  const converted = func ? func(partes![0]) : partes![0];
 
-  return converted + resto;
+  return converted + resto?.toUpperCase();
 };
 
 export const comparaNumeracao = (a?: string, b?: string): number => {

@@ -47,7 +47,11 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
 
-      return (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) + (remaining.length > 0 ? '-' + remaining?.join('-') : '') + (parseInt(num ?? '1', 10) > 9 ? '.' : '');
+      return (
+        (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
+        (remaining.length > 0 ? '-' + remaining?.join('-').toUpperCase() : '') +
+        (parseInt(num ?? '1', 10) > 9 ? '.' : '')
+      );
     }
   };
 }

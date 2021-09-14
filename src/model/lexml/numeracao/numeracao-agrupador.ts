@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { converte, converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida } from './numeracao-util';
+import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, trataComplemento } from './numeracao-util';
 
 export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -13,7 +13,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      const temp = converte(this.normalizaNumeracao(rotulo!), converteNumeroRomanoParaArabico);
+      const temp = trataComplemento(this.normalizaNumeracao(rotulo!), converteNumeroRomanoParaArabico);
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
@@ -25,7 +25,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
           ? dispositivo?.tipo ?? ''
           : !isNumeracaoValida(this.numero)
           ? prefixo + ' ' + this.numero
-          : prefixo.toLocaleUpperCase() + ' ' + converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1] : '');
+          : prefixo.toLocaleUpperCase() + ' ' + converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1].toUpperCase() : '');
     }
   };
 }

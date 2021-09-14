@@ -1,7 +1,7 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../../dispositivo/tipo';
-import { isNumeracaoValida } from './numeracao-util';
+import { isNumeracaoValida, trataComplemento } from './numeracao-util';
 
 export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -20,7 +20,7 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
     }
 
     createRotulo(): void {
-      this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : this.numero + this.SUFIXO;
+      this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : trataComplemento(this.numero) + this.SUFIXO;
     }
   };
 }
