@@ -1,5 +1,5 @@
 export function containsTags(text: string): boolean {
-  return /<.+>/g.test(text.trim());
+  return /<.+>/g.test(text?.trim());
 }
 
 export function endsWithPunctuation(texto: string): boolean {

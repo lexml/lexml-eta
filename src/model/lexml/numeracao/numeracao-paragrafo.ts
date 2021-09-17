@@ -37,7 +37,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       } else if (dispositivo.isDispositivoAlteracao) {
         this.rotulo = this.informouParagrafoUnico ? this.PARAGRAFO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
       } else {
-        dispositivo.pai!.filhos.filter(f => isParagrafo(f)).length === 1
+        dispositivo.pai?.filhos.filter(f => isParagrafo(f)).length === 1
           ? (this.rotulo = this.PARAGRAFO_UNICO)
           : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       }

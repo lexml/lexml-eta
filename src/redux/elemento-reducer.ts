@@ -1,8 +1,9 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isAgrupador, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
   buildListaDispositivos,
+  buildListaElementosRenumerados,
   createElemento,
   createElementos,
   criaElementoValidadoSeNecessario,
@@ -15,6 +16,7 @@ import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-valida
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
   getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasFilhos,
@@ -26,6 +28,7 @@ import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
 import {
   ABRIR_ARTICULACAO,
   ADICIONAR_ELEMENTO,
+  AGRUPAR_ELEMENTO,
   ATUALIZAR_ELEMENTO,
   ELEMENTO_SELECIONADO,
   MOVER_ELEMENTO_ABAIXO,
@@ -53,6 +56,7 @@ import {
   buildUpdateEvent,
   createElementoValidado,
   getElementosDoDispositivo,
+  isDesdobramentoAgrupadorAtual,
   isDispositivoAlteracao,
   isElementoDispositivoAlteracao,
   isNovoDispositivoDesmembrandoAtual,
@@ -129,6 +133,71 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
     eventos.add(StateType.ElementoRenumerado, [elementoAtualAtualizado]);
   }
+
+  return {
+    articulacao: state.articulacao,
+    past: buildPast(state, eventos.build()),
+    future: state.future,
+
+    ui: {
+      events: eventos.build(),
+    },
+  };
+};
+
+export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+  return dispositivos.map(d => {
+    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
+    const novo = DispositivoLexmlFactory.create(pai, d.tipo, anterior);
+    novo.texto = d.texto;
+    novo.numero = d.numero;
+    novo.rotulo = d.rotulo;
+    novo.mensagens = d.mensagens;
+    DispositivoLexmlFactory.copiaFilhos(d, novo);
+
+    d.pai!.removeFilho(d);
+    return novo;
+  });
+};
+
+export const agruparElemento = (state: any, action: any): ElementoState => {
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+
+  if (atual === undefined) {
+    return state;
+  }
+
+  const dispositivoAnterior = getDispositivoAnterior(atual);
+  const pos = atual.pai!.indexOf(atual);
+  const removidos = atual
+    .pai!.filhos.filter((f, index) => index >= pos && f.tipo === atual.tipo)
+    .map(d => getElementos(d))
+    .flat();
+
+  if (textoFoiModificado(atual, action)) {
+    atual.texto = !isDispositivoAlteracao(atual) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
+  }
+
+  let novo;
+
+  if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
+    novo = DispositivoLexmlFactory.create(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
+  } else {
+    novo = DispositivoLexmlFactory.create(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
+  }
+  novo.texto = action.novo.conteudo?.texto;
+  const dispositivos = atual.pai!.filhos.filter((f, index) => index >= pos && f.tipo === atual.tipo);
+  copiaDispositivosParaAgrupadorPai(novo, dispositivos);
+  novo.renumeraFilhos();
+  novo.pai!.renumeraFilhos();
+
+  const eventos = new Eventos();
+  eventos.setReferencia(createElemento(ajustaReferencia(dispositivoAnterior ?? atual.pai!, novo)));
+  eventos.add(StateType.ElementoIncluido, getElementos(novo));
+  eventos.add(StateType.ElementoRemovido, removidos);
+
+  eventos.add(StateType.ElementoRenumerado, buildListaElementosRenumerados(novo));
+  // eventos.add(StateType.ElementoValidado, validaDispositivosAfins(novo, false));
 
   return {
     articulacao: state.articulacao,
@@ -722,6 +791,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return atualizaElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
+    case AGRUPAR_ELEMENTO:
+      return agruparElemento(state, action);
     case TRANSFORMAR_TIPO_ELEMENTO:
       return transformaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:

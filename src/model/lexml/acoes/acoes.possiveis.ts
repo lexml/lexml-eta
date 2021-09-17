@@ -3,9 +3,11 @@ import {
   acoesPossiveisDispositivo,
   adicionarAlinea,
   adicionarArtigo,
+  adicionarCapitulo,
   adicionarElementoAction,
   adicionarInciso,
   adicionarItem,
+  adicionarSecao,
   ElementoAction,
   finalizarBlocoAlteracao,
   iniciarBlocoAlteracao,
@@ -99,7 +101,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
       acoes = acoes.slice(i, 1);
     }
   }
-
   //
   // Alínea
   //
@@ -138,6 +139,17 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   }
   if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
     acoes.push(transformarArtigoEmParagrafo);
+  }
+  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+    acoes.push(adicionarCapitulo);
+  }
+  if (
+    isArtigo(dispositivo) &&
+    dispositivo.pai!.indexOf(dispositivo) > 0 &&
+    isAgrupador(dispositivo.pai!) &&
+    dispositivo.tiposPermitidosPai!.indexOf(TipoDispositivo.secao.tipo) > 0
+  ) {
+    acoes.push(adicionarSecao);
   }
 
   //
@@ -185,7 +197,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   ) {
     acoes.push(transformarIncisoParagrafoEmAlinea);
   }
-
   if (isIncisoParagrafo(dispositivo) && podeConverterEmOmissis(dispositivo)) {
     acoes.push(transformarEmOmissisIncisoParagrafo);
   }

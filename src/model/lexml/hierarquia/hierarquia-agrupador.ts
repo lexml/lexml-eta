@@ -9,7 +9,7 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
     private _filhos?: Dispositivo[];
 
     addFilho(filho: Dispositivo, referencia?: Dispositivo): void {
-      if (referencia) {
+      if (referencia && this.filhos.indexOf(referencia) >= 0) {
         const posicao = this.filhos.indexOf(referencia) + 1;
         this.isLastFilho(referencia) ? this.filhos.push(filho) : this.filhos.splice(posicao, 0, filho);
       } else {

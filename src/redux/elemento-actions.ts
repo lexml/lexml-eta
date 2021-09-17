@@ -4,6 +4,7 @@ import { Elemento, Referencia } from '../model/elemento';
 export const ABRIR_ARTICULACAO = 'ABRIR_ARTICULACAO';
 export const ADICIONAR_ELEMENTO = 'ADICIONAR_ELEMENTO';
 export const ATUALIZAR_ELEMENTO = 'ATUALIZAR_ELEMENTO';
+export const AGRUPAR_ELEMENTO = 'AGRUPAR_ELEMENTO';
 export const INICIAR_BLOCO = 'INICIAR_BLOCO';
 export const FINALIZAR_BLOCO = 'FINALIZAR_BLOCO';
 export const TRANSFORMAR_TIPO_ELEMENTO = 'TRANSFORMAR_TIPO_ELEMENTO';
@@ -57,6 +58,27 @@ class AddElemento extends ElementoAbstractAction {
         },
       },
       hasDesmembramento,
+    };
+  }
+}
+
+export class AgruparElemento extends ElementoAbstractAction {
+  descricao: string;
+  tipo: string;
+
+  constructor(tipo: Tipo) {
+    super();
+    this.descricao = 'Adicionar ' + tipo.descricao;
+    this.tipo = tipo.tipo;
+  }
+
+  execute(atual: Referencia): any {
+    return {
+      type: AGRUPAR_ELEMENTO,
+      atual,
+      novo: {
+        tipo: this.tipo,
+      },
     };
   }
 }
@@ -280,6 +302,9 @@ export const adicionarItem = new AddElemento(TipoDispositivo.item);
 export const omissis = new AddElemento(TipoDispositivo.omissis);
 export const adicionarParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 
+export const adicionarCapitulo = new AgruparElemento(TipoDispositivo.capitulo);
+export const adicionarSecao = new AgruparElemento(TipoDispositivo.secao);
+
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
 
@@ -378,6 +403,8 @@ acoesMenu.push(transformarParagrafoEmIncisoParagrafo);
 acoesMenu.push(transformarParagrafoEmIncisoCaput);
 acoesMenu.push(removerElementoAction);
 acoesMenu.push(validarElementoAction);
+acoesMenu.push(adicionarCapitulo);
+acoesMenu.push(adicionarSecao);
 
 const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);
