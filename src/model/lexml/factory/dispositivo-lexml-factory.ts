@@ -30,7 +30,9 @@ import { TipoMensagem } from '../util/mensagem';
 
 export class DispositivoLexmlFactory {
   static createArticulacao(): Articulacao {
-    return new ArticulacaoLexml();
+    const articulacao = new ArticulacaoLexml();
+    articulacao.uuid = Counter.next();
+    return articulacao;
   }
 
   static createByInferencia(referencia: Dispositivo, action: any): Dispositivo {

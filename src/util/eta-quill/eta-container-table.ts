@@ -18,7 +18,7 @@ export class EtaContainerTable extends Container {
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 
-    node.setAttribute('contenteditable', 'true');
+    node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className);
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
     node.setAttribute('style', EtaContainerTable.criarAtributoStyle(elemento));
@@ -145,7 +145,10 @@ export class EtaContainerTable extends Container {
   }
 
   private static criarAtributoStyle(elemento: Elemento): string {
-    let style = `width: 100%; min-height: 26px; border: 1px solid #ffffff; line-height: 1.42; margin: 0px 2px 0px 5px !important;`;
+    let style =
+      elemento.tipo === 'Articulacao'
+        ? `width: 100%; min-height: 1px; line-height: 0.42; margin: 1px`
+        : `width: 100%; min-height: 26px; border: 1px solid #ffffff; line-height: 1.42; margin: 0px 2px 0px 5px !important;`;
     const padding: number = (elemento.agrupador ? 0 : elemento.nivel) * 20 + 5;
 
     style = `${style} padding-left: ${padding}px;`;

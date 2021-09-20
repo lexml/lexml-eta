@@ -12,8 +12,8 @@ import { EtaContainerTr } from './eta-container-tr';
 export class EtaQuillUtil {
   static criarContainerLinha(elemento: Elemento): EtaContainerTable {
     const etaTable: EtaContainerTable = new EtaContainerTable(elemento);
-    const etaTrContainer: EtaContainerTr = new EtaContainerTr(true);
-    const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(true);
+    const etaTrContainer: EtaContainerTr = new EtaContainerTr(elemento.editavel);
+    const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento.editavel);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito();
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);

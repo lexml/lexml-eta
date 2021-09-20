@@ -45,7 +45,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: true,
+    editavel: isArticulacao(dispositivo) ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
     numero: dispositivo.numero,
@@ -76,9 +76,9 @@ export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo)
 
 export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
   const elementos: Elemento[] = [];
-  if (!isArticulacao(dispositivo)) {
-    elementos.push(createElemento(dispositivo));
-  }
+  //if (!isArticulacao(dispositivo)) {
+  elementos.push(createElemento(dispositivo));
+  // }
 
   if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
     if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {

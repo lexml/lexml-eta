@@ -2,7 +2,7 @@ import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoA
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
-import { isAgrupador, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
   hasFilhoGenerico,
@@ -17,19 +17,19 @@ import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndic
 
 export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
-  if (!dispositivo.texto || dispositivo.texto.trim().length === 0) {
+  if (!isArticulacao(dispositivo) && (!dispositivo.texto || dispositivo.texto.trim().length === 0)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'Não foi informado um texto para o dispositivo',
     });
   }
-  if (dispositivo.texto && endsWithPunctuation(dispositivo.texto)) {
+  if (!isArticulacao(dispositivo) && dispositivo.texto && endsWithPunctuation(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'Não pode haver sinal de pontuação ao final do texto',
     });
   }
-  if (containsTags(dispositivo.texto)) {
+  if (!isArticulacao(dispositivo) && containsTags(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O conteúdo do dispositivo não pode possuir formatação',
@@ -44,19 +44,19 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   //
   // validações comuns a dispositivos de texto
   //
-  if (!dispositivo.texto || dispositivo.texto.trim().length === 0) {
+  if ((!isArticulacao(dispositivo) && !dispositivo.texto) || dispositivo.texto.trim().length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Não foi informado um texto para ${dispositivo.pronome + dispositivo.descricao!}`,
     });
   }
-  if (dispositivo.texto && !isValidHTML(dispositivo.texto)) {
+  if (!isArticulacao(dispositivo) && dispositivo.texto && !isValidHTML(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O conteúdo do dispositivo não é um HTML válido',
     });
   }
-  if (dispositivo.texto && dispositivo.texto.trim().length > 300) {
+  if (!isArticulacao(dispositivo) && dispositivo.texto && dispositivo.texto.trim().length > 300) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
       descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas`,

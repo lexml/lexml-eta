@@ -9,7 +9,7 @@ export class EtaBlotConteudo extends EtaBlot {
     const node: HTMLElement = super.create();
     const conteudo: string = (elemento.conteudo?.texto ?? '').trim();
 
-    node.setAttribute('contenteditable', 'true');
+    node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
     node.innerHTML = conteudo !== '' ? conteudo : '<br>';
     return node;
   }

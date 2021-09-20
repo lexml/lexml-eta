@@ -215,11 +215,13 @@ export class EtaQuill extends Quill {
   }
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {
-    this.processandoMudancaLinha = true;
-    this._linhaAtual = linhaCursor;
-    this._linhaAtual.blotConteudo.htmlAnt = this._linhaAtual.blotConteudo.html;
-    linhaCursor.ativarBorda();
-    this.elementoSelecionado.notify(linhaCursor.uuid);
+    if (linhaCursor.tipo !== 'Articulacao') {
+      this.processandoMudancaLinha = true;
+      this._linhaAtual = linhaCursor;
+      this._linhaAtual.blotConteudo.htmlAnt = this._linhaAtual.blotConteudo.html;
+      linhaCursor.ativarBorda();
+      this.elementoSelecionado.notify(linhaCursor.uuid);
+    }
   }
 
   undo(): void {
