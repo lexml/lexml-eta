@@ -155,17 +155,23 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
     acoes.push(transformarArtigoEmParagrafo);
   }
-  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0 && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {
+  if (
+    isArtigo(dispositivo) &&
+    dispositivo.pai &&
+    isArticulacao(dispositivo.pai) &&
+    dispositivo.pai!.indexOf(dispositivo) > 0 &&
+    dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0
+  ) {
     acoes.push(adicionarCapitulo);
   }
   if (isArtigo(dispositivo) && dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && hasAgrupadoresPosteriores(dispositivo)) {
     acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
   }
-  if (isArtigo(dispositivo) && isAgrupador(dispositivo.pai!) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+  if (isArtigo(dispositivo) && isAgrupador(dispositivo.pai!)) {
     const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
     dispositivo.tiposPermitidosPai
       ?.filter(() => pos > 0)
-      .filter((tipo, index) => index > pos!)
+      .filter((tipo, index) => (dispositivo.pai!.indexOf(dispositivo) > 0 ? index >= pos! : index > pos!))
       .forEach(t => acoes.push(getAcaoAgrupamento(t)));
   }
 
