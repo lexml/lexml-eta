@@ -302,8 +302,12 @@ export const adicionarItem = new AddElemento(TipoDispositivo.item);
 export const omissis = new AddElemento(TipoDispositivo.omissis);
 export const adicionarParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 
+export const adicionarParte = new AgruparElemento(TipoDispositivo.parte);
+export const adicionarLivro = new AgruparElemento(TipoDispositivo.livro);
+export const adicionarTitulo = new AgruparElemento(TipoDispositivo.titulo);
 export const adicionarCapitulo = new AgruparElemento(TipoDispositivo.capitulo);
 export const adicionarSecao = new AgruparElemento(TipoDispositivo.secao);
+export const adicionarSubsecao = new AgruparElemento(TipoDispositivo.subsecao);
 
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
@@ -403,8 +407,12 @@ acoesMenu.push(transformarParagrafoEmIncisoParagrafo);
 acoesMenu.push(transformarParagrafoEmIncisoCaput);
 acoesMenu.push(removerElementoAction);
 acoesMenu.push(validarElementoAction);
+acoesMenu.push(adicionarParte);
+acoesMenu.push(adicionarLivro);
+acoesMenu.push(adicionarTitulo);
 acoesMenu.push(adicionarCapitulo);
 acoesMenu.push(adicionarSecao);
+acoesMenu.push(adicionarSubsecao);
 
 const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);
@@ -419,6 +427,10 @@ export const acoesDisponiveis = [...acoesMenu, ...acoesExclusivasEdicao, validar
 
 export const getAcao = (descricao: string): ElementoAction => {
   return acoesDisponiveis.filter(acao => acao.descricao === descricao.trim())[0];
+};
+
+export const getAcaoAgrupamento = (tipo: string): ElementoAction => {
+  return acoesDisponiveis.filter(acao => acao instanceof AgruparElemento && acao.tipo === tipo)[0];
 };
 
 export const isAcaoMenu = (acao: ElementoAction): boolean => {

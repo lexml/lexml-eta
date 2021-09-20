@@ -7,9 +7,9 @@ import {
   adicionarElementoAction,
   adicionarInciso,
   adicionarItem,
-  adicionarSecao,
   ElementoAction,
   finalizarBlocoAlteracao,
+  getAcaoAgrupamento,
   iniciarBlocoAlteracao,
   moverElementoAbaixo,
   moverElementoAcima,
@@ -58,10 +58,12 @@ import {
 } from '../../dispositivo/tipo';
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudo-util';
 import {
+  getAgrupadorPosterior,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosterior,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
+  hasAgrupadoresPosteriores,
   hasDispositivosPosterioresAlteracao,
   hasFilhos,
   isPrimeiroMesmoTipo,
@@ -101,6 +103,19 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
       acoes = acoes.slice(i, 1);
     }
   }
+  if (isAgrupador(dispositivo) && dispositivo.pai && isArticulacao(dispositivo.pai) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+    dispositivo.tiposPermitidosPai?.filter(tipo => tipo !== dispositivo.pai!.tipo).forEach(t => acoes.push(getAcaoAgrupamento(t)));
+  }
+
+  if (isAgrupador(dispositivo) && dispositivo.pai && !isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && dispositivo.pai!.indexOf(dispositivo) === 0) {
+    const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo);
+    dispositivo.tiposPermitidosPai?.filter((tipo, index) => index > pos!).forEach(t => acoes.push(getAcaoAgrupamento(t)));
+  }
+
+  if (isAgrupador(dispositivo) && dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && isAgrupador(dispositivo.pai!) && !isArticulacao(dispositivo.pai)) {
+    acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
+  }
+
   //
   // Alínea
   //
@@ -140,16 +155,18 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
     acoes.push(transformarArtigoEmParagrafo);
   }
-  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+  if (isArtigo(dispositivo) && dispositivo.pai!.indexOf(dispositivo) > 0 && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {
     acoes.push(adicionarCapitulo);
   }
-  if (
-    isArtigo(dispositivo) &&
-    dispositivo.pai!.indexOf(dispositivo) > 0 &&
-    isAgrupador(dispositivo.pai!) &&
-    dispositivo.tiposPermitidosPai!.indexOf(TipoDispositivo.secao.tipo) > 0
-  ) {
-    acoes.push(adicionarSecao);
+  if (isArtigo(dispositivo) && dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && hasAgrupadoresPosteriores(dispositivo)) {
+    acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
+  }
+  if (isArtigo(dispositivo) && isAgrupador(dispositivo.pai!) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+    const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
+    dispositivo.tiposPermitidosPai
+      ?.filter(() => pos > 0)
+      .filter((tipo, index) => index > pos!)
+      .forEach(t => acoes.push(getAcaoAgrupamento(t)));
   }
 
   //

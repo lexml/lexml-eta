@@ -170,7 +170,7 @@ export const agruparElemento = (state: any, action: any): ElementoState => {
   const dispositivoAnterior = getDispositivoAnterior(atual);
   const pos = atual.pai!.indexOf(atual);
   const removidos = atual
-    .pai!.filhos.filter((f, index) => index >= pos && f.tipo === atual.tipo)
+    .pai!.filhos.filter((f, index) => index >= pos && f.tipo !== action.novo.tipo)
     .map(d => getElementos(d))
     .flat();
 
@@ -186,18 +186,23 @@ export const agruparElemento = (state: any, action: any): ElementoState => {
     novo = DispositivoLexmlFactory.create(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
   }
   novo.texto = action.novo.conteudo?.texto;
-  const dispositivos = atual.pai!.filhos.filter((f, index) => index >= pos && f.tipo === atual.tipo);
+  const dispositivos = atual.pai!.filhos.filter((f, index) => index >= pos && f.tipo !== action.novo.tipo);
   copiaDispositivosParaAgrupadorPai(novo, dispositivos);
   novo.renumeraFilhos();
   novo.pai!.renumeraFilhos();
 
+  const renumerados = [...buildListaElementosRenumerados(novo)].concat(
+    novo.filhos
+      .filter((f, index) => index >= pos && f.tipo !== atual.tipo)
+      .map(d => getElementos(d))
+      .flat()
+  );
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(dispositivoAnterior ?? atual.pai!, novo)));
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
   eventos.add(StateType.ElementoRemovido, removidos);
 
-  eventos.add(StateType.ElementoRenumerado, buildListaElementosRenumerados(novo));
-  // eventos.add(StateType.ElementoValidado, validaDispositivosAfins(novo, false));
+  eventos.add(StateType.ElementoRenumerado, renumerados);
 
   return {
     articulacao: state.articulacao,

@@ -196,7 +196,7 @@ export class DispositivoLexmlFactory {
       atual.removeFilho(filho);
       novo.mensagens = validaDispositivo(filho);
 
-      filho.filhos ? DispositivoLexmlFactory.converteFilhos(filho, novo) : undefined;
+      filho.filhos ? (atual.tipo === destino.tipo ? DispositivoLexmlFactory.copiaFilhos(filho, novo) : DispositivoLexmlFactory.converteFilhos(filho, novo)) : undefined;
 
       atual.filhos.length === 0 ? destino.renumeraFilhos() : undefined;
     });

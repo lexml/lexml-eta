@@ -60,15 +60,6 @@ export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
   return getArtigo(dispositivo.pai!);
 };
 
-/* export const getArtigoAnterior = (dispositivo: Dispositivo): Dispositivo | undefined => {
-  if (!isArtigo(dispositivo)) {
-    return undefined;
-  }
-  const articulacao = getArticulacao(dispositivo);
-  const pos = articulacao.indexOfArtigo(dispositivo as Artigo) - 1;
-  return pos > 0 ? articulacao.artigos[pos] : undefined;
-}; */
-
 export const getArtigoAnterior = (pai: Dispositivo, dispositivo: Dispositivo): Dispositivo | undefined => {
   if (!dispositivo || !isArtigo(dispositivo)) {
     return undefined;
@@ -108,6 +99,16 @@ const buscaArtigoAnteriorAbaixo = (dispositivo: Dispositivo): Dispositivo | unde
     }
   }
   return undefined;
+};
+
+export const getAgrupadorPosterior = (dispositivo: Dispositivo): Dispositivo => {
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+  return dispositivo.pai!.filhos.filter((d, i) => i > pos && isAgrupador(d))[0];
+};
+
+export const hasAgrupadoresPosteriores = (dispositivo: Dispositivo): boolean => {
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+  return dispositivo.pai!.filhos.filter((d, i) => i > pos && isAgrupador(d)).length > 0;
 };
 
 export const hasFilhoGenerico = (dispositivo: Dispositivo): boolean => {

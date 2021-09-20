@@ -56,6 +56,11 @@ describe('Testando a inclusão de agrupadores', () => {
       it('Deveria apresentar os 4 artigos e seus filhos como removidos', () => {
         const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
         expect(removidos.elementos!.length).equal(5);
+        expect(removidos.elementos![0].rotulo).equal('Art. 2º');
+        expect(removidos.elementos![1].rotulo).equal('Art. 3º');
+        expect(removidos.elementos![2].rotulo).equal('Art. 4º');
+        expect(removidos.elementos![3].rotulo).equal('Art. 5º');
+        expect(removidos.elementos![4].rotulo).equal('Parágrafo único.');
       });
     });
   });
