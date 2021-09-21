@@ -66,6 +66,7 @@ import {
   hasAgrupadoresPosteriores,
   hasDispositivosPosterioresAlteracao,
   hasFilhos,
+  irmaosMesmoTipo,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
@@ -103,7 +104,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
       acoes = acoes.slice(i, 1);
     }
   }
-  if (isAgrupador(dispositivo) && dispositivo.pai && isArticulacao(dispositivo.pai) && dispositivo.pai!.indexOf(dispositivo) > 0) {
+  if (isAgrupador(dispositivo) && dispositivo.pai && isArticulacao(dispositivo.pai) && irmaosMesmoTipo(dispositivo)[0] === dispositivo) {
     dispositivo.tiposPermitidosPai?.filter(tipo => tipo !== dispositivo.pai!.tipo).forEach(t => acoes.push(getAcaoAgrupamento(t)));
   }
 

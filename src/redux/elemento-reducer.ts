@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isArtigo, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
   buildListaDispositivos,
@@ -97,9 +97,9 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
-  if (isAgrupador(atual)) {
+  /*   if (isAgrupador(atual)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos a partir de agrupadores' });
-  }
+  } */
 
   const novo = DispositivoLexmlFactory.createByInferencia(atual, action);
 

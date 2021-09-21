@@ -301,33 +301,33 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
 
-    if (this.quill.linhaAtual.agrupador) {
+    /*  if (this.quill.linhaAtual.agrupador) {
       this.quill.irProximaLinha();
+    } else { */
+    const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
+    const indexFim: number = indexInicio + blotConteudo!.tamanho ?? 0;
+    let textoLinha = '';
+    let textoNovaLinha = '';
+
+    if (range.index === indexInicio) {
+      textoLinha = '';
+      textoNovaLinha = blotConteudo.html;
+    } else if (range.index === indexFim) {
+      textoLinha = blotConteudo.html;
+      textoNovaLinha = '';
     } else {
-      const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
-      const indexFim: number = indexInicio + blotConteudo!.tamanho ?? 0;
-      let textoLinha = '';
-      let textoNovaLinha = '';
-
-      if (range.index === indexInicio) {
-        textoLinha = '';
-        textoNovaLinha = blotConteudo.html;
-      } else if (range.index === indexFim) {
-        textoLinha = blotConteudo.html;
-        textoNovaLinha = '';
-      } else {
-        const tamanhoNovaLinha: number = indexFim - range.index;
-        textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
-        textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
-      }
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
-
-      if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-        const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
-        rootStore.dispatch(atualizarElementoAction.execute(elemento));
-      }
-      rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+      const tamanhoNovaLinha: number = indexFim - range.index;
+      textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
+      textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
     }
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+
+    if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
+      rootStore.dispatch(atualizarElementoAction.execute(elemento));
+    }
+    rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+    /* } */
   }
 
   private async renumerarElemento() {

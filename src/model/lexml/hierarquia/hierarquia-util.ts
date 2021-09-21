@@ -60,13 +60,9 @@ export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
   return getArtigo(dispositivo.pai!);
 };
 
-export const getArtigoAnterior = (pai: Dispositivo, dispositivo: Dispositivo): Dispositivo | undefined => {
-  if (!dispositivo || !isArtigo(dispositivo)) {
-    return undefined;
-  }
-
+export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositivo): Dispositivo | undefined => {
   if (pai?.filhos) {
-    for (let i = pai?.indexOf(dispositivo) - 1; i >= 0; i--) {
+    for (let i = pai?.indexOf(referencia) - 1; i >= 0; i--) {
       const d = pai?.filhos[i];
       if (isArtigo(d)) {
         return d;
@@ -76,7 +72,7 @@ export const getArtigoAnterior = (pai: Dispositivo, dispositivo: Dispositivo): D
       }
     }
     if (pai?.pai) {
-      return getArtigoAnterior(pai.pai, dispositivo);
+      return getProximoArtigoAnterior(pai.pai, referencia);
     }
   }
   return undefined;
@@ -195,7 +191,7 @@ export const getDispositivosPosteriores = (dispositivo: Dispositivo, isExclusao 
     return articulacao.artigos.filter((artigo, index) => index > pos);
   }
   const pos = dispositivo.pai!.indexOf(dispositivo);
-  return dispositivo.pai!.filhos.filter(d => dispositivo.tipo === d.tipo).filter((disp, index) => (isExclusao ? index > pos : index >= pos));
+  return dispositivo.pai!.filhos.filter((disp, index) => (isExclusao ? index > pos : index >= pos)).filter(d => dispositivo.tipo === d.tipo);
 };
 
 export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): void => {

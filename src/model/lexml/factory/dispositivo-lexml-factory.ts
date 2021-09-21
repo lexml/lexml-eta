@@ -332,8 +332,6 @@ export class DispositivoLexmlFactory {
   }
 
   private static createWhenReferenciaIsAgrupador(referencia: Dispositivo): Dispositivo {
-    return referencia.filhos!.length > 0
-      ? DispositivoLexmlFactory.create(referencia, TipoDispositivo.ARTIGO.tipo, undefined, 0)
-      : DispositivoLexmlFactory.create(referencia, TipoDispositivo.ARTIGO.tipo);
+    return DispositivoLexmlFactory.create(referencia, TipoDispositivo.artigo.tipo, undefined, 0);
   }
 }
