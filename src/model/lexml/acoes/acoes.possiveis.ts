@@ -159,16 +159,17 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   if (
     isArtigo(dispositivo) &&
     dispositivo.pai &&
+    !isDispositivoAlteracao(dispositivo) &&
     isArticulacao(dispositivo.pai) &&
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0
   ) {
     acoes.push(adicionarCapitulo);
   }
-  if (isArtigo(dispositivo) && dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && hasAgrupadoresPosteriores(dispositivo)) {
+  if (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo) && dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && hasAgrupadoresPosteriores(dispositivo)) {
     acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
   }
-  if (isArtigo(dispositivo) && isAgrupador(dispositivo.pai!)) {
+  if (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai!)) {
     const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
     dispositivo.tiposPermitidosPai
       ?.filter(() => pos > 0)
