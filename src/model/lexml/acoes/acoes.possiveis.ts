@@ -161,7 +161,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     dispositivo.pai &&
     !isDispositivoAlteracao(dispositivo) &&
     isArticulacao(dispositivo.pai) &&
-    dispositivo.pai!.indexOf(dispositivo) > 0 &&
     dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0
   ) {
     acoes.push(adicionarCapitulo);
