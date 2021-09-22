@@ -137,11 +137,8 @@ describe('Testando a inclusão de agrupadores', () => {
       expect(state.articulacao.filhos[1].filhos.length).equals(3);
     });
     describe('Testando eventos', () => {
-      it('Deveria apresentar 2 eventos', () => {
-        expect(eventos.length).to.equal(2);
-      });
-      it('Deveria apresentar o novo capitulo e seus filhos como incluídos', () => {
-        expect(eventos[0].elementos!.length).equal(4);
+      it('Deveria apresentar 3 eventos', () => {
+        expect(eventos.length).to.equal(3);
       });
       it('Deveria apresentar o capitulo incluído após o artigo 1', () => {
         expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
@@ -150,6 +147,10 @@ describe('Testando a inclusão de agrupadores', () => {
       it('Deveria apresentar os 4 artigos e seus filhos como removidos', () => {
         const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
         expect(removidos.elementos!.length).equal(3);
+      });
+      it('Deveria apresentar o capitulo II como renumerado', () => {
+        const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
+        expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO II');
       });
     });
   });
@@ -189,8 +190,8 @@ describe('Testando a inclusão de agrupadores', () => {
       expect(state.articulacao.filhos[3].filhos.length).equals(1);
     });
     describe('Testando eventos', () => {
-      it('Deveria apresentar 2 eventos', () => {
-        expect(eventos.length).to.equal(2);
+      it('Deveria apresentar 3 eventos', () => {
+        expect(eventos.length).to.equal(3);
       });
       it('Deveria apresentar o novo capitulo e seu filho como incluídos', () => {
         expect(eventos[0].elementos!.length).equal(2);
@@ -205,6 +206,10 @@ describe('Testando a inclusão de agrupadores', () => {
         const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
         expect(removidos.elementos!.length).equal(1);
         expect(removidos.elementos![0].rotulo).equal('Art. 4º');
+      });
+      it('Deveria apresentar o capitulo III como renumerado', () => {
+        const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
+        expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO III');
       });
     });
   });
