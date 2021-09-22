@@ -227,7 +227,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <lexml-eta-help style="float:right;"></lexml-eta-help>
         </div>
         <div id="lx-eta-editor"></div>
-        n
       </div>
       <elix-toast id="toast-alerta" duration="800">
         <div id="toast-msg"></div>
@@ -301,9 +300,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
 
-    /*  if (this.quill.linhaAtual.agrupador) {
-      this.quill.irProximaLinha();
-    } else { */
     const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
     const indexFim: number = indexInicio + blotConteudo!.tamanho ?? 0;
     let textoLinha = '';
@@ -327,7 +323,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(atualizarElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
-    /* } */
   }
 
   private async renumerarElemento() {
@@ -722,7 +717,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       });
       this.quill.limparHistory();
       setTimeout(() => {
-        this.quill.setSelection(this.quill.getIndex(this.quill.getPrimeiraLinha().blotConteudo), 0, Quill.sources.USER);
+        const el = this.quill.getLinha(elementos![1].uuid!);
+        this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
       }, 0);
     }, 0);
   }
