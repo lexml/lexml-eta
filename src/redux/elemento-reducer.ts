@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isArtigo, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isAgrupador, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
   buildListaDispositivos,
@@ -16,7 +16,6 @@ import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-valida
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
   getDispositivoAnterior,
-  getDispositivoAnteriorMesmoTipo,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasFilhos,
@@ -54,6 +53,7 @@ import {
   buildFuture,
   buildPast,
   buildUpdateEvent,
+  copiaDispositivosParaAgrupadorPai,
   createElementoValidado,
   getElementosDoDispositivo,
   isDesdobramentoAgrupadorAtual,
@@ -64,6 +64,7 @@ import {
   naoPodeCriarFilho,
   normalizaSeForOmissis,
   redoDispositivosExcluidos,
+  removeAgrupadorAndBuildEvents,
   removeAndBuildEvents,
   textoFoiModificado,
   validaDispositivosAfins,
@@ -96,10 +97,6 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   if (naoPodeCriarFilho(atual)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
-
-  /*   if (isAgrupador(atual)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos a partir de agrupadores' });
-  } */
 
   const novo = DispositivoLexmlFactory.createByInferencia(atual, action);
 
@@ -143,21 +140,6 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
       events: eventos.build(),
     },
   };
-};
-
-export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
-  return dispositivos.map(d => {
-    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
-    const novo = DispositivoLexmlFactory.create(pai, d.tipo, anterior);
-    novo.texto = d.texto;
-    novo.numero = d.numero;
-    novo.rotulo = d.rotulo;
-    novo.mensagens = d.mensagens;
-    DispositivoLexmlFactory.copiaFilhos(d, novo);
-
-    d.pai!.removeFilho(d);
-    return novo;
-  });
 };
 
 export const agruparElemento = (state: any, action: any): ElementoState => {
@@ -440,11 +422,14 @@ export const removeElemento = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  if (!isDispositivoAlteracao(dispositivo) && state.articulacao.filhos.length === 1 && state.articulacao.filhos[0] === dispositivo) {
+  if (
+    !isDispositivoAlteracao(dispositivo) &&
+    (isArtigoUnico(dispositivo) || (state.articulacao.filhos.length === 1 && state.articulacao.filhos[0] === dispositivo && !hasFilhos(dispositivo)))
+  ) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir o único dispositivo disponível.' });
   }
 
-  const events = removeAndBuildEvents(state.articulacao, dispositivo);
+  const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state.articulacao, dispositivo);
 
   return {
     articulacao: state.articulacao,

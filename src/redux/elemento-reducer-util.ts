@@ -11,6 +11,7 @@ import {
   getArticulacao,
   getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
   getUltimoFilho,
   hasFilhos,
   irmaosMesmoTipo,
@@ -185,6 +186,20 @@ export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = fal
   return lista;
 };
 
+export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+  return dispositivos.map(d => {
+    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
+    const novo = DispositivoLexmlFactory.create(pai, d.tipo, anterior);
+    novo.texto = d.texto;
+    novo.numero = d.numero;
+    novo.rotulo = d.rotulo;
+    novo.mensagens = d.mensagens;
+    DispositivoLexmlFactory.copiaFilhos(d, novo);
+
+    d.pai!.removeFilho(d);
+    return novo;
+  });
+};
 export const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = DispositivoLexmlFactory.create(
     isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
@@ -301,5 +316,46 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   }
 
   const eventos = buildEventoExclusaoElemento(removidos, modificados, validaDispositivosAfins(dispositivoValidado, false));
+  return eventos.build();
+};
+
+export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: Dispositivo): StateEvent[] => {
+  let pos = atual.pai!.indexOf(atual);
+  const agrupadoresAnteriorMesmoTipo = atual.pai!.filhos.filter((d, i) => i < pos && isAgrupador(d));
+
+  const removidos = [...getElementos(atual)];
+
+  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
+  const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
+
+  const dispositivos = atual.filhos.map(d => {
+    const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? DispositivoLexmlFactory.create(pai!, d.tipo) : DispositivoLexmlFactory.create(pai, d.tipo, undefined, pos++);
+    novo.texto = d.texto;
+    novo.numero = d.numero;
+    novo.rotulo = d.rotulo;
+    novo.mensagens = d.mensagens;
+    DispositivoLexmlFactory.copiaFilhos(d, novo);
+
+    d.pai!.removeFilho(d);
+    return novo;
+  });
+
+  pai.removeFilho(atual);
+  pai.renumeraFilhos();
+
+  const incluidos = dispositivos.map(d => getElementos(d)).flat();
+
+  const renumerados = pai!.filhos
+    .filter((f, index) => index >= pos)
+    .map(d => getElementos(d))
+    .flat()
+    .filter(e => e.agrupador);
+
+  const eventos = new Eventos();
+  eventos.setReferencia(createElemento(dispositivoAnterior));
+  eventos.add(StateType.ElementoIncluido, incluidos);
+  eventos.add(StateType.ElementoRemovido, removidos);
+
+  eventos.add(StateType.ElementoRenumerado, renumerados);
   return eventos.build();
 };

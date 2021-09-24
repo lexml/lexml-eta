@@ -406,11 +406,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}`;
 
-    if (linha.agrupador) {
-      this.onOperacaoInvalida();
-      return;
-    }
-
     this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
       const closeResult: any = event.detail.closeResult;
       const choice: string = closeResult && closeResult.choice;

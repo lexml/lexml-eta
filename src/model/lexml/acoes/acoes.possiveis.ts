@@ -98,12 +98,6 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   //
   // Agrupador
   //
-  if (isAgrupador(dispositivo)) {
-    const i: number = acoes.findIndex((acao: ElementoAction) => acao.descricao === 'Remover dispositivo');
-    if (i > -1) {
-      acoes = acoes.slice(i, 1);
-    }
-  }
   if (isAgrupador(dispositivo) && dispositivo.pai && isArticulacao(dispositivo.pai) && irmaosMesmoTipo(dispositivo)[0] === dispositivo) {
     dispositivo.tiposPermitidosPai?.filter(tipo => tipo !== dispositivo.pai!.tipo).forEach(t => acoes.push(getAcaoAgrupamento(t)));
   }
@@ -165,7 +159,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   ) {
     acoes.push(adicionarCapitulo);
   }
-  if (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo) && dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && hasAgrupadoresPosteriores(dispositivo)) {
+  if (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo) && dispositivo.pai && hasAgrupadoresPosteriores(dispositivo)) {
     acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
   }
   if (isArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai!)) {
@@ -279,7 +273,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     acoes.push(transformarEmOmissisParagrafo);
   }
 
-  return acoes
+  const acoesSemDuplicidade = [...new Set(acoes)];
+
+  return acoesSemDuplicidade
     .filter(a => a !== undefined)
     .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
     .sort((a, b) => a.descricao!.localeCompare(b.descricao!));

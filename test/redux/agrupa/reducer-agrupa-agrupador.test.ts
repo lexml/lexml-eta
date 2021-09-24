@@ -10,7 +10,7 @@ import { EXEMPLO_AGRUPADORES_ARTIGOS_SEM_AGRUPADORES } from '../../doc/exemplo-a
 let state: any;
 let eventos: StateEvent[];
 
-describe('Testando a inclusão de agrupadores a agrupadores', () => {
+describe('Testando a inclusão de agrupadores de agrupadores', () => {
   beforeEach(function () {
     const articulacao = ArticulacaoParser.load(EXEMPLO_AGRUPADORES_ARTIGOS_SEM_AGRUPADORES);
     articulacao.renumeraArtigos();
