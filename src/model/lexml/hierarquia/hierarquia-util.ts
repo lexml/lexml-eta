@@ -53,6 +53,38 @@ export const getAgrupadoresPosterioresTipoAcima = (dispositivo: Dispositivo, tip
   return dispositivo.pai!.filhos.filter((d, i) => i > pos && isAgrupador(d) && dispositivo.tiposPermitidosPai!.indexOf(tipo.tipo) > 0);
 };
 
+export const getAgrupadoresAcima = (pai: Dispositivo, referencia: Dispositivo, agrupadores: Dispositivo[]): Dispositivo[] => {
+  if (pai?.filhos) {
+    for (let i = pai?.indexOf(referencia); i >= 0; i--) {
+      const d = pai?.filhos[i];
+      if (isAgrupador(d)) {
+        agrupadores.push(d);
+      }
+    }
+    if (pai?.pai) {
+      return getAgrupadoresAcima(pai.pai, referencia.pai!, agrupadores);
+    }
+  }
+  return agrupadores;
+};
+
+export const hasAgrupadoresAcima = (dispositivo: Dispositivo): boolean => {
+  const agrupadores: Dispositivo[] = [];
+  if (dispositivo.pai?.pai === undefined) {
+    return false;
+  }
+
+  return getAgrupadoresAcima(dispositivo.pai!.pai!, dispositivo.pai, agrupadores).length > 0;
+};
+
+export const getAgrupadorAcimaByTipo = (referencia: Dispositivo, tipo: string): Dispositivo | undefined => {
+  return [...new Set(getAgrupadoresAcima(referencia.pai!, referencia, []))].filter(a => a.tipo === tipo).reverse()[0];
+};
+
+export const hasAgrupadoresAcimaByTipo = (dispositivo: Dispositivo, tipo: string): boolean => {
+  return getAgrupadoresAcima(dispositivo.pai!.pai!, dispositivo.pai!, []).filter(d => d.tipo === tipo).length > 0;
+};
+
 export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
   if (isArtigo(dispositivo.pai!)) {
     return dispositivo.pai!;
