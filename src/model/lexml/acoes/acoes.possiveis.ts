@@ -88,6 +88,9 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
 
   acoes.push(...acoesPossiveisDispositivo);
 
+  //
+  // Não agrupadores
+  //
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
     acoes.push(moverElementoAbaixo);
   }
