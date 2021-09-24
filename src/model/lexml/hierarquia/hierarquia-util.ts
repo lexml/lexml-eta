@@ -72,7 +72,7 @@ export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositi
       }
     }
     if (pai?.pai) {
-      return getProximoArtigoAnterior(pai.pai, referencia);
+      return getProximoArtigoAnterior(pai.pai, referencia.pai!);
     }
   }
   return undefined;
