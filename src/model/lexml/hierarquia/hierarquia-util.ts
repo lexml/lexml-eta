@@ -68,6 +68,10 @@ export const getAgrupadoresAcima = (pai: Dispositivo, referencia: Dispositivo, a
   return agrupadores;
 };
 
+export const hasAgrupador = (pai: Dispositivo): boolean => {
+  return pai.filhos.filter(a => isAgrupador(a)).length > 0;
+};
+
 export const hasAgrupadoresAcima = (dispositivo: Dispositivo): boolean => {
   const agrupadores: Dispositivo[] = [];
   if (dispositivo.pai?.pai === undefined) {

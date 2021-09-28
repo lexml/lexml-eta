@@ -340,7 +340,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     return novo;
   });
 
-  pai.removeFilho(atual);
+  atual.pai!.removeFilho(atual);
   pai.renumeraFilhos();
 
   const incluidos = dispositivos.map(d => getElementos(d)).flat();

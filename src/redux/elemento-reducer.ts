@@ -167,7 +167,6 @@ export const agruparElemento = (state: any, action: any): ElementoState => {
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = DispositivoLexmlFactory.create(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
   } else if (hasAgrupadoresAcimaByTipo(atual, action.novo.tipo)) {
-    console.log('sasadsdadsadsadsa');
     const ref = getAgrupadorAcimaByTipo(atual, action.novo.tipo);
     novo = DispositivoLexmlFactory.create(ref!.pai!, action.novo.tipo, ref);
   } else {

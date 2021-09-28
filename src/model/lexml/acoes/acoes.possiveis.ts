@@ -64,6 +64,8 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosterior,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
+  getDispositivosPosterioresMesmoTipo,
+  hasAgrupador,
   hasAgrupadoresAcima,
   hasAgrupadoresPosteriores,
   hasDispositivosPosterioresAlteracao,
@@ -103,6 +105,12 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   //
   // Agrupador
   //
+  if (isAgrupador(dispositivo) && getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 && hasAgrupador(dispositivo)) {
+    const i: number = acoes.findIndex((acao: ElementoAction) => acao.descricao === 'Remover dispositivo');
+    if (i > -1) {
+      acoes = acoes.slice(i, 1);
+    }
+  }
   if (isAgrupador(dispositivo) && dispositivo.pai && isArticulacao(dispositivo.pai) && irmaosMesmoTipo(dispositivo)[0] === dispositivo) {
     dispositivo.tiposPermitidosPai?.filter(tipo => tipo !== dispositivo.pai!.tipo).forEach(t => acoes.push(getAcaoAgrupamento(t)));
   }
