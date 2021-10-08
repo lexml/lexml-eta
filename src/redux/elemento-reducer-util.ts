@@ -20,7 +20,7 @@ import {
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { addSpaceRegex, escapeRegex } from '../util/string-util';
 import { adicionarElementoAction } from './elemento-actions';
-import { Eventos } from './eventos';
+import { Eventos, getEvento } from './eventos';
 import { StateEvent, StateType } from './state';
 
 const count = 0;
@@ -39,7 +39,13 @@ export const buildFuture = (state: any, events: any): StateEvent[] => {
   return count > 50 ? future.shift() : future;
 };
 
-export const textoFoiModificado = (atual: Dispositivo, action: any): boolean => {
+export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any): boolean => {
+  if (state && state.ui?.events) {
+    const ev = getEvento(state.ui.events, StateType.ElementoModificado);
+    if (ev && ev.elementos && ev.elementos[0]?.conteudo?.texto === atual.texto) {
+      return true;
+    }
+  }
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);
 };
 
@@ -199,33 +205,6 @@ export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos
     d.pai!.removeFilho(d);
     return novo;
   });
-};
-export const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
-  const novo = DispositivoLexmlFactory.create(
-    isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
-    elemento.tipo!,
-    undefined,
-    elemento.hierarquia!.posicao
-  );
-  novo.uuid = elemento.uuid;
-  novo!.texto = elemento?.conteudo?.texto ?? '';
-  novo!.numero = elemento?.hierarquia?.numero;
-  novo.rotulo = elemento?.rotulo;
-  return novo;
-};
-
-export const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dispositivo => {
-  const primeiroElemento = elementos.shift();
-
-  const pai = getDispositivoFromElemento(articulacao, primeiroElemento!.hierarquia!.pai as Elemento);
-  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
-
-  elementos.forEach(filho => {
-    const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoFromElemento(articulacao, filho.hierarquia!.pai! as Elemento);
-    redodDispositivoExcluido(filho, parent!);
-  });
-
-  return primeiro;
 };
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {

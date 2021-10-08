@@ -2,7 +2,7 @@ import { Elemento } from '../model/elemento';
 import { StateEvent, StateType } from './state';
 
 export const getEvento = (eventos: StateEvent[], stateType: StateType): StateEvent => {
-  return eventos.filter(ev => ev.stateType === stateType)[0];
+  return eventos?.filter(ev => ev.stateType === stateType)[0];
 };
 
 export const getEventosQuePossuemElementos = (eventos: StateEvent[]): StateEvent[] => {

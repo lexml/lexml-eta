@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { AGRUPAR_ELEMENTO } from '../../../src/redux/elemento-actions';
-import { agruparElemento } from '../../../src/redux/elemento-reducer';
+import { agruparElemento, redo, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_AGRUPADORES_ARTIGOS_SEM_AGRUPADORES } from '../../doc/exemplo-agrupadores-artigos-sem-agrupadores';
@@ -61,6 +61,71 @@ describe('Testando a inclusão de agrupadores', () => {
         expect(removidos.elementos![2].rotulo).equal('Art. 4º');
         expect(removidos.elementos![3].rotulo).equal('Art. 5º');
         expect(removidos.elementos![4].rotulo).equal('Parágrafo único.');
+      });
+    });
+    describe('Testando o undo da inclusão', () => {
+      beforeEach(function () {
+        state = undo(state);
+        eventos = getEventosQuePossuemElementos(state.ui.events);
+      });
+      it('Deveria apresentar apenas os artigos como filhos da articulação', () => {
+        expect(state.articulacao.filhos.length).equals(5);
+      });
+      describe('Testando eventos', () => {
+        it('Deveria apresentar 2 eventos', () => {
+          expect(eventos.length).to.equal(2);
+        });
+        it('Deveria apresentar os artigos e seus filhos como incluídos', () => {
+          expect(eventos[0].elementos!.length).equal(5);
+          expect(eventos[0].elementos![0].rotulo).equal('Art. 2º');
+          expect(eventos[0].elementos![1].rotulo).equal('Art. 3º');
+          expect(eventos[0].elementos![2].rotulo).equal('Art. 4º');
+          expect(eventos[0].elementos![3].rotulo).equal('Art. 5º');
+          expect(eventos[0].elementos![4].rotulo).equal('Parágrafo único.');
+        });
+        it('Deveria apresentar o art. 2 incluído após o artigo 1', () => {
+          expect(eventos[0].elementos![0].rotulo).equal('Art. 2º');
+          expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
+        });
+      });
+      describe('Testando o redo da inclusão', () => {
+        beforeEach(function () {
+          state = redo(state);
+          eventos = getEventosQuePossuemElementos(state.ui.events);
+        });
+        it('Deveria apresentar apenas o artigo 1 e o novo capítulo como filhos da articulação', () => {
+          expect(state.articulacao.filhos.length).equals(2);
+        });
+        it('Deveria apresentar o artigo 2 e os demais sob o novo capítulo', () => {
+          expect(state.articulacao.filhos[1].filhos.length).equals(4);
+        });
+        describe('Testando eventos', () => {
+          it('Deveria apresentar 2 eventos', () => {
+            expect(eventos.length).to.equal(2);
+          });
+          it('Deveria apresentar o capitulo e os 4 artigos e seus filhos como incluídos', () => {
+            expect(eventos[0].elementos!.length).equal(6);
+            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
+            expect(eventos[0].elementos![1].rotulo).equal('Art. 2º');
+            expect(eventos[0].elementos![2].rotulo).equal('Art. 3º');
+            expect(eventos[0].elementos![3].rotulo).equal('Art. 4º');
+            expect(eventos[0].elementos![4].rotulo).equal('Art. 5º');
+            expect(eventos[0].elementos![5].rotulo).equal('Parágrafo único.');
+          });
+          it('Deveria apresentar o capitulo incluído após o artigo 1', () => {
+            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
+            expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
+          });
+          it('Deveria apresentar os 4 artigos e seus filhos como removidos', () => {
+            const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
+            expect(removidos.elementos!.length).equal(5);
+            expect(removidos.elementos![0].rotulo).equal('Art. 2º');
+            expect(removidos.elementos![1].rotulo).equal('Art. 3º');
+            expect(removidos.elementos![2].rotulo).equal('Art. 4º');
+            expect(removidos.elementos![3].rotulo).equal('Art. 5º');
+            expect(removidos.elementos![4].rotulo).equal('Parágrafo único.');
+          });
+        });
       });
     });
   });

@@ -250,12 +250,12 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
           expect(incluido.elementos![0].rotulo).to.equal('II –');
           expect(incluido.elementos![0].conteudo?.texto).to.equal('');
         });
-        it('Deveria apresentar o antigo artigo único no array de elementos no evento de ElementoRenumerado', () => {
+        it('Deveria apresentar o inciso no array de elementos no evento de ElementoRenumerado', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
           expect(renumerados.elementos!.length).equal(1);
           expect(renumerados.elementos![0].rotulo).equal('III –');
         });
-        it('Deveria apresentar o artigo modificado no array de elementos no evento de ElementoValidado', () => {
+        it('Deveria apresentar o inciso no array de elementos no evento de ElementoValidado', () => {
           const validados = getEvento(state.ui.events, StateType.ElementoValidado);
           expect(validados.elementos!.length).equal(1);
           expect(validados.elementos![0].rotulo).equal('I –');
@@ -315,7 +315,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
           expect(state.articulacao.artigos[3].filhos[1].texto).to.equal('');
         });
         describe('Testando os eventos resultantes da ação de inclusão do inciso', () => {
-          it('Deveria apresentar 4 eventos', () => {
+          it('Deveria apresentar43 eventos', () => {
             expect(state.ui.events.length).to.equal(4);
           });
           it('Deveria apresentar 1 elemento incluído', () => {
@@ -328,6 +328,14 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
             const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
             expect(renumerados.elementos!.length).equal(1);
             expect(renumerados.elementos![0].rotulo).equal('III –');
+          });
+          it('Deveria apresentar duas vezes o inciso que também teve o texto modificado no array de elementos no evento de ElementoModificado', () => {
+            const modificados = getEvento(state.ui.events, StateType.ElementoModificado);
+            expect(modificados.elementos!.length).equal(2);
+            expect(modificados.elementos![0].rotulo).equal('I –');
+            expect(modificados.elementos![0].conteudo?.texto).equal('texto do inciso I do caput do Artigo 4;');
+            expect(modificados.elementos![1].rotulo).equal('I –');
+            expect(modificados.elementos![1].conteudo?.texto).equal('Teste sem pontuação ');
           });
           it('Deveria apresentar o artigo modificado no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);

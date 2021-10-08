@@ -77,7 +77,7 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
         });
       });
       describe('Testando os eventos resultantes da ação de undo', () => {
-        it('Deveria apresentar 3 eventos', () => {
+        it('Deveria apresentar 2 eventos', () => {
           expect(eventos.length).to.equal(2);
         });
         it('Deveria apresentar 1 elemento removido', () => {
@@ -240,10 +240,11 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
           expect(incluido.elementos!.length).equal(1);
           expect(incluido.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único.');
         });
-        it('Deveria apresentar somente a versão mais atualizada do antigo artigo único no evento de ElementoModificado', () => {
+        it('Deveria apresentar o antigo artigo único no evento de ElementoModificado', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
-          expect(modificado.elementos!.length).equal(1);
-          expect(modificado.elementos![0].conteudo?.texto).equal('');
+          expect(modificado.elementos!.length).equal(2);
+          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único.');
+          expect(modificado.elementos![1].conteudo?.texto).equal('');
         });
         it('Deveria apresentar os artigos subsequentes no evento de ElementoRenumerado', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
@@ -381,8 +382,9 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
         });
         it('Deveria apresentar o texto atualizado do antigo artigo único no evento de ElementoModificado', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
-          expect(modificado.elementos!.length).equal(1);
-          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput ');
+          expect(modificado.elementos!.length).equal(2);
+          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único.');
+          expect(modificado.elementos![1].conteudo?.texto).equal('Texto do caput ');
         });
         it('Deveria apresentar o artigo 1 como primeiro no array de elementos no evento de ElementoRenumerado', () => {
           const renumerado = getEvento(state.ui.events, StateType.ElementoRenumerado);
@@ -537,11 +539,12 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
         });
         it('Deveria apresentar duas vezes o artigo 4 no evento de ElementoModificado', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
-          expect(modificado.elementos!.length).equal(1);
+          expect(modificado.elementos!.length).equal(2);
         });
         it('Deveria apresentar o texto do artigo único antes e depois da modificação para permitir o undo/redo', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
-          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput ');
+          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único:');
+          expect(modificado.elementos![1].conteudo?.texto).equal('Texto do caput ');
         });
         it('Deveria apresentar o antigo artigo único no array de elementos no evento de ElementoRenumerado', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
@@ -824,11 +827,12 @@ describe('Testando a inclusão de artigos, quando há artigo único', () => {
         });
         it('Deveria apresentar duas vezes o artigo 4 no evento de ElementoModificado', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
-          expect(modificado.elementos!.length).equal(1);
+          expect(modificado.elementos!.length).equal(2);
         });
         it('Deveria apresentar o texto artigo 4 antes e depois da modificação para permitir o undo/redo', () => {
           const modificado = getEvento(state.ui.events, StateType.ElementoModificado);
-          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput.');
+          expect(modificado.elementos![0].conteudo?.texto).equal('Texto do caput do artigo único:');
+          expect(modificado.elementos![1].conteudo?.texto).equal('Texto do caput.');
         });
         it('Deveria apresentar o antigo artigo único no array de elementos no evento de ElementoRenumerado', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);

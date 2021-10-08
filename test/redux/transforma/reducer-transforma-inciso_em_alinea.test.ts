@@ -225,6 +225,7 @@ describe('Testando a transformação de inciso em alínea', () => {
           it('Deveria apresentar a alínea recém criada e seus filhos no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
             expect(validados.elementos!.length).equal(5);
+
             expect(validados.elementos![0].rotulo).equal('1.');
             expect(validados.elementos![0].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
             expect(validados.elementos![1].rotulo).equal('1 -');

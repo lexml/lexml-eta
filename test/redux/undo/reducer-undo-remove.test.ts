@@ -3,6 +3,7 @@ import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
 import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
 import { REMOVER_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { removeElemento, undo } from '../../../src/redux/elemento-reducer';
+import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
@@ -112,8 +113,9 @@ describe('Testando undo de remover artigo', () => {
       it('Deveria apresentar 11 elementos incluídos', () => {
         expect(state.ui.events[0].elementos.length).equal(11);
       });
-      it('Deveria apresentar o artigo 1 no evento de ElementoRemoved', () => {
-        expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do caput do Artigo 4:');
+      it('Deveria apresentar o artigo 1 no evento de ElementoIncluido', () => {
+        const removidos = getEvento(state.ui.events, StateType.ElementoIncluido);
+        expect(removidos.elementos![0].conteudo!.texto).equal('Texto do caput do Artigo 4:');
       });
       it('Deveria apresentar os artigos subsequentes no evento de ElementoRenumerado', () => {
         expect(state.ui.events[1].elementos.length).equal(1);

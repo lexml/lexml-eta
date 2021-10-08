@@ -108,7 +108,7 @@ describe('Testando a transformação de alínea em inciso', () => {
         it('Deveria apresentar 3 incisos pertencentes ao artigo 2', () => {
           expect(state.articulacao.artigos[1].caput.filhos.length).to.equal(3);
         });
-        it('Deveria apresentar um inciso II com um filho, pois a alinea possuía um item', () => {
+        it('Deveria apresentar um inciso II com duas alíneas', () => {
           expect(state.articulacao.artigos[1].filhos[1].filhos.length).to.equal(2);
           expect(state.articulacao.artigos[1].filhos[1].rotulo).to.equal('II –');
           expect(state.articulacao.artigos[1].filhos[1].filhos[0].rotulo).to.equal('a)');

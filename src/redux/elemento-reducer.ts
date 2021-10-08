@@ -26,6 +26,7 @@ import {
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
 import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
+import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from './element-undo-redo.util';
 import {
   ABRIR_ARTICULACAO,
   ADICIONAR_ELEMENTO,
@@ -60,19 +61,16 @@ import {
   getElementosDoDispositivo,
   isDesdobramentoAgrupadorAtual,
   isDispositivoAlteracao,
-  isElementoDispositivoAlteracao,
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
   normalizaSeForOmissis,
-  redoDispositivosExcluidos,
   removeAgrupadorAndBuildEvents,
   removeAndBuildEvents,
   textoFoiModificado,
-  validaDispositivosAfins,
 } from './elemento-reducer-util';
-import { Eventos } from './eventos';
-import { ElementoState, StateEvent, StateType } from './state';
+import { Eventos, getEvento } from './eventos';
+import { ElementoState, StateType } from './state';
 
 export const adicionaElemento = (state: any, action: any): ElementoState => {
   let textoModificado = false;
@@ -91,7 +89,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
 
   createElementos(elementosRemovidos, atual);
 
-  if (textoFoiModificado(atual, action)) {
+  if (textoFoiModificado(atual, action, state)) {
     atual.texto = !isDispositivoAlteracao(atual) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
     textoModificado = true;
   }
@@ -136,6 +134,7 @@ export const adicionaElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: buildPast(state, eventos.build()),
+    present: eventos.build(),
     future: state.future,
 
     ui: {
@@ -194,8 +193,8 @@ export const agruparElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: buildPast(state, eventos.build()),
+    present: eventos.build(),
     future: state.future,
-
     ui: {
       events: eventos.build(),
     },
@@ -221,6 +220,7 @@ export const selecionaElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: state.past,
+    present: state.present,
     future: state.future,
     ui: {
       events,
@@ -249,6 +249,7 @@ export const validaArticulacao = (state: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: state.past,
+    present: state.present,
     future: state.future,
     ui: {
       events,
@@ -276,6 +277,7 @@ export const validaElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: state.past,
+    present: state.present,
     future: state.future,
     ui: {
       events,
@@ -287,6 +289,7 @@ export const retornaEstadoAtualComMensagem = (state: any, mensagem: Mensagem): E
   return {
     articulacao: state.articulacao,
     past: state.past,
+    present: state.present,
     future: state.future,
     ui: {
       events: state.ui?.events,
@@ -310,6 +313,7 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past,
+    present: eventos.build(),
     future: state.future,
     ui: {
       events: eventos.build(),
@@ -342,82 +346,12 @@ export const renumeraElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past,
+    present: eventos.build(),
     future: state.future,
     ui: {
       events: eventos.build(),
     },
   };
-};
-
-const redoIncludedElements = (state: any, evento: StateEvent): StateEvent[] => {
-  if (evento === undefined || evento.elementos === undefined || evento.elementos[0] === undefined) {
-    return [];
-  }
-
-  const elemento = evento.elementos[0];
-  const dispositivo = getDispositivoFromElemento(state.articulacao, elemento, true);
-
-  if (dispositivo === undefined) {
-    return state;
-  }
-
-  return removeAndBuildEvents(state.articulacao, dispositivo);
-};
-
-const redoRemovedElements = (state: any, evento: StateEvent): StateEvent[] => {
-  let articulacao;
-
-  if (evento === undefined || evento.elementos === undefined || evento.elementos[0] === undefined) {
-    return [];
-  }
-  const elemento = evento.elementos[0];
-  const posicao = elemento!.hierarquia!.posicao;
-
-  if (isElementoDispositivoAlteracao(elemento)) {
-    articulacao = getDispositivoFromElemento(state.articulacao, { uuid: elemento.hierarquia!.pai!.uuidAlteracao }, true)?.alteracoes;
-  } else {
-    articulacao = state.articulacao;
-  }
-
-  const pai = getDispositivoFromElemento(articulacao, elemento!.hierarquia!.pai!);
-  const novo = redoDispositivosExcluidos(articulacao, evento.elementos);
-  pai?.renumeraFilhos();
-
-  const referencia = posicao === 0 ? pai : getDispositivoAnterior(novo);
-
-  const eventos = buildEventoAdicionarElemento(referencia!, novo);
-
-  eventos.add(StateType.ElementoIncluido, evento.elementos);
-
-  return eventos.build();
-};
-
-const redoModifiedElements = (state: any, evento: StateEvent): StateEvent[] => {
-  if (evento === undefined || evento.elementos === undefined || evento.elementos[0] === undefined) {
-    return [];
-  }
-
-  const dispositivo = getDispositivoFromElemento(state.articulacao, evento.elementos[0], true);
-
-  if (dispositivo === undefined) {
-    return state;
-  }
-
-  dispositivo.texto = evento.elementos[0].conteudo?.texto ?? '';
-
-  const elementoOriginal = createElemento(dispositivo);
-  elementoOriginal.mensagens = validaDispositivo(dispositivo);
-
-  return [
-    {
-      stateType: StateType.ElementoModificado,
-      elementos: [elementoOriginal],
-    },
-    {
-      stateType: StateType.ElementoValidado,
-      elementos: validaDispositivosAfins(dispositivo, true),
-    },
-  ];
 };
 
 export const removeElemento = (state: any, action: any): ElementoState => {
@@ -439,6 +373,7 @@ export const removeElemento = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: buildPast(state, events),
+    present: events,
     future: buildFuture(state, events),
     ui: {
       events,
@@ -499,6 +434,7 @@ export const moveElementoAbaixo = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: buildPast(state, eventos.build()),
+    present: eventos.build(),
     future: state.future,
     ui: {
       events: eventos.build(),
@@ -558,6 +494,7 @@ export const moveElementoAcima = (state: any, action: any): ElementoState => {
   return {
     articulacao: state.articulacao,
     past: buildPast(state, eventos.build()),
+    present: eventos.build(),
     future: state.future,
     ui: {
       events: eventos.build(),
@@ -608,6 +545,7 @@ export const transformaTipoElemento = (state: any, action: any): ElementoState =
   return {
     articulacao: state.articulacao,
     past: buildPast(state, eventos.build()),
+    present: eventos.build(),
     future: state.future,
     ui: {
       events: eventos.build(),
@@ -639,38 +577,6 @@ export const modificaTipoElementoWithTab = (state: any, action: any): ElementoSt
   return transformaTipoElemento(state, newAction);
 };
 
-const buildRenumeradosValidadosUndoRedo = (state: any, eventos: StateEvent[], renumerados: Elemento[], retorno: ElementoState): void => {
-  if (renumerados.length > 0) {
-    let r = retorno.ui?.events.filter((evento: StateEvent) => evento.stateType === StateType.ElementoRenumerado)[0];
-
-    renumerados.forEach((element: Elemento) => {
-      const d = getDispositivoFromElemento(state.articulacao, element, true);
-      const el = createElemento(d!);
-      if (!r) {
-        retorno.ui?.events.push({ stateType: StateType.ElementoRenumerado, elementos: [] });
-        r = retorno.ui?.events.filter((evento: StateEvent) => evento.stateType === StateType.ElementoRenumerado)[0];
-      }
-      if (r?.elementos?.length === 0 || r?.elementos?.filter((e: Elemento) => e.uuid === el.uuid).length === 0) {
-        r?.elementos?.push(el);
-      }
-    });
-  }
-
-  const v = eventos?.filter((evento: StateEvent) => evento.stateType === StateType.ElementoValidado)[0];
-  if (v && v.elementos && v.elementos.length > 0) {
-    v.elementos.forEach((element: Elemento) => {
-      const ui = retorno.ui?.events.filter((evento: StateEvent) => evento.stateType === StateType.ElementoValidado)[0];
-
-      const d = getDispositivoFromElemento(state.articulacao, element, true);
-      d ? (d.mensagens = validaDispositivo(d)) : undefined;
-      if (d && d.mensagens!.length > 0) {
-        // se não for o próprio dispositivo já removido
-        !ui ? retorno.ui?.events.push({ stateType: StateType.ElementoValidado, elementos: [createElemento(d)] }) : ui?.elementos?.push(createElemento(d));
-      }
-    });
-  }
-};
-
 export const undo = (state: any): ElementoState => {
   if (state.past === undefined || state.past.length === 0) {
     return state;
@@ -681,32 +587,29 @@ export const undo = (state: any): ElementoState => {
   const retorno: ElementoState = {
     articulacao: state.articulacao,
     past: state.past,
-    future: buildFuture(state, eventos),
+    present: [],
+    future: buildFuture(state, state.present),
     ui: {
       events: [],
     },
   };
 
-  let renumerados: Elemento[] = [];
+  const referencia = getEvento(eventos, StateType.ElementoIncluido)?.referencia;
 
-  eventos.forEach((ev: StateEvent) => {
-    let events;
-    if (ev.stateType === StateType.ElementoIncluido) {
-      events = redoIncludedElements(state, ev);
-      retorno.ui!.events.splice(0, 0, events[0]);
-    } else if (ev.stateType === StateType.ElementoModificado) {
-      events = redoModifiedElements(state, ev);
-      events[0] && events[0].elementos ? retorno.ui!.events.push(events[0]) : undefined;
-    } else if (ev.stateType === StateType.ElementoRemovido) {
-      events = redoRemovedElements(state, ev);
-      retorno.ui!.events.unshift(events[0]);
-    }
-  });
+  const events = new Eventos();
 
-  const r = eventos?.filter((evento: StateEvent) => evento.stateType === StateType.ElementoRenumerado)[0];
-  renumerados = r && r.elementos ? renumerados.concat(r.elementos) : renumerados;
+  if (referencia) {
+    const dispositivo = getDispositivoFromElemento(state.articulacao, referencia);
+    events.setReferencia(createElemento(dispositivo!));
+  }
+  events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
+  events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
+  events.add(StateType.ElementoModificado, processarModificados(state, getEvento(eventos, StateType.ElementoModificado)));
+  events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
+  events.add(StateType.ElementoValidado, processaValidados(state, eventos));
 
-  buildRenumeradosValidadosUndoRedo(state, eventos, renumerados, retorno);
+  retorno.ui!.events = events.build();
+  retorno.present = events.build();
 
   return retorno;
 };
@@ -720,34 +623,24 @@ export const redo = (state: any): ElementoState => {
 
   const retorno: ElementoState = {
     articulacao: state.articulacao,
-    past: buildPast(state, eventos),
+    past: buildPast(state, state.present),
+    present: [],
     future: state.future,
     ui: {
       events: [],
     },
   };
 
-  let renumerados: Elemento[] = [];
+  const events = new Eventos();
 
-  eventos.forEach((ev: StateEvent) => {
-    let events;
-    if (ev.stateType === StateType.ElementoIncluido) {
-      const events = redoRemovedElements(state, ev);
-      retorno.ui!.events.splice(0, 0, events[0]);
-    } else if (ev.stateType === StateType.ElementoModificado) {
-      ev.elementos!.length > 1 ? ev.elementos?.shift() : undefined;
-      events = redoModifiedElements(state, ev);
-      retorno.ui!.events.push(events[0]);
-    } else if (ev.stateType === StateType.ElementoRemovido) {
-      const events = redoIncludedElements(state, ev);
-      retorno.ui!.events.unshift(events[0]);
-    }
-  });
+  events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoIncluido), getEvento(events.eventos, StateType.ElementoIncluido)));
+  events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoRemovido)));
+  events.add(StateType.ElementoModificado, processarModificados(state, getEvento(eventos, StateType.ElementoModificado), true));
+  events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
+  events.add(StateType.ElementoValidado, processaValidados(state, eventos));
 
-  const r = eventos?.filter((evento: StateEvent) => evento.stateType === StateType.ElementoRenumerado)[0];
-  renumerados = r && r.elementos ? renumerados.concat(r.elementos) : renumerados;
-
-  buildRenumeradosValidadosUndoRedo(state, eventos, renumerados, retorno);
+  retorno.ui!.events = events.build();
+  retorno.present = events.build();
 
   return retorno;
 };
@@ -757,6 +650,7 @@ const load = (articulacao: Articulacao): ElementoState => {
   return {
     articulacao,
     past: [],
+    present: [],
     future: [],
     ui: {
       events: [
