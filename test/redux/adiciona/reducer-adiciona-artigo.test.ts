@@ -275,7 +275,7 @@ describe('Testando a inclusão de artigos', () => {
         const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
         expect(renumerados.elementos!.length).equal(4);
         expect(renumerados.elementos![0].rotulo).equal('II –');
-        expect(renumerados.elementos![0].conteudo?.texto).equal('texto do inciso  1 da caput do artigo 4:');
+        expect(renumerados.elementos![0].conteudo?.texto).equal('texto do inciso 1 do caput do artigo 4:');
       });
     });
   });

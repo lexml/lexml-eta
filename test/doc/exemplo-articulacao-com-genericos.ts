@@ -65,7 +65,7 @@ export const EXEMPLO_ARTICULACAO_COM_GENERICOS = {
                         {
                           '@id': 'art4_cpt_inc1',
                           Rotulo: 'I –',
-                          p: 'texto do inciso  1 da caput do artigo 4:',
+                          p: 'texto do inciso 1 do caput do artigo 4:',
                           ALINIA: [
                             {
                               '@id': 'art4_cpt_inc2_ali1',
