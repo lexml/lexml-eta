@@ -78,11 +78,12 @@ describe('Testando undo de artigo atualizado', () => {
           expect(state.ui.events.length).to.equal(1);
           expect(state.ui.events[0].stateType).to.equal(StateType.ElementoModificado);
         });
-        it('Deveria apresentar 1 elemento atualizado já que o artigo não possui filhos', () => {
-          expect(state.ui.events[0].elementos.length).equal(1);
-        });
-        it('Deveria apresentar o artigo 1 no evento de ElementoModificado', () => {
-          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto de Artigo modificado.');
+        it('Deveria apresentar 1 elemento atualizado mas com ambas versões do texto', () => {
+          expect(state.ui.events[0].elementos.length).equal(2);
+          expect(state.ui.events[0].elementos[0].rotulo).equal('Art. 1º');
+          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do caput do Artigo 1.');
+          expect(state.ui.events[0].elementos[1].rotulo).equal('Art. 1º');
+          expect(state.ui.events[0].elementos[1].conteudo.texto).equal('Texto de Artigo modificado.');
         });
       });
     });

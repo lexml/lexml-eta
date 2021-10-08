@@ -229,14 +229,17 @@ export const buildEventoAtualizacaoElemento = (dispositivo: Dispositivo): Evento
   return eventos;
 };
 
-export const buildUpdateEvent = (dispositivo: Dispositivo): StateEvent[] => {
+export const buildUpdateEvent = (dispositivo: Dispositivo, original?: Elemento): StateEvent[] => {
   dispositivo.mensagens = validaDispositivo(dispositivo);
   const elemento = createElemento(dispositivo);
+
+  const elementos = original ? [original] : [];
+  elementos.push(elemento);
 
   return [
     {
       stateType: StateType.ElementoModificado,
-      elementos: [elemento],
+      elementos: elementos,
     },
     {
       stateType: StateType.ElementoValidado,

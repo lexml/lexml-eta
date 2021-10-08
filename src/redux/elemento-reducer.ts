@@ -305,14 +305,14 @@ export const atualizaElemento = (state: any, action: any): ElementoState => {
     return state;
   }
 
-  const past = buildPast(state, buildUpdateEvent(dispositivo));
+  const original = createElemento(dispositivo);
 
   dispositivo.texto = !isDispositivoAlteracao(dispositivo) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
     articulacao: state.articulacao,
-    past,
+    past: buildPast(state, buildUpdateEvent(dispositivo, original)),
     present: eventos.build(),
     future: state.future,
     ui: {
@@ -588,7 +588,7 @@ export const undo = (state: any): ElementoState => {
     articulacao: state.articulacao,
     past: state.past,
     present: [],
-    future: buildFuture(state, state.present),
+    future: buildFuture(state, eventos),
     ui: {
       events: [],
     },
@@ -623,7 +623,7 @@ export const redo = (state: any): ElementoState => {
 
   const retorno: ElementoState = {
     articulacao: state.articulacao,
-    past: buildPast(state, state.present),
+    past: buildPast(state, eventos),
     present: [],
     future: state.future,
     ui: {

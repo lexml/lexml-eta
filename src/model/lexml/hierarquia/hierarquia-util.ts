@@ -205,8 +205,8 @@ export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Disp
 };
 
 export const getDispositivosPosterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
-  const pos = dispositivo.pai!.indexOf(dispositivo);
-  return dispositivo.pai!.filhos.filter((f, index) => index > pos && f.tipo === dispositivo.tipo);
+  const pos = dispositivo.pai?.indexOf(dispositivo);
+  return dispositivo.pai?.filhos.filter((f, index) => index > pos! && f.tipo === dispositivo.tipo) ?? [];
 };
 
 export const getDispositivoPosteriorMesmoTipoInclusiveOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
