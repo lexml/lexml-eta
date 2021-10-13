@@ -337,7 +337,7 @@ export const renumeraElemento = (state: any, action: any): ElementoState => {
   try {
     dispositivo.createNumeroFromRotulo(action.novo?.numero);
   } catch (error) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: error });
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'O rótulo informado é inválido', detalhe: error });
   }
 
   dispositivo.createRotulo(dispositivo);

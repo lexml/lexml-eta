@@ -1,5 +1,3 @@
-import { Elemento } from '../../elemento';
-
 export enum TipoMensagem {
   INFO,
   WARNING,
@@ -9,11 +7,9 @@ export enum TipoMensagem {
 export interface Mensagem {
   tipo: TipoMensagem;
   descricao?: string;
-  elemento?: Partial<Elemento>;
+  detalhe?: any;
 }
 
 export interface MensagemErro extends Mensagem {
   tipo: TipoMensagem.ERROR;
-  descricao: string;
-  error: Error;
 }
