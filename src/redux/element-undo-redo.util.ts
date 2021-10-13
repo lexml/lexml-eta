@@ -32,7 +32,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
   const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
 
   const novos: Dispositivo[] = [primeiro];
-  elementos.forEach(filho => {
+  elementos?.forEach(filho => {
     const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoFromElemento(articulacao, filho.hierarquia!.pai! as Elemento);
     const novo = redodDispositivoExcluido(filho, parent!);
     novos.push(novo);
@@ -63,7 +63,7 @@ export const incluir = (state: ElementoState, evento: StateEvent, novosEvento: S
       const referencia = posicao === 0 ? pai : getDispositivoAnterior(novos[0]);
 
       if (referencia) {
-        const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
+        const dispositivo = getDispositivoFromElemento(articulacao!, referencia);
         dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
       }
     }
