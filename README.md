@@ -107,15 +107,6 @@ Para executar um teste apenas:
 npm run test -- --grep out-tsc/test/**/parte.test.js
 ```
 
-Para ver os resultado de coverage:
-
-```
-npm run test
-npm start
-
-http://localhost:8000/coverage/index.html
-```
-
 ### Linting
 
 Para varrer o projeto em buscar de erros (lint):
