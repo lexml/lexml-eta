@@ -57,13 +57,19 @@ export const incluir = (state: ElementoState, evento: StateEvent, novosEvento: S
     const novos = redoDispositivosExcluidos(articulacao, evento.elementos);
     pai?.renumeraFilhos();
 
-    const posicao = elemento!.hierarquia!.posicao;
+    if (novosEvento) {
+      const posicao = elemento!.hierarquia!.posicao;
 
-    const referencia = posicao === 0 ? pai : getDispositivoAnterior(novos[0]);
+      const referencia = posicao === 0 ? pai : getDispositivoAnterior(novos[0]);
 
-    if (referencia) {
-      const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
-      dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
+      if (referencia) {
+        const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
+        dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
+      }
+    }
+
+    if (evento.stateType === StateType.ElementoIncluido) {
+      novosEvento.referencia = evento.referencia;
     }
 
     return novos.map(n => createElemento(n));
