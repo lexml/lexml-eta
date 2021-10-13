@@ -178,7 +178,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `O último dispositivo do bloco de alteração deve terminar com .&#8221; (NR). Não deve haver espaço após o ponto final!`,
+      descricao: `O último dispositivo do bloco de alteração deve terminar com .&#8221; (NR). Inclusive, não pode haver espaço após o ponto final!`,
     });
   }
   if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /["”“].*/.test(dispositivo.texto) && !/”.*(NR)/.test(dispositivo.texto)) {
