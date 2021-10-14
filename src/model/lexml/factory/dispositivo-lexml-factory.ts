@@ -1,6 +1,7 @@
 /* eslint-disable indent */
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../../../redux/elemento-actions';
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao, normalizaSeForOmissis } from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../../../redux/elemento-reducer-conteudo-util';
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';

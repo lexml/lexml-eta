@@ -1,4 +1,5 @@
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao } from '../../../redux/elemento-reducer-conteudo-util';
+import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';

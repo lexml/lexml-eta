@@ -1,4 +1,4 @@
-import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
+import { Articulacao } from '../model/dispositivo/dispositivo';
 import { isAgrupador, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
@@ -6,7 +6,6 @@ import {
   buildListaElementosRenumerados,
   createElemento,
   createElementos,
-  criaElementoValidadoSeNecessario,
   getDispositivoFromElemento,
   getElementos,
   listaDispositivosRenumerados,
@@ -25,8 +24,8 @@ import {
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
 import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
-import { Mensagem, TipoMensagem } from '../model/lexml/util/mensagem';
-import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from './element-undo-redo.util';
+import { TipoMensagem } from '../model/lexml/util/mensagem';
+import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from './element-reducer-undo-redo-util';
 import {
   ABRIR_ARTICULACAO,
   ADICIONAR_ELEMENTO,
@@ -48,6 +47,7 @@ import {
   VALIDAR_ARTICULACAO,
   VALIDAR_ELEMENTO,
 } from './elemento-actions';
+import { normalizaSeForOmissis } from './elemento-reducer-conteudo-util';
 import {
   ajustaReferencia,
   buildEventoAdicionarElemento,
@@ -64,10 +64,11 @@ import {
   isNovoDispositivoDesmembrandoAtual,
   isOrWasUnico,
   naoPodeCriarFilho,
-  normalizaSeForOmissis,
   removeAgrupadorAndBuildEvents,
   removeAndBuildEvents,
+  retornaEstadoAtualComMensagem,
   textoFoiModificado,
+  validaFilhos,
 } from './elemento-reducer-util';
 import { Eventos, getEvento } from './eventos';
 import { ElementoState, StateType } from './state';
@@ -228,13 +229,6 @@ export const selecionaElemento = (state: any, action: any): ElementoState => {
   };
 };
 
-const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void => {
-  filhos.forEach(filho => {
-    criaElementoValidadoSeNecessario(validados, filho);
-    filhos ? validaFilhos(validados, filho.filhos) : undefined;
-  });
-};
-
 export const validaArticulacao = (state: any): ElementoState => {
   const elementos: Elemento[] = [];
   validaFilhos(elementos, state.articulacao.filhos);
@@ -281,19 +275,6 @@ export const validaElemento = (state: any, action: any): ElementoState => {
     future: state.future,
     ui: {
       events,
-    },
-  };
-};
-
-export const retornaEstadoAtualComMensagem = (state: any, mensagem: Mensagem): ElementoState => {
-  return {
-    articulacao: state.articulacao,
-    past: state.past,
-    present: state.present,
-    future: state.future,
-    ui: {
-      events: state.ui?.events,
-      message: mensagem,
     },
   };
 };

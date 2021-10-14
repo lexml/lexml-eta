@@ -6,8 +6,7 @@ import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-valida
 import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import { getDispositivoAnterior } from '../model/lexml/hierarquia/hierarquia-util';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
-import { retornaEstadoAtualComMensagem } from './elemento-reducer';
-import { isElementoDispositivoAlteracao } from './elemento-reducer-util';
+import { isElementoDispositivoAlteracao, retornaEstadoAtualComMensagem } from './elemento-reducer-util';
 import { getEvento } from './eventos';
 import { ElementoState, StateEvent, StateType } from './state';
 

@@ -1,4 +1,4 @@
-import { normalizaSeForOmissis } from '../../../redux/elemento-reducer-util';
+import { normalizaSeForOmissis } from '../../../redux/elemento-reducer-conteudo-util';
 import { Conteudo } from '../../dispositivo/conteudo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from './conteudo-util';
