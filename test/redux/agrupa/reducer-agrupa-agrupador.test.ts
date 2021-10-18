@@ -2,10 +2,10 @@ import { expect } from '@open-wc/testing';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { AGRUPAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
+import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';
 import { agrupaElemento } from '../../../src/redux/elemento/reducer/agrupaElemento';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/evento';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_AGRUPADORES_ARTIGOS_SEM_AGRUPADORES } from '../../doc/exemplo-agrupadores-artigos-sem-agrupadores';
 

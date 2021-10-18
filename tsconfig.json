@@ -15,6 +15,6 @@
     "inlineSources": true,
     "rootDir": "./"
   },
-  "include": ["**/*.ts", "src/redux/eventots"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "*.d.ts"]
 }

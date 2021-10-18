@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { containsTags, endsWithPunctuation, endsWithWord, isValidHTML, isValidHtmlParagraph } from '../../../src/util/stringUtil';
+import { containsTags, endsWithPunctuation, endsWithWord, isValidHTML, isValidHtmlParagraph } from '../../../src/util/string-util';
 
 describe('StringUtil', () => {
   describe('containsTags => testes de reconhecimento de tags no texto', () => {

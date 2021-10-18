@@ -3,8 +3,8 @@ import { buildListaDispositivos, createElemento, getDispositivoFromElemento, get
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getDispositivoPosteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { Eventos } from '../../evento';
 import { State, StateType } from '../../state';
+import { Eventos } from '../evento/eventos';
 import { ajustaReferencia } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 

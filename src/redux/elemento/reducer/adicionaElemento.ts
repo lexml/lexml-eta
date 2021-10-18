@@ -5,8 +5,8 @@ import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispos
 import { hasFilhos, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
+import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { normalizaSeForOmissis } from '../util/conteudoReducerUtil';
-import { buildEventoAdicionarElemento } from '../util/eventosReducerUtil';
 import { createElementoValidado, isDispositivoAlteracao, isNovoDispositivoDesmembrandoAtual, isOrWasUnico, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 

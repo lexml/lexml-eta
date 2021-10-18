@@ -1,4 +1,4 @@
-import { endsWithWord } from '../../../util/stringUtil';
+import { endsWithWord } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isArtigo } from '../../dispositivo/tipo';

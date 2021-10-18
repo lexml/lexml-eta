@@ -5,7 +5,7 @@ import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispos
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../state';
-import { buildEventoTransformacaooElemento } from '../util/eventosReducerUtil';
+import { buildEventoTransformacaooElemento } from '../evento/eventosUtil';
 import { getElementosDoDispositivo } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 

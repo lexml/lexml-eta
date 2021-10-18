@@ -16,9 +16,9 @@ import {
   isArtigoUnico,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
-import { getEvento } from '../../evento';
 import { StateType } from '../../state';
 import { adicionarElementoAction } from '../action/elementoAction';
+import { getEvento } from '../evento/eventosUtil';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any): boolean => {
   if (state && state.ui?.events) {

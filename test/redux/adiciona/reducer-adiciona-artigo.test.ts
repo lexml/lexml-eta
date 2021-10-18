@@ -2,8 +2,8 @@ import { expect } from '@open-wc/testing';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
+import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';
 import { adicionaElemento } from '../../../src/redux/elemento/reducer/adicionaElemento';
-import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/evento';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 

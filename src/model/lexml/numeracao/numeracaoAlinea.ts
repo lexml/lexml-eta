@@ -1,4 +1,4 @@
-import { addSpaceRegex } from '../../../util/stringUtil';
+import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, trataComplemento } from './numeracaoUtil';

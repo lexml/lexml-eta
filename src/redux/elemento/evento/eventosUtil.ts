@@ -5,9 +5,9 @@ import { buildListaElementosRenumerados, createElemento, getElementos, listaDisp
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { Eventos } from '../../evento';
 import { StateEvent, StateType } from '../../state';
-import { ajustaReferencia, getElementosDoDispositivo, validaDispositivosAfins } from './reducerUtil';
+import { ajustaReferencia, getElementosDoDispositivo, validaDispositivosAfins } from '../util/reducerUtil';
+import { Eventos } from './eventos';
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {
   const eventos = new Eventos();
@@ -142,4 +142,70 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
 
   eventos.add(StateType.ElementoRenumerado, renumerados);
   return eventos.build();
+};
+
+export const getEvento = (eventos: StateEvent[], stateType: StateType): StateEvent => {
+  return eventos?.filter(ev => ev.stateType === stateType)[0];
+};
+
+export const getEventosQuePossuemElementos = (eventos: StateEvent[]): StateEvent[] => {
+  return eventos.filter(ev => ev?.elementos && ev.elementos?.length > 0);
+};
+
+export const addElementosAoEvento = (evento: StateEvent, elementos: Elemento[]): void => {
+  elementos.forEach(elemento => (evento.elementos?.filter(atual => atual.uuid === elemento.uuid).length === 0 ? evento.elementos.push(elemento) : undefined));
+};
+
+export const eventoContem = (stateEvents: StateEvent, elemento: Elemento): boolean => {
+  return (
+    stateEvents?.elementos!.map(ev => ev.uuid === elemento!.uuid && ev.rotulo === elemento!.rotulo && ev.conteudo?.texto === elemento.conteudo?.texto).filter(value => value)
+      .length > 0
+  );
+};
+
+export const createEventos = (): StateEvent[] => {
+  return [
+    {
+      stateType: StateType.ElementoIncluido,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoRemovido,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoModificado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoRenumerado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoValidado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoSelecionado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+  ];
 };

@@ -3,7 +3,7 @@ import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { RenumerarElemento } from '../action/elementoAction';
-import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../util/eventosReducerUtil';
+import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const renumeraElemento = (state: any, action: any): State => {
