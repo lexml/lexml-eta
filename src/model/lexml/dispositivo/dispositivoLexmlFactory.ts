@@ -1,12 +1,11 @@
 /* eslint-disable indent */
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../../../redux/elemento/action/elementoAction';
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../../../redux/elemento/util/conteudoReducerUtil';
 import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo } from '../../dispositivo/tipo';
-import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
+import { hasIndicativoDesdobramento, hasIndicativoFimAlteracao, hasIndicativoFinalSequencia, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
 import { getArticulacao, getDispositivoAnterior, hasFilhos, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { TipoMensagem } from '../util/mensagem';

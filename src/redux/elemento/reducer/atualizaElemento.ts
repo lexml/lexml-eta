@@ -1,7 +1,7 @@
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
-import { normalizaSeForOmissis } from '../util/conteudoReducerUtil';
 import { isDispositivoAlteracao } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 

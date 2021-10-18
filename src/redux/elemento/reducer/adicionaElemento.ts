@@ -1,12 +1,12 @@
 import { isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { hasFilhos, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
-import { normalizaSeForOmissis } from '../util/conteudoReducerUtil';
 import { createElementoValidado, isDispositivoAlteracao, isNovoDispositivoDesmembrandoAtual, isOrWasUnico, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 

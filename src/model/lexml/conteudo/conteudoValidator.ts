@@ -1,4 +1,3 @@
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao } from '../../../redux/elemento/util/conteudoReducerUtil';
 import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
@@ -14,7 +13,14 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from './conteudoUtil';
+import {
+  hasIndicativoContinuacaoSequencia,
+  hasIndicativoDesdobramento,
+  hasIndicativoFimAlteracao,
+  hasIndicativoFinalSequencia,
+  hasIndicativoInicioAlteracao,
+  TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
+} from './conteudoUtil';
 
 export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
