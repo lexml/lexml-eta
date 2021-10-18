@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput } from '../model/dispositivo/tipo';
 import { Elemento as Elemento, Referencia } from '../model/elemento';
 import {
   buildListaElementosRenumerados,
@@ -9,10 +9,10 @@ import {
   getElementos,
   listaDispositivosRenumerados,
 } from '../model/elemento/elemento-util';
-import { acoesPossiveis } from '../model/lexml/acoes/acoes.possiveis';
+import { acoesPossiveis } from '../model/lexml/acoes/acoes-possiveis';
 import { hasIndicativoDesdobramento } from '../model/lexml/conteudo/conteudo-util';
+import { DispositivoLexmlFactory } from '../model/lexml/dispositivo/dispositivo-lexml-factory';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
-import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
   getArticulacao,
   getDispositivoAndFilhosAsLista,
@@ -24,6 +24,7 @@ import {
   isArtigoUnico,
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../model/lexml/tipo/tipo-dispositivo';
 import { Mensagem } from '../model/lexml/util/mensagem';
 import { adicionarElementoAction } from './elemento-actions';
 import { Eventos, getEvento } from './eventos';

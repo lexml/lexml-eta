@@ -1,9 +1,9 @@
 import { customElement, html, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
-import { TipoDispositivo } from '../../model/dispositivo/tipo';
 import { Elemento } from '../../model/elemento';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracao-util';
+import { TipoDispositivo } from '../../model/lexml/tipo/tipo-dispositivo';
 import {
   adicionarElementoAction,
   atualizarElementoAction,

@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
 import { validaArticulacao } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';
 import { StateType } from '../../../src/redux/state';

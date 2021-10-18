@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { TipoDispositivo } from '../../dispositivo/tipo';
 import { getArticulacao } from '../hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../tipo/tipo-dispositivo';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {

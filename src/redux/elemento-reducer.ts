@@ -1,5 +1,5 @@
 import { Articulacao } from '../model/dispositivo/dispositivo';
-import { isAgrupador, isCaput, isIncisoCaput, isOmissis, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isAgrupador, isCaput, isIncisoCaput, isOmissis } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import {
   buildListaDispositivos,
@@ -10,9 +10,9 @@ import {
   getElementos,
   listaDispositivosRenumerados,
 } from '../model/elemento/elemento-util';
-import { acoesPossiveis, getAcaoPossivelShiftTab, getAcaoPossivelTab, isAcaoTransformacaoPermitida, normalizaNomeAcao } from '../model/lexml/acoes/acoes.possiveis';
+import { acoesPossiveis, getAcaoPossivelShiftTab, getAcaoPossivelTab, isAcaoTransformacaoPermitida, normalizaNomeAcao } from '../model/lexml/acoes/acoes-possiveis';
+import { DispositivoLexmlFactory } from '../model/lexml/dispositivo/dispositivo-lexml-factory';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
-import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import {
   getAgrupadorAcimaByTipo,
   getDispositivoAnterior,
@@ -23,7 +23,8 @@ import {
   isArtigoUnico,
   isParagrafoUnico,
 } from '../model/lexml/hierarquia/hierarquia-util';
-import { ArticulacaoParser } from '../model/lexml/service/articulacao-parser';
+import { ArticulacaoParser } from '../model/lexml/parser/articulacao-parser';
+import { TipoDispositivo } from '../model/lexml/tipo/tipo-dispositivo';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from './element-reducer-undo-redo-util';
 import {

@@ -1,6 +1,6 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { TipoDispositivo } from '../../dispositivo/tipo';
+import { TipoDispositivo } from '../tipo/tipo-dispositivo';
 import { isNumeracaoValida, trataComplemento } from './numeracao-util';
 
 export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {

@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
+import { isParagrafo } from '../../dispositivo/tipo';
+import { TipoDispositivo } from '../tipo/tipo-dispositivo';
 import { isNumeracaoValida } from './numeracao-util';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {

@@ -1,10 +1,11 @@
 import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isArtigo, TipoDispositivo } from '../model/dispositivo/tipo';
+import { isArtigo } from '../model/dispositivo/tipo';
 import { Elemento } from '../model/elemento';
 import { createElemento, getDispositivoFromElemento } from '../model/elemento/elemento-util';
+import { DispositivoLexmlFactory } from '../model/lexml/dispositivo/dispositivo-lexml-factory';
 import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
-import { DispositivoLexmlFactory } from '../model/lexml/factory/dispositivo-lexml-factory';
 import { getDispositivoAnterior } from '../model/lexml/hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../model/lexml/tipo/tipo-dispositivo';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { isElementoDispositivoAlteracao, retornaEstadoAtualComMensagem } from './elemento-reducer-util';
 import { getEvento } from './eventos';

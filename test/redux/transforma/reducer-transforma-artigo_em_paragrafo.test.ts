@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
-import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
 import { ADICIONAR_ELEMENTO, transformarArtigoEmParagrafo } from '../../../src/redux/elemento-actions';
 import { adicionaElemento, redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
 import { getEvento } from '../../../src/redux/eventos';

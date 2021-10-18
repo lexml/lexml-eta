@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { TipoDispositivo } from '../../../src/model/dispositivo/tipo';
-import { ArticulacaoParser } from '../../../src/model/lexml/service/articulacao-parser';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
 import { ATUALIZAR_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { atualizaElemento } from '../../../src/redux/elemento-reducer';
 import { StateType } from '../../../src/redux/state';

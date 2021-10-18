@@ -54,7 +54,6 @@ import {
   isItem,
   isOmissis,
   isParagrafo,
-  TipoDispositivo,
 } from '../../dispositivo/tipo';
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudo-util';
 import {
@@ -76,6 +75,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../tipo/tipo-dispositivo';
 
 const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (

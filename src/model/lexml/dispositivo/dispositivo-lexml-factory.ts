@@ -5,7 +5,7 @@ import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo, TipoDispositivo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo } from '../../dispositivo/tipo';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
 import {
   AlineaLexml,
@@ -27,6 +27,7 @@ import {
 } from '../dispositivo/dispositivo-lexml';
 import { validaDispositivo } from '../dispositivo/dispositivo-validator';
 import { getArticulacao, getDispositivoAnterior, hasFilhos, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../tipo/tipo-dispositivo';
 import { TipoMensagem } from '../util/mensagem';
 
 export class DispositivoLexmlFactory {
