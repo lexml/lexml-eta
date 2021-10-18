@@ -287,3 +287,21 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
 
   return articulacao.indexOfArtigo(atual) === articulacao.artigos.length - 1;
 };
+
+export const isArticulacaoAlteracao = (articulacao: Articulacao): boolean => {
+  return articulacao.pai !== undefined;
+};
+
+export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
+  const r = !!dispositivo.isDispositivoAlteracao;
+
+  if (r) {
+    return true;
+  }
+
+  try {
+    return getArticulacao(dispositivo).pai !== undefined;
+  } catch (error) {
+    return false;
+  }
+};

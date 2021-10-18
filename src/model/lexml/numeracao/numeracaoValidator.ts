@@ -1,7 +1,13 @@
-import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoDeArtigo, isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
-import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
+  getDispositivoPosterior,
+  getDispositivoPosteriorMesmoTipo,
+  irmaosMesmoTipo,
+  isDispositivoAlteracao,
+} from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao, isNumero } from './numeracaoUtil';

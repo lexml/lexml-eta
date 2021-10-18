@@ -1,3 +1,40 @@
+import { Dispositivo } from '../../dispositivo/dispositivo';
+import {
+  isAgrupador,
+  isAlinea,
+  isArticulacao,
+  isArtigo,
+  isCaput,
+  isDispositivoGenerico,
+  isInciso,
+  isIncisoCaput,
+  isIncisoParagrafo,
+  isItem,
+  isOmissis,
+  isParagrafo,
+} from '../../dispositivo/tipo';
+import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
+import {
+  getAgrupadoresAcima,
+  getAgrupadorPosterior,
+  getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipoInclusiveOmissis,
+  getDispositivoPosterior,
+  getDispositivoPosteriorMesmoTipoInclusiveOmissis,
+  getDispositivosPosterioresMesmoTipo,
+  hasAgrupador,
+  hasAgrupadoresAcima,
+  hasAgrupadoresPosteriores,
+  hasDispositivosPosterioresAlteracao,
+  hasFilhos,
+  irmaosMesmoTipo,
+  isDispositivoAlteracao,
+  isPrimeiroMesmoTipo,
+  isUltimaAlteracao,
+  isUltimoMesmoTipo,
+  isUnicoMesmoTipo,
+} from '../hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import {
   acoesDisponiveis,
   acoesPossiveisDispositivo,
@@ -38,44 +75,7 @@ import {
   transformarParagrafoEmArtigo,
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
-} from '../../../redux/elemento/action/elementoAction';
-import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
-import { Dispositivo } from '../../dispositivo/dispositivo';
-import {
-  isAgrupador,
-  isAlinea,
-  isArticulacao,
-  isArtigo,
-  isCaput,
-  isDispositivoGenerico,
-  isInciso,
-  isIncisoCaput,
-  isIncisoParagrafo,
-  isItem,
-  isOmissis,
-  isParagrafo,
-} from '../../dispositivo/tipo';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
-import {
-  getAgrupadoresAcima,
-  getAgrupadorPosterior,
-  getDispositivoAnterior,
-  getDispositivoAnteriorMesmoTipoInclusiveOmissis,
-  getDispositivoPosterior,
-  getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  getDispositivosPosterioresMesmoTipo,
-  hasAgrupador,
-  hasAgrupadoresAcima,
-  hasAgrupadoresPosteriores,
-  hasDispositivosPosterioresAlteracao,
-  hasFilhos,
-  irmaosMesmoTipo,
-  isPrimeiroMesmoTipo,
-  isUltimaAlteracao,
-  isUltimoMesmoTipo,
-  isUnicoMesmoTipo,
-} from '../hierarquia/hierarquiaUtil';
-import { TipoDispositivo } from '../tipo/tipoDispositivo';
+} from './acoes';
 
 const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (

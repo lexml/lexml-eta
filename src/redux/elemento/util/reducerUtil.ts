@@ -1,23 +1,14 @@
-import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput } from '../../../model/dispositivo/tipo';
-import { Elemento, Referencia } from '../../../model/elemento';
-import { createElemento, criaElementoValidadoSeNecessario, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
+import { Elemento } from '../../../model/elemento';
+import { createElemento } from '../../../model/elemento/elementoUtil';
+import { adicionarElementoAction } from '../../../model/lexml/acoes/acoes';
 import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
 import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import {
-  getArticulacao,
-  getDispositivoAndFilhosAsLista,
-  getDispositivoAnteriorMesmoTipo,
-  getUltimoFilho,
-  hasFilhos,
-  irmaosMesmoTipo,
-  isArtigoUnico,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { getArticulacao, getDispositivoAndFilhosAsLista, getDispositivoAnteriorMesmoTipo, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { StateType } from '../../state';
-import { adicionarElementoAction } from '../action/elementoAction';
 import { getEvento } from '../evento/eventosUtil';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any): boolean => {
@@ -30,20 +21,6 @@ export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any)
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);
 };
 
-export const isOrWasUnico = (atual: Dispositivo, originalmenteUnico: boolean): boolean => {
-  return isArtigoUnico(atual) || originalmenteUnico;
-};
-
-export const isArticulacaoAlteracao = (articulacao: Articulacao): boolean => {
-  return articulacao.pai !== undefined;
-};
-
-export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: Elemento | Referencia): Articulacao => {
-  return !isElementoDispositivoAlteracao(elemento) || isArticulacaoAlteracao(articulacao)
-    ? articulacao
-    : getDispositivoFromElemento(articulacao!, { uuid: (elemento as Elemento).hierarquia!.pai!.uuidAlteracao })?.alteracoes ?? articulacao;
-};
-
 export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
   const el = createElemento(dispositivo);
   el.mensagens = validaDispositivo(dispositivo);
@@ -51,60 +28,19 @@ export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
   return el;
 };
 
-export const criaElementoValidado = (validados: Elemento[], dispositivo: Dispositivo, incluiAcoes?: boolean): void => {
-  const mensagens = validaDispositivo(dispositivo);
+export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+  return dispositivos.map(d => {
+    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
+    const novo = DispositivoLexmlFactory.create(pai, d.tipo, anterior);
+    novo.texto = d.texto;
+    novo.numero = d.numero;
+    novo.rotulo = d.rotulo;
+    novo.mensagens = d.mensagens;
+    DispositivoLexmlFactory.copiaFilhos(d, novo);
 
-  if (mensagens.length > 0 || (dispositivo.mensagens && dispositivo.mensagens?.length > 0)) {
-    dispositivo.mensagens = mensagens;
-    const elemento = createElemento(dispositivo, incluiAcoes);
-    elemento.mensagens = validaDispositivo(dispositivo);
-    validados.push(elemento);
-  }
-};
-
-export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
-  const r = !!dispositivo.isDispositivoAlteracao;
-
-  if (r) {
-    return true;
-  }
-
-  try {
-    return getArticulacao(dispositivo).pai !== undefined;
-  } catch (error) {
-    return false;
-  }
-};
-
-export const isElementoDispositivoAlteracao = (elemento: Partial<Elemento>): boolean => {
-  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined;
-};
-
-export const validaDispositivosAfins = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {
-  const validados: Elemento[] = [];
-
-  if (!dispositivo) {
-    return [];
-  }
-  if (isDispositivoAlteracao(dispositivo) && hasFilhos(dispositivo) && dispositivo.filhos.filter(d => d.tipo === TipoDispositivo.omissis.tipo).length > 0) {
-    criaElementoValidado(validados, dispositivo);
-    dispositivo.filhos.filter(d => d.tipo === TipoDispositivo.omissis.tipo).forEach(o => criaElementoValidado(validados, o));
-  }
-
-  if (isDispositivoDeArtigo(dispositivo) || isDispositivoGenerico(dispositivo)) {
-    const parent = isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!;
-    criaElementoValidado(validados, parent);
-    if (isAgrupador(parent)) {
-      criaElementoValidado(validados, isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!);
-    }
-    irmaosMesmoTipo(dispositivo).forEach(filho => {
-      !incluiDispositivo && filho === dispositivo ? undefined : criaElementoValidado(validados, filho, true);
-    });
-  } else if (incluiDispositivo && !isArticulacao(dispositivo) && !isAgrupador(dispositivo)) {
-    criaElementoValidado(validados, dispositivo, true);
-  }
-
-  return validados;
+    d.pai!.removeFilho(d);
+    return novo;
+  });
 };
 
 const isPrimeiroArtigo = (dispositivo: Dispositivo): boolean => {
@@ -142,26 +78,4 @@ export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = fal
     }
   });
   return lista;
-};
-
-export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
-  return dispositivos.map(d => {
-    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
-    const novo = DispositivoLexmlFactory.create(pai, d.tipo, anterior);
-    novo.texto = d.texto;
-    novo.numero = d.numero;
-    novo.rotulo = d.rotulo;
-    novo.mensagens = d.mensagens;
-    DispositivoLexmlFactory.copiaFilhos(d, novo);
-
-    d.pai!.removeFilho(d);
-    return novo;
-  });
-};
-
-export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void => {
-  filhos.forEach(filho => {
-    criaElementoValidadoSeNecessario(validados, filho);
-    filhos ? validaFilhos(validados, filho.filhos) : undefined;
-  });
 };

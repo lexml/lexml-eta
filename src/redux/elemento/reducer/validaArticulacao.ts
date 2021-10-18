@@ -1,6 +1,6 @@
 import { Elemento } from '../../../model/elemento';
+import { validaFilhos } from '../../../model/elemento/elementoUtil';
 import { State, StateType } from '../../state';
-import { validaFilhos } from '../util/reducerUtil';
 
 export const validaArticulacao = (state: any): State => {
   const elementos: Elemento[] = [];

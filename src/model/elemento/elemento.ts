@@ -1,5 +1,5 @@
-import { ElementoAction } from '../../redux/elemento/action/elementoAction';
 import { Conteudo } from '../dispositivo/conteudo';
+import { ElementoAction } from '../lexml/acoes/acoes';
 import { Mensagem } from '../lexml/util/mensagem';
 
 export class Referencia {

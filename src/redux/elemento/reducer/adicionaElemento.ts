@@ -3,11 +3,11 @@ import { Elemento } from '../../../model/elemento';
 import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { hasFilhos, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
-import { createElementoValidado, isDispositivoAlteracao, isNovoDispositivoDesmembrandoAtual, isOrWasUnico, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
+import { createElementoValidado, isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const adicionaElemento = (state: any, action: any): State => {
@@ -64,7 +64,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
   }
 
-  if (isOrWasUnico(atual, originalmenteUnico)) {
+  if (isArtigoUnico(atual) || originalmenteUnico) {
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
     eventos.add(StateType.ElementoRenumerado, [elementoAtualAtualizado]);
   }

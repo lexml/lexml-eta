@@ -1,10 +1,9 @@
 import { isAgrupador } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { hasFilhos, isArtigoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, isArtigoUnico, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
-import { isDispositivoAlteracao } from '../util/reducerUtil';
 import { buildFuture, buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const removeElemento = (state: any, action: any): State => {

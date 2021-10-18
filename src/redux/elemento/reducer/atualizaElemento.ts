@@ -1,8 +1,8 @@
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
+import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
-import { isDispositivoAlteracao } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
 export const atualizaElemento = (state: any, action: any): State => {

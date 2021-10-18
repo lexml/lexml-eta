@@ -16,7 +16,7 @@ import {
   UNDO,
   VALIDAR_ARTICULACAO,
   VALIDAR_ELEMENTO,
-} from '../action/elementoAction';
+} from '../../../model/lexml/acoes/acoes';
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';

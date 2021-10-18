@@ -1,6 +1,6 @@
-import { Tipo } from '../../../model/dispositivo/tipo';
-import { Elemento, Referencia } from '../../../model/elemento';
-import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { Tipo } from '../../dispositivo/tipo';
+import { Elemento, Referencia } from '../../elemento';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 
 export const ABRIR_ARTICULACAO = 'ABRIR_ARTICULACAO';
 export const ADICIONAR_ELEMENTO = 'ADICIONAR_ELEMENTO';

@@ -3,8 +3,6 @@ import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
 import { Elemento } from '../../model/elemento';
-import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
-import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import {
   adicionarElementoAction,
   atualizarElementoAction,
@@ -23,7 +21,9 @@ import {
   UndoAction,
   validarArticulacaAction,
   validarElementoAction,
-} from '../../redux/elemento/action/elementoAction';
+} from '../../model/lexml/acoes/acoes';
+import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';

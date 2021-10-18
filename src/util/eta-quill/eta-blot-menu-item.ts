@@ -1,4 +1,4 @@
-import { ElementoAction } from '../../redux/elemento/action/elementoAction';
+import { ElementoAction } from '../../model/lexml/acoes/acoes';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotMenuItem extends EtaBlot {

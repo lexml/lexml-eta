@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
+import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acoes/acoes';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
-import { ATUALIZAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
 import { atualizaElemento } from '../../../src/redux/elemento/reducer/atualizaElemento';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { undo } from '../../../src/redux/elemento/reducer/undo';

@@ -2,10 +2,10 @@ import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { getAgrupadorAcimaByTipo, getDispositivoAnterior, hasAgrupadoresAcimaByTipo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getAgrupadorAcimaByTipo, getDispositivoAnterior, hasAgrupadoresAcimaByTipo, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia, copiaDispositivosParaAgrupadorPai, isDesdobramentoAgrupadorAtual, isDispositivoAlteracao, textoFoiModificado } from '../util/reducerUtil';
+import { ajustaReferencia, copiaDispositivosParaAgrupadorPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
 export const agrupaElemento = (state: any, action: any): State => {

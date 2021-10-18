@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
+import { transformarIncisoCaputEmAlinea } from '../../../src/model/lexml/acoes/acoes';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
-import { transformarIncisoCaputEmAlinea } from '../../../src/redux/elemento/action/elementoAction';
 import { getEvento } from '../../../src/redux/elemento/evento/eventosUtil';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { transformaTipoElemento } from '../../../src/redux/elemento/reducer/transformaTipoElemento';

@@ -1,12 +1,12 @@
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { buildListaElementosRenumerados, createElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { StateEvent, StateType } from '../../state';
-import { ajustaReferencia, getElementosDoDispositivo, validaDispositivosAfins } from '../util/reducerUtil';
+import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {
@@ -14,7 +14,7 @@ export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositi
   eventos.setReferencia(createElemento(ajustaReferencia(atual, novo)));
   eventos.add(StateType.ElementoIncluido, getElementosDoDispositivo(novo));
   eventos.add(StateType.ElementoRenumerado, buildListaElementosRenumerados(novo));
-  eventos.add(StateType.ElementoValidado, validaDispositivosAfins(novo, false));
+  eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(novo, false));
 
   return eventos;
 };
@@ -26,7 +26,7 @@ export const buildEventoAtualizacaoElemento = (dispositivo: Dispositivo): Evento
   elemento.mensagens = validaDispositivo(dispositivo);
 
   eventos.add(StateType.ElementoModificado, [elemento]);
-  eventos.add(StateType.ElementoValidado, validaDispositivosAfins(dispositivo));
+  eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
   return eventos;
 };
@@ -45,7 +45,7 @@ export const buildUpdateEvent = (dispositivo: Dispositivo, original?: Elemento):
     },
     {
       stateType: StateType.ElementoValidado,
-      elementos: validaDispositivosAfins(dispositivo, true),
+      elementos: criaListaElementosAfinsValidados(dispositivo, true),
     },
   ];
 };
@@ -99,7 +99,7 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
     modificados.push(createElemento(articulacao.artigos[0]));
   }
 
-  const eventos = buildEventoExclusaoElemento(removidos, modificados, validaDispositivosAfins(dispositivoValidado, false));
+  const eventos = buildEventoExclusaoElemento(removidos, modificados, criaListaElementosAfinsValidados(dispositivoValidado, false));
   return eventos.build();
 };
 

@@ -1,9 +1,17 @@
-import { getArticulacaoFromElemento, isDispositivoAlteracao, isElementoDispositivoAlteracao } from '../../redux/elemento/util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
 import { acoesPossiveis } from '../lexml/acoes/acoesPossiveis';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
-import { findDispositivoById, getArticulacao, getDispositivosPosteriores, hasFilhos, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../lexml/hierarquia/hierarquiaUtil';
+import {
+  findDispositivoById,
+  getArticulacao,
+  getDispositivosPosteriores,
+  hasFilhos,
+  irmaosMesmoTipo,
+  isArticulacaoAlteracao,
+  isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
+} from '../lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { Elemento, Referencia } from './elemento';
 
@@ -11,6 +19,10 @@ export const isValid = (elemento?: Referencia): void => {
   if (elemento === undefined || elemento.uuid === undefined) {
     throw new Error('Não foi informado um elemento válido');
   }
+};
+
+export const isElementoDispositivoAlteracao = (elemento: Partial<Elemento>): boolean => {
+  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined;
 };
 
 const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
@@ -93,6 +105,12 @@ export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
   return elementos;
 };
 
+export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: Elemento | Referencia): Articulacao => {
+  return !isElementoDispositivoAlteracao(elemento) || isArticulacaoAlteracao(articulacao)
+    ? articulacao
+    : getDispositivoFromElemento(articulacao!, { uuid: (elemento as Elemento).hierarquia!.pai!.uuidAlteracao })?.alteracoes ?? articulacao;
+};
+
 export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   dispositivos.push(dispositivo);
   dispositivo.filhos?.forEach(f => (!hasFilhos(f) ? dispositivos.push(f) : buildListaDispositivos(f, dispositivos)));
@@ -133,29 +151,39 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
   return dispositivo;
 };
 
-export const criaElementoValidadoSeNecessario = (validados: Elemento[], dispositivo: Dispositivo): void => {
+const criaElementoValidadoSeNecessario = (validados: Elemento[], dispositivo: Dispositivo, incluiAcoes?: boolean): void => {
   const mensagens = validaDispositivo(dispositivo);
 
   if (mensagens.length > 0 || (dispositivo.mensagens && dispositivo.mensagens?.length > 0)) {
     dispositivo.mensagens = mensagens;
-    const elemento = createElemento(dispositivo);
+    const elemento = createElemento(dispositivo, incluiAcoes);
     elemento.mensagens = validaDispositivo(dispositivo);
     validados.push(elemento);
   }
 };
 
-export const validaDispositivosAfins = (dispositivo: Dispositivo): Elemento[] => {
+export const criaListaElementosAfinsValidados = (dispositivo: Dispositivo | undefined, incluiDispositivo = true): Elemento[] => {
   const validados: Elemento[] = [];
 
-  if (!dispositivo || isArticulacao(dispositivo) || isAgrupador(dispositivo)) {
+  if (!dispositivo) {
     return [];
   }
+  if (isDispositivoAlteracao(dispositivo) && hasFilhos(dispositivo) && dispositivo.filhos.filter(d => d.tipo === TipoDispositivo.omissis.tipo).length > 0) {
+    criaElementoValidadoSeNecessario(validados, dispositivo);
+    dispositivo.filhos.filter(d => d.tipo === TipoDispositivo.omissis.tipo).forEach(o => criaElementoValidadoSeNecessario(validados, o));
+  }
+
   if (isDispositivoDeArtigo(dispositivo) || isDispositivoGenerico(dispositivo)) {
     const parent = isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!;
     criaElementoValidadoSeNecessario(validados, parent);
-    irmaosMesmoTipo(dispositivo).forEach(filho => criaElementoValidadoSeNecessario(validados, filho));
-  } else {
-    criaElementoValidadoSeNecessario(validados, dispositivo);
+    if (isAgrupador(parent)) {
+      criaElementoValidadoSeNecessario(validados, isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!);
+    }
+    irmaosMesmoTipo(dispositivo).forEach(filho => {
+      !incluiDispositivo && filho === dispositivo ? undefined : criaElementoValidadoSeNecessario(validados, filho, true);
+    });
+  } else if (incluiDispositivo && !isArticulacao(dispositivo) && !isAgrupador(dispositivo)) {
+    criaElementoValidadoSeNecessario(validados, dispositivo, true);
   }
 
   return validados;
@@ -172,5 +200,12 @@ export const buildListaElementosRenumerados = (dispositivo: Dispositivo): Elemen
     d.mensagens = validaDispositivo(d);
     const el = createElemento(d);
     return el;
+  });
+};
+
+export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void => {
+  filhos.forEach(filho => {
+    criaElementoValidadoSeNecessario(validados, filho);
+    filhos ? validaFilhos(validados, filho.filhos) : undefined;
   });
 };

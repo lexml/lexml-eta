@@ -1,4 +1,3 @@
-import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
@@ -7,6 +6,7 @@ import {
   getDispositivoCabecaAlteracao,
   hasFilhoGenerico,
   hasFilhos,
+  isDispositivoAlteracao,
   isPenultimoMesmoTipo,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
