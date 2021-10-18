@@ -3,7 +3,7 @@ import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-p
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
 import { AGRUPAR_ELEMENTO, REMOVER_ELEMENTO } from '../../../src/redux/elemento-actions';
 import { agruparElemento, removeElemento } from '../../../src/redux/elemento-reducer';
-import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/eventos';
+import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/event';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_AGRUPADORES_ARTIGOS_SEM_AGRUPADORES } from '../../doc/exemplo-agrupadores-artigos-sem-agrupadores';
 

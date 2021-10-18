@@ -19,7 +19,7 @@ export interface StateEvent {
   elementos?: Elemento[];
 }
 
-export interface ElementoState {
+export interface State {
   articulacao?: Articulacao;
   past?: StateEvent[];
   present: StateEvent[];
@@ -30,7 +30,7 @@ export interface ElementoState {
   };
 }
 
-export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): ElementoState => {
+export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {
   return {
     articulacao: state.articulacao,
     past: past,

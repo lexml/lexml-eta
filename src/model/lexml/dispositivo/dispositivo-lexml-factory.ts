@@ -1,12 +1,15 @@
 /* eslint-disable indent */
-import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../../../redux/elemento-actions';
-import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../../../redux/elemento-reducer-conteudo-util';
-import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../../../redux/elemento/action/elementoActions';
+import { hasIndicativoFimAlteracao, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../../../redux/elemento/util/conteudoReducerUtil';
+import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo } from '../../dispositivo/tipo';
 import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudo-util';
+import { getArticulacao, getDispositivoAnterior, hasFilhos, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../tipo/tipo-dispositivo';
+import { TipoMensagem } from '../util/mensagem';
 import {
   AlineaLexml,
   ArticulacaoLexml,
@@ -24,11 +27,8 @@ import {
   SecaoLexml,
   SubsecaoLexml,
   TituloLexml,
-} from '../dispositivo/dispositivo-lexml';
-import { validaDispositivo } from '../dispositivo/dispositivo-validator';
-import { getArticulacao, getDispositivoAnterior, hasFilhos, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../tipo/tipo-dispositivo';
-import { TipoMensagem } from '../util/mensagem';
+} from './dispositivo-lexml';
+import { validaDispositivo } from './dispositivo-validator';
 
 export class DispositivoLexmlFactory {
   static createArticulacao(): Articulacao {

@@ -1,15 +1,16 @@
-import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isArtigo } from '../model/dispositivo/tipo';
-import { Elemento } from '../model/elemento';
-import { createElemento, getDispositivoFromElemento } from '../model/elemento/elemento-util';
-import { DispositivoLexmlFactory } from '../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { validaDispositivo } from '../model/lexml/dispositivo/dispositivo-validator';
-import { getDispositivoAnterior } from '../model/lexml/hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../model/lexml/tipo/tipo-dispositivo';
-import { TipoMensagem } from '../model/lexml/util/mensagem';
-import { isElementoDispositivoAlteracao, retornaEstadoAtualComMensagem } from './elemento-reducer-util';
-import { getEvento } from './eventos';
-import { ElementoState, StateEvent, StateType } from './state';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { isArtigo } from '../../../model/dispositivo/tipo';
+import { Elemento } from '../../../model/elemento';
+import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivo-validator';
+import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquia-util';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipo-dispositivo';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { getEvento } from '../../event';
+import { State, StateEvent, StateType } from '../../state';
+import { isElementoDispositivoAlteracao } from './reducerUtil';
+import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = DispositivoLexmlFactory.create(
@@ -41,7 +42,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
   return novos;
 };
 
-export const incluir = (state: ElementoState, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
+export const incluir = (state: State, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
   let articulacao;
 
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
@@ -77,7 +78,7 @@ export const incluir = (state: ElementoState, evento: StateEvent, novosEvento: S
   return [];
 };
 
-export const remover = (state: ElementoState, evento: StateEvent): Elemento[] => {
+export const remover = (state: State, evento: StateEvent): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     evento.elementos.forEach(el => {
       const dispositivo = getDispositivoFromElemento(state.articulacao!, el, true);
@@ -92,7 +93,7 @@ export const remover = (state: ElementoState, evento: StateEvent): Elemento[] =>
   return [];
 };
 
-export const processarModificados = (state: ElementoState, evento: StateEvent, isRedo = false): Elemento[] => {
+export const processarModificados = (state: State, evento: StateEvent, isRedo = false): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -113,7 +114,7 @@ export const processarModificados = (state: ElementoState, evento: StateEvent, i
   return [];
 };
 
-export const processaRenumerados = (state: ElementoState, evento: StateEvent): Elemento[] => {
+export const processaRenumerados = (state: State, evento: StateEvent): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -127,7 +128,7 @@ export const processaRenumerados = (state: ElementoState, evento: StateEvent): E
   return [];
 };
 
-export const processaValidados = (state: ElementoState, eventos: StateEvent[]): Elemento[] => {
+export const processaValidados = (state: State, eventos: StateEvent[]): Elemento[] => {
   const evento = getEvento(eventos, StateType.ElementoValidado);
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const validados: Elemento[] = [];

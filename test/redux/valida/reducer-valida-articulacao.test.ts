@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
 import { validaArticulacao } from '../../../src/redux/elemento-reducer';
-import { getEvento } from '../../../src/redux/eventos';
+import { getEvento } from '../../../src/redux/event';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTICULACAO_COM_GENERICOS } from '../../doc/exemplo-articulacao-com-genericos';
 

@@ -3,7 +3,7 @@ import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-p
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
 import { ADICIONAR_ELEMENTO, transformarArtigoEmParagrafo } from '../../../src/redux/elemento-actions';
 import { adicionaElemento, redo, transformaTipoElemento, undo } from '../../../src/redux/elemento-reducer';
-import { getEvento } from '../../../src/redux/eventos';
+import { getEvento } from '../../../src/redux/event';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGO_UNICO } from '../../doc/exemplo-artigo-unico';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';

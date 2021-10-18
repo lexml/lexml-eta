@@ -1,6 +1,6 @@
-import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
-import { TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../model/lexml/conteudo/conteudo-util';
-import { addSpaceRegex, escapeRegex } from '../util/string-util';
+import { TEXTO_OMISSIS } from '../../../model/dispositivo/omissis';
+import { TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from '../../../model/lexml/conteudo/conteudo-util';
+import { addSpaceRegex, escapeRegex } from '../../../util/string-util';
 
 export const hasIndicativoInicioAlteracao = (texto: string): boolean => {
   return (

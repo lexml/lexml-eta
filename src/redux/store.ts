@@ -1,6 +1,6 @@
 import { combineReducers, createStore } from 'redux';
-import { appReducer } from './app-reducer';
-import { elementoReducer } from './elemento-reducer';
+import { appReducer } from './app/appReducer';
+import { elementoReducer } from './elemento/reducer/elementoReducer';
 
 // export const store = createStore(reducer);
 
