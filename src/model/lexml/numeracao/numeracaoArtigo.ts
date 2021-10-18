@@ -1,8 +1,8 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { getArticulacao } from '../hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../tipo/tipo-dispositivo';
-import { isNumeracaoValida } from './numeracao-util';
+import { getArticulacao } from '../hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
+import { isNumeracaoValida } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {

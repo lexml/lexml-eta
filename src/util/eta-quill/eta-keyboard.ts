@@ -1,4 +1,4 @@
-import { cancelarPropagacaoDoEvento } from '../event';
+import { cancelarPropagacaoDoEvento } from '../evento';
 import { Observable } from '../observable';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaQuill, TextoSelecionado } from './eta-quill';

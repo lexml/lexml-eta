@@ -1,9 +1,9 @@
 import { isCaput } from '../../../model/dispositivo/tipo';
-import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elemento-util';
-import { isAcaoTransformacaoPermitida, normalizaNomeAcao } from '../../../model/lexml/acoes/acoes-possiveis';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivo-validator';
-import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquia-util';
+import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { isAcaoTransformacaoPermitida, normalizaNomeAcao } from '../../../model/lexml/acoes/acoesPossiveis';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../state';
 import { buildEventoTransformacaooElemento } from '../util/eventosReducerUtil';
 import { getElementosDoDispositivo } from '../util/reducerUtil';

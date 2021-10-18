@@ -1,9 +1,10 @@
 import { expect } from '@open-wc/testing';
-import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
-import { REMOVER_ELEMENTO } from '../../../src/redux/elemento-actions';
-import { removeElemento, undo } from '../../../src/redux/elemento-reducer';
-import { getEvento } from '../../../src/redux/event';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { REMOVER_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
+import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
+import { undo } from '../../../src/redux/elemento/reducer/undo';
+import { getEvento } from '../../../src/redux/evento';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 

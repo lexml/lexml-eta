@@ -1,11 +1,11 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput } from '../../../model/dispositivo/tipo';
 import { Elemento, Referencia } from '../../../model/elemento';
-import { createElemento, criaElementoValidadoSeNecessario, getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
-import { acoesPossiveis } from '../../../model/lexml/acoes/acoes-possiveis';
-import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudo-util';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivo-validator';
+import { createElemento, criaElementoValidadoSeNecessario, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
+import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   getArticulacao,
   getDispositivoAndFilhosAsLista,
@@ -14,11 +14,11 @@ import {
   hasFilhos,
   irmaosMesmoTipo,
   isArtigoUnico,
-} from '../../../model/lexml/hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../../../model/lexml/tipo/tipo-dispositivo';
-import { getEvento } from '../../event';
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { getEvento } from '../../evento';
 import { StateType } from '../../state';
-import { adicionarElementoAction } from '../action/elementoActions';
+import { adicionarElementoAction } from '../action/elementoAction';
 
 export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any): boolean => {
   if (state && state.ui?.events) {

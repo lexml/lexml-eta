@@ -1,4 +1,4 @@
-import { TipoDispositivo } from '../lexml/tipo/tipo-dispositivo';
+import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { Dispositivo } from './dispositivo';
 
 export interface Tipo {

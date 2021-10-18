@@ -1,6 +1,6 @@
 import { Tipo } from '../../../model/dispositivo/tipo';
 import { Elemento, Referencia } from '../../../model/elemento';
-import { TipoDispositivo } from '../../../model/lexml/tipo/tipo-dispositivo';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 
 export const ABRIR_ARTICULACAO = 'ABRIR_ARTICULACAO';
 export const ADICIONAR_ELEMENTO = 'ADICIONAR_ELEMENTO';
@@ -63,7 +63,7 @@ class AddElemento extends ElementoAbstractAction {
   }
 }
 
-export class AgruparElemento extends ElementoAbstractAction {
+export class agrupaElemento extends ElementoAbstractAction {
   descricao: string;
   tipo: string;
 
@@ -303,12 +303,12 @@ export const adicionarItem = new AddElemento(TipoDispositivo.item);
 export const omissis = new AddElemento(TipoDispositivo.omissis);
 export const adicionarParagrafo = new AddElemento(TipoDispositivo.paragrafo);
 
-export const adicionarParte = new AgruparElemento(TipoDispositivo.parte);
-export const adicionarLivro = new AgruparElemento(TipoDispositivo.livro);
-export const adicionarTitulo = new AgruparElemento(TipoDispositivo.titulo);
-export const adicionarCapitulo = new AgruparElemento(TipoDispositivo.capitulo);
-export const adicionarSecao = new AgruparElemento(TipoDispositivo.secao);
-export const adicionarSubsecao = new AgruparElemento(TipoDispositivo.subsecao);
+export const adicionarParte = new agrupaElemento(TipoDispositivo.parte);
+export const adicionarLivro = new agrupaElemento(TipoDispositivo.livro);
+export const adicionarTitulo = new agrupaElemento(TipoDispositivo.titulo);
+export const adicionarCapitulo = new agrupaElemento(TipoDispositivo.capitulo);
+export const adicionarSecao = new agrupaElemento(TipoDispositivo.secao);
+export const adicionarSubsecao = new agrupaElemento(TipoDispositivo.subsecao);
 
 export const moverElementoAbaixo = new MoverElementoAbaixo();
 export const moverElementoAcima = new MoverElementoAcima();
@@ -431,7 +431,7 @@ export const getAcao = (descricao: string): ElementoAction => {
 };
 
 export const getAcaoAgrupamento = (tipo: string): ElementoAction => {
-  return acoesDisponiveis.filter(acao => acao instanceof AgruparElemento && acao.tipo === tipo)[0];
+  return acoesDisponiveis.filter(acao => acao instanceof agrupaElemento && acao.tipo === tipo)[0];
 };
 
 export const isAcaoMenu = (acao: ElementoAction): boolean => {

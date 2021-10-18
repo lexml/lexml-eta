@@ -1,5 +1,5 @@
 import { Articulacao } from '../../../model/dispositivo/dispositivo';
-import { getElementos } from '../../../model/elemento/elemento-util';
+import { getElementos } from '../../../model/elemento/elementoUtil';
 import { State, StateType } from '../../state';
 
 export const load = (articulacao: Articulacao): State => {

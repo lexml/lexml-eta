@@ -1,5 +1,5 @@
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
-import { TipoLexml } from './tipo-lexml';
+import { TipoLexml } from './tipoLexml';
 
 export class TipoOmissis extends TipoLexml {
   constructor() {

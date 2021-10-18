@@ -1,7 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
-import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior } from './hierarquia-util';
+import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior } from './hierarquiaUtil';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {

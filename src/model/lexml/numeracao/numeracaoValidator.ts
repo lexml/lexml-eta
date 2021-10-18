@@ -1,10 +1,10 @@
-import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoDeArtigo, isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
-import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../tipo/tipo-dispositivo';
+import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, irmaosMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
-import { comparaNumeracao, isNumero } from './numeracao-util';
+import { comparaNumeracao, isNumero } from './numeracaoUtil';
 
 const isRotuloConsistente = (dispositivo: Dispositivo): boolean => {
   const rotulo = dispositivo.rotulo;

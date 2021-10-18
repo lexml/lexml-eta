@@ -38,8 +38,8 @@ import {
   transformarParagrafoEmArtigo,
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
-} from '../../../redux/elemento-actions';
-import { isDispositivoAlteracao } from '../../../redux/elemento-reducer-util';
+} from '../../../redux/elemento/action/elementoAction';
+import { isDispositivoAlteracao } from '../../../redux/elemento/util/reducerUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import {
   isAgrupador,
@@ -55,7 +55,7 @@ import {
   isOmissis,
   isParagrafo,
 } from '../../dispositivo/tipo';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudo-util';
+import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
   getAgrupadoresAcima,
   getAgrupadorPosterior,
@@ -74,8 +74,8 @@ import {
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
-} from '../hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../tipo/tipo-dispositivo';
+} from '../hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 
 const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (

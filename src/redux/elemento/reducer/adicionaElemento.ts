@@ -1,8 +1,8 @@
 import { isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { hasFilhos, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquia-util';
+import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { hasFilhos, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { normalizaSeForOmissis } from '../util/conteudoReducerUtil';

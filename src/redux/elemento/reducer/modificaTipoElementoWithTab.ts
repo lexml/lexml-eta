@@ -1,7 +1,7 @@
-import { getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
-import { getAcaoPossivelShiftTab, getAcaoPossivelTab } from '../../../model/lexml/acoes/acoes-possiveis';
+import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { getAcaoPossivelShiftTab, getAcaoPossivelTab } from '../../../model/lexml/acoes/acoesPossiveis';
 import { State } from '../../state';
-import { TAB, TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../action/elementoActions';
+import { TAB, TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../action/elementoAction';
 import { transformaTipoElemento } from './transformaTipoElemento';
 
 export const modificaTipoElementoWithTab = (state: any, action: any): State => {

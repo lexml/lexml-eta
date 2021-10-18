@@ -1,11 +1,11 @@
 import { expect } from '@open-wc/testing';
-import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
-import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoActions';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { ADICIONAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
 import { adicionaElemento } from '../../../src/redux/elemento/reducer/adicionaElemento';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/event';
+import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/evento';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGO_UNICO } from '../../doc/exemplo-artigo-unico';
 

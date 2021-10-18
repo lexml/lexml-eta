@@ -1,4 +1,4 @@
-import { ArticulacaoParser } from '../../../model/lexml/parser/articulacao-parser';
+import { ArticulacaoParser } from '../../../model/lexml/parser/articulacaoParser';
 import { State } from '../../state';
 import { load } from './loadArticulacao';
 

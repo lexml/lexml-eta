@@ -1,10 +1,10 @@
-import { getArticulacaoFromElemento, isDispositivoAlteracao, isElementoDispositivoAlteracao } from '../../redux/elemento-reducer-util';
+import { getArticulacaoFromElemento, isDispositivoAlteracao, isElementoDispositivoAlteracao } from '../../redux/elemento/util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
-import { acoesPossiveis } from '../lexml/acoes/acoes-possiveis';
-import { validaDispositivo } from '../lexml/dispositivo/dispositivo-validator';
-import { findDispositivoById, getArticulacao, getDispositivosPosteriores, hasFilhos, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../lexml/hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../lexml/tipo/tipo-dispositivo';
+import { acoesPossiveis } from '../lexml/acoes/acoesPossiveis';
+import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
+import { findDispositivoById, getArticulacao, getDispositivosPosteriores, hasFilhos, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../lexml/hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {

@@ -1,7 +1,7 @@
-import { addSpaceRegex } from '../../../util/string-util';
+import { addSpaceRegex } from '../../../util/stringUtil';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { TipoDispositivo } from '../tipo/tipo-dispositivo';
-import { converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, trataComplemento } from './numeracao-util';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
+import { converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, trataComplemento } from './numeracaoUtil';
 
 export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {

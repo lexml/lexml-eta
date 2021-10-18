@@ -1,9 +1,9 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
-import { ATUALIZAR_ELEMENTO } from '../../../src/redux/elemento-actions';
-import { atualizaElemento } from '../../../src/redux/elemento-reducer';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { ATUALIZAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
+import { atualizaElemento } from '../../../src/redux/elemento/reducer/atualizaElemento';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_SEM_AGRUPADORES } from '../../doc/exemplo-sem-agrupadores';
 

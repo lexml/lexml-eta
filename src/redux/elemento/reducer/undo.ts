@@ -1,4 +1,4 @@
-import { Eventos, getEvento } from '../../event';
+import { Eventos, getEvento } from '../../evento';
 import { State, StateType } from '../../state';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';

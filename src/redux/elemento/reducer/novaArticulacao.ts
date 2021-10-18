@@ -1,5 +1,5 @@
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { TipoDispositivo } from '../../../model/lexml/tipo/tipo-dispositivo';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { State } from '../../state';
 import { load } from './loadArticulacao';
 

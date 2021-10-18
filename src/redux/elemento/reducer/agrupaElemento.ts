@@ -1,8 +1,8 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elemento-util';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { getAgrupadorAcimaByTipo, getDispositivoAnterior, hasAgrupadoresAcimaByTipo } from '../../../model/lexml/hierarquia/hierarquia-util';
-import { Eventos } from '../../event';
+import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { getAgrupadorAcimaByTipo, getDispositivoAnterior, hasAgrupadoresAcimaByTipo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { Eventos } from '../../evento';
 import { State, StateType } from '../../state';
 import { normalizaSeForOmissis } from '../util/conteudoReducerUtil';
 import { ajustaReferencia, copiaDispositivosParaAgrupadorPai, isDesdobramentoAgrupadorAtual, isDispositivoAlteracao, textoFoiModificado } from '../util/reducerUtil';

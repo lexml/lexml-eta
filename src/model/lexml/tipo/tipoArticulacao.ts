@@ -1,5 +1,5 @@
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { TipoLexml } from './tipo-lexml';
+import { TipoLexml } from './tipoLexml';
 
 export class TipoArticulacao extends TipoLexml {
   _artigos?: Artigo[];

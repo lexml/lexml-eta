@@ -1,9 +1,11 @@
 import { expect } from '@open-wc/testing';
-import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacao-parser';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
-import { AGRUPAR_ELEMENTO } from '../../../src/redux/elemento-actions';
-import { agruparElemento, redo, undo } from '../../../src/redux/elemento-reducer';
-import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/event';
+import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { AGRUPAR_ELEMENTO } from '../../../src/redux/elemento/action/elementoAction';
+import { agrupaElemento } from '../../../src/redux/elemento/reducer/agrupaElemento';
+import { redo } from '../../../src/redux/elemento/reducer/redo';
+import { undo } from '../../../src/redux/elemento/reducer/undo';
+import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/evento';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_AGRUPADORES_ARTIGOS_SEM_AGRUPADORES } from '../../doc/exemplo-agrupadores-artigos-sem-agrupadores';
 
@@ -21,7 +23,7 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão quando não há agrupadores e se trata do segundo artigo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[1];
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
         novo: {
@@ -131,14 +133,14 @@ describe('Testando a inclusão de agrupadores', () => {
   });
   describe('Testando a inclusão quando há capitulo anterior', () => {
     beforeEach(function () {
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {
           tipo: TipoDispositivo.capitulo.tipo,
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[4].uuid },
         novo: {
@@ -179,14 +181,14 @@ describe('Testando a inclusão de agrupadores', () => {
   });
   describe('Testando a inclusão quando há capitulo posterior', () => {
     beforeEach(function () {
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[4].uuid },
         novo: {
           tipo: TipoDispositivo.capitulo.tipo,
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {
@@ -221,7 +223,7 @@ describe('Testando a inclusão de agrupadores', () => {
   });
   describe('Testando a inclusão quando há capitulo anterior e posterior', () => {
     beforeEach(function () {
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[4].uuid },
         novo: {
@@ -229,7 +231,7 @@ describe('Testando a inclusão de agrupadores', () => {
           conteudo: { texto: '3' },
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {
@@ -237,7 +239,7 @@ describe('Testando a inclusão de agrupadores', () => {
           conteudo: { texto: '1' },
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[3].uuid },
         novo: {
@@ -280,14 +282,14 @@ describe('Testando a inclusão de agrupadores', () => {
   });
   describe('Testando a inclusão de agrupador filho quando não há agrupador do mesmo tipo posterior', () => {
     beforeEach(function () {
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {
           tipo: TipoDispositivo.capitulo.tipo,
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {
@@ -338,21 +340,21 @@ describe('Testando a inclusão de agrupadores', () => {
   });
   describe('Testando a inclusão de agrupador filho quando há agrupador do mesmo tipo posterior', () => {
     beforeEach(function () {
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {
           tipo: TipoDispositivo.capitulo.tipo,
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[4].uuid },
         novo: {
           tipo: TipoDispositivo.secao.tipo,
         },
       });
-      state = agruparElemento(state, {
+      state = agrupaElemento(state, {
         type: AGRUPAR_ELEMENTO,
         atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
         novo: {

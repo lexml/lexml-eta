@@ -1,9 +1,9 @@
-import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elemento-util';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivo-validator';
-import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquia-util';
-import { TipoDispositivo } from '../../../model/lexml/tipo/tipo-dispositivo';
-import { Eventos } from '../../event';
+import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { Eventos } from '../../evento';
 import { State, StateType } from '../../state';
 import { ajustaReferencia } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';

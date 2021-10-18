@@ -1,6 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo } from '../../dispositivo/tipo';
-import { DispositivoLexmlFactory } from '../dispositivo/dispositivo-lexml-factory';
+import { DispositivoLexmlFactory } from '../dispositivo/dispositivoLexmlFactory';
 
 export class ArticulacaoParser {
   static load(obj: any): Articulacao {

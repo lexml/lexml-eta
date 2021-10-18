@@ -1,4 +1,4 @@
-import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
+import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { State } from '../../state';
 import { normalizaSeForOmissis } from '../util/conteudoReducerUtil';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../util/eventosReducerUtil';

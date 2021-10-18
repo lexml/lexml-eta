@@ -1,9 +1,10 @@
-import { customElement, html, LitElement, TemplateResult } from 'lit-element';
+import { customElement, LitElement } from 'lit-element';
+import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
 import { Elemento } from '../../model/elemento';
-import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracao-util';
-import { TipoDispositivo } from '../../model/lexml/tipo/tipo-dispositivo';
+import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import {
   adicionarElementoAction,
   atualizarElementoAction,
@@ -22,7 +23,7 @@ import {
   UndoAction,
   validarArticulacaAction,
   validarElementoAction,
-} from '../../redux/elemento-actions';
+} from '../../redux/elemento/action/elementoAction';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
@@ -325,7 +326,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
   }
 
-  private async renumerarElemento() {
+  private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
     const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
@@ -359,7 +360,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const erro = <HTMLDivElement>content.querySelector('.erro');
 
-    ok.onclick = () => {
+    ok.onclick = (): void => {
       this.quill.focus();
       (<any>dialogElem).close();
       if (elemento.conteudo?.texto !== atual) {
@@ -370,7 +371,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(renumerarElemento.execute(elemento, input.value.trim()));
     };
 
-    cancelar.onclick = () => {
+    cancelar.onclick = (): void => {
       this.quill.focus();
       (<any>dialogElem).close();
     };
@@ -383,7 +384,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return '';
     };
 
-    input.onkeyup = (evt: KeyboardEvent) => {
+    input.onkeyup = (evt: KeyboardEvent): void => {
       const msgErro = validar();
       erro.innerText = msgErro;
       erro.style.display = msgErro ? 'block' : 'none';

@@ -1,5 +1,5 @@
-import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
-import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivo-validator';
+import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { State, StateType } from '../../state';
 
 export const selecionaElemento = (state: any, action: any): State => {

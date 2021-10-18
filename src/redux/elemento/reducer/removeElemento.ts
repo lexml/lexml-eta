@@ -1,6 +1,6 @@
 import { isAgrupador } from '../../../model/dispositivo/tipo';
-import { getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
-import { hasFilhos, isArtigoUnico } from '../../../model/lexml/hierarquia/hierarquia-util';
+import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { hasFilhos, isArtigoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../util/eventosReducerUtil';

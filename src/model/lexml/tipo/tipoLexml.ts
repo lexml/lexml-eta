@@ -1,6 +1,6 @@
 import { Genero } from '../../dispositivo/genero';
 import { Tipo } from '../../dispositivo/tipo';
-import { TipoDispositivo } from './tipo-dispositivo';
+import { TipoDispositivo } from './tipoDispositivo';
 
 export class TipoLexml implements Tipo {
   tipo: string;

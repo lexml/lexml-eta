@@ -1,23 +1,23 @@
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
-import { BlocoAlteracaoNaoPermitido, BlocoAlteracaoPermitido } from '../alteracao/bloco-alteracao-lexml';
-import { ConteudoDispositivo } from '../conteudo/conteudo-dispositivo';
-import { ConteudoOmissis } from '../conteudo/conteudo-omissis';
-import { HierarquiaAgrupador } from '../hierarquia/hierarquia-agrupador';
-import { HierarquiaArtigo } from '../hierarquia/hierarquia-artigo';
-import { HierarquiaDispositivo } from '../hierarquia/hierarquia-dispositivo';
-import { NumeracaoAgrupador } from '../numeracao/numeracao-agrupador';
-import { NumeracaoAlinea } from '../numeracao/numeracao-alinea';
-import { NumeracaoArtigo } from '../numeracao/numeracao-artigo';
-import { NumeracaoGenerico } from '../numeracao/numeracao-generico';
-import { NumeracaoInciso } from '../numeracao/numeracao-inciso';
-import { NumeracaoIndisponivel } from '../numeracao/numeracao-indisponivel';
-import { NumeracaoItem } from '../numeracao/numeracao-item';
-import { NumeracaoParagrafo } from '../numeracao/numeracao-paragrafo';
-import { DispositivoNovo } from '../situacao/dispositivo-novo';
-import { TipoArticulacao } from '../tipo/tipo-articulacao';
-import { TipoArtigo } from '../tipo/tipo-artigo';
-import { TipoLexml } from '../tipo/tipo-lexml';
+import { BlocoAlteracaoNaoPermitido, BlocoAlteracaoPermitido } from '../alteracao/blocoAlteracaoLexml';
+import { ConteudoDispositivo } from '../conteudo/conteudoDispositivo';
+import { ConteudoOmissis } from '../conteudo/conteudoOmissis';
+import { HierarquiaAgrupador } from '../hierarquia/hierarquiaAgrupador';
+import { HierarquiaArtigo } from '../hierarquia/hierarquiaArtigo';
+import { HierarquiaDispositivo } from '../hierarquia/hierarquiaDispositivo';
+import { NumeracaoAgrupador } from '../numeracao/numeracaoAgrupador';
+import { NumeracaoAlinea } from '../numeracao/numeracaoAlinea';
+import { NumeracaoArtigo } from '../numeracao/numeracaoArtigo';
+import { NumeracaoGenerico } from '../numeracao/numeracaoGenerico';
+import { NumeracaoInciso } from '../numeracao/numeracaoInciso';
+import { NumeracaoIndisponivel } from '../numeracao/numeracaoIndisponivel';
+import { NumeracaoItem } from '../numeracao/numeracaoItem';
+import { NumeracaoParagrafo } from '../numeracao/numeracaoParagrafo';
+import { DispositivoNovo } from '../situacao/dispositivoNovo';
+import { TipoArticulacao } from '../tipo/tipoArticulacao';
+import { TipoArtigo } from '../tipo/tipoArtigo';
+import { TipoLexml } from '../tipo/tipoLexml';
 
 export const AlineaLexml = ValidacaoDispositivo(
   GeneroFeminino(BlocoAlteracaoNaoPermitido(DispositivoNovo(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml))))))

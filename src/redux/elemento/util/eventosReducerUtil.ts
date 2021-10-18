@@ -1,11 +1,11 @@
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { buildListaElementosRenumerados, createElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elemento-util';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivo-lexml-factory';
-import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivo-validator';
-import { getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquia-util';
-import { Eventos } from '../../event';
+import { buildListaElementosRenumerados, createElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { Eventos } from '../../evento';
 import { StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo, validaDispositivosAfins } from './reducerUtil';
 

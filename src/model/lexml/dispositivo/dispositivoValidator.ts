@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { validaTexto } from '../conteudo/conteudo-validator';
-import { validaHierarquia } from '../hierarquia/hierarquia-validator';
-import { validaNumeracao } from '../numeracao/numeracao-validator';
+import { validaTexto } from '../conteudo/conteudoValidator';
+import { validaHierarquia } from '../hierarquia/hierarquiaValidator';
+import { validaNumeracao } from '../numeracao/numeracaoValidator';
 import { Mensagem } from '../util/mensagem';
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {

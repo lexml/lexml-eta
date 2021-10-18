@@ -1,8 +1,8 @@
-import { getDispositivoFromElemento } from '../../../model/elemento/elemento-util';
-import { acoesPossiveis } from '../../../model/lexml/acoes/acoes-possiveis';
+import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
-import { RenumerarElemento } from '../action/elementoActions';
+import { RenumerarElemento } from '../action/elementoAction';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../util/eventosReducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 

@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao, Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivo-lexml-factory';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipo-dispositivo';
+import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
 let articulacao: Articulacao;
 let capitulo: Dispositivo;

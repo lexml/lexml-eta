@@ -16,7 +16,7 @@ import {
   UNDO,
   VALIDAR_ARTICULACAO,
   VALIDAR_ELEMENTO,
-} from '../action/elementoActions';
+} from '../action/elementoAction';
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';

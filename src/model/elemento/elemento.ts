@@ -1,4 +1,4 @@
-import { ElementoAction } from '../../redux/elemento-actions';
+import { ElementoAction } from '../../redux/elemento/action/elementoAction';
 import { Conteudo } from '../dispositivo/conteudo';
 import { Mensagem } from '../lexml/util/mensagem';
 
