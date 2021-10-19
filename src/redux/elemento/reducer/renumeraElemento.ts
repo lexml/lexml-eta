@@ -1,6 +1,6 @@
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { RenumerarElemento } from '../../../model/lexml/acoes/acoes';
 import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
+import { RenumerarElemento } from '../../../model/lexml/acoes/renumerarElementoAction';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';

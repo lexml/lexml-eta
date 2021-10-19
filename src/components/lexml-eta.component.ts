@@ -1,7 +1,8 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import { EXEMPLO_CC } from '../../demo/doc/codigocivil-eta';
-import { novaArticulacaoAction, openArticulacaoAction } from '../model/lexml/acoes/acoes';
+import { novaArticulacaoAction } from '../model/lexml/acoes/novaArticulacaoAction';
+import { openArticulacaoAction } from '../model/lexml/acoes/openArticulacaoAction';
 import { rootStore } from '../redux/store';
 
 @customElement('lexml-eta')

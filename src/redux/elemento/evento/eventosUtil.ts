@@ -149,7 +149,7 @@ export const getEvento = (eventos: StateEvent[], stateType: StateType): StateEve
 };
 
 export const getEventosQuePossuemElementos = (eventos: StateEvent[]): StateEvent[] => {
-  return eventos.filter(ev => ev?.elementos && ev.elementos?.length > 0);
+  return eventos?.filter(ev => ev?.elementos && ev.elementos?.length > 0);
 };
 
 export const addElementosAoEvento = (evento: StateEvent, elementos: Elemento[]): void => {

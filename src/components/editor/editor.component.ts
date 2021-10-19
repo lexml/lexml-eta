@@ -3,25 +3,21 @@ import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
 import { Elemento } from '../../model/elemento';
-import {
-  adicionarElementoAction,
-  atualizarElementoAction,
-  ElementoAction,
-  elementoSelecionadoAction,
-  getAcao,
-  isAcaoMenu,
-  moverElementoAbaixo,
-  moverElementoAcima,
-  RedoAction,
-  removerElementoAction,
-  renumerarElemento,
-  shiftTabAction,
-  tabAction,
-  transformar,
-  UndoAction,
-  validarArticulacaAction,
-  validarElementoAction,
-} from '../../model/lexml/acoes/acoes';
+import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acoes/acoes';
+import { adicionarElementoAction } from '../../model/lexml/acoes/adicionarElementoAction';
+import { atualizarElementoAction } from '../../model/lexml/acoes/atualizarElementoAction';
+import { elementoSelecionadoAction } from '../../model/lexml/acoes/elementoSelecionadoAction';
+import { moverElementoAbaixoAction } from '../../model/lexml/acoes/moverElementoAbaixoAction';
+import { moverElementoAcimaAction } from '../../model/lexml/acoes/moverElementoAcimaAction';
+import { redoAction } from '../../model/lexml/acoes/redoAction';
+import { removerElementoAction } from '../../model/lexml/acoes/removerElementoAction';
+import { renumerarElementoAction } from '../../model/lexml/acoes/renumerarElementoAction';
+import { shiftTabAction } from '../../model/lexml/acoes/shiftTabAction';
+import { tabAction } from '../../model/lexml/acoes/tabAction';
+import { transformarAction } from '../../model/lexml/acoes/transformarAction';
+import { UndoAction } from '../../model/lexml/acoes/undoAction';
+import { validarArticulacaAction } from '../../model/lexml/acoes/validarArticulacao';
+import { validarElementoAction } from '../../model/lexml/acoes/validarElementoAction';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { StateEvent, StateType } from '../../redux/state';
@@ -368,7 +364,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(atualizarElementoAction.execute(elemento));
       }
 
-      rootStore.dispatch(renumerarElemento.execute(elemento, input.value.trim()));
+      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
     };
 
     cancelar.onclick = (): void => {
@@ -426,9 +422,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key === 'ArrowUp') {
-      rootStore.dispatch(moverElementoAcima.execute(elemento));
+      rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
     } else if (ev.key === 'ArrowDown') {
-      rootStore.dispatch(moverElementoAbaixo.execute(elemento));
+      rootStore.dispatch(moverElementoAbaixoAction.execute(elemento));
     }
   }
 
@@ -440,17 +436,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key.toLowerCase() === 'a') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.artigo.name!));
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.artigo.name!));
     } else if (ev.key.toLowerCase() === 'l') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.alinea.name!));
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.alinea.name!));
     } else if (ev.key.toLowerCase() === 'n') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.inciso.name!));
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.inciso.name!));
     } else if (ev.key.toLowerCase() === 'o') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.omissis.name!));
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
     } else if (ev.key.toLowerCase() === 'p') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.paragrafo.name!));
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.paragrafo.name!));
     } else if (ev.key.toLowerCase() === 't') {
-      rootStore.dispatch(transformar(elemento, TipoDispositivo.item.name!));
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.item.name!));
     } else if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
@@ -470,7 +466,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (tipo === 'undo') {
       rootStore.dispatch(UndoAction());
     } else {
-      rootStore.dispatch(RedoAction());
+      rootStore.dispatch(redoAction());
     }
   }
 
@@ -517,7 +513,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarEscolhaMenu(itemMenu: string): void {
     if (itemMenu === 'Remover dispositivo') {
       this.removerElemento();
-    } else if (itemMenu === renumerarElemento.descricao) {
+    } else if (itemMenu === renumerarElementoAction.descricao) {
       this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;

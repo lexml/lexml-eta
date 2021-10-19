@@ -1,0 +1,21 @@
+import { Referencia } from '../../elemento';
+import { ElementoAction } from './acoes';
+
+export const MOVER_ELEMENTO_ACIMA = 'MOVER_ELEMENTO_ACIMA';
+
+class MoverElementoAcima implements ElementoAction {
+  descricao: string;
+  tipo?: string;
+
+  constructor() {
+    this.descricao = 'Mover para cima';
+  }
+
+  execute(atual: Referencia): any {
+    return {
+      type: MOVER_ELEMENTO_ACIMA,
+      atual,
+    };
+  }
+}
+export const moverElementoAcimaAction = new MoverElementoAcima();

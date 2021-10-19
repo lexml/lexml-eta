@@ -1,26 +1,24 @@
-import {
-  ABRIR_ARTICULACAO,
-  ADICIONAR_ELEMENTO,
-  AGRUPAR_ELEMENTO,
-  ATUALIZAR_ELEMENTO,
-  ELEMENTO_SELECIONADO,
-  MOVER_ELEMENTO_ABAIXO,
-  MOVER_ELEMENTO_ACIMA,
-  NOVA_ARTICULACAO,
-  REDO,
-  REMOVER_ELEMENTO,
-  RENUMERAR_ELEMENTO,
-  SHIFT_TAB,
-  TAB,
-  TRANSFORMAR_TIPO_ELEMENTO,
-  UNDO,
-  VALIDAR_ARTICULACAO,
-  VALIDAR_ELEMENTO,
-} from '../../../model/lexml/acoes/acoes';
+import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acoes/adicionarElementoAction';
+import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acoes/agruparElementoAction';
+import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acoes/atualizarElementoAction';
+import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acoes/elementoSelecionadoAction';
+import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acoes/moverElementoAbaixoAction';
+import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acoes/moverElementoAcimaAction';
+import { NOVA_ARTICULACAO } from '../../../model/lexml/acoes/novaArticulacaoAction';
+import { ABRIR_ARTICULACAO } from '../../../model/lexml/acoes/openArticulacaoAction';
+import { REDO } from '../../../model/lexml/acoes/redoAction';
+import { REMOVER_ELEMENTO } from '../../../model/lexml/acoes/removerElementoAction';
+import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acoes/renumerarElementoAction';
+import { SHIFT_TAB } from '../../../model/lexml/acoes/shiftTabAction';
+import { TAB } from '../../../model/lexml/acoes/tabAction';
+import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acoes/transformarElementoAction';
+import { UNDO } from '../../../model/lexml/acoes/undoAction';
+import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acoes/validarArticulacao';
+import { VALIDAR_ELEMENTO } from '../../../model/lexml/acoes/validarElementoAction';
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';
-import { atualizaElemento } from './atualizaElemento';
+import { atualizarElemento } from './atualizarElemento';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
@@ -37,7 +35,7 @@ import { validaElemento } from './validaElemento';
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
     case ATUALIZAR_ELEMENTO:
-      return atualizaElemento(state, action);
+      return atualizarElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case AGRUPAR_ELEMENTO:

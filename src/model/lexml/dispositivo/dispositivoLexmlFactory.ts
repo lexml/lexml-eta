@@ -3,7 +3,7 @@ import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/alteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isCaput, isIncisoCaput, isParagrafo } from '../../dispositivo/tipo';
-import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acoes/acoes';
+import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acoes/blocoAlteracaoAction';
 import { hasIndicativoDesdobramento, hasIndicativoFimAlteracao, hasIndicativoFinalSequencia, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
 import { getArticulacao, getDispositivoAnterior, hasFilhos, isDispositivoAlteracao, isPrimeiroMesmoTipo, isUltimaAlteracao, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';

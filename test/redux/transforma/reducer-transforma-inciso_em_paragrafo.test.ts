@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { transformarIncisoCaputEmParagrafo } from '../../../src/model/lexml/acoes/acoes';
+import { transformarIncisoCaputEmParagrafo } from '../../../src/model/lexml/acoes/transformarElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';

@@ -1,5 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { AGRUPAR_ELEMENTO, REMOVER_ELEMENTO } from '../../../src/model/lexml/acoes/acoes';
+import { AGRUPAR_ELEMENTO } from '../../../src/model/lexml/acoes/agruparElementoAction';
+import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acoes/removerElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';

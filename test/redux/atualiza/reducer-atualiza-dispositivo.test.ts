@@ -1,9 +1,9 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acoes/acoes';
+import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acoes/atualizarElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
-import { atualizaElemento } from '../../../src/redux/elemento/reducer/atualizaElemento';
+import { atualizarElemento } from '../../../src/redux/elemento/reducer/atualizarElemento';
 import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_SEM_AGRUPADORES } from '../../doc/exemplo-sem-agrupadores';
 
@@ -20,7 +20,7 @@ describe('Testando a validação da articulação', () => {
   describe('Inicialização do teste ', () => {
     beforeEach(function () {
       const artigo3 = state.articulacao.artigos.filter((artigo: Artigo) => artigo.numero === '3')[0];
-      state = atualizaElemento(state, { type: ATUALIZAR_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo3.uuid!, conteudo: { texto: 'novo texto:' } } });
+      state = atualizarElemento(state, { type: ATUALIZAR_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo3.uuid!, conteudo: { texto: 'novo texto:' } } });
     });
     it('Deveria atualizar o texto', () => {
       expect(state.articulacao.artigos[2].texto).to.equal('novo texto:');

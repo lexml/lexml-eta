@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acoes/acoes';
+import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acoes/adicionarElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';
@@ -263,7 +263,7 @@ describe('Testando a inclusão de artigos', () => {
     });
     describe('Testando os eventos resultantes da ação de inclusão do dispositivo', () => {
       it('Deveria apresentar 2 eventos', () => {
-        expect(eventos.length).to.equal(2);
+        expect(eventos?.length).to.equal(2);
       });
       it('Deveria apresentar o novo dispositivo criado sob o artigo 1º no array de elementos incluídos', () => {
         const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

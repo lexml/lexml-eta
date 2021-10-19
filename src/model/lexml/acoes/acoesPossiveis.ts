@@ -35,22 +35,14 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
+import { acoesDisponiveis, ElementoAction, getAcaoAgrupamento } from './acoes';
+import { adicionarAlinea, adicionarArtigo, adicionarElementoAction, adicionarInciso, adicionarItem } from './adicionarElementoAction';
+import { adicionarCapitulo } from './agruparElementoAction';
+import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
+import { moverElementoAbaixoAction } from './moverElementoAbaixoAction';
+import { moverElementoAcimaAction } from './moverElementoAcimaAction';
+import { renumerarElementoAction } from './renumerarElementoAction';
 import {
-  acoesDisponiveis,
-  acoesPossiveisDispositivo,
-  adicionarAlinea,
-  adicionarArtigo,
-  adicionarCapitulo,
-  adicionarElementoAction,
-  adicionarInciso,
-  adicionarItem,
-  ElementoAction,
-  finalizarBlocoAlteracao,
-  getAcaoAgrupamento,
-  iniciarBlocoAlteracao,
-  moverElementoAbaixo,
-  moverElementoAcima,
-  renumerarElemento,
   transformaAlineaEmItem,
   transformarAlineaEmIncisoCaput,
   transformarAlineaEmIncisoParagrafo,
@@ -75,7 +67,7 @@ import {
   transformarParagrafoEmArtigo,
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
-} from './acoes';
+} from './transformarElementoAction';
 
 const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (
@@ -90,16 +82,14 @@ const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
 export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   let acoes: ElementoAction[] = [];
 
-  acoes.push(...acoesPossiveisDispositivo);
-
   //
   // Não agrupadores
   //
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
-    acoes.push(moverElementoAbaixo);
+    acoes.push(moverElementoAbaixoAction);
   }
   if (!isAgrupador(dispositivo) && !isDispositivoGenerico(dispositivo) && getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
-    acoes.push(moverElementoAcima);
+    acoes.push(moverElementoAcimaAction);
   }
 
   //
@@ -208,7 +198,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
   // Dispositivo de alteração
   //
   if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
-    acoes.push(renumerarElemento);
+    acoes.push(renumerarElementoAction);
   }
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
     acoes.push(iniciarBlocoAlteracao);

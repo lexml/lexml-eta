@@ -2,8 +2,8 @@ import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
-import { adicionarElementoAction } from '../../../model/lexml/acoes/acoes';
 import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
+import { AdicionarElemento } from '../../../model/lexml/acoes/adicionarElementoAction';
 import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -56,7 +56,7 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {
-  return hasIndicativoDesdobramento(dispositivo) && !acoesPossiveis(dispositivo).includes(adicionarElementoAction);
+  return hasIndicativoDesdobramento(dispositivo) && acoesPossiveis(dispositivo).filter(a => a instanceof AdicionarElemento).length === -1;
 };
 
 export const isNovoDispositivoDesmembrandoAtual = (texto: string): boolean => {

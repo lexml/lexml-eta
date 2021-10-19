@@ -1,6 +1,7 @@
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { TAB, TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acoes/acoes';
 import { getAcaoPossivelShiftTab, getAcaoPossivelTab } from '../../../model/lexml/acoes/acoesPossiveis';
+import { TAB } from '../../../model/lexml/acoes/tabAction';
+import { TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acoes/transformarElementoAction';
 import { State } from '../../state';
 import { transformaTipoElemento } from './transformaTipoElemento';
 
