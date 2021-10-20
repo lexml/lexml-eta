@@ -1,4 +1,4 @@
-import { BlocoAlteracao } from './alteracao';
+import { BlocoAlteracao } from './blocoAlteracao';
 import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';

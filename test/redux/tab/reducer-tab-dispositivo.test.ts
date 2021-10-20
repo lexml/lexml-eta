@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { SHIFT_TAB } from '../../../src/model/lexml/acoes/shiftTabAction';
-import { TAB } from '../../../src/model/lexml/acoes/tabAction';
+import { SHIFT_TAB } from '../../../src/model/lexml/acao/shiftTabAction';
+import { TAB } from '../../../src/model/lexml/acao/tabAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { getEvento } from '../../../src/redux/elemento/evento/eventosUtil';

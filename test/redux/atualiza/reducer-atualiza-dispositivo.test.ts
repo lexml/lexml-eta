@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acoes/atualizarElementoAction';
+import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acao/atualizarElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { atualizarElemento } from '../../../src/redux/elemento/reducer/atualizarElemento';

@@ -2,7 +2,7 @@ import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -12,7 +12,7 @@ import { getEvento } from '../evento/eventosUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
-  const novo = DispositivoLexmlFactory.create(
+  const novo = criaDispositivo(
     isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
     undefined,

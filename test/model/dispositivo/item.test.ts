@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaHierarquia } from '../../../src/model/lexml/hierarquia/hierarquiaValidator';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -9,9 +9,9 @@ let item: Dispositivo;
 
 describe('Item', () => {
   beforeEach(function () {
-    const articulacao = DispositivoLexmlFactory.createArticulacao();
-    alinea = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.alinea.tipo);
-    item = DispositivoLexmlFactory.create(alinea, TipoDispositivo.item.tipo);
+    const articulacao = createArticulacao();
+    alinea = criaDispositivo(articulacao, TipoDispositivo.alinea.tipo);
+    item = criaDispositivo(alinea, TipoDispositivo.item.tipo);
   });
   describe('Inicialização de Item', () => {
     it('quando criado a partir da factory, o dispositivo é inicializado corretamente mas sem informação de numeração e rótulo', () => {
@@ -47,8 +47,8 @@ describe('Item', () => {
       expect(item.rotulo).to.equal('1.');
     });
     it('quando inicializado corretamente, o item gera rótulos sequenciais', () => {
-      const i2 = DispositivoLexmlFactory.create(alinea, TipoDispositivo.item.tipo);
-      const i3 = DispositivoLexmlFactory.create(alinea, TipoDispositivo.item.tipo);
+      const i2 = criaDispositivo(alinea, TipoDispositivo.item.tipo);
+      const i3 = criaDispositivo(alinea, TipoDispositivo.item.tipo);
       alinea.renumeraFilhos();
       expect(i2.rotulo).to.equal('2.');
       expect(i3.rotulo).to.equal('3.');

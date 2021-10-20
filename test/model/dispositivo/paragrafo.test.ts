@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Artigo, Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaHierarquia } from '../../../src/model/lexml/hierarquia/hierarquiaValidator';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -9,9 +9,9 @@ let paragrafo: Dispositivo;
 
 describe(TipoDispositivo.paragrafo.tipo, () => {
   beforeEach(function () {
-    const articulacao = DispositivoLexmlFactory.createArticulacao();
-    artigo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
-    paragrafo = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+    const articulacao = createArticulacao();
+    artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    paragrafo = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
   });
   describe('Inicialização de Paragrafo', () => {
     it('quando criado a partir da factory, o dispositivo é inicializado corretamente mas sem informação de numeração e rótulo', () => {
@@ -42,22 +42,22 @@ describe(TipoDispositivo.paragrafo.tipo, () => {
       expect(paragrafo.rotulo).to.equal('Parágrafo único.');
     });
     it('quando inicializado corretamente, o paragrafo obtém um rótulo de parágrafo 1º quando não se trata do único parágrafo', () => {
-      DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+      criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       artigo.renumeraFilhos();
       expect(paragrafo.rotulo).to.equal('§ 1º');
     });
     it('quando inicializado corretamente, o paragrafo gera rótulos sequenciais', () => {
-      const p2 = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
-      const p3 = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+      const p2 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
+      const p3 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       artigo.renumeraFilhos();
       expect(p2.rotulo).to.equal('§ 2º');
       expect(p3.rotulo).to.equal('§ 3º');
     });
     it('quando inicializado corretamente, o parágrafo gera rótulos diferentes a partir do 10º parágrafo', () => {
       for (let i = 0; i < 8; i++) {
-        DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+        criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       }
-      const p = DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+      const p = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       artigo.renumeraFilhos();
 
       expect(p.rotulo).to.equal('§ 10.');

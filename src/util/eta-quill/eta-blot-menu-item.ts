@@ -1,4 +1,4 @@
-import { ElementoAction } from '../../model/lexml/acoes';
+import { ElementoAction } from '../../model/lexml/acao';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotMenuItem extends EtaBlot {

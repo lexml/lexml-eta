@@ -2,7 +2,8 @@ import { isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createByInferencia } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { hasFilhos, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -36,10 +37,10 @@ export const adicionaElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
-  const novo = DispositivoLexmlFactory.createByInferencia(atual, action);
+  const novo = createByInferencia(atual, action);
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {
-    DispositivoLexmlFactory.copiaFilhos(atual, novo);
+    copiaFilhos(atual, novo);
   }
 
   if (isDispositivoAlteracao(novo)) {

@@ -1,10 +1,10 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo } from '../../dispositivo/tipo';
-import { DispositivoLexmlFactory } from '../dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../dispositivo/dispositivoLexmlFactory';
 
 export class ArticulacaoParser {
   static load(obj: any): Articulacao {
-    const articulacao = DispositivoLexmlFactory.createArticulacao();
+    const articulacao = createArticulacao();
     ArticulacaoParser.getChildren(articulacao, obj.Articulacao);
 
     // ArticulacaoParser.print(articulacao);
@@ -40,7 +40,7 @@ export class ArticulacaoParser {
   }
 
   private static createDispositivo(property: string, elemento: any, parent: Dispositivo): Dispositivo {
-    const filho = DispositivoLexmlFactory.create(parent, property);
+    const filho = criaDispositivo(parent, property);
 
     filho.texto = elemento['p'] ? elemento['p'] : elemento['NomeAgrupador'];
 

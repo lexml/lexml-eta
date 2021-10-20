@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
 let artigo: Artigo;
@@ -8,16 +8,16 @@ let artigo: Artigo;
 describe('Bloco de Alteração', () => {
   describe('Inicialização', () => {
     beforeEach(function () {
-      const articulacao = DispositivoLexmlFactory.createArticulacao();
-      artigo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+      const articulacao = createArticulacao();
+      artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
     });
     it('O bloco de alteração é incializado vazio mas o artigo passa a ser artigo de alteração', () => {
       expect(artigo.hasAlteracao()).to.equal(false);
     });
     describe('Adicionando um artigo ao bloco de alteração', () => {
       beforeEach(function () {
-        DispositivoLexmlFactory.createAlteracao(artigo);
-        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(artigo, TipoDispositivo.artigo.tipo));
+        createAlteracao(artigo);
+        artigo.alteracoes!.addFilho(criaDispositivo(artigo, TipoDispositivo.artigo.tipo));
       });
       it('O bloco de alteração tem um artigo', () => {
         expect(artigo.hasAlteracao()).to.equal(true);
@@ -27,14 +27,14 @@ describe('Bloco de Alteração', () => {
     });
     describe('Adicionando um artigo com uma estrutura mais complexa', () => {
       beforeEach(function () {
-        DispositivoLexmlFactory.createAlteracao(artigo);
-        const artigoBloco = DispositivoLexmlFactory.create(artigo, TipoDispositivo.artigo.tipo) as Artigo;
+        createAlteracao(artigo);
+        const artigoBloco = criaDispositivo(artigo, TipoDispositivo.artigo.tipo) as Artigo;
         artigo.alteracoes!.addFilho(artigoBloco);
-        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(artigoBloco!.caput!, TipoDispositivo.omissis.tipo));
-        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(artigoBloco!.caput!, TipoDispositivo.inciso.tipo));
-        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(artigoBloco!.caput!, TipoDispositivo.omissis.tipo));
-        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(artigoBloco!, TipoDispositivo.paragrafo.tipo));
-        artigo.alteracoes!.addFilho(DispositivoLexmlFactory.create(artigoBloco!, TipoDispositivo.omissis.tipo));
+        artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!.caput!, TipoDispositivo.omissis.tipo));
+        artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!.caput!, TipoDispositivo.inciso.tipo));
+        artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!.caput!, TipoDispositivo.omissis.tipo));
+        artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!, TipoDispositivo.paragrafo.tipo));
+        artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!, TipoDispositivo.omissis.tipo));
       });
       it('O bloco de alteração tem um artigo e um omissis', () => {
         expect(artigo.alteracoes!.filhos.length).to.equal(6);

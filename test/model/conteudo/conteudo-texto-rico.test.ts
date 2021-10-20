@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
 let paragrafo: Dispositivo;
@@ -8,8 +8,8 @@ let paragrafo: Dispositivo;
 describe('ConteudoTextoRico', () => {
   describe('Inicialização de ConteudoTextoRico', () => {
     beforeEach(function () {
-      const articulacao = DispositivoLexmlFactory.createArticulacao();
-      paragrafo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.paragrafo.tipo);
+      const articulacao = createArticulacao();
+      paragrafo = criaDispositivo(articulacao, TipoDispositivo.paragrafo.tipo);
     });
     it('O ConteudoTextoRico é inicializado corretamente o dispositivo é criado a partir da factory', () => {
       expect(paragrafo.name).to.equal(TipoDispositivo.paragrafo.tipo);

@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acoes/removerElementoAction';
+import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';

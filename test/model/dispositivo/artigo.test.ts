@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao, Artigo, Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaHierarquia } from '../../../src/model/lexml/hierarquia/hierarquiaValidator';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -10,9 +10,9 @@ let artigo: Artigo;
 
 describe('Artigo: inicialização', () => {
   beforeEach(function () {
-    articulacao = DispositivoLexmlFactory.createArticulacao();
-    secao = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.secao.tipo);
-    artigo = DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo) as Artigo;
+    articulacao = createArticulacao();
+    secao = criaDispositivo(articulacao, TipoDispositivo.secao.tipo);
+    artigo = criaDispositivo(secao, TipoDispositivo.artigo.tipo) as Artigo;
   });
   it('quando criado a partir da factory, o dispositivo é inicializado corretamente mas sem informação de numeração', () => {
     expect(artigo.name).to.equal(TipoDispositivo.artigo.tipo);
@@ -37,14 +37,14 @@ describe('Artigo: inicialização', () => {
   });
 
   it('o artigo pode ser criado sem agrupamentos', () => {
-    const novo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(novo, TipoDispositivo.caput.tipo);
+    const novo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(novo, TipoDispositivo.caput.tipo);
     expect(articulacao.artigos!.length).to.equal(2);
   });
 
   it('o artigo pode ser criado após um artigo existente', () => {
-    const novo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(novo, TipoDispositivo.caput.tipo);
+    const novo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(novo, TipoDispositivo.caput.tipo);
 
     secao.addFilho(artigo as Artigo, novo as Artigo);
     secao.renumeraFilhos();
@@ -52,19 +52,19 @@ describe('Artigo: inicialização', () => {
   });
 
   it('o artigo cria rótulo corretamente', () => {
-    const a1 = DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
+    const a1 = criaDispositivo(secao, TipoDispositivo.artigo.tipo);
     secao.renumeraFilhos();
 
     expect(a1.rotulo).to.equal('Art. 2º');
 
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
-    const a2 = DispositivoLexmlFactory.create(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(secao, TipoDispositivo.artigo.tipo);
+    const a2 = criaDispositivo(secao, TipoDispositivo.artigo.tipo);
 
     expect(secao.filhos.length).to.be.equal(10);
     secao.renumeraFilhos();
@@ -73,14 +73,14 @@ describe('Artigo: inicialização', () => {
   });
 
   it('o artigo trata incisos do caput como filhos', () => {
-    DispositivoLexmlFactory.create(artigo, TipoDispositivo.inciso.tipo);
+    criaDispositivo(artigo, TipoDispositivo.inciso.tipo);
     expect(artigo.caput!.filhos.length).to.be.equal(1);
     expect(artigo.filhos.length).to.be.equal(1);
   });
 
   it('o dispositivo pode possuir, como filhos, paragrafos e dispositivos genéricos', () => {
-    DispositivoLexmlFactory.create(artigo, TipoDispositivo.generico.tipo);
-    DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+    criaDispositivo(artigo, TipoDispositivo.generico.tipo);
+    criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
     expect(artigo.filhos?.length).to.equal(2);
   });
 
@@ -90,7 +90,7 @@ describe('Artigo: inicialização', () => {
   });
 
   it('quando solicitada a exclusão ao pai, o artigo é excluído', () => {
-    DispositivoLexmlFactory.create(artigo, TipoDispositivo.paragrafo.tipo);
+    criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
     secao.removeFilho(artigo);
     expect(secao.filhos.length).to.be.equal(0);
     expect(articulacao.artigos.length).to.be.equal(0);

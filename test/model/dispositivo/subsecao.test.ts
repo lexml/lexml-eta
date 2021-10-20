@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao, Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaHierarquia } from '../../../src/model/lexml/hierarquia/hierarquiaValidator';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -10,9 +10,9 @@ let subsecao: Dispositivo;
 // todo bug estranho. permite subsecao ter como pai uma articulacao
 describe('Subsecao', () => {
   beforeEach(function () {
-    articulacao = DispositivoLexmlFactory.createArticulacao();
-    const secao = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.secao.tipo);
-    subsecao = DispositivoLexmlFactory.create(secao, TipoDispositivo.subsecao.tipo);
+    articulacao = createArticulacao();
+    const secao = criaDispositivo(articulacao, TipoDispositivo.secao.tipo);
+    subsecao = criaDispositivo(secao, TipoDispositivo.subsecao.tipo);
   });
   describe('Inicialização de Título', () => {
     it('A Subseção é inicializada corretamente a partir da factory', () => {
@@ -27,12 +27,12 @@ describe('Subsecao', () => {
         expect(validaHierarquia(subsecao).length).to.be.equal(0);
       });
       it('A seção comanda a criação e renumeração dos dispositivos imediatamente abaixo dela', () => {
-        const artigo = DispositivoLexmlFactory.create(subsecao, TipoDispositivo.artigo.tipo);
+        const artigo = criaDispositivo(subsecao, TipoDispositivo.artigo.tipo);
         subsecao.renumeraFilhos();
         expect(artigo.numero).to.equal('1');
       });
       it('O subsecao pode possuir, como filhos, apenas Artigo', () => {
-        DispositivoLexmlFactory.create(subsecao, TipoDispositivo.subsecao.tipo);
+        criaDispositivo(subsecao, TipoDispositivo.subsecao.tipo);
         expect(subsecao.filhos?.length).to.equal(1);
       });
     });

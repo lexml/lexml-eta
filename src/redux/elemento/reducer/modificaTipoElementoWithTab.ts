@@ -1,7 +1,7 @@
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { getAcaoPossivelShiftTab, getAcaoPossivelTab } from '../../../model/lexml/acoes/acoesPossiveis';
-import { TAB } from '../../../model/lexml/acoes/tabAction';
-import { TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acoes/transformarElementoAction';
+import { getAcaoPossivelShiftTab, getAcaoPossivelTab } from '../../../model/lexml/acao/acoesPossiveis';
+import { TAB } from '../../../model/lexml/acao/tabAction';
+import { TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformarElementoAction';
 import { State } from '../../state';
 import { transformaTipoElemento } from './transformaTipoElemento';
 

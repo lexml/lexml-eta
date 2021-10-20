@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { getAgrupadorAcimaByTipo, getDispositivoAnterior, hasAgrupadoresAcimaByTipo, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -29,12 +29,12 @@ export const agrupaElemento = (state: any, action: any): State => {
   let novo;
 
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
-    novo = DispositivoLexmlFactory.create(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
+    novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
   } else if (hasAgrupadoresAcimaByTipo(atual, action.novo.tipo)) {
     const ref = getAgrupadorAcimaByTipo(atual, action.novo.tipo);
-    novo = DispositivoLexmlFactory.create(ref!.pai!, action.novo.tipo, ref);
+    novo = criaDispositivo(ref!.pai!, action.novo.tipo, ref);
   } else {
-    novo = DispositivoLexmlFactory.create(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
+    novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
   }
   novo.texto = action.novo.conteudo?.texto;
   const dispositivos = atual.pai!.filhos.filter((f: Dispositivo, index: number) => index >= pos && f.tipo !== action.novo.tipo);

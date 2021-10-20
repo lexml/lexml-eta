@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao, Artigo, Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaHierarquia } from '../../../src/model/lexml/hierarquia/hierarquiaValidator';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -10,8 +10,8 @@ let caput: Dispositivo;
 
 describe('Caput: inicialização', () => {
   beforeEach(function () {
-    articulacao = DispositivoLexmlFactory.createArticulacao();
-    artigo = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    articulacao = createArticulacao();
+    artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
     caput = artigo.caput!;
   });
   describe('Inicialização de Caput', () => {

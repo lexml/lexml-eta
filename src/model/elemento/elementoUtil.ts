@@ -1,6 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
-import { acoesPossiveis } from '../lexml/acoes/acoesPossiveis';
+import { acoesPossiveis } from '../lexml/acao/acoesPossiveis';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
   findDispositivoById,

@@ -1,7 +1,7 @@
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { isAcaoTransformacaoPermitida } from '../../../model/lexml/acoes/acoesPossiveis';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { isAcaoTransformacaoPermitida } from '../../../model/lexml/acao/acoesPossiveis';
+import { converteDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../state';
@@ -24,7 +24,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   const atualRenumerados = listaDispositivosRenumerados(atual);
 
-  const novo = DispositivoLexmlFactory.converteDispositivo(atual, action);
+  const novo = converteDispositivo(atual, action);
 
   const novoRenumerados = listaDispositivosRenumerados(novo);
 

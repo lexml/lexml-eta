@@ -1,6 +1,7 @@
 import { isIncisoCaput } from '../../../model/dispositivo/tipo';
 import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getDispositivoPosteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
@@ -29,13 +30,13 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   pai.removeFilho(atual);
   pai.removeFilho(proximo);
 
-  const um = DispositivoLexmlFactory.create(pai, proximo.tipo, undefined, pos);
+  const um = criaDispositivo(pai, proximo.tipo, undefined, pos);
   um.texto = proximo.texto;
-  DispositivoLexmlFactory.copiaFilhos(proximo, um);
+  copiaFilhos(proximo, um);
 
-  const outro = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos + 1);
+  const outro = criaDispositivo(pai, atual.tipo, undefined, pos + 1);
   outro.texto = action.atual.conteudo.texto;
-  DispositivoLexmlFactory.copiaFilhos(atual, outro);
+  copiaFilhos(atual, outro);
 
   pai.renumeraFilhos();
 

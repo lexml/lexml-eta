@@ -2,7 +2,8 @@ import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo
 import { isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { StateEvent, StateType } from '../../state';
@@ -113,12 +114,12 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
 
   const dispositivos = atual.filhos.map(d => {
-    const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? DispositivoLexmlFactory.create(pai!, d.tipo) : DispositivoLexmlFactory.create(pai, d.tipo, undefined, pos++);
+    const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? criaDispositivo(pai!, d.tipo) : criaDispositivo(pai, d.tipo, undefined, pos++);
     novo.texto = d.texto;
     novo.numero = d.numero;
     novo.rotulo = d.rotulo;
     novo.mensagens = d.mensagens;
-    DispositivoLexmlFactory.copiaFilhos(d, novo);
+    copiaFilhos(d, novo);
 
     d.pai!.removeFilho(d);
     return novo;

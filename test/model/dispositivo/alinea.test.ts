@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DispositivoLexmlFactory } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaHierarquia } from '../../../src/model/lexml/hierarquia/hierarquiaValidator';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -9,9 +9,9 @@ let alinea: Dispositivo;
 
 describe('Alínea', () => {
   beforeEach(function () {
-    const articulacao = DispositivoLexmlFactory.createArticulacao();
-    inciso = DispositivoLexmlFactory.create(articulacao, TipoDispositivo.inciso.tipo);
-    alinea = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
+    const articulacao = createArticulacao();
+    inciso = criaDispositivo(articulacao, TipoDispositivo.inciso.tipo);
+    alinea = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
   });
   describe('Inicialização de Alinea', () => {
     it('quando criado a partir da factory, o dispositivo é inicializado corretamente mas sem informação de numeração e rótulo', () => {
@@ -46,20 +46,20 @@ describe('Alínea', () => {
       inciso.renumeraFilhos();
       expect(alinea.rotulo).to.equal('a)');
 
-      const a2 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
-      const a3 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
+      const a2 = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
+      const a3 = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
       expect(a2.rotulo).to.equal('b)');
       expect(a3.rotulo).to.equal('c)');
     });
     it('A alinea  gera rótulos sequenciais quando ultrapassar o número de letras do alfabeto', () => {
       for (let i = 0; i < 24; i++) {
-        DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
+        criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
       }
-      const a1 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
+      const a1 = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
       expect(a1.rotulo).to.equal('z)');
-      const a2 = DispositivoLexmlFactory.create(inciso, TipoDispositivo.alinea.tipo);
+      const a2 = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
       inciso.renumeraFilhos();
       expect(a2.rotulo).to.equal('aa)');
     });

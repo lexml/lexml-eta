@@ -1,5 +1,6 @@
 import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -29,13 +30,13 @@ export const moveElementoAcima = (state: any, action: any): State => {
   pai.removeFilho(atual);
   pai.removeFilho(anterior);
 
-  const um = DispositivoLexmlFactory.create(pai, atual.tipo, undefined, pos);
+  const um = criaDispositivo(pai, atual.tipo, undefined, pos);
   um.texto = action.atual.conteudo.texto;
-  DispositivoLexmlFactory.copiaFilhos(atual, um);
+  copiaFilhos(atual, um);
 
-  const outro = DispositivoLexmlFactory.create(pai, anterior.tipo, undefined, pos + 1);
+  const outro = criaDispositivo(pai, anterior.tipo, undefined, pos + 1);
   outro.texto = anterior.texto;
-  DispositivoLexmlFactory.copiaFilhos(anterior, outro);
+  copiaFilhos(anterior, outro);
   pai.renumeraFilhos();
 
   const referencia = pos === 0 ? (um.pai?.tipo === TipoDispositivo.caput.tipo ? pai.pai! : pai) : getDispositivoAnterior(um);
