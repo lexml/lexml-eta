@@ -1,6 +1,6 @@
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { isAcaoTransformacaoPermitida, normalizaNomeAcao } from '../../../model/lexml/acoes/acoesPossiveis';
+import { isAcaoTransformacaoPermitida } from '../../../model/lexml/acoes/acoesPossiveis';
 import { DispositivoLexmlFactory } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -16,9 +16,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
     return state;
   }
 
-  action.subType = normalizaNomeAcao(atual, action.subType);
-
-  if (!isAcaoTransformacaoPermitida(atual, action.subType)) {
+  if (!isAcaoTransformacaoPermitida(atual, action)) {
     return state;
   }
 

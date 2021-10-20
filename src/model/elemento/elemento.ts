@@ -1,5 +1,5 @@
 import { Conteudo } from '../dispositivo/conteudo';
-import { ElementoAction } from '../lexml/acoes/acoes';
+import { ElementoAction } from '../lexml/acoes/';
 import { Mensagem } from '../lexml/util/mensagem';
 
 export class Referencia {

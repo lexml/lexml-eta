@@ -1,7 +1,7 @@
+import { ElementoAction } from '.';
 import { Tipo } from '../../dispositivo/tipo';
 import { Referencia } from '../../elemento';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { ElementoAction } from './acoes';
 
 export const TRANSFORMAR_TIPO_ELEMENTO = 'TRANSFORMAR_TIPO_ELEMENTO';
 

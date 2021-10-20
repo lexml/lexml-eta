@@ -1,5 +1,5 @@
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { acoesPossiveis } from '../../../model/lexml/acoes/acoesPossiveis';
+import { isAcaoPermitida } from '../../../model/lexml/acoes/acoesPossiveis';
 import { RenumerarElemento } from '../../../model/lexml/acoes/renumerarElementoAction';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
@@ -13,7 +13,7 @@ export const renumeraElemento = (state: any, action: any): State => {
     return state;
   }
 
-  if (acoesPossiveis(dispositivo).filter(a => a instanceof RenumerarElemento).length === 0) {
+  if (!isAcaoPermitida(dispositivo, RenumerarElemento)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível renumerar o dispositivo' });
   }
 

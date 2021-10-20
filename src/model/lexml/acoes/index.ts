@@ -32,7 +32,7 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from './transformarElementoAction';
-import { validarArticulacaAction } from './validarArticulacao';
+import { validarArticulacaAction } from './validarArticulacaoAction';
 import { validarElementoAction } from './validarElementoAction';
 
 export interface ElementoAction {

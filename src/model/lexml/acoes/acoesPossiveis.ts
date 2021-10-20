@@ -1,3 +1,4 @@
+import { acoesDisponiveis, ElementoAction, getAcaoAgrupamento } from '.';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import {
   isAgrupador,
@@ -35,7 +36,6 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { acoesDisponiveis, ElementoAction, getAcaoAgrupamento } from './acoes';
 import { adicionarAlinea, adicionarArtigo, adicionarElementoAction, adicionarInciso, adicionarItem } from './adicionarElementoAction';
 import { adicionarCapitulo } from './agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
@@ -305,7 +305,7 @@ export const acoesPossiveis = (dispositivo: Dispositivo): ElementoAction[] => {
     .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
 };
 
-export const normalizaNomeAcao = (dispositivo: Dispositivo, tipo: string): any => {
+const normalizaNomeAcaoTransformacao = (dispositivo: Dispositivo, tipo: string): any => {
   let t: string;
 
   if (tipo.endsWith('EmOmissis')) {
@@ -322,7 +322,12 @@ export const normalizaNomeAcao = (dispositivo: Dispositivo, tipo: string): any =
   return acoes[0]?.nomeAcao;
 };
 
-export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, nomeAcao: string): boolean => {
+export const isAcaoPermitida = (dispositivo: Dispositivo, tipo: any): boolean => {
+  return acoesPossiveis(dispositivo).filter(a => a instanceof tipo).length > 0;
+};
+
+export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, action: any): boolean => {
+  const nomeAcao = normalizaNomeAcaoTransformacao(dispositivo, action.subType);
   return acoesPossiveis(dispositivo).filter(a => a instanceof TransformarElemento && a.nomeAcao && a.nomeAcao === nomeAcao).length > 0;
 };
 

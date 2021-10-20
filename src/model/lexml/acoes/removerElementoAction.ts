@@ -1,5 +1,5 @@
+import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
-import { ElementoAction } from './acoes';
 
 export const REMOVER_ELEMENTO = 'REMOVER_ELEMENTO';
 

@@ -13,7 +13,7 @@ import { SHIFT_TAB } from '../../../model/lexml/acoes/shiftTabAction';
 import { TAB } from '../../../model/lexml/acoes/tabAction';
 import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acoes/transformarElementoAction';
 import { UNDO } from '../../../model/lexml/acoes/undoAction';
-import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acoes/validarArticulacao';
+import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acoes/validarArticulacaoAction';
 import { VALIDAR_ELEMENTO } from '../../../model/lexml/acoes/validarElementoAction';
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';

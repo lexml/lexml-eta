@@ -1,5 +1,5 @@
+import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
-import { ElementoAction } from './acoes';
 
 export const MOVER_ELEMENTO_ACIMA = 'MOVER_ELEMENTO_ACIMA';
 

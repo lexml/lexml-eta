@@ -1,5 +1,5 @@
+import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
-import { ElementoAction } from './acoes';
 
 export const VALIDAR_ELEMENTO = 'VALIDAR_ELEMENTO';
 

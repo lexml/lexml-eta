@@ -1,4 +1,4 @@
-import { ElementoAction } from './acoes';
+import { ElementoAction } from '.';
 
 export const VALIDAR_ARTICULACAO = 'VALIDAR_ARTICULACAO';
 

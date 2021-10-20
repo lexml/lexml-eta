@@ -1,5 +1,5 @@
+import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
-import { ElementoAction } from './acoes';
 import { ADICIONAR_ELEMENTO } from './adicionarElementoAction';
 
 export const INICIAR_BLOCO = 'INICIAR_BLOCO';
