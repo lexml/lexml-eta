@@ -26,6 +26,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Regras } from './regras';
 import { podeConverterEmOmissis } from './regrasUtil';
 
@@ -81,7 +82,13 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       }
 
       return dispositivo.tiposPermitidosFilhos?.map(tipo => {
-        const acao = 'transformar' + dispositivo.tipo + 'Em' + tipo;
+        const destino = tipo.endsWith(TipoDispositivo.inciso.name!)
+          ? isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))
+            ? 'IncisoParagrafo'
+            : 'IncisoCaput'
+          : tipo;
+
+        const acao = 'transformar' + dispositivo.tipo + 'Em' + destino;
         return dispositivo
           .getAcoesPossiveis(dispositivo)
           .filter(a => a instanceof TransformarElemento)
