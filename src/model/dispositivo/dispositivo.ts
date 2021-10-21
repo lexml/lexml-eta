@@ -1,3 +1,4 @@
+import { Regras } from '../lexml/regras/regras';
 import { BlocoAlteracao } from './blocoAlteracao';
 import { Conteudo } from './conteudo';
 import { Genero } from './genero';
@@ -6,7 +7,7 @@ import { Numeracao } from './numeracao';
 import { Tipo } from './tipo';
 import { Validacao } from './validacao';
 
-export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Validacao {
+export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Validacao {
   tipo: string;
   uuid?: number;
 }

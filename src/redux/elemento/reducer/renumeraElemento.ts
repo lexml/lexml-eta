@@ -1,5 +1,5 @@
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { isAcaoPermitida } from '../../../model/lexml/acao/acoesPossiveis';
+import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RenumerarElemento } from '../../../model/lexml/acao/renumerarElementoAction';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';

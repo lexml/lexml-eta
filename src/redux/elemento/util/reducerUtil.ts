@@ -2,7 +2,7 @@ import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
-import { isAcaoPermitida } from '../../../model/lexml/acao/acoesPossiveis';
+import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { AdicionarElemento } from '../../../model/lexml/acao/adicionarElementoAction';
 import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';

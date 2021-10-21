@@ -1,6 +1,6 @@
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { isAcaoTransformacaoPermitida } from '../../../model/lexml/acao/acoesPossiveis';
+import { isAcaoTransformacaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { converteDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';

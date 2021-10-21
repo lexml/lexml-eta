@@ -1,6 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
-import { acoesPossiveis } from '../lexml/acao/acoesPossiveis';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
   findDispositivoById,
@@ -67,7 +66,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
       texto: dispositivo.texto,
     },
     index: 0,
-    acoesPossiveis: acoes ? acoesPossiveis(dispositivo) : [],
+    acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     mensagens: dispositivo.mensagens,
   };
 };

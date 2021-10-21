@@ -1,5 +1,4 @@
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { getAcaoPossivelShiftTab, getAcaoPossivelTab } from '../../../model/lexml/acao/acoesPossiveis';
 import { TAB } from '../../../model/lexml/acao/tabAction';
 import { TransformarElemento, TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformarElementoAction';
 import { State } from '../../state';
@@ -11,7 +10,7 @@ export const modificaTipoElementoWithTab = (state: any, action: any): State => {
   if (atual === undefined) {
     return state;
   }
-  const acao = action.type === TAB ? getAcaoPossivelTab(atual) : getAcaoPossivelShiftTab(atual);
+  const acao = action.type === TAB ? atual.getAcaoPossivelTab(atual) : atual.getAcaoPossivelShiftTab(atual);
 
   if (!acao) {
     return state;

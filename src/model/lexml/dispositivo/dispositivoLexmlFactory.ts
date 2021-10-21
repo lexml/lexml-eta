@@ -22,6 +22,15 @@ import { NumeracaoInciso } from '../numeracao/numeracaoInciso';
 import { NumeracaoIndisponivel } from '../numeracao/numeracaoIndisponivel';
 import { NumeracaoItem } from '../numeracao/numeracaoItem';
 import { NumeracaoParagrafo } from '../numeracao/numeracaoParagrafo';
+import { RegrasAgrupadores } from '../regras/regrasAgrupadores';
+import { RegrasAlinea } from '../regras/regrasAlinea';
+import { RegrasArtigo } from '../regras/regrasArtigo';
+import { RegrasCaput } from '../regras/regrasCaput';
+import { RegrasDispositivoGenerico } from '../regras/regrasDispositivoGenerico';
+import { RegrasInciso } from '../regras/regrasInciso';
+import { RegrasItem } from '../regras/regrasItem';
+import { RegrasOmissis } from '../regras/regrasOmissis';
+import { RegrasParagrafo } from '../regras/regrasParagrafo';
 import { DispositivoNovo } from '../situacao/dispositivoNovo';
 import { TipoArticulacao } from '../tipo/tipoArticulacao';
 import { TipoArtigo } from '../tipo/tipoArtigo';
@@ -29,31 +38,51 @@ import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { TipoLexml } from '../tipo/tipoLexml';
 import { TipoMensagem } from '../util/mensagem';
 
-const AlineaLexml = DispositivoNovo(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml)))))));
-const ArtigoLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoPermitido(NumeracaoArtigo(HierarquiaArtigo(TipoArtigo))))));
-const CaputLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
-const DispositivoGenericoLexml = DispositivoNovo(
-  ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoGenerico(HierarquiaDispositivo(TipoLexml))))))
+const AlineaLexml = DispositivoNovo(
+  RegrasAlinea(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml)))))))
 );
-const IncisoLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoInciso(HierarquiaDispositivo(TipoLexml)))))));
-const ItemLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoItem(HierarquiaDispositivo(TipoLexml)))))));
+const ArtigoLexml = DispositivoNovo(RegrasArtigo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoPermitido(NumeracaoArtigo(HierarquiaArtigo(TipoArtigo)))))));
+const CaputLexml = DispositivoNovo(
+  RegrasCaput(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))))
+);
+const DispositivoGenericoLexml = DispositivoNovo(
+  RegrasDispositivoGenerico(ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoGenerico(HierarquiaDispositivo(TipoLexml)))))))
+);
+const IncisoLexml = DispositivoNovo(
+  RegrasInciso(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoInciso(HierarquiaDispositivo(TipoLexml)))))))
+);
+const ItemLexml = DispositivoNovo(
+  RegrasItem(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoItem(HierarquiaDispositivo(TipoLexml)))))))
+);
 const ParagrafoLexml = DispositivoNovo(
-  ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoParagrafo(HierarquiaDispositivo(TipoLexml))))))
+  RegrasParagrafo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoParagrafo(HierarquiaDispositivo(TipoLexml)))))))
 );
 const ArticulacaoLexml = DispositivoNovo(
-  ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoArticulacao))))))
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoArticulacao)))))))
 );
-const CapituloLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))));
+const CapituloLexml = DispositivoNovo(
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
+);
 const DispositivoAgrupadorGenericoLexml = DispositivoNovo(
-  ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml))))))
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
 );
-const LivroLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))));
-const ParteLexml = DispositivoNovo(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))));
-const SubsecaoLexml = DispositivoNovo(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))));
-const SecaoLexml = DispositivoNovo(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))));
-const TituloLexml = DispositivoNovo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))));
+const LivroLexml = DispositivoNovo(
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
+);
+const ParteLexml = DispositivoNovo(
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
+);
+const SubsecaoLexml = DispositivoNovo(
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
+);
+const SecaoLexml = DispositivoNovo(
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
+);
+const TituloLexml = DispositivoNovo(
+  RegrasAgrupadores(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
+);
 
-const OmissisLexml = DispositivoNovo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml))))));
+const OmissisLexml = DispositivoNovo(RegrasOmissis(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
 
 const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
