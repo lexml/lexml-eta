@@ -4,4 +4,5 @@ export interface Situacao {
 
 export enum NomeSituacao {
   DispositivoNovo = 'DispositivoNovo',
+  DispositivoExistente = 'DispositivoExistente',
 }
