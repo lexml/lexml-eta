@@ -8,6 +8,8 @@ export enum StateType {
   ElementoIncluido = 'ElementoIncluido',
   ElementoRemovido = 'ElementoRemovido',
   ElementoRenumerado = 'ElementoRenumerado',
+  ElementoRestaurado = 'ElementoRestaurado',
+  ElementoSuprimido = 'ElementoSuprimido',
   ElementoValidado = 'ElementoValidado',
   ElementoSelecionado = 'ElementoSelecionado',
 }

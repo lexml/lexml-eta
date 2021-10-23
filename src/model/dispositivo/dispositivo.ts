@@ -4,10 +4,11 @@ import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';
 import { Numeracao } from './numeracao';
+import { Situacao } from './situacao';
 import { Tipo } from './tipo';
 import { Validacao } from './validacao';
 
-export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Validacao {
+export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Situacao, Validacao {
   tipo: string;
   uuid?: number;
 }

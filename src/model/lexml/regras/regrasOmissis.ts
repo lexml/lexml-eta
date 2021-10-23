@@ -68,12 +68,7 @@ export function RegrasOmissis<TBase extends Constructor>(Base: TBase): any {
         acoes.push(transformarOmissisEmItem);
       }
 
-      const acoesSemDuplicidade = [...new Set(acoes)];
-
-      return acoesSemDuplicidade
-        .filter(a => a !== undefined)
-        .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
-        .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
+      return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAcaoPossivelTab(dispositivo: Dispositivo): any {

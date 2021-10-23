@@ -1,3 +1,4 @@
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
 import { EtaBlotEspaco } from './eta-blot-espaco';
@@ -63,6 +64,16 @@ export class EtaContainerTable extends Container {
     return this._agrupador;
   }
 
+  private _editavel: boolean;
+  set editavel(editavel: boolean) {
+    this._editavel = editavel;
+    this.domNode.contentEditable = this._editavel;
+  }
+
+  get editavel(): boolean {
+    return this._editavel;
+  }
+
   private _hierarquia: any;
   set hierarquia(hierarquia: any) {
     this._hierarquia = hierarquia;
@@ -99,6 +110,15 @@ export class EtaContainerTable extends Container {
     return this._tipo;
   }
 
+  private _descricaoSituacao: any;
+  set descricaoSituacao(situacao: any) {
+    this._descricaoSituacao = situacao;
+  }
+
+  get descricaoSituacao(): any {
+    return this._descricaoSituacao;
+  }
+
   get uuid(): number {
     return parseInt(this.id.substr(7), 0);
   }
@@ -111,13 +131,35 @@ export class EtaContainerTable extends Container {
     this.domNode.innerHTML = html;
   }
 
+  setEstiloBlotConteudo(valor: string): void {
+    let style = '';
+
+    switch (valor) {
+      case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
+        style = 'color: green';
+        break;
+      case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
+        style = 'color: blue';
+        break;
+      case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
+        style = 'text-decoration: line-through; color: red';
+        break;
+      default:
+        style = '';
+        break;
+    }
+    this.blotConteudo.domNode.setAttribute('style', style);
+  }
+
   constructor(elemento: Elemento) {
     super(EtaContainerTable.create(elemento));
+    this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
     this._numero = elemento.numero ?? '';
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia?.pai?.uuidAlteracao ? elemento.hierarquia : undefined;
+    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
   }
 
   format(name: string, value: any): void {
@@ -155,6 +197,11 @@ export class EtaContainerTable extends Container {
     if (elemento.agrupador) {
       style = `${style} text-align: center;`;
     }
+
+    /*     if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      style = `${style} text-decoration: line-through; color: red`;
+    } */
+
     return style;
   }
 }

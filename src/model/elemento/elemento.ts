@@ -6,6 +6,7 @@ export class Referencia {
   tipo?: string;
   uuid?: number;
   conteudo?: Partial<Conteudo>;
+  descricaoSituacao?: string;
   uuidAlteracao?: number;
 }
 export class Elemento extends Referencia {

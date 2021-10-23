@@ -1,3 +1,4 @@
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -5,6 +6,7 @@ import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUti
 import { createByInferencia } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { hasFilhos, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
@@ -33,11 +35,19 @@ export const adicionaElemento = (state: any, action: any): State => {
     textoModificado = true;
   }
 
-  if (naoPodeCriarFilho(atual)) {
+  if (naoPodeCriarFilho(atual, action)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
   const novo = createByInferencia(atual, action);
+
+  if (
+    atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||
+    atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+    atual.situacao instanceof DispositivoAdicionado
+  ) {
+    novo.situacao = new DispositivoAdicionado();
+  }
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {
     copiaFilhos(atual, novo);

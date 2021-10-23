@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acao/atualizarElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
-import { atualizarElemento } from '../../../src/redux/elemento/reducer/atualizarElemento';
+import { atualizaElemento } from '../../../src/redux/elemento/reducer/atualizaElemento';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { StateType } from '../../../src/redux/state';
@@ -23,7 +23,7 @@ describe('Testando undo de artigo atualizado', () => {
   describe('Undo quando for feita apenas uma atualização de texto de dispositivo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
-      state = atualizarElemento(state, {
+      state = atualizaElemento(state, {
         type: ATUALIZAR_ELEMENTO,
         atual: {
           tipo: TipoDispositivo.artigo.tipo,

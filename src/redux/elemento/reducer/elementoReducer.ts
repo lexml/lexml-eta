@@ -9,7 +9,9 @@ import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoActi
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
+import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SHIFT_TAB } from '../../../model/lexml/acao/shiftTabAction';
+import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { TAB } from '../../../model/lexml/acao/tabAction';
 import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformarElementoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
@@ -18,7 +20,7 @@ import { VALIDAR_ELEMENTO } from '../../../model/lexml/acao/validarElementoActio
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';
-import { atualizarElemento } from './atualizarElemento';
+import { atualizaElemento } from './atualizaElemento';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
@@ -26,7 +28,9 @@ import { novaArticulacao } from './novaArticulacao';
 import { redo } from './redo';
 import { removeElemento } from './removeElemento';
 import { renumeraElemento } from './renumeraElemento';
+import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
+import { suprimeElemento } from './suprimeElemento';
 import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
@@ -35,7 +39,7 @@ import { validaElemento } from './validaElemento';
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
     case ATUALIZAR_ELEMENTO:
-      return atualizarElemento(state, action);
+      return atualizaElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case AGRUPAR_ELEMENTO:
@@ -52,6 +56,10 @@ export const elementoReducer = (state = {}, action: any): any => {
       return novaArticulacao();
     case RENUMERAR_ELEMENTO:
       return renumeraElemento(state, action);
+    case RESTAURAR_ELEMENTO:
+      return restauraElemento(state, action);
+    case SUPRIMIR_ELEMENTO:
+      return suprimeElemento(state, action);
     case ABRIR_ARTICULACAO:
       return abreArticulacao(state, action);
     case REDO:

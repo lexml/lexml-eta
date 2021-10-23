@@ -11,6 +11,7 @@ import {
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
 } from '../lexml/hierarquia/hierarquiaUtil';
+import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { Elemento, Referencia } from './elemento';
 
@@ -57,7 +58,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: isArticulacao(dispositivo) ? false : true,
+    editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
     numero: dispositivo.numero,
@@ -67,6 +68,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     },
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
+    descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
     mensagens: dispositivo.mensagens,
   };
 };

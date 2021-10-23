@@ -38,24 +38,15 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (!isParagrafo(dispositivo)) {
         return [];
       }
-
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);
       }
       if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAcimaAction);
       }
-
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
-      if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
-        acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
-      }
-
       if (isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) {
         acoes.push(transformarParagrafoEmIncisoCaput);
       }
@@ -68,19 +59,19 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (podeConverterEmOmissis(dispositivo)) {
         acoes.push(transformarEmOmissisParagrafo);
       }
+      if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
+        acoes.push(iniciarBlocoAlteracao);
+        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
+          acoes.push(finalizarBlocoAlteracao);
+        }
+      }
 
-      const acoesSemDuplicidade = [...new Set(acoes)];
-
-      return acoesSemDuplicidade
-        .filter(a => a !== undefined)
-        .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
-        .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
+      return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
     getAcaoPossivelTab(dispositivo: Dispositivo): any {
       if (!isParagrafo(dispositivo)) {
         return undefined;
       }
-
       return dispositivo.tiposPermitidosFilhos?.map(tipo => {
         const destino = tipo.endsWith(TipoDispositivo.inciso.name!)
           ? isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))

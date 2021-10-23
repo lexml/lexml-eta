@@ -5,7 +5,9 @@ import { buildListaElementosRenumerados, createElemento, criaListaElementosAfins
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
+import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
@@ -145,6 +147,31 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   return eventos.build();
 };
 
+export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
+  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => {
+    d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
+    d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
+    d.texto = d.situacao.dispositivoOriginal?.conteudo?.texto ?? '';
+    d.situacao = new DispositivoOriginal();
+  });
+
+  const eventos = new Eventos();
+
+  eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
+
+  return eventos.build();
+};
+
+export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
+  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d))));
+
+  const eventos = new Eventos();
+
+  eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
+
+  return eventos.build();
+};
+
 export const getEvento = (eventos: StateEvent[], stateType: StateType): StateEvent => {
   return eventos?.filter(ev => ev.stateType === stateType)[0];
 };
@@ -189,6 +216,20 @@ export const createEventos = (): StateEvent[] => {
     },
     {
       stateType: StateType.ElementoRenumerado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoRestaurado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoSuprimido,
       referencia: undefined,
       pai: undefined,
       posicao: undefined,

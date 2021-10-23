@@ -2,6 +2,7 @@ import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -485,6 +486,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoModificado:
+        case StateType.ElementoSuprimido:
+        case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
           break;
 
@@ -547,6 +550,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
+      if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
+        this.quill.linhaAtual.setEstiloBlotConteudo(elemento.descricaoSituacao!);
+      }
     }
   }
 
@@ -566,6 +573,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
         let nivelAlerado = false;
+
+        if (elemento.editavel !== linha.editavel) {
+          linha.editavel = elemento.editavel;
+        }
 
         if (elemento.rotulo !== linha.blotRotulo.html) {
           linha.numero = elemento.numero ?? '';
@@ -588,6 +599,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.conteudo?.texto !== linha.blotConteudo.html) {
           linha.blotConteudo.html = elemento.conteudo?.texto ?? '';
+        }
+
+        if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
+          linha.descricaoSituacao = elemento.descricaoSituacao;
+          linha.setEstiloBlotConteudo(elemento.descricaoSituacao!);
         }
 
         if (linha.children.length === 2) {

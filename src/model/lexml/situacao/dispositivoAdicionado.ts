@@ -1,9 +1,11 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao, TipoSituacao } from '../../dispositivo/situacao';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { ElementoAction } from '../acao';
+import { AGRUPAR_ELEMENTO } from '../acao/agruparElementoAction';
+import { DispositivoNovo } from './dispositivoNovo';
 
-export class DispositivoNovo implements TipoSituacao {
-  descricaoSituacao = DescricaoSituacao.DISPOSITIVO_NOVO;
+export class DispositivoAdicionado extends DispositivoNovo {
+  descricaoSituacao = DescricaoSituacao.DISPOSITIVO_ADICIONADO;
 
   getAcoesPermitidas(dispositivo: Dispositivo, acoes: any[]): any[] {
     const acoesSemDuplicidade = [...new Set(acoes)];
@@ -11,6 +13,7 @@ export class DispositivoNovo implements TipoSituacao {
     return acoesSemDuplicidade
       .filter(a => a !== undefined)
       .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
+      .filter((acao: ElementoAction): boolean => acao.tipo !== AGRUPAR_ELEMENTO)
       .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
   }
 }

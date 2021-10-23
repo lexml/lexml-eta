@@ -29,12 +29,7 @@ export function RegrasDispositivoGenerico<TBase extends Constructor>(Base: TBase
         acoes.push(acoesDisponiveis.filter(a => a instanceof TransformarElemento && a.nomeAcao === 'transformarDispositivoGenericoEm' + dispositivo.pai!.tipoProvavelFilho)[0]);
       }
 
-      const acoesSemDuplicidade = [...new Set(acoes)];
-
-      return acoesSemDuplicidade
-        .filter(a => a !== undefined)
-        .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
-        .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
+      return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAcaoPossivelTab(dispositivo: Dispositivo): any {

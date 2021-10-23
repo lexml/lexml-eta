@@ -1,4 +1,5 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
@@ -56,8 +57,11 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
   return isArticulacao(referencia) || isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0 ? referencia : getUltimoFilho(referencia);
 };
 
-export const naoPodeCriarFilho = (dispositivo: Dispositivo): boolean => {
-  return hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento);
+export const naoPodeCriarFilho = (dispositivo: Dispositivo, action: any): boolean => {
+  return (
+    (hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento)) ||
+    (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto))
+  );
 };
 
 export const isNovoDispositivoDesmembrandoAtual = (texto: string): boolean => {

@@ -104,12 +104,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
           .forEach(t => acoes.push(getAcaoAgrupamento(t)));
       }
 
-      const acoesSemDuplicidade = [...new Set(acoes)];
-
-      return acoesSemDuplicidade
-        .filter(a => a !== undefined)
-        .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
-        .sort((a, b) => a.descricao!.localeCompare(b.descricao!));
+      return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
 
     getAcaoPossivelTab(dispositivo: Dispositivo): any {
