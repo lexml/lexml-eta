@@ -1,7 +1,7 @@
 import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
 
-export const MOVER_ELEMENTO_ABAIXO = 'MOVER_ELEMENTO_ABAIXO';
+export const MOVER_ELEMENTO_ABAIXO = 'Mover para baixo';
 
 class MoverElementoAbaixo implements ElementoAction {
   descricao: string;
