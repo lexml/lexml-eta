@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoGenerico, isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
+import { adicionarAlinea, adicionarInciso, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -14,6 +15,7 @@ import {
   transformarIncisoParagrafoEmAlinea,
   transformarIncisoParagrafoEmParagrafo,
 } from '../acao/transformarElementoAction';
+import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -53,6 +55,20 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         if (hasDispositivosPosterioresAlteracao(dispositivo)) {
           acoes.push(finalizarBlocoAlteracao);
         }
+      }
+
+      if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
+        acoes.push(renumerarElementoAction);
+      }
+
+      if (hasIndicativoDesdobramento(dispositivo)) {
+        acoes.push(adicionarAlinea);
+      }
+      if (hasIndicativoContinuacaoSequencia(dispositivo)) {
+        acoes.push(adicionarInciso);
+      }
+      if (hasIndicativoFinalSequencia(dispositivo) && isUltimoMesmoTipo(dispositivo)) {
+        acoes.push(adicionarParagrafo);
       }
 
       if (
