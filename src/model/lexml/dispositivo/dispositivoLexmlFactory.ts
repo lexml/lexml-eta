@@ -191,6 +191,9 @@ export const createByInferencia = (referencia: Dispositivo, action: any): Dispos
       const ref = getArticulacao(referencia);
       novo = action.subType === INICIAR_BLOCO ? criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, ref!) : createFromReferencia(ref.pai!);
       novo!.texto = action.subType === INICIAR_BLOCO ? '' : normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '');
+    } else if (action.subType === INICIAR_BLOCO) {
+      novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, getArticulacao(referencia));
+      novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : '';
     } else {
       novo = createFromReferencia(referencia);
       novo.createRotulo();
