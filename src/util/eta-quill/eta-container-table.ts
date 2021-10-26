@@ -131,7 +131,7 @@ export class EtaContainerTable extends Container {
     this.domNode.innerHTML = html;
   }
 
-  setEstiloBlotConteudo(valor: string): void {
+  setEstilo(valor: string): void {
     let style = '';
 
     switch (valor) {

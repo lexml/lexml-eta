@@ -2,7 +2,6 @@ import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
 import 'quill/dist/quill';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -550,10 +549,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
-      if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
-        this.quill.linhaAtual.setEstiloBlotConteudo(elemento.descricaoSituacao!);
-      }
+      this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
+      this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
     }
   }
 
@@ -603,7 +600,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstiloBlotConteudo(elemento.descricaoSituacao!);
+          linha.setEstilo(elemento.descricaoSituacao!);
         }
 
         if (linha.children.length === 2) {

@@ -1,10 +1,13 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
+import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
@@ -92,6 +95,26 @@ export const remover = (state: State, evento: StateEvent): Elemento[] => {
   return [];
 };
 
+export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestaurados: StateEvent, Situacao: any): Elemento[] => {
+  if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
+    evento.elementos.forEach(el => {
+      const d = getDispositivoFromElemento(state.articulacao!, el, true);
+
+      if (Situacao instanceof DispositivoOriginal) {
+        d!.numero = d!.situacao.dispositivoOriginal?.numero ?? '';
+        d!.rotulo = d!.situacao.dispositivoOriginal?.rotulo ?? '';
+        d!.texto = d!.situacao.dispositivoOriginal?.conteudo?.texto ?? '';
+        d!.situacao = new DispositivoOriginal();
+      } else {
+        d!.situacao = new Situacao(createElemento(d!));
+      }
+      eventoRestaurados.elementos!.push(createElemento(d!));
+    });
+    return eventoRestaurados.elementos!;
+  }
+  return [];
+};
+
 export const processarModificados = (state: State, evento: StateEvent, isRedo = false): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
@@ -101,7 +124,15 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
       const dispositivo = getDispositivoFromElemento(state.articulacao!, e, true);
       if (dispositivo) {
         if ((isRedo && anterior === dispositivo.uuid) || anterior !== dispositivo.uuid) {
-          dispositivo.texto = e.conteudo?.texto ?? '';
+          if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+            dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
+            dispositivo.situacao = new DispositivoOriginal();
+          } else {
+            if (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+              dispositivo.situacao = new DispositivoModificado(createElemento(dispositivo));
+            }
+            dispositivo.texto = e.conteudo?.texto ?? '';
+          }
           novosElementos.push(createElemento(dispositivo));
           anterior = dispositivo.uuid!;
         }
