@@ -8,16 +8,18 @@ import { rootStore } from '../redux/store';
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) articulacao = '';
+  @property({ type: String }) tipoDocumento = '';
 
   createRenderRoot(): LitElement {
     return this;
   }
 
   update(changedProperties: PropertyValues): void {
+    console.log('oi' + this.tipoDocumento);
     if (this.articulacao === 'codigo-civil') {
-      rootStore.dispatch(openArticulacaoAction(EXEMPLO_CC));
+      rootStore.dispatch(openArticulacaoAction(EXEMPLO_CC, this.tipoDocumento));
     } else if (this.articulacao === 'nova') {
-      rootStore.dispatch(novaArticulacaoAction());
+      rootStore.dispatch(novaArticulacaoAction(this.tipoDocumento));
     }
     super.update(changedProperties);
   }

@@ -14,6 +14,7 @@ export const redo = (state: any): State => {
 
   const retorno: State = {
     articulacao: state.articulacao,
+    tipoDocumento: state.tipoDocumento,
     past: buildPast(state, eventos),
     present: [],
     future: state.future,

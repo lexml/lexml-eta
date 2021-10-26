@@ -60,6 +60,7 @@
       static get properties() {
         return {
           articulacao: { type: String },
+          tipoDocumento: { type: String },
         };
       }
 
@@ -70,15 +71,29 @@
       constructor() {
         super();
         this.articulacao = 'nova';
+        this.tipoDocumento = 'norma';
       }
 
-      onChange() {
+      onChangeArticulacao() {
+        const elmArticulacao = this.querySelector('#articulacao');
+        let element = this.querySelector('#tipoDocumento');
+
+        if (elmArticulacao.value === 'nova') {          
+          element.value = 'norma';
+        } else {
+          element.value = "emenda";
+        }
+      }
+
+      executar() {
+        const elmtipoDocumento = this.querySelector('#tipoDocumento');
         const elmArticulacao = this.querySelector('#articulacao');
 
-        if (elmArticulacao) {
+        if (elmArticulacao && elmtipoDocumento) {
           setTimeout(() => {
+            this.tipoDocumento = elmtipoDocumento.value;
             this.articulacao = elmArticulacao.value;
-          }, 0);
+          }, 0);  
         }
       }
 
@@ -86,12 +101,17 @@
         return html`
           <div style="padding: 10px;">
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
-            <select @change=${this.onChange} id="articulacao">
+            <select id="articulacao" @change=${this.onChangeArticulacao}>
               <option value="nova">Nova articulação</option>
               <option value="codigo-civil">Código Civil</option>
             </select>
+            <select id="tipoDocumento">
+              <option value="emenda" selected="${this.articulacao === 'codigo-civil'}" >Emenda</option>
+              <option value="norma" selected="${this.articulacao === 'nova'}">Legislação</option>
+            </select>
+            <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
-          <lexml-eta .articulacao=${this.articulacao}></lexml-eta>
+          <lexml-eta .articulacao=${this.articulacao} tipoDocumento=${this.tipoDocumento}></lexml-eta>
         `;
       }
     }

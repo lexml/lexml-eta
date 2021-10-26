@@ -49,6 +49,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
+    tipoDocumento: state.tipoDocumento,
     past: buildPast(state, eventos.build()),
     present: eventos.build(),
     future: state.future,

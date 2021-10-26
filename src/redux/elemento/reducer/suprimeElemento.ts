@@ -15,6 +15,7 @@ export const suprimeElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
+    tipoDocumento: state.tipoDocumento,
     past: buildPast(state, events),
     present: events,
     future: buildFuture(state, events),

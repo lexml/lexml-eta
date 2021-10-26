@@ -53,7 +53,7 @@ export const elementoReducer = (state = {}, action: any): any => {
     case MOVER_ELEMENTO_ACIMA:
       return moveElementoAcima(state, action);
     case NOVA_ARTICULACAO:
-      return novaArticulacao();
+      return novaArticulacao(action);
     case RENUMERAR_ELEMENTO:
       return renumeraElemento(state, action);
     case RESTAURAR_ELEMENTO:

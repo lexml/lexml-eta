@@ -20,6 +20,7 @@ export const selecionaElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
+    tipoDocumento: state.tipoDocumento,
     past: state.past,
     present: state.present,
     future: state.future,

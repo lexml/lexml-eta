@@ -14,6 +14,7 @@ export const undo = (state: any): State => {
 
   const retorno: State = {
     articulacao: state.articulacao,
+    tipoDocumento: state.tipoDocumento,
     past: state.past,
     present: [],
     future: buildFuture(state, eventos),

@@ -30,6 +30,7 @@ export const renumeraElemento = (state: any, action: any): State => {
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
     articulacao: state.articulacao,
+    tipoDocumento: state.tipoDocumento,
     past,
     present: eventos.build(),
     future: state.future,

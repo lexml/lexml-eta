@@ -3,9 +3,9 @@ import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { State } from '../../state';
 import { load } from './loadArticulacao';
 
-export const novaArticulacao = (): State => {
+export const novaArticulacao = (action: any): State => {
   const articulacao = createArticulacao();
   criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
   articulacao.renumeraArtigos();
-  return load(articulacao);
+  return load(articulacao, action);
 };
