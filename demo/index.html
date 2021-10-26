@@ -76,12 +76,14 @@
 
       onChangeArticulacao() {
         const elmArticulacao = this.querySelector('#articulacao');
-        let element = this.querySelector('#tipoDocumento');
+        let elmTipoDocumento = this.querySelector('#tipoDocumento');
 
         if (elmArticulacao.value === 'nova') {          
-          element.value = 'norma';
+          elmTipoDocumento.value = 'norma';
+          const elmArticulacao = this.querySelector('#emenda').disabled=true;
         } else {
-          element.value = "emenda";
+          elmTipoDocumento.value = "emenda";
+          const elmArticulacao = this.querySelector('#emenda').disabled=false;
         }
       }
 
@@ -106,7 +108,7 @@
               <option value="codigo-civil">Código Civil</option>
             </select>
             <select id="tipoDocumento">
-              <option value="emenda" selected="${this.articulacao === 'codigo-civil'}" >Emenda</option>
+              <option value="emenda" id="emenda" selected="${this.articulacao === 'codigo-civil'}" disabled="${this.articulacao === 'nova'}">Emenda</option>
               <option value="norma" selected="${this.articulacao === 'nova'}">Legislação</option>
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
