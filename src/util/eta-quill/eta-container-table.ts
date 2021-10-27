@@ -132,23 +132,29 @@ export class EtaContainerTable extends Container {
   }
 
   setEstilo(valor: string): void {
-    let style = '';
+    let rotuloStyle = '';
+    let conteudoStyle = '';
 
     switch (valor) {
       case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-        style = 'color: green';
+        rotuloStyle = 'color: green;';
+        conteudoStyle = 'color: green;';
         break;
       case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
-        style = 'color: blue';
+        rotuloStyle = 'color: blue;';
+        conteudoStyle = 'color: blue;';
         break;
       case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
-        style = 'text-decoration: line-through; color: red';
+        rotuloStyle = 'color: red;';
+        conteudoStyle = 'text-decoration: line-through; color: red;';
         break;
       default:
-        style = '';
+        rotuloStyle = '';
+        conteudoStyle = '';
         break;
     }
-    this.blotConteudo.domNode.setAttribute('style', style);
+    this.blotRotulo.domNode.setAttribute('style', this.blotRotulo.domNode.getAttribute('style') + rotuloStyle);
+    this.blotConteudo.domNode.setAttribute('style', this.blotRotulo.domNode.getAttribute('style') + conteudoStyle);
   }
 
   constructor(elemento: Elemento) {
@@ -197,10 +203,6 @@ export class EtaContainerTable extends Container {
     if (elemento.agrupador) {
       style = `${style} text-align: center;`;
     }
-
-    /*     if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      style = `${style} text-decoration: line-through; color: red`;
-    } */
 
     return style;
   }
