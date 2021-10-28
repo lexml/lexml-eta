@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
-import { calculaNumeracao } from '../numeracao/numeracaoEmendaUtil';
+import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { isDispositivoAlteracao } from './hierarquiaUtil';
 
 export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): any {

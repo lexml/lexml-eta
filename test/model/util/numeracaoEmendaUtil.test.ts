@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao } from '../../../src/model/dispositivo/dispositivo';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
-import { calculaNumeracao, contaIrmaosNaoOriginaisConsecutivosAte, contaIrmaosOriginaisAte, hasIrmaoOriginalDepois } from '../../../src/model/lexml/numeracao/numeracaoEmendaUtil';
+import { calculaNumeracao, contaIrmaosNaoOriginaisConsecutivosAte, contaIrmaosOriginaisAte, hasIrmaoOriginalDepois } from '../../../src/model/lexml/numeracao/numeracaoUtil';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoOriginal } from '../../../src/model/lexml/situacao/dispositivoOriginal';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
