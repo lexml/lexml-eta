@@ -58,13 +58,16 @@ export const converteLetraParaNumeroArabico = (s: string): string => {
 };
 
 export const converteNumeroArabicoParaLetra = (numero: string): string => {
+  return intToAlpha(parseInt(numero));
+};
+
+export const intToAlpha = (numero: number): string => {
   let str = '';
 
-  let n = parseInt(numero);
   let d = 0;
-  while (n > 0) {
-    d = (n - 1) % 26;
-    n = (n - d - 1) / 26;
+  while (numero > 0) {
+    d = (numero - 1) % 26;
+    numero = (numero - d - 1) / 26;
     str = str.replace(/^/, String.fromCharCode(97 + d));
   }
   return str;

@@ -1,4 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
@@ -304,4 +305,23 @@ export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
   } catch (error) {
     return false;
   }
+};
+
+export const podemSerRenumerados = (dispositivos: Dispositivo[]): boolean => {
+  return (
+    dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length === dispositivos.length ||
+    dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length === dispositivos.length
+  );
+};
+
+export const getDispositivosAdicionados = (dispositivos: Dispositivo[]): Dispositivo[] => {
+  return dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
+};
+
+export const hasDispositivosBySituacao = (dispositivos: Dispositivo[], descricaoSituacao: string): boolean => {
+  return dispositivos?.filter(d => d.situacao.descricaoSituacao === descricaoSituacao).length > 0;
+};
+
+export const isOriginal = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
 };
