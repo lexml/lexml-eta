@@ -1,6 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
+import { calculaNumeracao } from '../numeracao/numeracaoEmendaUtil';
 import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior } from './hierarquiaUtil';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
@@ -53,8 +54,8 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
     renumeraFilhos(): void {
       this.filhos
         .filter(filho => !isArtigo(filho))
-        .forEach((f, index) => {
-          f.numero = (++index).toString();
+        .forEach(f => {
+          f.numero = calculaNumeracao(f);
           f.createRotulo(f);
         });
       this.hasArtigos() ? (getArticulacao(this.filhos[0]) as Articulacao).renumeraArtigos() : null;

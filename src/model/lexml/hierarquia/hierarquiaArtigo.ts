@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isCaput, isInciso } from '../../dispositivo/tipo';
+import { calculaNumeracao } from '../numeracao/numeracaoEmendaUtil';
 import { getDispositivosAdicionados, podemSerRenumerados } from './hierarquiaUtil';
 
 export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -69,8 +70,8 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
 
     private renumeraParagrafos(): void {
       if (podemSerRenumerados(this.paragrafos)) {
-        this.paragrafos.forEach((filho, index) => {
-          filho.numero = (++index).toString();
+        this.paragrafos.forEach(filho => {
+          filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
         });
       } else {

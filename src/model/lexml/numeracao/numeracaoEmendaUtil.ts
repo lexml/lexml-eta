@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { getDispositivoAnterior, getDispositivoPosterior, isOriginal } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAnterior, getDispositivosPosterioresMesmoTipo, isOriginal } from '../hierarquia/hierarquiaUtil';
 import { intToAlpha } from './numeracaoUtil';
 
 export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
@@ -19,11 +19,17 @@ export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
   }
 
   if (!temOriginalAntes && temOriginalDepois) {
-    return new SeqOrdem(0, seqDispEmenda);
+    const seqOrdem = new SeqOrdem(0);
+    seqOrdem.addNovoSeqOrdem(seqDispEmenda);
+
+    return seqOrdem;
   }
 
   if (temOriginalAntes && temOriginalDepois) {
-    return new SeqOrdem(seqOriginal, seqDispEmenda);
+    const seqOrdem = new SeqOrdem(seqOriginal);
+    seqOrdem.addNovoSeqOrdem(seqDispEmenda);
+
+    return seqOrdem;
   }
 
   // if(temOriginalAntes && !temOriginalDepois) {
@@ -31,19 +37,11 @@ export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
   // }
 };
 
-const hasIrmaoOriginalDepois = (d: Dispositivo): boolean => {
-  const tipo = d.tipo;
-  d = getDispositivoPosterior(d)!;
-  while (d !== undefined) {
-    if (isOriginal(d) && d.tipo === tipo) {
-      return true;
-    }
-    d = getDispositivoPosterior(d)!;
-  }
-  return false;
+export const hasIrmaoOriginalDepois = (d: Dispositivo): boolean => {
+  return getDispositivosPosterioresMesmoTipo(d).filter((dispositivo: Dispositivo) => isOriginal(dispositivo)).length > 0;
 };
 
-const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
+export const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
   let i = 0;
   const tipo = d.tipo;
 
@@ -56,7 +54,7 @@ const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
   return i;
 };
 
-const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number => {
+export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number => {
   let i = 0;
   const tipo = d.tipo;
 
@@ -67,17 +65,25 @@ const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number => {
   return i;
 };
 
+export const calculaNumeracao = (d: Dispositivo): string => {
+  return calculaSeqOrdem(d).getNumeracao();
+};
 class SeqOrdem {
   seq: number;
   letras?: string;
 
-  constructor(seq: number, seq2 = 0) {
+  constructor(seq: number) {
     this.seq = seq;
+  }
 
-    if (seq > 0) {
+  addNovoSeqOrdem(seq2: number): void {
+    if (this.seq > 0) {
       this.letras = intToAlpha(seq2).toUpperCase();
     } else if (seq2 > 1) {
       this.letras = intToAlpha(seq2 - 1).toUpperCase();
     }
+  }
+  getNumeracao(): string {
+    return this.seq + (this.letras ?? '');
   }
 }

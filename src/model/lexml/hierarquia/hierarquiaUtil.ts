@@ -205,6 +205,11 @@ export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Disp
   return pos < irmaos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
 };
 
+export const getDispositivosAnterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
+  const pos = dispositivo.pai?.indexOf(dispositivo);
+  return dispositivo.pai?.filhos.filter((f, index) => index < pos! && f.tipo === dispositivo.tipo) ?? [];
+};
+
 export const getDispositivosPosterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
   const pos = dispositivo.pai?.indexOf(dispositivo);
   return dispositivo.pai?.filhos.filter((f, index) => index > pos! && f.tipo === dispositivo.tipo) ?? [];
