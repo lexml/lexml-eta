@@ -16,6 +16,7 @@ const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
       destino.tipoProvavelFilho!
     );
     novo.texto = filho.texto ?? '';
+    novo.situacao = filho.situacao;
     novo.mensagens = validaDispositivo(filho);
     filho.filhos ? converteFilhos(filho, novo) : undefined;
     index === atual.filhos.length - 1 ? destino.renumeraFilhos() : undefined;
@@ -75,6 +76,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
       break;
   }
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
+  novo.situacao = atual.situacao;
   novo.mensagens = validaDispositivo(novo);
   paiAtual?.removeFilho(atual);
   paiAtual?.renumeraFilhos();
