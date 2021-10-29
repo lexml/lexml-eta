@@ -15,7 +15,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   update(changedProperties: PropertyValues): void {
-    console.log('oi' + this.tipoDocumento);
     if (this.articulacao === 'codigo-civil') {
       rootStore.dispatch(openArticulacaoAction(EXEMPLO_CC, this.tipoDocumento));
     } else if (this.articulacao === 'nova') {

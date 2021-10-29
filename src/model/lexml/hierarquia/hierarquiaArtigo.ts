@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isCaput, isInciso } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
-import { getDispositivosAdicionados, podemSerRenumerados } from './hierarquiaUtil';
+import { isDispositivoAlteracao, isOriginal } from './hierarquiaUtil';
 
 export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -69,14 +69,12 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     private renumeraParagrafos(): void {
-      if (podemSerRenumerados(this.paragrafos)) {
-        this.paragrafos.forEach(filho => {
+      this.paragrafos
+        .filter(f => !isDispositivoAlteracao(f) && !isOriginal(f))
+        .forEach(filho => {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
         });
-      } else {
-        getDispositivosAdicionados(this.paragrafos)?.forEach(a => a.createRotulo(a));
-      }
     }
 
     isParagrafoUnico(): boolean {

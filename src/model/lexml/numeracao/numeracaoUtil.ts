@@ -31,7 +31,7 @@ export const isNumero = (numero: string): boolean => {
 };
 
 export const isNumeracaoValida = (numero: string): boolean => {
-  return /^\d{1,}([-]{1}[a-zA-Z]+)?$/.test(numero);
+  return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
 };
 
 const isLetra = (letra: string): boolean => {
@@ -127,7 +127,8 @@ const numberCharToInt = (numeroRomano: string): number => {
 export const converteNumeroArabicoParaRomano = (numero: string): string => {
   let resultado = '';
   let temp;
-  let num = parseInt(numero);
+  let num = numero.search(/[a-zA-Z-]/) === -1 ? parseInt(numero) : parseInt(numero.substring(0, numero.search(/[a-zA-Z-]/)));
+  const resto = numero.search(/[a-zA-Z-]/) === -1 ? '' : numero.substring(numero.search(/[a-zA-Z-]/));
 
   for (const key in ALGARISMOS_ROMANOS) {
     temp = Math.floor(num / ALGARISMOS_ROMANOS[key]);
@@ -138,14 +139,14 @@ export const converteNumeroArabicoParaRomano = (numero: string): string => {
     }
     num = num % ALGARISMOS_ROMANOS[key];
   }
-  return resultado;
+  return resultado + resto;
 };
 
 export const trataComplemento = (numero: string, func?: any): string => {
-  const partes = numero?.split('-');
+  const num = numero.search(/[a-zA-Z-]/) === -1 ? numero : numero.substring(0, numero.search(/[a-zA-Z-]/));
+  const resto = numero.search(/[a-zA-Z-]/) === -1 ? '' : numero.substring(numero.search(/[a-zA-Z-]/));
 
-  const resto = partes.length > 1 ? numero.substring(numero.indexOf('-')) : '';
-  const converted = func ? func(partes![0]) : partes![0];
+  const converted = func ? func(num) : num;
 
   return converted + resto?.toUpperCase();
 };
@@ -266,6 +267,6 @@ class SeqOrdem {
     }
   }
   getNumeracao(): string {
-    return this.seq + (this.letras ?? '');
+    return '' + this.seq + (this.letras ?? '');
   }
 }

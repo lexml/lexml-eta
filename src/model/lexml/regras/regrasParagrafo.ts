@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isIncisoCaput, isIncisoParagrafo, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
+import { adicionarInciso } from '../acao/adicionarElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -16,6 +17,7 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from '../acao/transformarElementoAction';
+import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
@@ -46,6 +48,9 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
+      }
+      if (dispositivo.texto && hasIndicativoDesdobramento(dispositivo)) {
+        acoes.push(adicionarInciso);
       }
       if (isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) {
         acoes.push(transformarParagrafoEmIncisoCaput);

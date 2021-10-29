@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
-import { isDispositivoAlteracao } from './hierarquiaUtil';
+import { isDispositivoAlteracao, isOriginal } from './hierarquiaUtil';
 
 export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -45,7 +45,7 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
 
     renumeraFilhos(): void {
       this.filhos
-        .filter(f => !isDispositivoAlteracao(f))
+        .filter(f => !isDispositivoAlteracao(f) && !isOriginal(f))
         .forEach(filho => {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);

@@ -1,4 +1,6 @@
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { isOriginal } from '../hierarquia/hierarquiaUtil';
+import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { TipoLexml } from './tipoLexml';
 
 export class TipoArticulacao extends TipoLexml {
@@ -27,10 +29,12 @@ export class TipoArticulacao extends TipoLexml {
   }
 
   renumeraArtigos(): void {
-    this.artigos.forEach((filho, index) => {
-      filho.numero = (++index).toString();
-      filho.createRotulo(filho);
-    });
+    this.artigos
+      .filter(a => !isOriginal(a))
+      .forEach(filho => {
+        filho.numero = calculaNumeracao(filho);
+        filho.createRotulo(filho);
+      });
   }
 
   indexOfArtigo(artigo: Artigo): number {

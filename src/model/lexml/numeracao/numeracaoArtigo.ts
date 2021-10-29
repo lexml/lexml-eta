@@ -33,7 +33,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       if (this.numero === undefined || !dispositivo) {
         this.rotulo = '\u201C' + TipoDispositivo.artigo.name;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
-        this.rotulo = this.numero + this.SUFIXO;
+        this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
       } else if (dispositivo.isDispositivoAlteracao) {
         this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       } else {

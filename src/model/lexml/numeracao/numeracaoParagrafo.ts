@@ -45,10 +45,13 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     }
 
     private getNumeroAndSufixoNumeracao(): string {
-      const partes = this.numero?.split('-');
-      const [num, ...remaining] = partes!;
+      if (!this.numero) {
+        return '';
+      }
+      const num = this.numero.search(/[a-zA-Z-]/) === -1 ? parseInt(this.numero) : parseInt(this.numero.substring(0, this.numero.search(/[a-zA-Z-]/)));
+      const resto = this.numero.search(/[a-zA-Z-]/) === -1 ? '' : this.numero.substring(this.numero.search(/[a-zA-Z-]/));
 
-      return (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) + (remaining.length > 0 ? '-' + remaining?.join('-') : '') + (parseInt(num ?? '1', 10) > 9 ? '.' : '');
+      return (num < 10 ? num + this.SUFIXO : num) + (resto?.length > 0 ? resto : '') + (num > 9 ? '.' : '');
     }
   };
 }

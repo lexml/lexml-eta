@@ -12,14 +12,6 @@ import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao, isNumero } from './numeracaoUtil';
 
-const isRotuloConsistente = (dispositivo: Dispositivo): boolean => {
-  const rotulo = dispositivo.rotulo;
-
-  dispositivo.numero === undefined ? dispositivo.pai?.renumeraFilhos() : dispositivo.createRotulo(dispositivo);
-
-  return rotulo === dispositivo.rotulo;
-};
-
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
 
@@ -56,12 +48,6 @@ export const validaNumeracaoDispositivo = (dispositivo: Dispositivo): Mensagem[]
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O dispositivo não contém rótulo',
-    });
-  }
-  if (dispositivo !== null && !isDispositivoGenerico(dispositivo) && dispositivo.rotulo && !isRotuloConsistente(dispositivo)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: 'O rótulo informado não é consistente com a regra de formação de rótulo para este dispositivo',
     });
   }
   return mensagens;

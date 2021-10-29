@@ -20,14 +20,7 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     }
 
     createRotulo(): void {
-      const partes = this.numero?.split('-');
-
-      this.rotulo =
-        this.numero === undefined
-          ? TipoDispositivo.inciso.name
-          : !isNumeracaoValida(this.numero)
-          ? this.numero + this.SUFIXO
-          : converteNumeroArabicoParaRomano(partes![0]) + (partes!.length > 1 ? '-' + partes![1].toUpperCase() : '') + this.SUFIXO;
+      this.rotulo = this.numero === undefined ? TipoDispositivo.inciso.name : trataComplemento(this.numero, converteNumeroArabicoParaRomano) + this.SUFIXO;
     }
   };
 }
