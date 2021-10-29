@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { removerElementoAction } from '../acao/removerElementoAction';
-import { getDispositivosPosterioresMesmoTipo, hasAgrupador, hasAgrupadoresAcima } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo, getDispositivosAnterioresMesmoTipo, getDispositivosPosterioresMesmoTipo, hasAgrupador } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
@@ -14,13 +14,13 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         return [];
       }
 
-      if (getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 && hasAgrupador(dispositivo)) {
+      if (getDispositivosAnterioresMesmoTipo(dispositivo).length === 0 && getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 && hasAgrupador(dispositivo)) {
         //
       } else {
         acoes.push(removerElementoAction);
       }
 
-      if (dispositivo.pai && isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && !hasAgrupadoresAcima(dispositivo)) {
+      if (dispositivo.pai && isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && getDispositivoAnteriorMesmoTipo(dispositivo) === undefined) {
         const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo);
         dispositivo.tiposPermitidosPai?.filter((tipo, index) => index > pos!).forEach(t => acoes.push(getAcaoAgrupamento(t)));
       }
