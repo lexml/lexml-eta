@@ -1,6 +1,6 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
@@ -9,7 +9,13 @@ import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteu
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getArticulacao, getDispositivoAndFilhosAsLista, getDispositivoAnteriorMesmoTipo, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getArticulacao,
+  getDispositivoAndFilhosAsLista,
+  getDispositivoAnteriorMesmoTipo,
+  getProximoArtigoAnterior,
+  getUltimoFilho,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 
@@ -58,6 +64,14 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo, action: any): boolean => {
+  if (
+    isAgrupador(dispositivo) &&
+    dispositivo.pai &&
+    dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO &&
+    !getProximoArtigoAnterior(dispositivo.pai!, dispositivo)
+  ) {
+    return true;
+  }
   return (
     (hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento)) ||
     (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto))

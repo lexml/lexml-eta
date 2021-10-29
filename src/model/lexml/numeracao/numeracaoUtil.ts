@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
-import { getDispositivoAnterior, getDispositivosPosterioresMesmoTipo, isOriginal } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAnterior, getDispositivosPosterioresMesmoTipo, getProximoArtigoAnterior, isOriginal } from '../hierarquia/hierarquiaUtil';
 
 const I = 1,
   V = 5,
@@ -232,7 +233,7 @@ export const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
     if (isOriginal(d) && d.tipo === tipo) {
       i++;
     }
-    d = getDispositivoAnterior(d)!;
+    d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
   } while (d !== undefined);
   return i;
 };
@@ -243,7 +244,7 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
 
   while (d !== undefined && !isOriginal(d) && d.tipo === tipo) {
     i++;
-    d = getDispositivoAnterior(d)!;
+    d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
   }
   return i;
 };
