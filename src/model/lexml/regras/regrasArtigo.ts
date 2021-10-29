@@ -17,11 +17,9 @@ import {
 } from '../acao/transformarElementoAction';
 import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
-  getAgrupadoresAcima,
   getAgrupadorPosterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasAgrupadoresAcima,
   hasAgrupadoresPosteriores,
   hasDispositivosPosterioresAlteracao,
   hasFilhos,
@@ -81,26 +79,6 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         dispositivo.tiposPermitidosPai
           ?.filter(() => pos > 0)
           .filter((tipo, index) => (dispositivo.pai!.indexOf(dispositivo) > 0 ? index >= pos! : index > pos!))
-          .forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
-      if (
-        !isDispositivoAlteracao(dispositivo) &&
-        isAgrupador(dispositivo.pai!) &&
-        !isArticulacao(dispositivo.pai!) &&
-        dispositivo.pai!.indexOf(dispositivo) > 0 &&
-        hasAgrupadoresAcima(dispositivo)
-      ) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
-
-        const tiposExistentes = getAgrupadoresAcima(dispositivo.pai!.pai!, dispositivo.pai!, []).reduce(
-          (lista: string[], dispositivo: Dispositivo) =>
-            lista.includes(dispositivo.tipo) && getAgrupadorPosterior(dispositivo) !== undefined ? lista : lista.concat(dispositivo.tipo),
-          []
-        );
-        dispositivo.tiposPermitidosPai
-          ?.filter(() => pos > 0)
-          .filter(t => tiposExistentes.includes(t))
           .forEach(t => acoes.push(getAcaoAgrupamento(t)));
       }
 

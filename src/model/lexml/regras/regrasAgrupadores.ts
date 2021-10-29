@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
-import { getDispositivosPosterioresMesmoTipo, hasAgrupador } from '../hierarquia/hierarquiaUtil';
+import { getDispositivosPosterioresMesmoTipo, hasAgrupador, hasAgrupadoresAcima } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
@@ -18,6 +18,11 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         if (i > -1) {
           acoes = acoes.slice(i, 1);
         }
+      }
+
+      if (dispositivo.pai && isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && !hasAgrupadoresAcima(dispositivo)) {
+        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo);
+        dispositivo.tiposPermitidosPai?.filter((tipo, index) => index > pos!).forEach(t => acoes.push(getAcaoAgrupamento(t)));
       }
 
       if (dispositivo.pai && !isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && dispositivo.pai!.indexOf(dispositivo) === 0) {
