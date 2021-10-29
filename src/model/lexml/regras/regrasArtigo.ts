@@ -17,7 +17,6 @@ import {
 } from '../acao/transformarElementoAction';
 import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
-  getAgrupadorPosterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasAgrupadoresPosteriores,
@@ -72,7 +71,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(adicionarCapitulo);
       }
       if (!isDispositivoAlteracao(dispositivo) && dispositivo.pai && hasAgrupadoresPosteriores(dispositivo)) {
-        acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
+        acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
+        //acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
       }
       if (!isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai!)) {
         const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;

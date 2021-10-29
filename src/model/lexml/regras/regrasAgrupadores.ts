@@ -1,23 +1,23 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { removerElementoAction } from '../acao/removerElementoAction';
 import { getDispositivosPosterioresMesmoTipo, hasAgrupador, hasAgrupadoresAcima } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
     getAcoesPossiveis(dispositivo: Dispositivo): ElementoAction[] {
-      let acoes: ElementoAction[] = [];
+      const acoes: ElementoAction[] = [];
 
       if (!isAgrupador(dispositivo)) {
         return [];
       }
 
       if (getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 && hasAgrupador(dispositivo)) {
-        const i: number = acoes.findIndex((acao: ElementoAction) => acao.descricao === 'Remover dispositivo');
-        if (i > -1) {
-          acoes = acoes.slice(i, 1);
-        }
+        //
+      } else {
+        acoes.push(removerElementoAction);
       }
 
       if (dispositivo.pai && isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && !hasAgrupadoresAcima(dispositivo)) {
