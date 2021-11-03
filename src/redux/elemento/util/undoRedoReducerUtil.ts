@@ -5,7 +5,7 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnterior, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -63,7 +63,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
     if (novosEvento) {
       const posicao = elemento!.hierarquia!.posicao;
 
-      const referencia = posicao === 0 ? pai : getDispositivoAnterior(novos[0]);
+      const referencia = posicao === 0 ? pai : getUltimoFilho(getDispositivoAnterior(novos[0])!);
 
       if (referencia) {
         const dispositivo = getDispositivoFromElemento(articulacao!, referencia);
@@ -150,7 +150,9 @@ export const processaRenumerados = (state: State, evento: StateEvent): Elemento[
 
     evento.elementos.forEach(e => {
       const dispositivo = getDispositivoFromElemento(state.articulacao!, e, true);
-      novosElementos.push(createElemento(dispositivo!));
+      if (dispositivo) {
+        novosElementos.push(createElemento(dispositivo!));
+      }
     });
 
     return novosElementos;

@@ -144,7 +144,7 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
     }
   }
 
-  const dispositivo = referencia?.uuid === undefined ? articulacao : findDispositivoById(articulacao, referencia.uuid!);
+  const dispositivo = referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoById(articulacao, referencia.uuid!);
 
   if (dispositivo === null) {
     return undefined;
