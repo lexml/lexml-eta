@@ -67,7 +67,7 @@ export class EtaContainerTable extends Container {
   private _editavel: boolean;
   set editavel(editavel: boolean) {
     this._editavel = editavel;
-    this.domNode.contentEditable = this._editavel;
+    this.blotConteudo.domNode.contentEditable = this._editavel;
   }
 
   get editavel(): boolean {
