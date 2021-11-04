@@ -9,11 +9,11 @@ import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermit
 import { BlocoAlteracaoPermitido } from '../alteracao/BlocoAlteracaoPermitido';
 import { ConteudoDispositivo } from '../conteudo/conteudoDispositivo';
 import { ConteudoOmissis } from '../conteudo/conteudoOmissis';
-import { hasIndicativoDesdobramento, hasIndicativoFimAlteracao, hasIndicativoFinalSequencia, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
+import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
 import { HierarquiaAgrupador } from '../hierarquia/hierarquiaAgrupador';
 import { HierarquiaArtigo } from '../hierarquia/hierarquiaArtigo';
 import { HierarquiaDispositivo } from '../hierarquia/hierarquiaDispositivo';
-import { getArticulacao, hasFilhos, isDispositivoAlteracao, isUltimaAlteracao } from '../hierarquia/hierarquiaUtil';
+import { getArticulacao, hasFilhos, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
 import { NumeracaoAgrupador } from '../numeracao/numeracaoAgrupador';
 import { NumeracaoAlinea } from '../numeracao/numeracaoAlinea';
 import { NumeracaoArtigo } from '../numeracao/numeracaoArtigo';
@@ -37,6 +37,7 @@ import { TipoArtigo } from '../tipo/tipoArtigo';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { TipoLexml } from '../tipo/tipoLexml';
 import { TipoMensagem } from '../util/mensagem';
+import { podeSerUltimaalteracao } from './dispositivoLexmlUtil';
 
 const AlineaLexml = SituacaoDispositivo(
   RegrasAlinea(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAlinea(HierarquiaDispositivo(TipoLexml)))))))
@@ -187,13 +188,17 @@ export const createByInferencia = (referencia: Dispositivo, action: any): Dispos
   let novo;
 
   if (isDispositivoAlteracao(referencia)) {
-    if (action.subType === FINALIZAR_BLOCO || (hasIndicativoFimAlteracao(normalizaSeForOmissis(action.atual?.conteudo?.texto ?? '')) && isUltimaAlteracao(referencia))) {
+    if (action.subType === INICIAR_BLOCO) {
+      novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, getArticulacao(referencia));
+      novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : '';
+    } else if (action.subType === FINALIZAR_BLOCO) {
+      const ref = getArticulacao(referencia);
+      novo = createFromReferencia(ref.pai!);
+      novo!.texto = normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '');
+    } else if (podeSerUltimaalteracao(referencia, action)) {
       const ref = getArticulacao(referencia);
       novo = action.subType === INICIAR_BLOCO ? criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, ref!) : createFromReferencia(ref.pai!);
       novo!.texto = action.subType === INICIAR_BLOCO ? '' : normalizaSeForOmissis(action.novo?.conteudo?.texto ?? '');
-    } else if (action.subType === INICIAR_BLOCO) {
-      novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, getArticulacao(referencia));
-      novo.texto = action.novo?.conteudo?.texto?.length > 0 ? action.novo?.conteudo?.texto : '';
     } else {
       novo = createFromReferencia(referencia);
       novo.createRotulo();

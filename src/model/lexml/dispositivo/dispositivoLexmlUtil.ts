@@ -1,7 +1,16 @@
 /* eslint-disable indent */
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isArtigo, isCaput, isParagrafo } from '../../dispositivo/tipo';
-import { getDispositivoAnterior, isPrimeiroMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import { hasIndicativoFimAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
+import {
+  getArtigo,
+  getDispositivoAnterior,
+  isDispositivoAlteracao,
+  isPrimeiroMesmoTipo,
+  isUltimaAlteracao,
+  isUltimoMesmoTipo,
+  isUnicoMesmoTipo,
+} from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { criaDispositivo } from './dispositivoLexmlFactory';
 import { validaDispositivo } from './dispositivoValidator';
@@ -100,4 +109,12 @@ export const copiaFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
 
     atual.filhos.length === 0 ? destino.renumeraFilhos() : undefined;
   });
+};
+
+export const podeSerUltimaalteracao = (dispositivo: Dispositivo, action: any): boolean => {
+  if (!isDispositivoAlteracao(dispositivo)) {
+    return false;
+  }
+  const artigo = getArtigo(dispositivo);
+  return isUltimoMesmoTipo(artigo) && hasIndicativoFimAlteracao(normalizaSeForOmissis(action.atual?.conteudo?.texto ?? '')) && isUltimaAlteracao(dispositivo);
 };
