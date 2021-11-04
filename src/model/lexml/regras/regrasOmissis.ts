@@ -4,6 +4,7 @@ import { ElementoAction } from '../acao';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
+import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
   transformarOmissisEmAlinea,
@@ -31,6 +32,8 @@ export function RegrasOmissis<TBase extends Constructor>(Base: TBase): any {
       if (!isOmissis(dispositivo)) {
         return [];
       }
+
+      acoes.push(removerElementoAction);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);

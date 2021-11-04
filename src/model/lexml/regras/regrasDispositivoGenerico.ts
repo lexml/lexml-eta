@@ -2,6 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isCaput, isDispositivoGenerico, isInciso, isParagrafo } from '../../dispositivo/tipo';
 import { acoesDisponiveis, ElementoAction } from '../acao';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { removerElementoAction } from '../acao/removerElementoAction';
 import { TransformarElemento } from '../acao/transformarElementoAction';
 import { hasDispositivosPosterioresAlteracao, isDispositivoAlteracao, isUltimaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
@@ -14,6 +15,8 @@ export function RegrasDispositivoGenerico<TBase extends Constructor>(Base: TBase
       if (!isDispositivoGenerico(dispositivo)) {
         return [];
       }
+
+      acoes.push(removerElementoAction);
 
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);

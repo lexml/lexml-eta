@@ -5,6 +5,7 @@ import { adicionarAlinea, adicionarItem } from '../acao/adicionarElementoAction'
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
+import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
   transformaAlineaEmItem,
@@ -36,6 +37,8 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       if (!isAlinea(dispositivo)) {
         return [];
       }
+
+      acoes.push(removerElementoAction);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);

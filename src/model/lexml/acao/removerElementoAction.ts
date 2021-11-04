@@ -3,7 +3,7 @@ import { Referencia } from '../../elemento';
 
 export const REMOVER_ELEMENTO = 'REMOVER_ELEMENTO';
 
-class RemoverElemento implements ElementoAction {
+export class RemoverElemento implements ElementoAction {
   descricao: string;
   tipo?: string;
 

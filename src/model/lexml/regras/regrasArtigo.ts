@@ -6,6 +6,7 @@ import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
+import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
   transformarAlineaEmIncisoCaput,
@@ -40,6 +41,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (!isArtigo(dispositivo)) {
         return [];
       }
+
+      acoes.push(removerElementoAction);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);
