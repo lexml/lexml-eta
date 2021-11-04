@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isDispositivoGenerico, isIncisoCaput, isIncisoParagrafo, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
-import { adicionarArtigo, adicionarInciso } from '../acao/adicionarElementoAction';
+import { adicionarArtigo, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
@@ -42,6 +42,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         return [];
       }
 
+      acoes.push(adicionarElementoAction);
       acoes.push(removerElementoAction);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {

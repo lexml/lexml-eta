@@ -231,7 +231,7 @@ export const createFromReferencia = (referencia: Dispositivo): Dispositivo => {
   }
 
   if (isDispositivoAlteracao(referencia)) {
-    return hasFilhos(referencia)
+    return hasFilhos(referencia) || hasIndicativoDesdobramento(referencia)
       ? criaDispositivo(referencia, referencia.tipoProvavelFilho!, referencia)
       : criaDispositivo(referencia.pai!, referencia.tipo === TipoDispositivo.omissis.tipo ? referencia.pai!.tipoProvavelFilho! : referencia.tipo, referencia);
   }
