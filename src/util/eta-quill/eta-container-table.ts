@@ -153,8 +153,8 @@ export class EtaContainerTable extends Container {
         conteudoStyle = '';
         break;
     }
-    this.blotRotulo.domNode.setAttribute('style', this.blotRotulo.domNode.getAttribute('style') + rotuloStyle);
-    this.blotConteudo.domNode.setAttribute('style', this.blotRotulo.domNode.getAttribute('style') + conteudoStyle);
+    this.blotRotulo.domNode.setAttribute('style', (this.blotRotulo.domNode.getAttribute('style') ?? '') + rotuloStyle);
+    this.blotConteudo.domNode.setAttribute('style', (this.blotConteudo.domNode.getAttribute('style') ?? '') + conteudoStyle);
   }
 
   constructor(elemento: Elemento) {
