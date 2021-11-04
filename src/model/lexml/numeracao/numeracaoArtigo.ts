@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { getArticulacao } from '../hierarquia/hierarquiaUtil';
+import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { isNumeracaoValida } from './numeracaoUtil';
 
@@ -30,11 +30,11 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     createRotulo(dispositivo: Dispositivo): void {
-      if (this.numero === undefined || !dispositivo) {
+      if ((this.numero === undefined || !dispositivo) && isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo = '\u201C' + TipoDispositivo.artigo.name;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
-      } else if (dispositivo.isDispositivoAlteracao) {
+      } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       } else {
         getArticulacao(dispositivo).artigos.length === 1
