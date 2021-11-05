@@ -3,6 +3,9 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
+  if (!dispositivo) {
+    return dispositivo as Articulacao;
+  }
   if (isArticulacao(dispositivo)) {
     return dispositivo as Articulacao;
   }
@@ -86,8 +89,22 @@ export const getAgrupadorAcimaByTipo = (referencia: Dispositivo, tipo: string): 
   return [...new Set(getAgrupadoresAcima(referencia.pai!, referencia, []))].filter(a => a.tipo === tipo).reverse()[0];
 };
 
-export const hasAgrupadoresAcimaByTipo = (dispositivo: Dispositivo, tipo: string): boolean => {
+export const hasAgrupadoresAnterioresByTipo = (dispositivo: Dispositivo, tipo: string): boolean => {
   return getAgrupadoresAcima(dispositivo.pai!.pai!, dispositivo.pai!, []).filter(d => d.tipo === tipo).length > 0;
+};
+
+export const getAgrupadoresAcimaByTipo = (dispositivo: Dispositivo, tipo: string): Dispositivo | undefined => {
+  if (!dispositivo || !dispositivo.pai) {
+    return undefined;
+  }
+  if (dispositivo.pai && dispositivo.pai.tipo === tipo) {
+    return dispositivo.pai;
+  }
+  return getAgrupadoresAcimaByTipo(dispositivo.pai!, tipo);
+};
+
+export const hasAgrupadoresAcimaByTipo = (dispositivo: Dispositivo, tipo: string): boolean => {
+  return getAgrupadoresAcimaByTipo(dispositivo, tipo) !== undefined;
 };
 
 export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {

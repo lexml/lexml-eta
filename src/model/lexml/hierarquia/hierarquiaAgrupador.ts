@@ -58,7 +58,7 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
           f.numero = calculaNumeracao(f);
           f.createRotulo(f);
         });
-      this.hasArtigos() ? (getArticulacao(this.filhos[0]) as Articulacao).renumeraArtigos() : null;
+      (getArticulacao(this.filhos[0]) as Articulacao)?.renumeraArtigos();
     }
   };
 }

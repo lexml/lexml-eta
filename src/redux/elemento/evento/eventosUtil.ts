@@ -53,11 +53,14 @@ export const buildUpdateEvent = (dispositivo: Dispositivo, original?: Elemento):
   ];
 };
 
-export const buildEventoExclusaoElemento = (elementosRemovidos: Elemento[], elementosRenumerados: Elemento[], elementosValidados: Elemento[]): Eventos => {
+export const buildEventoExclusaoElemento = (elementosRemovidos: Elemento[], dispositivosRenumerados: Dispositivo[], elementosValidados: Elemento[]): Eventos => {
   const eventos = new Eventos();
 
   eventos.add(StateType.ElementoRemovido, elementosRemovidos);
-  eventos.add(StateType.ElementoRenumerado, elementosRenumerados);
+  eventos.add(
+    StateType.ElementoRenumerado,
+    dispositivosRenumerados.map(d => createElemento(d))
+  );
   eventos.add(StateType.ElementoValidado, elementosValidados);
 
   return eventos;
@@ -93,16 +96,14 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   pai.removeFilho(dispositivo);
   pai.renumeraFilhos();
 
-  const modificados = dispositivosRenumerados.map(d => createElemento(d));
-
   const dispositivoValidado =
     dispositivoAnterior && (isArtigoUnico(dispositivoAnterior) || isParagrafoUnico(dispositivoAnterior)) ? dispositivoAnterior : isCaput(pai!) ? pai!.pai! : pai!;
 
   if (articulacao.artigos.length === 1) {
-    modificados.push(createElemento(articulacao.artigos[0]));
+    dispositivosRenumerados.push(articulacao.artigos[0]);
   }
 
-  const eventos = buildEventoExclusaoElemento(removidos, modificados, criaListaElementosAfinsValidados(dispositivoValidado, false));
+  const eventos = buildEventoExclusaoElemento(removidos, dispositivosRenumerados, criaListaElementosAfinsValidados(dispositivoValidado, false));
   return eventos.build();
 };
 

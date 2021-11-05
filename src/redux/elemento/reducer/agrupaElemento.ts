@@ -2,7 +2,14 @@ import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { getAgrupadorAcimaByTipo, getDispositivoAnterior, hasAgrupadoresAcimaByTipo, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getAgrupadorAcimaByTipo,
+  getAgrupadoresAcimaByTipo,
+  getDispositivoAnterior,
+  hasAgrupadoresAcimaByTipo,
+  hasAgrupadoresAnterioresByTipo,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, copiaDispositivosParaAgrupadorPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
@@ -30,8 +37,8 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
-  } else if (hasAgrupadoresAcimaByTipo(atual, action.novo.tipo)) {
-    const ref = getAgrupadorAcimaByTipo(atual, action.novo.tipo);
+  } else if (hasAgrupadoresAcimaByTipo(atual, action.novo.tipo) || hasAgrupadoresAnterioresByTipo(atual, action.novo.tipo)) {
+    const ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
     novo = criaDispositivo(ref!.pai!, action.novo.tipo, ref);
   } else {
     novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
