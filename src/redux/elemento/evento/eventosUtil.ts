@@ -1,4 +1,5 @@
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
@@ -152,7 +153,7 @@ export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Di
   getDispositivoAndFilhosAsLista(dispositivo).forEach(d => {
     d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
     d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
-    d.texto = d.situacao.dispositivoOriginal?.conteudo?.texto ?? '';
+    d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
     d.situacao = new DispositivoOriginal();
   });
 
