@@ -54,8 +54,8 @@ describe('Numeração de artigos de emenda', () => {
     it('o artigo criado é o unico dispositivo nao original', () => {
       expect(contaIrmaosNaoOriginaisConsecutivosAte(articulacao.artigos[1])).to.equal(1);
     });
-    it('o artigo criado deveria ter como numeracao 1A', () => {
-      expect(calculaNumeracao(articulacao.artigos[1])).to.equal('1A');
+    it('o artigo criado deveria ter como numeracao 1-A', () => {
+      expect(calculaNumeracao(articulacao.artigos[1])).to.equal('1-A');
     });
   });
   describe('Testando outras situacoes', () => {
@@ -78,11 +78,11 @@ describe('Numeração de artigos de emenda', () => {
       it('o artigo criado nao possui antes um dispositivo nao original', () => {
         expect(contaIrmaosNaoOriginaisConsecutivosAte(articulacao.artigos[1])).to.equal(1);
       });
-      it('o artigo criado deveria ter como numeracao 1A', () => {
-        expect(calculaNumeracao(articulacao.artigos[1])).to.equal('1A');
+      it('o artigo criado deveria ter como numeracao 1-A', () => {
+        expect(calculaNumeracao(articulacao.artigos[1])).to.equal('1-A');
       });
-      it('o artigo criado anteriormente deveria ter como numeracao 1B', () => {
-        expect(calculaNumeracao(articulacao.artigos[2])).to.equal('1B');
+      it('o artigo criado anteriormente deveria ter como numeracao 1-B', () => {
+        expect(calculaNumeracao(articulacao.artigos[2])).to.equal('1-B');
       });
     });
     describe('Testando a numeracao de um dispositivo adicionado entre um adicionado e um original', () => {
@@ -98,12 +98,12 @@ describe('Numeração de artigos de emenda', () => {
       it('o artigo criado nao possui antes um dispositivo nao original', () => {
         expect(contaIrmaosNaoOriginaisConsecutivosAte(articulacao.artigos[1])).to.equal(1);
       });
-      it('o artigo criado deveria ter como numeracao 1B', () => {
-        expect(calculaNumeracao(articulacao.artigos[2])).to.equal('1B');
+      it('o artigo criado deveria ter como numeracao 1-B', () => {
+        expect(calculaNumeracao(articulacao.artigos[2])).to.equal('1-B');
         expect(articulacao.artigos[2].texto).equal('novo2');
       });
-      it('o artigo criado anteriormente deveria ter como numeracao 1A', () => {
-        expect(calculaNumeracao(articulacao.artigos[1])).to.equal('1A');
+      it('o artigo criado anteriormente deveria ter como numeracao 1-A', () => {
+        expect(calculaNumeracao(articulacao.artigos[1])).to.equal('1-A');
         expect(articulacao.artigos[1].texto).equal('novo');
       });
       describe('Testando a numeracao de um dispositivo adicionado entre dois adicionados', () => {
@@ -119,12 +119,12 @@ describe('Numeração de artigos de emenda', () => {
         it('o artigo criado nao possui antes um dispositivo nao original', () => {
           expect(contaIrmaosNaoOriginaisConsecutivosAte(articulacao.artigos[1])).to.equal(1);
         });
-        it('o artigo criado deveria ter como numeracao 1B', () => {
-          expect(calculaNumeracao(articulacao.artigos[2])).to.equal('1B');
+        it('o artigo criado deveria ter como numeracao 1-B', () => {
+          expect(calculaNumeracao(articulacao.artigos[2])).to.equal('1-B');
           expect(articulacao.artigos[2].texto).equal('novo3');
         });
-        it('o artigo criado anteriormente deveria ter como numeracao 1C', () => {
-          expect(calculaNumeracao(articulacao.artigos[3])).to.equal('1C');
+        it('o artigo criado anteriormente deveria ter como numeracao 1-C', () => {
+          expect(calculaNumeracao(articulacao.artigos[3])).to.equal('1-C');
           expect(articulacao.artigos[3].texto).equal('novo2');
         });
       });
