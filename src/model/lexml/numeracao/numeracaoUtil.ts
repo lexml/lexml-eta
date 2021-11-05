@@ -263,6 +263,6 @@ class SeqOrdem {
     }
   }
   getNumeracao(isDispositivoEmenda: boolean): string {
-    return '' + this.seq + (isDispositivoEmenda ? '-' : '') + (this.letras ?? '');
+    return '' + this.seq + (isDispositivoEmenda && this.letras ? '-' : '') + (this.letras ?? '');
   }
 }
