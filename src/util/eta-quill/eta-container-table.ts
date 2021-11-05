@@ -150,8 +150,8 @@ export class EtaContainerTable extends Container {
         conteudoStyle = 'text-decoration: line-through; color: red;';
         break;
       default:
-        rotuloStyle = 'color: #777;';
-        conteudoStyle = 'text-decoration: none; color: #777;';
+        rotuloStyle = 'color: #9d9d9d;';
+        conteudoStyle = 'text-decoration: none; color: #9d9d9d;';
         break;
     }
     this.blotRotulo.domNode.setAttribute('style', (this.blotRotulo.domNode.getAttribute('style') ?? '') + rotuloStyle);
