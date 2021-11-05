@@ -150,7 +150,7 @@ export class EtaContainerTable extends Container {
         conteudoStyle = 'text-decoration: line-through; color: red;';
         break;
       default:
-        rotuloStyle = 'color: #9d9d9d;';
+        rotuloStyle = 'color: black;';
         conteudoStyle = 'text-decoration: none; color: #9d9d9d;';
         break;
     }
