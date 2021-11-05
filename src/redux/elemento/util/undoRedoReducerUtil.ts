@@ -25,6 +25,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   novo!.texto = elemento?.conteudo?.texto ?? '';
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
+  novo.mensagens = elemento?.mensagens;
   return novo;
 };
 
@@ -133,6 +134,7 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
             }
             dispositivo.texto = e.conteudo?.texto ?? '';
           }
+          dispositivo.mensagens = validaDispositivo(dispositivo);
           novosElementos.push(createElemento(dispositivo));
           anterior = dispositivo.uuid!;
         }

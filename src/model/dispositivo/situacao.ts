@@ -18,3 +18,21 @@ export enum DescricaoSituacao {
   DISPOSITIVO_ORIGINAL = 'Dispositivo Original',
   DISPOSITIVO_SUPRIMIDO = 'Dispositivo Suprimido',
 }
+
+export const isSituacaoExclusivaDispositivoEmenda = (dispositivo: Dispositivo): boolean => {
+  return [DescricaoSituacao.DISPOSITIVO_ADICIONADO.toString(), DescricaoSituacao.DISPOSITIVO_MODIFICADO.toString(), DescricaoSituacao.DISPOSITIVO_SUPRIMIDO.toString()].includes(
+    dispositivo.situacao.descricaoSituacao
+  );
+};
+
+export const isDispositivoEmenda = (dispositivo: Dispositivo): boolean => {
+  if (isSituacaoExclusivaDispositivoEmenda(dispositivo)) {
+    return true;
+  }
+
+  if (dispositivo.pai === undefined) {
+    return false;
+  }
+
+  return isDispositivoEmenda(dispositivo.pai!);
+};

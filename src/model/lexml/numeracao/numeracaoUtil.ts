@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { isDispositivoEmenda } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { getDispositivoAnterior, getDispositivosPosterioresMesmoTipo, getProximoArtigoAnterior, isOriginal } from '../hierarquia/hierarquiaUtil';
@@ -43,9 +44,6 @@ const isRomano = (numero: string): boolean => {
   return /^(?=[MDCLXVI])M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$/i.test(numero);
 };
 
-//
-// Alínea
-//
 export const converteLetraParaNumeroArabico = (s: string): string => {
   if (!isLetra(s)) {
     throw new Error(`O valor ${s} não é uma sequência de letras válida.`);
@@ -76,9 +74,6 @@ export const intToAlpha = (numero: number): string => {
   return str;
 };
 
-//
-// Inciso
-//
 export const converteNumeroRomanoParaArabico = (numeroRomano: string): string => {
   if (!isRomano(numeroRomano)) {
     throw new Error("O valor '" + numeroRomano + "' não é um número em algarismo romano válido.");
@@ -250,7 +245,7 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
 };
 
 export const calculaNumeracao = (d: Dispositivo): string => {
-  return calculaSeqOrdem(d).getNumeracao();
+  return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
 };
 class SeqOrdem {
   seq: number;
@@ -267,7 +262,7 @@ class SeqOrdem {
       this.letras = intToAlpha(seq2 - 1).toUpperCase();
     }
   }
-  getNumeracao(): string {
-    return '' + this.seq + (this.letras ?? '');
+  getNumeracao(isDispositivoEmenda: boolean): string {
+    return '' + this.seq + (isDispositivoEmenda ? '-' : '') + (this.letras ?? '');
   }
 }
