@@ -1,18 +1,31 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
+import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
+
+const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
+  switch (descricao) {
+    case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
+      return new DispositivoAdicionado();
+    case DescricaoSituacao.DISPOSITIVO_NOVO:
+      return new DispositivoNovo();
+    default:
+      return new DispositivoOriginal();
+  }
+};
 
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
@@ -26,6 +39,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
   novo.mensagens = elemento?.mensagens;
+  novo.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
   return novo;
 };
 

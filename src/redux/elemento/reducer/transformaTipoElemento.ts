@@ -1,4 +1,4 @@
-import { isCaput } from '../../../model/dispositivo/tipo';
+import { isCaput, isIncisoCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoTransformacaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { converteDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
@@ -33,7 +33,13 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   const validados = getElementosDoDispositivo(novo, true);
 
   novo.pai!.mensagens = validaDispositivo(novo.pai!);
-  validados.unshift(createElemento(novo.pai!));
+
+  if (isIncisoCaput(novo)) {
+    novo.pai!.pai!.mensagens = validaDispositivo(novo.pai!.pai!);
+    validados.unshift(createElemento(novo.pai!.pai!));
+  } else {
+    validados.unshift(createElemento(novo.pai!));
+  }
 
   const dispositivoAnterior = getDispositivoAnterior(novo);
 
