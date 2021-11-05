@@ -32,6 +32,9 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   const validados = getElementosDoDispositivo(novo, true);
 
+  novo.pai!.mensagens = validaDispositivo(novo.pai!);
+  validados.unshift(createElemento(novo.pai!));
+
   const dispositivoAnterior = getDispositivoAnterior(novo);
 
   const referencia = dispositivoAnterior ?? novo.pai!;
