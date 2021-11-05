@@ -1,19 +1,26 @@
 import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
+import { moverElementoAcimaAction } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia } from '../util/reducerUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const moveElementoAcima = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
+  }
+
+  if (!isAcaoPermitida(atual, moverElementoAcimaAction)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' });
   }
 
   const anterior = getDispositivoAnteriorMesmoTipoInclusiveOmissis(atual);

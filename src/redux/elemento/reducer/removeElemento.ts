@@ -1,5 +1,7 @@
 import { isAgrupador } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
+import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
 import { hasFilhos, isArtigoUnico, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
@@ -11,6 +13,10 @@ export const removeElemento = (state: any, action: any): State => {
 
   if (dispositivo === undefined) {
     return state;
+  }
+
+  if (!isAcaoPermitida(dispositivo, RemoverElemento)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' });
   }
 
   if (
