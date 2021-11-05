@@ -131,6 +131,7 @@ export class EtaContainerTable extends Container {
     this.domNode.innerHTML = html;
   }
 
+  // TODO Rever a forma atual de se atribuir estilos
   setEstilo(valor: string): void {
     let rotuloStyle = '';
     let conteudoStyle = '';
@@ -149,8 +150,8 @@ export class EtaContainerTable extends Container {
         conteudoStyle = 'text-decoration: line-through; color: red;';
         break;
       default:
-        rotuloStyle = '';
-        conteudoStyle = '';
+        rotuloStyle = 'color: #777;';
+        conteudoStyle = 'text-decoration: none; color: #777;';
         break;
     }
     this.blotRotulo.domNode.setAttribute('style', (this.blotRotulo.domNode.getAttribute('style') ?? '') + rotuloStyle);
