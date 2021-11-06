@@ -159,7 +159,7 @@ export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Di
 
   const eventos = new Eventos();
 
-  eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
+  eventos.add(StateType.ElementoRestaurado, getElementos(dispositivo));
 
   return eventos.build();
 };

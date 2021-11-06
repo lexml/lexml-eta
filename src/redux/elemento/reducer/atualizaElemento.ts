@@ -10,7 +10,7 @@ import { buildPast } from '../util/stateReducerUtil';
 export const atualizaElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
-  if (dispositivo === undefined) {
+  if (dispositivo === undefined || dispositivo.texto === action.atual.conteudo.texto) {
     return state;
   }
 
