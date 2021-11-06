@@ -116,7 +116,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
 
   const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
   const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
-  const referencia = isArticulacao(pai) ? createElemento(pai) : createElemento(getUltimoFilho(dispositivoAnterior));
+  const referencia = isArticulacao(dispositivoAnterior) ? createElemento(pai) : createElemento(getUltimoFilho(dispositivoAnterior));
   const dispositivos = atual.filhos.map(d => {
     const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? criaDispositivo(pai!, d.tipo) : criaDispositivo(pai, d.tipo, undefined, pos++);
     novo.texto = d.texto;
