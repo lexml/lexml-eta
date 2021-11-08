@@ -3,7 +3,7 @@ import { Referencia } from '../../elemento';
 
 export const MOVER_ELEMENTO_ACIMA = 'Mover para cima';
 
-class MoverElementoAcima implements ElementoAction {
+export class MoverElementoAcima implements ElementoAction {
   descricao: string;
   tipo?: string;
 

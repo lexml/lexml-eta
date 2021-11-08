@@ -102,6 +102,7 @@ export const copiaFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
   atual.filhos.forEach(filho => {
     const novo = criaDispositivo(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
     novo.texto = filho.texto ?? '';
+    novo.situacao = filho.situacao;
     atual.removeFilho(filho);
     novo.mensagens = validaDispositivo(filho);
 

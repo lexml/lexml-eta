@@ -1,7 +1,7 @@
 import { isIncisoCaput } from '../../../model/dispositivo/tipo';
 import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
-import { moverElementoAbaixoAction } from '../../../model/lexml/acao/moverElementoAbaixoAction';
+import { MoverElementoAbaixo } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -19,7 +19,7 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
     return state;
   }
 
-  if (!isAcaoPermitida(atual, moverElementoAbaixoAction)) {
+  if (!isAcaoPermitida(atual, MoverElementoAbaixo)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' });
   }
 
@@ -38,10 +38,12 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   pai.removeFilho(proximo);
 
   const um = criaDispositivo(pai, proximo.tipo, undefined, pos);
+  um.situacao = proximo.situacao;
   um.texto = proximo.texto;
   copiaFilhos(proximo, um);
 
   const outro = criaDispositivo(pai, atual.tipo, undefined, pos + 1);
+  outro.situacao = atual.situacao;
   outro.texto = action.atual.conteudo.texto;
   copiaFilhos(atual, outro);
 

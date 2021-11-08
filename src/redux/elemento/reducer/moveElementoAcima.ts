@@ -1,6 +1,6 @@
 import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
-import { moverElementoAcimaAction } from '../../../model/lexml/acao/moverElementoAcimaAction';
+import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -19,7 +19,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
     return state;
   }
 
-  if (!isAcaoPermitida(atual, moverElementoAcimaAction)) {
+  if (!isAcaoPermitida(atual, MoverElementoAcima)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' });
   }
 
@@ -38,10 +38,12 @@ export const moveElementoAcima = (state: any, action: any): State => {
   pai.removeFilho(anterior);
 
   const um = criaDispositivo(pai, atual.tipo, undefined, pos);
+  um.situacao = atual.situacao;
   um.texto = action.atual.conteudo.texto;
   copiaFilhos(atual, um);
 
   const outro = criaDispositivo(pai, anterior.tipo, undefined, pos + 1);
+  outro.situacao = anterior.situacao;
   outro.texto = anterior.texto;
   copiaFilhos(anterior, outro);
   pai.renumeraFilhos();
