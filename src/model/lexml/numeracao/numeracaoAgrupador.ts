@@ -10,7 +10,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     rotulo?: string;
 
     private getNomeAgrupadorUnico(dispositivo: Dispositivo): string {
-      return `${dispositivo.tipo} únic${dispositivo.artigoDefinido}`.toLocaleUpperCase();
+      return `${dispositivo.descricao} únic${dispositivo.artigoDefinido}`.toLocaleUpperCase();
     }
     private normalizaNumeracao(numero: string): string {
       return numero.trim().replace(/-$/, '').trim();
