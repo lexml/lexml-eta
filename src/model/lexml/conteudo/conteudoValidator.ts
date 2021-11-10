@@ -54,7 +54,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if ((!isArticulacao(dispositivo) && !dispositivo.texto) || dispositivo.texto.trim().length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `Não foi informado um texto para ${dispositivo.pronome + dispositivo.descricao!}`,
+      descricao: `Não foi informado um texto para ${dispositivo.artigoDefinido + ' ' + dispositivo.descricao!}`,
     });
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && !isValidHTML(dispositivo.texto)) {

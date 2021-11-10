@@ -1,11 +1,11 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { createByInferencia } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
-import { hasFilhos, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, irmaosMesmoTipo, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -70,6 +70,11 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && elementosRemovidos && elementosRemovidos.length > 0) {
     eventos.add(StateType.ElementoRemovido, elementosRemovidos);
+  }
+
+  if (isAgrupador(novo) && irmaosMesmoTipo(novo).length === 2) {
+    const irmao = irmaosMesmoTipo(novo).filter(a => a !== novo);
+    eventos.add(StateType.ElementoModificado, [createElemento(irmao[0]!)]);
   }
 
   if (textoModificado || isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
