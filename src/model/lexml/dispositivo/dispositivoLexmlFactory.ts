@@ -2,6 +2,7 @@ import { Counter } from '../../../util/counter';
 import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo } from '../../dispositivo/tipo';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acao/blocoAlteracaoAction';
@@ -256,7 +257,7 @@ const createFromReferenciaDefault = (referencia: Dispositivo): Dispositivo => {
     const type = referencia.tipoProvavelFilho!;
     return referencia.pai!.filhos!.length > 0 ? criaDispositivo(referencia, type, undefined, 0) : criaDispositivo(referencia, type);
   }
-  if (hasIndicativoFinalSequencia(referencia) && referencia.pai!.isLastFilho(referencia)) {
+  if (referencia.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL && hasIndicativoFinalSequencia(referencia) && referencia.pai!.isLastFilho(referencia)) {
     if (isIncisoCaput(referencia)) {
       const artigo: Artigo = referencia.pai!.pai! as Artigo;
       return artigo!.filhos!.filter(filho => isParagrafo(filho)).length > 0

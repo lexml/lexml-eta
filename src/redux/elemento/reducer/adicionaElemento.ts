@@ -22,6 +22,11 @@ export const adicionaElemento = (state: any, action: any): State => {
     return state;
   }
 
+  if (atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
+    action.atual.conteudo.texto = atual.texto;
+    action.novo.conteudo.texto = undefined;
+  }
+
   const originalmenteUnico = isArtigoUnico(atual) || isParagrafoUnico(atual);
 
   const elementoAtualOriginal = createElementoValidado(atual);

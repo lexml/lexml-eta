@@ -1,6 +1,6 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
@@ -15,6 +15,7 @@ import {
   getDispositivoAnteriorMesmoTipo,
   getProximoArtigoAnterior,
   getUltimoFilho,
+  hasFilhos,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
@@ -72,7 +73,11 @@ export const naoPodeCriarFilho = (dispositivo: Dispositivo, action: any): boolea
   ) {
     return true;
   }
+  if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && hasIndicativoDesdobramento(dispositivo) && hasFilhos(dispositivo)) {
+    return true;
+  }
   return (
+    isDispositivoGenerico(dispositivo) ||
     (hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento)) ||
     (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto))
   );
