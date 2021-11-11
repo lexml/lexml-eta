@@ -1,5 +1,5 @@
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isOriginal } from '../hierarquia/hierarquiaUtil';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { TipoLexml } from './tipoLexml';
 
@@ -30,7 +30,7 @@ export class TipoArticulacao extends TipoLexml {
 
   renumeraArtigos(): void {
     this.artigos
-      .filter(a => !isOriginal(a))
+      .filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
       .forEach(filho => {
         filho.numero = calculaNumeracao(filho);
         filho.createRotulo(filho);

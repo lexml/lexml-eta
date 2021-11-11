@@ -114,6 +114,15 @@ export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
   return getArtigo(dispositivo.pai!);
 };
 
+export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Dispositivo): Dispositivo[] => {
+  const pos = getArticulacao(dispositivo).indexOfArtigo(dispositivo);
+
+  if (pos === -1 || getArticulacao(dispositivo).artigos.length === pos + 1) {
+    return [];
+  }
+  return getArticulacao(dispositivo).artigos.filter((artigo, index) => index > pos);
+};
+
 export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositivo): Dispositivo | undefined => {
   if (pai?.filhos) {
     for (let i = pai?.indexOf(referencia) - 1; i >= 0; i--) {

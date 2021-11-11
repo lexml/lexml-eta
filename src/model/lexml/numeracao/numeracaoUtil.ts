@@ -3,6 +3,7 @@ import { isDispositivoEmenda } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import {
+  getArtigosPosterioresIndependenteAgrupador,
   getDispositivoAnterior,
   getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
@@ -223,7 +224,8 @@ export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
 };
 
 export const hasIrmaoOriginalDepois = (d: Dispositivo): boolean => {
-  return getDispositivosPosterioresMesmoTipo(d).filter((dispositivo: Dispositivo) => isOriginal(dispositivo)).length > 0;
+  const lista = isArtigo(d) ? getArtigosPosterioresIndependenteAgrupador(d) ?? [] : getDispositivosPosterioresMesmoTipo(d);
+  return lista.filter((dispositivo: Dispositivo) => isOriginal(dispositivo)).length > 0;
 };
 
 export const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
