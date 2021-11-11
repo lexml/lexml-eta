@@ -2,7 +2,13 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoEmenda } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
-import { getDispositivoAnterior, getDispositivosPosterioresMesmoTipo, getProximoArtigoAnterior, isOriginal } from '../hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAnterior,
+  getDispositivosPosterioresMesmoTipo,
+  getProximoArtigoAnterior,
+  isOriginal,
+  isOriginalAlteradoModificadoOuSuprimido,
+} from '../hierarquia/hierarquiaUtil';
 
 const I = 1,
   V = 5,
@@ -225,7 +231,7 @@ export const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
   const tipo = d.tipo;
 
   do {
-    if (isOriginal(d) && d.tipo === tipo) {
+    if ((isOriginal(d) || isOriginalAlteradoModificadoOuSuprimido(d)) && d.tipo === tipo) {
       i++;
     }
     d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
@@ -237,7 +243,7 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
   let i = 0;
   const tipo = d.tipo;
 
-  while (d !== undefined && !isOriginal(d) && d.tipo === tipo) {
+  while (d !== undefined && !isOriginal(d) && !isOriginalAlteradoModificadoOuSuprimido(d) && d.tipo === tipo) {
     i++;
     d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
   }
