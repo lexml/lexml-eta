@@ -1,5 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../dispositivo/situacao';
+import { isIncisoCaput } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { ElementoAction } from '../acao';
 import { restaurarElementoAction } from '../acao/restaurarElemento';
@@ -16,7 +17,9 @@ export class DispositivoSuprimido implements TipoSituacao {
   getAcoesPermitidas(dispositivo: Dispositivo, acoes: any[]): any[] {
     const a: ElementoAction[] = [];
 
-    a.push(restaurarElementoAction);
+    if ((isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!).situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      a.push(restaurarElementoAction);
+    }
 
     return a;
   }
