@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isDispositivoDeArtigo, isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
@@ -7,6 +7,7 @@ import {
   getDispositivoPosteriorMesmoTipo,
   irmaosMesmoTipo,
   isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
@@ -86,7 +87,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     });
   }
 
-  if (dispositivo !== null && isDispositivoDeArtigo(dispositivo) && dispositivo.numero && dispositivo.pai?.indexOf(dispositivo) === 0 && dispositivo.numero !== '1') {
+  if (dispositivo !== null && !isDispositivoCabecaAlteracao(dispositivo) && dispositivo.numero && dispositivo.pai?.indexOf(dispositivo) === 0 && dispositivo.numero !== '1') {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'É necessário um omissis antes deste dispositivo',
@@ -105,7 +106,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    isDispositivoDeArtigo(dispositivo) &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero &&
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     irmaosMesmoTipo(dispositivo)
@@ -119,7 +120,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    isDispositivoDeArtigo(dispositivo) &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero &&
     !dispositivo.pai!.isLastFilho(dispositivo) &&
     irmaosMesmoTipo(dispositivo)
@@ -133,7 +134,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    isDispositivoDeArtigo(dispositivo) &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero &&
     irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length > 1
   ) {
@@ -144,7 +145,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    isDispositivoDeArtigo(dispositivo) &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero &&
     isNumero(dispositivo.numero) &&
     parseInt(dispositivo.numero) > 2 &&

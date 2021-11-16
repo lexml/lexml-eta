@@ -30,11 +30,13 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     createRotulo(dispositivo: Dispositivo): void {
-      if ((this.numero === undefined || !dispositivo) && isDispositivoCabecaAlteracao(dispositivo)) {
-        this.rotulo = '\u201C' + TipoDispositivo.artigo.name;
+      if (dispositivo === undefined) {
+        this.rotulo = TipoDispositivo.artigo.descricao;
+      } else if (this.numero === undefined) {
+        this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
-      } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
+      } else if (isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
       } else {
         getArticulacao(dispositivo).artigos.length === 1

@@ -170,6 +170,12 @@ export const rotuloParaEdicao = (texto: string): string => {
   return texto
     .replace(/\./g, '')
     .replace(/["“]/g, '')
+    .replace(/^Parte$/i, '')
+    .replace(/^Livro$/i, '')
+    .replace(/^Titulo$/i, '')
+    .replace(/^Capitulo$/i, '')
+    .replace(/^Secao$/i, '')
+    .replace(/^Subsecao$/i, '')
     .replace(/^Artigo$/i, '')
     .replace(/^Paragrafo$/i, '')
     .replace(/^Inciso$/i, '')

@@ -296,7 +296,7 @@ export const getDispositivoCabecaAlteracao = (dispositivo: Dispositivo): Disposi
 };
 
 export const isDispositivoCabecaAlteracao = (dispositivo: Dispositivo): boolean => {
-  return isArticulacao(dispositivo.pai!) && dispositivo.pai!.pai !== undefined;
+  return isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai!) && dispositivo.pai!.pai !== undefined;
 };
 
 export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {

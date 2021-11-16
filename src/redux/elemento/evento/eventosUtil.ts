@@ -6,7 +6,15 @@ import { buildListaElementosRenumerados, createElemento, criaListaElementosAfins
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAndFilhosAsLista, getDispositivoAnterior, getUltimoFilho, isArtigoUnico, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAndFilhosAsLista,
+  getDispositivoAnterior,
+  getUltimoFilho,
+  isArticulacaoAlteracao,
+  isArtigoUnico,
+  isDispositivoCabecaAlteracao,
+  isParagrafoUnico,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { StateEvent, StateType } from '../../state';
@@ -114,9 +122,9 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
 
   const removidos = [...getElementos(atual)];
 
-  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
+  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 && !isArticulacao(atual.pai!) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
   const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
-  const referencia = isArticulacao(dispositivoAnterior) ? createElemento(pai) : createElemento(getUltimoFilho(dispositivoAnterior));
+  const referencia = isArticulacao(dispositivoAnterior) ? pai : getUltimoFilho(dispositivoAnterior);
   const dispositivos = atual.filhos.map(d => {
     const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? criaDispositivo(pai!, d.tipo) : criaDispositivo(pai, d.tipo, undefined, pos++);
     novo.texto = d.texto;
@@ -135,13 +143,12 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const incluidos = dispositivos.map(d => getElementos(d)).flat();
 
   const renumerados = pai!.filhos
-    .filter((f, index) => index >= pos)
+    .filter((f, index) => index >= pos && (isAgrupador(f) || isDispositivoCabecaAlteracao(f)))
     .map(d => getElementos(d))
-    .flat()
-    .filter(e => e.agrupador);
+    .flat();
 
   const eventos = new Eventos();
-  eventos.setReferencia(referencia);
+  eventos.setReferencia(isArticulacao(referencia) && isArticulacaoAlteracao(referencia as Articulacao) ? createElemento(referencia.pai!) : createElemento(referencia));
   eventos.add(StateType.ElementoIncluido, incluidos);
   eventos.add(StateType.ElementoRemovido, removidos);
 

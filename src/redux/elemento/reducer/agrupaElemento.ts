@@ -9,6 +9,7 @@ import {
   hasAgrupadoresAcimaByTipo,
   hasAgrupadoresAnterioresByTipo,
   isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -56,7 +57,7 @@ export const agrupaElemento = (state: any, action: any): State => {
       .flat()
   );
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(dispositivoAnterior ?? atual.pai!, novo)));
+  eventos.setReferencia(createElemento(ajustaReferencia(isDispositivoCabecaAlteracao(novo) ? atual : dispositivoAnterior ?? atual.pai!, novo)));
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
   eventos.add(StateType.ElementoRemovido, removidos);
 

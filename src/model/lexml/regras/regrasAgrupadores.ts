@@ -2,7 +2,14 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { removerElementoAction } from '../acao/removerElementoAction';
-import { getDispositivoAnteriorMesmoTipo, getDispositivosAnterioresMesmoTipo, getDispositivosPosterioresMesmoTipo, hasAgrupador } from '../hierarquia/hierarquiaUtil';
+import { renumerarElementoAction } from '../acao/renumerarElementoAction';
+import {
+  getDispositivoAnteriorMesmoTipo,
+  getDispositivosAnterioresMesmoTipo,
+  getDispositivosPosterioresMesmoTipo,
+  hasAgrupador,
+  isDispositivoAlteracao,
+} from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
@@ -32,6 +39,10 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
 
       if (dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && isAgrupador(dispositivo.pai!) && !isArticulacao(dispositivo.pai)) {
         acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
+      }
+
+      if (isDispositivoAlteracao(dispositivo)) {
+        acoes.push(renumerarElementoAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

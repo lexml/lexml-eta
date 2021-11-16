@@ -31,7 +31,7 @@ const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
   }
 
   if (isArtigo(dispositivo)) {
-    return isDispositivoCabecaAlteracao(dispositivo) ? ++atual : atual;
+    return isDispositivoAlteracao(dispositivo) ? ++atual : atual;
   }
 
   atual = isDispositivoCabecaAlteracao(dispositivo?.pai) ? atual + 2 : ++atual;
