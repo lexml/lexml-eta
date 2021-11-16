@@ -25,7 +25,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       const prefixo = dispositivo.descricao === undefined ? dispositivo.name ?? '' : dispositivo.descricao.toLocaleUpperCase();
 
       if (this.numero === undefined) {
-        this.rotulo = '\u201C' + dispositivo.tipo;
+        this.rotulo = dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = prefixo + this.numero;
       } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
