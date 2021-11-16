@@ -21,7 +21,7 @@ describe('Articulacao', () => {
     it('A articulação comanda a criação e renumeração dos dispositivos imediatamente abaixo dela', () => {
       const titulo = criaDispositivo(articulacao, TipoDispositivo.titulo.tipo);
       articulacao.renumeraFilhos();
-      expect(titulo.rotulo).to.equal('TÍTULO I');
+      expect(titulo.rotulo).to.equal('TÍTULO ÚNICO');
     });
     it('A articulação pode possuir, como filhos, dispositivos agrupadores e artigos', () => {
       criaDispositivo(articulacao, TipoDispositivo.titulo.tipo);

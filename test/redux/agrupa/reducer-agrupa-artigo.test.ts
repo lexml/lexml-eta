@@ -44,7 +44,7 @@ describe('Testando a inclusão de agrupadores', () => {
       });
       it('Deveria apresentar o capitulo e os 4 artigos e seus filhos como incluídos', () => {
         expect(eventos[0].elementos!.length).equal(6);
-        expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
+        expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
         expect(eventos[0].elementos![1].rotulo).equal('Art. 2º');
         expect(eventos[0].elementos![2].rotulo).equal('Art. 3º');
         expect(eventos[0].elementos![3].rotulo).equal('Art. 4º');
@@ -52,7 +52,7 @@ describe('Testando a inclusão de agrupadores', () => {
         expect(eventos[0].elementos![5].rotulo).equal('Parágrafo único.');
       });
       it('Deveria apresentar o capitulo incluído após o artigo 1', () => {
-        expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
+        expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
         expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
       });
       it('Deveria apresentar os 4 artigos e seus filhos como removidos', () => {
@@ -107,7 +107,7 @@ describe('Testando a inclusão de agrupadores', () => {
           });
           it('Deveria apresentar o capitulo e os 4 artigos e seus filhos como incluídos', () => {
             expect(eventos[0].elementos!.length).equal(6);
-            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
+            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
             expect(eventos[0].elementos![1].rotulo).equal('Art. 2º');
             expect(eventos[0].elementos![2].rotulo).equal('Art. 3º');
             expect(eventos[0].elementos![3].rotulo).equal('Art. 4º');
@@ -115,7 +115,7 @@ describe('Testando a inclusão de agrupadores', () => {
             expect(eventos[0].elementos![5].rotulo).equal('Parágrafo único.');
           });
           it('Deveria apresentar o capitulo incluído após o artigo 1', () => {
-            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO I');
+            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
             expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
           });
           it('Deveria apresentar os 4 artigos e seus filhos como removidos', () => {
@@ -304,7 +304,7 @@ describe('Testando a inclusão de agrupadores', () => {
     it('Deveria apresentar os 4 artigos sob a nova seção', () => {
       const secao = state.articulacao.filhos[1].filhos[0];
       expect(secao.filhos.length).equals(4);
-      expect(secao.rotulo).equal('SEÇÃO I');
+      expect(secao.rotulo).equal('SEÇÃO ÚNICA');
       expect(secao.filhos[0].rotulo).equals('Art. 2º');
       expect(secao.filhos[1].rotulo).equals('Art. 3º');
       expect(secao.filhos[2].rotulo).equals('Art. 4º');
@@ -316,7 +316,7 @@ describe('Testando a inclusão de agrupadores', () => {
       });
       it('Deveria apresentar o novo capitulo, a secao, os artigos e filhos como incluídos', () => {
         expect(eventos[0].elementos!.length).equal(6);
-        expect(eventos[0].elementos![0].rotulo).equal('SEÇÃO I');
+        expect(eventos[0].elementos![0].rotulo).equal('SEÇÃO ÚNICA');
         expect(eventos[0].elementos![1].rotulo).equal('Art. 2º');
         expect(eventos[0].elementos![2].rotulo).equal('Art. 3º');
         expect(eventos[0].elementos![3].rotulo).equal('Art. 4º');
@@ -324,8 +324,8 @@ describe('Testando a inclusão de agrupadores', () => {
         expect(eventos[0].elementos![5].rotulo).equal('Parágrafo único.');
       });
       it('Deveria apresentar o capitulo incluído após o artigo 4', () => {
-        expect(eventos[0].elementos![0].rotulo).equal('SEÇÃO I');
-        expect(eventos[0].referencia!.rotulo).equal('CAPÍTULO I');
+        expect(eventos[0].elementos![0].rotulo).equal('SEÇÃO ÚNICA');
+        expect(eventos[0].referencia!.rotulo).equal('CAPÍTULO ÚNICO');
       });
       it('Deveria apresentar o artigo e seu filho como removidos', () => {
         const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
@@ -392,7 +392,7 @@ describe('Testando a inclusão de agrupadores', () => {
       });
       it('Deveria apresentar o capitulo incluído após o artigo 4', () => {
         expect(eventos[0].elementos![0].rotulo).equal('SEÇÃO I');
-        expect(eventos[0].referencia!.rotulo).equal('CAPÍTULO I');
+        expect(eventos[0].referencia!.rotulo).equal('CAPÍTULO ÚNICO');
       });
       it('Deveria apresentar os artigos como removidos', () => {
         const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
