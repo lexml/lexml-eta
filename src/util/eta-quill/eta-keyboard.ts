@@ -22,7 +22,7 @@ export class EtaKeyboard extends Keyboard {
 
   listen(): void {
     this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
-      if (ev.ctrlKey && ev.altKey && !ev.shiftKey) {
+      if (ev.ctrlKey && (ev.altKey || ev.metaKey)) {
         if (['a', 'l', 'n', 'o', 'p', 't'].includes(ev.key.toLowerCase())) {
           this.onHotKeyTransformacaoTipo(ev);
         } else if (ev.key.toLowerCase() === 'r') {
