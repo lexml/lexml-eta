@@ -21,15 +21,6 @@ export class EtaKeyboard extends Keyboard {
   }
 
   listen(): void {
-    this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
-      if (ev.ctrlKey && (ev.altKey || ev.metaKey)) {
-        if (['a', 'l', 'n', 'o', 'p', 't'].includes(ev.key.toLowerCase())) {
-          this.onHotKeyTransformacaoTipo(ev);
-        } else if (ev.key.toLowerCase() === 'r') {
-          this.onHotKeyRenumeraDispositivo(ev);
-        }
-      }
-    });
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       if (ev.key === 'ArrowRight') {
         this.onTeclaArrowRight(ev);
@@ -37,36 +28,45 @@ export class EtaKeyboard extends Keyboard {
         this.onTeclaArrowLeft(ev);
       } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
         this.onTeclaArrowDownOuUp(ev);
-      } else if (ev.keyCode === Keyboard.keys.ENTER) {
+      } else if (ev.key === 'Enter') {
         this.onTeclaEnter(ev);
-      } else if (ev.keyCode === Keyboard.keys.ESCAPE) {
+      } else if (ev.key === 'Escape') {
         this.onTeclaEscape(ev);
-      } else if (ev.keyCode === Keyboard.keys.DELETE) {
+      } else if (ev.key === 'Delete') {
         this.onTeclaDelete(ev);
-      } else if (ev.keyCode === Keyboard.keys.BACKSPACE) {
+      } else if (ev.key === 'Backspace') {
         this.onTeclaBackspace(ev);
-      } else if (ev.keyCode === Keyboard.keys.TAB) {
+      } else if (ev.key === 'Tab') {
         this.onTeclaTab(ev);
       }
-      if (ev.ctrlKey && !ev.altKey) {
-        if (ev.key === 'Home') {
-          this.onTeclaHome(ev);
-        } else if (ev.key === 'End') {
-          this.onTeclaEnd(ev);
-        } else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
-          this.onHotKeyMover(ev);
-        } else if (ev.key.toLowerCase() === 'a' && !ev.shiftKey) {
-          this.onTeclaCtrlA(ev);
-        } else if (ev.key.toLowerCase() === 'd') {
-          this.onTeclaCtrlD(ev);
-        } else if (ev.key.toLowerCase() === 'z') {
-          this.onTeclaCtrlZ(ev);
-        } else if (ev.key.toLowerCase() === 'y') {
-          this.onTeclaCtrlY(ev);
-        } else if (ev.ctrlKey && ev.shiftKey && ev.key.toLowerCase() === 'a') {
-          this.onTeclaCtrlShiftA(ev);
-        } else if (ev.key === 'b' || ev.key === 'i' || ev.key === 'x' || ev.key === 'v') {
-          this.onValidarTecla(ev);
+      if (ev.ctrlKey) {
+        if (!ev.altKey && !ev.metaKey) {
+          if (ev.key === 'Home') {
+            this.onTeclaHome(ev);
+          } else if (ev.key === 'End') {
+            this.onTeclaEnd(ev);
+          } else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+            this.onHotKeyMover(ev);
+          } else if (ev.key.toLowerCase() === 'a' && !ev.shiftKey) {
+            this.onTeclaCtrlA(ev);
+          } else if (ev.key.toLowerCase() === 'd') {
+            this.onTeclaCtrlD(ev);
+          } else if (ev.key.toLowerCase() === 'z') {
+            this.onTeclaCtrlZ(ev);
+          } else if (ev.key.toLowerCase() === 'y') {
+            this.onTeclaCtrlY(ev);
+          } else if (ev.ctrlKey && ev.shiftKey && ev.key.toLowerCase() === 'a') {
+            this.onTeclaCtrlShiftA(ev);
+          } else if (ev.key === 'b' || ev.key === 'i' || ev.key === 'x' || ev.key === 'v') {
+            this.onValidarTecla(ev);
+          }
+        }
+        if (ev.altKey || ev.metaKey) {
+          if (['a', 'l', 'n', 'o', 'p', 't'].includes(ev.key.toLowerCase())) {
+            this.onHotKeyTransformacaoTipo(ev);
+          } else if (ev.key.toLowerCase() === 'r') {
+            this.onHotKeyRenumeraDispositivo(ev);
+          }
         }
       } else {
         if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
