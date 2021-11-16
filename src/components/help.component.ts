@@ -63,16 +63,16 @@ export class HelpComponent extends LitElement {
           <div><b>ctrl-z</b>&nbsp;-&nbsp;Desfaz ultima alteração</div>
           <div><b>ctrl-y</b>&nbsp;-&nbsp;Refaz alteração</div>
           <hr></hr>
-          <div><b>ctrl-alt-a</b>&nbsp;-&nbsp;Transforma o dispositivo em artigo</div>
-          <div><b>ctrl-alt-l</b>&nbsp;-&nbsp;Transforma o dispositivo em alínea</div>
-          <div><b>ctrl-alt-n</b>&nbsp;-&nbsp;Transforma o dispositivo em inciso</div>
-          <div><b>ctrl-alt-o</b>&nbsp;-&nbsp;Transforma o dispositivo em omissis</div>
-          <div><b>ctrl-alt-p</b>&nbsp;-&nbsp;Transforma o dispositivo em parágrafo</div>
-          <div><b>ctrl-alt-t</b>&nbsp;-&nbsp;Transforma o dispositivo em item</div>
+          <div><b>ctrl-alt-A</b>&nbsp;-&nbsp;Transforma o dispositivo em artigo</div>
+          <div><b>ctrl-alt-L</b>&nbsp;-&nbsp;Transforma o dispositivo em alínea</div>
+          <div><b>ctrl-alt-N</b>&nbsp;-&nbsp;Transforma o dispositivo em inciso</div>
+          <div><b>ctrl-alt-O</b>&nbsp;-&nbsp;Transforma o dispositivo em omissis</div>
+          <div><b>ctrl-alt-P</b>&nbsp;-&nbsp;Transforma o dispositivo em parágrafo</div>
+          <div><b>ctrl-alt-T</b>&nbsp;-&nbsp;Transforma o dispositivo em item</div>
           <div><b>tab</b>&nbsp;-&nbsp;Indenta para a direita o dispositivo, transformando-o no tipo mais provável</div>
           <div><b>shift-tab</b>&nbsp;-&nbsp;Recua o dispositivo para a esquerda, transformando-o no tipo mais provável</div>
           <hr></hr>
-          <div><b>ctrl-alt-r</b>&nbsp;-&nbsp;Renumera o dispositivo</div>
+          <div><b>ctrl-alt-R</b>&nbsp;-&nbsp;Renumera o dispositivo</div>
         </div>
       </div>
     `;
