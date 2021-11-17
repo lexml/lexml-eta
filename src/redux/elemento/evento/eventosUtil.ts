@@ -9,7 +9,9 @@ import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoV
 import {
   getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
   getUltimoFilho,
+  irmaosMesmoTipo,
   isArticulacaoAlteracao,
   isArtigoUnico,
   isDispositivoCabecaAlteracao,
@@ -119,10 +121,11 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
 export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: Dispositivo): StateEvent[] => {
   let pos = atual.pai!.indexOf(atual);
   const agrupadoresAnteriorMesmoTipo = atual.pai!.filhos.filter((d, i) => i < pos && isAgrupador(d));
-
+  const paiOriginal = atual.pai;
   const removidos = [...getElementos(atual)];
+  const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
-  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 && !isArticulacao(atual.pai!) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
+  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
   const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
   const referencia = isArticulacao(dispositivoAnterior) ? pai : getUltimoFilho(dispositivoAnterior);
   const dispositivos = atual.filhos.map(d => {
@@ -138,7 +141,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   });
 
   atual.pai!.removeFilho(atual);
-  pai.renumeraFilhos();
+  paiOriginal!.renumeraFilhos();
 
   const incluidos = dispositivos.map(d => getElementos(d)).flat();
 
@@ -146,6 +149,10 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     .filter((f, index) => index >= pos && (isAgrupador(f) || isDispositivoCabecaAlteracao(f)))
     .map(d => getElementos(d))
     .flat();
+
+  if (irmaoAnterior && irmaosMesmoTipo(irmaoAnterior).length === 1) {
+    renumerados.unshift(createElemento(irmaoAnterior));
+  }
 
   const eventos = new Eventos();
   eventos.setReferencia(isArticulacao(referencia) && isArticulacaoAlteracao(referencia as Articulacao) ? createElemento(referencia.pai!) : createElemento(referencia));

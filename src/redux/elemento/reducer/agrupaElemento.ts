@@ -6,6 +6,7 @@ import {
   getAgrupadorAcimaByTipo,
   getAgrupadoresAcimaByTipo,
   getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
   hasAgrupadoresAcimaByTipo,
   hasAgrupadoresAnterioresByTipo,
   isDispositivoAlteracao,
@@ -56,6 +57,13 @@ export const agrupaElemento = (state: any, action: any): State => {
       .map((d: Dispositivo) => getElementos(d))
       .flat()
   );
+
+  const irmaoAnterior = getDispositivoAnteriorMesmoTipo(novo);
+
+  if (irmaoAnterior) {
+    renumerados.unshift(createElemento(irmaoAnterior));
+  }
+
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(isDispositivoCabecaAlteracao(novo) ? atual : dispositivoAnterior ?? atual.pai!, novo)));
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
