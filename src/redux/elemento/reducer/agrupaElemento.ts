@@ -9,6 +9,7 @@ import {
   getDispositivoAnteriorMesmoTipo,
   hasAgrupadoresAcimaByTipo,
   hasAgrupadoresAnterioresByTipo,
+  irmaosMesmoTipo,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -60,7 +61,7 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(novo);
 
-  if (irmaoAnterior) {
+  if (irmaoAnterior && irmaosMesmoTipo(novo).length === 2) {
     renumerados.unshift(createElemento(irmaoAnterior));
   }
 

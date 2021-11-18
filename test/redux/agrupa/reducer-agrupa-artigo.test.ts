@@ -158,8 +158,8 @@ describe('Testando a inclusão de agrupadores', () => {
       expect(state.articulacao.filhos[2].filhos[0].numero).equals('5');
     });
     describe('Testando eventos', () => {
-      it('Deveria apresentar 2 eventos', () => {
-        expect(eventos.length).to.equal(2);
+      it('Deveria apresentar 3 eventos', () => {
+        expect(eventos.length).to.equal(3);
       });
       it('Deveria apresentar o novo capitulo, o artigo e seu filho como incluídos', () => {
         expect(eventos[0].elementos!.length).equal(3);
@@ -176,6 +176,11 @@ describe('Testando a inclusão de agrupadores', () => {
         expect(removidos.elementos!.length).equal(2);
         expect(removidos.elementos![0].rotulo).equal('Art. 5º');
         expect(removidos.elementos![1].rotulo).equal('Parágrafo único.');
+      });
+      it('Deveria apresentar o artigo e seu filho como removidos', () => {
+        const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
+        expect(renumerados.elementos!.length).equal(1);
+        expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO I');
       });
     });
   });
@@ -276,6 +281,7 @@ describe('Testando a inclusão de agrupadores', () => {
       });
       it('Deveria apresentar o capitulo III como renumerado', () => {
         const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
+        expect(renumerados.elementos!.length).equal(1);
         expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO III');
       });
     });

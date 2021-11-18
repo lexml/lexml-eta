@@ -141,13 +141,14 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   });
 
   atual.pai!.removeFilho(atual);
+  pai?.renumeraFilhos();
   paiOriginal!.renumeraFilhos();
 
   const incluidos = dispositivos.map(d => getElementos(d)).flat();
 
   const renumerados = pai!.filhos
     .filter((f, index) => index >= pos && (isAgrupador(f) || isDispositivoCabecaAlteracao(f)))
-    .map(d => getElementos(d))
+    .map(d => createElemento(d))
     .flat();
 
   if (irmaoAnterior && irmaosMesmoTipo(irmaoAnterior).length === 1) {
