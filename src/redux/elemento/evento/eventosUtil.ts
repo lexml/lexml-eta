@@ -167,7 +167,9 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
 };
 
 export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => {
+  const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL);
+
+  aRestaurar.forEach(d => {
     d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
     d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
     d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
@@ -176,7 +178,10 @@ export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Di
 
   const eventos = new Eventos();
 
-  eventos.add(StateType.ElementoRestaurado, getElementos(dispositivo));
+  eventos.add(
+    StateType.ElementoRestaurado,
+    aRestaurar.map(a => createElemento(a))
+  );
 
   return eventos.build();
 };
