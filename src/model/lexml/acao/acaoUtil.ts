@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { TransformarElemento } from './transformarElementoAction';
 
-const normalizaNomeAcaoTransformacao = (dispositivo: Dispositivo, tipo: string): any => {
+export const normalizaNomeAcaoTransformacao = (dispositivo: Dispositivo, tipo: string): any => {
   let t: string;
 
   if (tipo.endsWith('EmOmissis')) {
