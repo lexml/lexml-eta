@@ -225,7 +225,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         </div>
         <div id="lx-eta-editor"></div>
       </div>
-      <elix-toast id="toast-alerta" duration="800">
+      <elix-toast id="toast-alerta" duration="3000">
         <div id="toast-msg"></div>
       </elix-toast>
       <div id="lx-eta-buffer" style="display: none; height: 0px;"><p></p></div>
