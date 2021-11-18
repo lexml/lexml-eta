@@ -1,4 +1,4 @@
-export const EXEMPLO_CC = {
+export const EXEMPLO_CC_ORIGINAL = {
   Articulacao: {
     Parte: [
       {
@@ -3592,7 +3592,7 @@ export const EXEMPLO_CC = {
           },
         ],
       },
-      {
+      /*       {
         '@id': 'prt2',
         Rotulo: 'PARTE II',
         NomeAgrupador: 'DA PARTE ESPECIAL',
@@ -12429,7 +12429,7 @@ export const EXEMPLO_CC = {
               },
             ],
           },
-          /*           {
+          {
             '@id': 'prt2_liv2',
             Rotulo: 'LIVRO II',
             NomeAgrupador: 'Do Direito de Empresa',
@@ -21243,7 +21243,7 @@ export const EXEMPLO_CC = {
               },
             ],
           },
-                 {
+          {
             '@id': 'prt2_liv4',
             Rotulo: 'LIVRO IV',
             NomeAgrupador: 'Do Direito de Família',
@@ -29087,9 +29087,9 @@ export const EXEMPLO_CC = {
                 },
               },
             ],
-          }, */
+          },
         ],
-      },
+      }, */
     ],
   },
 };
