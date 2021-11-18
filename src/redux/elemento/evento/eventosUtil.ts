@@ -14,6 +14,7 @@ import {
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
   isArtigoUnico,
+  isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
   isParagrafoUnico,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -125,8 +126,9 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const removidos = [...getElementos(atual)];
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
-  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
-  const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
+  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
+  const dispositivoAnterior =
+    agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
   const referencia = isArticulacao(dispositivoAnterior) ? pai : getUltimoFilho(dispositivoAnterior);
   const dispositivos = atual.filhos.map(d => {
     const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? criaDispositivo(pai!, d.tipo) : criaDispositivo(pai, d.tipo, undefined, pos++);
