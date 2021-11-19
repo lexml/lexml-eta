@@ -22,23 +22,6 @@ export class EtaKeyboard extends Keyboard {
 
   listen(): void {
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
-      if (ev.key === 'ArrowRight') {
-        this.onTeclaArrowRight(ev);
-      } else if (ev.key === 'ArrowLeft') {
-        this.onTeclaArrowLeft(ev);
-      } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
-        this.onTeclaArrowDownOuUp(ev);
-      } else if (ev.key === 'Enter') {
-        this.onTeclaEnter(ev);
-      } else if (ev.key === 'Escape') {
-        this.onTeclaEscape(ev);
-      } else if (ev.key === 'Delete') {
-        this.onTeclaDelete(ev);
-      } else if (ev.key === 'Backspace') {
-        this.onTeclaBackspace(ev);
-      } else if (ev.key === 'Tab') {
-        this.onTeclaTab(ev);
-      }
       if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
           if (ev.key === 'Home') {
@@ -68,10 +51,24 @@ export class EtaKeyboard extends Keyboard {
             this.onHotKeyRenumeraDispositivo(ev);
           }
         }
-      } else {
-        if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
-          this.onValidarTecla(ev);
-        }
+      } else if (ev.key === 'ArrowRight') {
+        this.onTeclaArrowRight(ev);
+      } else if (ev.key === 'ArrowLeft') {
+        this.onTeclaArrowLeft(ev);
+      } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        this.onTeclaArrowDownOuUp(ev);
+      } else if (ev.key === 'Enter') {
+        this.onTeclaEnter(ev);
+      } else if (ev.key === 'Escape') {
+        this.onTeclaEscape(ev);
+      } else if (ev.key === 'Delete') {
+        this.onTeclaDelete(ev);
+      } else if (ev.key === 'Backspace') {
+        this.onTeclaBackspace(ev);
+      } else if (ev.key === 'Tab') {
+        this.onTeclaTab(ev);
+      } else if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
+        this.onValidarTecla(ev);
       }
     });
     super.listen();
