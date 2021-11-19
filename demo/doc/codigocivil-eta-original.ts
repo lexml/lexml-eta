@@ -3592,7 +3592,7 @@ export const EXEMPLO_CC_ORIGINAL = {
           },
         ],
       },
-      /*       {
+      {
         '@id': 'prt2',
         Rotulo: 'PARTE II',
         NomeAgrupador: 'DA PARTE ESPECIAL',
@@ -29089,7 +29089,7 @@ export const EXEMPLO_CC_ORIGINAL = {
             ],
           },
         ],
-      }, */
+      },
     ],
   },
 };
