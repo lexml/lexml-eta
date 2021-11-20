@@ -20,7 +20,7 @@ export class EtaBlotMensagem extends EtaBlot {
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('style', `font-size: 0.8em;color:${cor};`);
-    node.innerHTML = mensagem.descricao ?? '';
+    node.innerHTML = mensagem.descricao ? '- ' + mensagem.descricao : '';
     return node;
   }
 
