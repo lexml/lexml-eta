@@ -11,7 +11,6 @@ import {
   hasAgrupadoresAnterioresByTipo,
   irmaosMesmoTipo,
   isDispositivoAlteracao,
-  isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -37,14 +36,17 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   let novo;
+  let ref = undefined;
 
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
+    ref = getDispositivoAnteriorMesmoTipo(novo);
   } else if (hasAgrupadoresAcimaByTipo(atual, action.novo.tipo) || hasAgrupadoresAnterioresByTipo(atual, action.novo.tipo)) {
-    const ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
+    ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
     novo = criaDispositivo(ref!.pai!, action.novo.tipo, ref);
   } else {
     novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
+    ref = dispositivoAnterior ?? atual.pai!;
   }
   novo.texto = action.novo.conteudo?.texto;
   const dispositivos = atual.pai!.filhos.filter((f: Dispositivo, index: number) => index >= pos && f.tipo !== action.novo.tipo);
@@ -66,7 +68,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(isDispositivoCabecaAlteracao(novo) ? atual : dispositivoAnterior ?? atual.pai!, novo)));
+  eventos.setReferencia(createElemento(ajustaReferencia(ref!, novo)));
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
   eventos.add(StateType.ElementoRemovido, removidos);
 

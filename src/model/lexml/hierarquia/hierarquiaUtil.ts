@@ -49,7 +49,11 @@ export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {
 };
 
 export const irmaosMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
-  return isArtigo(dispositivo) ? getArticulacao(dispositivo).artigos.filter(f => f.tipo === dispositivo.tipo) : dispositivo.pai!.filhos.filter(f => f.tipo === dispositivo.tipo);
+  return isArtigo(dispositivo)
+    ? getArticulacao(dispositivo).artigos.filter(f => f.tipo === dispositivo.tipo)
+    : dispositivo.pai
+    ? dispositivo.pai!.filhos.filter(f => f.tipo === dispositivo.tipo)
+    : [dispositivo];
 };
 
 export const getAgrupadoresPosterioresTipoAcima = (dispositivo: Dispositivo, tipo: Tipo): Dispositivo[] => {
