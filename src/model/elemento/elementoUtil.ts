@@ -22,7 +22,7 @@ export const isValid = (elemento?: Referencia): void => {
 };
 
 export const isElementoDispositivoAlteracao = (elemento: Partial<Elemento>): boolean => {
-  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined;
+  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined || elemento.uuidAlteracao !== undefined;
 };
 
 const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
@@ -84,6 +84,13 @@ export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo)
       el.conteudo!.texto = (d as Artigo).caput!.texto;
     }
     elementos.push(el);
+
+    if (isArtigo(d) && (d as Artigo).hasAlteracao()) {
+      (d as Artigo).alteracoes?.filhos.forEach(f => {
+        elementos.push(createElemento(f));
+        createElementos(elementos, f);
+      });
+    }
     createElementos(elementos, d);
   });
 };
@@ -107,9 +114,22 @@ export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
 };
 
 export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: Elemento | Referencia): Articulacao => {
-  return !isElementoDispositivoAlteracao(elemento) || isArticulacaoAlteracao(articulacao)
-    ? articulacao
-    : getDispositivoFromElemento(articulacao!, { uuid: (elemento as Elemento).hierarquia!.pai!.uuidAlteracao })?.alteracoes ?? articulacao;
+  if (!isElementoDispositivoAlteracao(elemento) || isArticulacaoAlteracao(articulacao)) {
+    return articulacao;
+  }
+
+  if (!(elemento as Elemento).hierarquia) {
+    return (
+      getDispositivoFromElemento(articulacao!, {
+        uuid: (elemento as Elemento).uuidAlteracao,
+      })?.alteracoes ?? articulacao
+    );
+  }
+  return (
+    getDispositivoFromElemento(articulacao!, {
+      uuid: (elemento as Elemento).hierarquia!.pai!.uuidAlteracao,
+    })?.alteracoes ?? articulacao
+  );
 };
 
 export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
@@ -122,7 +142,9 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
   const articulacao = getArticulacaoFromElemento(art, referencia);
 
   if (!ignorarElementoAlteracao && isElementoDispositivoAlteracao(referencia)) {
-    const ref = getDispositivoFromElemento(articulacao, { uuid: referencia.hierarquia!.pai!.uuidAlteracao });
+    const ref = getDispositivoFromElemento(articulacao, {
+      uuid: referencia.hierarquia!.pai!.uuidAlteracao,
+    });
 
     if (!ref?.alteracoes) {
       return undefined;
