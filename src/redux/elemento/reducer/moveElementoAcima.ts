@@ -1,15 +1,13 @@
 import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
-import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia } from '../util/reducerUtil';
+import { ajustaReferencia, resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const moveElementoAcima = (state: any, action: any): State => {
@@ -35,28 +33,26 @@ export const moveElementoAcima = (state: any, action: any): State => {
 
   const pai = atual.pai!;
   const pos = pai.indexOf(anterior);
-  pai.removeFilho(atual);
+
+  resetUuidTodaArvore(anterior);
+  resetUuidTodaArvore(atual);
+
   pai.removeFilho(anterior);
+  pai.removeFilho(atual);
 
-  const um = criaDispositivo(pai, atual.tipo, undefined, pos);
-  um.situacao = atual.situacao;
-  um.texto = action.atual.conteudo.texto;
-  copiaFilhos(atual, um);
+  pai.addFilhoOnPosition(atual, pos);
+  pai.addFilhoOnPosition(anterior, pos + 1);
 
-  const outro = criaDispositivo(pai, anterior.tipo, undefined, pos + 1);
-  outro.situacao = anterior.situacao;
-  outro.texto = anterior.texto;
-  copiaFilhos(anterior, outro);
   pai.renumeraFilhos();
 
-  const referencia = pos === 0 ? (um.pai?.tipo === TipoDispositivo.caput.tipo ? pai.pai! : pai) : getDispositivoAnterior(um);
+  const referencia = pos === 0 ? (atual.pai?.tipo === TipoDispositivo.caput.tipo ? pai.pai! : pai) : getDispositivoAnterior(atual);
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, um)));
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));
   eventos.add(
     StateType.ElementoIncluido,
-    buildListaDispositivos(um, [])
-      .concat(buildListaDispositivos(outro, []))
+    buildListaDispositivos(atual, [])
+      .concat(buildListaDispositivos(anterior, []))
       .map(v => {
         v.mensagens = validaDispositivo(v);
         return createElemento(v);

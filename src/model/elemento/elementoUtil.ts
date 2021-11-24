@@ -127,6 +127,9 @@ export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: E
 
 export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   dispositivos.push(dispositivo);
+  if (dispositivo.alteracoes) {
+    dispositivo.alteracoes.filhos.forEach(a => (!hasFilhos(a) ? dispositivos.push(a) : buildListaDispositivos(a, dispositivos)));
+  }
   dispositivo.filhos?.forEach(f => (!hasFilhos(f) ? dispositivos.push(f) : buildListaDispositivos(f, dispositivos)));
   return dispositivos;
 };
