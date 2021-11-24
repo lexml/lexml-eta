@@ -6,6 +6,7 @@ export const validaElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
+    state.ui = [];
     return state;
   }
 

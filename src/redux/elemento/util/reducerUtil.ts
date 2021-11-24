@@ -36,12 +36,12 @@ export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
   return el;
 };
 
-const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
+export const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
   dispositivo.uuid = Counter.next();
   dispositivo.filhos?.forEach(f => resetUuidTodaArvore(f));
 };
 
-export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+export const copiaDispositivosParaOutroPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   return dispositivos.map(d => {
     const paiAtual = d.pai;
 

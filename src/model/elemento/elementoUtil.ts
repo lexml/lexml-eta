@@ -118,16 +118,9 @@ export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: E
     return articulacao;
   }
 
-  if (!(elemento as Elemento).hierarquia) {
-    return (
-      getDispositivoFromElemento(articulacao!, {
-        uuid: (elemento as Elemento).uuidAlteracao,
-      })?.alteracoes ?? articulacao
-    );
-  }
   return (
     getDispositivoFromElemento(articulacao!, {
-      uuid: (elemento as Elemento).hierarquia!.pai!.uuidAlteracao,
+      uuid: (elemento as Elemento).hierarquia ? (elemento as Elemento).hierarquia!.pai!.uuidAlteracao : elemento.uuidAlteracao,
     })?.alteracoes ?? articulacao
   );
 };
@@ -143,7 +136,7 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
 
   if (!ignorarElementoAlteracao && isElementoDispositivoAlteracao(referencia)) {
     const ref = getDispositivoFromElemento(articulacao, {
-      uuid: referencia.hierarquia!.pai!.uuidAlteracao,
+      uuid: referencia.hierarquia ? referencia.hierarquia!.pai!.uuidAlteracao : referencia.uuidAlteracao,
     });
 
     if (!ref?.alteracoes) {

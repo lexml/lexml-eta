@@ -8,11 +8,13 @@ export const modificaTipoElementoWithTab = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
+    state.ui = [];
     return state;
   }
   const acao = action.type === TAB ? atual.getAcaoPossivelTab(atual) : atual.getAcaoPossivelShiftTab(atual);
 
   if (!acao) {
+    state.ui = [];
     return state;
   }
 

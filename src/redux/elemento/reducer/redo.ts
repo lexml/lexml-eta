@@ -7,6 +7,7 @@ import { incluir, processaRenumerados, processarModificados, processaValidados, 
 
 export const redo = (state: any): State => {
   if (state.future === undefined || state.future.length === 0) {
+    state.ui = [];
     return state;
   }
 

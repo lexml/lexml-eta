@@ -10,6 +10,7 @@ export const renumeraElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined) {
+    state.ui = [];
     return state;
   }
 
