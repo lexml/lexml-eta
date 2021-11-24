@@ -106,6 +106,10 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   pai.removeFilho(dispositivo);
   pai.renumeraFilhos();
 
+  if (isArticulacaoAlteracao(pai) && pai.filhos.length === 0) {
+    pai.pai!.alteracoes = undefined;
+  }
+
   const dispositivoValidado =
     dispositivoAnterior && (isArtigoUnico(dispositivoAnterior) || isParagrafoUnico(dispositivoAnterior)) ? dispositivoAnterior : isCaput(pai!) ? pai!.pai! : pai!;
 

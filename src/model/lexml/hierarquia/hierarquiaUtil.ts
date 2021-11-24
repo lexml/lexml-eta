@@ -325,8 +325,8 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
   return isUnicoMesmoTipo(atual) || articulacao.indexOfArtigo(atual) < articulacao.artigos.length - 1;
 };
 
-export const isArticulacaoAlteracao = (articulacao: Articulacao): boolean => {
-  return articulacao.pai !== undefined;
+export const isArticulacaoAlteracao = (articulacao: Dispositivo): boolean => {
+  return isArticulacao(articulacao) && articulacao.pai !== undefined;
 };
 
 export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
