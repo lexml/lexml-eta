@@ -1,6 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
+import { omissis } from '../acao/adicionarElementoAction';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   if (!dispositivo) {
@@ -220,7 +221,7 @@ export const getDispositivoAnteriorMesmoTipoInclusiveOmissis = (dispositivo: Dis
     return undefined;
   }
 
-  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && f.pai === dispositivo.pai);
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && (f.tipo === dispositivo.tipo || f.tipo === omissis.tipo));
   return irmaos.pop();
 };
 
@@ -252,7 +253,7 @@ export const getDispositivoPosteriorMesmoTipoInclusiveOmissis = (dispositivo: Di
     return undefined;
   }
 
-  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index > pos && f.pai === dispositivo.pai);
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index > pos && (f.tipo === dispositivo.tipo || f.tipo === omissis.tipo));
   return irmaos[0];
 };
 
