@@ -31,7 +31,7 @@
     "prepublish": "rimraf dist && npm run css:concat && rollup -c rollup.config.dist.js",
     "css:concat": "concat -o assets/css/editor.css ./node_modules/quill/dist/quill.snow.css ./node_modules/font-awesome/css/font-awesome.css",
     "css:minify": "minify assets/css/editor.css > assets/css/editor.min.css",
-    "css:build": "npm run css:concat && npm run css:minify",
+    "css:build": "npm run css:concat",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "test": "tsc && wtr --coverage",
