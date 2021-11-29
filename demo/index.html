@@ -29,12 +29,14 @@
 
 <body>
   <div id="demo"></div>
+
   <script type="module" src="../node_modules/elix/define/Toast.js"></script>
   <script type="module" src="../node_modules/elix/define/Dialog.js"></script>
   <script type="module" src="../node_modules/elix/define/AlertDialog.js"></script>
   <script type="module" src="../node_modules/elix/define/MenuSeparator.js"></script>
   <script type="module" src="../node_modules/elix/define/MenuItem.js"></script>
   <script type="module" src="../node_modules/elix/define/MenuButton.js"></script>
+
   <script type="text/javascript">
     /* eslint-disable no-undef */
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -53,7 +55,9 @@
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     import { html, LitElement } from 'lit-element';
     import { render } from 'lit-html';
+
     import '../out-tsc/src/index.js';
+    import { EXEMPLO_CC } from '../out-tsc/demo/doc/codigocivil-eta.js'
 
     class DemoView extends LitElement {
 
@@ -102,7 +106,7 @@
       render() {
         return html`
           <div style="padding: 10px;">
-            <span style="font-size: 1em;">ETA - Editor de Texto de Articulação - TESTE</span>
+            <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
             <select id="articulacao" @change=${this.onChangeArticulacao}>
               <option value="nova">Nova articulação</option>
               <option value="codigo-civil">Código Civil</option>
@@ -113,7 +117,7 @@
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
-          <lexml-eta .articulacao=${this.articulacao} tipoDocumento=${this.tipoDocumento}></lexml-eta>
+          <lexml-eta .articulacao=${this.articulacao} tipoDocumento=${this.tipoDocumento} normaEstruturada=${JSON.stringify(EXEMPLO_CC)}></lexml-eta>
         `;
       }
     }
