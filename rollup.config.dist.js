@@ -17,7 +17,7 @@ const configTs = {
 	],      
 };
 
-// Configuração rollup usada para atualizar a pasta "dist", que será a raiz da publicação
+// Configuração rollup usada para atualizar a pasta "dist", que será a raiz da publicação.
 export default [
 	configTs,
 ]
