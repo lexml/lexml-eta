@@ -13,7 +13,7 @@ const configSpa = merge(baseConfigSpa, {
 	plugins: [
 		copy({
 			targets: [
-				{ src: 'assets/css/editor.min.css', dest: 'prod/assets/css' },
+				{ src: 'assets/css/editor.css', dest: 'prod/assets/css' },
 				{ src: 'assets/fonts/**', dest: 'prod/assets/fonts' },
 			],
 		}),
