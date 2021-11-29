@@ -40,10 +40,7 @@
     "storybook:build": "tsc && build-storybook",
     "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
     "build:demo": "npm run clean && npm run build && rollup -c",
-    "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force",
-    "copy:dist": "npm run copy:source:dist && npm run copy:css:dist",
-    "copy:source:dist": "cp -r ./out-tsc/src ./dist/src || xcopy out-tsc\\src dist\\src /E /I /Y",
-    "copy:css:dist": "cp -r ./assets ./dist/assets || xcopy assets dist\\assets /E /I /Y && rimraf dist/assets/css/editor.min.css"
+    "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force"
   },
   "dependencies": {
     "elix": "^14.1.2",
