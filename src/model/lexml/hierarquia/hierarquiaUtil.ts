@@ -21,7 +21,7 @@ export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articula
     return dispositivo;
   } else if (dispositivo.filhos !== null) {
     let i;
-    let result = null;
+    let result: any = null;
 
     for (i = 0; result === null && i < dispositivo.filhos.length; i++) {
       result = getDispositivo(uuid, dispositivo.filhos[i]);

@@ -38,7 +38,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   let novo;
-  let ref = undefined;
+  let ref: any = undefined;
 
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);

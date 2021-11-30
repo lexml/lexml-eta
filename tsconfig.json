@@ -13,7 +13,8 @@
     "outDir": "out-tsc",
     "sourceMap": true,
     "inlineSources": true,
-    "rootDir": "./"
+    "rootDir": "./",
+    "noImplicitAny": false
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "*.d.ts"]
