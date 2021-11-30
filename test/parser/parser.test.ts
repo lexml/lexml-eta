@@ -2,21 +2,13 @@ import { expect } from '@open-wc/testing';
 import { Norma } from '../../src/model/documento';
 import { SubTipoDocumento, TipoDocumento } from '../../src/model/documento/tipoDocumento';
 import { getDocumento } from '../../src/parser/parserLexmlJsonix';
-import { medidaProvisoria_905_20191111 } from '../doc/parser/medidaProvisoria_905_20191111';
+import { MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/medidaProvisoria_905_20191111';
 
 let documento: Norma | undefined;
 
-describe('Parser', () => {
-  beforeEach(function () {
-    documento = getDocumento('');
-  });
-  it('Deveria apresentar um documento undefined', () => {
-    expect(documento).undefined;
-  });
-});
 describe('Parser de medida provisória', () => {
-  beforeEach(function () {
-    documento = getDocumento(medidaProvisoria_905_20191111);
+  before(function () {
+    documento = getDocumento(MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR);
   });
   it('Deveria apresentar um documento do tipo norma', () => {
     expect(documento?.tipo).equals(TipoDocumento.NORMA);

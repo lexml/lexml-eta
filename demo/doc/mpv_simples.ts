@@ -1,4 +1,4 @@
-export const MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR = {
+export const MPV_SIMPLES = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
     localPart: 'LexML',

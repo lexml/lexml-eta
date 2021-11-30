@@ -1,4 +1,3 @@
-import { Articulacao } from '../dispositivo/dispositivo';
 import { SubTipoDocumento } from './tipoDocumento';
 
 export const getSubTipo = (urn: string): SubTipoDocumento | undefined => {
@@ -13,9 +12,4 @@ export const getSubTipo = (urn: string): SubTipoDocumento | undefined => {
     default:
       return undefined;
   }
-};
-
-export const buildArticulacao = (articulacao: any): Articulacao | undefined => {
-  console.log(articulacao);
-  return undefined;
 };
