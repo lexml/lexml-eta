@@ -1,7 +1,7 @@
 import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
-import 'quill/dist/quill';
+// import 'quill/dist/quill';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -81,7 +81,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="assets/css/editor.css" />
+      <!-- <link rel="stylesheet" href="assets/css/editor.css" /> -->
       <style>
         #lx-eta-box {
           display: grid;
