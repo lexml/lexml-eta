@@ -1,6 +1,5 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-// import { EXEMPLO_CC } from '../../demo/doc/codigocivil-eta';
 import { novaArticulacaoAction } from '../model/lexml/acao/novaArticulacaoAction';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { rootStore } from '../redux/store';

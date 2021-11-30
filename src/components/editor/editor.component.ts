@@ -1,7 +1,6 @@
 import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
-// import 'quill/dist/quill';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
