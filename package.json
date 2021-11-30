@@ -29,6 +29,7 @@
     "build": "npm run css:build && tsc",
     "clean": "rimraf out-tsc && rimraf prod",
     "prepublish": "rimraf dist && npm run css:concat && rollup -c rollup.config.dist.js",
+    "copy:assets": "cp -r ./assets ./dist/assets || xcopy assets dist\\assets /E /I /Y",
     "css:concat": "concat -o assets/css/editor.css ./node_modules/quill/dist/quill.snow.css ./node_modules/font-awesome/css/font-awesome.css",
     "css:minify": "minify assets/css/editor.css > assets/css/editor.min.css",
     "css:build": "npm run css:concat",
@@ -52,8 +53,7 @@
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "reselect": "^4.0.0",
-    "sinon": "^9.2.4",
-    "ts-node": "^9.0.0"
+    "sinon": "^9.2.4"
   },
   "devDependencies": {
     "@open-wc/building-rollup": "^1.9.4",
@@ -78,6 +78,7 @@
     "rimraf": "^3.0.2",
     "rollup-plugin-copy": "^3.4.0",
     "tslib": "^2.2.0",
+    "ts-node": "^9.0.0",
     "typescript": "^4.2.3"
   },
   "eslintConfig": {
