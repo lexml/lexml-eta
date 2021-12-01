@@ -552,6 +552,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
       this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
     }
+
+    this.dispatchEvent(
+      new CustomEvent('onChange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          eventType: StateType.ElementoIncluido,
+          elemento,
+          referencia,
+        },
+      })
+    );
   }
 
   private inserirNovosElementosNoQuill(event: StateEvent): void {
@@ -612,6 +624,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+
+    this.dispatchEvent(
+      new CustomEvent('onChange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          eventType: StateType.ElementoModificado,
+          elementos,
+        },
+      })
+    );
   }
 
   private removerLinhaQuill(event: StateEvent): void {
@@ -629,6 +652,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.quill.setSelection(index, 0, Quill.sources.SILENT);
     this.quill.marcarLinhaAtual(linhaCursor);
+
+    this.dispatchEvent(
+      new CustomEvent('onChange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          eventType: StateType.ElementoRemovido,
+          elementos,
+        },
+      })
+    );
   }
 
   private renumerarQuill(event: StateEvent): void {
