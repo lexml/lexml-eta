@@ -98,7 +98,6 @@ const buildAlteracao = (pai: Dispositivo, el: any): void => {
       const d = buildDispositivo(pai.alteracoes!, c);
       d.isDispositivoAlteracao = true;
       d.rotulo = '\u201C' + c.value?.rotulo;
-
       buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis);
     });
   }
@@ -111,7 +110,10 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
   if (isEmendamento) {
     dispositivo.situacao = new DispositivoOriginal();
   }
-  dispositivo.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+
+  const complemento = el.value?.notaAlteracao === 'NR' ? '” (NR)' : '';
+  dispositivo.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
+
   return dispositivo;
 };
 
