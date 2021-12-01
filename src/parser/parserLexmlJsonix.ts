@@ -2,7 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositi
 import { Metadado, Norma, ParteInicial, TextoArticulado } from '../model/documento';
 import { getSubTipo } from '../model/documento/documentoUtil';
 import { TipoDocumento } from '../model/documento/tipoDocumento';
-import { createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
 
 export let isEmendamento = false;
@@ -23,7 +23,7 @@ const getMetadado = (documento: any): Metadado => {
 
 const getParteInicial = (documento: any): ParteInicial => {
   const epigrafe = documento?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
-  const ementa = documento?.value?.projetoNorma?.norma?.parteInicial?.ementa?.content[0] ?? '';
+  const ementa = buildContent(documento?.value?.projetoNorma?.norma?.parteInicial?.ementa.content);
   const preambulo = documento?.value?.projetoNorma?.norma?.parteInicial?.preambulo?.p[0].content[0] ?? '';
 
   return {
@@ -68,17 +68,40 @@ const buildArticulacao = (tree: any): Articulacao => {
 };
 
 const buildTree = (pai: Dispositivo, filhos: any): void => {
+  if (!pai || !filhos) {
+    return;
+  }
+
   filhos?.forEach((el: any) => {
     let dispositivo;
 
     if (el.name?.localPart === 'Caput') {
-      buildContent(pai, el);
+      pai.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+      buildAlteracao(pai, el.value?.alteracao);
+      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis);
+    } else if (el.name?.localPart === 'alteracao') {
+      buildAlteracao(pai, el);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis);
     } else {
       dispositivo = buildDispositivo(pai, el);
       buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis);
     }
   });
+};
+
+const buildAlteracao = (pai: Dispositivo, el: any): void => {
+  if (el) {
+    createAlteracao(pai);
+    pai.alteracoes!.uuid = el.id;
+    pai.alteracoes!.base = el.base;
+    el.content?.forEach(c => {
+      const d = buildDispositivo(pai.alteracoes!, c);
+      d.isDispositivoAlteracao = true;
+      d.rotulo = '\u201C' + c.value?.rotulo;
+
+      buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis);
+    });
+  }
 };
 
 const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
@@ -88,7 +111,7 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
   if (isEmendamento) {
     dispositivo.situacao = new DispositivoOriginal();
   }
-  buildContent(dispositivo, el);
+  dispositivo.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el));
   return dispositivo;
 };
 
@@ -96,23 +119,28 @@ const montaReferencia = (value: any): string => {
   return `<a href="${value.href}"> ${value.content[0]} </a>`;
 };
 
-const buildContent = (dispositivo: Dispositivo, el: any): void => {
+const buildContentDispositivo = (el: any): string => {
   let texto = '';
   if (el.value?.nomeAgrupador) {
-    texto = el.value.nomeAgrupador.content[0] ?? '';
+    return el.value.nomeAgrupador.content[0] ?? '';
   } else {
     el.value?.p
       ?.map(p => p)
       ?.map(a => a.content)
-      .forEach(content =>
-        content.forEach(element => {
-          if (element.value) {
-            texto += montaReferencia(element.value);
-          } else {
-            texto += element;
-          }
-        })
-      );
+      .forEach(content => (texto += buildContent(content)));
   }
-  dispositivo.texto = retiraCaracteresDesnecessarios(texto);
+  return texto;
+};
+
+const buildContent = (content: any): string => {
+  let texto = '';
+  content.forEach(element => {
+    if (element.value) {
+      texto += montaReferencia(element.value);
+    } else {
+      texto += element;
+    }
+  });
+
+  return texto;
 };
