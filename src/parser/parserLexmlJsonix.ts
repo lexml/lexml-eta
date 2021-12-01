@@ -1,4 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { Metadado, Norma, ParteInicial, TextoArticulado } from '../model/documento';
 import { getSubTipo } from '../model/documento/documentoUtil';
 import { TipoDocumento } from '../model/documento/tipoDocumento';
@@ -76,7 +77,8 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
     let dispositivo;
 
     if (el.name?.localPart === 'Caput') {
-      pai.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+      pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+
       buildAlteracao(pai, el.value?.alteracao);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis);
     } else if (el.name?.localPart === 'alteracao') {
