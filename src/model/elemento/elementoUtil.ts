@@ -10,6 +10,7 @@ import {
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
+  isOriginal,
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
@@ -69,7 +70,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
-    mensagens: dispositivo.mensagens,
+    mensagens: isOriginal(dispositivo) ? [] : dispositivo.mensagens,
   };
 };
 
