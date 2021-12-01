@@ -3,6 +3,7 @@ import { DescricaoSituacao, isSituacaoExclusivaDispositivoEmenda, TipoSituacao }
 import { ElementoAction } from '../acao';
 import { AgruparElemento } from '../acao/agruparElementoAction';
 import { RemoverElemento } from '../acao/removerElementoAction';
+import { RenumerarElemento } from '../acao/renumerarElementoAction';
 import { restaurarElementoAction } from '../acao/restaurarElemento';
 import { suprimirElementoAction } from '../acao/suprimirElemento';
 import { TransformarElemento } from '../acao/transformarElementoAction';
@@ -17,7 +18,8 @@ export class DispositivoOriginal implements TipoSituacao {
       .filter((a: ElementoAction) => !(a instanceof AgruparElemento))
       .filter((a: ElementoAction) => !(a instanceof RemoverElemento))
       .filter((a: ElementoAction) => !a.descricao?.startsWith('Mover'))
-      .filter((a: ElementoAction) => !(a instanceof TransformarElemento));
+      .filter((a: ElementoAction) => !(a instanceof TransformarElemento))
+      .filter((a: ElementoAction) => !(a instanceof RenumerarElemento));
 
     if (getDispositivoAndFilhosAsLista(dispositivo).filter(f => isSituacaoExclusivaDispositivoEmenda(f)).length > 0) {
       acoesFiltradas.push(restaurarElementoAction);

@@ -324,7 +324,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
 
     if (!podeRenumerar(elemento)) {
       return;
@@ -685,13 +685,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any): Elemento {
+  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.tipo = tipo;
     elemento.numero = numero;
     elemento.conteudo = { texto: html };
     elemento.hierarquia = hierarquia;
+    elemento.descricaoSituacao = descricaoSituacao;
     return elemento;
   }
 

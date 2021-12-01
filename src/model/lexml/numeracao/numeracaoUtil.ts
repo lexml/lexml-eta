@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isDispositivoEmenda } from '../../dispositivo/situacao';
+import { DescricaoSituacao, isDispositivoEmenda } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import {
@@ -191,7 +191,7 @@ export const rotuloParaEdicao = (texto: string): string => {
 };
 
 export const podeRenumerar = (elemento: Elemento): boolean => {
-  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined;
+  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined && elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL;
 };
 
 export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
