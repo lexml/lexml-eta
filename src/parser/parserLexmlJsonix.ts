@@ -94,7 +94,7 @@ const buildAlteracao = (pai: Dispositivo, el: any): void => {
     createAlteracao(pai);
     pai.alteracoes!.uuid = el.id;
     pai.alteracoes!.base = el.base;
-    el.content?.forEach(c => {
+    el.content?.forEach((c: any) => {
       const d = buildDispositivo(pai.alteracoes!, c);
       d.isDispositivoAlteracao = true;
       d.rotulo = '\u201C' + c.value?.rotulo;
@@ -127,16 +127,16 @@ const buildContentDispositivo = (el: any): string => {
     return el.value.nomeAgrupador.content[0] ?? '';
   } else {
     el.value?.p
-      ?.map(p => p)
-      ?.map(a => a.content)
-      .forEach(content => (texto += buildContent(content)));
+      ?.map((p: any) => p)
+      ?.map((a: any) => a.content)
+      .forEach((content: any) => (texto += buildContent(content)));
   }
   return texto;
 };
 
 const buildContent = (content: any): string => {
   let texto = '';
-  content.forEach(element => {
+  content.forEach((element: any) => {
     if (element.value) {
       texto += montaReferencia(element.value);
     } else {

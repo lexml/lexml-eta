@@ -153,7 +153,7 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
         buildListaDispositivos(f, lista);
         return lista;
       })
-      .filter(el => el.uuid === referencia.uuid)[0];
+      .filter((el: Referencia) => el.uuid === referencia.uuid)[0];
   }
 
   if (referencia?.tipo === TipoDispositivo.artigo.tipo) {
