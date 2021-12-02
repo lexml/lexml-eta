@@ -102,7 +102,11 @@
           }, 0);  
         }
       }
-
+      
+      onChange(e) {
+        console.log(e.detail.eventType || '*', e);
+      }
+      
       render() {
         return html`
           <div style="padding: 10px;">
@@ -117,7 +121,13 @@
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
-          <lexml-eta .articulacao=${this.articulacao} tipoDocumento=${this.tipoDocumento} normaEstruturada=${JSON.stringify(EXEMPLO_CC)}></lexml-eta>
+          
+          <lexml-eta 
+            @onChange=${this.onChange} 
+            .articulacao=${this.articulacao} 
+            tipoDocumento=${this.tipoDocumento} 
+            normaEstruturada=${JSON.stringify(EXEMPLO_CC)}>
+          </lexml-eta>
         `;
       }
     }
