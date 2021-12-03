@@ -257,6 +257,13 @@ export class EtaQuill extends Quill {
       const blotCursor: EtaBlot = this.getLine(range.index)[0];
       const linhaCursor: EtaContainerTable = blotCursor.linha;
 
+      // correção bug: cursor se perde ao teclar ↑ na primeira linha
+      if (oldRange && range.index === 0 && range.length === 0) {
+        const cursorAnt: EtaBlot = this.getLine(oldRange.index)[0];
+        this.setSelection(this.getIndex(cursorAnt), 0, Quill.sources.SILENT);
+        return false;
+      }
+
       if (
         blotCursor.tagName === EtaBlotRotulo.tagName ||
         blotCursor.tagName === EtaBlotEspaco.tagName ||
