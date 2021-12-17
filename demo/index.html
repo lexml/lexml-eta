@@ -104,7 +104,7 @@
       }
       
       onChange(e) {
-        console.log(e.detail.eventType || '*', e);
+        console.log('EVENTO', e.detail.eventType || '*', e);
       }
       
       render() {
@@ -124,7 +124,7 @@
           
           <lexml-eta 
             @onChange=${this.onChange} 
-            .articulacao=${this.articulacao} 
+            articulacao=${this.articulacao} 
             tipoDocumento=${this.tipoDocumento} 
             normaEstruturada=${JSON.stringify(EXEMPLO_CC)}>
           </lexml-eta>
