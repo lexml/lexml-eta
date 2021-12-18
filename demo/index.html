@@ -58,6 +58,7 @@
 
     import '../out-tsc/src/index.js';
     import { EXEMPLO_CC } from '../out-tsc/demo/doc/codigocivil-eta.js'
+    import { MPV_ALTERACAO } from '../out-tsc/demo/doc/mpv_alteracao.js';
 
     class DemoView extends LitElement {
 
@@ -126,7 +127,7 @@
             @onChange=${this.onChange} 
             articulacao=${this.articulacao} 
             tipoDocumento=${this.tipoDocumento} 
-            normaEstruturada=${JSON.stringify(EXEMPLO_CC)}>
+            normaEstruturada=${this.articulacao === 'codigo-civil' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
           </lexml-eta>
         `;
       }
