@@ -58,6 +58,7 @@
 
     import '../out-tsc/src/index.js';
     import { EXEMPLO_CC } from '../out-tsc/demo/doc/codigocivil-eta.js'
+    import { MPV_ALTERACAO } from '../out-tsc/demo/doc/mpv_alteracao.js';
 
     class DemoView extends LitElement {
 
@@ -102,7 +103,11 @@
           }, 0);  
         }
       }
-
+      
+      onChange(e) {
+        console.log('EVENTO', e.detail.eventType || '*', e);
+      }
+      
       render() {
         return html`
           <div style="padding: 10px;">
@@ -117,7 +122,13 @@
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
-          <lexml-eta .articulacao=${this.articulacao} tipoDocumento=${this.tipoDocumento} normaEstruturada=${JSON.stringify(EXEMPLO_CC)}></lexml-eta>
+          
+          <lexml-eta 
+            @onChange=${this.onChange} 
+            articulacao=${this.articulacao} 
+            tipoDocumento=${this.tipoDocumento} 
+            normaEstruturada=${this.articulacao === 'codigo-civil' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
+          </lexml-eta>
         `;
       }
     }
