@@ -27,19 +27,19 @@ export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   if (!isArticulacao(dispositivo) && (!dispositivo.texto || dispositivo.texto.trim().length === 0)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não foi informado um texto para o dispositivo',
+      descricao: `Não foi informado um texto para ${dispositivo.artigoDefinido} ${dispositivo.descricao}`,
     });
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && endsWithPunctuation(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não pode haver sinal de pontuação ao final do texto',
+      descricao: `Não pode haver sinal de pontuação ao final do texto d${dispositivo.artigoDefinido} ${dispositivo.descricao}`,
     });
   }
   if (!isArticulacao(dispositivo) && containsTags(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'O conteúdo do dispositivo não pode possuir formatação',
+      descricao: `Texto d${dispositivo.artigoDefinido} ${dispositivo.descricao} não pode possuir formatação`,
     });
   }
   return mensagens;
