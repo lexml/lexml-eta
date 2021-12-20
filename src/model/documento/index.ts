@@ -7,6 +7,8 @@ export interface Documento {
   subTipo?: SubTipoDocumento;
 }
 
+export type DocumentoComTextoArticulado = Norma | Proposicao;
+
 export interface Metadado {
   urn?: string;
 }
@@ -23,4 +25,13 @@ export interface ParteInicial {
 
 export interface Norma extends Documento, Metadado, ParteInicial, TextoArticulado {
   tipo: TipoDocumento.NORMA;
+}
+
+export interface Proposicao extends Documento, Metadado, ParteInicial, TextoArticulado {
+  tipo: TipoDocumento.PROPOSICAO;
+}
+
+export interface Emenda extends Documento {
+  tipo: TipoDocumento.PROPOSICAO;
+  projeto?: Proposicao;
 }

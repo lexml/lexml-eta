@@ -114,10 +114,10 @@
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
             <select id="articulacao" @change=${this.onChangeArticulacao}>
               <option value="nova">Nova articulação</option>
-              <option value="codigo-civil">Código Civil</option>
+              <option value="mpv_alteracao">Mpv</option>
             </select>
             <select id="tipoDocumento">
-              <option value="emenda" id="emenda" selected="${this.articulacao === 'codigo-civil'}" disabled="${this.articulacao === 'nova'}">Emenda</option>
+              <option value="emenda" id="emenda" selected="${this.articulacao === 'mpv_alteracao'}" disabled="${this.articulacao === 'nova'}">Emenda</option>
               <option value="norma" selected="${this.articulacao === 'nova'}">Legislação</option>
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
@@ -127,7 +127,7 @@
             @onChange=${this.onChange} 
             articulacao=${this.articulacao} 
             tipoDocumento=${this.tipoDocumento} 
-            normaEstruturada=${this.articulacao === 'codigo-civil' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
+            normaEstruturada=${this.articulacao === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
           </lexml-eta>
         `;
       }

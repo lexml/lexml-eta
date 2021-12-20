@@ -1,11 +1,11 @@
 import { expect } from '@open-wc/testing';
-import { Norma } from '../../src/model/documento';
+import { DocumentoComTextoArticulado } from '../../src/model/documento';
 import { SubTipoDocumento, TipoDocumento } from '../../src/model/documento/tipoDocumento';
 import { getDocumento } from '../../src/parser/parserLexmlJsonix';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_885_20190617';
 import { MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_905_20191111';
 
-let documento: Norma | undefined;
+let documento: DocumentoComTextoArticulado;
 
 describe('Parser de medida provisória sem alteração e sem agrupador', () => {
   before(function () {

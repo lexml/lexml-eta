@@ -1,6 +1,7 @@
 export enum TipoDocumento {
   EMENDA = 'emenda',
   NORMA = 'norma',
+  PROPOSICAO = 'projeto',
 }
 
 export enum SubTipoDocumento {

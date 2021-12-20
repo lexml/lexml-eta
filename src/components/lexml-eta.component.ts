@@ -15,7 +15,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   update(changedProperties: PropertyValues): void {
-    if (this.articulacao === 'codigo-civil') {
+    if (this.articulacao === 'mpv_alteracao') {
       rootStore.dispatch(openArticulacaoAction(this.normaEstruturada, this.tipoDocumento));
     } else if (this.articulacao === 'nova') {
       rootStore.dispatch(novaArticulacaoAction(this.tipoDocumento));
