@@ -33,6 +33,6 @@ export interface Projeto extends Documento, Metadado, ParteInicial, TextoArticul
 }
 
 export interface Emenda extends Documento {
-  classificacao: ClassificacaoDocumento.PROJETO;
+  classificacao: ClassificacaoDocumento.EMENDA;
   projeto?: Projeto;
 }
