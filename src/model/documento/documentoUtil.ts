@@ -1,15 +1,7 @@
-import { SubTipoDocumento } from './tipoDocumento';
+import { TipoDocumento } from './tipo';
+import { VOCABULARIO } from './vocabulario';
 
-export const getSubTipo = (urn: string): SubTipoDocumento | undefined => {
-  const tipo = urn.replace('urn:lex:br:federal:', '')?.split(':');
-
-  if (!tipo[0]) {
-    return undefined;
-  }
-  switch (tipo[0]) {
-    case 'medida.provisoria':
-      return SubTipoDocumento.MEDIDA_PROVISORIA;
-    default:
-      return undefined;
-  }
+export const getTipo = (urn: string): TipoDocumento | undefined => {
+  const tipo = urn.replace('urn:lex:br:', '')?.split(':');
+  return VOCABULARIO.tiposDocumento.filter(t => t.urn === tipo[1])[0];
 };

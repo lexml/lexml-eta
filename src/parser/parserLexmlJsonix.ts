@@ -1,8 +1,8 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
-import { Metadado, Norma, ParteInicial, TextoArticulado } from '../model/documento';
-import { getSubTipo } from '../model/documento/documentoUtil';
-import { TipoDocumento } from '../model/documento/tipoDocumento';
+import { DocumentoComTextoArticulado, Metadado, Norma, ParteInicial, Projeto, TextoArticulado } from '../model/documento';
+import { ClassificacaoDocumento } from '../model/documento/classificacao';
+import { getTipo } from '../model/documento/documentoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
 
@@ -34,30 +34,40 @@ const getParteInicial = (documento: any): ParteInicial => {
   };
 };
 
-const getTextoArticulado = (documento: any): TextoArticulado => {
+const getTextoArticulado = (norma: any): TextoArticulado => {
   return {
-    articulacao: buildArticulacao(documento?.value?.projetoNorma?.norma?.articulacao),
+    articulacao: buildArticulacao(norma.articulacao),
   };
 };
 
 const getNorma = (documento: any): Norma => {
   return {
-    tipo: TipoDocumento.NORMA,
-    subTipo: getSubTipo(getUrn(documento)),
+    classificacao: ClassificacaoDocumento.NORMA,
+    tipo: getTipo(getUrn(documento)),
     ...getMetadado(documento),
     ...getParteInicial(documento),
-    ...getTextoArticulado(documento),
+    ...getTextoArticulado(documento?.value?.projetoNorma?.norma),
   };
 };
 
-export const getDocumento = (documento: any, emendamento = false): Norma => {
+const getProjeto = (documento: any): Projeto => {
+  return {
+    classificacao: ClassificacaoDocumento.PROJETO,
+    tipo: getTipo(getUrn(documento)),
+    ...getMetadado(documento),
+    ...getParteInicial(documento),
+    ...getTextoArticulado(documento?.value?.projetoNorma?.projeto),
+  };
+};
+
+export const getDocumento = (documento: any, emendamento = false): DocumentoComTextoArticulado => {
   isEmendamento = emendamento;
 
   if (documento.value?.projetoNorma) {
-    return getNorma(documento);
+    return documento.value?.projetoNorma.norma ? getNorma(documento) : getProjeto(documento);
   }
   return {
-    tipo: TipoDocumento.NORMA,
+    classificacao: ClassificacaoDocumento.NORMA,
   };
 };
 
@@ -138,7 +148,7 @@ const buildContentDispositivo = (el: any): string => {
 
 const buildContent = (content: any): string => {
   let texto = '';
-  content.forEach((element: any) => {
+  content?.forEach((element: any) => {
     if (element.value) {
       texto += montaReferencia(element.value);
     } else {

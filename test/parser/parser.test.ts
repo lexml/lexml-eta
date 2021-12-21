@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { DocumentoComTextoArticulado } from '../../src/model/documento';
-import { SubTipoDocumento, TipoDocumento } from '../../src/model/documento/tipoDocumento';
+import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
 import { getDocumento } from '../../src/parser/parserLexmlJsonix';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_885_20190617';
 import { MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_905_20191111';
@@ -12,10 +12,10 @@ describe('Parser de medida provisória sem alteração e sem agrupador', () => {
     documento = getDocumento(MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR);
   });
   it('Deveria apresentar um documento do tipo norma', () => {
-    expect(documento?.tipo).equals(TipoDocumento.NORMA);
+    expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);
   });
   it('Deveria apresentar medida provisória como tipo da norma', () => {
-    expect(documento?.subTipo).equals(SubTipoDocumento.MEDIDA_PROVISORIA);
+    expect(documento?.tipo?.urn).equals('medida.provisoria');
   });
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('MEDIDA PROVISÓRIA Nº 905, DE 11 DE NOVEMBRO DE 2019');
@@ -35,10 +35,10 @@ describe('Parser de medida provisória com alteração e sem agrupador', () => {
     documento = getDocumento(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
   });
   it('Deveria apresentar um documento do tipo norma', () => {
-    expect(documento?.tipo).equals(TipoDocumento.NORMA);
+    expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);
   });
   it('Deveria apresentar medida provisória como tipo da norma', () => {
-    expect(documento?.subTipo).equals(SubTipoDocumento.MEDIDA_PROVISORIA);
+    expect(documento?.tipo?.urn).equals('medida.provisoria');
   });
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('MEDIDA PROVISÓRIA Nº 885, DE 17 DE JUNHO DE 2019');

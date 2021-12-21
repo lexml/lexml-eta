@@ -64,8 +64,8 @@
 
       static get properties() {
         return {
-          articulacao: { type: String },
-          tipoDocumento: { type: String },
+          documento: { type: String },
+          acao: { type: String },
         };
       }
 
@@ -75,31 +75,31 @@
 
       constructor() {
         super();
-        this.articulacao = 'nova';
-        this.tipoDocumento = 'norma';
+        this.documento = 'novo';
+        this.acao = 'edicao';
       }
 
-      onChangeArticulacao() {
-        const elmArticulacao = this.querySelector('#articulacao');
-        let elmTipoDocumento = this.querySelector('#tipoDocumento');
+      onChangedocumento() {
+        const elmDocumento = this.querySelector('#documento');
+        let elmAcao = this.querySelector('#acao');
 
-        if (elmArticulacao.value === 'nova') {          
-          elmTipoDocumento.value = 'norma';
-          const elmArticulacao = this.querySelector('#emenda').disabled=true;
+        if (elmDocumento.value === 'novo') {          
+          elmAcao.value = 'edicao';
+          const elmDocumento = this.querySelector('#emenda').disabled=true;
         } else {
-          elmTipoDocumento.value = "emenda";
-          const elmArticulacao = this.querySelector('#emenda').disabled=false;
+          elmAcao.value = "emenda";
+          const elmDocumento = this.querySelector('#emenda').disabled=false;
         }
       }
 
       executar() {
-        const elmtipoDocumento = this.querySelector('#tipoDocumento');
-        const elmArticulacao = this.querySelector('#articulacao');
+        const elmAcao = this.querySelector('#acao');
+        const elmDocumento = this.querySelector('#documento');
 
-        if (elmArticulacao && elmtipoDocumento) {
+        if (elmDocumento && elmAcao) {
           setTimeout(() => {
-            this.tipoDocumento = elmtipoDocumento.value;
-            this.articulacao = elmArticulacao.value;
+            this.acao = elmAcao.value;
+            this.documento = elmDocumento.value;
           }, 0);  
         }
       }
@@ -112,22 +112,21 @@
         return html`
           <div style="padding: 10px;">
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
-            <select id="articulacao" @change=${this.onChangeArticulacao}>
-              <option value="nova">Nova articulação</option>
+            <select id="documento" @change=${this.onChangeArticulacao}>
+              <option value="novo">Nova articulação</option>
               <option value="mpv_alteracao">Mpv</option>
             </select>
-            <select id="tipoDocumento">
-              <option value="emenda" id="emenda" selected="${this.articulacao === 'mpv_alteracao'}" disabled="${this.articulacao === 'nova'}">Emenda</option>
-              <option value="norma" selected="${this.articulacao === 'nova'}">Legislação</option>
+            <select id="acao">
+              <option value="emenda" id="emenda" selected="${this.documento === 'mpv_alteracao'}" disabled="${this.documento === 'novo'}">Emenda</option>
+              <option value="edicao" selected="${this.documento === 'novo'}">Legislação</option>
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
           
           <lexml-eta 
             @onChange=${this.onChange} 
-            articulacao=${this.articulacao} 
-            tipoDocumento=${this.tipoDocumento} 
-            normaEstruturada=${this.articulacao === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
+            acao=${this.acao} 
+            documento=${this.documento === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
           </lexml-eta>
         `;
       }

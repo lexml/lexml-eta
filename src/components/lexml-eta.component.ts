@@ -1,25 +1,24 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { novaArticulacaoAction } from '../model/lexml/acao/novaArticulacaoAction';
+import { DOCUMENTO_PADRAO } from '../model/documento/modelos/documentoPadrao';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { rootStore } from '../redux/store';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: String }) articulacao = '';
-  @property({ type: String }) tipoDocumento = '';
-  @property({ type: Object }) normaEstruturada = {};
+  @property({ type: String }) acao = '';
+  @property({ type: Object }) documento = {};
 
   createRenderRoot(): LitElement {
     return this;
   }
 
   update(changedProperties: PropertyValues): void {
-    if (this.articulacao === 'mpv_alteracao') {
-      rootStore.dispatch(openArticulacaoAction(this.normaEstruturada, this.tipoDocumento));
-    } else if (this.articulacao === 'nova') {
-      rootStore.dispatch(novaArticulacaoAction(this.tipoDocumento));
+    if (!this.documento || !this.documento['name']) {
+      this.documento = DOCUMENTO_PADRAO;
     }
+    rootStore.dispatch(openArticulacaoAction(this.documento, this.acao));
+
     super.update(changedProperties);
   }
 
