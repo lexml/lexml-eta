@@ -79,7 +79,7 @@
         this.acao = 'edicao';
       }
 
-      onChangedocumento() {
+      onChangeDocumento() {
         const elmDocumento = this.querySelector('#documento');
         let elmAcao = this.querySelector('#acao');
 
@@ -112,13 +112,13 @@
         return html`
           <div style="padding: 10px;">
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
-            <select id="documento" @change=${this.onChangeArticulacao}>
+            <select id="documento" @change=${this.onChangeDocumento}>
               <option value="novo">Nova articulação</option>
               <option value="mpv_alteracao">Mpv</option>
             </select>
             <select id="acao">
               <option value="emenda" id="emenda" selected="${this.documento === 'mpv_alteracao'}" disabled="${this.documento === 'novo'}">Emenda</option>
-              <option value="edicao" selected="${this.documento === 'novo'}">Legislação</option>
+              <option value="edicao" selected="${this.documento === 'novo'}">Edição</option>
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>

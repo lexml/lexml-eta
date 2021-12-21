@@ -75,7 +75,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
     });
   }
-  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto !== TEXTO_OMISSIS && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
