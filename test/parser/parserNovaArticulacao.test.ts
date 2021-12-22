@@ -1,15 +1,15 @@
 import { expect } from '@open-wc/testing';
-import { DocumentoComTextoArticulado } from '../../src/model/documento';
+import { ProjetoNorma } from '../../src/model/documento';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
-import { getDocumento } from '../../src/parser/parserLexmlJsonix';
+import { buildDocumento } from '../../src/parser/parserLexmlJsonix';
 import { NORMA_DEFAULT } from '../doc/parser/normaDefault';
 import { PROJETO_DEFAULT } from '../doc/parser/projetoDefault';
 
-let documento: DocumentoComTextoArticulado;
+let documento: ProjetoNorma;
 
 describe('Parser de norma default', () => {
   before(function () {
-    documento = getDocumento(NORMA_DEFAULT);
+    documento = buildDocumento(NORMA_DEFAULT);
   });
   it('Deveria apresentar um documento do tipo norma', () => {
     expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);
@@ -30,7 +30,7 @@ describe('Parser de norma default', () => {
 
 describe('Parser de projeto default', () => {
   before(function () {
-    documento = getDocumento(PROJETO_DEFAULT);
+    documento = buildDocumento(PROJETO_DEFAULT);
   });
   it('Deveria apresentar um documento classificado como projeto', () => {
     expect(documento?.classificacao).equals(ClassificacaoDocumento.PROJETO);

@@ -6,18 +6,18 @@ import { rootStore } from '../redux/store';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: String }) acao = '';
-  @property({ type: Object }) documento = {};
+  @property({ type: String }) modo = '';
+  @property({ type: Object }) projetoNorma = {};
 
   createRenderRoot(): LitElement {
     return this;
   }
 
   update(changedProperties: PropertyValues): void {
-    if (!this.documento || !this.documento['name']) {
-      this.documento = DOCUMENTO_PADRAO;
+    if (!this.projetoNorma || !this.projetoNorma['name']) {
+      this.projetoNorma = DOCUMENTO_PADRAO;
     }
-    rootStore.dispatch(openArticulacaoAction(this.documento, this.acao));
+    rootStore.dispatch(openArticulacaoAction(this.projetoNorma, this.modo));
 
     super.update(changedProperties);
   }

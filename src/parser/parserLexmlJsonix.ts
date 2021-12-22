@@ -1,12 +1,28 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
-import { DocumentoComTextoArticulado, Metadado, Norma, ParteInicial, Projeto, TextoArticulado } from '../model/documento';
+import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '../model/documento';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { getTipo } from '../model/documento/documentoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
 
 export let isEmendamento = false;
+
+export const buildDocumento = (documentoLexml: any, emendamento = false): ProjetoNorma => {
+  isEmendamento = emendamento;
+
+  if (!documentoLexml?.value?.projetoNorma) {
+    throw new Error('Não se trata de um documento lexml válido');
+  }
+
+  return {
+    classificacao: documentoLexml.value?.projetoNorma.norma ? ClassificacaoDocumento.NORMA : ClassificacaoDocumento.PROJETO,
+    tipo: getTipo(getUrn(documentoLexml)),
+    ...getMetadado(documentoLexml),
+    ...getParteInicial(documentoLexml),
+    ...getTextoArticulado(documentoLexml.value.projetoNorma.norma ? documentoLexml.value.projetoNorma.norma : documentoLexml.value.projetoNorma.projeto),
+  };
+};
 
 const retiraCaracteresDesnecessarios = (texto: string): any => {
   return texto?.replace(/[\n]/g, '').trim();
@@ -37,37 +53,6 @@ const getParteInicial = (documento: any): ParteInicial => {
 const getTextoArticulado = (norma: any): TextoArticulado => {
   return {
     articulacao: buildArticulacao(norma.articulacao),
-  };
-};
-
-const getNorma = (documento: any): Norma => {
-  return {
-    classificacao: ClassificacaoDocumento.NORMA,
-    tipo: getTipo(getUrn(documento)),
-    ...getMetadado(documento),
-    ...getParteInicial(documento),
-    ...getTextoArticulado(documento?.value?.projetoNorma?.norma),
-  };
-};
-
-const getProjeto = (documento: any): Projeto => {
-  return {
-    classificacao: ClassificacaoDocumento.PROJETO,
-    tipo: getTipo(getUrn(documento)),
-    ...getMetadado(documento),
-    ...getParteInicial(documento),
-    ...getTextoArticulado(documento?.value?.projetoNorma?.projeto),
-  };
-};
-
-export const getDocumento = (documento: any, emendamento = false): DocumentoComTextoArticulado => {
-  isEmendamento = emendamento;
-
-  if (documento.value?.projetoNorma) {
-    return documento.value?.projetoNorma.norma ? getNorma(documento) : getProjeto(documento);
-  }
-  return {
-    classificacao: ClassificacaoDocumento.NORMA,
   };
 };
 

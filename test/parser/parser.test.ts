@@ -1,15 +1,15 @@
 import { expect } from '@open-wc/testing';
-import { DocumentoComTextoArticulado } from '../../src/model/documento';
+import { ProjetoNorma } from '../../src/model/documento';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
-import { getDocumento } from '../../src/parser/parserLexmlJsonix';
+import { buildDocumento } from '../../src/parser/parserLexmlJsonix';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_885_20190617';
 import { MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_905_20191111';
 
-let documento: DocumentoComTextoArticulado;
+let documento: ProjetoNorma;
 
 describe('Parser de medida provisória sem alteração e sem agrupador', () => {
   before(function () {
-    documento = getDocumento(MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR);
+    documento = buildDocumento(MEDIDA_PROVISORIA_SEM_ALTERACAO_SEM_AGRUPADOR);
   });
   it('Deveria apresentar um documento do tipo norma', () => {
     expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);
@@ -32,7 +32,7 @@ describe('Parser de medida provisória sem alteração e sem agrupador', () => {
 
 describe('Parser de medida provisória com alteração e sem agrupador', () => {
   before(function () {
-    documento = getDocumento(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
+    documento = buildDocumento(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
   });
   it('Deveria apresentar um documento do tipo norma', () => {
     expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);

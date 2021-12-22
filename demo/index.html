@@ -64,8 +64,8 @@
 
       static get properties() {
         return {
-          documento: { type: String },
-          acao: { type: String },
+          projetoNorma: { type: String },
+          modo: { type: String },
         };
       }
 
@@ -75,13 +75,13 @@
 
       constructor() {
         super();
-        this.documento = 'novo';
-        this.acao = 'edicao';
+        this.projetoNorma = 'novo';
+        this.modo = 'edicao';
       }
 
       onChangeDocumento() {
-        const elmDocumento = this.querySelector('#documento');
-        let elmAcao = this.querySelector('#acao');
+        const elmDocumento = this.querySelector('#projetoNorma');
+        let elmAcao = this.querySelector('#modo');
 
         if (elmDocumento.value === 'novo') {          
           elmAcao.value = 'edicao';
@@ -93,13 +93,13 @@
       }
 
       executar() {
-        const elmAcao = this.querySelector('#acao');
-        const elmDocumento = this.querySelector('#documento');
+        const elmAcao = this.querySelector('#modo');
+        const elmDocumento = this.querySelector('#projetoNorma');
 
         if (elmDocumento && elmAcao) {
           setTimeout(() => {
-            this.acao = elmAcao.value;
-            this.documento = elmDocumento.value;
+            this.modo = elmAcao.value;
+            this.projetoNorma = elmDocumento.value;
           }, 0);  
         }
       }
@@ -112,21 +112,21 @@
         return html`
           <div style="padding: 10px;">
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
-            <select id="documento" @change=${this.onChangeDocumento}>
+            <select id="projetoNorma" @change=${this.onChangeDocumento}>
               <option value="novo">Nova articulação</option>
               <option value="mpv_alteracao">Mpv</option>
             </select>
-            <select id="acao">
-              <option value="emenda" id="emenda" selected="${this.documento === 'mpv_alteracao'}" disabled="${this.documento === 'novo'}">Emenda</option>
-              <option value="edicao" selected="${this.documento === 'novo'}">Edição</option>
+            <select id="modo">
+              <option value="emenda" id="emenda" selected="${this.projetoNorma === 'mpv_alteracao'}" disabled="${this.projetoNorma === 'novo'}">Emenda</option>
+              <option value="edicao" selected="${this.projetoNorma === 'novo'}">Edição</option>
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
           
           <lexml-eta 
             @onChange=${this.onChange} 
-            acao=${this.acao} 
-            documento=${this.documento === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
+            modo=${this.modo} 
+            projetoNorma=${this.projetoNorma === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
           </lexml-eta>
         `;
       }
