@@ -220,8 +220,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
-    ((dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 && isUnicoMesmoTipo(dispositivo)) ||
-      dispositivo.pai!.indexOf(dispositivo) !== dispositivo.pai!.filhos?.length - 1) &&
+    dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 &&
+    isUnicoMesmoTipo(dispositivo) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
