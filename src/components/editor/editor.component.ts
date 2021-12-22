@@ -470,7 +470,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private processarStateEvents(events: StateEvent[]): void {
-    events.forEach((event: StateEvent): void => {
+    events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.DocumentoCarregado:
           this.destroiQuill();
