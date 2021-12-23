@@ -77,9 +77,9 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (dispositivo.pai && !isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai) && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {
         acoes.push(adicionarCapitulo);
       }
-      if (dispositivo.pai && isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai)) {
+      /*       if (dispositivo.pai && isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai)) {
         acoes.push(adicionarCapitulo);
-      }
+      } */
       if (!isDispositivoAlteracao(dispositivo) && dispositivo.pai && hasAgrupadoresPosteriores(dispositivo)) {
         acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
       }
