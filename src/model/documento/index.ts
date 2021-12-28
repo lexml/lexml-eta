@@ -1,12 +1,13 @@
 import { Conteudo } from '../dispositivo/conteudo';
 import { Articulacao } from '../dispositivo/dispositivo';
-import { SubTipoDocumento, TipoDocumento } from './tipoDocumento';
+import { ClassificacaoDocumento } from './classificacao';
+import { TipoDocumento } from './tipoDocumento';
 
-export interface Documento {
-  tipo: string;
-  subTipo?: SubTipoDocumento;
+export type ProjetoNorma = Norma | Projeto;
+
+export interface Classificacao {
+  classificacao: string;
 }
-
 export interface Metadado {
   urn?: string;
 }
@@ -21,6 +22,15 @@ export interface ParteInicial {
   preambulo?: Conteudo;
 }
 
-export interface Norma extends Documento, Metadado, ParteInicial, TextoArticulado {
-  tipo: TipoDocumento.NORMA;
+export interface Norma extends Classificacao, Metadado, ParteInicial, TextoArticulado {
+  classificacao: ClassificacaoDocumento.NORMA;
+  tipo?: TipoDocumento;
+}
+
+export interface Projeto extends Classificacao, Metadado, ParteInicial, TextoArticulado {
+  classificacao: ClassificacaoDocumento.PROJETO;
+  tipo?: TipoDocumento;
+}
+export interface Emenda extends Classificacao {
+  classificacao: ClassificacaoDocumento.EMENDA;
 }

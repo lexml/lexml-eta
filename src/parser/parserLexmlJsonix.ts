@@ -1,12 +1,28 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
-import { Metadado, Norma, ParteInicial, TextoArticulado } from '../model/documento';
-import { getSubTipo } from '../model/documento/documentoUtil';
-import { TipoDocumento } from '../model/documento/tipoDocumento';
+import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '../model/documento';
+import { ClassificacaoDocumento } from '../model/documento/classificacao';
+import { getTipo } from '../model/documento/documentoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
 
 export let isEmendamento = false;
+
+export const buildDocumento = (documentoLexml: any, emendamento = false): ProjetoNorma => {
+  isEmendamento = emendamento;
+
+  if (!documentoLexml?.value?.projetoNorma) {
+    throw new Error('Não se trata de um documento lexml válido');
+  }
+
+  return {
+    classificacao: documentoLexml.value?.projetoNorma.norma ? ClassificacaoDocumento.NORMA : ClassificacaoDocumento.PROJETO,
+    tipo: getTipo(getUrn(documentoLexml)),
+    ...getMetadado(documentoLexml),
+    ...getParteInicial(documentoLexml),
+    ...getTextoArticulado(documentoLexml.value.projetoNorma.norma ? documentoLexml.value.projetoNorma.norma : documentoLexml.value.projetoNorma.projeto),
+  };
+};
 
 const retiraCaracteresDesnecessarios = (texto: string): any => {
   return texto?.replace(/[\n]/g, '').trim();
@@ -34,30 +50,9 @@ const getParteInicial = (documento: any): ParteInicial => {
   };
 };
 
-const getTextoArticulado = (documento: any): TextoArticulado => {
+const getTextoArticulado = (norma: any): TextoArticulado => {
   return {
-    articulacao: buildArticulacao(documento?.value?.projetoNorma?.norma?.articulacao),
-  };
-};
-
-const getNorma = (documento: any): Norma => {
-  return {
-    tipo: TipoDocumento.NORMA,
-    subTipo: getSubTipo(getUrn(documento)),
-    ...getMetadado(documento),
-    ...getParteInicial(documento),
-    ...getTextoArticulado(documento),
-  };
-};
-
-export const getDocumento = (documento: any, emendamento = false): Norma => {
-  isEmendamento = emendamento;
-
-  if (documento.value?.projetoNorma) {
-    return getNorma(documento);
-  }
-  return {
-    tipo: TipoDocumento.NORMA,
+    articulacao: buildArticulacao(norma.articulacao),
   };
 };
 
@@ -138,7 +133,7 @@ const buildContentDispositivo = (el: any): string => {
 
 const buildContent = (content: any): string => {
   let texto = '';
-  content.forEach((element: any) => {
+  content?.forEach((element: any) => {
     if (element.value) {
       texto += montaReferencia(element.value);
     } else {

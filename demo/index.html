@@ -64,8 +64,8 @@
 
       static get properties() {
         return {
-          articulacao: { type: String },
-          tipoDocumento: { type: String },
+          projetoNorma: { type: String },
+          modo: { type: String },
         };
       }
 
@@ -75,31 +75,31 @@
 
       constructor() {
         super();
-        this.articulacao = 'nova';
-        this.tipoDocumento = 'norma';
+        this.projetoNorma = 'novo';
+        this.modo = 'edicao';
       }
 
-      onChangeArticulacao() {
-        const elmArticulacao = this.querySelector('#articulacao');
-        let elmTipoDocumento = this.querySelector('#tipoDocumento');
+      onChangeDocumento() {
+        const elmDocumento = this.querySelector('#projetoNorma');
+        let elmAcao = this.querySelector('#modo');
 
-        if (elmArticulacao.value === 'nova') {          
-          elmTipoDocumento.value = 'norma';
-          const elmArticulacao = this.querySelector('#emenda').disabled=true;
+        if (elmDocumento.value === 'novo') {          
+          elmAcao.value = 'edicao';
+          const elmDocumento = this.querySelector('#emenda').disabled=true;
         } else {
-          elmTipoDocumento.value = "emenda";
-          const elmArticulacao = this.querySelector('#emenda').disabled=false;
+          elmAcao.value = "emenda";
+          const elmDocumento = this.querySelector('#emenda').disabled=false;
         }
       }
 
       executar() {
-        const elmtipoDocumento = this.querySelector('#tipoDocumento');
-        const elmArticulacao = this.querySelector('#articulacao');
+        const elmAcao = this.querySelector('#modo');
+        const elmDocumento = this.querySelector('#projetoNorma');
 
-        if (elmArticulacao && elmtipoDocumento) {
+        if (elmDocumento && elmAcao) {
           setTimeout(() => {
-            this.tipoDocumento = elmtipoDocumento.value;
-            this.articulacao = elmArticulacao.value;
+            this.modo = elmAcao.value;
+            this.projetoNorma = elmDocumento.value;
           }, 0);  
         }
       }
@@ -112,22 +112,21 @@
         return html`
           <div style="padding: 10px;">
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
-            <select id="articulacao" @change=${this.onChangeArticulacao}>
-              <option value="nova">Nova articulação</option>
-              <option value="codigo-civil">Código Civil</option>
+            <select id="projetoNorma" @change=${this.onChangeDocumento}>
+              <option value="novo">Nova articulação</option>
+              <option value="mpv_alteracao">Mpv</option>
             </select>
-            <select id="tipoDocumento">
-              <option value="emenda" id="emenda" selected="${this.articulacao === 'codigo-civil'}" disabled="${this.articulacao === 'nova'}">Emenda</option>
-              <option value="norma" selected="${this.articulacao === 'nova'}">Legislação</option>
+            <select id="modo">
+              <option value="emenda" id="emenda" selected="${this.projetoNorma === 'mpv_alteracao'}" disabled="${this.projetoNorma === 'novo'}">Emenda</option>
+              <option value="edicao" selected="${this.projetoNorma === 'novo'}">Edição</option>
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
           
           <lexml-eta 
             @onChange=${this.onChange} 
-            articulacao=${this.articulacao} 
-            tipoDocumento=${this.tipoDocumento} 
-            normaEstruturada=${this.articulacao === 'codigo-civil' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
+            modo=${this.modo} 
+            projetoNorma=${this.projetoNorma === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
           </lexml-eta>
         `;
       }
