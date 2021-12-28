@@ -1,4 +1,5 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { isArticulacao } from '../../../model/dispositivo/tipo';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -10,12 +11,12 @@ import {
   hasAgrupadoresAcimaByTipo,
   hasAgrupadoresAnterioresByTipo,
   irmaosMesmoTipo,
+  isArticulacaoAlteracao,
   isDispositivoAlteracao,
-  isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia, copiaDispositivosParaAgrupadorPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
+import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
 export const agrupaElemento = (state: any, action: any): State => {
@@ -37,18 +38,21 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   let novo;
+  let ref: any = undefined;
 
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
-  } else if (hasAgrupadoresAcimaByTipo(atual, action.novo.tipo) || hasAgrupadoresAnterioresByTipo(atual, action.novo.tipo)) {
-    const ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
+    ref = getDispositivoAnteriorMesmoTipo(novo);
+  } else if ((!isDispositivoAlteracao(atual) && hasAgrupadoresAcimaByTipo(atual, action.novo.tipo)) || hasAgrupadoresAnterioresByTipo(atual, action.novo.tipo)) {
+    ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
     novo = criaDispositivo(ref!.pai!, action.novo.tipo, ref);
   } else {
     novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
+    ref = dispositivoAnterior ?? atual.pai!;
   }
   novo.texto = action.novo.conteudo?.texto;
   const dispositivos = atual.pai!.filhos.filter((f: Dispositivo, index: number) => index >= pos && f.tipo !== action.novo.tipo);
-  copiaDispositivosParaAgrupadorPai(novo, dispositivos);
+  copiaDispositivosParaOutroPai(novo, dispositivos);
   novo.renumeraFilhos();
   novo.pai!.renumeraFilhos();
 
@@ -66,7 +70,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(isDispositivoCabecaAlteracao(novo) ? atual : dispositivoAnterior ?? atual.pai!, novo)));
+  eventos.setReferencia(createElemento(ajustaReferencia(ref!.pai && isArticulacao(ref!) && isArticulacaoAlteracao(ref as Articulacao) ? ref!.pai : ref!, novo)));
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
   eventos.add(StateType.ElementoRemovido, removidos);
 

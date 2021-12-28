@@ -1,6 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
+import { omissis } from '../acao/adicionarElementoAction';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   if (!dispositivo) {
@@ -20,7 +21,7 @@ export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articula
     return dispositivo;
   } else if (dispositivo.filhos !== null) {
     let i;
-    let result = null;
+    let result: any = null;
 
     for (i = 0; result === null && i < dispositivo.filhos.length; i++) {
       result = getDispositivo(uuid, dispositivo.filhos[i]);
@@ -49,7 +50,11 @@ export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {
 };
 
 export const irmaosMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
-  return isArtigo(dispositivo) ? getArticulacao(dispositivo).artigos.filter(f => f.tipo === dispositivo.tipo) : dispositivo.pai!.filhos.filter(f => f.tipo === dispositivo.tipo);
+  return isArtigo(dispositivo)
+    ? getArticulacao(dispositivo).artigos.filter(f => f.tipo === dispositivo.tipo)
+    : dispositivo.pai
+    ? dispositivo.pai!.filhos.filter(f => f.tipo === dispositivo.tipo)
+    : [dispositivo];
 };
 
 export const getAgrupadoresPosterioresTipoAcima = (dispositivo: Dispositivo, tipo: Tipo): Dispositivo[] => {
@@ -216,7 +221,7 @@ export const getDispositivoAnteriorMesmoTipoInclusiveOmissis = (dispositivo: Dis
     return undefined;
   }
 
-  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && f.pai === dispositivo.pai);
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && (f.tipo === dispositivo.tipo || f.tipo === omissis.tipo));
   return irmaos.pop();
 };
 
@@ -248,7 +253,7 @@ export const getDispositivoPosteriorMesmoTipoInclusiveOmissis = (dispositivo: Di
     return undefined;
   }
 
-  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index > pos && f.pai === dispositivo.pai);
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index > pos && (f.tipo === dispositivo.tipo || f.tipo === omissis.tipo));
   return irmaos[0];
 };
 
@@ -320,8 +325,8 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
   return isUnicoMesmoTipo(atual) || articulacao.indexOfArtigo(atual) < articulacao.artigos.length - 1;
 };
 
-export const isArticulacaoAlteracao = (articulacao: Articulacao): boolean => {
-  return articulacao.pai !== undefined;
+export const isArticulacaoAlteracao = (articulacao: Dispositivo): boolean => {
+  return isArticulacao(articulacao) && articulacao.pai !== undefined;
 };
 
 export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {

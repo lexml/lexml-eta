@@ -1,11 +1,11 @@
-import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
-import { isArtigo } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
-import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAnterior, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoById, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
@@ -27,6 +27,24 @@ const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   }
 };
 
+const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
+  if (isElementoDispositivoAlteracao(elemento)) {
+    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoById(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
+
+    if (artigo) {
+      if (!artigo.alteracoes) {
+        artigo!.alteracoes = createArticulacao();
+        artigo.alteracoes.pai = artigo;
+      }
+      if (elemento.hierarquia!.pai!.tipo! === TipoDispositivo.articulacao.tipo) {
+        return artigo.alteracoes;
+      }
+      return findDispositivoById(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
+    }
+  }
+  return findDispositivoById(articulacao, elemento.hierarquia!.pai!.uuid!);
+};
+
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
@@ -46,12 +64,12 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
 const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dispositivo[] => {
   const primeiroElemento = elementos.shift();
 
-  const pai = getDispositivoFromElemento(articulacao, primeiroElemento!.hierarquia!.pai as Elemento);
+  const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!);
   const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
 
   const novos: Dispositivo[] = [primeiro];
   elementos?.forEach(filho => {
-    const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoFromElemento(articulacao, filho.hierarquia!.pai! as Elemento);
+    const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoPaiFromElemento(articulacao, filho);
     const novo = redodDispositivoExcluido(filho, parent!);
     novos.push(novo);
   });
@@ -60,28 +78,21 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
 };
 
 export const incluir = (state: State, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
-  let articulacao;
-
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const elemento = evento.elementos[0];
 
-    if (isElementoDispositivoAlteracao(elemento)) {
-      articulacao = getDispositivoFromElemento(state.articulacao!, { uuid: elemento.hierarquia!.pai!.uuidAlteracao }, true)?.alteracoes;
-    } else {
-      articulacao = state.articulacao;
-    }
+    const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
-    const pai = getDispositivoFromElemento(articulacao!, elemento!.hierarquia!.pai!);
-    const novos = redoDispositivosExcluidos(articulacao, evento.elementos);
+    const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos);
     pai?.renumeraFilhos();
 
     if (novosEvento) {
       const posicao = elemento!.hierarquia!.posicao;
 
-      const referencia = posicao === 0 ? pai : getUltimoFilho(getDispositivoAnterior(novos[0])!);
+      const referencia = posicao === 0 ? (isArticulacao(pai!) && isArticulacaoAlteracao(pai as Articulacao) ? pai!.pai! : pai) : getUltimoFilho(getDispositivoAnterior(novos[0])!);
 
       if (referencia) {
-        const dispositivo = getDispositivoFromElemento(articulacao!, referencia);
+        const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
         dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
       }
     }

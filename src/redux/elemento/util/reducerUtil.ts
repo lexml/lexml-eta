@@ -6,8 +6,6 @@ import { createElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { AdicionarElemento } from '../../../model/lexml/acao/adicionarElementoAction';
 import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
-import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   getArticulacao,
@@ -17,6 +15,7 @@ import {
   getUltimoFilho,
   hasFilhos,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { Counter } from '../../../util/counter';
 import { StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 
@@ -37,18 +36,21 @@ export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
   return el;
 };
 
-export const copiaDispositivosParaAgrupadorPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
-  return dispositivos.map(d => {
-    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
-    const novo = criaDispositivo(pai, d.tipo, anterior);
-    novo.texto = d.texto;
-    novo.numero = d.numero;
-    novo.rotulo = d.rotulo;
-    novo.mensagens = d.mensagens;
-    copiaFilhos(d, novo);
+export const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
+  dispositivo.uuid = Counter.next();
+  dispositivo.filhos?.forEach(f => resetUuidTodaArvore(f));
+};
 
-    d.pai!.removeFilho(d);
-    return novo;
+export const copiaDispositivosParaOutroPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+  return dispositivos.map(d => {
+    const paiAtual = d.pai;
+
+    resetUuidTodaArvore(d);
+    const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
+    paiAtual?.removeFilho(d);
+    d.pai = pai;
+    pai.addFilho(d, anterior);
+    return d;
   });
 };
 

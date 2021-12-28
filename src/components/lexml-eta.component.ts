@@ -1,25 +1,24 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { EXEMPLO_CC } from '../../demo/doc/codigocivil-eta';
-import { novaArticulacaoAction } from '../model/lexml/acao/novaArticulacaoAction';
+import { DOCUMENTO_PADRAO } from '../model/documento/modelos/documentoPadrao';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { rootStore } from '../redux/store';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: String }) articulacao = '';
-  @property({ type: String }) tipoDocumento = '';
+  @property({ type: String }) modo = '';
+  @property({ type: Object }) projetoNorma = {};
 
   createRenderRoot(): LitElement {
     return this;
   }
 
   update(changedProperties: PropertyValues): void {
-    if (this.articulacao === 'codigo-civil') {
-      rootStore.dispatch(openArticulacaoAction(EXEMPLO_CC, this.tipoDocumento));
-    } else if (this.articulacao === 'nova') {
-      rootStore.dispatch(novaArticulacaoAction(this.tipoDocumento));
+    if (!this.projetoNorma || !this.projetoNorma['name']) {
+      this.projetoNorma = DOCUMENTO_PADRAO;
     }
+    rootStore.dispatch(openArticulacaoAction(this.projetoNorma, this.modo));
+
     super.update(changedProperties);
   }
 

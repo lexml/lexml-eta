@@ -10,6 +10,7 @@ import { Validacao } from './validacao';
 
 export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Situacao, Validacao {
   tipo: string;
+  id?: string;
   uuid?: number;
 }
 

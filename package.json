@@ -4,27 +4,42 @@
   "description": "Webcomponent lexml-eta following open-wc recommendations",
   "author": "lexml-eta",
   "license": "GPL-2.0-only",
-  "main": "index.js",
-  "module": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/lexml/lexml-eta.git"
   },
+  "homepage": "https://github.com/lexml/lexml-eta",
+  "bugs": {
+    "url": "https://github.com/lexml/lexml-eta/issues"
+  },
+  "keywords": [
+    "lexml",
+    "lexml-eta",
+    "editor legislativo",
+    "editor de emendas",
+    "editor de texto articulado"
+  ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "start": "npm run build && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
     "build": "npm run css:build && tsc",
-    "clean": "rimraf out-tsc & rimraf prod",
-    "prepublish": "tsc",
+    "clean": "rimraf out-tsc && rimraf prod",
+    "prepublish": "rimraf dist && npm run css:concat && rollup -c rollup.config.dist.js",
+    "copy:assets": "cp -r ./assets ./dist/assets || xcopy assets dist\\assets /E /I /Y",
     "css:concat": "concat -o assets/css/editor.css ./node_modules/quill/dist/quill.snow.css ./node_modules/font-awesome/css/font-awesome.css",
     "css:minify": "minify assets/css/editor.css > assets/css/editor.min.css",
-    "css:build": "npm run css:concat && npm run css:minify",
+    "css:build": "npm run css:concat",
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "test": "tsc && wtr --coverage",
     "test:watch": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
     "storybook:build": "tsc && build-storybook",
-    "postinstall": "node ./node_modules/husky/lib/installer/bin install",
+    "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
     "build:demo": "npm run clean && npm run build && rollup -c",
     "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force"
   },
@@ -38,13 +53,14 @@
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "reselect": "^4.0.0",
-    "sinon": "^9.2.4",
-    "ts-node": "^9.0.0"
+    "sinon": "^9.2.4"
   },
   "devDependencies": {
     "@open-wc/building-rollup": "^1.9.4",
     "@open-wc/eslint-config": "^4.2.0",
     "@open-wc/testing": "^2.5.32",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "@rollup/plugin-typescript": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",
     "@web/dev-server": "^0.1.10",
@@ -62,6 +78,8 @@
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
     "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "ts-node": "^9.0.0",
     "tslib": "^2.2.0",
     "typescript": "^4.2.3"
   },

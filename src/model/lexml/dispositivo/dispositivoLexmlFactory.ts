@@ -14,7 +14,7 @@ import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia, hasIndicativoI
 import { HierarquiaAgrupador } from '../hierarquia/hierarquiaAgrupador';
 import { HierarquiaArtigo } from '../hierarquia/hierarquiaArtigo';
 import { HierarquiaDispositivo } from '../hierarquia/hierarquiaDispositivo';
-import { getArticulacao, hasFilhos, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
+import { getArticulacao, hasFilhos, isDispositivoAlteracao, isOriginal, isOriginalAlteradoModificadoOuSuprimido } from '../hierarquia/hierarquiaUtil';
 import { NumeracaoAgrupador } from '../numeracao/numeracaoAgrupador';
 import { NumeracaoAlinea } from '../numeracao/numeracaoAlinea';
 import { NumeracaoArtigo } from '../numeracao/numeracaoArtigo';
@@ -23,6 +23,7 @@ import { NumeracaoInciso } from '../numeracao/numeracaoInciso';
 import { NumeracaoIndisponivel } from '../numeracao/numeracaoIndisponivel';
 import { NumeracaoItem } from '../numeracao/numeracaoItem';
 import { NumeracaoParagrafo } from '../numeracao/numeracaoParagrafo';
+import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { RegrasAgrupadores } from '../regras/regrasAgrupadores';
 import { RegrasAlinea } from '../regras/regrasAlinea';
 import { RegrasArtigo } from '../regras/regrasArtigo';
@@ -91,7 +92,12 @@ const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo
 
   if (isDispositivoAlteracao(dispositivo)) {
     dispositivo.renumeraFilhos = (): void => {
-      dispositivo.filhos?.forEach(f => f.createRotulo(f));
+      dispositivo.filhos?.forEach(f => {
+        if (!isOriginal(f) && !isOriginalAlteradoModificadoOuSuprimido(f)) {
+          f.numero = calculaNumeracao(f);
+          f.createRotulo(f);
+        }
+      });
     };
     if (isArtigo(dispositivo)) {
       (dispositivo as Artigo).caput!.renumeraFilhos = (): void => {
@@ -291,7 +297,7 @@ const createWhenReferenciaIsAgrupador = (referencia: Dispositivo): Dispositivo =
   return criaDispositivo(referencia, TipoDispositivo.artigo.tipo, undefined, 0);
 };
 
-const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alteracoes): Dispositivo => {
+export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alteracoes): Dispositivo => {
   const dispositivo = criaDispositivo(alteracoes!, tipo);
   dispositivo.createRotulo(dispositivo);
 

@@ -1,7 +1,6 @@
 import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
-import 'quill/dist/quill';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -81,7 +80,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="assets/css/editor.min.css" />
+      <link rel="stylesheet" href="assets/css/editor.css" />
       <style>
         #lx-eta-box {
           display: grid;
@@ -325,7 +324,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
 
     if (!podeRenumerar(elemento)) {
       return;
@@ -471,7 +470,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private processarStateEvents(events: StateEvent[]): void {
-    events.forEach((event: StateEvent): void => {
+    events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.DocumentoCarregado:
           this.destroiQuill();
@@ -552,6 +551,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
       this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
     }
+
+    this.dispatchEvent(
+      new CustomEvent('onChange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          eventType: StateType.ElementoIncluido,
+          elemento,
+          referencia,
+        },
+      })
+    );
   }
 
   private inserirNovosElementosNoQuill(event: StateEvent): void {
@@ -612,6 +623,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+
+    this.dispatchEvent(
+      new CustomEvent('onChange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          eventType: StateType.ElementoModificado,
+          elementos,
+        },
+      })
+    );
   }
 
   private removerLinhaQuill(event: StateEvent): void {
@@ -629,6 +651,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.quill.setSelection(index, 0, Quill.sources.SILENT);
     this.quill.marcarLinhaAtual(linhaCursor);
+
+    this.dispatchEvent(
+      new CustomEvent('onChange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          eventType: StateType.ElementoRemovido,
+          elementos,
+        },
+      })
+    );
   }
 
   private renumerarQuill(event: StateEvent): void {
@@ -686,13 +719,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any): Elemento {
+  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.tipo = tipo;
     elemento.numero = numero;
     elemento.conteudo = { texto: html };
     elemento.hierarquia = hierarquia;
+    elemento.descricaoSituacao = descricaoSituacao;
     return elemento;
   }
 

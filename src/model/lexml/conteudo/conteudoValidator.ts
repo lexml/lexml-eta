@@ -27,19 +27,19 @@ export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   if (!isArticulacao(dispositivo) && (!dispositivo.texto || dispositivo.texto.trim().length === 0)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não foi informado um texto para o dispositivo',
+      descricao: `Não foi informado um texto para ${dispositivo.artigoDefinido} ${dispositivo.descricao}`,
     });
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && endsWithPunctuation(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não pode haver sinal de pontuação ao final do texto',
+      descricao: `Não pode haver sinal de pontuação ao final do texto d${dispositivo.artigoDefinido} ${dispositivo.descricao}`,
     });
   }
   if (!isArticulacao(dispositivo) && containsTags(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'O conteúdo do dispositivo não pode possuir formatação',
+      descricao: `Texto d${dispositivo.artigoDefinido} ${dispositivo.descricao} não pode possuir formatação`,
     });
   }
   return mensagens;
@@ -75,7 +75,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
     });
   }
-  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto !== TEXTO_OMISSIS && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
@@ -220,8 +220,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
-    ((dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 && isUnicoMesmoTipo(dispositivo)) ||
-      dispositivo.pai!.indexOf(dispositivo) !== dispositivo.pai!.filhos?.length - 1) &&
+    dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 &&
+    isUnicoMesmoTipo(dispositivo) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&

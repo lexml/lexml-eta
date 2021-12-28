@@ -3,8 +3,6 @@ import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   getDispositivoAndFilhosAsLista,
@@ -21,7 +19,7 @@ import {
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { StateEvent, StateType } from '../../state';
-import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
+import { ajustaReferencia, getElementosDoDispositivo, resetUuidTodaArvore } from '../util/reducerUtil';
 import { Eventos } from './eventos';
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {
@@ -108,6 +106,10 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   pai.removeFilho(dispositivo);
   pai.renumeraFilhos();
 
+  if (isArticulacaoAlteracao(pai) && pai.filhos.length === 0) {
+    pai.pai!.alteracoes = undefined;
+  }
+
   const dispositivoValidado =
     dispositivoAnterior && (isArtigoUnico(dispositivoAnterior) || isParagrafoUnico(dispositivoAnterior)) ? dispositivoAnterior : isCaput(pai!) ? pai!.pai! : pai!;
 
@@ -130,16 +132,18 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const dispositivoAnterior =
     agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
   const referencia = isArticulacao(dispositivoAnterior) ? pai : getUltimoFilho(dispositivoAnterior);
-  const dispositivos = atual.filhos.map(d => {
-    const novo = agrupadoresAnteriorMesmoTipo?.length > 0 ? criaDispositivo(pai!, d.tipo) : criaDispositivo(pai, d.tipo, undefined, pos++);
-    novo.texto = d.texto;
-    novo.numero = d.numero;
-    novo.rotulo = d.rotulo;
-    novo.mensagens = d.mensagens;
-    copiaFilhos(d, novo);
 
-    d.pai!.removeFilho(d);
-    return novo;
+  const dispositivos = atual.filhos.map(d => {
+    d.pai = pai;
+    paiOriginal!.removeFilho(d);
+
+    resetUuidTodaArvore(d);
+    if (agrupadoresAnteriorMesmoTipo?.length > 0) {
+      pai!.addFilho(d);
+    } else {
+      pai!.addFilhoOnPosition(d, pos++);
+    }
+    return d;
   });
 
   atual.pai!.removeFilho(atual);

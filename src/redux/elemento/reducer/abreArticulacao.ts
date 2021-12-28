@@ -1,8 +1,9 @@
-import { TipoDocumento } from '../../../model/documento/tipoDocumento';
-import { ArticulacaoParser } from '../../../model/lexml/parser/articulacaoParser';
+// import { MPV_ALTERACAO } from '../../../../demo/doc/mpv_alteracao';
+import { ClassificacaoDocumento } from '../../../model/documento/classificacao';
+import { buildDocumento } from '../../../parser/parserLexmlJsonix';
 import { State } from '../../state';
 import { load } from './loadArticulacao';
 
 export const abreArticulacao = (state: any, action: any): State => {
-  return load(ArticulacaoParser.load(action.articulacao, action.tipoDocumento === TipoDocumento.EMENDA));
+  return load(buildDocumento(action.documento, action.nomeAcao === ClassificacaoDocumento.EMENDA)!.articulacao!);
 };

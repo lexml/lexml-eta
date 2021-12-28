@@ -28,7 +28,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
-      this.informouAgrupadorUnico = /.[uú]nic[ao]/i.test(rotulo);
+      this.informouAgrupadorUnico = /.*[uú]nic[ao]/i.test(rotulo);
       this.numero = this.informouAgrupadorUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
     }
 

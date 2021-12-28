@@ -7,6 +7,7 @@ import { incluir, processaRenumerados, processarModificados, processaValidados, 
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
+    state.ui = [];
     return state;
   }
 
