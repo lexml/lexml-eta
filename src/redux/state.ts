@@ -4,6 +4,7 @@ import { Mensagem } from '../model/lexml/util/mensagem';
 
 export enum StateType {
   DocumentoCarregado = 'DocumentoCarregado',
+  InformarNorma = 'InformarNorma',
   ElementoModificado = 'ElementoModificado',
   ElementoIncluido = 'ElementoIncluido',
   ElementoRemovido = 'ElementoRemovido',

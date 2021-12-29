@@ -2,6 +2,7 @@ import { Referencia } from '../../elemento';
 import { adicionarAlinea, adicionarArtigo, adicionarElementoAction, adicionarInciso, adicionarItem, adicionarParagrafo } from './adicionarElementoAction';
 import { adicionarCapitulo, adicionarLivro, adicionarParte, adicionarSecao, adicionarSubsecao, adicionarTitulo, AgruparElemento } from './agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
+import { informarNormaAction } from './informarNormaAction';
 import { moverElementoAbaixoAction } from './moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from './moverElementoAcimaAction';
 import { removerElementoAction } from './removerElementoAction';
@@ -45,6 +46,7 @@ export interface ElementoAction {
 
 export const acoesMenu: ElementoAction[] = [];
 
+acoesMenu.push(informarNormaAction);
 acoesMenu.push(moverElementoAbaixoAction);
 acoesMenu.push(moverElementoAcimaAction);
 acoesMenu.push(renumerarElementoAction);

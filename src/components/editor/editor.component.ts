@@ -478,6 +478,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.carregarArticulacao(event.elementos ?? []);
           break;
 
+        case StateType.InformarNorma:
+          // this.informarNorma(event);
+          break;
+
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento);
           this.inserirNovosElementosNoQuill(event);
