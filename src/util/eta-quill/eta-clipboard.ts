@@ -1,8 +1,28 @@
 import { CaracteresNaoValidos } from './eta-keyboard';
+import { EtaQuill } from './eta-quill';
+import eventos from '../../components/editor/editor-custom-events';
 
 const Clipboard = Quill.import('modules/clipboard');
 
 export class EtaClipboard extends Clipboard {
+  constructor(quill: EtaQuill, options: any) {
+    super(quill, options);
+
+    this.quill.root.addEventListener('cut', e => {
+      const texto = document.getSelection()?.toString();
+      if (texto) {
+        eventos.textChange(e.target, 'clipboard', true);
+      }
+    });
+
+    this.quill.root.addEventListener('paste', (e: any) => {
+      const text = e.clipboardData.getData('text/plain');
+      if (text) {
+        eventos.textChange(e.target, 'clipboard', true);
+      }
+    });
+  }
+
   convert(html?: any): DeltaStatic {
     if (typeof html === 'string') {
       this.container.innerHTML = html;
