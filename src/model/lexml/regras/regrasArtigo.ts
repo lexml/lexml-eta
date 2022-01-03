@@ -62,7 +62,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
           acoes.push(finalizarBlocoAlteracao);
         }
       }
-      if (dispositivo.alteracoes && !dispositivo.alteracoes.base) {
+      if (dispositivo.alteracoes) {
         acoes.push(informarNormaAction);
       }
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || !hasIndicativoDesdobramento(dispositivo))) {

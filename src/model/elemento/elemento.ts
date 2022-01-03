@@ -24,4 +24,5 @@ export class Elemento extends Referencia {
   sendoEditado = false;
   index = 0;
   acoesPossiveis?: ElementoAction[];
+  norma?: string;
 }

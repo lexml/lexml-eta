@@ -67,6 +67,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = false): Element
     conteudo: {
       texto: dispositivo.texto,
     },
+    norma: dispositivo.alteracoes?.base,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,

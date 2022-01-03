@@ -1,7 +1,9 @@
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
+import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acao/elementoSelecionadoAction';
+import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
@@ -20,6 +22,7 @@ import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';
 import { atualizaElemento } from './atualizaElemento';
+import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
@@ -28,6 +31,7 @@ import { removeElemento } from './removeElemento';
 import { renumeraElemento } from './renumeraElemento';
 import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
+import { solicitarNorma } from './solicitarNorma';
 import { suprimeElemento } from './suprimeElemento';
 import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
@@ -38,6 +42,8 @@ export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
     case ATUALIZAR_ELEMENTO:
       return atualizaElemento(state, action);
+    case ATUALIZAR_REFERENCIA_ELEMENTO:
+      return atualizaReferenciaElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case AGRUPAR_ELEMENTO:
@@ -46,6 +52,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return transformaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:
       return selecionaElemento(state, action);
+    case INFORMAR_NORMA:
+      return solicitarNorma(state, action);
     case MOVER_ELEMENTO_ABAIXO:
       return moveElementoAbaixo(state, action);
     case MOVER_ELEMENTO_ACIMA:
