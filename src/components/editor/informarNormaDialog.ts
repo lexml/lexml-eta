@@ -5,32 +5,56 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   const dialogElem = document.createElement('elix-dialog');
 
   const content = document.createRange().createContextualFragment(`
-    <div style="padding: 15px; text-align: center">
-      <div>
-        Norma:
-      </div>
-      <div>
-        <select name="tipos" id="tipoNorma">      
-          <option value="decreto">Decreto</option>
-          <option value="decreto-lei">Decreto-Lei</option>
-          <option value="lei" selected>Lei</option>
-          <option value="lei.complementar">Lei Complementar</option>
-          <option value="lei.delegada">Lei Delegada</option>
-          <option value="medida.provisoria">Medida Provisória</option>
-        </select>
-      </div>
-      <div>
-        <input type="text" id="numeroNorma" style="width: 60px">
-      </div>
-      <div>
-        <input type="text" id="dataNorma" style="width: 60px">
-      </div>
-      <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
-      <div style="margin-top: 10px;">
-        <button>Ok</button>
-        <button>Cancelar</button>
-      </div>
+    <style>
+    h1.normaDiv {
+      font-size: 1em;
+      padding: 0.5em;
+      font-weight: bold;
+    }
+    .normaDiv {
+      display: grid;
+      grid-template-columns: [labels] auto [controls] 1fr;
+      grid-auto-flow: row;
+      grid-gap: .8em;
+      padding: 0.5em;
+    }
+    .normaDiv > label  {
+      grid-column: labels;
+      grid-row: auto;
+    }
+    .normaDiv > input,
+    .normaDiv > select,
+    .normaDiv > button {
+      grid-column: controls;
+      grid-row: auto;
+      padding: 0.5em;
+    }
+  </style>
+  <h1 class="normaDiv" for="normaDiv">Dados da norma vigente</h1>
+  <div name="normaDiv" class="normaDiv">
+    <label for="tipoNorma">Tipo </label>
+      <select name="tipos" name="tipoNorma" id="tipoNorma">      
+      <option value="decreto">Decreto</option>
+      <option value="decreto-lei">Decreto-Lei</option>
+      <option value="lei" selected>Lei</option>
+      <option value="lei.complementar">Lei Complementar</option>
+      <option value="lei.delegada">Lei Delegada</option>
+      <option value="medida.provisoria">Medida Provisória</option>
+    </select>    
+    <label for="numeroNorma">Número </label>
+    <input type="text" name="numeroNorma" id="numeroNorma">
+    <label for="dataNorma">Data</label>
+    <input type="text" name="dataNorma" id="dataNorma">
+
+    <div style="margin-top: 10px;">
+      <button>Ok</button>
+      <button>Cancelar</button>
     </div>
+    <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
+
+  </div>
+
+
   `);
 
   const t = elemento.norma ? getTipo(elemento.norma)?.urn : undefined;
