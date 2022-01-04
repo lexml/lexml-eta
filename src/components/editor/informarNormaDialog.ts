@@ -42,9 +42,9 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
       <option value="medida.provisoria">Medida Provisória</option>
     </select>    
     <label for="numeroNorma">Número </label>
-    <input type="text" name="numeroNorma" id="numeroNorma">
+    <input type="text" name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)">
     <label for="dataNorma">Data</label>
-    <input type="text" name="dataNorma" id="dataNorma">
+    <input type="text" name="dataNorma" id="dataNorma" placeholder="21/06/1993">
 
     <div style="margin-top: 10px;">
       <button>Ok</button>
