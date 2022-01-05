@@ -23,8 +23,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
       grid-row: auto;
     }
     .normaDiv > input,
-    .normaDiv > select,
-    .normaDiv > button {
+    .normaDiv > select {
       grid-column: controls;
       grid-row: auto;
       padding: 0.5em;
