@@ -21,6 +21,9 @@ export const podeSuprimir = (dispositivo: Dispositivo): boolean => {
   situacoes.add(dispositivo.situacao.descricaoSituacao);
   getSituacoesFilhos(dispositivo.filhos, situacoes);
 
+  if (dispositivo.alteracoes) {
+    getSituacoesFilhos(dispositivo.alteracoes?.filhos, situacoes);
+  }
   return situacoes.size === 1 && [...situacoes][0] === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
 };
 

@@ -193,6 +193,9 @@ export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Di
 export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
   getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d))));
 
+  if (dispositivo.alteracoes && dispositivo.alteracoes.filhos.length > 0) {
+    dispositivo.alteracoes.filhos.forEach(f => getDispositivoAndFilhosAsLista(f).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d)))));
+  }
   const eventos = new Eventos();
 
   eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
