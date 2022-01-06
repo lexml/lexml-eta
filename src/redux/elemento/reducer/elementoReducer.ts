@@ -31,7 +31,7 @@ import { removeElemento } from './removeElemento';
 import { renumeraElemento } from './renumeraElemento';
 import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
-import { solicitarNorma } from './solicitarNorma';
+import { solicitaNorma } from './solicitaNorma';
 import { suprimeElemento } from './suprimeElemento';
 import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
@@ -53,7 +53,7 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ELEMENTO_SELECIONADO:
       return selecionaElemento(state, action);
     case INFORMAR_NORMA:
-      return solicitarNorma(state, action);
+      return solicitaNorma(state, action);
     case MOVER_ELEMENTO_ABAIXO:
       return moveElementoAbaixo(state, action);
     case MOVER_ELEMENTO_ACIMA:
