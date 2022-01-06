@@ -29,7 +29,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
       padding: 0.5em;
     }
   </style>
-  <h1 class="normaDiv" for="normaDiv">Dados da norma vigente</h1>
+  <h1 class="normaDiv">Dados da norma vigente</h1>
   <div name="normaDiv" class="normaDiv">
     <label for="tipoNorma">Tipo </label>
       <select name="tipos" name="tipoNorma" id="tipoNorma">      
