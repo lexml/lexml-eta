@@ -4,6 +4,7 @@ import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -61,7 +62,9 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
           acoes.push(finalizarBlocoAlteracao);
         }
       }
-
+      if (dispositivo.alteracoes) {
+        acoes.push(informarNormaAction);
+      }
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || !hasIndicativoDesdobramento(dispositivo))) {
         acoes.push(adicionarArtigo);
       }

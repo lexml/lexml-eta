@@ -5,6 +5,7 @@ import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
+import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { elementoSelecionadoAction } from '../../model/lexml/acao/elementoSelecionadoAction';
 import { moverElementoAbaixoAction } from '../../model/lexml/acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../../model/lexml/acao/moverElementoAcimaAction';
@@ -32,6 +33,7 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
+import { informarNormaDialog } from './informarNormaDialog';
 
 import eventos from './editor-custom-events';
 
@@ -485,6 +487,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.destroiQuill();
           this.inicializar(this.configEditor());
           this.carregarArticulacao(event.elementos ?? []);
+          break;
+
+        case StateType.InformarNorma:
+          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction);
           break;
 
         case StateType.ElementoIncluido:

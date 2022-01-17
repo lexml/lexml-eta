@@ -2,7 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositi
 import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
 import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '../model/documento';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
-import { getTipo } from '../model/documento/documentoUtil';
+import { getTipo } from '../model/documento/urnUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
 
