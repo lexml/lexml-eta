@@ -1,4 +1,4 @@
-let timerTextChanged: any = undefined;
+let timerTextChange: any = undefined;
 
 function emitirEventoTextChange(elemento: EventTarget, origemEvento: string): void {
   // console.log(origemEvento);
@@ -16,11 +16,11 @@ function emitirEventoTextChange(elemento: EventTarget, origemEvento: string): vo
 
 export default {
   textChange(elemento: EventTarget, origemEvento: string, debounce: boolean): void {
-    if (!debounce || !timerTextChanged) {
+    if (debounce) {
+      clearTimeout(timerTextChange);
+      timerTextChange = setTimeout(() => emitirEventoTextChange(elemento, origemEvento), 1000);
+    } else {
       emitirEventoTextChange(elemento, origemEvento);
     }
-
-    clearTimeout(timerTextChanged);
-    timerTextChanged = setTimeout(() => (timerTextChanged = null), 300);
   },
 };

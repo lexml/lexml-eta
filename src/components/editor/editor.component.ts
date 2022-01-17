@@ -518,6 +518,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
       this.quill.limparHistory();
     });
+
+    // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
+    const eventosQueDevemEmitirTextChange = [
+      StateType.ElementoModificado,
+      StateType.ElementoSuprimido,
+      StateType.ElementoRestaurado,
+      StateType.ElementoIncluido,
+      StateType.ElementoRemovido,
+      StateType.ElementoRenumerado,
+    ];
+
+    const eventosFiltrados = events.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
+
+    if (eventosFiltrados.length) {
+      eventos.textChange(this, 'stateEvents', true);
+    }
   }
 
   private processarEscolhaMenu(itemMenu: string): void {
@@ -560,20 +576,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
       this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
     }
-
-    eventos.textChange(this, StateType.ElementoIncluido, true);
-
-    // this.dispatchEvent(
-    //   new CustomEvent('onChange', {
-    //     bubbles: true,
-    //     composed: true,
-    //     detail: {
-    //       eventType: StateType.ElementoIncluido,
-    //       elemento,
-    //       referencia,
-    //     },
-    //   })
-    // );
   }
 
   private inserirNovosElementosNoQuill(event: StateEvent): void {
@@ -634,19 +636,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
-
-    eventos.textChange(this, StateType.ElementoModificado, true);
-
-    // this.dispatchEvent(
-    //   new CustomEvent('onChange', {
-    //     bubbles: true,
-    //     composed: true,
-    //     detail: {
-    //       eventType: StateType.ElementoModificado,
-    //       elementos,
-    //     },
-    //   })
-    // );
   }
 
   private removerLinhaQuill(event: StateEvent): void {
@@ -664,19 +653,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.quill.setSelection(index, 0, Quill.sources.SILENT);
     this.quill.marcarLinhaAtual(linhaCursor);
-
-    eventos.textChange(this, StateType.ElementoRemovido, true);
-
-    // this.dispatchEvent(
-    //   new CustomEvent('onChange', {
-    //     bubbles: true,
-    //     composed: true,
-    //     detail: {
-    //       eventType: StateType.ElementoRemovido,
-    //       elementos,
-    //     },
-    //   })
-    // );
   }
 
   private renumerarQuill(event: StateEvent): void {

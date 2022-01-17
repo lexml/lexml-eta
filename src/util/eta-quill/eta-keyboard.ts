@@ -89,7 +89,7 @@ export class EtaKeyboard extends Keyboard {
     }
 
     // Verifica se é um caracter que altera texto
-    // OBS: 'Enter' não será tratado porque essa tecla criar um novo elemento, e esta ação irá disparar
+    // OBS: 'Enter' não será tratado porque essa tecla cria um novo elemento, e esta ação irá disparar
     //      um evento textChange por conta própria.
     if (['Delete', 'Backspace'].includes(ev.key) || (ev.key.length === 1 && CaracteresValidos.test(ev.key))) {
       return true;
