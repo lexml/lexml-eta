@@ -83,7 +83,7 @@
         const elmDocumento = this.querySelector('#projetoNorma');
         let elmAcao = this.querySelector('#modo');
 
-        if (elmDocumento.value === 'novo') {          
+        if (elmDocumento.value === 'novo') {
           elmAcao.value = 'edicao';
           const elmDocumento = this.querySelector('#emenda').disabled=true;
         } else {
@@ -100,14 +100,14 @@
           setTimeout(() => {
             this.modo = elmAcao.value;
             this.projetoNorma = elmDocumento.value;
-          }, 0);  
+          }, 0);
         }
       }
-      
+
       onChange(e) {
-        console.log('EVENTO', e.detail.eventType || '*', e);
+        console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
       }
-      
+
       render() {
         return html`
           <div style="padding: 10px;">
@@ -122,10 +122,10 @@
             </select>
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
-          
-          <lexml-eta 
-            @onChange=${this.onChange} 
-            modo=${this.modo} 
+
+          <lexml-eta
+            @ontextchange=${this.onChange}
+            modo=${this.modo}
             projetoNorma=${this.projetoNorma === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
           </lexml-eta>
         `;

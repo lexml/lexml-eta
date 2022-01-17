@@ -7,6 +7,7 @@ const configTs = {
 	input: 'src/index.ts',
 	output: {
 		dir: 'dist',
+		sourcemap: true,
 	},
 	plugins: [
 		typescript({tsconfig: 'tsconfig.dist.json'}),

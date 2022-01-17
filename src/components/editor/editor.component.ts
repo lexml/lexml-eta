@@ -35,6 +35,8 @@ import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
 
+import eventos from './editor-custom-events';
+
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   private _quill?: EtaQuill;
@@ -214,10 +216,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
-          <button class="ql-bold" title="Negrito (Ctrl+b)"></button>
-          <button class="ql-italic" title="Itálico (Ctrl+i)"></button>
-          <button class="ql-script" value="sub" title="Subscrito"></button>
-          <button class="ql-script" value="super" title="Sobrescrito"></button>
+          <button @click=${this.onChangeFormat} class="ql-bold" title="Negrito (Ctrl+b)"></button>
+          <button @click=${this.onChangeFormat} class="ql-italic" title="Itálico (Ctrl+i)"></button>
+          <button @click=${this.onChangeFormat} class="ql-script" value="sub" title="Subscrito"></button>
+          <button @click=${this.onChangeFormat} class="ql-script" value="super" title="Sobrescrito"></button>
           <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)"><i class="fa fa-undo"></i></button>
           <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)"><i class="fa fa-undo lx-eta-rebate-180-graus"></i></button>
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
@@ -231,6 +233,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       </elix-toast>
       <div id="lx-eta-buffer" style="display: none; height: 0px;"><p></p></div>
     `;
+  }
+
+  private onChangeFormat(): void {
+    const texto = document.getSelection()?.toString();
+    if (texto) {
+      eventos.textChange(this, 'toolbar', true);
+    }
   }
 
   private onClickUndo(): void {
@@ -515,6 +524,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
       this.quill.limparHistory();
     });
+
+    // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
+    const eventosQueDevemEmitirTextChange = [
+      StateType.ElementoModificado,
+      StateType.ElementoSuprimido,
+      StateType.ElementoRestaurado,
+      StateType.ElementoIncluido,
+      StateType.ElementoRemovido,
+      StateType.ElementoRenumerado,
+    ];
+
+    const eventosFiltrados = events.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
+
+    if (eventosFiltrados.length) {
+      eventos.textChange(this, 'stateEvents', true);
+    }
   }
 
   private processarEscolhaMenu(itemMenu: string): void {
@@ -557,18 +582,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
       this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
     }
-
-    this.dispatchEvent(
-      new CustomEvent('onChange', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          eventType: StateType.ElementoIncluido,
-          elemento,
-          referencia,
-        },
-      })
-    );
   }
 
   private inserirNovosElementosNoQuill(event: StateEvent): void {
@@ -629,17 +642,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
-
-    this.dispatchEvent(
-      new CustomEvent('onChange', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          eventType: StateType.ElementoModificado,
-          elementos,
-        },
-      })
-    );
   }
 
   private removerLinhaQuill(event: StateEvent): void {
@@ -657,17 +659,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.quill.setSelection(index, 0, Quill.sources.SILENT);
     this.quill.marcarLinhaAtual(linhaCursor);
-
-    this.dispatchEvent(
-      new CustomEvent('onChange', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          eventType: StateType.ElementoRemovido,
-          elementos,
-        },
-      })
-    );
   }
 
   private renumerarQuill(event: StateEvent): void {

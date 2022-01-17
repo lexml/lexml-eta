@@ -3,6 +3,8 @@ import { Observable } from '../observable';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaQuill, TextoSelecionado } from './eta-quill';
 
+import eventos from '../../components/editor/editor-custom-events';
+
 export const CaracteresValidos = /([a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/i;
 export const CaracteresNaoValidos = /([^a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/gi;
 
@@ -70,8 +72,30 @@ export class EtaKeyboard extends Keyboard {
       } else if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
         this.onValidarTecla(ev);
       }
+
+      if (this.isTeclaQueAlteraTexto(ev)) {
+        // Parâmetro debounce = false para que toda tecla que altera texto (exceto Enter) gere um evento textChange
+        eventos.textChange(<EventTarget>ev.target, 'teclado', true);
+      }
     });
     super.listen();
+  }
+
+  private isTeclaQueAlteraTexto(ev: KeyboardEvent): boolean {
+    // Se teclas Ctrl, Alt ou Meta(?) estiverem pressionadas não faz nada
+    // Atalhos para recortar e colar serão tratados em outro lugar
+    if (ev.ctrlKey || ev.altKey || ev.metaKey) {
+      return false;
+    }
+
+    // Verifica se é um caracter que altera texto
+    // OBS: 'Enter' não será tratado porque essa tecla cria um novo elemento, e esta ação irá disparar
+    //      um evento textChange por conta própria.
+    if (['Delete', 'Backspace'].includes(ev.key) || (ev.key.length === 1 && CaracteresValidos.test(ev.key))) {
+      return true;
+    }
+
+    return false;
   }
 
   verificarOperacaoTecladoPermitida(): boolean {
