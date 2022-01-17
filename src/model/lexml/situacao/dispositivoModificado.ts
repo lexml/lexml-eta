@@ -4,6 +4,7 @@ import { Elemento } from '../../elemento';
 import { ElementoAction } from '../acao';
 import { AgruparElemento } from '../acao/agruparElementoAction';
 import { RemoverElemento } from '../acao/removerElementoAction';
+import { RenumerarElemento } from '../acao/renumerarElementoAction';
 import { restaurarElementoAction } from '../acao/restaurarElemento';
 import { TransformarElemento } from '../acao/transformarElementoAction';
 
@@ -20,6 +21,7 @@ export class DispositivoModificado implements TipoSituacao {
     const acoesFiltradas = acoes
       .filter((a: ElementoAction) => !(a instanceof AgruparElemento))
       .filter((a: ElementoAction) => !(a instanceof RemoverElemento))
+      .filter((a: ElementoAction) => !(a instanceof RenumerarElemento))
       .filter((a: ElementoAction) => !a.descricao?.startsWith('Mover'))
       .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
       .filter((a: ElementoAction) => !(a instanceof TransformarElemento));

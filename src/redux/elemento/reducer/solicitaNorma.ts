@@ -2,7 +2,7 @@ import { createElemento, getDispositivoFromElemento } from '../../../model/eleme
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { State, StateType } from '../../state';
 
-export const selecionaElemento = (state: any, action: any): State => {
+export const solicitaNorma = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
