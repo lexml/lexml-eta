@@ -99,7 +99,7 @@ export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo)
 
 export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
   const elementos: Elemento[] = [];
-  elementos.push(createElemento(dispositivo));
+  elementos.push(createElemento(dispositivo, true));
 
   if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
     if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
