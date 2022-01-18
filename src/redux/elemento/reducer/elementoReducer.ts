@@ -2,6 +2,7 @@ import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoA
 import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
+import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
 import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acao/elementoSelecionadoAction';
 import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
@@ -23,6 +24,7 @@ import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
+import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
@@ -44,6 +46,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return atualizaElemento(state, action);
     case ATUALIZAR_REFERENCIA_ELEMENTO:
       return atualizaReferenciaElemento(state, action);
+    case ATUALIZAR_TEXTO_ELEMENTO:
+      return atualizaTextoElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case AGRUPAR_ELEMENTO:
