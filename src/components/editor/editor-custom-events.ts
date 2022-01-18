@@ -1,9 +1,7 @@
 let timerTextChange: any = undefined;
 
-function emitirEventoTextChange(elemento: EventTarget, origemEvento: string): void {
-  // console.log(origemEvento);
-
-  elemento.dispatchEvent(
+function emitirEventoTextChange(eventTarget: EventTarget, origemEvento: string): void {
+  eventTarget.dispatchEvent(
     new CustomEvent('ontextchange', {
       bubbles: true,
       composed: true,
@@ -15,12 +13,12 @@ function emitirEventoTextChange(elemento: EventTarget, origemEvento: string): vo
 }
 
 export default {
-  textChange(elemento: EventTarget, origemEvento: string, debounce: boolean): void {
+  textChange(eventTarget: EventTarget, origemEvento: string, debounce: boolean): void {
     if (debounce) {
       clearTimeout(timerTextChange);
-      timerTextChange = setTimeout(() => emitirEventoTextChange(elemento, origemEvento), 1000);
+      timerTextChange = setTimeout(() => emitirEventoTextChange(eventTarget, origemEvento), 1000);
     } else {
-      emitirEventoTextChange(elemento, origemEvento);
+      emitirEventoTextChange(eventTarget, origemEvento);
     }
   },
 };
