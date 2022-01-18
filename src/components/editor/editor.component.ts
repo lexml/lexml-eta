@@ -524,6 +524,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
+          this.montarMenuContexto(event);
           break;
       }
       this.quill.limparHistory();
