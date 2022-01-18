@@ -6,6 +6,7 @@ import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
+import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
 import { elementoSelecionadoAction } from '../../model/lexml/acao/elementoSelecionadoAction';
 import { moverElementoAbaixoAction } from '../../model/lexml/acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../../model/lexml/acao/moverElementoAcimaAction';
@@ -33,9 +34,8 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
-import { informarNormaDialog } from './informarNormaDialog';
-
 import eventos from './editor-custom-events';
+import { informarNormaDialog } from './informarNormaDialog';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -78,6 +78,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   disconnectedCallback(): void {
     this.inscricoes.forEach((i: Subscription) => i.cancel());
+    this.removeEventListener('ontextchange', (event: any) => console.log(event));
     this.destroiQuill();
     super.disconnectedCallback();
   }
@@ -264,7 +265,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private onSelectionChange: SelectionChangeHandler = (): void => {
-    if (this.quill.mudouDeLinha) {
+    /*     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
         const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo?.html ?? '', linhaAnt.numero, linhaAnt.hierarquia);
@@ -274,7 +275,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           rootStore.dispatch(validarElementoAction.execute(elemento));
         }
       }
-    }
+    } */
   };
 
   private onBold(value: any): void {
@@ -327,7 +328,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
-      rootStore.dispatch(atualizarElementoAction.execute(elemento));
+      rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
   }
@@ -519,7 +520,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoSelecionado:
           this.montarMenuContexto(event);
           this.atualizarMensagemQuill(event);
+          break;
 
+        case StateType.SituacaoElementoModificada:
+          this.atualizarSituacao(event);
           break;
       }
       this.quill.limparHistory();
@@ -535,9 +539,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       StateType.ElementoRenumerado,
     ];
 
-    const eventosFiltrados = events.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
+    const eventosFiltrados = events?.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
 
-    if (eventosFiltrados.length) {
+    if (eventosFiltrados?.length) {
       eventos.textChange(this, 'stateEvents', true);
     }
   }
@@ -590,6 +594,21 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     for (let i = 1; i < elementos.length; i++) {
       this.inserirNovoElementoNoQuill(elementos[i], elementos[i - 1]);
     }
+  }
+
+  private atualizarSituacao(event: StateEvent): void {
+    const elementos: Elemento[] = event.elementos ?? [];
+    let linha: EtaContainerTable | undefined;
+
+    elementos.map((elemento: Elemento) => {
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      if (linha) {
+        if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
+          linha.descricaoSituacao = elemento.descricaoSituacao;
+          linha.setEstilo(elemento.descricaoSituacao!);
+        }
+      }
+    });
   }
 
   private atualizarQuill(event: StateEvent): void {
@@ -742,6 +761,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
+
+    this.addEventListener('ontextchange', () => {
+      const linhaAtual = this.quill.linhaAtual;
+      const elemento: Elemento = this.criarElemento(linhaAtual.uuid, linhaAtual.tipo, linhaAtual.blotConteudo?.html ?? '', linhaAtual.numero, linhaAtual.hierarquia);
+      if (linhaAtual.blotConteudo?.alterado) {
+        rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+      }
+    });
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
