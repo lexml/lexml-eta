@@ -3,8 +3,6 @@ import { Observable } from '../observable';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaQuill, TextoSelecionado } from './eta-quill';
 
-import eventos from '../../components/editor/editor-custom-events';
-
 export const CaracteresValidos = /([a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/i;
 export const CaracteresNaoValidos = /([^a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/gi;
 
@@ -17,13 +15,36 @@ export class EtaKeyboard extends Keyboard {
   renumeraElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   transformaElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   moveElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
+  onChange: Observable<string> = new Observable<string>();
+
+  private altGraphPressionado = false;
 
   constructor(quill: EtaQuill, options: any) {
     super(quill, options);
   }
 
   listen(): void {
+    this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
+      if (ev.key === 'AltGraph') {
+        this.altGraphPressionado = false;
+      }
+
+      // Trata atalhos de formatação (negrito, itálico, ...)
+      if (ev.ctrlKey && !ev.altKey && !ev.shiftKey && 'biBI'.includes(ev.key)) {
+        this.onHotKeyToolbar();
+        return;
+      }
+
+      if (this.isTeclaQueAlteraTexto(ev)) {
+        this.onChange.notify('keyboard');
+      }
+    });
+
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
+      if (ev.key === 'AltGraph') {
+        this.altGraphPressionado = true;
+      }
+
       if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
           if (ev.key === 'Home') {
@@ -72,13 +93,14 @@ export class EtaKeyboard extends Keyboard {
       } else if (ev.key.length === 1 && CaracteresValidos.test(ev.key)) {
         this.onValidarTecla(ev);
       }
-
-      if (this.isTeclaQueAlteraTexto(ev)) {
-        // Parâmetro debounce = false para que toda tecla que altera texto (exceto Enter) gere um evento textChange
-        eventos.textChange(<EventTarget>ev.target, 'teclado', true);
-      }
     });
     super.listen();
+  }
+
+  private isTeclaComCaracterGrafico(ev: KeyboardEvent): boolean {
+    const teclasComCaracterGrafico = '123456=[]/';
+    const DOM_KEY_LOCATION_NUMPAD = 3; //
+    return ev.location !== DOM_KEY_LOCATION_NUMPAD && teclasComCaracterGrafico.includes(ev.key);
   }
 
   private isTeclaQueAlteraTexto(ev: KeyboardEvent): boolean {
@@ -88,10 +110,14 @@ export class EtaKeyboard extends Keyboard {
       return false;
     }
 
+    if (this.altGraphPressionado && !this.isTeclaComCaracterGrafico(ev)) {
+      return false;
+    }
+
     // Verifica se é um caracter que altera texto
-    // OBS: 'Enter' não será tratado porque essa tecla cria um novo elemento, e esta ação irá disparar
-    //      um evento textChange por conta própria.
-    if (['Delete', 'Backspace'].includes(ev.key) || (ev.key.length === 1 && CaracteresValidos.test(ev.key))) {
+    // OBS: 'Enter' não será tratado porque essa tecla cria um novo elemento e esta ação irá disparar
+    //      um evento onchange por conta própria.
+    if (['Delete', 'Backspace'].includes(ev.key) || ev.key.length === 1) {
       return true;
     }
 
@@ -241,5 +267,12 @@ export class EtaKeyboard extends Keyboard {
   private onHotKeyTransformacaoTipo(ev: KeyboardEvent): void {
     this.transformaElemento.notify(ev);
     cancelarPropagacaoDoEvento(ev);
+  }
+
+  private onHotKeyToolbar(): void {
+    const texto = document.getSelection()?.toString();
+    if (texto) {
+      this.onChange.notify('toolbar(hotkey)');
+    }
   }
 }

@@ -34,7 +34,6 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
-import eventos from './editor-custom-events';
 import { informarNormaDialog } from './informarNormaDialog';
 
 @customElement('lexml-eta-editor')
@@ -45,6 +44,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private inscricoes: Subscription[] = [];
+  private timerOnChange?: any;
 
   constructor() {
     super();
@@ -217,10 +217,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
-          <button @click=${this.onChangeFormat} class="ql-bold" title="Negrito (Ctrl+b)"></button>
-          <button @click=${this.onChangeFormat} class="ql-italic" title="Itálico (Ctrl+i)"></button>
-          <button @click=${this.onChangeFormat} class="ql-script" value="sub" title="Subscrito"></button>
-          <button @click=${this.onChangeFormat} class="ql-script" value="super" title="Sobrescrito"></button>
+          <button class="ql-bold" title="Negrito (Ctrl+b)"></button>
+          <button class="ql-italic" title="Itálico (Ctrl+i)"></button>
+          <button class="ql-script" value="sub" title="Subscrito"></button>
+          <button class="ql-script" value="super" title="Sobrescrito"></button>
           <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)"><i class="fa fa-undo"></i></button>
           <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)"><i class="fa fa-undo lx-eta-rebate-180-graus"></i></button>
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
@@ -236,10 +236,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     `;
   }
 
-  private onChangeFormat(): void {
+  private formatacaoAlterada(): void {
     const texto = document.getSelection()?.toString();
     if (texto) {
-      eventos.textChange(this, 'toolbar', true);
+      this.agendarEmissaoEventoOnChange('toolbar');
     }
   }
 
@@ -281,18 +281,21 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private onBold(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
       this.quill.format('bold', value);
+      this.formatacaoAlterada();
     }
   }
 
   private onItalic(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
       this.quill.format('italic', value);
+      this.formatacaoAlterada();
     }
   }
 
   private onScript(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
       this.quill.format('script', value);
+      this.formatacaoAlterada();
     }
   }
 
@@ -547,7 +550,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const eventosFiltrados = events?.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
 
     if (eventosFiltrados?.length) {
-      eventos.textChange(this, 'stateEvents', true);
+      this.agendarEmissaoEventoOnChange('stateEvents');
     }
   }
 
@@ -767,13 +770,35 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 
-    this.addEventListener('ontextchange', () => {
-      const linhaAtual = this.quill.linhaAtual;
+    this.inscricoes.push(this.quill.observableSelectionChange.subscribe(this.atualizarTextoElemento.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
+    this.inscricoes.push(this.quill.clipboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
+  }
+
+  private agendarEmissaoEventoOnChange(origemEvento: string): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento), 1000);
+  }
+
+  private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
+    if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(linhaAtual.uuid, linhaAtual.tipo, linhaAtual.blotConteudo?.html ?? '', linhaAtual.numero, linhaAtual.hierarquia);
-      if (linhaAtual.blotConteudo?.alterado) {
-        rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
-      }
-    });
+      rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+    }
+  }
+
+  private emitirEventoOnChange(origemEvento: string): void {
+    this.atualizarTextoElemento(this.quill.linhaAtual);
+
+    this.dispatchEvent(
+      new CustomEvent('onchange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          origemEvento,
+        },
+      })
+    );
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
