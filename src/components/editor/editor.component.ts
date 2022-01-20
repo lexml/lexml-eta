@@ -503,9 +503,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoModificado:
-        case StateType.ElementoSuprimido:
         case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
+          break;
+
+        case StateType.ElementoSuprimido:
+          this.atualizarSituacao(event);
+          this.montarMenuContexto(event);
           break;
 
         case StateType.ElementoRemovido:
@@ -527,6 +531,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
+          this.montarMenuContexto(event);
           break;
       }
       this.quill.limparHistory();
