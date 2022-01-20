@@ -27,7 +27,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
 
   const eventosUi = new Eventos();
 
-  const elemento = createElemento(dispositivo);
+  const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
 
   eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
