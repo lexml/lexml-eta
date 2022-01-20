@@ -254,12 +254,8 @@ export class EtaQuill extends Quill {
 
   private verificarMudouLinha(range: RangeStatic, oldRange?: RangeStatic): boolean {
     // correção bug: cursor se perde ao teclar ↑ na primeira linha
-    if (range && oldRange 
-        && range.index === 0 
-        && range.length === 0
-    ) {
-      const cursorAnt: EtaBlot = this.getLine(oldRange.index)[0];
-      this.setSelection(this.getIndex(cursorAnt), 0, Quill.sources.SILENT);
+    if (oldRange && range?.index === 0 && range?.length === 0) {
+      this.setSelection(oldRange.index, 0);
       return false;
     }
 
@@ -294,9 +290,16 @@ export class EtaQuill extends Quill {
     return false;
   }
 
+  observableSelectionChange = new Observable<EtaContainerTable>();
   private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic): void => {
+    // Guarda a linhaAtual corrente
+    // OBS: o valor de "this.linhaAtual" será alterado dentro de "this.verificarMudouLinha" de acordo com alguns critérios.
+    const linhaAtualAux = this.linhaAtual;
+
     this._mudouDeLinha = this.verificarMudouLinha(range, oldRange);
+
     if (this._mudouDeLinha) {
+      this.observableSelectionChange.notify(linhaAtualAux);
       this.aspasAberta = false;
       this.limparHistory();
     }

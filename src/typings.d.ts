@@ -121,6 +121,7 @@ declare interface KeyboardStatic {
   onBold: any;
   onItalic: any;
   onScript: any;
+  onChange: any;
 }
 
 declare interface ClipboardStatic {
@@ -128,6 +129,7 @@ declare interface ClipboardStatic {
   addMatcher(selectorOrNodeType: string | number, callback: (node: any, delta: DeltaStatic) => DeltaStatic): void;
   dangerouslyPasteHTML(html: string, source?: Sources): void;
   dangerouslyPasteHTML(index: number, html: string, source?: Sources): void;
+  onChange: any;
 }
 
 declare interface QuillOptionsStatic {
