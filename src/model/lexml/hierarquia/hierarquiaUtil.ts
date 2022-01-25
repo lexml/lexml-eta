@@ -16,37 +16,23 @@ export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   return getArticulacao(dispositivo.pai);
 }
 
-export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articulacao): Dispositivo | Articulacao | null {
-  if (dispositivo.uuid === uuid) {
-    return dispositivo;
-  } else if (dispositivo.filhos !== null) {
-    let i;
-    let result: any = null;
-
-    for (i = 0; result === null && i < dispositivo.filhos.length; i++) {
-      result = getDispositivo(uuid, dispositivo.filhos[i]);
-    }
-    return result;
-  }
-  return null;
-}
-
-export const findDispositivoById = (articulacao: Articulacao, uuid: number): Dispositivo | null => {
+export const findDispositivoById = (dispositivo: Dispositivo, uuid: number): Dispositivo | null => {
   if (uuid === undefined) {
     throw new Error('uuid não foi informado');
   }
 
-  return getDispositivo(uuid, articulacao);
+  const listaDispositivos = buildListaDispositivos(dispositivo, []);
+  return listaDispositivos.find(disp => disp.uuid === uuid) || null;
 };
 
 export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {
-  if (dispositivo.filhos.length === 0) {
+  if (hasFilhos(dispositivo)) {
+    return getUltimoFilho(dispositivo.filhos[dispositivo.filhos.length - 1]);
+  } else if (dispositivo?.hasAlteracao() && dispositivo.alteracoes?.artigos) {
+    return getUltimoFilho(dispositivo.alteracoes.artigos[dispositivo.alteracoes.artigos.length - 1]);
+  } else {
     return dispositivo;
   }
-
-  const ultimoFilho = dispositivo.filhos[dispositivo.filhos.length - 1];
-
-  return ultimoFilho!.filhos.length === 0 ? ultimoFilho : getUltimoFilho(ultimoFilho);
 };
 
 export const irmaosMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
@@ -364,4 +350,17 @@ export const isOriginal = (dispositivo: Dispositivo): boolean => {
 
 export const isOriginalAlteradoModificadoOuSuprimido = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
+};
+
+export const concatFilhosEAlteracoes = (dispositivo: Dispositivo): Dispositivo[] => {
+  const result: Dispositivo[] = [...(dispositivo.filhos || [])];
+  result.push(...(dispositivo.alteracoes?.artigos || []));
+  return result;
+};
+
+export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+  dispositivos.push(dispositivo);
+  const dispositivosConcatenados = concatFilhosEAlteracoes(dispositivo);
+  dispositivosConcatenados.length ? dispositivosConcatenados.forEach(d => buildListaDispositivos(d, dispositivos)) : undefined;
+  return dispositivos;
 };

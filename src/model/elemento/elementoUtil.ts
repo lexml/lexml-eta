@@ -3,6 +3,7 @@ import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, i
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
   findDispositivoById,
+  buildListaDispositivos,
   getArticulacao,
   getDispositivosPosteriores,
   hasFilhos,
@@ -125,15 +126,6 @@ export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: E
       uuid: (elemento as Elemento).hierarquia ? (elemento as Elemento).hierarquia!.pai!.uuidAlteracao : elemento.uuidAlteracao,
     })?.alteracoes ?? articulacao
   );
-};
-
-export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
-  dispositivos.push(dispositivo);
-  if (dispositivo.alteracoes) {
-    dispositivo.alteracoes.filhos.forEach(a => (!hasFilhos(a) ? dispositivos.push(a) : buildListaDispositivos(a, dispositivos)));
-  }
-  dispositivo.filhos?.forEach(f => (!hasFilhos(f) ? dispositivos.push(f) : buildListaDispositivos(f, dispositivos)));
-  return dispositivos;
 };
 
 export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial<Elemento>, ignorarElementoAlteracao = false): Dispositivo | undefined => {
