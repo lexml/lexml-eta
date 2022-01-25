@@ -57,8 +57,14 @@
     import { render } from 'lit-html';
 
     import '../out-tsc/src/index.js';
-    import { EXEMPLO_CC } from '../out-tsc/demo/doc/codigocivil-eta.js'
     import { MPV_ALTERACAO } from '../out-tsc/demo/doc/mpv_alteracao.js';
+    import { MPV_SIMPLES } from '../out-tsc/demo/doc/mpv_simples.js';
+
+    const mapProjetosNormas = {
+      novo: {},
+      mpv_alteracao: MPV_ALTERACAO,
+      mpv_simples: MPV_SIMPLES,
+    }
 
     class DemoView extends LitElement {
 
@@ -87,7 +93,6 @@
           elmAcao.value = 'edicao';
           const elmDocumento = this.querySelector('#emenda').disabled=true;
         } else {
-          elmAcao.value = "emenda";
           const elmDocumento = this.querySelector('#emenda').disabled=false;
         }
       }
@@ -114,7 +119,8 @@
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
             <select id="projetoNorma" @change=${this.onChangeDocumento}>
               <option value="novo">Nova articulação</option>
-              <option value="mpv_alteracao">Mpv</option>
+              <option value="mpv_alteracao">Mpv Alteração</option>
+              <option value="mpv_simples">Mpv Simples</option>
             </select>
             <select id="modo">
               <option value="emenda" id="emenda" selected="${this.projetoNorma === 'mpv_alteracao'}" disabled="${this.projetoNorma === 'novo'}">Emenda</option>
@@ -126,7 +132,7 @@
           <lexml-eta
             @onchange=${this.onChange}
             modo=${this.modo}
-            projetoNorma=${this.projetoNorma === 'mpv_alteracao' ? JSON.stringify(MPV_ALTERACAO) : '{}'}>
+            projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}>
           </lexml-eta>
         `;
       }

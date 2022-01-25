@@ -1,9 +1,9 @@
 import { isIncisoCaput } from '../../../model/dispositivo/tipo';
-import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAbaixo } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAnterior, getDispositivoPosteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buildListaDispositivos, getDispositivoAnterior, getDispositivoPosteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';

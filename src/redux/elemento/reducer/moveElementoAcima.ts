@@ -1,8 +1,8 @@
-import { buildListaDispositivos, createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buildListaDispositivos, getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
