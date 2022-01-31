@@ -28,8 +28,8 @@ export const findDispositivoById = (dispositivo: Dispositivo, uuid: number): Dis
 export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {
   if (hasFilhos(dispositivo)) {
     return getUltimoFilho(dispositivo.filhos[dispositivo.filhos.length - 1]);
-  } else if (dispositivo?.hasAlteracao() && dispositivo.alteracoes?.artigos) {
-    return getUltimoFilho(dispositivo.alteracoes.artigos[dispositivo.alteracoes.artigos.length - 1]);
+  } else if (dispositivo?.hasAlteracao() && dispositivo.alteracoes?.filhos.length) {
+    return getUltimoFilho(dispositivo.alteracoes.filhos[dispositivo.alteracoes.filhos.length - 1]);
   } else {
     return dispositivo;
   }
@@ -266,12 +266,7 @@ export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos:
 };
 
 export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispositivo[] => {
-  const lista: Dispositivo[] = [];
-
-  lista.push(dispositivo);
-  getFilhosDispositivoAsLista(lista, dispositivo.filhos);
-
-  return lista;
+  return buildListaDispositivos(dispositivo, []);
 };
 
 export const isArtigoUnico = (dispositivo: Dispositivo): boolean => {
@@ -352,15 +347,9 @@ export const isOriginalAlteradoModificadoOuSuprimido = (dispositivo: Dispositivo
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
 };
 
-export const concatFilhosEAlteracoes = (dispositivo: Dispositivo): Dispositivo[] => {
-  const result: Dispositivo[] = [...(dispositivo.filhos || [])];
-  result.push(...(dispositivo.alteracoes?.artigos || []));
-  return result;
-};
-
 export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   dispositivos.push(dispositivo);
-  const dispositivosConcatenados = concatFilhosEAlteracoes(dispositivo);
-  dispositivosConcatenados.length ? dispositivosConcatenados.forEach(d => buildListaDispositivos(d, dispositivos)) : undefined;
+  const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
+  filhos.length ? filhos.forEach(d => buildListaDispositivos(d, dispositivos)) : undefined;
   return dispositivos;
 };
