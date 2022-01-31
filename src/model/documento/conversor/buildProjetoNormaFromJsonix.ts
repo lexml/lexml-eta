@@ -2,6 +2,7 @@ import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '..';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../lexml/dispositivo/dispositivoLexmlFactory';
+import { validaDispositivo } from '../../lexml/dispositivo/dispositivoValidator';
 import { DispositivoOriginal } from '../../lexml/situacao/dispositivoOriginal';
 import { ClassificacaoDocumento } from '../classificacao';
 import { getTipo } from '../urnUtil';
@@ -110,7 +111,7 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
 
   const complemento = el.value?.notaAlteracao === 'NR' ? '” (NR)' : '';
   dispositivo.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
-
+  dispositivo.mensagens = validaDispositivo(dispositivo);
   return dispositivo;
 };
 

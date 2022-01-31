@@ -1,6 +1,7 @@
 import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
+import { isEmendamento } from '../../model/documento/conversor/buildProjetoNormaFromJsonix';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -805,8 +806,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     setTimeout(() => {
       this.quill.getLine(0)[0].remove();
       elementos.map((elemento: Elemento) => {
-        EtaQuillUtil.criarContainerLinha(elemento).insertInto(this.quill.scroll);
+        const linha = EtaQuillUtil.criarContainerLinha(elemento);
+        linha.insertInto(this.quill.scroll);
         elemento.tipo === TipoDispositivo.generico.tipo ? rootStore.dispatch(validarElementoAction.execute(elemento)) : undefined;
+
+        if (linha && !isEmendamento) {
+          if (linha?.children.length === 2) {
+            linha.children.tail.remove();
+          }
+
+          if (elemento.mensagens && elemento.mensagens.length > 0) {
+            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+          }
+        }
       });
       this.quill.limparHistory();
       setTimeout(() => {
