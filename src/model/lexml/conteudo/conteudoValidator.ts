@@ -75,7 +75,13 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
     });
   }
-  if (dispositivo.texto && (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto !== TEXTO_OMISSIS && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+  if (
+    dispositivo.texto &&
+    (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
+    !/^[...]{3,}/.test(dispositivo.texto) &&
+    !/^[A-ZÀ-Ú]/.test(dispositivo.texto)
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
@@ -198,7 +204,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `O último dispositivo do bloco de alteração deve terminar com: <b>.&#8221; (NR)</b>`,
     });
   }
-  if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /["”“].*/.test(dispositivo.texto) && !/”.*(NR)/.test(dispositivo.texto)) {
+  if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /.*["”“]$/.test(dispositivo.texto) && !/”.*(NR)/.test(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Somente o último dispositivo do bloco de alteração poderia ser finalizado com aspas`,

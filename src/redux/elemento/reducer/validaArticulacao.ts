@@ -1,10 +1,19 @@
 import { Elemento } from '../../../model/elemento';
-import { validaFilhos } from '../../../model/elemento/elementoUtil';
+import { createElemento } from '../../../model/elemento/elementoUtil';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { buildListaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateType } from '../../state';
 
 export const validaArticulacao = (state: any): State => {
   const elementos: Elemento[] = [];
-  validaFilhos(elementos, state.articulacao.filhos);
+  buildListaDispositivos(state.articulacao, []).forEach(d => {
+    const mensagens = validaDispositivo(d);
+
+    if (mensagens?.length > 0) {
+      d.mensagens = mensagens;
+      elementos.push(createElemento(d));
+    }
+  });
 
   const events = [
     {

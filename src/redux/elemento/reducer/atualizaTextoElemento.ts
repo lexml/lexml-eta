@@ -9,6 +9,10 @@ import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
+const houveAlteracaoNoTextoAposAcao = (texto: string, action: any): boolean => {
+  return action.atual?.conteudo?.texto !== texto;
+};
+
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
@@ -30,6 +34,9 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
 
+  if (houveAlteracaoNoTextoAposAcao(dispositivo.texto, action)) {
+    eventosUi.add(StateType.ElementoModificado, [elemento]);
+  }
   eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
