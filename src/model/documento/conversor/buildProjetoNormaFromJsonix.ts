@@ -1,14 +1,14 @@
-import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../model/dispositivo/omissis';
-import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '../model/documento';
-import { ClassificacaoDocumento } from '../model/documento/classificacao';
-import { getTipo } from '../model/documento/urnUtil';
-import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
+import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '..';
+import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../../lexml/dispositivo/dispositivoLexmlFactory';
+import { DispositivoOriginal } from '../../lexml/situacao/dispositivoOriginal';
+import { ClassificacaoDocumento } from '../classificacao';
+import { getTipo } from '../urnUtil';
 
 export let isEmendamento = false;
 
-export const buildDocumento = (documentoLexml: any, emendamento = false): ProjetoNorma => {
+export const buildProjetoNormaFromJsonix = (documentoLexml: any, emendamento = false): ProjetoNorma => {
   isEmendamento = emendamento;
 
   if (!documentoLexml?.value?.projetoNorma) {

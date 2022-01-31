@@ -1,6 +1,6 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { DOCUMENTO_PADRAO } from '../model/documento/modelos/documentoPadrao';
+import { DOCUMENTO_PADRAO } from '../model/documento/modelo/documentoPadrao';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { rootStore } from '../redux/store';
 
