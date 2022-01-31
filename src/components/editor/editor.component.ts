@@ -505,6 +505,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoModificado:
         case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
+          this.montarMenuContexto(event);
           break;
 
         case StateType.ElementoSuprimido:
