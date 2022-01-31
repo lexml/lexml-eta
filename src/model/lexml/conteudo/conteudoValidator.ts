@@ -86,7 +86,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     !isOmissis(dispositivo) &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
-    !hasIndicativoDesdobramento(dispositivo)
+    !hasIndicativoDesdobramento(dispositivo) &&
+    !isUltimaAlteracao(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -153,7 +154,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasFilhos(dispositivo) &&
     !dispositivo.hasAlteracao() &&
     !isUnicoMesmoTipo(dispositivo) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo)
+    !hasIndicativoContinuacaoSequencia(dispositivo) &&
+    !isUltimaAlteracao(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
