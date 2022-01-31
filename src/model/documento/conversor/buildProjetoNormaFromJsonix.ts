@@ -109,7 +109,7 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
   }
 
   const complemento = el.value?.notaAlteracao === 'NR' ? '” (NR)' : '';
-  dispositivo.texto = retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
+  dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
   return dispositivo;
 };
 

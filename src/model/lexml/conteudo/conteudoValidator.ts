@@ -22,6 +22,10 @@ import {
   TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
 } from './conteudoUtil';
 
+const hasCitacaoAoFinalFrase = (texto: string): boolean => {
+  return texto !== undefined && /.*:[\s]{1,2}["”“].*[.]["”“]$/.test(texto);
+};
+
 export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
   if (!isArticulacao(dispositivo) && (!dispositivo.texto || dispositivo.texto.trim().length === 0)) {
@@ -91,6 +95,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     !isAgrupador(dispositivo) &&
     !isOmissis(dispositivo) &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo) &&
     !isUltimaAlteracao(dispositivo)
@@ -204,7 +209,14 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `O último dispositivo do bloco de alteração deve terminar com: <b>.&#8221; (NR)</b>`,
     });
   }
-  if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /.*["”“]$/.test(dispositivo.texto) && !/”.*(NR)/.test(dispositivo.texto)) {
+  if (
+    isDispositivoAlteracao(dispositivo) &&
+    dispositivo.texto &&
+    !isUltimaAlteracao(dispositivo) &&
+    /.*["”“]$/.test(dispositivo.texto) &&
+    !hasCitacaoAoFinalFrase(dispositivo.texto) &&
+    !/”.*(NR)/.test(dispositivo.texto)
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Somente o último dispositivo do bloco de alteração poderia ser finalizado com aspas`,

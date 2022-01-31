@@ -8,6 +8,7 @@ import {
   irmaosMesmoTipo,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
+  isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
@@ -80,7 +81,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O rótulo informado não é válido. Numere o dispositivo',
     });
   }
-  if (dispositivo !== null && isDispositivoAlteracao(dispositivo) && isParagrafo(dispositivo) && dispositivo.pai!.filhos.length > 1 && dispositivo.rotulo?.endsWith('único.')) {
+  if (dispositivo !== null && isDispositivoAlteracao(dispositivo) && isParagrafo(dispositivo) && !isUnicoMesmoTipo(dispositivo) && dispositivo.rotulo?.endsWith('único.')) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Quando houver mais de um ${dispositivo.descricao}, não pode se tratar de '${dispositivo.descricao} único'`,
