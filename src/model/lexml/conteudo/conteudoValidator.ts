@@ -155,7 +155,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !dispositivo.hasAlteracao() &&
     !isUnicoMesmoTipo(dispositivo) &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
-    !isUltimaAlteracao(dispositivo)
+    !isDispositivoAlteracao(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
