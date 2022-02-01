@@ -1,5 +1,5 @@
-import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/documento/urnUtil';
 import { Elemento } from '../../model/elemento';
+import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/lexml/documento/urnUtil';
 
 export async function informarNormaDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
   const dialogElem = document.createElement('elix-dialog');

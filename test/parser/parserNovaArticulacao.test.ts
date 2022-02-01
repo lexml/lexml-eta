@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
-import { ProjetoNorma } from '../../src/model/documento';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
-import { buildProjetoNormaFromJsonix } from '../../src/model/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
 import { NORMA_DEFAULT } from '../doc/parser/normaDefault';
 import { PROJETO_DEFAULT } from '../doc/parser/projetoDefault';
 

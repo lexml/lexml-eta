@@ -1,9 +1,10 @@
-import { Metadado, ParteInicial, ProjetoNorma, TextoArticulado } from '..';
-import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
-import { createAlteracao, createArticulacao, criaDispositivo } from '../../lexml/dispositivo/dispositivoLexmlFactory';
-import { DispositivoOriginal } from '../../lexml/situacao/dispositivoOriginal';
-import { ClassificacaoDocumento } from '../classificacao';
+import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../../../dispositivo/omissis';
+import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
+import { ClassificacaoDocumento } from '../../../documento/classificacao';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispositivo/dispositivoLexmlFactory';
+import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
+import { ProjetoNorma } from '../projetoNorma';
 import { getTipo } from '../urnUtil';
 
 export let isEmendamento = false;

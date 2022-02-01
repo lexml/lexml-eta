@@ -1,6 +1,6 @@
-import { isNorma, ProjetoNorma } from '..';
-import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArtigo, isCaput } from '../../dispositivo/tipo';
+import { Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
+import { isAgrupador, isArtigo, isCaput } from '../../../dispositivo/tipo';
+import { isNorma, ProjetoNorma } from '../projetoNorma';
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string): any => {
   const resultado = montaCabecalho(urn);

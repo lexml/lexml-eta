@@ -1,4 +1,4 @@
-import { Autoridade } from './autoridade';
+import { Autoridade } from '../../documento/autoridade';
 import { VOCABULARIO } from './vocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {

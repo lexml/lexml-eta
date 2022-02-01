@@ -1,8 +1,8 @@
 import { expect } from '@open-wc/testing';
-import { ProjetoNorma } from '../../src/model/documento';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
-import { buildJsonixFromProjetoNorma } from '../../src/model/documento/conversor/buildJsonixFromProjetoNorma';
-import { buildProjetoNormaFromJsonix } from '../../src/model/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildJsonixFromProjetoNorma } from '../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { buildProjetoNormaFromJsonix } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
 import { TESTE_SIMPLES } from '../doc/parser/teste_simples';
 
 let documento: ProjetoNorma;

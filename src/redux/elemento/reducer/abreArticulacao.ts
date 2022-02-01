@@ -1,6 +1,6 @@
 // import { MPV_ALTERACAO } from '../../../../demo/doc/mpv_alteracao';
 import { ClassificacaoDocumento } from '../../../model/documento/classificacao';
-import { buildProjetoNormaFromJsonix } from '../../../model/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix } from '../../../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { State } from '../../state';
 import { load } from './loadArticulacao';
 

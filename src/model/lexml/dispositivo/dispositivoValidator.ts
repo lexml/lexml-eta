@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { validaUrn } from '../../documento/urnUtil';
 import { validaTexto } from '../conteudo/conteudoValidator';
+import { validaUrn } from '../documento/urnUtil';
 import { isOriginal } from '../hierarquia/hierarquiaUtil';
 import { validaHierarquia } from '../hierarquia/hierarquiaValidator';
 import { validaNumeracao } from '../numeracao/numeracaoValidator';

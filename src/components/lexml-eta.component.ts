@@ -1,7 +1,7 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { DOCUMENTO_PADRAO } from '../model/documento/modelo/documentoPadrao';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
+import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
 
 @customElement('lexml-eta')
