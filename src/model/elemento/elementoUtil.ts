@@ -49,7 +49,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   };
 };
 
-export const createElemento = (dispositivo: Dispositivo, acoes = false): Elemento => {
+export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento => {
   const pai = dispositivo.pai!;
   return {
     tipo: dispositivo.tipo,
