@@ -43,12 +43,15 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   pai.addFilhoOnPosition(proximo, pos);
   pai.addFilhoOnPosition(atual, pos + 1);
 
+  atual.pai = pai;
+  proximo.pai = pai;
+
   pai.renumeraFilhos();
 
   const referencia = pos === 0 ? (isIncisoCaput(proximo) ? pai.pai! : pai) : getDispositivoAnterior(proximo);
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, proximo)));
   eventos.add(
     StateType.ElementoIncluido,
     buildListaDispositivos(proximo, [])

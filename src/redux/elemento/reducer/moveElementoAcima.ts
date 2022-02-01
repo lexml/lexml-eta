@@ -43,6 +43,9 @@ export const moveElementoAcima = (state: any, action: any): State => {
   pai.addFilhoOnPosition(atual, pos);
   pai.addFilhoOnPosition(anterior, pos + 1);
 
+  atual.pai = pai;
+  anterior.pai = pai;
+
   pai.renumeraFilhos();
 
   const referencia = pos === 0 ? (atual.pai?.tipo === TipoDispositivo.caput.tipo ? pai.pai! : pai) : getDispositivoAnterior(atual);
