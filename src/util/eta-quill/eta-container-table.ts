@@ -9,7 +9,7 @@ const Container = Quill.import('blots/container');
 
 export class EtaContainerTable extends Container {
   static blotName = 'containerTable';
-  static tagName = 'TABLE';
+  static tagName = 'DIV';
   static className = 'container-table';
 
   static criarId(uuid?: number): string {
@@ -198,9 +198,7 @@ export class EtaContainerTable extends Container {
       elemento.tipo === 'Articulacao'
         ? `width: 100%; min-height: 1px; line-height: 0.42; margin: 1px`
         : `width: 100%; min-height: 26px; border: 1px solid #ffffff; line-height: 1.42; margin: 0px 2px 0px 5px !important;`;
-    const padding: number = (elemento.agrupador ? 0 : elemento.nivel) * 20 + 5;
 
-    style = `${style} padding-left: ${padding}px;`;
     if (elemento.agrupador) {
       style = `${style} text-align: center;`;
     }
