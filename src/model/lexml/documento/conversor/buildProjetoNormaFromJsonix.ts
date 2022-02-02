@@ -72,9 +72,18 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
 
   filhos?.forEach((el: any) => {
     let dispositivo;
+    const notaAlteracao = el.value?.notaAlteracao;
+    const complemento = el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
 
     if (el.name?.localPart === 'Caput') {
-      const complemento = el.value?.notaAlteracao === 'NR' || el.value?.fechaAspas === 's' ? '” (NR)' : '';
+      if (el.value?.abreAspas === 's') {
+        dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+        dispositivo.cabecaAlteracao = true;
+        dispositivo.notaAlteracao = notaAlteracao;
+      } else if (el.value?.rotulo) {
+        dispositivo.rotulo = el.value.rotulo;
+      }
+
       pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
       (pai as Artigo).caput!.id = el.value?.id;
       buildAlteracao(pai, el.value?.alteracao);
@@ -106,14 +115,22 @@ const buildAlteracao = (pai: Dispositivo, el: any): void => {
 const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
   const dispositivo = criaDispositivo(pai, el.name?.localPart);
 
+  const notaAlteracao = el.value?.notaAlteracao;
+  const complemento = el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
+
   if (!isOmissis(dispositivo)) {
-    dispositivo.rotulo = (el.value?.abreAspas === 's' ? '\u201C' : '') + el.value?.rotulo;
+    if (el.value?.abreAspas === 's') {
+      dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+      dispositivo.cabecaAlteracao = true;
+      dispositivo.notaAlteracao = notaAlteracao;
+    } else {
+      dispositivo.rotulo = el.value?.rotulo;
+    }
   }
   dispositivo.id = el.value?.id;
   if (isEmendamento) {
     dispositivo.situacao = new DispositivoOriginal();
   }
-  const complemento = el.value?.notaAlteracao === 'NR' || el.value?.fechaAspas === 's' ? '” (NR)' : '';
   dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
   return dispositivo;
 };
