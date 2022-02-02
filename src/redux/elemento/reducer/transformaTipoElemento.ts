@@ -35,14 +35,13 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   const validados = getElementosDoDispositivo(novo, true);
 
-  novo.pai!.mensagens = validaDispositivo(novo.pai!);
+  const paiNovo = isIncisoCaput(novo) ? novo.pai!.pai! : novo.pai!;
 
-  if (isIncisoCaput(novo)) {
-    novo.pai!.pai!.mensagens = validaDispositivo(novo.pai!.pai!);
-    validados.unshift(createElemento(novo.pai!.pai!));
-  } else {
-    validados.unshift(createElemento(novo.pai!));
-  }
+  const parent = validados.filter(v => v.uuid === paiNovo.uuid).length > 0 ? atual.pai : paiNovo;
+
+  parent!.mensagens = validaDispositivo(parent!);
+
+  validados.unshift(createElemento(parent!));
 
   const dispositivoAnterior = getDispositivoAnterior(novo);
 

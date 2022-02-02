@@ -54,6 +54,7 @@ describe('Testando a transformação de inciso em parágrafo', () => {
       it('Deveria apresentar o artigo e seu parágrafo único no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
         expect(validados.elementos!.length).equal(2);
+
         expect(validados.elementos![0].rotulo).equal('Art. 1º');
         expect(validados.elementos![1].rotulo).equal('Parágrafo único.');
       });

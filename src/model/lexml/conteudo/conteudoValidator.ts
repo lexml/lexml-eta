@@ -73,43 +73,22 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas`,
     });
   }
-  if (dispositivo.texto && isDispositivoDeArtigo(dispositivo) && !isParagrafo(dispositivo) && /^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+
+  //
+  // validações comuns a dispositivos de artigo
+  //
+  if (isDispositivoDeArtigo(dispositivo) && !isParagrafo(dispositivo) && dispositivo.texto && /^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
     });
   }
+
   if (
-    dispositivo.texto &&
-    (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
-    !/^[...]{3,}/.test(dispositivo.texto) &&
-    !/^[A-ZÀ-Ú]/.test(dispositivo.texto)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
-    });
-  }
-  if (
-    dispositivo.texto &&
-    !isAgrupador(dispositivo) &&
-    !isOmissis(dispositivo) &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
-    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
-    !hasIndicativoDesdobramento(dispositivo) &&
-    !isUltimaAlteracao(dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
-    });
-  }
-  if (
-    dispositivo.texto &&
     isDispositivoDeArtigo(dispositivo) &&
-    !isOmissis(dispositivo) &&
     !isParagrafo(dispositivo) &&
+    !isOmissis(dispositivo) &&
+    dispositivo.texto &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
     !isPenultimoMesmoTipo(dispositivo) &&
@@ -126,13 +105,52 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   }
 
   //
+  // validações comuns a Artigo e Parágrafo
+  //
+  if ((isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto && !/^[...]{3,}/.test(dispositivo.texto) && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
+    });
+  }
+
+  //
   // validações de dispositivos que não sejam de alteração
   //
+
+  /* if (
+    !isDispositivoAlteracao(dispositivo) &&
+    !isAgrupador(dispositivo) &&
+    !isOmissis(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
+    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
+    !hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
+    });
+  } */
   if (
     !isDispositivoAlteracao(dispositivo) &&
+    !isAgrupador(dispositivo) &&
     dispositivo.texto &&
+    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
+    !hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
+    });
+  }
+
+  // dispositivos de artigo
+  if (
+    !isDispositivoAlteracao(dispositivo) &&
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
+    dispositivo.texto &&
     (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
@@ -144,10 +162,10 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
   if (
-    dispositivo.texto &&
+    !isDispositivoAlteracao(dispositivo) &&
     isDispositivoDeArtigo(dispositivo) &&
-    !isOmissis(dispositivo) &&
     !isParagrafo(dispositivo) &&
+    dispositivo.texto &&
     !isUnicoMesmoTipo(dispositivo) &&
     isPenultimoMesmoTipo(dispositivo) &&
     !hasFilhos(dispositivo) &&
@@ -159,32 +177,42 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
+  // Artigo e Parágrafo
   if (
-    dispositivo.texto &&
+    !isDispositivoAlteracao(dispositivo) &&
     (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
+    dispositivo.texto &&
     !hasFilhos(dispositivo) &&
     !dispositivo.hasAlteracao() &&
     !isUnicoMesmoTipo(dispositivo) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo) &&
-    !isDispositivoAlteracao(dispositivo)
+    !hasIndicativoContinuacaoSequencia(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
     });
   }
-  if (dispositivo.texto && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !hasIndicativoDesdobramento(dispositivo) && !hasIndicativoInicioAlteracao(dispositivo.texto)) {
+
+  // Artigo
+  if (
+    !isDispositivoAlteracao(dispositivo) &&
+    isArtigo(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.hasAlteracao() &&
+    !hasIndicativoDesdobramento(dispositivo) &&
+    !hasIndicativoInicioAlteracao(dispositivo.texto)
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
     });
   }
   if (
-    dispositivo.texto &&
+    !isDispositivoAlteracao(dispositivo) &&
     isArtigo(dispositivo) &&
+    dispositivo.texto &&
     !dispositivo.hasAlteracao() &&
-    hasFilhos(dispositivo) &&
-    !hasFilhos((dispositivo as Artigo).caput!) &&
+    (!hasFilhos(dispositivo) || !hasFilhos((dispositivo as Artigo).caput!)) &&
     hasIndicativoDesdobramento(dispositivo)
   ) {
     mensagens.push({
@@ -193,7 +221,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
-  if (isArtigo(dispositivo) && dispositivo.hasAlteracao() && !dispositivo.alteracoes?.base) {
+  if (!isDispositivoAlteracao(dispositivo) && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !dispositivo.alteracoes?.base) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `É necessário informar a norma a ser alterada`,
@@ -201,7 +229,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   }
 
   //
-  // validação de dispositivos de alteração
+  // Validações exclusivas de dispositivos de alteração
   //
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
     mensagens.push({
@@ -225,7 +253,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /”.*(NR)/.test(dispositivo.texto)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `Somente o último dispositivo do bloco de alteração pode terminar com &#8221; (NR)`,
+      descricao: `Somente o último dispositivo do bloco de alteração poderia terminar com &#8221; (NR)`,
     });
   }
   if (
