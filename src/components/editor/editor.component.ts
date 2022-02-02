@@ -176,7 +176,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .lx-eta-dropdown-content {
           display: none;
           position: absolute;
-          right: 0;
           background-color: #f9f9f9;
           min-width: 160px;
           box-shadow: 0px 4px 4px 4px rgba(0, 0, 0, 0.25);
@@ -214,6 +213,36 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .lx-eta-btn-desfazer {
           margin-left: 10px !important;
         }
+
+        .icon-undo-redo {
+          width: 19px;
+          height: 16px !important;
+        }
+
+        .icon-undo-redo:hover {
+          fill: #0066cc;
+        }
+
+        .container-tr {
+          display: flex;
+          width: 100%;
+        }
+
+        .container-tr-reverse {
+          flex-direction: row-reverse;
+        }
+
+        .container-td-esquerdo {
+          flex: 1;
+        }
+
+        .container-td-direito {
+          width: 30px;
+        }
+
+        .lx-eta-dropdown-content-right {
+          right: 0;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -221,8 +250,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <button class="ql-italic" title="Itálico (Ctrl+i)"></button>
           <button class="ql-script" value="sub" title="Subscrito"></button>
           <button class="ql-script" value="super" title="Sobrescrito"></button>
-          <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)"><i class="fa fa-undo"></i></button>
-          <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)"><i class="fa fa-undo lx-eta-rebate-180-graus"></i></button>
+
+          <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)">
+            <svg class="icon-undo-redo" id="undo" viewBox="0 0 512 512">
+              <path
+                d="M488,256c0,123.4-100.5,223.9-223.9,223.9c-48.8,0-95.2-15.6-134.2-44.9c-14.1-10.6-17-30.7-6.4-44.8 c10.6-14.1,30.6-16.9,44.8-6.4c27.8,20.9,61,31.9,95.9,31.9c88.1,0,159.8-71.7,159.8-159.8S352.3,96.2,264.2,96.2 c-37.5,0-73.1,13.5-101.3,36.6L208,178c17,17,5,46.1-19.1,46.1H43.2c-10.6,0-19.2-8.6-19.2-19.2V59C24,35,53.1,23,70.1,40l47.6,47.6 c40.2-34.9,91.8-55.5,146.4-55.5C387.5,32.1,488,132.6,488,256z"
+              />
+            </svg>
+          </button>
+          <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)">
+            <svg class="icon-undo-redo lx-eta-rebate-180-graus" id="redo" viewBox="0 0 512 512">
+              <path
+                d="M488,256c0,123.4-100.5,223.9-223.9,223.9c-48.8,0-95.2-15.6-134.2-44.9c-14.1-10.6-17-30.7-6.4-44.8 c10.6-14.1,30.6-16.9,44.8-6.4c27.8,20.9,61,31.9,95.9,31.9c88.1,0,159.8-71.7,159.8-159.8S352.3,96.2,264.2,96.2 c-37.5,0-73.1,13.5-101.3,36.6L208,178c17,17,5,46.1-19.1,46.1H43.2c-10.6,0-19.2-8.6-19.2-19.2V59C24,35,53.1,23,70.1,40l47.6,47.6 c40.2-34.9,91.8-55.5,146.4-55.5C387.5,32.1,488,132.6,488,256z"
+              />
+            </svg>
+          </button>
+
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
           <button @click=${this.onClickValidacao} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Validar Articulação">V</button>
           <lexml-eta-help style="float:right;"></lexml-eta-help>
@@ -727,7 +770,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (acoesMenu.length > 0) {
       const blotMenu: EtaBlotMenu = new EtaBlotMenu();
-      const blotMenuConteudo: EtaBlotMenuConteudo = new EtaBlotMenuConteudo();
+      const blotMenuConteudo: EtaBlotMenuConteudo = new EtaBlotMenuConteudo(this.quill.linhaAtual.containerDireito.alinhamentoMenu);
       const callback: any = (itemMenu: string) => {
         this.processarEscolhaMenu(itemMenu);
         this.quill.focus();

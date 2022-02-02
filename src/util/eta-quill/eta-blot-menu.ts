@@ -1,5 +1,10 @@
 import { EtaBlot } from './eta-blot';
 
+export enum AlinhamentoMenu {
+  Esquerda,
+  Direita,
+}
+
 export class EtaBlotMenu extends EtaBlot {
   // Site https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_dropdown_right
   static blotName = 'blotMenu';

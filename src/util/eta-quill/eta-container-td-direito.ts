@@ -1,9 +1,13 @@
+import { AlinhamentoMenu } from './eta-blot-menu';
+
 const Container = Quill.import('blots/container');
 
 export class EtaContainerTdDireito extends Container {
   static blotName = 'containerTdDireito';
-  static tagName = 'TD';
+  static tagName = 'DIV';
   static className = 'container-td-direito';
+
+  alinhamentoMenu: AlinhamentoMenu;
 
   static create(): any {
     const node: HTMLElement = super.create();
@@ -16,7 +20,8 @@ export class EtaContainerTdDireito extends Container {
 
   [key: string]: any;
 
-  constructor() {
+  constructor(alinhamentoMenu: AlinhamentoMenu) {
     super(EtaContainerTdDireito.create());
+    this.alinhamentoMenu = alinhamentoMenu;
   }
 }
