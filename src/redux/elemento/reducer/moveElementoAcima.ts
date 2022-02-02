@@ -2,7 +2,12 @@ import { createElemento, getDispositivoFromElemento, getElementos, listaDisposit
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { buildListaDispositivos, getDispositivoAnterior, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  buildListaDispositivos,
+  getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipoInclusiveOmissis,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -48,7 +53,8 @@ export const moveElementoAcima = (state: any, action: any): State => {
 
   pai.renumeraFilhos();
 
-  const referencia = pos === 0 ? (atual.pai?.tipo === TipoDispositivo.caput.tipo ? pai.pai! : pai) : getDispositivoAnterior(atual);
+  const referencia =
+    pos === 0 ? (atual.pai?.tipo === TipoDispositivo.caput.tipo || (isDispositivoAlteracao(atual) && atual.tipo === 'Artigo') ? pai.pai! : pai) : getDispositivoAnterior(atual);
 
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));

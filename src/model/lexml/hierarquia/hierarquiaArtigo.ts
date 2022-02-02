@@ -28,7 +28,12 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
-      isInciso(filho) ? this.caput!.addFilhoOnPosition(filho, posicao) : this.paragrafos.splice(posicao, 0, filho);
+      // isInciso(filho) ? this.caput!.addFilhoOnPosition(filho, posicao) : this.paragrafos.splice(posicao, 0, filho);
+      if (isInciso(filho)) {
+        this.caput!.addFilhoOnPosition(filho, posicao);
+      } else {
+        this.paragrafos.splice(posicao - this.getIncisosCaput().length, 0, filho);
+      }
     }
 
     addFilho(filho: Dispositivo, referencia?: Dispositivo): void {
