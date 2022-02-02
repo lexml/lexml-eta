@@ -253,22 +253,6 @@ export const getDispositivosPosteriores = (dispositivo: Dispositivo, isExclusao 
   return dispositivo.pai!.filhos.filter((disp, index) => (isExclusao ? index > pos : index >= pos)).filter(d => dispositivo.tipo === d.tipo);
 };
 
-export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): void => {
-  filhos?.forEach(f => {
-    dispositivos.push(f);
-    if (hasFilhos(f)) {
-      getFilhosDispositivoAsLista(dispositivos, f.filhos);
-    }
-    if (f.hasAlteracao()) {
-      f.alteracoes?.filhos.forEach(a => getFilhosDispositivoAsLista(dispositivos, a.filhos));
-    }
-  });
-};
-
-export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispositivo[] => {
-  return buildListaDispositivos(dispositivo, []);
-};
-
 export const isArtigoUnico = (dispositivo: Dispositivo): boolean => {
   return isArtigo(dispositivo) && isUnicoMesmoTipo(dispositivo);
 };
@@ -278,7 +262,7 @@ export const isParagrafoUnico = (dispositivo: Dispositivo): boolean => {
 };
 
 export const getDispositivoCabecaAlteracao = (dispositivo: Dispositivo): Dispositivo => {
-  return isDispositivoCabecaAlteracao(dispositivo) ? dispositivo : getDispositivoCabecaAlteracao(dispositivo.pai!);
+  return dispositivo.cabecaAlteracao || isDispositivoCabecaAlteracao(dispositivo) ? dispositivo : getDispositivoCabecaAlteracao(dispositivo.pai!);
 };
 
 export const isDispositivoCabecaAlteracao = (dispositivo: Dispositivo): boolean => {
@@ -286,10 +270,8 @@ export const isDispositivoCabecaAlteracao = (dispositivo: Dispositivo): boolean 
 };
 
 export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {
-  const lista: Dispositivo[] = [];
   const atual = getDispositivoCabecaAlteracao(dispositivo);
-  lista.push(atual);
-  getFilhosDispositivoAsLista(lista, atual.filhos);
+  const lista = getDispositivoAndFilhosAsLista(atual);
 
   return lista.length > 0 && lista[lista.length - 1] === dispositivo;
 };
@@ -345,6 +327,22 @@ export const isOriginal = (dispositivo: Dispositivo): boolean => {
 
 export const isOriginalAlteradoModificadoOuSuprimido = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
+};
+
+/* export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): void => {
+  filhos?.forEach(f => {
+    dispositivos.push(f);
+    if (hasFilhos(f)) {
+      getFilhosDispositivoAsLista(dispositivos, f.filhos);
+    }
+    if (f.hasAlteracao()) {
+      f.alteracoes?.filhos.forEach(a => getFilhosDispositivoAsLista(dispositivos, a.filhos));
+    }
+  });
+}; */
+
+export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispositivo[] => {
+  return buildListaDispositivos(dispositivo, []);
 };
 
 export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
