@@ -71,8 +71,6 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
     StateType.ElementoRenumerado,
     renumerados.map(r => createElemento(r))
   );
-  eventos.add(StateType.ElementoMarcado, [createElemento(atual)]);
-  eventos.add(StateType.ElementoSelecionado, [createElemento(atual)]);
 
   return {
     articulacao: state.articulacao,
