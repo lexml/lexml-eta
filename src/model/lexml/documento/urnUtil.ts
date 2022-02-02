@@ -18,6 +18,12 @@ export const getNumero = (urn: string): string => {
 
 export const getData = (urn: string): string => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
+
+  const dataInformada = partes[2]?.substring(0, partes[2].indexOf(';'));
+
+  if (/\d{4}$/.test(dataInformada)) {
+    return dataInformada;
+  }
   const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
   return d ? d.join('/') : '';
 };
@@ -45,7 +51,7 @@ export const validaUrn = (urn: string): boolean => {
   const autoridade = getAutoridade(urn)?.urn;
   const tipo = getTipo(urn)?.urn;
   const numero = /^\d{1,5}$/.test(getNumero(urn));
-  const data = converteDataFormatoBrasileiroParaUrn(getData(urn)) ?? getData(urn);
+  const data = !/\d{4}$/.test(getData(urn)) ? converteDataFormatoBrasileiroParaUrn(getData(urn)) : getData(urn);
 
   return urn?.startsWith('urn:lex:br:') && autoridade && tipo && numero && data;
 };
