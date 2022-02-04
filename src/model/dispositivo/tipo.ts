@@ -5,6 +5,7 @@ export interface Tipo {
   tipo: string;
   name?: string;
   descricao?: string;
+  tagId?: string;
 
   tiposPermitidosPai?: string[];
   tiposPermitidosFilhos?: string[];
