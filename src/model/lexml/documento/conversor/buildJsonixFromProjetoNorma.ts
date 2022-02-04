@@ -89,6 +89,15 @@ const buildTree = (dispositivo: Dispositivo, obj: any): any => {
     tree.push(node);
   }
 
+  if (dispositivo.hasAlteracao()) {
+    dispositivo.alteracoes!.filhos?.forEach(filho => {
+      const node = buildNode(filho);
+      tree.push(node);
+
+      buildTree(filho, node.value);
+    });
+  }
+
   dispositivo.filhos?.forEach(filho => {
     const node = buildNode(filho);
     tree.push(node);
