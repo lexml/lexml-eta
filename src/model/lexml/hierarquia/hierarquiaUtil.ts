@@ -224,7 +224,7 @@ export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Disp
 
 export const getDispositivosAnterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
   const pos = dispositivo.pai?.indexOf(dispositivo);
-  return dispositivo.pai?.filhos.filter((f, index) => index < pos! && f.tipo === dispositivo.tipo) ?? [];
+  return dispositivo.pai?.filhos.filter((f, index) => index < pos! && f.tipo === dispositivo.tipo && f.pai === dispositivo.pai) ?? [];
 };
 
 export const getDispositivosPosterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
