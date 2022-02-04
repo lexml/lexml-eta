@@ -1,8 +1,8 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../../dispositivo/omissis';
 import { isOmissis } from '../../../dispositivo/tipo';
 import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
 import { ClassificacaoDocumento } from '../../../documento/classificacao';
+import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispositivo/dispositivoLexmlFactory';
 import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
