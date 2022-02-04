@@ -11,7 +11,9 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     private normalizaNumeracao(numero: string): string {
-      return addSpaceRegex(numero).trim().replace(/-$/, '').trim();
+      const num = /[CDILMVX]*/.exec(numero);
+
+      return num ? num[0] : addSpaceRegex(numero).trim().replace(/-$/, '').trim();
     }
 
     createNumeroFromRotulo(rotulo: string): void {

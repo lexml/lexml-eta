@@ -27,7 +27,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
       this.informouParagrafoUnico = /.[uú]nico/i.test(rotulo);
-      this.numero = this.informouParagrafoUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
+      this.numero = this.informouParagrafoUnico ? '1u' : isNumeracaoValida(temp) ? temp : undefined;
     }
 
     createRotulo(dispositivo: Dispositivo): void {
@@ -48,6 +48,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       if (!this.numero) {
         return '';
       }
+
       const num = this.numero.search(/[a-zA-Z-]/) === -1 ? parseInt(this.numero) : parseInt(this.numero.substring(0, this.numero.search(/[a-zA-Z-]/)));
       const resto = this.numero.search(/[a-zA-Z-]/) === -1 ? '' : this.numero.substring(this.numero.search(/[a-zA-Z-]/));
 
