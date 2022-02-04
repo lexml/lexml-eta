@@ -1,4 +1,4 @@
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
+import { TEXTO_OMISSIS } from '../conteudo/textoOmissis';
 import { TipoLexml } from './tipoLexml';
 
 export class TipoOmissis extends TipoLexml {

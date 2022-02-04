@@ -1,14 +1,13 @@
 import { expect } from '@open-wc/testing';
-import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
-import { buildJsonixFromProjetoNorma } from '../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
-import { buildProjetoNormaFromJsonix } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
-import { TESTE_SIMPLES } from '../doc/parser/teste_simples';
+import { buildJsonixFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
+import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../../doc/parser/mpv_885_20190617';
 
 let documento: ProjetoNorma;
 let jsonix: any;
 
-describe('Parser de medida provisória sem agrupador', () => {
+/* describe('Parser de medida provisória sem agrupador', () => {
   beforeEach(function () {
     documento = buildProjetoNormaFromJsonix(TESTE_SIMPLES);
   });
@@ -65,6 +64,24 @@ describe('Parser de medida provisória sem agrupador', () => {
       expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[4].value.lXcontainersOmissis[2].value.p[0].content[4]).equals(
         ', não se aplica ao Contrato de Trabalho Verde e Amarelo.'
       );
+    });
+  });
+}); */
+
+describe('Parser de medida provisória com agrupador', () => {
+  beforeEach(function () {
+    documento = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
+  });
+  it('Deveria apresentar epigrafe', () => {
+    expect(documento).not.null;
+  });
+  describe('Testando a transformação do model em jsonix', () => {
+    beforeEach(function () {
+      jsonix = buildJsonixFromProjetoNorma(documento, 'urn:lex:br:federal:medida.provisoria:2019-06-17;885');
+      console.log(jsonix);
+    });
+    it('Deveria apresentar epigrafe', () => {
+      expect(jsonix).not.null;
     });
   });
 });

@@ -1,6 +1,5 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
@@ -21,6 +20,7 @@ import {
   hasIndicativoInicioAlteracao,
   TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
 } from './conteudoUtil';
+import { TEXTO_OMISSIS } from './textoOmissis';
 
 const hasCitacaoAoFinalFrase = (texto: string): boolean => {
   return texto !== undefined && /.*:[\s]{1,2}["”“].*[.]["”“]$/.test(texto);

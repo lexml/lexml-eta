@@ -1,6 +1,6 @@
 import { Conteudo } from '../../dispositivo/conteudo';
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { normalizaSeForOmissis, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from './conteudoUtil';
+import { TEXTO_OMISSIS } from './textoOmissis';
 import { TipoConteudo } from './tipoConteudo';
 
 export function ConteudoOmissis<TBase extends Constructor>(Base: TBase): any {
