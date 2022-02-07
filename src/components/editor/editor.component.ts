@@ -573,6 +573,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarMensagemQuill(event);
           break;
 
+        case StateType.ElementoMarcado:
+          this.marcarLinha(event);
+          break;
+
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
           this.montarMenuContexto(event);
@@ -596,6 +600,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (eventosFiltrados?.length) {
       this.agendarEmissaoEventoOnChange('stateEvents');
     }
+  }
+
+  private marcarLinha(event: StateEvent) {
+    this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+    const elemento = event.elementos![0];
+    const linha = this.quill.getLinha(elemento.uuid!)!;
+    const index = this.quill.getIndex(linha.blotConteudo);
+    this.quill.setIndex(index, Quill.sources.SILENT);
+    this.quill.atualizarLinhaCorrente(linha);
+    this.elementoSelecionado(linha.uuid);
   }
 
   private processarEscolhaMenu(itemMenu: string): void {
