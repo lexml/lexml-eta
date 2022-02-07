@@ -3,7 +3,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getEvento } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao, tratarElementosMarcados } from '../util/undoRedoReducerUtil';
 
 export const redo = (state: any): State => {
   if (state.future === undefined || state.future.length === 0) {
@@ -35,6 +35,8 @@ export const redo = (state: any): State => {
   );
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
+
+  tratarElementosMarcados(eventos, events);
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

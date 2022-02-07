@@ -15,6 +15,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
+import { Eventos } from '../evento/eventos';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
@@ -204,4 +205,31 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
     return validados;
   }
   return [];
+};
+
+export const tratarElementosMarcados = (eventosParaAnalisar: StateEvent[], events: Eventos): void => {
+  const eventoMarcar = getEvento(eventosParaAnalisar, StateType.ElementoMarcado);
+  const eventoIncluir = getEvento(eventosParaAnalisar, StateType.ElementoIncluido);
+  if (eventoMarcar && eventoIncluir) {
+    const elementosParaMarcar = marcar(eventoMarcar, eventoIncluir, getEvento(events.eventos, StateType.ElementoIncluido));
+    events.add(StateType.ElementoMarcado, elementosParaMarcar);
+    events.add(StateType.ElementoSelecionado, elementosParaMarcar);
+  }
+};
+
+export const marcar = (eventoMarcar: StateEvent, eventoIncluir: StateEvent, novosEvento: StateEvent): Elemento[] => {
+  // Essa rotina assume que o StateEvent "ElementoMarcado" só terá elementos adicionados a partir das ações "moveElementoAcima" e "moveElementoAbaixo"
+
+  const elementoMarcado = eventoMarcar.elementos![0];
+  const primeiroElementoIncluido = eventoIncluir.elementos![0];
+
+  if (!elementoMarcado || !primeiroElementoIncluido || !novosEvento.elementos!.length) {
+    return [];
+  }
+
+  if (elementoMarcado.uuid === primeiroElementoIncluido.uuid) {
+    return [novosEvento.elementos![novosEvento.elementos!.length - 1]];
+  } else {
+    return [novosEvento.elementos![0]];
+  }
 };
