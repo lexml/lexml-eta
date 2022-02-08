@@ -2,6 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo'
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
+import { TipoDispositivo } from './../tipo/tipoDispositivo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   if (!dispositivo) {
@@ -350,4 +351,18 @@ export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: D
   const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
   filhos.length ? filhos.forEach(d => buildListaDispositivos(d, dispositivos)) : undefined;
   return dispositivos;
+};
+
+export const percorreHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispositivo) => any): void => {
+  if (!d) return;
+  visit(d);
+  if (d.tipo === TipoDispositivo.artigo.tipo) {
+    const artigo = d as Artigo;
+    if (artigo.caput) {
+      percorreHierarquiaDispositivos(artigo.caput, visit);
+    }
+  }
+  d.filhos.forEach(f => {
+    percorreHierarquiaDispositivos(f, visit);
+  });
 };
