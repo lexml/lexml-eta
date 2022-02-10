@@ -318,14 +318,16 @@ export class EtaQuill extends Quill {
     if (this._linhaAtual) {
       let index: number = this.inicioConteudoAtual;
       const texto: string = this.getText(index, this.linhaAtual?.blotConteudo.tamanho) ?? '';
+      let posicaoTexto = index;
 
       if (texto.indexOf('"') > -1) {
         for (let i = 0; i < texto.length; i++) {
           if (texto[i] === '"') {
-            index += i;
-            this.deleteText(index, 1, Quill.sources.SILENT);
-            this.insertText(index, this.aspasAberta ? '”' : '“', Quill.sources.SILENT);
+            posicaoTexto += i;
+            this.deleteText(posicaoTexto, 1, Quill.sources.SILENT);
+            this.insertText(posicaoTexto, this.aspasAberta ? '”' : '“', Quill.sources.SILENT);
             this.aspasAberta = !this.aspasAberta;
+            posicaoTexto = index;
           }
         }
       }
