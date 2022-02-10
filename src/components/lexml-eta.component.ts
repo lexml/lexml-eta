@@ -1,6 +1,8 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
+import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
+import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
 
@@ -17,7 +19,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     if (!this.projetoNorma || !this.projetoNorma['name']) {
       this.projetoNorma = DOCUMENTO_PADRAO;
     }
-    rootStore.dispatch(openArticulacaoAction(this.projetoNorma, this.modo));
+    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
+
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!));
 
     super.update(changedProperties);
   }
