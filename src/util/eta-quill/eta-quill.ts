@@ -216,10 +216,7 @@ export class EtaQuill extends Quill {
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {
     if (linhaCursor.tipo !== 'Articulacao') {
-      this.processandoMudancaLinha = true;
-      this._linhaAtual = linhaCursor;
-      this._linhaAtual.blotConteudo.htmlAnt = this._linhaAtual.blotConteudo.html;
-      linhaCursor.ativarBorda();
+      this.atualizarLinhaCorrente(linhaCursor);
       this.elementoSelecionado.notify(linhaCursor.uuid);
     }
   }
@@ -333,5 +330,37 @@ export class EtaQuill extends Quill {
         }
       }
     }
+  }
+
+  atualizarLinhaCorrente(linha: EtaContainerTable): void {
+    this.processandoMudancaLinha = true;
+    this._linhaAtual = linha;
+    this._linhaAtual.blotConteudo.htmlAnt = this._linhaAtual.blotConteudo.html;
+    linha.ativarBorda();
+    this.scrollToElemento(linha.uuid);
+  }
+
+  private scrollToElemento(uuid: number): void {
+    const el = this.getHtmlElement(EtaContainerTable.criarId(uuid));
+    setTimeout(() => {
+      if (!this.isInEtaBoxViewport(el)) {
+        this.scrollIntoEtaBox(el);
+        // el.scrollIntoView({behavior: 'smooth', block: 'center'});
+      }
+    }, 0);
+  }
+
+  private scrollIntoEtaBox(el: HTMLElement): void {
+    const offsetTopElement = el.offsetTop;
+    el.closest('.ql-editor')?.scrollTo(0, offsetTopElement);
+  }
+
+  private isInEtaBoxViewport(el: HTMLElement): boolean {
+    const rect = el.getBoundingClientRect();
+
+    const lxEtaBox = el.closest('#lx-eta-box');
+    const etaBoxHeight = lxEtaBox!.getBoundingClientRect().bottom;
+
+    return rect.top >= 0 && rect.bottom <= etaBoxHeight;
   }
 }

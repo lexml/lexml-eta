@@ -13,6 +13,7 @@ export enum StateType {
   ElementoSuprimido = 'ElementoSuprimido',
   ElementoValidado = 'ElementoValidado',
   ElementoSelecionado = 'ElementoSelecionado',
+  ElementoMarcado = 'ElementoMarcado',
   SituacaoElementoModificada = 'SituacaoElementoModificada',
 }
 export interface StateEvent {
