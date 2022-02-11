@@ -3,6 +3,7 @@ import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
 
 export enum StateType {
+  ArticulacaoAtualizada = 'ArticulacaoAtualizada',
   DocumentoCarregado = 'DocumentoCarregado',
   InformarNorma = 'InformarNorma',
   ElementoModificado = 'ElementoModificado',

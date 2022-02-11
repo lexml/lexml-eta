@@ -1,4 +1,4 @@
-import { Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
@@ -10,6 +10,15 @@ export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: str
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma);
 
   return resultado;
+};
+
+export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao): any => {
+  const articulacao = {
+    TYPE_NAME: 'br_gov_lexml__1.Articulacao',
+    lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }),
+  };
+
+  return articulacao;
 };
 
 const montaCabecalho = (urn: string): any => {

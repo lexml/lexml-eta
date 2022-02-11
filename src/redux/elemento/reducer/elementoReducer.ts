@@ -8,6 +8,7 @@ import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
+import { ARTICULACAO_ATUALIZADA } from '../../../model/lexml/acao/recuperarArticulacaoAtualizadaAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
@@ -28,6 +29,7 @@ import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
+import { recuperaArticulacaoAtualizada } from './recuperaArticulacaoAtualizada';
 import { redo } from './redo';
 import { removeElemento } from './removeElemento';
 import { renumeraElemento } from './renumeraElemento';
@@ -52,6 +54,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return adicionaElemento(state, action);
     case AGRUPAR_ELEMENTO:
       return agrupaElemento(state, action);
+    case ARTICULACAO_ATUALIZADA:
+      return recuperaArticulacaoAtualizada(state);
     case TRANSFORMAR_TIPO_ELEMENTO:
       return transformaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:
