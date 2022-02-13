@@ -243,6 +243,23 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .lx-eta-dropdown-content-right {
           right: 0;
         }
+
+        .ql-snow .ql-tooltip::before {
+          /* content: "Acesse a URL:"; */
+          content: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-action::after {
+          content: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-remove::before {
+          content: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-preview {
+          max-width: 300px;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -307,7 +324,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return !rotulo || rotulo.replace(/["“”]?/, '') === tipo;
   }
 
-  private onSelectionChange: SelectionChangeHandler = (): void => {
+  private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
     /*     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
@@ -319,7 +336,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     } */
+    if (range?.length === 0 && source === Quill.sources.USER) {
+      this.ajustarLinkParaNorma();
+    }
   };
+
+  private ajustarLinkParaNorma() {
+    const linkTooltip = document.querySelector('a.ql-preview');
+    const href = linkTooltip?.getAttribute('href');
+    if (href?.startsWith('urn')) {
+      const url = 'https://www.lexml.gov.br/urn/' + href;
+      linkTooltip!.setAttribute('href', url);
+    }
+  }
 
   private onBold(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
