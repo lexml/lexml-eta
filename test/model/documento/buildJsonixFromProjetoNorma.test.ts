@@ -1,13 +1,15 @@
 import { expect } from '@open-wc/testing';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { buildJsonixFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../../doc/parser/mpv_885_20190617';
+import { TESTE_SIMPLES } from '../../doc/parser/teste_simples';
 
 let documento: ProjetoNorma;
 let jsonix: any;
 
-/* describe('Parser de medida provisória sem agrupador', () => {
+describe('Parser de medida provisória sem agrupador', () => {
   beforeEach(function () {
     documento = buildProjetoNormaFromJsonix(TESTE_SIMPLES);
   });
@@ -66,7 +68,7 @@ let jsonix: any;
       );
     });
   });
-}); */
+});
 
 describe('Parser de medida provisória com agrupador', () => {
   beforeEach(function () {
@@ -78,10 +80,99 @@ describe('Parser de medida provisória com agrupador', () => {
   describe('Testando a transformação do model em jsonix', () => {
     beforeEach(function () {
       jsonix = buildJsonixFromProjetoNorma(documento, 'urn:lex:br:federal:medida.provisoria:2019-06-17;885');
-      console.log(jsonix);
     });
-    it('Deveria apresentar epigrafe', () => {
-      expect(jsonix).not.null;
+    it('Deveria apresentar 5 artigos abaixo da articulacao', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier.length).equals(5);
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier.map(l => l.name.flocalPart === 'Artigo').length).equals(5);
+    });
+    it('Deveria apresentar 3 artigos na alteração do Art. 1', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content.length).equals(3);
+    });
+    it('Deveria apresentar o Art. 1 na alteração, com href e indicação de aspas', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.href).equals('art1');
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.abreAspas).equals('s');
+    });
+    it('Deveria apresentar no caput do Art. 1, da alteração do Art. 1, indicação de aspas e de NR e o texto sem NR ao final', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0].value.fechaAspas).equals(
+        's'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0].value.notaAlteracao).equals(
+        'NR'
+      );
+      expect(
+        jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0].value.p[0].content[0]
+      ).equals(
+        'Fica instituído, no âmbito do Ministério da Justiça e Segurança Pública, o Fundo Nacional Antidrogas - Funad, a ser gerido pela Secretaria Nacional de Políticas sobre Drogas do Ministério da Justiça e Segurança Pública.'
+      );
+    });
+    it('Deveria apresentar sob o Art. 2, da alteração do Art. 1, o caput e um omissis', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.href).equals(
+        'art2_cpt'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.id).equals(
+        'art1_cpt_alt1_art2_cpt'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[1].value.href).equals('omi1');
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[1].value.id).equals(
+        'art1_cpt_alt1_art2_omi1'
+      );
+    });
+    it('Deveria apresentar sob o caput do Art. 2, da alteração do Art. 1, um omissis e um inciso', () => {
+      expect(
+        jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0].name
+          .localPart
+      ).equals('Omissis');
+      expect(
+        jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1].name
+          .localPart
+      ).equals('Inciso');
+      expect(
+        jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1]
+          .value.href
+      ).equals('inc7');
+      expect(
+        jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1]
+          .value.id
+      ).equals('art1_cpt_alt1_art2_cpt_inc7');
+    });
+    it('Deveria apresentar o caput com texto omitido no Art. 5, da alteração do Art. 1', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[0].name.localPart).equals(
+        'Caput'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[0].value.textoOmitido).equals(
+        's'
+      );
+    });
+    it('Deveria apresentar 5 dispositivos, além do caput, no Art. 5, da alteração do Art. 1', () => {
+      /*       console.log(
+        (MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value as any).alteracao.content[2].value
+          .lXcontainersOmissis[0]
+      );
+      console.log(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[0].value.p[0].content);
+    */
+
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis.length).equals(6);
+
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[0].name.localPart).equals(
+        'Caput'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[1].value.href).equals('omi1');
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[1].value.id).equals(
+        'art1_cpt_alt1_art5_omi1'
+      );
+
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[2].value.id).equals(
+        'art1_cpt_alt1_art5_par1'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[3].value.id).equals(
+        'art1_cpt_alt1_art5_par2'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[4].value.id).equals(
+        'art1_cpt_alt1_art5_par3'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[5].value.id).equals(
+        'art1_cpt_alt1_art5_par4'
+      );
     });
   });
 });
