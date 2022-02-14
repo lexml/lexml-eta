@@ -35,6 +35,7 @@ import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
+import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -245,16 +246,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
 
         .ql-snow .ql-tooltip::before {
-          /* content: "Acesse a URL:"; */
-          content: none;
+          content: 'Acesse a norma:';
         }
 
         .ql-snow .ql-tooltip a.ql-action::after {
-          content: none;
+          display: none;
         }
 
         .ql-snow .ql-tooltip a.ql-remove::before {
-          content: none;
+          display: none;
         }
 
         .ql-snow .ql-tooltip a.ql-preview {
@@ -347,6 +347,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (href?.startsWith('urn')) {
       const url = 'https://www.lexml.gov.br/urn/' + href;
       linkTooltip!.setAttribute('href', url);
+      linkTooltip!.innerHTML = getNomeExtenso(href);
     }
   }
 
