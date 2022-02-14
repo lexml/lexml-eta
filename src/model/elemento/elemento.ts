@@ -5,6 +5,7 @@ import { Mensagem } from '../lexml/util/mensagem';
 export class Referencia {
   tipo?: string;
   uuid?: number;
+  lexmlId?: string;
   conteudo?: Partial<Conteudo>;
   descricaoSituacao?: string;
   uuidAlteracao?: number;

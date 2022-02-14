@@ -370,10 +370,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
       textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
     }
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
@@ -382,7 +382,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
 
     if (!podeRenumerar(elemento)) {
       return;
@@ -464,7 +464,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const closeResult: any = event.detail.closeResult;
       const choice: string = closeResult && closeResult.choice;
       if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
         rootStore.dispatch(removerElementoAction.execute(elemento));
       }
       this.quill.focus();
@@ -476,7 +476,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key === 'ArrowUp') {
       rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
@@ -490,7 +490,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key.toLowerCase() === 'a') {
       rootStore.dispatch(transformarAction(elemento, TipoDispositivo.artigo.name!));
@@ -511,7 +511,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private elementoSelecionado(uuid: number): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(uuid, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(uuid, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
     rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
     this.quill.processandoMudancaLinha = false;
   }
@@ -619,7 +619,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
-      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(getAcao(itemMenu).execute(elemento));
     }
@@ -802,9 +802,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
+  private criarElemento(uuid: number, lexmlId: string, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
+    elemento.lexmlId = lexmlId;
     elemento.tipo = tipo;
     elemento.numero = numero;
     elemento.conteudo = { texto: html };
@@ -841,7 +842,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
     if (linhaAtual?.blotConteudo?.alterado) {
-      const elemento: Elemento = this.criarElemento(linhaAtual.uuid, linhaAtual.tipo, linhaAtual.blotConteudo?.html ?? '', linhaAtual.numero, linhaAtual.hierarquia);
+      const elemento: Elemento = this.criarElemento(
+        linhaAtual.uuid,
+        linhaAtual.lexmlId,
+        linhaAtual.tipo,
+        linhaAtual.blotConteudo?.html ?? '',
+        linhaAtual.numero,
+        linhaAtual.hierarquia
+      );
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
   }
