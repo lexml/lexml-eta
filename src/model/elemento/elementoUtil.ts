@@ -2,7 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
-  findDispositivoById,
+  findDispositivoByUuid,
   buildListaDispositivos,
   getArticulacao,
   getDispositivosPosteriores,
@@ -156,7 +156,7 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
     }
   }
 
-  const dispositivo = referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoById(articulacao, referencia.uuid!);
+  const dispositivo = referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoByUuid(articulacao, referencia.uuid!);
 
   if (dispositivo === null) {
     return undefined;
