@@ -150,9 +150,9 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
   }
 
   if (referencia?.tipo === TipoDispositivo.artigo.tipo) {
-    const artigo = articulacao.artigos!.filter(a => a.uuid === referencia.uuid)[0];
+    const artigo = articulacao.filhos!.find(a => a.uuid === referencia.uuid);
     if (artigo) {
-      return articulacao.artigos!.filter(a => a.uuid === referencia.uuid)[0];
+      return artigo;
     }
   }
 
