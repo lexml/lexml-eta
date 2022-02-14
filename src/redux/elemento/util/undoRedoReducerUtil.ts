@@ -45,14 +45,20 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
   return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!);
 };
 
+const isOmissisCaput = (elemento: Elemento): boolean => {
+  const partesLexmlId = elemento.lexmlId?.split('_') ?? [];
+  return elemento.tipo === TipoDispositivo.omissis.tipo && partesLexmlId.length > 1 && partesLexmlId[partesLexmlId.length - 2] === 'cpt';
+};
+
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
-    isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
+    isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
     undefined,
     elemento.hierarquia!.posicao
   );
   novo.uuid = elemento.uuid;
+  novo.id = elemento.lexmlId;
   novo!.texto = elemento?.conteudo?.texto ?? '';
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
