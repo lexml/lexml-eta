@@ -159,6 +159,9 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
             }
             dispositivo.texto = e.conteudo?.texto ?? '';
           }
+          if (dispositivo.alteracoes) {
+            dispositivo.alteracoes.base = e.norma;
+          }
           dispositivo.mensagens = validaDispositivo(dispositivo);
           novosElementos.push(createElemento(dispositivo));
           anterior = dispositivo.uuid!;
