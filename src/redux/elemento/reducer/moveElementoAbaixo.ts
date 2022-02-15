@@ -72,7 +72,10 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
     renumerados.map(r => createElemento(r))
   );
 
-  eventos.add(StateType.ElementoMarcado, [createElemento(atual)]);
+  // Elementos em StateType.ElementoMarcado:
+  // Primeiro elemento será usado para marcar o elemento no editor
+  // Segundo elemento será usado para marcar o elemento em caso de "undo"
+  eventos.add(StateType.ElementoMarcado, [createElemento(atual), action.atual]);
   eventos.add(StateType.ElementoSelecionado, [createElemento(atual)]);
 
   return {

@@ -3,7 +3,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getEvento } from '../evento/eventosUtil';
 import { buildFuture } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao, tratarElementosMarcados } from '../util/undoRedoReducerUtil';
+import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -36,7 +36,11 @@ export const undo = (state: any): State => {
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
 
-  tratarElementosMarcados(eventos, events);
+  const elementosParaMarcar = getEvento(eventos, StateType.ElementoMarcado)?.elementos;
+  if (elementosParaMarcar) {
+    events.add(StateType.ElementoMarcado, [elementosParaMarcar[1], elementosParaMarcar[0]]);
+    events.add(StateType.ElementoSelecionado, [elementosParaMarcar[1]]);
+  }
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

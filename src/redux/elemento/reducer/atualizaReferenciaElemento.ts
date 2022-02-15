@@ -2,28 +2,44 @@ import { createElemento, getDispositivoFromElemento } from '../../../model/eleme
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { buildUpdateEvent } from '../evento/eventosUtil';
+import { buildUpdateEvent, buildEventoAtualizacaoElemento } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
+import { buildHtmlLink } from '../../../model/lexml/documento/urnUtil';
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 
 export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
-  if (dispositivo === undefined || !dispositivo.alteracoes || dispositivo.alteracoes.base === action.atual.norma) {
+  const urnNova = action.atual.norma;
+  const urnAnterior = dispositivo?.alteracoes!.base || '';
+
+  if (dispositivo === undefined || !dispositivo.alteracoes || urnAnterior === urnNova) {
     state.ui = [];
     return state;
   }
 
-  dispositivo.alteracoes!.base = action.atual.norma;
-
   const original = createElemento(dispositivo);
 
-  const eventos = new Eventos();
+  dispositivo.alteracoes!.base = urnNova;
 
-  const elemento = createElemento(dispositivo);
+  const regex = new RegExp(`<a.+href=.${urnAnterior}.*?>.*?</a>`, 'ig');
+  dispositivo.texto = dispositivo.texto.replace(regex, buildHtmlLink(urnNova));
+
+  if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+    dispositivo.situacao = new DispositivoModificado(original);
+  }
+
+  const eventosUi = new Eventos();
+
+  const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
 
-  eventos.add(StateType.ElementoValidado, [elemento]);
+  eventosUi.add(StateType.ElementoValidado, [elemento]);
+  eventosUi.add(StateType.ElementoModificado, [elemento]);
+  eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
 
+  const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
     articulacao: state.articulacao,
     tipoDocumento: state.tipoDocumento,
@@ -31,7 +47,7 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
     present: eventos.build(),
     future: state.future,
     ui: {
-      events: eventos.build(),
+      events: eventosUi.build(),
     },
   };
 };

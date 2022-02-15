@@ -5,7 +5,7 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { findDispositivoById, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoByUuid, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
@@ -15,7 +15,6 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
-import { Eventos } from '../evento/eventos';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
@@ -30,7 +29,7 @@ const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
-    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoById(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
+    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
 
     if (artigo) {
       if (!artigo.alteracoes) {
@@ -40,20 +39,26 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
       if (elemento.hierarquia!.pai!.tipo! === TipoDispositivo.articulacao.tipo) {
         return artigo.alteracoes;
       }
-      return findDispositivoById(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
+      return findDispositivoByUuid(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
     }
   }
-  return findDispositivoById(articulacao, elemento.hierarquia!.pai!.uuid!);
+  return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!);
+};
+
+const isOmissisCaput = (elemento: Elemento): boolean => {
+  const partesLexmlId = elemento.lexmlId?.split('_') ?? [];
+  return elemento.tipo === TipoDispositivo.omissis.tipo && partesLexmlId.length > 1 && partesLexmlId[partesLexmlId.length - 2] === 'cpt';
 };
 
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
-    isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
+    isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
     undefined,
     elemento.hierarquia!.posicao
   );
   novo.uuid = elemento.uuid;
+  novo.id = elemento.lexmlId;
   novo!.texto = elemento?.conteudo?.texto ?? '';
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
@@ -160,6 +165,9 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
             }
             dispositivo.texto = e.conteudo?.texto ?? '';
           }
+          if (dispositivo.alteracoes) {
+            dispositivo.alteracoes.base = e.norma;
+          }
           dispositivo.mensagens = validaDispositivo(dispositivo);
           novosElementos.push(createElemento(dispositivo));
           anterior = dispositivo.uuid!;
@@ -205,31 +213,4 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
     return validados;
   }
   return [];
-};
-
-export const tratarElementosMarcados = (eventosParaAnalisar: StateEvent[], events: Eventos): void => {
-  const eventoMarcar = getEvento(eventosParaAnalisar, StateType.ElementoMarcado);
-  const eventoIncluir = getEvento(eventosParaAnalisar, StateType.ElementoIncluido);
-  if (eventoMarcar && eventoIncluir) {
-    const elementosParaMarcar = marcar(eventoMarcar, eventoIncluir, getEvento(events.eventos, StateType.ElementoIncluido));
-    events.add(StateType.ElementoMarcado, elementosParaMarcar);
-    events.add(StateType.ElementoSelecionado, elementosParaMarcar);
-  }
-};
-
-export const marcar = (eventoMarcar: StateEvent, eventoIncluir: StateEvent, novosEvento: StateEvent): Elemento[] => {
-  // Essa rotina assume que o StateEvent "ElementoMarcado" só terá elementos adicionados a partir das ações "moveElementoAcima" e "moveElementoAbaixo"
-
-  const elementoMarcado = eventoMarcar.elementos![0];
-  const primeiroElementoIncluido = eventoIncluir.elementos![0];
-
-  if (!elementoMarcado || !primeiroElementoIncluido || !novosEvento.elementos!.length) {
-    return [];
-  }
-
-  if (elementoMarcado.uuid === primeiroElementoIncluido.uuid) {
-    return [novosEvento.elementos![novosEvento.elementos!.length - 1]];
-  } else {
-    return [novosEvento.elementos![0]];
-  }
 };

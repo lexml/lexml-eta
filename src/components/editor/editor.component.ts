@@ -35,6 +35,7 @@ import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
+import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -243,6 +244,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .lx-eta-dropdown-content-right {
           right: 0;
         }
+
+        .ql-snow .ql-tooltip::before {
+          content: 'Acesse a norma:';
+        }
+
+        .ql-snow .ql-tooltip a.ql-action::after {
+          display: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-remove::before {
+          display: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-preview {
+          max-width: 300px;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -307,7 +324,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return !rotulo || rotulo.replace(/["“”]?/, '') === tipo;
   }
 
-  private onSelectionChange: SelectionChangeHandler = (): void => {
+  private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
     /*     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
       if (linhaAnt) {
@@ -319,7 +336,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     } */
+    if (range?.length === 0 && source === Quill.sources.USER) {
+      this.ajustarLinkParaNorma();
+    }
   };
+
+  private ajustarLinkParaNorma() {
+    const linkTooltip = document.querySelector('a.ql-preview');
+    const href = linkTooltip?.getAttribute('href');
+    if (href?.startsWith('urn')) {
+      const url = 'https://www.lexml.gov.br/urn/' + href;
+      linkTooltip!.setAttribute('href', url);
+      linkTooltip!.innerHTML = getNomeExtenso(href);
+    }
+  }
 
   private onBold(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
