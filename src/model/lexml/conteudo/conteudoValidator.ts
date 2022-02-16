@@ -118,7 +118,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   // validações de dispositivos que não sejam de alteração
   //
 
-  /* if (
+  if (
     !isDispositivoAlteracao(dispositivo) &&
     !isAgrupador(dispositivo) &&
     !isOmissis(dispositivo) &&
@@ -131,7 +131,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
     });
-  } */
+  }
+
   if (
     !isDispositivoAlteracao(dispositivo) &&
     !isAgrupador(dispositivo) &&
@@ -231,6 +232,21 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   //
   // Validações exclusivas de dispositivos de alteração
   //
+  if (
+    isDispositivoAlteracao(dispositivo) &&
+    isParagrafo(dispositivo) &&
+    dispositivo.texto &&
+    !hasFilhos(dispositivo) &&
+    !isUnicoMesmoTipo(dispositivo) &&
+    !isUltimoMesmoTipo(dispositivo) &&
+    !hasIndicativoContinuacaoSequencia(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
+    });
+  }
+
   if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
