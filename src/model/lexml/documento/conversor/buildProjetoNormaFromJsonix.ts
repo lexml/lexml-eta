@@ -155,7 +155,7 @@ const buildContentDispositivo = (el: any): string => {
       ?.map((a: any) => a.content)
       .forEach((content: any) => (texto += buildContent(content)));
   }
-  return texto;
+  return texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>');
 };
 
 const buildContent = (content: any): string => {

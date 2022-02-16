@@ -219,7 +219,12 @@ const buildContent = (dispositivo: Dispositivo): any[] => {
 
     if (from < dispositivo.texto.length - 1) {
       const to = ocorrencias[i + 1] ? dispositivo.texto.indexOf(ocorrencias[i + 1]) : dispositivo.texto.length;
-      result.push(dispositivo.texto.substring(from, to));
+      result.push(
+        dispositivo.texto
+          .substring(from, to)
+          ?.replace(/strong>/gi, 'b>')
+          .replace(/em>/gi, 'i>')
+      );
     }
   });
   return result;
