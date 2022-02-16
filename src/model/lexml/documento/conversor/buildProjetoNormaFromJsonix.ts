@@ -85,6 +85,8 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
       }
 
       pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
+
+      (pai as Artigo).caput!.href = el.value?.href;
       (pai as Artigo).caput!.id = el.value?.id;
       buildAlteracao(pai, el.value?.alteracao);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis);
@@ -127,6 +129,8 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
       dispositivo.rotulo = el.value?.rotulo;
     }
   }
+
+  dispositivo.href = el.value?.href;
   dispositivo.id = el.value?.id;
   if (isEmendamento) {
     dispositivo.situacao = new DispositivoOriginal();
