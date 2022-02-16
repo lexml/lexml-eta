@@ -123,20 +123,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     !isOmissis(dispositivo) &&
     dispositivo.texto &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
-    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
-    !hasIndicativoDesdobramento(dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
-    });
-  }
-
-  if (
-    !isDispositivoAlteracao(dispositivo) &&
-    !isAgrupador(dispositivo) &&
-    dispositivo.texto &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
@@ -186,7 +172,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasFilhos(dispositivo) &&
     !dispositivo.hasAlteracao() &&
     !isUnicoMesmoTipo(dispositivo) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo)
+    !hasIndicativoContinuacaoSequencia(dispositivo) &&
+    !hasCitacaoAoFinalFrase(dispositivo.texto)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -230,8 +217,22 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   }
 
   //
-  // Validações exclusivas de dispositivos de alteração
+  // Validações de dispositivos de alteração
   //
+  if (
+    isDispositivoAlteracao(dispositivo) &&
+    !isAgrupador(dispositivo) &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
+    dispositivo.texto &&
+    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
+    !hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
+    });
+  }
+
   if (
     isDispositivoAlteracao(dispositivo) &&
     isParagrafo(dispositivo) &&
