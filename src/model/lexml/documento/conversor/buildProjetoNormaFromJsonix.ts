@@ -82,6 +82,7 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
         dispositivo.notaAlteracao = notaAlteracao;
       } else if (el.value?.rotulo) {
         dispositivo.rotulo = el.value.rotulo;
+        dispositivo.createNumeroFromRotulo(dispositivo.rotulo);
       }
 
       pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
@@ -128,6 +129,7 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
     } else {
       dispositivo.rotulo = el.value?.rotulo;
     }
+    dispositivo.createNumeroFromRotulo(dispositivo.rotulo!);
   }
 
   dispositivo.href = el.value?.href;
