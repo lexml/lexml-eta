@@ -23,6 +23,14 @@ export class EtaClipboard extends Clipboard {
         this.onChange.notify('clipboard');
       }
     });
+
+    this.quill.root.addEventListener('dragstart', (e) => {
+      e.preventDefault();
+    });
+
+    this.quill.root.addEventListener('drop', (e) => {
+      e.preventDefault();
+    });
   }
 
   convert(html?: any): DeltaStatic {
