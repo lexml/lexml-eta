@@ -84,7 +84,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
     tipoDocumento: state.tipoDocumento,
     past: buildPast(state, eventos.build()),
     present: eventos.build(),
-    future: state.future,
+    future: [],
     ui: {
       events: eventos.build(),
     },
