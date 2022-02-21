@@ -134,6 +134,12 @@ export class EtaQuill extends Quill {
     this.on('text-change', this.onTextChange);
     this.on('selection-change', this.onSelectionChange);
     this.buffer = new EtaQuillBuffer(bufferHtml, {});
+    this.root.addEventListener('dragstart', (e) => {
+      e.preventDefault();
+    });
+    this.root.addEventListener('drop', (e) => {
+      e.preventDefault();
+    });
   }
 
   destroi(): void {
