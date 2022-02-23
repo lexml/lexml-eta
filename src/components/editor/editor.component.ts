@@ -19,6 +19,7 @@ import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
+import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { StateEvent, StateType } from '../../redux/state';
@@ -35,7 +36,6 @@ import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
-import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -320,10 +320,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(validarArticulacaAction.execute());
   }
 
-  private isRotuloInvalido(tipo: string, rotulo: string): boolean {
-    return !rotulo || rotulo.replace(/["“”]?/, '') === tipo;
-  }
-
   private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
     /*     if (this.quill.mudouDeLinha) {
       const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
@@ -341,7 +337,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  private ajustarLinkParaNorma() {
+  private ajustarLinkParaNorma(): void {
     const linkTooltip = document.querySelector('a.ql-preview');
     const href = linkTooltip?.getAttribute('href');
     if (href?.startsWith('urn')) {
