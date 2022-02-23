@@ -321,17 +321,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
-    /*     if (this.quill.mudouDeLinha) {
-      const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
-      if (linhaAnt) {
-        const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo?.html ?? '', linhaAnt.numero, linhaAnt.hierarquia);
-        if (linhaAnt.blotConteudo?.alterado) {
-          rootStore.dispatch(atualizarElementoAction.execute(elemento));
-        } else if ((linhaAnt.blotConteudo?.html === '' && linhaAnt.blotConteudo?.htmlAnt === '') || this.isRotuloInvalido(linhaAnt.tipo, linhaAnt.blotRotulo?.rotulo)) {
-          rootStore.dispatch(validarElementoAction.execute(elemento));
-        }
-      }
-    } */
     if (range?.length === 0 && source === Quill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
