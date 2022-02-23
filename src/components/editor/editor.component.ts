@@ -330,7 +330,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linkTooltip = document.querySelector('a.ql-preview');
     const href = linkTooltip?.getAttribute('href');
     if (href?.startsWith('urn')) {
-      const url = 'https://www.lexml.gov.br/urn/' + href;
+      const url = 'https://normas.leg.br/?urn=' + href;
       linkTooltip!.setAttribute('href', url);
       linkTooltip!.innerHTML = getNomeExtenso(href);
     }
