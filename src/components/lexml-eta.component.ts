@@ -61,7 +61,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           box-shadow: none;
         }
       </style>
-      <div><button @click=${this.onClickButton} class="lx-eta-ql-button lx-eta-btn-desfazer">Versão atualizada</div>
+      <div><button style="margin: 5px" @click=${this.onClickButton} class="lx-eta-ql-button lx-eta-btn-desfazer">Versão atualizada</div>
 
       <lexml-eta-articulacao></lexml-eta-articulacao>
     `;

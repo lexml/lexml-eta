@@ -1,127 +1,133 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      select {
+        margin-left: 50px;
+      }
 
-<head>
-  <meta charset="utf-8" />
-  <style>
-    select {
-      margin-left: 50px;
-    }
+      #titulo {
+        margin-left: 50px;
+        font-size: 1.4em;
+        font-weight: bold;
+      }
 
-    #titulo {
-      margin-left: 50px;
-      font-size: 1.4em;
-      font-weight: bold;
-    }
+      lexml-eta {
+        display: block;
+        padding: 0px;
+        height: calc(100vh - 80px);
+        outline: 0;
+        border: 0px solid black;
+        -webkit-box-shadow: 0px;
+        box-shadow: none;
+      }
+    </style>
+  </head>
 
-    lexml-eta {
-      display: block;
-      padding: 0px;
-      height: calc(100vh - 80px);
-      outline: 0;
-      border: 0px solid black;
-      -webkit-box-shadow: 0px;
-      box-shadow: none;
-    }
+  <body>
+    <div id="demo"></div>
 
-  </style>
-</head>
-
-<body>
-  <div id="demo"></div>
-
-  <!-- <script type="module" src="../node_modules/elix/define/Toast.js"></script>
+    <!-- <script type="module" src="../node_modules/elix/define/Toast.js"></script>
   <script type="module" src="../node_modules/elix/define/Dialog.js"></script>
   <script type="module" src="../node_modules/elix/define/AlertDialog.js"></script>
   <script type="module" src="../node_modules/elix/define/MenuSeparator.js"></script>
   <script type="module" src="../node_modules/elix/define/MenuItem.js"></script>
   <script type="module" src="../node_modules/elix/define/MenuButton.js"></script> -->
 
-  <script type="text/javascript">
-    /* eslint-disable no-undef */
-    /* eslint-disable @typescript-eslint/explicit-function-return-type */
-    /* eslint-disable no-undef */
-    // HACK(keanulee): The Redux package assumes `process` exists - mock it here before
-    // the module is loaded.
-    window.process = {
-      env: {
-        NODE_ENV: 'production',
-      },
-    };
-  </script>
+    <script type="text/javascript">
+      /* eslint-disable no-undef */
+      /* eslint-disable @typescript-eslint/explicit-function-return-type */
+      /* eslint-disable no-undef */
+      // HACK(keanulee): The Redux package assumes `process` exists - mock it here before
+      // the module is loaded.
+      window.process = {
+        env: {
+          NODE_ENV: 'production',
+        },
+      };
+    </script>
 
-  <script type="module">
-    /* eslint-disable no-undef */
-    /* eslint-disable @typescript-eslint/explicit-function-return-type */
-    import { html, LitElement } from 'lit-element';
-    import { render } from 'lit-html';
+    <script type="module">
+      /* eslint-disable no-undef */
+      /* eslint-disable @typescript-eslint/explicit-function-return-type */
+      import { html, LitElement } from 'lit-element';
+      import { render } from 'lit-html';
 
-    import '../out-tsc/src/index.js';
-    import { MPV_ALTERACAO } from '../out-tsc/demo/doc/mpv_alteracao.js';
-    import { MPV_SIMPLES } from '../out-tsc/demo/doc/mpv_simples.js';
-    import { COD_CIVIL_COMPLETO } from '../out-tsc/demo/doc/codigocivil_completo.js';
-    import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
-    import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
+      import '../out-tsc/src/index.js';
+      import { MPV_ALTERACAO } from '../out-tsc/demo/doc/mpv_alteracao.js';
+      import { MPV_SIMPLES } from '../out-tsc/demo/doc/mpv_simples.js';
+      import { COD_CIVIL_COMPLETO } from '../out-tsc/demo/doc/codigocivil_completo.js';
+      import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
+      import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
 
-    const mapProjetosNormas = {
-      novo: {},
-      mpv_alteracao: MPV_ALTERACAO,
-      mpv_simples: MPV_SIMPLES,
-      codcivil_completo: COD_CIVIL_COMPLETO,
-      codcivil_parcial1: COD_CIVIL_PARCIAL1,
-      codcivil_parcial2: COD_CIVIL_PARCIAL2,
-    }
+      const mapProjetosNormas = {
+        novo: {},
+        mpv_alteracao: MPV_ALTERACAO,
+        mpv_simples: MPV_SIMPLES,
+        codcivil_completo: COD_CIVIL_COMPLETO,
+        codcivil_parcial1: COD_CIVIL_PARCIAL1,
+        codcivil_parcial2: COD_CIVIL_PARCIAL2,
+      };
 
-    class DemoView extends LitElement {
-
-      static get properties() {
-        return {
-          projetoNorma: { type: String },
-          modo: { type: String },
-        };
-      }
-
-      createRenderRoot() {
-        return this;
-      }
-
-      constructor() {
-        super();
-        this.projetoNorma = 'novo';
-        this.projetoNorma = 'mpv_alteracao';
-        this.modo = 'edicao';
-      }
-
-      onChangeDocumento() {
-        const elmDocumento = this.querySelector('#projetoNorma');
-        let elmAcao = this.querySelector('#modo');
-
-        if (elmDocumento.value === 'novo') {
-          elmAcao.value = 'edicao';
-          const elmDocumento = this.querySelector('#emenda').disabled=true;
-        } else {
-          const elmDocumento = this.querySelector('#emenda').disabled=false;
+      class DemoView extends LitElement {
+        static get properties() {
+          return {
+            projetoNorma: { type: String },
+            modo: { type: String },
+          };
         }
-      }
 
-      executar() {
-        const elmAcao = this.querySelector('#modo');
-        const elmDocumento = this.querySelector('#projetoNorma');
-
-        if (elmDocumento && elmAcao) {
-          setTimeout(() => {
-            this.modo = elmAcao.value;
-            this.projetoNorma = elmDocumento.value;
-          }, 0);
+        createRenderRoot() {
+          return this;
         }
-      }
 
-      onChange(e) {
-        console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
-      }
+        constructor() {
+          super();
+          this.projetoNorma = 'novo';
+          this.projetoNorma = 'mpv_alteracao';
+          this.modo = 'edicao';
+        }
 
-      render() {
-        return html`
+        onChangeDocumento() {
+          const elmDocumento = this.querySelector('#projetoNorma');
+          let elmAcao = this.querySelector('#modo');
+
+          if (elmDocumento.value === 'novo') {
+            elmAcao.value = 'edicao';
+            const elmDocumento = (this.querySelector('#emenda').disabled = true);
+          } else {
+            const elmDocumento = (this.querySelector('#emenda').disabled = false);
+          }
+        }
+
+        executar() {
+          const elmAcao = this.querySelector('#modo');
+          const elmDocumento = this.querySelector('#projetoNorma');
+
+          if (elmDocumento && elmAcao) {
+            setTimeout(() => {
+              this.modo = elmAcao.value;
+              this.projetoNorma = elmDocumento.value;
+            }, 0);
+          }
+        }
+
+        onChange(e) {
+          console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
+        }
+
+        render() {
+          return html`
+          <style>
+            .wrapper {
+              display: grid;
+              grid-template-columns: ${this.modo === 'emenda' ? '2fr 1fr' : '1fr 0'};
+            }
+            #comandoEmenda {
+              display: ${this.modo === 'emenda' ? 'block' : 'none'};
+            }
+          </style>
           <div style="padding: 10px;">
             <span style="font-size: 1em;">ETA - Editor de Texto de Articulação</span>
             <select id="projetoNorma" @change=${this.onChangeDocumento}>
@@ -139,18 +145,22 @@
             <input type="button" value="Ok" @click=${this.executar}></input>
           </div>
 
-          <lexml-eta
-            @onchange=${this.onChange}
-            modo=${this.modo}
-            projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}>
-          </lexml-eta>
+          <div class="wrapper">
+            <div>
+              <lexml-eta
+                @onchange=${this.onChange}
+                modo=${this.modo}
+                projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}>
+              </lexml-eta>  
+            </div>
+            <div id="comandoEmenda"><lexml-emenda-comando></lexml-emenda-comando></div>
+          </div>
         `;
+        }
       }
-    }
-    customElements.define('demo-view', DemoView);
+      customElements.define('demo-view', DemoView);
 
-    render(html`<demo-view></demo-view>`, document.querySelector('#demo'));
-  </script>
-</body>
-
+      render(html`<demo-view></demo-view>`, document.querySelector('#demo'));
+    </script>
+  </body>
 </html>
