@@ -245,6 +245,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           right: 0;
         }
 
+        .ql-snow .ql-hidden {
+          display: none;
+        }
+
         .ql-snow .ql-tooltip::before {
           content: 'Acesse a norma:';
         }
