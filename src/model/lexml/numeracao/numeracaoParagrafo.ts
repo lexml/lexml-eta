@@ -53,5 +53,23 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
 
       return (num < 10 ? num + this.SUFIXO : num) + (resto?.length > 0 ? resto : '') + (num > 9 ? '.' : '');
     }
+
+    getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
+      }
+      return this.isParagrafoUnico() ? 'parágrafo único' : this.getNumeroAndSufixoNumeracao();
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
+      }
+      return this.isParagrafoUnico() ? 'parágrafo único' : '§ ' + this.getNumeroAndSufixoNumeracao();
+    }
+
+    private isParagrafoUnico(): boolean {
+      return (this.isDispositivoAlteracao && this.informouParagrafoUnico) || this.pai?.filhos.filter(f => isParagrafo(f)).length === 1;
+    }
   };
 }

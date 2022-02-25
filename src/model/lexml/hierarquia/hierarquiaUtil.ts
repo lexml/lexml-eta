@@ -360,9 +360,19 @@ export const percorreHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispos
     const artigo = d as Artigo;
     if (artigo.caput) {
       percorreHierarquiaDispositivos(artigo.caput, visit);
+      d.filhos
+        .filter(f => isParagrafo(f))
+        .forEach(f => {
+          percorreHierarquiaDispositivos(f, visit);
+        });
     }
+  } else {
+    d.filhos.forEach(f => {
+      percorreHierarquiaDispositivos(f, visit);
+    });
   }
-  d.filhos.forEach(f => {
-    percorreHierarquiaDispositivos(f, visit);
-  });
+};
+
+export const isDispositivoRaiz = (d: Dispositivo): boolean => {
+  return d && !d.pai && d.tipo === TipoDispositivo.articulacao.tipo;
 };

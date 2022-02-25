@@ -55,5 +55,25 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         (parseInt(num ?? '1', 10) > 9 ? '.' : '')
       );
     }
+
+    getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.artigo.descricao?.toLowerCase() + '';
+      }
+      if (this.informouArtigoUnico) {
+        return 'artigo único';
+      }
+      return this.getNumeroAndSufixoNumeracao();
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.artigo.descricao?.toLowerCase() + '';
+      }
+      if (this.informouArtigoUnico) {
+        return 'artigo único';
+      }
+      return 'art. ' + this.getNumeroAndSufixoNumeracao();
+    }
   };
 }

@@ -30,7 +30,7 @@ const retiraCaracteresDesnecessarios = (texto: string): any => {
   return texto?.replace(/[\n]/g, '').trim();
 };
 
-const getUrn = (documento: any): string => {
+export const getUrn = (documento: any): string => {
   return documento?.value?.metadado?.identificacao?.urn;
 };
 

@@ -53,3 +53,29 @@ export function escapeRegex(str: string): string {
 export function addSpaceRegex(str: string): string {
   return str.replace(/\s+/g, '\\s+');
 }
+
+export function join(list: string[]): string {
+  let str = '';
+  list.forEach(s => {
+    str += s;
+  });
+  return str;
+}
+
+export function removeEspacosDuplicados(str: string): string {
+  return str.replace(/\\s{2,}/, ' ');
+}
+
+export class StringBuilder {
+  private strs = new Array<string>();
+
+  append(str: string | undefined): void {
+    if (str) {
+      this.strs.push(str);
+    }
+  }
+
+  toString(): string {
+    return join(this.strs);
+  }
+}

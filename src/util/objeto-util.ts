@@ -49,3 +49,7 @@ export class ObjetoUtil {
     return true;
   }
 }
+
+export const removeFromArray = (array: any[], element: any): void => {
+  array.splice(array.indexOf(element), 1);
+};
