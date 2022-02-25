@@ -281,6 +281,13 @@ export const createEventos = (): StateEvent[] => {
       elementos: [],
     },
     {
+      stateType: StateType.ElementoMarcado,
+      referencia: undefined,
+      pai: undefined,
+      posicao: undefined,
+      elementos: [],
+    },
+    {
       stateType: StateType.SituacaoElementoModificada,
       referencia: undefined,
       pai: undefined,

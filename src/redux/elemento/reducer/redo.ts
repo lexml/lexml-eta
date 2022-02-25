@@ -36,6 +36,12 @@ export const redo = (state: any): State => {
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
 
+  const elementosParaMarcar = getEvento(eventos, StateType.ElementoMarcado)?.elementos;
+  if (elementosParaMarcar) {
+    events.add(StateType.ElementoMarcado, elementosParaMarcar);
+    events.add(StateType.ElementoSelecionado, [elementosParaMarcar[0]]);
+  }
+
   retorno.ui!.events = events.build();
   retorno.present = events.build();
 

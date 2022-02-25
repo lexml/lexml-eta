@@ -85,6 +85,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
       break;
   }
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
+  novo.createRotulo(novo);
   novo.situacao = atual.situacao;
   novo.mensagens = validaDispositivo(novo);
   paiAtual?.removeFilho(atual);
@@ -101,6 +102,7 @@ export const copiaFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
   }
   atual.filhos.forEach(filho => {
     const novo = criaDispositivo(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
+    filho.rotulo ? (novo.rotulo = filho.rotulo) : novo.createRotulo(novo);
     novo.texto = filho.texto ?? '';
     novo.situacao = filho.situacao;
     atual.removeFilho(filho);

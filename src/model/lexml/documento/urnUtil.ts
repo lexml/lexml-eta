@@ -63,3 +63,22 @@ export const getNomeExtenso = (urn: string): string => {
   const data = getData(u);
   return (tipo ? tipo : '') + (numero ? ' nº ' + numero : '') + (data.length > 7 ? ' de ' + data : '');
 };
+
+export const getNomeExtensoComDataExtenso = (urn: string): string => {
+  const u = retiraFragmento(urn);
+  const numero = getNumero(u);
+  const tipo = getTipo(u)?.descricao;
+  const dataString = getData(u);
+  const [dia, mes, ano] = dataString.split('/').map(p => parseInt(p));
+  const dataExtenso = dataString.length > 7 ? getDataExtenso(new Date(ano, mes - 1, dia)) : undefined;
+  return (tipo ? tipo : '') + (numero ? ' nº ' + parseInt(numero).toLocaleString('pt-BR') : '') + (dataExtenso ? ', de ' + dataExtenso : '');
+};
+
+export const buildHtmlLink = (urn: string): string => {
+  const nomeExtenso = getNomeExtensoComDataExtenso(urn);
+  return `<a href="${urn}"> ${nomeExtenso} </a>`;
+};
+
+const getDataExtenso = (data: Date) => {
+  return data ? data.getDate() + ' de ' + data.toLocaleDateString('pt-BR', { month: 'long' }) + ' de ' + data.getFullYear() : undefined;
+};

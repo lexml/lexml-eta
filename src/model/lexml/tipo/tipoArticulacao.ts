@@ -20,7 +20,8 @@ export class TipoArticulacao extends TipoLexml {
   }
 
   addArtigoOnPosition(filho: Dispositivo, posicao: number): void {
-    this.artigos.splice(posicao, 0, filho as Artigo);
+    this._artigos = this._artigos ?? [];
+    this._artigos.splice(posicao, 0, filho as Artigo);
   }
 
   removeArtigo(artigo: Artigo): void {

@@ -3,6 +3,7 @@ import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
 
 export enum StateType {
+  ArticulacaoAtualizada = 'ArticulacaoAtualizada',
   DocumentoCarregado = 'DocumentoCarregado',
   InformarNorma = 'InformarNorma',
   ElementoModificado = 'ElementoModificado',
@@ -13,6 +14,7 @@ export enum StateType {
   ElementoSuprimido = 'ElementoSuprimido',
   ElementoValidado = 'ElementoValidado',
   ElementoSelecionado = 'ElementoSelecionado',
+  ElementoMarcado = 'ElementoMarcado',
   SituacaoElementoModificada = 'SituacaoElementoModificada',
 }
 export interface StateEvent {

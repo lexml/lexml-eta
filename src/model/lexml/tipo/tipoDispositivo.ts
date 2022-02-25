@@ -4,6 +4,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   agrupadorGenerico: {
     tipo: 'DispositivoAgrupadorGenerico',
     name: undefined,
+    tagId: 'dg',
     descricao: undefined,
     descricaoPlural: undefined,
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao'],
@@ -16,6 +17,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   alinea: {
     tipo: 'Alinea',
     name: 'Alinea',
+    tagId: 'ali',
     descricao: 'Alínea',
     descricaoPlural: 'Alíneas',
     tiposPermitidosPai: ['Inciso'],
@@ -28,6 +30,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   articulacao: {
     tipo: 'Articulacao',
     name: 'Articulacao',
+    tagId: '',
     descricao: 'Articulação',
     descricaoPlural: 'Articulações',
     tiposPermitidosPai: [],
@@ -40,6 +43,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   artigo: {
     tipo: 'Artigo',
     name: 'Artigo',
+    tagId: 'art',
     descricao: 'Artigo',
     descricaoPlural: 'Artigos',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'],
@@ -52,6 +56,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   capitulo: {
     tipo: 'Capitulo',
     name: 'Capitulo',
+    tagId: 'cap',
     descricao: 'Capítulo',
     descricaoPlural: 'Capítulos',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo'],
@@ -64,6 +69,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   caput: {
     tipo: 'Caput',
     name: 'Caput',
+    tagId: 'cpt',
     descricao: 'Caput',
     descricaoPlural: 'Capita',
     tiposPermitidosPai: ['Artigo'],
@@ -76,6 +82,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   generico: {
     tipo: 'DispositivoGenerico',
     name: undefined,
+    tagId: 'gen',
     descricao: 'Dispositivo genérico',
     descricaoPlural: 'Dispositivos genéricos',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'],
@@ -88,6 +95,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   inciso: {
     tipo: 'Inciso',
     name: 'Inciso',
+    tagId: 'inc',
     descricao: 'Inciso',
     descricaoPlural: 'Incisos',
     tiposPermitidosPai: ['Artigo', 'Caput', 'Paragrafo'],
@@ -100,6 +108,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   item: {
     tipo: 'Item',
     name: 'Item',
+    tagId: 'it',
     descricao: 'Item',
     descricaoPlural: 'Itens',
     tiposPermitidosPai: ['Alinea'],
@@ -112,6 +121,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   livro: {
     tipo: 'Livro',
     name: 'Livro',
+    tagId: 'liv',
     descricao: 'Livro',
     descricaoPlural: 'Livros',
     tiposPermitidosPai: ['Articulacao', 'Parte'],
@@ -124,6 +134,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   omissis: {
     tipo: 'Omissis',
     name: 'Omissis',
+    tagId: 'omi',
     descricao: 'Omissis',
     descricaoPlural: 'Linhas pontilhadas (omissis)',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Caput', 'Paragrafo', 'Alinea', 'Inciso'],
@@ -136,6 +147,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   paragrafo: {
     tipo: 'Paragrafo',
     name: 'Paragrafo',
+    tagId: 'par',
     descricao: 'Parágrafo',
     descricaoPlural: 'Parágrafos',
     tiposPermitidosPai: ['Artigo'],
@@ -148,6 +160,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   parte: {
     tipo: 'Parte',
     name: 'Parte',
+    tagId: 'prt',
     descricao: 'Parte',
     descricaoPlural: 'Partes',
     tiposPermitidosPai: ['Articulacao'],
@@ -160,6 +173,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   secao: {
     tipo: 'Secao',
     name: 'Secao',
+    tagId: 'sec',
     descricao: 'Seção',
     descricaoPlural: 'Seções',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo'],
@@ -172,6 +186,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   subsecao: {
     tipo: 'Subsecao',
     name: 'Subsecao',
+    tagId: 'sub',
     descricao: 'Subseção',
     descricaoPlural: 'Subseções',
     tiposPermitidosPai: ['Secao'],
@@ -184,6 +199,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   titulo: {
     tipo: 'Titulo',
     name: 'Titulo',
+    tagId: 'tit',
     descricao: 'Título',
     descricaoPlural: 'Títulos',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro'],

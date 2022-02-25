@@ -2,8 +2,8 @@ import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
-  findDispositivoById,
   buildListaDispositivos,
+  findDispositivoByUuid,
   getArticulacao,
   getDispositivosPosteriores,
   hasFilhos,
@@ -15,6 +15,7 @@ import {
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
+import { buildHref } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -63,6 +64,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
+    lexmlId: dispositivo.id ?? buildHref(dispositivo),
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {
@@ -150,13 +152,13 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
   }
 
   if (referencia?.tipo === TipoDispositivo.artigo.tipo) {
-    const artigo = articulacao.artigos!.filter(a => a.uuid === referencia.uuid)[0];
+    const artigo = articulacao.filhos!.find(a => a.uuid === referencia.uuid);
     if (artigo) {
-      return articulacao.artigos!.filter(a => a.uuid === referencia.uuid)[0];
+      return artigo;
     }
   }
 
-  const dispositivo = referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoById(articulacao, referencia.uuid!);
+  const dispositivo = referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoByUuid(articulacao, referencia.uuid!);
 
   if (dispositivo === null) {
     return undefined;

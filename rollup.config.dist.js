@@ -15,10 +15,9 @@ const configTs = {
 		copy({
 			targets: [
 				{ src: 'assets/css/editor.css', dest: 'dist/assets/css' },
-				{ src: 'assets/fonts/**', dest: 'dist/assets/fonts' },
 			],
 		}),
-	],      
+	],
 };
 
 const configTsMin = {
@@ -30,7 +29,7 @@ const configTsMin = {
 		typescript({tsconfig: 'tsconfig.dist.json'}),
         nodeResolve(),
         terser(),
-	],      
+	],
 }
 
 // Configuração rollup usada para atualizar a pasta "dist", que será a raiz da publicação.

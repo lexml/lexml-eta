@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { isNumeracaoValida } from './numeracaoUtil';
+import { converteLetraParaNumeroArabico, isNumeracaoValida } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -16,9 +16,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
 
     private normalizaNumeracao(numero: string): string {
       return numero
+        .replace(/["”“]/g, '')
         .replace(/\./g, '')
         .replace(/artigo [uú]nico/i, '1')
-        .replace(/(art[.]{1})/i, '')
+        .replace(/(art[.]{0,1})/i, '')
         .replace(/[º]/i, '')
         .trim();
     }
@@ -26,7 +27,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
       this.informouArtigoUnico = /.[uú]nico/i.test(rotulo);
-      this.numero = this.informouArtigoUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
+      this.numero = this.informouArtigoUnico ? '1u' : isNumeracaoValida(temp) ? this.converteLetraComplementoParaNumero(temp) : undefined;
     }
 
     createRotulo(dispositivo: Dispositivo): void {
@@ -74,6 +75,15 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         return 'artigo único';
       }
       return 'art. ' + this.getNumeroAndSufixoNumeracao();
+    }
+
+    private converteLetraComplementoParaNumero(numeroFromRotulo: string): string {
+      const partes = numeroFromRotulo?.split('-');
+      const [num, ...remaining] = partes!;
+
+      const novo = remaining.map(r => converteLetraParaNumeroArabico(r));
+
+      return novo?.length > 0 ? num + '-' + novo?.join('-').toUpperCase() : num;
     }
   };
 }
