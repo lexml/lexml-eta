@@ -7,9 +7,9 @@ import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { State } from '../../../src/redux/state';
 import { MEDIDA_PROVISORIA_SEM_ALTERACAO_COM_AGRUPADOR } from '../../doc/parser/mpv_905_20191111';
 import { Artigo, Articulacao } from './../../../src/model/dispositivo/dispositivo';
-import { ProjetoNorma } from './../../../src/model/documento';
 import { adicionaElemento } from './../../../src/redux/elemento/reducer/adicionaElemento';
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
+import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 
 let documento: ProjetoNorma;
 let state: State = new DefaultState();
