@@ -1,9 +1,9 @@
 import { expect } from '@open-wc/testing';
-import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
-import { buildProjetoNormaFromJsonix } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
-import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../doc/parser/mpv_885_20190617';
-import { MEDIDA_PROVISORIA_SEM_ALTERACAO_COM_AGRUPADOR } from '../doc/parser/mpv_905_20191111';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
+import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
+import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../../doc/parser/mpv_885_20190617';
+import { MEDIDA_PROVISORIA_SEM_ALTERACAO_COM_AGRUPADOR } from '../../doc/parser/mpv_905_20191111';
 
 let documento: ProjetoNorma;
 

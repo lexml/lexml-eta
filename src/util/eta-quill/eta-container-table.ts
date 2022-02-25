@@ -123,6 +123,15 @@ export class EtaContainerTable extends Container {
     return parseInt(this.id.substr(7), 0);
   }
 
+  private _lexmlId: string;
+  set lexmlId(lexmlId: string) {
+    this._lexmlId = lexmlId;
+  }
+
+  get lexmlId(): string {
+    return this._lexmlId ?? '';
+  }
+
   get html(): string {
     return this.domNode.innerHTML !== '<br>' ? this.domNode.innerHTML : '';
   }
@@ -160,6 +169,7 @@ export class EtaContainerTable extends Container {
 
   constructor(elemento: Elemento) {
     super(EtaContainerTable.create(elemento));
+    this._lexmlId = elemento.lexmlId ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
     this._numero = elemento.numero ?? '';

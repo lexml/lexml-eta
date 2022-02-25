@@ -19,6 +19,7 @@ import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
+import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { StateEvent, StateType } from '../../redux/state';
@@ -243,6 +244,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .lx-eta-dropdown-content-right {
           right: 0;
         }
+
+        .ql-snow .ql-tooltip::before {
+          content: 'Acesse a norma:';
+        }
+
+        .ql-snow .ql-tooltip a.ql-action::after {
+          display: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-remove::before {
+          display: none;
+        }
+
+        .ql-snow .ql-tooltip a.ql-preview {
+          max-width: 300px;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -303,23 +320,21 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(validarArticulacaAction.execute());
   }
 
-  private isRotuloInvalido(tipo: string, rotulo: string): boolean {
-    return !rotulo || rotulo.replace(/["“”]?/, '') === tipo;
-  }
-
-  private onSelectionChange: SelectionChangeHandler = (): void => {
-    /*     if (this.quill.mudouDeLinha) {
-      const linhaAnt: EtaContainerTable = this.quill.linhaAnterior;
-      if (linhaAnt) {
-        const elemento: Elemento = this.criarElemento(linhaAnt.uuid, linhaAnt.tipo, linhaAnt.blotConteudo?.html ?? '', linhaAnt.numero, linhaAnt.hierarquia);
-        if (linhaAnt.blotConteudo?.alterado) {
-          rootStore.dispatch(atualizarElementoAction.execute(elemento));
-        } else if ((linhaAnt.blotConteudo?.html === '' && linhaAnt.blotConteudo?.htmlAnt === '') || this.isRotuloInvalido(linhaAnt.tipo, linhaAnt.blotRotulo?.rotulo)) {
-          rootStore.dispatch(validarElementoAction.execute(elemento));
-        }
-      }
-    } */
+  private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
+    if (range?.length === 0 && source === Quill.sources.USER) {
+      this.ajustarLinkParaNorma();
+    }
   };
+
+  private ajustarLinkParaNorma(): void {
+    const linkTooltip = document.querySelector('a.ql-preview');
+    const href = linkTooltip?.getAttribute('href');
+    if (href?.startsWith('urn')) {
+      const url = 'https://normas.leg.br/?urn=' + href;
+      linkTooltip!.setAttribute('href', url);
+      linkTooltip!.innerHTML = getNomeExtenso(href);
+    }
+  }
 
   private onBold(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
@@ -370,10 +385,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
       textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
     }
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
@@ -382,7 +397,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
 
     if (!podeRenumerar(elemento)) {
       return;
@@ -464,7 +479,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const closeResult: any = event.detail.closeResult;
       const choice: string = closeResult && closeResult.choice;
       if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
         rootStore.dispatch(removerElementoAction.execute(elemento));
       }
       this.quill.focus();
@@ -476,7 +491,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key === 'ArrowUp') {
       rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
@@ -490,7 +505,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key.toLowerCase() === 'a') {
       rootStore.dispatch(transformarAction(elemento, TipoDispositivo.artigo.name!));
@@ -511,7 +526,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private elementoSelecionado(uuid: number): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(uuid, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(uuid, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
     rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
     this.quill.processandoMudancaLinha = false;
   }
@@ -573,6 +588,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarMensagemQuill(event);
           break;
 
+        case StateType.ElementoMarcado:
+          this.marcarLinha(event);
+          break;
+
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
           this.montarMenuContexto(event);
@@ -598,6 +617,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private marcarLinha(event: StateEvent) {
+    this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+    const elemento = event.elementos![0];
+    const linha = this.quill.getLinha(elemento.uuid!)!;
+    const index = this.quill.getIndex(linha.blotConteudo);
+    this.quill.setIndex(index, Quill.sources.SILENT);
+    this.quill.atualizarLinhaCorrente(linha);
+    this.elementoSelecionado(linha.uuid);
+  }
+
   private processarEscolhaMenu(itemMenu: string): void {
     if (itemMenu === 'Remover dispositivo') {
       this.removerElemento();
@@ -605,7 +634,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
-      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(getAcao(itemMenu).execute(elemento));
     }
@@ -788,9 +817,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
+  private criarElemento(uuid: number, lexmlId: string, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
+    elemento.lexmlId = lexmlId;
     elemento.tipo = tipo;
     elemento.numero = numero;
     elemento.conteudo = { texto: html };
@@ -827,7 +857,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
     if (linhaAtual?.blotConteudo?.alterado) {
-      const elemento: Elemento = this.criarElemento(linhaAtual.uuid, linhaAtual.tipo, linhaAtual.blotConteudo?.html ?? '', linhaAtual.numero, linhaAtual.hierarquia);
+      const elemento: Elemento = this.criarElemento(
+        linhaAtual.uuid,
+        linhaAtual.lexmlId,
+        linhaAtual.tipo,
+        linhaAtual.blotConteudo?.html ?? '',
+        linhaAtual.numero,
+        linhaAtual.hierarquia
+      );
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
   }

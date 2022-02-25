@@ -14,7 +14,7 @@ export const solicitaNorma = (state: any, action: any): State => {
 
   const events = [
     {
-      stateType: StateType.ElementoSelecionado,
+      stateType: StateType.InformarNorma,
       elementos: [elemento],
     },
   ];

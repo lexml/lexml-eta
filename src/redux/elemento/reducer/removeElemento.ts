@@ -6,7 +6,7 @@ import { hasFilhos, isArtigoUnico, isDispositivoAlteracao } from '../../../model
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
-import { buildFuture, buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const removeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -34,7 +34,7 @@ export const removeElemento = (state: any, action: any): State => {
     tipoDocumento: state.tipoDocumento,
     past: buildPast(state, events),
     present: events,
-    future: buildFuture(state, events),
+    future: [],
     ui: {
       events,
     },

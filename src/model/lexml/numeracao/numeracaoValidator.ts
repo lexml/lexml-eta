@@ -5,6 +5,8 @@ import {
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosterior,
   getDispositivoPosteriorMesmoTipo,
+  getDispositivosAnterioresMesmoTipo,
+  getDispositivosPosteriores,
   irmaosMesmoTipo,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
@@ -63,19 +65,19 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo não foi informado',
     });
   }
-  if (dispositivo !== null && dispositivo.numero && dispositivo.numero.trim().length === 0) {
+  if (dispositivo !== null && dispositivo.numero !== undefined && dispositivo.numero.trim().length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O dispositivo não contém numeração',
     });
   }
-  if (dispositivo !== null && dispositivo.rotulo && dispositivo.rotulo.trim().length === 0) {
+  if (dispositivo !== null && dispositivo.rotulo?.trim().length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O dispositivo não contém rótulo',
     });
   }
-  if (dispositivo !== null && !isDispositivoGenerico(dispositivo) && dispositivo.rotulo && dispositivo.rotulo.endsWith(dispositivo.tipo)) {
+  if (dispositivo !== null && !isDispositivoGenerico(dispositivo) && dispositivo.rotulo?.endsWith(dispositivo.tipo)) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O rótulo informado não é válido. Numere o dispositivo',
@@ -88,7 +90,13 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     });
   }
 
-  if (dispositivo !== null && !isDispositivoCabecaAlteracao(dispositivo) && dispositivo.numero && dispositivo.pai?.indexOf(dispositivo) === 0 && dispositivo.numero !== '1') {
+  if (
+    dispositivo !== null &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
+    dispositivo.numero !== undefined &&
+    dispositivo.pai?.indexOf(dispositivo) === 0 &&
+    dispositivo.numero !== '1'
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'É necessário um omissis antes deste dispositivo',
@@ -96,7 +104,6 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    isDispositivoAlteracao(dispositivo) &&
     isOmissis(dispositivo) &&
     (getDispositivoAnterior(dispositivo)?.tipo === TipoDispositivo.omissis.name || getDispositivoPosterior(dispositivo)?.tipo === TipoDispositivo.omissis.name)
   ) {
@@ -107,11 +114,10 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero &&
+    dispositivo.numero !== undefined &&
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
-    irmaosMesmoTipo(dispositivo)
-      .filter((d, i) => i < dispositivo.pai!.indexOf(dispositivo) && d.numero)
+    getDispositivosAnterioresMesmoTipo(dispositivo)
+      .filter(d => d.numero !== undefined)
       .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === -1).length > 0
   ) {
     mensagens.push({
@@ -121,11 +127,10 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero &&
+    dispositivo.numero !== undefined &&
     !dispositivo.pai!.isLastFilho(dispositivo) &&
-    irmaosMesmoTipo(dispositivo)
-      .filter((d, i) => i > dispositivo.pai!.indexOf(dispositivo) && d.numero)
+    getDispositivosPosteriores(dispositivo)
+      .filter(d => dispositivo.pai === d.pai && d.numero !== undefined)
       .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === 1).length > 0
   ) {
     mensagens.push({
@@ -136,7 +141,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   if (
     dispositivo !== null &&
     !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero &&
+    dispositivo.numero !== undefined &&
     irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length > 1
   ) {
     mensagens.push({
@@ -147,7 +152,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   if (
     dispositivo !== null &&
     !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero &&
+    dispositivo.numero !== undefined &&
     isNumero(dispositivo.numero) &&
     parseInt(dispositivo.numero) > 2 &&
     dispositivo.pai!.indexOf(dispositivo) > 0 &&

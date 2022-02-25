@@ -1,7 +1,7 @@
 import { addSpaceRegex, endsWithWord, escapeRegex } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../dispositivo/omissis';
 import { isArtigo } from '../../dispositivo/tipo';
+import { TEXTO_OMISSIS } from './textoOmissis';
 
 export const hasIndicativoDesdobramento = (dispositivo: Dispositivo): boolean => {
   const d = isArtigo(dispositivo) ? (dispositivo as Artigo).caput! : dispositivo;

@@ -17,13 +17,27 @@ export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   return getArticulacao(dispositivo.pai);
 }
 
-export const findDispositivoById = (dispositivo: Dispositivo, uuid: number): Dispositivo | null => {
+export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articulacao): Dispositivo | Articulacao | null {
+  if (dispositivo.uuid === uuid) {
+    return dispositivo;
+  } else if (dispositivo.filhos !== null) {
+    let result: any = null;
+
+    const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
+
+    for (let i = 0; result === null && i < filhos.length; i++) {
+      result = getDispositivo(uuid, filhos[i]);
+    }
+    return result;
+  }
+  return null;
+}
+
+export const findDispositivoByUuid = (dispositivo: Dispositivo, uuid: number): Dispositivo | null => {
   if (uuid === undefined) {
     throw new Error('uuid não foi informado');
   }
-
-  const listaDispositivos = buildListaDispositivos(dispositivo, []);
-  return listaDispositivos.find(disp => disp.uuid === uuid) || null;
+  return getDispositivo(uuid, dispositivo);
 };
 
 export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {
@@ -225,7 +239,7 @@ export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Disp
 
 export const getDispositivosAnterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
   const pos = dispositivo.pai?.indexOf(dispositivo);
-  return dispositivo.pai?.filhos.filter((f, index) => index < pos! && f.tipo === dispositivo.tipo) ?? [];
+  return dispositivo.pai?.filhos.filter((f, index) => index < pos! && f.tipo === dispositivo.tipo && f.pai === dispositivo.pai) ?? [];
 };
 
 export const getDispositivosPosterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {

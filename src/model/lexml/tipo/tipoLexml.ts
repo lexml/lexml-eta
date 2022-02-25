@@ -7,6 +7,9 @@ export class TipoLexml implements Tipo {
   name?: string;
   descricao?: string;
   genero?: Genero;
+
+  tagId?: string;
+
   tiposPermitidosPai?: string[];
   tiposPermitidosFilhos?: string[];
 
@@ -18,6 +21,7 @@ export class TipoLexml implements Tipo {
 
   constructor(tipo: string) {
     this.tipo = TipoDispositivo[tipo].tipo;
+    this.tagId = TipoDispositivo[tipo].tagId;
     this.name = TipoDispositivo[tipo].name;
     this.descricao = TipoDispositivo[tipo].descricao;
 

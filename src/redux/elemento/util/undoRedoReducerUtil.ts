@@ -5,7 +5,7 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { findDispositivoById, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoByUuid, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
@@ -29,7 +29,7 @@ const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
-    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoById(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
+    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
 
     if (artigo) {
       if (!artigo.alteracoes) {
@@ -39,20 +39,26 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
       if (elemento.hierarquia!.pai!.tipo! === TipoDispositivo.articulacao.tipo) {
         return artigo.alteracoes;
       }
-      return findDispositivoById(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
+      return findDispositivoByUuid(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
     }
   }
-  return findDispositivoById(articulacao, elemento.hierarquia!.pai!.uuid!);
+  return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!);
+};
+
+const isOmissisCaput = (elemento: Elemento): boolean => {
+  const partesLexmlId = elemento.lexmlId?.split('_') ?? [];
+  return elemento.tipo === TipoDispositivo.omissis.tipo && partesLexmlId.length > 1 && partesLexmlId[partesLexmlId.length - 2] === 'cpt';
 };
 
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
-    isArtigo(pai) && elemento.tipo === TipoDispositivo.inciso.name ? (pai as Artigo).caput! : pai,
+    isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
     undefined,
     elemento.hierarquia!.posicao
   );
   novo.uuid = elemento.uuid;
+  novo.id = elemento.lexmlId;
   novo!.texto = elemento?.conteudo?.texto ?? '';
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
@@ -158,6 +164,9 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
               dispositivo.situacao = new DispositivoModificado(createElemento(dispositivo));
             }
             dispositivo.texto = e.conteudo?.texto ?? '';
+          }
+          if (dispositivo.alteracoes) {
+            dispositivo.alteracoes.base = e.norma;
           }
           dispositivo.mensagens = validaDispositivo(dispositivo);
           novosElementos.push(createElemento(dispositivo));
