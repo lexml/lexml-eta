@@ -1,17 +1,8 @@
 import { isAgrupador, isArtigo, isParagrafo, isOmissis } from './../model/dispositivo/tipo';
 import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { Genero, generoFeminino, generoMasculino } from './../model/dispositivo/genero';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 import { getDispositivoPosterior } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
-
-export class NomeComGenero {
-  constructor(public nome: string, private letraGenero: 'M' | 'F') {}
-
-  getGenero(): Genero {
-    return this.letraGenero === 'M' ? generoMasculino : generoFeminino;
-  }
-}
 
 export class CmdEmdUtil {
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {

@@ -1,3 +1,4 @@
+import { isArtigo } from './../../../dispositivo/tipo';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isOmissis } from '../../../dispositivo/tipo';
 import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
@@ -136,6 +137,9 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
   dispositivo.id = el.value?.id;
   if (isEmendamento) {
     dispositivo.situacao = new DispositivoOriginal();
+    if (isArtigo(dispositivo)) {
+      (dispositivo as Artigo).caput!.situacao = new DispositivoOriginal();
+    }
   }
   dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
   return dispositivo;

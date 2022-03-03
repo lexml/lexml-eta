@@ -1,11 +1,13 @@
+import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { getArticulacao, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdAdicao } from './cmd-emd-adicao';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
-import { CmdEmdUtil, NomeComGenero } from './comando-emenda-util';
+import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
+import { NomeComGenero } from '../model/dispositivo/genero';
 
 export class ItemComandoEmenda {
   constructor(public cabecalho: string, public citacao: string) {}
@@ -22,8 +24,7 @@ export class ComandoEmendaBuilder {
     const list = this.getDispositivosRepresentativosDeCadaComando(dispositivosEmenda);
     list.sort(DispositivoComparator.compare);
 
-    // Implementar RefGenericaProjetoFactory.getRefGenericaProjeto(urn)
-    const refGenericaProjeto = new NomeComGenero('Medida Provisória', 'F');
+    const refGenericaProjeto = getRefGenericaProjeto(this.urn);
 
     list.forEach(d => {
       let cabecalho: string;

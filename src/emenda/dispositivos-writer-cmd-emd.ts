@@ -1,3 +1,4 @@
+import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero } from '../model/dispositivo/genero';
@@ -155,9 +156,7 @@ export class DispositivosWriterCmdEmd {
     while (!isDispositivoRaiz(disp)) {
       pai = disp.pai;
 
-      const tipoPai = pai ? (pai as Dispositivo).tipo : '';
-
-      if (pai && tipoPai === TipoDispositivo.alteracao.tipo) {
+      if (pai && isArticulacaoAlteracao(pai)) {
         if (disp.tipo === TipoDispositivo.omissis.tipo) {
           const anterior = CmdEmdUtil.getDispositivoAnteriorDireto(disp);
           if (anterior.tipo !== TipoDispositivo.alteracao.tipo) {

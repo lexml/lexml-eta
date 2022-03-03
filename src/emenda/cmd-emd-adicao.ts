@@ -1,13 +1,14 @@
 import { isAgrupador } from './../model/dispositivo/tipo';
 import { removeEspacosDuplicados, StringBuilder } from './../util/string-util';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
-import { NomeComGenero, CmdEmdUtil } from './comando-emenda-util';
+import { CmdEmdUtil } from './comando-emenda-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 import { isArtigo } from '../model/dispositivo/tipo';
 import { RangeDispositivos } from './range-dispositivos';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
+import { NomeComGenero } from '../model/dispositivo/genero';
 
 export class CmdEmdAdicao extends CmdEmdCombinavel {
   constructor(public dispositivos: Dispositivo[]) {
@@ -49,13 +50,11 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     // Sufixo
     if (isUltimo) {
       const ultimaSequencia = sequencias[sequencias.length - 1];
-      sb.append(' ');
       if (!isArtigo(ultimaSequencia.getPrimeiroDispositivo()) || ultimaSequencia.localizarArtigoEmAgrupador) {
-        sb.append(refGenericaProjeto.getGenero().pronomePossessivoSingular);
+        sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
       } else {
-        sb.append(refGenericaProjeto.getGenero().artigoDefinidoPrecedidoPreposicaoASingular);
+        sb.append(refGenericaProjeto.genero.artigoDefinidoPrecedidoPreposicaoASingular);
       }
-      sb.append(' ');
       sb.append(refGenericaProjeto.nome);
       sb.append(isPrimeiro ? ', com a seguinte redação:' : ', nos termos a seguir:');
     }

@@ -1,5 +1,5 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
-import { NomeComGenero } from './comando-emenda-util';
+import { NomeComGenero } from '../model/dispositivo/genero';
 import { DispositivoComparator } from './dispositivo-comparator';
 
 /**

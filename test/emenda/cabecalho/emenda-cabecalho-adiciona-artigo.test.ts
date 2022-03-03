@@ -1,65 +1,62 @@
-import { DefaultState } from './../../../src/redux/state';
 import { expect } from '@open-wc/testing';
 
-import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
-import { buildProjetoNormaFromJsonix, getUrn } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
-import { State } from '../../../src/redux/state';
-import { MEDIDA_PROVISORIA_SEM_ALTERACAO_COM_AGRUPADOR } from '../../doc/parser/mpv_905_20191111';
-import { Artigo, Articulacao } from './../../../src/model/dispositivo/dispositivo';
-import { adicionaElemento } from './../../../src/redux/elemento/reducer/adicionaElemento';
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
+import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
+import { State } from '../../../src/redux/state';
+import { TesteCmdEmdUtil } from '../teste-cmd-emd-util';
+import { DefaultState } from './../../../src/redux/state';
+import { PLC_ARTIGOS_AGRUPADOS } from './../../doc/parser/plc_artigos_agrupados';
 
 let documento: ProjetoNorma;
-let state: State = new DefaultState();
+const state: State = new DefaultState();
 // let eventos: StateEvent[];
 
 describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
   beforeEach(function () {
-    documento = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_SEM_ALTERACAO_COM_AGRUPADOR, true);
+    documento = buildProjetoNormaFromJsonix(PLC_ARTIGOS_AGRUPADOS, true);
     documento.articulacao?.renumeraArtigos();
     state.articulacao = documento.articulacao;
   });
-  it('Deveria possuir 53 artigos', () => {
-    expect(state.articulacao?.artigos.length).to.equal(53);
+
+  it('Deveria possuir 9 artigos', () => {
+    expect(state.articulacao?.artigos.length).to.equal(9);
   });
-  describe('Inclusão de um artigo', () => {
-    beforeEach(() => {
-      const artigo = state.articulacao?.artigos[0];
-      state = adicionaElemento(state, {
-        type: ADICIONAR_ELEMENTO,
-        atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo?.uuid },
-        novo: { tipo: TipoDispositivo.artigo.tipo },
-      });
-      // percorreHierarquiaDispositivos(state.articulacao, d => {
-      //   console.log(d.rotulo);
-      // });
-      //eventos = getEventosQuePossuemElementos(state.ui.events);
-    });
-    it('Deveria possuir 54 artigos', () => {
-      expect(state.articulacao?.artigos.length).to.equal(54);
-    });
-    it('Incluiu artigo 1º-A', () => {
-      const artigo = state.articulacao?.artigos[1] as Artigo;
-      expect(artigo.rotulo).to.equal('Art. 1º-A');
-    });
-    it('Cabeçalho comando novo artigo 1º-A', () => {
-      // incluiArtigoDepois("art1");
-      // ItemComandoEmenda item = new ComandoEmendaBuilder(emenda).getComandos().get(0);
-      // Assert.assertEquals("Acrescente-se art. 1º-A ao Projeto, com a seguinte redação:", item.getCabecalho());
-      const itemComandoEmenda = new ComandoEmendaBuilder(getUrn(documento), state.articulacao as Articulacao).getComandos()[0];
-      expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A ao Projeto, com a seguinte redação:');
-    });
-    // describe('Testando os eventos resultantes da ação de inclusão do artigo', () => {
-    //   it('Deveria apresentar 1 elemento incluído', () => {
-    //     const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
-    //     expect(incluido.elementos!.length).equal(1);
-    //     expect(incluido.elementos![0].rotulo).equal('Art. 1º-A');
-    //     expect(incluido.elementos![0].conteudo?.texto).equal('');
-    //   });
-    // });
+
+  it('Inclusão de um artigo', () => {
+    const artigo = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    expect(artigo.rotulo).to.equal('Art. 1º-A');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A ao Projeto, com a seguinte redação:');
   });
+
+  it('Inclusão de dois artigos consecutivos', () => {
+    const artigo1 = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    expect(artigo1.rotulo).to.equal('Art. 1º-A');
+    //console.log(artigo1.id);
+    const artigo2 = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    expect(artigo2.rotulo).to.equal('Art. 1º-A');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A e 1º-B ao Projeto, com a seguinte redação:');
+  });
+
+  it('Inclusão de três artigos consecutivos', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A a 1º-C ao Projeto, com a seguinte redação:');
+  });
+
+  it('Inclusão de quatro artigos com um separado', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art6');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A a 1º-C e 6º-A ao Projeto, com a seguinte redação:');
+  });
+
   // describe('Supressão de um artigo', () => {
   //   beforeEach(() => {
   //     const artigo = state.articulacao.artigos[0];

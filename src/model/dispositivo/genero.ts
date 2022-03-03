@@ -63,5 +63,18 @@ export function GeneroMasculino<TBase extends Constructor>(Base: TBase): any {
   };
 }
 
-export const generoFeminino = GeneroFeminino(Object);
-export const generoMasculino = GeneroMasculino(Object);
+export const generoFeminino = new (GeneroFeminino(Object))();
+export const generoMasculino = new (GeneroMasculino(Object))();
+export const generoIndefinido = new (GeneroIndefinido(Object))();
+
+export const generoFromLetra = (letraGenero: string): Genero => {
+  return letraGenero === 'F' ? generoFeminino : letraGenero === 'M' ? generoMasculino : generoIndefinido;
+};
+
+export class NomeComGenero {
+  genero: Genero;
+
+  constructor(public nome: string, genero: string | Genero) {
+    this.genero = typeof genero === 'string' ? generoFromLetra(genero as string) : (genero as Genero);
+  }
+}
