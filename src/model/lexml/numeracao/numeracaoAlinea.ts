@@ -21,5 +21,19 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
     createRotulo(): void {
       this.rotulo = this.numero === undefined ? TipoDispositivo.alinea.name : trataComplemento(this.numero, converteNumeroArabicoParaLetra) + this.SUFIXO;
     }
+
+    getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
+      }
+      return '“' + trataComplemento(this.numero, converteNumeroArabicoParaLetra) + '”';
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
+      }
+      return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
+    }
   };
 }

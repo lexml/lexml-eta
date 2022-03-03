@@ -65,8 +65,9 @@ export const converteLetraParaNumeroArabico = (s: string): string => {
   return acumulador.toString();
 };
 
-export const converteNumeroArabicoParaLetra = (numero: string): string => {
-  return intToAlpha(parseInt(numero));
+export const converteNumeroArabicoParaLetra = (strNumero: string): string => {
+  const number = parseInt(strNumero);
+  return number ? intToAlpha(number) : strNumero;
 };
 
 export const intToAlpha = (numero: number): string => {

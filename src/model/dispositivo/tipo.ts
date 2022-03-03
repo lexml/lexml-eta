@@ -4,8 +4,9 @@ import { Dispositivo } from './dispositivo';
 export interface Tipo {
   tipo: string;
   name?: string;
-  descricao?: string;
   tagId?: string;
+  descricao?: string;
+  descricaoPlural?: string;
 
   tiposPermitidosPai?: string[];
   tiposPermitidosFilhos?: string[];

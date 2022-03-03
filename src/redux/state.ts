@@ -49,3 +49,15 @@ export const createState = (state: any, events: StateEvent[], past: StateEvent[]
     },
   };
 };
+
+export class DefaultState implements State {
+  articulacao?: Articulacao;
+  tipoDocumento: string | undefined;
+  past?: StateEvent[];
+  present: StateEvent[] = [];
+  future?: StateEvent[];
+  ui?: {
+    events: StateEvent[];
+    message?: Mensagem;
+  };
+}

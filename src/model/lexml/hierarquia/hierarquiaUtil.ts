@@ -2,6 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo'
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
+import { TipoDispositivo } from './../tipo/tipoDispositivo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   if (!dispositivo) {
@@ -364,4 +365,73 @@ export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: D
   const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
   filhos.length ? filhos.forEach(d => buildListaDispositivos(d, dispositivos)) : undefined;
   return dispositivos;
+};
+
+export const percorreHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispositivo) => void): void => {
+  if (!d) return;
+  visit(d);
+  if (d.tipo === TipoDispositivo.artigo.tipo) {
+    const artigo = d as Artigo;
+    if (artigo.caput) {
+      percorreHierarquiaDispositivos(artigo.caput, visit);
+      d.filhos
+        .filter(f => isParagrafo(f))
+        .forEach(f => {
+          percorreHierarquiaDispositivos(f, visit);
+        });
+    }
+  } else {
+    d.filhos.forEach(f => {
+      percorreHierarquiaDispositivos(f, visit);
+    });
+  }
+};
+
+export const buscaNaHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispositivo) => any): any => {
+  if (!d) return undefined;
+  let ret = visit(d);
+  if (ret) return ret;
+  if (d.tipo === TipoDispositivo.artigo.tipo) {
+    const artigo = d as Artigo;
+    if (artigo.caput) {
+      ret = buscaNaHierarquiaDispositivos(artigo.caput, visit);
+      if (ret) return ret;
+      for (const f of d.filhos.filter(f => isParagrafo(f))) {
+        ret = buscaNaHierarquiaDispositivos(f, visit);
+        if (ret) return ret;
+      }
+    }
+  } else {
+    for (const f of d.filhos) {
+      ret = buscaNaHierarquiaDispositivos(f, visit);
+      if (ret) return ret;
+    }
+  }
+};
+
+export const isDispositivoRaiz = (d: Dispositivo): boolean => {
+  return d && !d.pai && d.tipo === TipoDispositivo.articulacao.tipo;
+};
+
+export const buscaDispositivoById = (articulacao: Articulacao, id: string): Dispositivo | undefined => {
+  const idArtigo = extraiIdArtigo(id);
+  let raiz: Dispositivo = articulacao;
+  if (idArtigo) {
+    const artigo = articulacao.artigos.find(a => idArtigo === a.id);
+    if (artigo) {
+      if (id === idArtigo) {
+        return artigo;
+      } else {
+        raiz = artigo;
+      }
+    }
+  }
+  return buscaNaHierarquiaDispositivos(raiz, d => {
+    return id === d.id ? d : undefined;
+  });
+};
+
+export const extraiIdArtigo = (id: string): string | undefined => {
+  const l = /^art\d+/.exec(id);
+  return l?.length ? l[0] : undefined;
 };
