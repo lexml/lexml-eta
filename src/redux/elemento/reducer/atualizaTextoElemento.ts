@@ -46,7 +46,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
     tipoDocumento: state.tipoDocumento,
     past: buildPast(state, buildUpdateEvent(dispositivo, original)),
     present: eventos.build(),
-    future: state.future,
+    future: [],
     ui: {
       events: eventosUi.build(),
     },

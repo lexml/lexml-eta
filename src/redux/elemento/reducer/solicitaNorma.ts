@@ -24,7 +24,7 @@ export const solicitaNorma = (state: any, action: any): State => {
     tipoDocumento: state.tipoDocumento,
     past: state.past,
     present: state.present,
-    future: state.future,
+    future: [],
     ui: {
       events,
     },
