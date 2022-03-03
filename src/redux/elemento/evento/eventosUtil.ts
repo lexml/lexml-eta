@@ -176,6 +176,7 @@ export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Di
   aRestaurar.forEach(d => {
     d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
     d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
+    d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
     d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
     d.situacao = new DispositivoOriginal();
   });
