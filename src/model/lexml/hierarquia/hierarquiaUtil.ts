@@ -234,7 +234,7 @@ export const getDispositivoPosterior = (dispositivo: Dispositivo): Dispositivo |
 export const getDispositivoPosteriorMesmoTipo = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const irmaos = irmaosMesmoTipo(dispositivo);
   const pos = irmaos.indexOf(dispositivo);
-  return pos < irmaos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
+  return pos < irmaos.length - 1 ? irmaos[pos + 1] : undefined;
 };
 
 export const getDispositivosAnterioresMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
