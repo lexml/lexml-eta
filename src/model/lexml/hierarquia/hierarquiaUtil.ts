@@ -432,6 +432,6 @@ export const buscaDispositivoById = (articulacao: Articulacao, id: string): Disp
 };
 
 export const extraiIdArtigo = (id: string): string | undefined => {
-  const l = /^art\d+/.exec(id);
+  const l = /^art\d+(-\d+)*/.exec(id);
   return l?.length ? l[0] : undefined;
 };
