@@ -60,6 +60,7 @@
       import { COD_CIVIL_COMPLETO } from '../out-tsc/demo/doc/codigocivil_completo.js';
       import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
       import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
+      import { PLC_ARTIGOS_AGRUPADOS } from '../out-tsc/demo/doc/plc_artigos_agrupados.js';
 
       const mapProjetosNormas = {
         novo: {},
@@ -68,6 +69,7 @@
         codcivil_completo: COD_CIVIL_COMPLETO,
         codcivil_parcial1: COD_CIVIL_PARCIAL1,
         codcivil_parcial2: COD_CIVIL_PARCIAL2,
+        plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
       };
 
       class DemoView extends LitElement {
@@ -137,6 +139,7 @@
               <option value="codcivil_completo">Código Civil Completo</option>
               <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
               <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
+              <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
             </select>
             <select id="modo">
               <option value="emenda" id="emenda" selected="${this.projetoNorma === 'mpv_alteracao'}" disabled="${this.projetoNorma === 'novo'}">Emenda</option>
@@ -151,7 +154,7 @@
                 @onchange=${this.onChange}
                 modo=${this.modo}
                 projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}>
-              </lexml-eta>  
+              </lexml-eta>
             </div>
             <div id="comandoEmenda"><lexml-emenda-comando></lexml-emenda-comando></div>
           </div>

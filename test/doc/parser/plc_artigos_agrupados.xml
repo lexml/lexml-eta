@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LexML xmlns="http://www.lexml.gov.br/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.lexml.gov.br/1.0 file:./lexml-br-rigido.xsd">
+  <ProjetoNorma>
+    <Norma>
+      <ParteInicial>
+        <Epigrafe id="epigrafe">
+          <p>Substitutivo do Senado ao Projeto de Lei da Câmara nº 7, de 2010.</p>
+        </Epigrafe>
+        <Ementa id="ementa">
+          <p>Dispõe sobre a exploração e a produção de petróleo, de gás natural, e de outros hidrocarbonetos
+            fluidos, sob o regime de partilha de produção, em áreas do pré-sal e em áreas estratégicas; altera
+            dispositivos da Lei nº 9.478, de 6 de agosto de 1997; cria o Fundo Social - FS, dispõe sobre sua
+            estrutura e fontes de recursos; e dá outras providências.</p>
+        </Ementa>
+        <Preambulo id="preambulo">
+          <p>O CONGRESSO NACIONAL decreta:</p>
+        </Preambulo>
+      </ParteInicial>
+      <Articulacao>
+        <Artigo id="art1" >
+          <Rotulo>Art. 1º</Rotulo>
+          <Caput id="art1_cpt">
+            <p>Esta Lei dispõe sobre a exploração e a produção de petróleo, de gás natural e de outros
+              hidrocarbonetos fluidos em áreas do pré-sal e em áreas estratégicas, cria o Fundo Social - FS,
+              dispõe
+              sobre sua estrutura e fontes de recursos, e altera a Lei nº 9.478, de 6 de agosto de 1997.
+            </p>
+          </Caput>
+        </Artigo>
+        <Artigo id="art2" >
+          <Rotulo>Art. 2º</Rotulo>
+          <Caput id="art2_cpt">
+            <p>Para os fins desta Lei, ficam estabelecidas as seguintes definições:</p>
+            <Inciso id="art2_cpt_inc1" >
+              <Rotulo> I - </Rotulo>
+              <p>partilha de produção: regime de exploração e produção de petróleo, de gás natural e de outros
+                hidrocarbonetos fluidos no qual o contratado exerce, por sua conta e risco, as atividades de
+                exploração, avaliação, desenvolvimento e produção e, em caso de descoberta comercial, adquire o
+                direito à apropriação do custo em óleo, do volume da produção correspondente aos royalties
+                devidos, bem como de parcela do excedente em óleo, na proporção, condições e prazos estabelecidos
+                em contrato;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc2" >
+              <Rotulo> II - </Rotulo>
+              <p>custo em óleo: parcela da produção de petróleo, de gás natural e de outros hidrocarbonetos
+                fluidos, exigível unicamente em caso de descoberta comercial, correspondente aos custos e aos
+                investimentos realizados pelo contratado na execução das atividades de exploração, avaliação,
+                desenvolvimento, produção e desativação das instalações, sujeita a limites, prazos e condições
+                estabelecidos em contrato;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc3" >
+              <Rotulo> III - </Rotulo>
+              <p>excedente em óleo: parcela da produção de petróleo, de gás natural e de outros hidrocarbonetos
+                fluidos a ser repartida entre a União e o contratado, segundo critérios definidos em contrato,
+                resultante da diferença entre o volume total da produção e as parcelas relativas ao custo em
+                óleo, aos royalties devidos e, quando exigível, à participação de que trata o art. 43;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc4" >
+              <Rotulo> IV - </Rotulo>
+              <p>área do pré-sal: região do subsolo formada por um prisma vertical de profundidade indeterminada,
+                com superfície poligonal definida pelas coordenadas geográficas de seus vértices estabelecidas no
+                Anexo desta Lei, bem como outras regiões que venham a ser delimitadas, em ato do Poder Executivo,
+                de acordo com a evolução do conhecimento geológico;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc5" >
+              <Rotulo> V - </Rotulo>
+              <p>área estratégica: região de interesse para o desenvolvimento nacional, delimitada em ato do
+                Poder Executivo, caracterizada pelo baixo risco exploratório e elevado potencial de produção de
+                petróleo, de gás natural e de outros hidrocarbonetos fluidos;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc6" >
+              <Rotulo> VI - </Rotulo>
+              <p>operador: a Petróleo Brasileiro S.A. - PETROBRAS, responsável pela condução e execução, direta
+                ou indireta, de todas as atividades de exploração, avaliação, desenvolvimento, produção e
+                desativação das instalações de exploração e produção;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc7" >
+              <Rotulo> VII - </Rotulo>
+              <p>contratado: a PETROBRAS ou, quando for o caso, o consórcio por ela constituído com o vencedor da
+                licitação para a exploração e produção de petróleo, de gás natural e de outros hidrocarbonetos
+                fluidos em regime de partilha de produção;</p>
+              <Alteracao id="art2_cpt_inc7_alt1" xml:base="urn:lex:br:federal:lei:2006-08-07;11340">
+                  <Artigo id="art2_cpt_inc7_alt1_art1" abreAspas="s" fechaAspas="s" notaAlteracao="NR">
+                      <Rotulo>Art. 1º</Rotulo>
+                      <Caput id="art2_cpt_inc7_alt1_art1_cpt">
+                          <p>Sem prejuízo das demais normas em vigor ...</p>
+                          <Inciso id="art2_cpt_inc7_alt1_art1_cpt_inc1"><Rotulo>I - </Rotulo><p>Nono nono nono</p></Inciso>
+                          <Inciso id="art2_cpt_inc7_alt1_art1_cpt_inc2"><Rotulo>II - </Rotulo><p>Nono nono nono</p></Inciso>
+                      </Caput>
+                  </Artigo>
+                  <Artigo id="art2_cpt_inc7_alt1_art7" abreAspas="s" fechaAspas="s" notaAlteracao="NR">
+                      <Rotulo>Art. 7º</Rotulo>
+                      <Caput id="art2_cpt_inc7_alt1_art7_cpt">
+                          <p>Sem prejuízo das demais normas em vigor ...</p>
+                          <Inciso id="art2_cpt_inc7_alt1_art7_cpt_inc1"><Rotulo>I - </Rotulo><p>Nono nono nono</p></Inciso>
+                          <Omissis id="art2_cpt_inc7_alt1_art7_cpt_omi1"></Omissis>
+                          <Inciso id="art2_cpt_inc7_alt1_art7_cpt_inc3"><Rotulo>III - </Rotulo><p>Nono nono nono</p></Inciso>
+                          <Inciso id="art2_cpt_inc7_alt1_art7_cpt_inc4"><Rotulo>IV - </Rotulo><p>Nono nono nono</p></Inciso>
+                          <Inciso id="art2_cpt_inc7_alt1_art7_cpt_inc5"><Rotulo>V - </Rotulo><p>Nono nono nono</p></Inciso>
+                      </Caput>
+                      <Omissis id="art2_cpt_inc7_alt1_art7_omi1"></Omissis>
+                  </Artigo>
+              </Alteracao>
+            </Inciso>
+            <Inciso id="art2_cpt_inc8" >
+              <Rotulo> VIII - </Rotulo>
+              <p>conteúdo local: proporção entre o valor dos bens produzidos e dos serviços prestados no País
+                para execução do contrato e o valor total dos bens utilizados e dos serviços prestados para essa
+                finalidade;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc9" >
+              <Rotulo> IX - </Rotulo>
+              <p>individualização da produção: procedimento que visa à divisão do resultado da produção e ao
+                aproveitamento racional dos recursos naturais da União por meio da unificação do desenvolvimento
+                e da produção relativos à jazida que se estenda além de bloco concedido ou contratado sob o
+                regime de partilha de produção;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc10" >
+              <Rotulo> X - </Rotulo>
+              <p>ponto de medição: local definido no plano de desenvolvimento de cada campo onde é realizada a
+                medição volumétrica do petróleo ou do gás natural produzido, conforme regulação da Agência
+                Nacional do Petróleo, Gás Natural e Biocombustíveis - ANP;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc11" >
+              <Rotulo> XI - </Rotulo>
+              <p>ponto de partilha: local em que há divisão entre a União e o contratado do petróleo, de gás
+                natural e de outros hidrocarbonetos fluidos produzidos, nos termos do respectivo contrato de
+                partilha de produção;</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc12" >
+              <Rotulo> XII - </Rotulo>
+              <p>bônus de assinatura: valor fixo devido à União pelo contratado, a ser pago no ato da celebração
+                e nos termos do respectivo contrato de partilha de produção; e</p>
+            </Inciso>
+            <Inciso id="art2_cpt_inc13" >
+              <Rotulo> XIII - </Rotulo>
+              <p>royalties: compensação financeira devida aos Estados, ao Distrito Federal e aos Municípios, bem
+                como a órgãos da administração direta da União, em função da produção de petróleo, de gás natural
+                e de outros hidrocarbonetos fluidos sob o regime de partilha de produção, nos termos do § 1º do
+                art. 20 da Constituição Federal.</p>
+            </Inciso>
+          </Caput>
+        </Artigo>
+        <Titulo id="tit1" >
+          <Rotulo>TÍTULO I</Rotulo>
+          <NomeAgrupador>DAS DEFINIÇÕES...</NomeAgrupador>
+          <Capitulo id="cap1" >
+            <Rotulo>CAPÍTULO I</Rotulo>
+            <NomeAgrupador>DAS DEFINIÇÕES TÉCNICAS </NomeAgrupador>
+            <Artigo id="art3" >
+              <Rotulo>Art. 3º</Rotulo>
+              <Caput id="art3_cpt">
+                <p>A exploração e a produção de petróleo, de gás natural e de outros hidrocarbonetos fluidos na
+                  área
+                  do
+                  pré-sal e em áreas estratégicas serão contratadas pela União no regime de partilha de
+                  produção, na
+                  forma desta Lei.</p>
+              </Caput>
+            </Artigo>
+            <Artigo id="art4" >
+              <Rotulo>Art. 4º</Rotulo>
+              <Caput id="art4_cpt">
+                <p>A PETROBRAS será a operadora de todos os blocos contratados sob o regime de partilha de
+                  produção,
+                  sendo-lhe assegurado, a este título, participação mínima no consórcio previsto
+                  no art. 20.</p>
+              </Caput>
+            </Artigo>
+            <Artigo id="art5" >
+              <Rotulo>Art. 5º</Rotulo>
+              <Caput id="art5_cpt">
+                <p>A União não assumirá os riscos das atividades de exploração, avaliação,
+                  desenvolvimento e produção
+                  decorrentes dos contratos de partilha de produção.</p>
+              </Caput>
+            </Artigo>
+            <Artigo id="art6" >
+              <Rotulo>Art. 6º</Rotulo>
+              <Caput id="art6_cpt">
+              <!--
+                <p>Os custos e os investimentos necessários à execução do contrato de partilha de
+                  produção serão
+                  integralmente suportados pelo contratado, cabendo-lhe, no caso de
+                  descoberta comercial, a sua
+                  restituição nos termos do inciso II do art. 2º.</p>
+               -->
+                <p>O art. 1º da Lei nº 11.340, de 7 de agosto de 2006, passa a vigorar com a seguinte redação:</p>
+                <Alteracao id="art6_cpt_alt1" xml:base="urn:lex:br:federal:lei:2006-08-07;11340">
+                    <Artigo id="art6_cpt_alt1_art1" abreAspas="s" fechaAspas="s" notaAlteracao="NR">
+                        <Rotulo>Art. 1º</Rotulo>
+                        <Caput id="art6_cpt_alt1_art1_cpt">
+                            <p>Sem prejuízo das demais normas em vigor ...</p>
+                            <Omissis id="art6_cpt_alt1_art1_cpt_omi1"></Omissis>
+                            <Inciso id="art6_cpt_alt1_art1_cpt_inc3"><Rotulo>III - </Rotulo><p>Atividades de exploração, avaliação ...</p></Inciso>
+                            <Omissis id="art6_cpt_alt1_art1_cpt_omi2"></Omissis>
+                        </Caput>
+                    </Artigo>
+                </Alteracao>
+              </Caput>
+            </Artigo>
+            <Artigo id="art7" >
+              <Rotulo>Art. 7º</Rotulo>
+              <Caput id="art7_cpt">
+                <p>Os custos e os investimentos necessários à execução do contrato de partilha de
+                  produção serão
+                  integralmente suportados pelo contratado, cabendo-lhe, no caso de
+                  descoberta comercial, a sua
+                  restituição nos termos do inciso II do art. 2º.</p>
+              </Caput>
+            </Artigo>
+          </Capitulo>
+          <Capitulo id="cap2" >
+            <Rotulo>CAPÍTULO II</Rotulo>
+            <NomeAgrupador>DAS OUTRAS DEFINIÇÕES </NomeAgrupador>
+            <Artigo id="art8" >
+              <Rotulo>Art. 8º</Rotulo>
+              <Caput id="art8_cpt">
+                <p>Os custos e os investimentos necessários à execução do contrato de partilha de
+                  produção serão
+                  integralmente suportados pelo contratado, cabendo-lhe, no caso de
+                  descoberta comercial, a sua
+                  restituição nos termos do inciso II do art. 2º.</p>
+                <Inciso id="art8_cpt_inc1" >
+                  <Rotulo> I - </Rotulo>
+                  <p>xpto;</p>
+                </Inciso>
+              </Caput>
+              <Paragrafo id="art8_par1" >
+                <Rotulo>Parágrafo único.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+              </Paragrafo>
+            </Artigo>
+            <Artigo id="art9" >
+              <Rotulo>Art. 9º</Rotulo>
+              <Caput id="art9_cpt">
+                <p>Os custos e os investimentos necessários à execução do contrato de partilha de
+                  produção serão
+                  integralmente suportados pelo contratado, cabendo-lhe, no caso de
+                  descoberta comercial, a sua
+                  restituição nos termos do inciso II do art. 2º.</p>
+              </Caput>
+              <Paragrafo id="art9_par1" >
+                <Rotulo>Parágrafo 1º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+              </Paragrafo>
+              <Paragrafo id="art9_par2" >
+                <Rotulo>Parágrafo 2º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+              </Paragrafo>
+              <Paragrafo id="art9_par3" >
+                <Rotulo>Parágrafo 3º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+              </Paragrafo>
+              <Paragrafo id="art9_par4" >
+                <Rotulo>Parágrafo 4º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+              </Paragrafo>
+              <Paragrafo id="art9_par5" >
+                <Rotulo>Parágrafo 5º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+              </Paragrafo>
+              <Paragrafo id="art9_par6" >
+                <Rotulo>Parágrafo 6º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+                <Inciso id="art9_par6_inc1" >
+                  <Rotulo> I - </Rotulo>
+                  <p>abcd;</p>
+                  <Alinea id="art9_par6_inc1_ali1" >
+                    <Rotulo> a) </Rotulo>
+                    <p>abcd;</p>
+                    <Item id="art9_par6_inc1_ali1_ite1" >
+                      <Rotulo> 1 - </Rotulo>
+                      <p>abcd;</p>
+                    </Item>
+                    <Item id="art9_par6_inc1_ali1_ite2" >
+                      <Rotulo> 2 - </Rotulo>
+                      <p>abcd;</p>
+                    </Item>
+                  </Alinea>
+                  <Alinea id="art9_par6_inc1_ali2" >
+                    <Rotulo> b) </Rotulo>
+                    <p>abcd;</p>
+                  </Alinea>
+                </Inciso>
+                <Inciso id="art9_par6_inc2" >
+                  <Rotulo> II - </Rotulo>
+                  <p>xpto;</p>
+                </Inciso>
+              </Paragrafo>
+              <Paragrafo id="art9_par7" >
+                <Rotulo>Parágrafo 7º.</Rotulo>
+                <p>Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das
+                  partes ou de seus advogados.</p>
+                <Inciso id="art9_par7_inc1" >
+                  <Rotulo> I - </Rotulo>
+                  <p>abcd;</p>
+                </Inciso>
+                <Inciso id="art9_par7_inc2" >
+                  <Rotulo> II - </Rotulo>
+                  <p>xpto;</p>
+                </Inciso>
+              </Paragrafo>
+            </Artigo>
+          </Capitulo>
+        </Titulo>
+      </Articulacao>
+    </Norma>
+  </ProjetoNorma>
+</LexML>

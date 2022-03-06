@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteLetraParaNumeroArabico, isNumeracaoValida } from './numeracaoUtil';
+import { converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -52,9 +52,29 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
 
       return (
         (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
-        (remaining.length > 0 ? '-' + remaining?.join('-').toUpperCase() : '') +
+        (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
         (parseInt(num ?? '1', 10) > 9 ? '.' : '')
       );
+    }
+
+    getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.artigo.descricao?.toLowerCase() + '';
+      }
+      if (this.informouArtigoUnico) {
+        return 'artigo único';
+      }
+      return this.getNumeroAndSufixoNumeracao();
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.artigo.descricao?.toLowerCase() + '';
+      }
+      if (this.informouArtigoUnico) {
+        return 'artigo único';
+      }
+      return 'art. ' + this.getNumeroAndSufixoNumeracao();
     }
 
     private converteLetraComplementoParaNumero(numeroFromRotulo: string): string {

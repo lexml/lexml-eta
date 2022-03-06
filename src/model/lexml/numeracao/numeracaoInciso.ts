@@ -11,7 +11,7 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     private normalizaNumeracao(numero: string): string {
-      const num = /[CDILMVX]*/.exec(numero);
+      const num = /[CDILMVX]+/.exec(numero);
 
       return num ? num[0] : addSpaceRegex(numero).trim().replace(/-$/, '').trim();
     }
@@ -23,6 +23,20 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
 
     createRotulo(): void {
       this.rotulo = this.numero === undefined ? TipoDispositivo.inciso.name : trataComplemento(this.numero, converteNumeroArabicoParaRomano) + this.SUFIXO;
+    }
+
+    getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
+      }
+      return trataComplemento(this.numero, converteNumeroArabicoParaRomano);
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
+      }
+      return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
     }
   };
 }

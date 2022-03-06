@@ -22,5 +22,19 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
     createRotulo(): void {
       this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : trataComplemento(this.numero) + this.SUFIXO;
     }
+
+    getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.item.descricao?.toLowerCase() + '';
+      }
+      return trataComplemento(this.numero);
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return TipoDispositivo.item.descricao?.toLocaleLowerCase() + '';
+      }
+      return TipoDispositivo.item.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
+    }
   };
 }

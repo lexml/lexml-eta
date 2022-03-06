@@ -32,7 +32,7 @@ describe('Capitulo', () => {
       it('O capitulo comanda a criação e renumeração dos dispositivos imediatamente abaixo dele', () => {
         const artigo = criaDispositivo(capitulo, TipoDispositivo.artigo.tipo);
         capitulo.renumeraFilhos();
-        expect(artigo.numero).to.equal('1');
+        expect(artigo.numero).to.equal('1u');
         expect(artigo.rotulo).to.equal('Artigo único.');
       });
       it('O capitulo delega a renumeração de artigos à Articulação', () => {

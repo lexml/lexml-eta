@@ -3,6 +3,7 @@ import { Hierarquia } from '../../dispositivo/hierarquia';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
+import { buildHref } from '../util/idUtil';
 import { isDispositivoAlteracao } from './hierarquiaUtil';
 
 export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): any {
@@ -54,6 +55,7 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
         .forEach(filho => {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
+          filho.id = buildHref(filho);
         });
     }
   };

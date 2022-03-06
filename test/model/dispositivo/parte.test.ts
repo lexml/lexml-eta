@@ -34,21 +34,8 @@ describe('Parte', () => {
       it('A parte comanda a criação e renumeração dos dispositivos imediatamente abaixo dele', () => {
         const artigo = criaDispositivo(parte, TipoDispositivo.artigo.tipo);
         parte.renumeraFilhos();
-        expect(artigo.numero).to.equal('1');
+        expect(artigo.numero).to.equal('1u');
         expect(artigo.rotulo).to.equal('Artigo único.');
-      });
-      it('A parte comanda a criação e renumeração dos dispositivos agrupadores imediatamente abaixo dele', () => {
-        criaDispositivo(parte, TipoDispositivo.titulo.tipo);
-        const t2 = criaDispositivo(parte, TipoDispositivo.titulo.tipo);
-        parte.renumeraFilhos();
-        expect(t2.numero).to.equal('2');
-      });
-      it('O parte não comanda a renumeração de artigos que não pertençam a ela', () => {
-        criaDispositivo(parte, TipoDispositivo.artigo.tipo);
-        const outraParte = criaDispositivo(articulacao, TipoDispositivo.parte.tipo);
-        const outroArtigo = criaDispositivo(outraParte, TipoDispositivo.artigo.tipo);
-        parte.renumeraFilhos();
-        expect(outroArtigo.rotulo).to.equal('Art. 2º');
       });
       it('A parte pode possuir, como filhos, Livro, Titulo, Capitulo, Secao, DispositivoAgrupadorGenerico, Artigo e DispositivoGenerico', () => {
         criaDispositivo(parte, TipoDispositivo.secao.tipo);

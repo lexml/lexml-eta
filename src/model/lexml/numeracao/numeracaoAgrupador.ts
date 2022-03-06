@@ -48,5 +48,13 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
           : (this.rotulo = prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano));
       }
     }
+
+    getNumeracaoParaComandoEmenda(): string {
+      return this.rotulo + '';
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
+      return this.getNumeracaoParaComandoEmenda();
+    }
   };
 }

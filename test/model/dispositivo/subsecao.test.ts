@@ -29,7 +29,7 @@ describe('Subsecao', () => {
       it('A seção comanda a criação e renumeração dos dispositivos imediatamente abaixo dela', () => {
         const artigo = criaDispositivo(subsecao, TipoDispositivo.artigo.tipo);
         subsecao.renumeraFilhos();
-        expect(artigo.numero).to.equal('1');
+        expect(artigo.numero).to.equal('1u');
       });
       it('O subsecao pode possuir, como filhos, apenas Artigo', () => {
         criaDispositivo(subsecao, TipoDispositivo.subsecao.tipo);
