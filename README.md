@@ -71,19 +71,6 @@ Será aberta uma janela do browser com uma aplicação exemplo que permite testa
 
 Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
 
-## Desenvolvimento
-
-Para rodar um servidor para desenvolvimento, que serve um demo localizado em `demo/index.html`
-
-```
-npm start
-```
-
-Para rodar o servidor em modo de desenvolvimento:
-
-```
-npm run start:watch
-
 ```
 ### Teste
 
