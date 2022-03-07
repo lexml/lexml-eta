@@ -35,8 +35,14 @@ export class EtaKeyboard extends Keyboard {
         return;
       }
 
-      if (this.isTeclaQueAlteraTexto(ev)) {
+      if (!(this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) && this.isTeclaQueAlteraTexto(ev)) {
         this.onChange.notify('keyboard');
+      }
+    });
+
+    this.quill.root.addEventListener('keypress', (ev: KeyboardEvent): void => {
+      if (this.quill.cursorDeTextoEstaSobreLink() && ev.key.length === 1) {
+        cancelarPropagacaoDoEvento(ev);
       }
     });
 
@@ -45,7 +51,17 @@ export class EtaKeyboard extends Keyboard {
         this.altGraphPressionado = true;
       }
 
-      if (ev.ctrlKey) {
+      if (this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) {
+        if (
+          ['Delete', 'Backspace'].includes(ev.key) ||
+          (!ev.ctrlKey && ev.key.length === 1) ||
+          (ev.ctrlKey && 'xvXV'.includes(ev.key)) ||
+          (ev.altKey && '0123456789'.includes(ev.key))
+        ) {
+          cancelarPropagacaoDoEvento(ev);
+          return;
+        }
+      } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
           if (ev.key === 'Home') {
             this.onTeclaHome(ev);

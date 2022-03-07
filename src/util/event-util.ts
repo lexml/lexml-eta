@@ -32,7 +32,7 @@ export function event() {
   };
 }
 
-export function cancelarPropagacaoDoEvento(ev: MouseEvent | KeyboardEvent): void {
+export function cancelarPropagacaoDoEvento(ev: MouseEvent | KeyboardEvent | ClipboardEvent): void {
   ev.stopPropagation();
   ev.preventDefault();
 }

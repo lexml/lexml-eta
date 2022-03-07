@@ -134,10 +134,10 @@ export class EtaQuill extends Quill {
     this.on('text-change', this.onTextChange);
     this.on('selection-change', this.onSelectionChange);
     this.buffer = new EtaQuillBuffer(bufferHtml, {});
-    this.root.addEventListener('dragstart', (e) => {
+    this.root.addEventListener('dragstart', (e: Event) => {
       e.preventDefault();
     });
-    this.root.addEventListener('drop', (e) => {
+    this.root.addEventListener('drop', (e: Event) => {
       e.preventDefault();
     });
   }
@@ -322,7 +322,7 @@ export class EtaQuill extends Quill {
 
   private acertarAspas(): void {
     if (this._linhaAtual) {
-      let index: number = this.inicioConteudoAtual;
+      const index: number = this.inicioConteudoAtual;
       const texto: string = this.getText(index, this.linhaAtual?.blotConteudo.tamanho) ?? '';
       let posicaoTexto = index;
 
@@ -370,5 +370,12 @@ export class EtaQuill extends Quill {
     const etaBoxHeight = lxEtaBox!.getBoundingClientRect().bottom;
 
     return rect.top >= 0 && rect.bottom <= etaBoxHeight;
+  }
+
+  cursorDeTextoEstaSobreLink(deslocamento = 0): boolean {
+    const range: RangeStatic = this.getSelection(true);
+    const ops = this.getContents(range.index + deslocamento, 1).ops;
+    return !ops ? false : ops[0].attributes?.link;
+    // return !!this.getContents(range.index + deslocamento, 1).ops[0].attributes?.link;
   }
 }
