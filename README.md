@@ -2,6 +2,8 @@
 
 <p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas.</p>
 
+[![Integração Contínua](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml)
+
 ## Demo
 
 - https://lexml.github.io/lexml-eta/
