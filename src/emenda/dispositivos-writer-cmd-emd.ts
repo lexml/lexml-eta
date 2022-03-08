@@ -170,10 +170,10 @@ export class DispositivosWriterCmdEmd {
         break;
       }
 
-      if (pai && !isDispositivoRaiz(pai as Dispositivo) && (isAgrupador(pai) || (isArtigo(disp) && localizarArtigoEmAgrupador))) {
+      if (pai && !isDispositivoRaiz(pai as Dispositivo) && (!isAgrupador(pai) || (isArtigo(disp) && localizarArtigoEmAgrupador))) {
         const dispAlteracao = isDispositivoAlteracao(disp);
-        const dispositivoNovoForaDeAlteracao = !dispAlteracao && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
-        const dispositivoNovoEmAlteracao = dispAlteracao && !CmdEmdUtil.isTextoOmitido(disp) && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
+        const dispositivoNovoForaDeAlteracao = !dispAlteracao && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+        const dispositivoNovoEmAlteracao = dispAlteracao && !CmdEmdUtil.isTextoOmitido(disp) && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
         // TODO Tratar diferentes situações na norma vigente
         // && StringUtils
         //         .defaultString(disp.getSituacaoNaNormaVigente())

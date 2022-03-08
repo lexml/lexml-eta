@@ -9,6 +9,7 @@ import { isArtigo } from '../model/dispositivo/tipo';
 import { RangeDispositivos } from './range-dispositivos';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { NomeComGenero } from '../model/dispositivo/genero';
+import { isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 
 export class CmdEmdAdicao extends CmdEmdCombinavel {
   constructor(public dispositivos: Dispositivo[]) {
@@ -144,7 +145,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
   private isInclusaoArtigoInicioAgrupador(artigo: Dispositivo): boolean {
     // Dentro de agrupador de artigo
     const pai = artigo.pai as Dispositivo;
-    if (!isAgrupador(pai)) {
+    if (isDispositivoRaiz(pai) || !isAgrupador(pai)) {
       return false;
     }
 

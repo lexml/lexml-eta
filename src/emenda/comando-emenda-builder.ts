@@ -24,6 +24,10 @@ export class ComandoEmendaBuilder {
     const list = this.getDispositivosRepresentativosDeCadaComando(dispositivosEmenda);
     list.sort(DispositivoComparator.compare);
 
+    if (!list.length) {
+      return [new ItemComandoEmenda('', '')];
+    }
+
     const refGenericaProjeto = getRefGenericaProjeto(this.urn);
 
     list.forEach(d => {

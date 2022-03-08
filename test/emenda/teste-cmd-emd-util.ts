@@ -1,11 +1,13 @@
 import { expect } from '@open-wc/testing';
 
-import { Artigo } from '../../src/model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
+import { isAgrupador } from '../../src/model/dispositivo/tipo';
 import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElementoAction';
 import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
 import { State } from '../../src/redux/state';
+import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
 
 export class TesteCmdEmdUtil {
   // protected Dispositivo getDispositivo(final String id) {
@@ -62,27 +64,41 @@ export class TesteCmdEmdUtil {
     return this.incluiArtigo(state, idArtigoRef, false);
   }
 
-  // protected Dispositivo incluiArtigoAntes(final String idArtigoRef) {
-  //     return incluiArtigo(idArtigoRef, true);
-  // }
+  static incluiArtigoAntes(state: State, idArtigoRef: string): Artigo {
+    return this.incluiArtigo(state, idArtigoRef, true);
+  }
 
   static incluiArtigo(state: State, idArtigoRef: string, antes: boolean): Artigo {
     const artigoRef = buscaDispositivoById(state.articulacao!, idArtigoRef);
+    let dispRef = artigoRef;
     // console.log(artigoRef?.rotulo);
-    if (!artigoRef) {
-      throw new Error(`Dispositivo ${idArtigoRef} não encontrado!`);
-    }
+    expect(artigoRef, `Dispositivo ${idArtigoRef} não encontrado!`).not.to.be.undefined;
     if (antes) {
-      throw new Error('Inclusão de artigo antes não implementada!');
+      const pai = artigoRef!.pai!;
+      if (!isDispositivoRaiz(pai) && isAgrupador(pai) && pai.filhos[0] === artigoRef) {
+        dispRef = pai;
+      } else {
+        dispRef = getDispositivoAnteriorMesmoTipo(artigoRef!);
+        expect(dispRef, `Dispositivo anterior ao ${idArtigoRef} não encontrado!`).not.to.be.undefined;
+      }
     }
     state = adicionaElemento(state, {
       type: ADICIONAR_ELEMENTO,
-      atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigoRef?.uuid },
+      atual: { tipo: TipoDispositivo.artigo.tipo, uuid: dispRef?.uuid },
       novo: { tipo: TipoDispositivo.artigo.tipo },
     });
-    const d = getDispositivoPosteriorMesmoTipo(artigoRef);
+    let d: Dispositivo | undefined;
+    if (antes) {
+      if (dispRef === artigoRef!.pai) {
+        d = dispRef?.filhos[0];
+      } else {
+        d = getDispositivoAnteriorMesmoTipo(artigoRef!);
+      }
+    } else {
+      d = getDispositivoPosteriorMesmoTipo(artigoRef!);
+    }
     // console.log(d?.rotulo);
-    expect(d, `Falha na inserção do artigo após ${idArtigoRef}`).to.not.be.undefined;
+    expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idArtigoRef}`).to.not.be.undefined;
     return d!;
   }
 

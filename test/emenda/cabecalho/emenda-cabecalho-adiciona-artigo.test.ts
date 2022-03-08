@@ -15,7 +15,6 @@ const state: State = new DefaultState();
 describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
   beforeEach(function () {
     documento = buildProjetoNormaFromJsonix(PLC_ARTIGOS_AGRUPADOS, true);
-    documento.articulacao?.renumeraArtigos();
     state.articulacao = documento.articulacao;
   });
 
@@ -54,6 +53,91 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A a 1º-C e 5º-A ao Projeto, com a seguinte redação:');
+  });
+
+  it('Inclusão de duas sequências de artigo', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A a 1º-C e 5º-A a 5º-C ao Projeto, com a seguinte redação:');
+  });
+
+  it('Inclusão de artigo no final do projeto', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art9');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 10 ao Projeto, com a seguinte redação:');
+  });
+
+  it('Inclusão de dois artigos ao final do projeto', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art9');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art10');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 10 e 11 ao Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoArtigoInicioCapitulo', () => {
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 7º-A ao Capítulo II do Título I do Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoDoisArtigosInicioCapitulo', () => {
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8');
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 7º-A e 7º-B ao Capítulo II do Título I do Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoArtigoFimCapitulo', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art7');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 7º-A ao Capítulo I do Título I do Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoDoisArtigosFimCapitulo', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art7');
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art7');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 7º-A e 7º-B ao Capítulo I do Título I do Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoArtigosEmDiferentesCapitulos', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art7');
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se art. 7º-A ao Capítulo I do Título I e art. 7º-B ao Capítulo II do Título I do Projeto, com a seguinte redação:');
+  });
+
+  // TODO - Consertar inclusão de artigo após artigo com filhos.
+  it('acrescimoArtigoAntesPrimeiroAgrupador', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 3º-A antes do Título I do Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoArtigosAntesEDepoisPrimeiroAgrupador', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art3');
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art4');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se art. 3º-A antes do Título I e art. 3º-B ao Capítulo I do Título I do Projeto, com a seguinte redação:');
+  });
+
+  it('acrescimoArtigosEmDiferentesAgrupadoresRemovendoAmbiguidade', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1'); // Sem agrupador
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art4'); // no Capítulo I
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art4'); // no Capítulo I
+    TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8'); // no Capítulo II
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se art. 1º-A antes do Título I,' +
+        ' arts. 3º-A e 4º-A ao Capítulo I do Título I' +
+        ' e art. 7º-A ao Capítulo II do Título I do Projeto,' +
+        ' com a seguinte redação:'
+    );
   });
 
   // describe('Supressão de um artigo', () => {

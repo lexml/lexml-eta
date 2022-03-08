@@ -46,14 +46,14 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       }
     }
 
-    private getNumeroAndSufixoNumeracao(): string {
+    private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
 
       return (
         (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
         (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
-        (parseInt(num ?? '1', 10) > 9 ? '.' : '')
+        (!paraComandoEmenda && parseInt(num ?? '1', 10) > 9? '.' : '')
       );
     }
 
@@ -64,7 +64,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       if (this.informouArtigoUnico) {
         return 'artigo único';
       }
-      return this.getNumeroAndSufixoNumeracao();
+      return this.getNumeroAndSufixoNumeracao(true);
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
