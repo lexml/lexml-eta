@@ -1,7 +1,9 @@
+import { isDispositivoRaiz } from './../hierarquia/hierarquiaUtil';
+import { removeEspacosDuplicados, StringBuilder } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
-import { converteNumeroArabicoParaRomano, isNumeracaoValida, trataComplemento } from './numeracaoUtil';
+import { converteNumeroArabicoParaRomano, isNumeracaoValida, trataComplemento, isRomano, converteNumeroRomanoParaArabico } from './numeracaoUtil';
 
 export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -13,23 +15,28 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       return `${dispositivo.descricao} únic${dispositivo.artigoDefinido}`.toLocaleUpperCase();
     }
 
-    private normalizaNumeracao(numero: string): string {
-      return numero
-        .replace(/\./g, '')
-        .replace(/parte [uú]nica/i, '1')
-        .replace(/livro [uú]nico/i, '1')
-        .replace(/t[íi]tulo [uú]nico/i, '1')
-        .replace(/cap[íi]tulo [uú]nico/i, '1')
-        .replace(/se[çc][ãa]o [uú]nica/i, '1')
-        .replace(/subse[çc][ãa]o [uú]nica/i, '1')
-        .replace(/[º]/i, '')
-        .trim();
+    private normalizaNumeracao(rotulo: string): string {
+      const partes = rotulo.trim().split(/\s+/);
+      if (partes.length !== 2) {
+        return '';
+      }
+      const numeroRotulo = partes[1];
+      const partesRotulo = numeroRotulo.split('-');
+      if (!isRomano(partesRotulo[0])) {
+        return '';
+      }
+      partesRotulo[0] = converteNumeroRomanoParaArabico(partesRotulo[0]);
+      return partesRotulo.join('-');
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      const temp = this.normalizaNumeracao(rotulo!);
       this.informouAgrupadorUnico = /.*[uú]nic[ao]/i.test(rotulo);
-      this.numero = this.informouAgrupadorUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
+      if (this.informouAgrupadorUnico) {
+        this.numero = '1';
+      } else {
+        const temp = this.normalizaNumeracao(rotulo!);
+        this.numero = this.informouAgrupadorUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
+      }
     }
 
     createRotulo(dispositivo: Dispositivo): void {
@@ -50,7 +57,19 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     getNumeracaoParaComandoEmenda(): string {
-      return this.rotulo + '';
+      const sb = new StringBuilder();
+
+      const numero = this.numero ? trataComplemento(this.numero!, converteNumeroArabicoParaRomano) : '???';
+      sb.append(this.descricao + ' ' + numero);
+
+      const pai = this.pai as Dispositivo;
+      if (!!pai && !isDispositivoRaiz(pai)) {
+        sb.append(pai.pronomePossessivoSingular);
+        sb.append(' ');
+        sb.append(pai.getNumeracaoParaComandoEmenda());
+      }
+
+      return removeEspacosDuplicados(sb.toString());
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

@@ -657,6 +657,43 @@ export const PLC_ARTIGOS_AGRUPADOS = {
             {
               name: {
                 namespaceURI: 'http://www.lexml.gov.br/1.0',
+                localPart: 'Artigo',
+                prefix: '',
+                key: '{http://www.lexml.gov.br/1.0}Artigo',
+                string: '{http://www.lexml.gov.br/1.0}Artigo',
+              },
+              value: {
+                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                id: 'art3',
+                rotulo: 'Art. 3º',
+                lXcontainersOmissis: [
+                  {
+                    name: {
+                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                      localPart: 'Caput',
+                      prefix: '',
+                      key: '{http://www.lexml.gov.br/1.0}Caput',
+                      string: '{http://www.lexml.gov.br/1.0}Caput',
+                    },
+                    value: {
+                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                      id: 'art3_cpt',
+                      p: [
+                        {
+                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                          content: [
+                            'A exploração e a produção de petróleo, de gás natural e de outros hidrocarbonetos fluidos na área do pré-sal e em áreas estratégicas serão contratadas pela União no regime de partilha de produção, na forma desta Lei.',
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              name: {
+                namespaceURI: 'http://www.lexml.gov.br/1.0',
                 localPart: 'Titulo',
                 prefix: '',
                 key: '{http://www.lexml.gov.br/1.0}Titulo',
@@ -688,43 +725,6 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                         content: ['DAS DEFINIÇÕES TÉCNICAS '],
                       },
                       lXhier: [
-                        {
-                          name: {
-                            namespaceURI: 'http://www.lexml.gov.br/1.0',
-                            localPart: 'Artigo',
-                            prefix: '',
-                            key: '{http://www.lexml.gov.br/1.0}Artigo',
-                            string: '{http://www.lexml.gov.br/1.0}Artigo',
-                          },
-                          value: {
-                            TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                            id: 'art3',
-                            rotulo: 'Art. 3º',
-                            lXcontainersOmissis: [
-                              {
-                                name: {
-                                  namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                  localPart: 'Caput',
-                                  prefix: '',
-                                  key: '{http://www.lexml.gov.br/1.0}Caput',
-                                  string: '{http://www.lexml.gov.br/1.0}Caput',
-                                },
-                                value: {
-                                  TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                  id: 'art3_cpt',
-                                  p: [
-                                    {
-                                      TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'A exploração e a produção de petróleo, de gás natural e de outros hidrocarbonetos fluidos na área do pré-sal e em áreas estratégicas serão contratadas pela União no regime de partilha de produção, na forma desta Lei.',
-                                      ],
-                                    },
-                                  ],
-                                },
-                              },
-                            ],
-                          },
-                        },
                         {
                           name: {
                             namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -1055,9 +1055,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                 },
@@ -1114,9 +1112,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                 },
@@ -1136,9 +1132,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                 },
@@ -1158,9 +1152,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                 },
@@ -1180,9 +1172,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                 },
@@ -1202,9 +1192,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                 },
@@ -1224,9 +1212,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                   lXcontainersOmissis: [
@@ -1372,9 +1358,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: [
-                                        'Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.',
-                                      ],
+                                      content: ['Nas hipóteses previstas neste Código e nas demais leis, pode ser autorizada somente a presença das partes ou de seus advogados.'],
                                     },
                                   ],
                                   lXcontainersOmissis: [
