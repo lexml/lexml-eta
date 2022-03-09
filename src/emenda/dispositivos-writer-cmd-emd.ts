@@ -5,7 +5,7 @@ import { Genero } from '../model/dispositivo/genero';
 import { isAgrupador, isArtigo, isOmissis, isParagrafo } from '../model/dispositivo/tipo';
 import { isDispositivoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
-import { StringBuilder } from '../util/string-util';
+import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { generoMasculino } from './../model/dispositivo/genero';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { CmdEmdUtil } from './comando-emenda-util';
@@ -56,7 +56,7 @@ export class DispositivosWriterCmdEmd {
       posSequencia++;
     }
 
-    return sb.toString();
+    return removeEspacosDuplicados(sb.toString());
   }
 
   private getReferenciaCaputDoDispositivo(sequencia: SequenciaRangeDispositivos): string {

@@ -6,7 +6,9 @@ import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElemento
 import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
+import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
+import { transformarArtigoEmParagrafo, transformarIncisoParagrafoEmParagrafo } from './../../src/model/lexml/acao/transformarElementoAction';
 import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
 
 export class TesteCmdEmdUtil {
@@ -102,9 +104,9 @@ export class TesteCmdEmdUtil {
     return d!;
   }
 
-  // protected Dispositivo incluiParagrafo(final String idDispRef, final boolean antes) {
-  //     return incluiDispositivo(idDispRef, antes, "Paragrafo", Artigo.class);
-  // }
+  static incluiParagrafo(state: State, idDispRef: string, antes: boolean, expectedId: string): Dispositivo {
+    return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.paragrafo.tipo, expectedId);
+  }
 
   // protected Dispositivo incluiInciso(final String idDispRef, final boolean antes) {
   //     return incluiDispositivo(idDispRef, antes, "Inciso", Caput.class, Paragrafo.class);
@@ -123,31 +125,42 @@ export class TesteCmdEmdUtil {
   //     new ComandoIncluirDispositivo(emenda, "Omissis", dispRef, antes ? Atalho.ANTES : Atalho.DEPOIS).executa();
   // }
 
-  // private Dispositivo incluiDispositivo(final String idDispRef, final boolean antes, final String nomeBean,
-  //                                       final Class< ? extends TipoDispositivo>... tiposDispositivoPai) {
-  //     Dispositivo dispRef = ArvoreDispositivosUtil.getDispositivoById(raiz, idDispRef);
-  //     Dispositivo novo = dispRef.getParteProposicao().getTipo().getDispositivo(nomeBean);
-  //     novo.setSituacao(new DispositivoNovoDefaultImpl());
-  //     novo.setParteProposicao(dispRef.getParteProposicao());
-  //     if (isAlgumTipo(dispRef, tiposDispositivoPai)) {
-  //         dispRef.adicionaFilho(novo);
-  //     }
-  //     else if (dispRef.isDoMesmoTipo(novo)) {
-  //         Dispositivo pai = dispRef.getPai();
-  //         if (antes) {
-  //             pai.adicionaFilho(novo, pai.getIndexDoFilho(dispRef));
-  //         }
-  //         else {
-  //             pai.adicionaFilho(novo, pai.getIndexDoFilho(dispRef) + 1);
-  //         }
-  //     }
-  //     else {
-  //         throw new RuntimeException("Dispositivo " + idDispRef + " é inválido para posicionar " + nomeBean);
-  //     }
-  //     emenda.addDispositivo(novo);
-
-  //     return novo;
-  // }
+  static incluiDispositivo(state: State, idDispRef: string, antes: boolean, tipo: string, expectedId: string): Dispositivo {
+    const dispRef = buscaDispositivoById(state.articulacao!, idDispRef);
+    // let dispRef = artigoRef;
+    // console.log(artigoRef?.rotulo);
+    // expect(artigoRef, `Dispositivo ${idArtigoRef} não encontrado!`).not.to.be.undefined;
+    if (antes) {
+      throw Error('Inclusão de dispositivo antes ainda não implementada.');
+      // const pai = artigoRef!.pai!;
+      // if (!isDispositivoRaiz(pai) && isAgrupador(pai) && pai.filhos[0] === artigoRef) {
+      //   dispRef = pai;
+      // } else {
+      //   dispRef = getDispositivoAnteriorMesmoTipo(artigoRef!);
+      //   expect(dispRef, `Dispositivo anterior ao ${idArtigoRef} não encontrado!`).not.to.be.undefined;
+      // }
+    }
+    state = adicionaElemento(state, {
+      type: ADICIONAR_ELEMENTO,
+      atual: { tipo: dispRef!.tipo, uuid: dispRef!.uuid },
+      novo: { tipo: tipo },
+    });
+    const elementoIncluido = state.present![0].elementos![0];
+    if (elementoIncluido.tipo !== tipo) {
+      if (tipo === TipoDispositivo.paragrafo.tipo) {
+        if (elementoIncluido.tipo === TipoDispositivo.artigo.tipo) {
+          const action = transformarArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action);
+        } else if (elementoIncluido.tipo === TipoDispositivo.inciso.tipo) {
+          const action = transformarIncisoParagrafoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action);
+        }
+      }
+    }
+    const d = buscaDispositivoById(state.articulacao!, expectedId);
+    expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idDispRef}. Dispositivo com id ${expectedId} não encontrado.`).to.not.be.undefined;
+    return d!;
+  }
 
   // private boolean isAlgumTipo(final Dispositivo disp, final Class< ? extends TipoDispositivo>... tipos) {
   //     for (Class< ? extends TipoDispositivo> tipo : tipos) {
