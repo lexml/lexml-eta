@@ -1,7 +1,7 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { buildHtmlLink } from '../../../model/lexml/documento/urnUtil';
+import { buildHtmlLink, getNomeExtensoComDataExtenso } from '../../../model/lexml/documento/urnUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -13,18 +13,29 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
 
   const urnNova = action.atual.norma;
   const urnAnterior = dispositivo?.alteracoes!.base || '';
-
-  if (dispositivo === undefined || !dispositivo.alteracoes || urnAnterior === urnNova) {
+  const regex = new RegExp(`<a.+href=.${urnAnterior}.*?>.*?</a>`, 'ig');
+  const normaExtenso = getNomeExtensoComDataExtenso(urnNova)
+  
+  if (dispositivo === undefined ||
+      !dispositivo.alteracoes ||
+      urnAnterior === urnNova && dispositivo.texto.match(regex) ||
+      urnAnterior === urnNova && !dispositivo.texto.includes(normaExtenso)) {
     state.ui = [];
     return state;
+  }
+  
+  const normaLink = buildHtmlLink(urnNova)
+  
+  if (dispositivo.texto.match(regex)) {
+    dispositivo.texto = dispositivo.texto.replace(regex, normaLink);
+  }
+  else if (dispositivo.texto.includes(normaExtenso)) {
+    dispositivo.texto = dispositivo.texto.replace(normaExtenso, normaLink);
   }
 
   const original = createElemento(dispositivo);
 
   dispositivo.alteracoes!.base = urnNova;
-
-  const regex = new RegExp(`<a.+href=.${urnAnterior}.*?>.*?</a>`, 'ig');
-  dispositivo.texto = dispositivo.texto.replace(regex, buildHtmlLink(urnNova));
 
   if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
     dispositivo.situacao = new DispositivoModificado(original);
