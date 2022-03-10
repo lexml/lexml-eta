@@ -8,7 +8,7 @@ import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
 import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
-import { transformarArtigoEmParagrafo, transformarIncisoParagrafoEmParagrafo } from './../../src/model/lexml/acao/transformarElementoAction';
+import { transformarArtigoEmParagrafo, transformarIncisoParagrafoEmParagrafo, transformarParagrafoEmIncisoCaput } from './../../src/model/lexml/acao/transformarElementoAction';
 import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
 
 export class TesteCmdEmdUtil {
@@ -108,17 +108,17 @@ export class TesteCmdEmdUtil {
     return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.paragrafo.tipo, expectedId);
   }
 
-  // protected Dispositivo incluiInciso(final String idDispRef, final boolean antes) {
-  //     return incluiDispositivo(idDispRef, antes, "Inciso", Caput.class, Paragrafo.class);
-  // }
+  static incluiInciso(state: State, idDispRef: string, antes: boolean, expectedId: string): Dispositivo {
+    return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.inciso.tipo, expectedId);
+  }
 
-  // protected Dispositivo incluiAlinea(final String idDispRef, final boolean antes) {
-  //     return incluiDispositivo(idDispRef, antes, "Alinea", Inciso.class);
-  // }
+  static incluiAlinea(state: State, idDispRef: string, antes: boolean, expectedId: string): Dispositivo {
+    return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.alinea.tipo, expectedId);
+  }
 
-  // protected Dispositivo incluiItem(final String idDispRef, final boolean antes) {
-  //     return incluiDispositivo(idDispRef, antes, "Item", Alinea.class);
-  // }
+  static incluiItem(state: State, idDispRef: string, antes: boolean, expectedId: string): Dispositivo {
+    return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.item.tipo, expectedId);
+  }
 
   // protected void incluiOmissis(final String idDispRef, final boolean antes) {
   //     DispositivoModel dispRef = (DispositivoModel) ArvoreDispositivosUtil.getDispositivoById(raiz, idDispRef);
@@ -154,6 +154,13 @@ export class TesteCmdEmdUtil {
         } else if (elementoIncluido.tipo === TipoDispositivo.inciso.tipo) {
           const action = transformarIncisoParagrafoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: elementoIncluido.uuid! });
           state = transformaTipoElemento(state, action);
+        }
+      } else if (tipo === TipoDispositivo.inciso.tipo) {
+        if (elementoIncluido.tipo === TipoDispositivo.artigo.tipo) {
+          const action1 = transformarArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action1);
+          const action2 = transformarParagrafoEmIncisoCaput.execute({ tipo: TipoDispositivo.paragafo.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action2);
         }
       }
     }
