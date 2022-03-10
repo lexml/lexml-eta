@@ -1,9 +1,10 @@
 import { customElement, LitElement, property, PropertyValues } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 
 @customElement('lexml-emenda-comando')
 export class ComandoEmendaComponent extends LitElement {
-  @property({ type: Object }) emenda = {};
+  @property({ type: Object }) emenda;
 
   createRenderRoot(): LitElement {
     return this;
@@ -13,18 +14,33 @@ export class ComandoEmendaComponent extends LitElement {
     super.update(changedProperties);
   }
 
+  buildTemplateComando(comandos: any[]): TemplateResult {
+    const res = comandos?.reduce((acumulador, comando) => acumulador + `<p> ${comando.cabecalho} </p>`, '');
+    return html`${res}`;
+  }
+
+  buildTemplateCitacao(citacao: any): string {
+    const corpo = citacao
+      .replace(/^<Citacao>/, '')
+      .replace(/$<\/Citacao>/, '')
+      .replaceAll('<Citacao>', '<div style="padding-left: 20px">')
+      .replaceAll('</Citacao>', '</div>')
+      .replaceAll('<Rotulo>', '<b>')
+      .replaceAll('</Rotulo>', '</b> ')
+      .replaceAll('<Omissis />', ' .........................................................................................................');
+
+    return corpo;
+  }
+
   render(): TemplateResult {
     return html`
       <style>
-        #gtx-trans {
-          display: none;
-        }
-
         lexml-emenda-comando {
           display: block;
+          border: 1px solid #ccc;
           height: 100%;
-          margin: 10px;
-          padding: 10px;
+          padding: 0 10px;
+          margin: 0px 5px;
         }
 
         lexml-emenda-comando:focus {
@@ -35,25 +51,45 @@ export class ComandoEmendaComponent extends LitElement {
         }
 
         .lexml-emenda-tituloComando {
-          font-size: 16px;
+          margin: 0;
+          padding: 3px 10px 3px 10px;
+          text-align: center;
+          font-weight: bold;
         }
 
         .lexml-emenda-corpoComando {
           font-size: 14px;
-          padding: 20px;
         }
 
         .lexml-emenda-cabecalhoComando {
+          padding-left: 20px;
         }
 
         .lexml-emenda-citacaoComando {
+          padding-left: 40px;
+        }
+
+        p {
+          text-align: justify;
         }
       </style>
 
       <section class="lexml-emenda-comando">
-        <h1 class="lexml-emenda-tituloComando">Comando de emenda</h1>
-        <div class="lexml-emenda-corpoComando lexml-emenda-cabecalhoComando">Cabeçalho do comando de emenda</div>
-        <div class="lexml-emenda-corpoComando lexml-emenda-citacaoComando">Citação do comando de emenda</div>
+        <p class="lexml-emenda-tituloComando">Comando de emenda</p>
+        <p>${(this.emenda as any)?.comandoEmenda?.cabecalhoComum}</p>
+
+        ${(this.emenda as any)?.comandoEmenda?.map(comando => {
+          return html`
+            ${unsafeHTML(
+              '<div class="lexml-emenda-cabecalhoComando">' +
+                comando.cabecalho +
+                '</div>' +
+                '<div class="lexml-emenda-corpoComando lexml-emenda-citacaoComando">' +
+                this.buildTemplateCitacao(comando.citacao) +
+                '</div>'
+            )}
+          `;
+        })}
       </section>
     `;
   }

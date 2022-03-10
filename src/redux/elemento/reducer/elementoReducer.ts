@@ -4,6 +4,7 @@ import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoA
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
 import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acao/elementoSelecionadoAction';
+import { GERAR_COMANDO_EMENDA } from '../../../model/lexml/acao/gerarComandoEmendaAction';
 import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
@@ -26,6 +27,7 @@ import { agrupaElemento } from './agrupaElemento';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
+import { geraComandoEmenda } from './geraComandoEmenda';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
@@ -60,6 +62,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return transformaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:
       return selecionaElemento(state, action);
+    case GERAR_COMANDO_EMENDA:
+      return geraComandoEmenda(state, action);
     case INFORMAR_NORMA:
       return solicitaNorma(state, action);
     case MOVER_ELEMENTO_ABAIXO:
