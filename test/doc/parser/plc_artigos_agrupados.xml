@@ -142,23 +142,23 @@
             </Inciso>
           </Caput>
         </Artigo>
+        <Artigo id="art3" >
+          <Rotulo>Art. 3º</Rotulo>
+          <Caput id="art3_cpt">
+            <p>A exploração e a produção de petróleo, de gás natural e de outros hidrocarbonetos fluidos na
+              área
+              do
+              pré-sal e em áreas estratégicas serão contratadas pela União no regime de partilha de
+              produção, na
+              forma desta Lei.</p>
+          </Caput>
+        </Artigo>
         <Titulo id="tit1" >
           <Rotulo>TÍTULO I</Rotulo>
           <NomeAgrupador>DAS DEFINIÇÕES...</NomeAgrupador>
           <Capitulo id="cap1" >
             <Rotulo>CAPÍTULO I</Rotulo>
             <NomeAgrupador>DAS DEFINIÇÕES TÉCNICAS </NomeAgrupador>
-            <Artigo id="art3" >
-              <Rotulo>Art. 3º</Rotulo>
-              <Caput id="art3_cpt">
-                <p>A exploração e a produção de petróleo, de gás natural e de outros hidrocarbonetos fluidos na
-                  área
-                  do
-                  pré-sal e em áreas estratégicas serão contratadas pela União no regime de partilha de
-                  produção, na
-                  forma desta Lei.</p>
-              </Caput>
-            </Artigo>
             <Artigo id="art4" >
               <Rotulo>Art. 4º</Rotulo>
               <Caput id="art4_cpt">

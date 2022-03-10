@@ -5,7 +5,7 @@ import { Genero } from '../model/dispositivo/genero';
 import { isAgrupador, isArtigo, isOmissis, isParagrafo } from '../model/dispositivo/tipo';
 import { isDispositivoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
-import { StringBuilder } from '../util/string-util';
+import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { generoMasculino } from './../model/dispositivo/genero';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { CmdEmdUtil } from './comando-emenda-util';
@@ -56,7 +56,7 @@ export class DispositivosWriterCmdEmd {
       posSequencia++;
     }
 
-    return sb.toString();
+    return removeEspacosDuplicados(sb.toString());
   }
 
   private getReferenciaCaputDoDispositivo(sequencia: SequenciaRangeDispositivos): string {
@@ -170,10 +170,10 @@ export class DispositivosWriterCmdEmd {
         break;
       }
 
-      if (pai && !isDispositivoRaiz(pai as Dispositivo) && (isAgrupador(pai) || (isArtigo(disp) && localizarArtigoEmAgrupador))) {
+      if (pai && !isDispositivoRaiz(pai as Dispositivo) && (!isAgrupador(pai) || (isArtigo(disp) && localizarArtigoEmAgrupador))) {
         const dispAlteracao = isDispositivoAlteracao(disp);
-        const dispositivoNovoForaDeAlteracao = !dispAlteracao && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
-        const dispositivoNovoEmAlteracao = dispAlteracao && !CmdEmdUtil.isTextoOmitido(disp) && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
+        const dispositivoNovoForaDeAlteracao = !dispAlteracao && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+        const dispositivoNovoEmAlteracao = dispAlteracao && !CmdEmdUtil.isTextoOmitido(disp) && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
         // TODO Tratar diferentes situações na norma vigente
         // && StringUtils
         //         .defaultString(disp.getSituacaoNaNormaVigente())

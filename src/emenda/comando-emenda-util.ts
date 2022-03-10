@@ -178,12 +178,12 @@ export class CmdEmdUtil {
     return qtdRanges > 1 || sequencia.getPrimeiroRange().getQuantidadeDispositivos() > 1;
   }
 
-  static getProximoAgrupador(disp: Dispositivo): Dispositivo {
+  static getProximoAgrupador(disp: Dispositivo): Dispositivo | undefined {
     let ret: Dispositivo | undefined = disp;
     do {
       ret = getDispositivoPosterior(ret as Dispositivo);
-    } while (disp && !isAgrupador(disp));
-    return disp;
+    } while (ret && !isAgrupador(ret));
+    return ret;
   }
 
   static getDispositivoIrmaoPosterior(dispositivo: Dispositivo): Dispositivo | undefined {
