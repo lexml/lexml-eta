@@ -40,7 +40,6 @@
       import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
       import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
       import { PLC_ARTIGOS_AGRUPADOS } from '../out-tsc/demo/doc/plc_artigos_agrupados.js';
-      import { EXEMPLO_EMENDA } from '../out-tsc/demo/doc/exemploEmenda.js';
 
       const mapProjetosNormas = {
         novo: {},
@@ -98,9 +97,11 @@
         onChange(e) {
           console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
 
-          this.modo === 'emenda' && this.querySelector('#lexml-eta').geraEmenda();
+          if (this.modo === 'emenda') {
+            const emenda = this.querySelector('lexml-eta').getEmenda();
+            this.querySelector('lexml-emenda-comando').emenda = emenda;
+          }
         }
-
         render() {
           return html`
               <style>
@@ -136,6 +137,13 @@
                   -webkit-box-shadow: 0px;
                   box-shadow: none;
                 }
+                .wrapper {
+                  display: grid;
+                  grid-template-columns: ${this.modo === 'emenda' ? '2fr 1fr' : '1fr 0'};
+                }
+                #comandoEmenda {
+                  display: ${this.modo === 'emenda' ? 'block' : 'none'};
+                }
               </style>
               <div class="lexml-eta-main-header">
                 <div class="lexml-eta-main-header--title">
@@ -159,14 +167,18 @@
                   <input type="button" value="Ok" @click=${this.executar}></input>
                 </div>
               </div>
-              <div>
-                <lexml-eta
-                      id="lexml-eta"
-                      @onchange=${this.onChange}
-                      modo=${this.modo}
-                      projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}
-                      emenda="${JSON.stringify(EXEMPLO_EMENDA)}">
-                </lexml-eta>
+              <div class="wrapper">
+                <div>
+                  <lexml-eta
+                    id="lexmlEta"
+                    @onchange=${this.onChange}
+                    modo=${this.modo}
+                    projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}>
+                  </lexml-eta>
+                </div>
+                <div id="comandoEmenda">
+                  <lexml-emenda-comando></lexml-emenda-comando>
+                </div>
               </div>
             `;
         }
