@@ -109,6 +109,11 @@ Este componente segue as recomendações do [open-wc](https://github.com/open-wc
 - [Redux](https://redux.js.org/)
 
 
+## Patrocínio
+
+- Câmara dos Deputados
+- Senado Federal
+
 ## Contribua com o projeto
 O projeto está apenas iniciando. Toda ajuda é bem-vinda!
 
