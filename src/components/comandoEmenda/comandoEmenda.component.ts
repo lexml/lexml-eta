@@ -69,7 +69,7 @@ export class ComandoEmendaComponent extends LitElement {
           padding-left: 40px;
         }
 
-        p {
+        lexml-emenda-citacaoComando p {
           text-align: justify;
         }
       </style>
