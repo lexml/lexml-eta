@@ -114,22 +114,33 @@
                   height: 1.5rem;
                 }
                 .lexml-eta-main-header span {
+                  vertical-align: middle;
+                  font-family: sans-serif;
                   font-size: 1.2rem;
                   font-weight: bold;
                 }
+                .lexml-eta-btn--demo {
+                  text-align: center;
+                  color: white;
+                  border-radius: 8px;
+                  background: red;
+                  width: 4rem;
+                  height: 1.5rem;
+                }
+
                 lexml-eta {
                   display: block;
-                  padding: 0px;
                   height: calc(100vh - 80px);
                   outline: 0;
-                  border: 0px solid black;
+                  border: 0;
                   -webkit-box-shadow: 0px;
                   box-shadow: none;
                 }
               </style>
               <div class="lexml-eta-main-header">
                 <div class="lexml-eta-main-header--title">
-                  <span>ETA - Editor de Texto Articulados</span>
+                  <span>ETA - Editor de Textos Articulados </span>
+                  <input type="button" class="lexml-eta-btn--demo" title="Aplicação exemplo" value="Demo"></input>
                 </div>
                 <div class="lexml-eta-main-header--selecao">
                   <select id="projetoNorma" @change=${this.onChangeDocumento}>
@@ -149,7 +160,7 @@
                 </div>
               </div>
               <div>
-                <lexml-eta style="padding-rigtht: 5px;"
+                <lexml-eta
                       id="lexml-eta"
                       @onchange=${this.onChange}
                       modo=${this.modo}
