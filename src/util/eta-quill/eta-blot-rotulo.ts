@@ -36,7 +36,7 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   private static criarAtributoStyle(elemento: Elemento): string {
-    let style = elemento.tipo === 'Articulacao' ? 'color: #4a4a4a; line-height: 0.42;' : 'color: #4a4a4a; line-height: 1.42;';
+    let style = elemento.tipo === 'Articulacao' ? 'color: #373634; font-weight: 600; line-height: 0.42;' : 'color: #373634; font-weight: 600; line-height: 1.42;';
 
     if (elemento.agrupador) {
       style = `${style} display: block; font-size: 1rem; text-align: center;`;

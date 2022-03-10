@@ -133,11 +133,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
 
         #lx-eta-editor .ql-editor {
-          font-family: Arial, sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji',
-            'Segoe UI Symbol', 'Noto Color Emoji';
+          font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji';
           font-size: 1rem;
           line-height: 1.42;
-          color: #9d9d9d;
+          color: #646260;
           text-transform: none !important;
           padding: 5px;
         }
