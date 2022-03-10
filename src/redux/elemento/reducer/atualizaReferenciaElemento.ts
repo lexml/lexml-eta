@@ -18,19 +18,23 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
   
   if (dispositivo === undefined ||
       !dispositivo.alteracoes ||
-      urnAnterior === urnNova && dispositivo.texto.match(regex) ||
-      urnAnterior === urnNova && !dispositivo.texto.includes(normaExtenso)) {
+      urnAnterior === urnNova && dispositivo.texto.match(regex)) {
     state.ui = [];
     return state;
   }
   
   const normaLink = buildHtmlLink(urnNova)
+  const textoDispositivo = dispositivo.texto
   
   if (dispositivo.texto.match(regex)) {
-    dispositivo.texto = dispositivo.texto.replace(regex, normaLink);
+    dispositivo.texto = textoDispositivo.replace(regex, normaLink);
   }
   else if (dispositivo.texto.includes(normaExtenso)) {
-    dispositivo.texto = dispositivo.texto.replace(normaExtenso, normaLink);
+    dispositivo.texto = textoDispositivo.replace(normaExtenso, normaLink);
+  } else {
+    const index = parseInt(localStorage.indexCursor);
+    dispositivo.texto = [textoDispositivo.slice(0, index), normaLink, textoDispositivo.slice(index)].join(' ');
+    localStorage.removeItem('indexCursor');
   }
 
   const original = createElemento(dispositivo);
