@@ -36,7 +36,7 @@ export class ComandoEmendaComponent extends LitElement {
     if (!this.emenda) {
       return html`<div></div>`;
     }
-    const comandos = JSON.parse(this.emenda)?.comandosEmenda;
+    const comandos = this.emenda?.comandosEmenda;
     return html`
       <style>
         lexml-emenda-comando {

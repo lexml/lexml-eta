@@ -66,7 +66,6 @@
 
         constructor() {
           super();
-          this.projetoNorma = 'novo';
           this.projetoNorma = 'mpv_alteracao';
           this.modo = 'edicao';
         }
@@ -154,7 +153,7 @@
                 <div class="lexml-eta-main-header--selecao">
                   <select id="projetoNorma" @change=${this.onChangeDocumento}>
                     <option value="novo">Nova articulação</option>
-                    <option value="mpv_alteracao">MP 885, de 2019</option>
+                    <option value="mpv_alteracao" selected>MP 885, de 2019</option>
                     <option value="mpv_simples">MP 905, de 2019</option>
                     <option value="codcivil_completo">Código Civil Completo</option>
                     <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
@@ -162,8 +161,8 @@
                     <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
                   </select>
                   <select id="modo">
-                    <option value="emenda" id="emenda" selected="${this.projetoNorma === 'mpv_alteracao'}" disabled="${this.projetoNorma === 'novo'}">Emenda</option>
-                    <option value="edicao" selected="${this.projetoNorma === 'novo'}">Edição</option>
+                    <option value="emenda" id="emenda" .disabled="${this.projetoNorma === 'novo'}">Emenda</option>
+                    <option value="edicao" selected>Edição</option>
                   </select>
                   <input type="button" value="Ok" @click=${this.executar}></input>
                 </div>
@@ -174,7 +173,7 @@
                     id="lexmlEta"
                     @onchange=${this.onChange}
                     modo=${this.modo}
-                    projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}>
+                    .projetoNorma=${mapProjetosNormas[this.projetoNorma]}>
                   </lexml-eta>
                 </div>
                 <div id="comandoEmenda">

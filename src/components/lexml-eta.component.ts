@@ -17,17 +17,17 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  getEmenda(): string {
-    return JSON.stringify({
+  getEmenda(): any {
+    return {
       comandosEmenda: new ComandoEmendaBuilder((this.projetoNorma as any).value.metadado.identificacao.urn!, rootStore.getState().elementoReducer.articulacao).getComandos(),
-    });
+    };
   }
 
-  getProjetoAtualizado(): string {
+  getProjetoAtualizado(): any {
     const out = { ...this.projetoNorma };
     const articulacaoAtualizada = buildJsonixArticulacaoFromProjetoNorma(rootStore.getState().elementoReducer.articulacao);
     (out as any).value.projetoNorma[(out as any).value.projetoNorma.norma ? 'norma' : 'projeto'].articulacao.lXhier = articulacaoAtualizada.lXhier;
-    return JSON.stringify(out);
+    return out;
   }
 
   update(changedProperties: PropertyValues): void {
