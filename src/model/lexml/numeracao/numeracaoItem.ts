@@ -11,7 +11,8 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     private normalizaNumeracao(numero: string): string {
-      return addSpaceRegex(numero).trim().replace(/\.$/, '').trim();
+      const num = /\d+(-[a-zA-Z]+)*/.exec(numero.trim());
+      return num ? num[0] : addSpaceRegex(numero).trim().replace(/\.$/, '').trim();
     }
 
     createNumeroFromRotulo(rotulo: string): void {

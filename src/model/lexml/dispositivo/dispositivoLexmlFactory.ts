@@ -18,6 +18,7 @@ import { getArticulacao, hasFilhos, isDispositivoAlteracao } from '../hierarquia
 import { NumeracaoAgrupador } from '../numeracao/numeracaoAgrupador';
 import { NumeracaoAlinea } from '../numeracao/numeracaoAlinea';
 import { NumeracaoArtigo } from '../numeracao/numeracaoArtigo';
+import { NumeracaoCaput } from '../numeracao/numeracaoCaput';
 import { NumeracaoGenerico } from '../numeracao/numeracaoGenerico';
 import { NumeracaoInciso } from '../numeracao/numeracaoInciso';
 import { NumeracaoIndisponivel } from '../numeracao/numeracaoIndisponivel';
@@ -45,7 +46,7 @@ const AlineaLexml = SituacaoDispositivo(
 );
 const ArtigoLexml = SituacaoDispositivo(RegrasArtigo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoPermitido(NumeracaoArtigo(HierarquiaArtigo(TipoArtigo)))))));
 const CaputLexml = SituacaoDispositivo(
-  RegrasCaput(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))))
+  RegrasCaput(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoCaput(HierarquiaDispositivo(TipoLexml)))))))
 );
 const DispositivoGenericoLexml = SituacaoDispositivo(
   RegrasDispositivoGenerico(ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoGenerico(HierarquiaDispositivo(TipoLexml)))))))

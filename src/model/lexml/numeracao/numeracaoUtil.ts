@@ -155,6 +155,15 @@ export const trataComplemento = (numero: string, func?: any): string => {
   return converted + resto?.toUpperCase();
 };
 
+export const converteLetraComplementoParaNumero = (numero: string): string => {
+  const partes = numero?.split('-');
+  const [num, ...remaining] = partes!;
+
+  const novo = remaining.map(r => converteLetraParaNumeroArabico(r));
+
+  return novo?.length > 0 ? num + '-' + novo?.join('-').toUpperCase() : num;
+};
+
 export const comparaNumeracao = (a?: string, b?: string): number => {
   if (!a || (b && a < b)) {
     return 1;

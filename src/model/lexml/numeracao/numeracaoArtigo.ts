@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
+import { converteLetraComplementoParaNumero, converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -27,7 +27,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
       this.informouArtigoUnico = /.[uú]nico/i.test(rotulo);
-      this.numero = this.informouArtigoUnico ? '1u' : isNumeracaoValida(temp) ? this.converteLetraComplementoParaNumero(temp) : undefined;
+      this.numero = this.informouArtigoUnico ? '1u' : isNumeracaoValida(temp) ? temp : undefined;
     }
 
     createRotulo(dispositivo: Dispositivo): void {
@@ -53,7 +53,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       return (
         (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
         (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
-        (!paraComandoEmenda && parseInt(num ?? '1', 10) > 9? '.' : '')
+        (!paraComandoEmenda && parseInt(num ?? '1', 10) > 9 ? '.' : '')
       );
     }
 
@@ -75,15 +75,6 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         return 'artigo único';
       }
       return 'art. ' + this.getNumeroAndSufixoNumeracao();
-    }
-
-    private converteLetraComplementoParaNumero(numeroFromRotulo: string): string {
-      const partes = numeroFromRotulo?.split('-');
-      const [num, ...remaining] = partes!;
-
-      const novo = remaining.map(r => converteLetraParaNumeroArabico(r));
-
-      return novo?.length > 0 ? num + '-' + novo?.join('-').toUpperCase() : num;
     }
   };
 }

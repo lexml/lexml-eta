@@ -1,3 +1,6 @@
+import { isDispositivoAlteracao, isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { DescricaoSituacao } from './../model/dispositivo/situacao';
+import { DispositivoComparator } from './dispositivo-comparator';
 import { isAgrupador, isArtigo, isParagrafo, isOmissis } from './../model/dispositivo/tipo';
 import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
@@ -6,41 +9,39 @@ import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 
 export class CmdEmdUtil {
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {
-    return dispositivosEmenda;
+    const dispositivos = new Array<Dispositivo>();
+
+    for (const d of dispositivosEmenda) {
+      if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL || isDispositivoAlteracao(d) || isArticulacaoAlteracao(d)) {
+        continue;
+      }
+      const dispositivoAfetado = CmdEmdUtil.getDispositivoAfetado(d);
+      if (dispositivoAfetado && !dispositivos.includes(dispositivoAfetado)) {
+        dispositivos.push(dispositivoAfetado);
+      }
+    }
+
+    // TODO - Verificar por que não funcina aqui
+    // Por enquanto não está fazendo falta
+    // dispositivos.sort(DispositivoComparator.compare);
+
+    return dispositivos;
   }
-  // public static List<Dispositivo> getDispositivosComando(final Emenda emenda) {
-  //     List<Dispositivo> dispositivos = new ArrayList<Dispositivo>();
-  //     List<Dispositivo> dispositivosEmenda = emenda.getDispositivos();
 
-  //     for (Dispositivo d : dispositivosEmenda) {
-  //         if (d.isSituacao(DispositivoOriginal.class) || d.isDispositivoDeAlteracao()
-  //             || d.isTipo(Alteracao.class)) {
-  //             continue;
-  //         }
-  //         Dispositivo dispositivoAfetado = CmdEmdUtil.getDispositivoAfetado(d);
-  //         if (dispositivoAfetado != null && !dispositivos.contains(dispositivoAfetado)) {
-  //             dispositivos.add(dispositivoAfetado);
-  //         }
-  //     }
-  //     Collections.sort(dispositivos);
-  //     return dispositivos;
-  // }
+  private static getDispositivoAfetado(d: Dispositivo): Dispositivo {
+    if (isAgrupador(d) || isArtigo(d)) {
+      return d;
+    }
 
-  // private static Dispositivo getDispositivoAfetado(final Dispositivo d) {
+    const pai = d.pai!;
+    // Se o pai for uma alteração integral
+    if (CmdEmdUtil.isAlteracaoIntegral(pai)) {
+      // Chama recursivamente para o pai
+      return CmdEmdUtil.getDispositivoAfetado(pai);
+    }
 
-  //     if (d.isTipo(DispositivoAgrupadorDeArtigo.class) || d.isTipo(Artigo.class)) {
-  //         return d;
-  //     }
-
-  //     Dispositivo pai = d.getPai();
-  //     // Se o pai for uma alteração integral
-  //     if (CmdEmdUtil.isAlteracaoIntegral(pai)) {
-  //         // Chama recursivamente para o pai
-  //         return CmdEmdUtil.getDispositivoAfetado(pai);
-  //     }
-
-  //     return d;
-  // }
+    return d;
+  }
 
   // private static Dispositivo getDispositivoAfetadoEmAlteracao(final Dispositivo d) {
 
@@ -68,33 +69,30 @@ export class CmdEmdUtil {
     return isOmissis(d) || d.texto.startsWith(TEXTO_OMISSIS) || (isAgrupador(d) && !!(d as Artigo).caput?.texto.startsWith(TEXTO_OMISSIS));
   }
 
-  // private static boolean isAlteracaoIntegral(final Dispositivo d) {
+  private static isAlteracaoIntegral(d: Dispositivo): boolean {
+    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+      return false;
+    }
 
-  //     boolean isArtigo = d.isTipo(Artigo.class);
+    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      return true;
+    }
 
-  //     if (d.isSituacao(DispositivoOriginal.class) && !isArtigo) {
-  //         return false;
-  //     }
+    if (!d.filhos.length) {
+      if (isArtigo(d)) {
+        return d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL;
+      }
+      return true;
+    }
 
-  //     if (d.isSituacao(DispositivoSuprimido.class)) {
-  //         return true;
-  //     }
+    for (const filho of d.filhos) {
+      if (!CmdEmdUtil.isAlteracaoIntegral(filho)) {
+        return false;
+      }
+    }
 
-  //     if (d.getQuantidadeFilhos() == 0) {
-  //         if (isArtigo) {
-  //             return !d.isSituacao(DispositivoOriginal.class);
-  //         }
-  //         return true;
-  //     }
-
-  //     for (Dispositivo filho : d.getFilhos()) {
-  //         if (!CmdEmdUtil.isAlteracaoIntegral(filho)) {
-  //             return false;
-  //         }
-  //     }
-
-  //     return true;
-  // }
+    return true;
+  }
 
   // private static boolean isAlteracaoIntegralEmAlteracao(final Dispositivo d) {
 

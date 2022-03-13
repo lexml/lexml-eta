@@ -108,7 +108,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
   item: {
     tipo: 'Item',
     name: 'Item',
-    tagId: 'it',
+    tagId: 'ite',
     descricao: 'Item',
     descricaoPlural: 'Itens',
     tiposPermitidosPai: ['Alinea'],

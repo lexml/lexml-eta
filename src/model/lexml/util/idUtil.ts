@@ -1,3 +1,4 @@
+import { converteLetraComplementoParaNumero } from './../numeracao/numeracaoUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isArtigo, isCaput, isOmissis } from '../../dispositivo/tipo';
 import { getDispositivosAnterioresMesmoTipo } from '../hierarquia/hierarquiaUtil';
@@ -10,7 +11,11 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
   if (dispositivo.tagId) {
     dispositivo.createNumeroFromRotulo(dispositivo.rotulo ?? '');
     const prefixoPai = isArtigo(dispositivo) ? '' : dispositivo.pai!.id + '_';
-    return prefixoPai + dispositivo.tagId + (isCaput(dispositivo) ? '' : isOmissis(dispositivo) ? getDispositivosAnterioresMesmoTipo(dispositivo).length + 1 : dispositivo.numero);
+    return (
+      prefixoPai +
+      dispositivo.tagId +
+      (isCaput(dispositivo) ? '' : isOmissis(dispositivo) ? getDispositivosAnterioresMesmoTipo(dispositivo).length + 1 : converteLetraComplementoParaNumero(dispositivo.numero!))
+    );
   }
 
   return undefined;

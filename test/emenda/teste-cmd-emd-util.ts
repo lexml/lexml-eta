@@ -8,7 +8,14 @@ import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
 import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
-import { transformarArtigoEmParagrafo, transformarIncisoParagrafoEmParagrafo, transformarParagrafoEmIncisoCaput } from './../../src/model/lexml/acao/transformarElementoAction';
+import {
+  transformaAlineaEmItem,
+  transformarArtigoEmParagrafo,
+  transformarIncisoParagrafoEmAlinea,
+  transformarIncisoParagrafoEmParagrafo,
+  transformarParagrafoEmIncisoCaput,
+  transformarParagrafoEmIncisoParagrafo,
+} from './../../src/model/lexml/acao/transformarElementoAction';
 import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
 
 export class TesteCmdEmdUtil {
@@ -159,8 +166,21 @@ export class TesteCmdEmdUtil {
         if (elementoIncluido.tipo === TipoDispositivo.artigo.tipo) {
           const action1 = transformarArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: elementoIncluido.uuid! });
           state = transformaTipoElemento(state, action1);
-          const action2 = transformarParagrafoEmIncisoCaput.execute({ tipo: TipoDispositivo.paragafo.tipo, uuid: elementoIncluido.uuid! });
+          const action2 = transformarParagrafoEmIncisoCaput.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: state.present![0].elementos![0].uuid! });
           state = transformaTipoElemento(state, action2);
+        } else if (elementoIncluido.tipo === TipoDispositivo.paragrafo.tipo) {
+          const action1 = transformarParagrafoEmIncisoParagrafo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action1);
+        }
+      } else if (tipo === TipoDispositivo.alinea.tipo) {
+        if (elementoIncluido.tipo === TipoDispositivo.inciso.tipo) {
+          const action1 = transformarIncisoParagrafoEmAlinea.execute({ tipo: TipoDispositivo.inciso.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action1);
+        }
+      } else if (tipo === TipoDispositivo.item.tipo) {
+        if (elementoIncluido.tipo === TipoDispositivo.alinea.tipo) {
+          const action1 = transformaAlineaEmItem.execute({ tipo: TipoDispositivo.alinea.tipo, uuid: elementoIncluido.uuid! });
+          state = transformaTipoElemento(state, action1);
         }
       }
     }

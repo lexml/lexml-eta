@@ -59,7 +59,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
   });
 
   it('acrescimoDoisParagrafosEmDoisArtigos', () => {
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art8_par1', false, 'art8_par2');
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art8_par1u', false, 'art8_par2');
     TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7_inc2', false, 'art9_par8');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se § 2º ao art. 8º e § 8º ao art. 9º do Projeto, com a seguinte redação:');
@@ -93,33 +93,34 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
   // Inciso
 
   it('acrescimoIncisoAoCaput', () => {
-    TesteCmdEmdUtil.incluiInciso(state, 'art1_cpt', false, 'art1_cpt_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art1', false, 'art1_cpt_inc1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se inciso I ao caput do art. 1º do Projeto, com a seguinte redação:');
   });
 
-  // it('acrescimoDoisIncisosConsecutivos', () => {
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I e II ao § 1º do art. 9º do Projeto, com a seguinte redação:');
-  // });
+  it('acrescimoDoisIncisosConsecutivos', () => {
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, 'art9_par1_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par1_inc1', false, 'art9_par1_inc2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I e II ao § 1º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoTresIncisosConsecutivos', () => {
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I a III ao § 1º do art. 9º do Projeto, com a seguinte redação:');
-  // });
+  it('acrescimoTresIncisosConsecutivos', () => {
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, 'art9_par1_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par1_inc1', false, 'art9_par1_inc2');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par1_inc2', false, 'art9_par1_inc3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I a III ao § 1º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoDoisIncisosEmDoisParagrafos', () => {
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se inciso I ao § 1º do art. 9º e inciso I' + ' ao § 2º do art. 9º do Projeto, com a seguinte redação:');
-  // });
+  it('acrescimoDoisIncisosEmDoisParagrafos', () => {
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par1', false, 'art9_par1_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par2', false, 'art9_par2_inc1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se inciso I ao § 1º do art. 9º e inciso I ao § 2º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
+  // TODO - Implementar inclusão de inciso antes do primeiro
   // it('acrescimoDoisIncisosUmAntesOutroDepoisPrimeiro', () => {
   //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', true, '');
   //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', false, '');
@@ -127,177 +128,174 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
   //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos 0 e I-A ao § 6º do art. 9º do Projeto, com a seguinte redação:');
   // });
 
-  // it('acrescimoTresIncisosEmDoisParagrafos', () => {
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par5', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se inciso I ao § 5º do art. 9º' + ' e incisos I-A e I-B ao § 6º do art. 9º do Projeto, com a seguinte redação:');
-  // });
+  it('acrescimoTresIncisosEmDoisParagrafos', () => {
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par5', false, 'art9_par5_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1-1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1-1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se inciso I ao § 5º do art. 9º e incisos I-A e I-B ao § 7º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoQuatroIncisosEmDoisParagrafos', () => {
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par5', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par5', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', false, '');
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se incisos I e II ao § 5º do art. 9º' + ' e incisos I-A e I-B ao § 6º do art. 9º do Projeto, com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoQuatroIncisosEmDoisParagrafos', () => {
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par5', false, 'art9_par5_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par5', false, 'art9_par5_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1');
+    TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I e II ao § 5º do art. 9º e incisos I-A e I-B ao § 7º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
   // --------------------------------------------------
   // Alínea
 
-  // it('acrescimoAlinea', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se alínea “c” ao inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoAlinea', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se alínea “c” ao inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoDuasAlineasConsecutivas', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “c” e “d” ao inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoDuasAlineasConsecutivas', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “c” e “d” ao inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoTresAlineasConsecutivas', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “c” a “e” ao inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoTresAlineasConsecutivas', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “c” a “e” ao inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoDuasAlineasEmDoisIncisos', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se alínea “c” ao inciso I do § 6º do art. 9º e alínea “a”' + ' ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoDuasAlineasEmDoisIncisos', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1', false, 'art9_par6_inc1_ali3');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se alínea “c” ao inciso I do § 6º do art. 9º e alínea “a” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
+    );
+  });
 
-  // it('acrescimoDuasAlineasConsecutivasNoMeio', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoDuasAlineasConsecutivasNoMeio', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoTresAlineasEmDoisIncisos', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', true, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', true, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se alíneas “0” e “0-A” ao inciso I do § 6º do art. 9º e alínea “a”' + ' ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoTresAlineasEmDoisIncisos', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º e alínea “a” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
+    );
+  });
 
-  // it('acrescimoQuatroAlineasEmDoisIncisos', () => {
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', true, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', true, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se alíneas “0” e “0-A” ao inciso I do § 6º do art. 9º e' + ' alíneas “a” e “b” ao inciso II do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoQuatroAlineasEmDoisIncisos', () => {
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º e alíneas “a” e “b” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
+    );
+  });
 
-  // // --------------------------------------------------
-  // // Item
+  // --------------------------------------------------
+  // Item
 
-  // it('acrescimoItem', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se item 3 à alínea “a” do inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoItem', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se item 3 à alínea “a” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoDoisItemsConsecutivos', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 3 e 4 à alínea “a” do inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoDoisItemsConsecutivos', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 3 e 4 à alínea “a” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoTresItemsConsecutivos', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 3 a 5 à alínea “a” do inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoTresItemsConsecutivos', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 3 a 5 à alínea “a” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoDoisItemsEmDuasAlineas', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1', false, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se item 3 à alínea “a” do inciso I do § 6º do art. 9º e' + ' item 1 à alínea “b” do inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoDoisItemsEmDuasAlineas', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite2', false, 'art9_par6_inc1_ali1_ite3');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se item 3 à alínea “a” do inciso I do § 6º do art. 9º e item 1 à alínea “b” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:'
+    );
+  });
 
-  // it('acrescimoDoisItensConsecutivosNoMeio', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:');
-  // });
+  it('acrescimoDoisItensConsecutivosNoMeio', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+  });
 
-  // it('acrescimoTresItemsEmDuasAlineas', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', true, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', true, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se itens 0 e 0-A à alínea “a” do inciso I do § 6º do art. 9º e' + ' item 1 à alínea “b” do inciso I do § 6º do art. 9º do Projeto,' + ' com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoTresItemsEmDuasAlineas', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º e item 1 à alínea “b” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:'
+    );
+  });
 
-  // it('acrescimoQuatroItemsEmDuasAlineas', () => {
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', true, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', true, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, '');
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se itens 0 e 0-A à alínea “a” do inciso I do § 6º do art. 9º e' +
-  //       ' itens 1 e 2 à alínea “b” do inciso I do § 6º do art. 9º do Projeto,' +
-  //       ' com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoQuatroItemsEmDuasAlineas', () => {
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º e' +
+        ' itens 1 e 2 à alínea “b” do inciso I do § 6º do art. 9º do Projeto,' +
+        ' com a seguinte redação:'
+    );
+  });
 
-  // // --------------------------------------------------
-  // // Misto
+  // --------------------------------------------------
+  // Misto
 
-  // it('acrescimoParagrafoAlineaParagrafoMesmoArtigo', () => {
-  //   TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par1', true, '');
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, '');
-  //   TesteCmdEmdUtil.incluiParagrafo(state, 'art9', false, '');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se § 0 ao art. 9º, alínea “a” ao inciso II do § 6º do art. 9º e' + ' § 8º ao art. 9º do Projeto, com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoParagrafoAlineaParagrafoMesmoArtigo', () => {
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par1', false, 'art9_par1-1');
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7', false, 'art9_par8');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se § 1º-A ao art. 9º, alínea “a” ao inciso II do § 6º do art. 9º e § 8º ao art. 9º do Projeto, com a seguinte redação:'
+    );
+  });
 
-  // it('acrescimoArtigoParagrafoIncisoAlineaItem', () => {
-  //   TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1'); // art. 1º-A
-  //   TesteCmdEmdUtil.incluiParagrafo(state, 'art1-A', false); // art. 1º-A, parágrafo único (não deve aparecer , ''no
-  //   // comando)
-  //   TesteCmdEmdUtil.incluiParagrafo(state, 'art2', false); // art. 2º, parágrafo úni, ''co
-  //   TesteCmdEmdUtil.incluiInciso(state, 'art8_par1', false); // art. 8º, § 1º, inciso, '' I
-  //   TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false); // art. 9º, § 6º, inciso II, alínea “, ''a”
-  //   TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false); // art. 9º, § 6º, inciso I, alínea “b”, item, '' 1
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Acrescentem-se art. 1º-A, parágrafo único ao art. 2º,' +
-  //       ' inciso I ao parágrafo único do art. 8º,' +
-  //       ' item 1 à alínea “b” do inciso I do § 6º do art. 9º' +
-  //       ' e alínea “a” ao inciso II do § 6º do art. 9º do Projeto,' +
-  //       ' com a seguinte redação:'
-  //   );
-  // });
+  it('acrescimoArtigoParagrafoIncisoAlineaItem', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1'); // art. 1º-A
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art1-1', false, 'art1-1_par1u'); // art. 1º-A, parágrafo único (não deve aparecer no comando)
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art3', false, 'art3_par1u'); // art. 3º, parágrafo único
+    TesteCmdEmdUtil.incluiInciso(state, 'art8_par1u', false, 'art8_par1u_inc1'); // art. 8º, § 1º, inciso I
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1'); // art. 9º, § 6º, inciso II, alínea “a”
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1'); // art. 9º, § 6º, inciso I, alínea “b”, item 1
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se art. 1º-A, parágrafo único ao art. 3º,' +
+        ' inciso I ao parágrafo único do art. 8º,' +
+        ' item 1 à alínea “b” do inciso I do § 6º do art. 9º' +
+        ' e alínea “a” ao inciso II do § 6º do art. 9º do Projeto,' +
+        ' com a seguinte redação:'
+    );
+  });
 });
