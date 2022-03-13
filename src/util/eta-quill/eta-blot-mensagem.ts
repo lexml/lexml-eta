@@ -13,13 +13,13 @@ export class EtaBlotMensagem extends EtaBlot {
     if (mensagem.tipo === TipoMensagem.INFO) {
       cor = 'green';
     } else if (mensagem.tipo === TipoMensagem.WARNING) {
-      cor = '#afaf08';
+      cor = '#FF5733';
     } else {
       cor = 'red';
     }
 
     node.setAttribute('contenteditable', 'false');
-    node.setAttribute('style', `font-size: 0.8em;color:${cor};`);
+    node.setAttribute('style', `font-size: 0.8em; font-weight: 600; color:${cor};`);
     node.innerHTML = mensagem.descricao ? '- ' + mensagem.descricao : '';
     return node;
   }

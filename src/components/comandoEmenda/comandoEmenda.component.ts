@@ -33,6 +33,10 @@ export class ComandoEmendaComponent extends LitElement {
   }
 
   render(): TemplateResult {
+    if (!this.emenda) {
+      return html`<div></div>`;
+    }
+    const comandos = this.emenda?.comandosEmenda;
     return html`
       <style>
         lexml-emenda-comando {
@@ -78,7 +82,7 @@ export class ComandoEmendaComponent extends LitElement {
         <p class="lexml-emenda-tituloComando">Comando de emenda</p>
         <p>${(this.emenda as any)?.comandoEmenda?.cabecalhoComum}</p>
 
-        ${(this.emenda as any)?.comandoEmenda?.map(comando => {
+        ${comandos?.map(comando => {
           return html`
             ${unsafeHTML(
               '<div class="lexml-emenda-cabecalhoComando">' +

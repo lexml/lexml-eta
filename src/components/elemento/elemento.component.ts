@@ -11,17 +11,18 @@ export class ElementoComponent extends LitElement {
       display: block;
       padding: 0px;
       margin: 0px;
-      font-family: Arial, sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+      font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
       font-size: 1.1em;
       line-height: 1.2;
-      color: #9d9d9d;
+      color: #646260;
       text-transform: none !important;
     }
 
     p.rotulo {
       margin: 5px !important;
-      color: #4a4a4a;
+      color: #373634;
+      font-weight: 600;
       text-align: center;
     }
 
@@ -35,8 +36,8 @@ export class ElementoComponent extends LitElement {
     }
 
     span.rotulo {
-      color: #4a4a4a;
-      font-weight: bolder;
+      color: #373634;
+      font-weight: 600;
     }
   `;
 

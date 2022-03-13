@@ -28,6 +28,8 @@ export class HelpComponent extends LitElement {
       background-color: #f9f9f9;
       box-shadow: 0px 4px 4px 4px rgba(0, 0, 0, 0.25);
       z-index: 1;
+      width: calc(100vw - 30px);
+      max-width: 400px;
     }
 
     .lx-eta-help-content div {
@@ -35,7 +37,7 @@ export class HelpComponent extends LitElement {
       padding: 2px 5px;
       text-decoration: none;
       display: block;
-      white-space: nowrap;
+      white-space: wrap;
       font-size: 0.8em;
       font-weight: normal !important;
       text-align: left;

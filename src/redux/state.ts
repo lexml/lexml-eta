@@ -1,4 +1,3 @@
-import { ItemComandoEmenda } from '../emenda/comando-emenda-builder';
 import { Articulacao } from '../model/dispositivo/dispositivo';
 import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
@@ -25,9 +24,6 @@ export interface StateEvent {
   pai?: Elemento;
   posicao?: number;
   elementos?: Elemento[];
-  emenda?: {
-    comandoEmenda?: ItemComandoEmenda[];
-  };
 }
 
 export interface State {

@@ -2,6 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
   </head>
 
   <body>
@@ -40,7 +41,6 @@
       import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
       import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
       import { PLC_ARTIGOS_AGRUPADOS } from '../out-tsc/demo/doc/plc_artigos_agrupados.js';
-      import { EXEMPLO_EMENDA } from '../out-tsc/demo/doc/exemploEmenda.js';
 
       const mapProjetosNormas = {
         novo: {},
@@ -66,7 +66,6 @@
 
         constructor() {
           super();
-          this.projetoNorma = 'novo';
           this.projetoNorma = 'mpv_alteracao';
           this.modo = 'edicao';
         }
@@ -98,9 +97,11 @@
         onChange(e) {
           console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
 
-          this.modo === 'emenda' && this.querySelector('#lexml-eta').geraEmenda();
+          if (this.modo === 'emenda') {
+            const emenda = this.querySelector('lexml-eta').getEmenda();
+            this.querySelector('lexml-emenda-comando').emenda = emenda;
+          }
         }
-
         render() {
           return html`
               <style>
@@ -108,54 +109,77 @@
                   display: flex;
                   justify-content: space-between;
                   padding: 1rem 0;
+                  flex-wrap: wrap;
                 }
                 .lexml-eta-main-header--selecao select,
                 .lexml-eta-main-header--selecao button {
                   height: 1.5rem;
                 }
                 .lexml-eta-main-header span {
+                  vertical-align: middle;
+                  font-family: sans-serif;
                   font-size: 1.2rem;
                   font-weight: bold;
                 }
+                .lexml-eta-btn--demo {
+                  text-align: center;
+                  color: white;
+                  border-radius: 8px;
+                  background: red;
+                  width: 4rem;
+                  height: 1.5rem;
+                }
+
                 lexml-eta {
                   display: block;
-                  padding: 0px;
                   height: calc(100vh - 80px);
                   outline: 0;
-                  border: 0px solid black;
+                  border: 0;
                   -webkit-box-shadow: 0px;
                   box-shadow: none;
+                }
+                .wrapper {
+                  display: grid;
+                  grid-template-columns: ${this.modo === 'emenda' ? '2fr 1fr' : '1fr 0'};
+                }
+                #comandoEmenda {
+                  display: ${this.modo === 'emenda' ? 'block' : 'none'};
                 }
               </style>
               <div class="lexml-eta-main-header">
                 <div class="lexml-eta-main-header--title">
-                  <span>ETA - Editor de Texto Articulados</span>
+                  <span>ETA - Editor de Textos Articulados </span>
+                  <input type="button" class="lexml-eta-btn--demo" title="Aplicação exemplo" value="Demo"></input>
                 </div>
                 <div class="lexml-eta-main-header--selecao">
                   <select id="projetoNorma" @change=${this.onChangeDocumento}>
                     <option value="novo">Nova articulação</option>
-                    <option value="mpv_alteracao">Mpv Alteração</option>
-                    <option value="mpv_simples">Mpv Simples</option>
+                    <option value="mpv_alteracao" selected>MP 885, de 2019</option>
+                    <option value="mpv_simples">MP 905, de 2019</option>
                     <option value="codcivil_completo">Código Civil Completo</option>
                     <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
                     <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
                     <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
                   </select>
                   <select id="modo">
-                    <option value="emenda" id="emenda" selected="${this.projetoNorma === 'mpv_alteracao'}" disabled="${this.projetoNorma === 'novo'}">Emenda</option>
-                    <option value="edicao" selected="${this.projetoNorma === 'novo'}">Edição</option>
+                    <option value="emenda" id="emenda" .disabled="${this.projetoNorma === 'novo'}">Emenda</option>
+                    <option value="edicao" selected>Edição</option>
                   </select>
                   <input type="button" value="Ok" @click=${this.executar}></input>
                 </div>
               </div>
-              <div>
-                <lexml-eta style="padding-rigtht: 5px;"
-                      id="lexml-eta"
-                      @onchange=${this.onChange}
-                      modo=${this.modo}
-                      projetoNorma=${JSON.stringify(mapProjetosNormas[this.projetoNorma])}
-                      emenda="${JSON.stringify(EXEMPLO_EMENDA)}">
-                </lexml-eta>
+              <div class="wrapper">
+                <div>
+                  <lexml-eta
+                    id="lexmlEta"
+                    @onchange=${this.onChange}
+                    modo=${this.modo}
+                    .projetoNorma=${mapProjetosNormas[this.projetoNorma]}>
+                  </lexml-eta>
+                </div>
+                <div id="comandoEmenda">
+                  <lexml-emenda-comando></lexml-emenda-comando>
+                </div>
               </div>
             `;
         }
