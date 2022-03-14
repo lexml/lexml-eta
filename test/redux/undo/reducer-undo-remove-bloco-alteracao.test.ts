@@ -66,11 +66,17 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
       it('Deveria apresentar o artigo 3 no evento de ElementoRemoved', () => {
         expect(state.ui.events[0].elementos[0].conteudo.texto).equal('A <a href="urn:lex:br:federal:lei:1993-12-09;8745"> Lei nº 8.745, de 9 de dezembro de 1993 </a>, passa a vigorar com as seguintes alterações:');
       });
+      it('Deveria apresentar o lexml id do artigo 2 do bloco de alteração no evento de ElementoRemoved', () => {
+        expect(state.ui.events[0].elementos[1].lexmlId).equal('art3_cpt_alt1_art2');
+      });
       it('Deveria apresentar o texto omisses após o artigo 2 do bloco de alteração no evento de ElementoRemoved', () => {
         expect(state.ui.events[0].elementos[2].conteudo.texto).equal(TEXTO_OMISSIS);
       });
       it('Deveria apresentar o texto omisses após o inciso VI do bloco de alteração no evento de ElementoRemoved', () => {
         expect(state.ui.events[0].elementos[4].conteudo.texto).equal(TEXTO_OMISSIS);
+      });
+      it('Deveria apresentar o lexml id do artigo 4 do bloco de alteração no evento de ElementoRemoved', () => {
+        expect(state.ui.events[0].elementos[7].lexmlId).equal('art3_cpt_alt1_art4');
       });
       it('Deveria apresentar o texto omisses após o artigo 4 do bloco de alteração no evento de ElementoRemoved', () => {
         expect(state.ui.events[0].elementos[8].conteudo.texto).equal(TEXTO_OMISSIS);
