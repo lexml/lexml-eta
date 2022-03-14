@@ -24,6 +24,14 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
     it('Deveria possuir um historico vazio', () => {
       expect(state.past).to.satisfy(isUndefinedOrEmptyArray);
     });
+    describe('Testando histórico após undo', () => {
+      beforeEach(function () {
+        state = undo(state);
+      });
+      it('Deveria possuir histórico past vazio', () => {
+        expect(state.past?.length).to.satisfy(isUndefinedOrEmptyArray);
+      });
+    });
   });
   describe('Undo quando for feita a exclusão do artigo terceiro', () => {
     beforeEach(function () {
