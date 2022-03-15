@@ -1,7 +1,8 @@
-import { getDispositivoPosterior } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { isArtigo } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { Dispositivo } from './../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
+import { getDispositivoPosteriorMesmoTipo } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from './../model/lexml/tipo/tipoDispositivo';
 import { CmdEmdUtil } from './comando-emenda-util';
 
@@ -208,12 +209,12 @@ export class RangeDispositivos {
     }
 
     // Devem ter o mesmo pai, exceto no caso de artigo
-    if (atual.tipo !== TipoDispositivo.artigo.tipo && atual.pai !== ultimo.pai) {
+    if (!isArtigo(atual) && atual.pai !== ultimo.pai) {
       return false;
     }
 
     // Atual segue o último
-    if (getDispositivoPosterior(ultimo) !== atual) {
+    if (getDispositivoPosteriorMesmoTipo(ultimo) !== atual) {
       return false;
     }
 

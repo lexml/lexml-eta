@@ -9,6 +9,7 @@ import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { NomeComGenero } from '../model/dispositivo/genero';
+import { CmdEmdSupressao } from './cmd-emd-supressao';
 
 export class ItemComandoEmenda {
   constructor(public cabecalho: string, public citacao: string) {}
@@ -118,12 +119,10 @@ class CmdEmdDispPrj {
     // Combinar comandos
     const comandos: CmdEmdCombinavel[] = [];
 
-    // TODO Tratar supressão
-    // List<Dispositivo> dispositivosSuprimidos = DispositivoUtil
-    //         .filtraDispositivosPorSituacao(dispositivos, DispositivoSuprimido.class);
-    // if (!dispositivosSuprimidos.isEmpty()) {
-    //     comandos.add(new CmdEmdSupressao(dispositivosSuprimidos));
-    // }
+    const dispositivosSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
+    if (dispositivosSuprimidos.length) {
+      comandos.push(new CmdEmdSupressao(dispositivosSuprimidos));
+    }
 
     const dispositivosModificados = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO);
     if (dispositivosModificados.length) {
