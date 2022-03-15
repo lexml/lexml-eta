@@ -69,7 +69,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
         sb.append(pai.getNumeracaoParaComandoEmenda());
       }
 
-      return removeEspacosDuplicados(sb.toString());
+      return sb.toString();
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

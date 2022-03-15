@@ -1,3 +1,4 @@
+import { CmdEmdModificacao } from './cmd-emd-modificacao';
 import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
@@ -124,13 +125,12 @@ class CmdEmdDispPrj {
     //     comandos.add(new CmdEmdSupressao(dispositivosSuprimidos));
     // }
 
-    // TODO Tratar modificação
-    // List<Dispositivo> dispositivosModificados = CmdEmdUtil.filtraDispositivosModificados(dispositivos);
-    // if (!dispositivosModificados.isEmpty()) {
-    //     comandos.add(new CmdEmdModificacao(dispositivosModificados));
-    // }
+    const dispositivosModificados = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO);
+    if (dispositivosModificados.length) {
+      comandos.push(new CmdEmdModificacao(dispositivosModificados));
+    }
 
-    const dispositivosAdicionados = dispositivos.filter(d => d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO);
+    const dispositivosAdicionados = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
     if (dispositivosAdicionados.length) {
       comandos.push(new CmdEmdAdicao(dispositivosAdicionados));
     }
