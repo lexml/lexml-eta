@@ -63,7 +63,7 @@ export function join(list: string[]): string {
 }
 
 export function removeEspacosDuplicados(str: string): string {
-  return str.replace(/\s{2,}/, ' ');
+  return str.replace(/\s{2,}/g, ' ');
 }
 
 export class StringBuilder {

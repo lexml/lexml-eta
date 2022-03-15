@@ -6,8 +6,11 @@ import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElemento
 import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
+import { suprimeElemento } from '../../src/redux/elemento/reducer/suprimeElemento';
 import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
+import { atualizarTextoElementoAction } from './../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { SUPRIMIR_ELEMENTO } from './../../src/model/lexml/acao/suprimirElemento';
 import {
   transformaAlineaEmItem,
   transformarArtigoEmParagrafo,
@@ -17,17 +20,21 @@ import {
   transformarParagrafoEmIncisoParagrafo,
 } from './../../src/model/lexml/acao/transformarElementoAction';
 import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { atualizaTextoElemento } from './../../src/redux/elemento/reducer/atualizaTextoElemento';
 
 export class TesteCmdEmdUtil {
   // protected Dispositivo getDispositivo(final String id) {
   //     return ArvoreDispositivosUtil.getDispositivoById(raiz, id);
   // }
 
-  // protected void suprimeDispositivo(final String id) {
-  //     Dispositivo art = ArvoreDispositivosUtil.getDispositivoById(raiz, id);
-  //     art.setSituacao(new DispositivoSuprimidoDefaultImpl(art));
-  //     emenda.addDispositivo(art);
-  // }
+  static suprimeDispositivo(state: State, id: string): void {
+    const disp = buscaDispositivoById(state.articulacao!, id);
+    expect(disp, `Dispositivo não encontrado para o id ${id}.`).not.be.undefined;
+    state = suprimeElemento(state, {
+      type: SUPRIMIR_ELEMENTO,
+      atual: { tipo: disp!.tipo, uuid: disp!.uuid },
+    });
+  }
 
   // protected void suprimePrimeiroArtigoDoSeparador(final String idSeparador, final int indiceArtigo) {
   //     Dispositivo art = ArvoreDispositivosUtil.getDispositivoById(raiz, idSeparador).getFilho(indiceArtigo);
@@ -35,12 +42,13 @@ export class TesteCmdEmdUtil {
   //     emenda.addDispositivo(art);
   // }
 
-  // protected Dispositivo modificaDispositivo(final String id) {
-  //     Dispositivo art = ArvoreDispositivosUtil.getDispositivoById(raiz, id);
-  //     art.setSituacao(new DispositivoModificadoDefaultImpl(art));
-  //     emenda.addDispositivo(art);
-  //     return art;
-  // }
+  static modificaDispositivo(state: State, id: string): Dispositivo {
+    const disp = buscaDispositivoById(state.articulacao!, id);
+    expect(disp, `Dispositivo não encontrado para o id ${id}.`).not.be.undefined;
+    const action = atualizarTextoElementoAction.execute({ tipo: disp?.tipo, uuid: disp?.uuid, conteudo: { texto: 'Novo texto.' } });
+    state = atualizaTextoElemento(state, action);
+    return disp!;
+  }
 
   // // -----------------------------------------------------------------------------------------
   // // Inclusão de dispositivos

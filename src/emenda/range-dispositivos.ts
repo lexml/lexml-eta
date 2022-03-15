@@ -1,8 +1,9 @@
 import { getDispositivoPosterior } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { StringBuilder } from '../util/string-util';
 import { Dispositivo } from './../model/dispositivo/dispositivo';
-import { DescricaoSituacao, isAlteracaoIntegral } from './../model/dispositivo/situacao';
+import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { TipoDispositivo } from './../model/lexml/tipo/tipoDispositivo';
+import { CmdEmdUtil } from './comando-emenda-util';
 
 export class RangeDispositivos {
   private dispositivos: Dispositivo[] = [];
@@ -218,7 +219,7 @@ export class RangeDispositivos {
 
     // Ambos (último e atual) apresentam alteração integral
     // ou ambos não apresentam alteração integral
-    if (isAlteracaoIntegral(ultimo) !== isAlteracaoIntegral(atual)) {
+    if (CmdEmdUtil.isAlteracaoIntegral(ultimo) !== CmdEmdUtil.isAlteracaoIntegral(atual)) {
       return false;
     }
 

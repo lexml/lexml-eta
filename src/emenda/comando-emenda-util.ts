@@ -1,11 +1,10 @@
-import { isDispositivoAlteracao, isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { DescricaoSituacao } from './../model/dispositivo/situacao';
-import { DispositivoComparator } from './dispositivo-comparator';
-import { isAgrupador, isArtigo, isParagrafo, isOmissis } from './../model/dispositivo/tipo';
 import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
-import { getDispositivoPosterior } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
+import { getDispositivoPosterior } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { DescricaoSituacao } from './../model/dispositivo/situacao';
+import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
+import { isArticulacaoAlteracao, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export class CmdEmdUtil {
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {
@@ -34,6 +33,15 @@ export class CmdEmdUtil {
     }
 
     const pai = d.pai!;
+
+    // Verifica alteração integral de caput
+    if (isCaput(pai) && pai.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+      if (pai.filhos.find(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL)) {
+        return d;
+      }
+      return pai.pai!;
+    }
+
     // Se o pai for uma alteração integral
     if (CmdEmdUtil.isAlteracaoIntegral(pai)) {
       // Chama recursivamente para o pai
@@ -69,12 +77,12 @@ export class CmdEmdUtil {
     return isOmissis(d) || d.texto.startsWith(TEXTO_OMISSIS) || (isAgrupador(d) && !!(d as Artigo).caput?.texto.startsWith(TEXTO_OMISSIS));
   }
 
-  private static isAlteracaoIntegral(d: Dispositivo): boolean {
+  static isAlteracaoIntegral(d: Dispositivo): boolean {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       return false;
     }
 
-    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
       return true;
     }
 
@@ -356,4 +364,14 @@ export class CmdEmdUtil {
   //     }
   //     return false;
   // }
+
+  static isMesmoTipoParaComandoEmenda(d1: Dispositivo, d2: Dispositivo): boolean {
+    if (d1.tipo !== d2.tipo) {
+      return false;
+    }
+    if (isArtigo(d1) && CmdEmdUtil.isAlteracaoIntegral(d1) !== CmdEmdUtil.isAlteracaoIntegral(d2)) {
+      return false;
+    }
+    return true;
+  }
 }

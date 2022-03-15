@@ -1,17 +1,17 @@
-import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { isArticulacao } from './../model/dispositivo/tipo';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero } from '../model/dispositivo/genero';
 import { isAgrupador, isArtigo, isOmissis, isParagrafo } from '../model/dispositivo/tipo';
 import { isDispositivoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
-import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
+import { StringBuilder } from '../util/string-util';
 import { generoMasculino } from './../model/dispositivo/genero';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
+import { isArticulacao } from './../model/dispositivo/tipo';
+import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
-enum ArtigoAntesDispositivo {
+export enum ArtigoAntesDispositivo {
   NENHUM,
   DEFINIDO,
   DEFINIDO_COM_PREPOSICAO_A,
@@ -56,7 +56,7 @@ export class DispositivosWriterCmdEmd {
       posSequencia++;
     }
 
-    return removeEspacosDuplicados(sb.toString());
+    return sb.toString();
   }
 
   private getReferenciaCaputDoDispositivo(sequencia: SequenciaRangeDispositivos): string {
@@ -133,6 +133,9 @@ export class DispositivosWriterCmdEmd {
 
     // Singular
     if (isArtigo(disp)) {
+      if (disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO && !CmdEmdUtil.isAlteracaoIntegral(disp)) {
+        return 'caput do art.';
+      }
       return 'art.';
     } else if (isParagrafo(disp)) {
       return '§';

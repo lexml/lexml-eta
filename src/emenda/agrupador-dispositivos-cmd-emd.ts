@@ -1,3 +1,4 @@
+import { CmdEmdUtil } from './comando-emenda-util';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { getDispositivoPosterior } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from './../model/lexml/tipo/tipoDispositivo';
@@ -82,7 +83,7 @@ export class AgrupadorDispositivosCmdEmd {
     const dispSequencia = sequencia.getPrimeiroDispositivo();
     const dispRange = range.getUltimo();
     return (
-      dispSequencia.tipo === dispRange.tipo &&
+      CmdEmdUtil.isMesmoTipoParaComandoEmenda(dispSequencia, dispRange) &&
       dispSequencia.situacao.descricaoSituacao === dispRange.situacao.descricaoSituacao &&
       (dispSequencia.tipo === TipoDispositivo.artigo.tipo || dispSequencia.pai === dispRange.pai) &&
       dispSequencia.tipo !== TipoDispositivo.omissis.tipo
