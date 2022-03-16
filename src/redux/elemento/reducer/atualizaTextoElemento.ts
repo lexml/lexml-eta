@@ -43,7 +43,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
     articulacao: state.articulacao,
-    tipoDocumento: state.tipoDocumento,
+    modo: state.modo,
     past: buildPast(state, buildUpdateEvent(dispositivo, original)),
     present: eventos.build(),
     future: [],

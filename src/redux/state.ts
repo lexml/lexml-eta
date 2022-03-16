@@ -28,7 +28,7 @@ export interface StateEvent {
 
 export interface State {
   articulacao?: Articulacao;
-  tipoDocumento: string | undefined;
+  modo: string | undefined;
   past?: StateEvent[];
   present: StateEvent[];
   future?: StateEvent[];
@@ -41,7 +41,7 @@ export interface State {
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {
   return {
     articulacao: state.articulacao,
-    tipoDocumento: undefined,
+    modo: undefined,
     past: past,
     present: present,
     future: future,
@@ -53,7 +53,7 @@ export const createState = (state: any, events: StateEvent[], past: StateEvent[]
 
 export class DefaultState implements State {
   articulacao?: Articulacao;
-  tipoDocumento: string | undefined;
+  modo: string | undefined;
   past?: StateEvent[];
   present: StateEvent[] = [];
   future?: StateEvent[];

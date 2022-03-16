@@ -1,7 +1,7 @@
-import { converteLetraComplementoParaNumero } from './../numeracao/numeracaoUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isArtigo, isCaput, isOmissis } from '../../dispositivo/tipo';
 import { getDispositivosAnterioresMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import { converteLetraComplementoParaNumero } from './../numeracao/numeracaoUtil';
 
 export const buildHref = (dispositivo: Dispositivo): string | undefined => {
   if (isArticulacao(dispositivo)) {
@@ -14,7 +14,15 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
     return (
       prefixoPai +
       dispositivo.tagId +
-      (isCaput(dispositivo) ? '' : isOmissis(dispositivo) ? getDispositivosAnterioresMesmoTipo(dispositivo).length + 1 : converteLetraComplementoParaNumero(dispositivo.numero!))
+      (isCaput(dispositivo)
+        ? ''
+        : isOmissis(dispositivo)
+        ? getDispositivosAnterioresMesmoTipo(dispositivo).length + 1
+        : dispositivo.numero
+        ? converteLetraComplementoParaNumero(dispositivo.numero!)
+        : isArtigo(dispositivo)
+        ? 'Art.'
+        : '')
     );
   }
 

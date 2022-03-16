@@ -1,12 +1,12 @@
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { buildHtmlLink } from '../../../model/lexml/documento/urnUtil';
+import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { buildUpdateEvent, buildEventoAtualizacaoElemento } from '../evento/eventosUtil';
+import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { buildHtmlLink } from '../../../model/lexml/documento/urnUtil';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 
 export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -42,7 +42,7 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
     articulacao: state.articulacao,
-    tipoDocumento: state.tipoDocumento,
+    modo: state.modo,
     past: buildPast(state, buildUpdateEvent(dispositivo, original)),
     present: eventos.build(),
     future: state.future,

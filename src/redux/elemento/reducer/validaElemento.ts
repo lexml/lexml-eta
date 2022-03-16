@@ -22,7 +22,7 @@ export const validaElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
-    tipoDocumento: state.tipoDocumento,
+    modo: state.modo,
     past: state.past,
     present: state.present,
     future: state.future,

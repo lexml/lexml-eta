@@ -75,10 +75,10 @@
           let elmAcao = this.querySelector('#modo');
 
           if (elmDocumento.value === 'novo') {
-            elmAcao.value = 'edicao';
-            const elmDocumento = (this.querySelector('#emenda').disabled = true);
+            this.querySelector('#emenda').disabled = this.querySelector('#emendaArtigoOndeCouber').disabled = true;
+            this.querySelector('#edicao').selected = true;
           } else {
-            const elmDocumento = (this.querySelector('#emenda').disabled = false);
+            this.querySelector('#emenda').disabled = this.querySelector('#emendaArtigoOndeCouber').disabled = false;
           }
         }
 
@@ -97,7 +97,7 @@
         onChange(e) {
           console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
 
-          if (this.modo === 'emenda') {
+          if (this.modo.startsWith('emenda')) {
             const emenda = this.querySelector('lexml-eta').getEmenda();
             this.querySelector('lexml-emenda-comando').emenda = emenda;
           }
@@ -140,10 +140,10 @@
                 }
                 .wrapper {
                   display: grid;
-                  grid-template-columns: ${this.modo === 'emenda' ? '2fr 1fr' : '1fr 0'};
+                  grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
                 }
                 #comandoEmenda {
-                  display: ${this.modo === 'emenda' ? 'block' : 'none'};
+                  display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
                 }
               </style>
               <div class="lexml-eta-main-header">
@@ -162,8 +162,10 @@
                     <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
                   </select>
                   <select id="modo">
-                    <option value="emenda" id="emenda" .disabled="${this.projetoNorma === 'novo'}">Emenda</option>
-                    <option value="edicao" selected>Edição</option>
+                    <option value="edicao" id="edicao" selected>Edição</option>
+                    <option value="emenda" id="emenda"}">Emenda</option>
+                    <option value="emendaArtigoOndeCouber" id="emendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
+
                   </select>
                   <input type="button" value="Ok" @click=${this.executar}></input>
                 </div>

@@ -3,7 +3,7 @@ import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../state';
 import { restauraAndBuildEvents } from '../evento/eventosUtil';
-import { buildFuture, buildPast } from '../util/stateReducerUtil';
+import { buildPast } from '../util/stateReducerUtil';
 
 export const restauraElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -27,7 +27,7 @@ export const restauraElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
-    tipoDocumento: state.tipoDocumento,
+    modo: state.modo,
     past: buildPast(state, events),
     present: events,
     future: [],

@@ -64,7 +64,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
-    lexmlId: dispositivo.id ?? buildHref(dispositivo),
+    lexmlId: dispositivo.id && dispositivo.numero && buildHref(dispositivo),
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {

@@ -1,5 +1,6 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
+import { ClassificacaoDocumento } from '../../../model/documento/classificacao';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
@@ -52,6 +53,11 @@ export const adicionaElemento = (state: any, action: any): State => {
     atual.situacao instanceof DispositivoAdicionado
   ) {
     novo.situacao = new DispositivoAdicionado();
+    (novo.situacao as DispositivoAdicionado).tipoEmenda = ClassificacaoDocumento.EMENDA;
+  }
+
+  if (atual.situacao instanceof DispositivoAdicionado) {
+    (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
   }
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {
@@ -92,7 +98,7 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
-    tipoDocumento: state.tipoDocumento,
+    modo: state.modo,
     past: buildPast(state, eventos.build()),
     present: eventos.build(),
     future: [],

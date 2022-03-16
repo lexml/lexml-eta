@@ -1,6 +1,7 @@
 import { customElement, LitElement } from 'lit-element';
 import { html, TemplateResult } from 'lit-html';
 import { connect } from 'pwa-helpers';
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -264,6 +265,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .ql-snow .ql-tooltip a.ql-preview {
           max-width: 300px;
         }
+
+        .btn--artigoOndeCouber {
+
+        }
+
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -288,7 +294,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           </button>
 
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
-          <button @click=${this.onClickValidacao} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Validar Articulação">V</button>
+          <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <lexml-eta-help style="float:right;"></lexml-eta-help>
         </div>
         <div id="lx-eta-editor"></div>
@@ -320,8 +326,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill.focus();
   }
 
-  private onClickValidacao(): void {
-    rootStore.dispatch(validarArticulacaAction.execute());
+  private artigoOndeCouber(): void {
+    //rootStore.dispatch(validarArticulacaAction.execute());
   }
 
   private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
@@ -891,8 +897,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     setTimeout(() => {
       this.quill.getLine(0)[0].remove();
       elementos.map((elemento: Elemento) => {
-        EtaQuillUtil.criarContainerLinha(elemento).insertInto(this.quill.scroll);
-        elemento.tipo === TipoDispositivo.generico.tipo ? rootStore.dispatch(validarElementoAction.execute(elemento)) : undefined;
+        const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
+        etaContainerTable.insertInto(this.quill.scroll);
+        elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
+        elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && etaContainerTable.setEstilo(DescricaoSituacao.DISPOSITIVO_ADICIONADO);
       });
       this.quill.limparHistory();
       setTimeout(() => {

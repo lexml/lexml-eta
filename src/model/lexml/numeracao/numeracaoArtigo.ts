@@ -1,8 +1,9 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteLetraComplementoParaNumero, converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
+import { converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -33,6 +34,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     createRotulo(dispositivo: Dispositivo): void {
       if (dispositivo === undefined) {
         this.rotulo = TipoDispositivo.artigo.descricao;
+      } else if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        this.rotulo = 'Art.';
       } else if (this.numero === undefined) {
         this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {

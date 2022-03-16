@@ -4,7 +4,7 @@ import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { suprimeAndBuildEvents } from '../evento/eventosUtil';
-import { buildFuture, buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 const getSituacoesFilhos = (dispositivos: Dispositivo[], situacoes: Set<string>): void => {
   if (dispositivos.length === 0) {
@@ -43,7 +43,7 @@ export const suprimeElemento = (state: any, action: any): State => {
 
   return {
     articulacao: state.articulacao,
-    tipoDocumento: state.tipoDocumento,
+    modo: state.modo,
     past: buildPast(state, events),
     present: events,
     future: [],
