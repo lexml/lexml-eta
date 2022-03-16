@@ -20,93 +20,123 @@ describe('Cabeçalho de comando de emenda com adição, modificação e supress�
     expect(state.articulacao?.artigos.length).to.equal(9);
   });
 
-  // it('supressaoDispositivoSemFilhos', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
+  it('supressaoAdicao', () => {
+    TesteCmdEmdUtil.incluiArtigo(state, 'art4', false);
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; e acrescente-se art. 4º-A ao Projeto, nos termos a seguir:');
+  });
 
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+  it('supressaoAdicaoModificacao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art4', false);
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; acrescente-se art. 4º-A; e dê-se nova redação ao caput do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o § 1º do art. 9º do Projeto.');
-  // });
+  it('supressaoModificacao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; e dê-se nova redação ao caput do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  // it('supressaoDispositivoComFilhos', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par6_inc1');
+  it('supressaoModificacaoAdicao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par5');
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par3', false, 'art9_par3-1');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art9', false);
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Suprimam-se o art. 1º e o § 2º do art. 9º;' +
+        ' dê-se nova redação ao caput do art. 9º e ao § 5º do art. 9º;' +
+        ' e acrescentem-se § 3º-A ao art. 9º e art. 10 ao Projeto,' +
+        ' nos termos a seguir:'
+    );
+  });
 
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+  it('adicaoSupressao', () => {
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art4');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art1', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A; e suprima-se o art. 4º do Projeto, nos termos a seguir:');
+  });
 
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o inciso I do § 6º do art. 9º do Projeto.');
-  // });
+  it('adicaoSupressaoModificacao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par7');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art4');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art1', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A; suprima-se o art. 4º; e dê-se nova redação ao § 7º do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  // it('supressaoDoisDispositivosConsecutivos', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par2');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+  it('adicaoModificacao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par7');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art1', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A; e dê-se nova redação ao § 7º do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º e 2º do art. 9º do Projeto.');
-  // });
+  it('adicaoModificacaoSupressao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art4');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art1', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A; dê-se nova redação ao art. 4º; e suprima-se o § 7º do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  // it('supressaoTresDispositivos', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par5');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+  it('modificacaoSupressao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art4');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se nova redação ao art. 4º; e suprima-se o § 7º do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º, 3º e 5º do art. 9º do Projeto.');
-  // });
+  it('modificacaoSupressaoAdicao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art2');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art4');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_cpt_inc1');
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art8', false, 'art8_par2');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art9', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao caput do art. 2º e ao art. 4º;' +
+        ' suprimam-se o inciso I do caput do art. 8º e o § 7º do art. 9º;' +
+        ' e acrescentem-se § 2º ao art. 8º e art. 10 ao Projeto,' +
+        ' nos termos a seguir:'
+    );
+  });
 
-  // it('supressaoTresDispositivosConsecutivos', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par2');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+  it('modificacaoAdicao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art4');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art9', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se nova redação ao art. 4º; e acrescente-se art. 10 ao Projeto, nos termos a seguir:');
+  });
 
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º a 3º do art. 9º do Projeto.');
-  // });
+  it('modificacaoAdicaoSupressao', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art4');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
+    TesteCmdEmdUtil.incluiArtigo(state, 'art5', false);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se nova redação ao art. 4º; acrescente-se art. 5º-A; e suprima-se o § 7º do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  // it('supressaoDoisDispositivosConsecutivosMaisUmDispositivo', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par4');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+  it('modificacaoSupressaoDosParagrafosDeUmArtigo', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se nova redação ao § 1º do art. 9º; e suprima-se o § 2º do art. 9º do Projeto, nos termos a seguir:');
+  });
 
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 3º, 4º e 7º do art. 9º do Projeto.');
-  // });
-
-  // it('supressaoUmDispositivoTresDispositivosConsecutivosEUmDispositivo', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par4');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par5');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º, 3º a 5º e 7º do art. 9º do Projeto.');
-  // });
-
-  // it('supressaoParagrafoUnico', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_par1');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o parágrafo único do art. 8º do Projeto.');
-  // });
-
-  // it('supressaoDeParagrafoEAlinea', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par4');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par5');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par6_inc1');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º e 3º a 5º do art. 9º e o inciso I do § 6º do art. 9º do Projeto.');
-  // });
-
-  // it('supressaoDeArtigoEDispositivosDeArtigo', () => {
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_inc9');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art3');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_par1');
-  //   TesteCmdEmdUtil.suprimeDispositivo(state, 'art9');
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
-
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se o inciso IX do caput do art. 2º, o art. 3º, o parágrafo único do art. 8º e o art. 9º do Projeto.');
-  // });
+  it('modificacaoDeCaputESupressaoDeIncisoDoCaput', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art2');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_inc2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se nova redação ao caput do art. 2º; e suprima-se o inciso II do caput do art. 2º do Projeto, nos termos a seguir:');
+  });
 });

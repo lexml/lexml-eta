@@ -152,35 +152,4 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
         ' com a seguinte redação:'
     );
   });
-
-  // describe('Supressão de um artigo', () => {
-  //   beforeEach(() => {
-  //     const artigo = state.articulacao.artigos[0];
-  //     state = suprimeElemento(state, {
-  //       type: SUPRIMIR_ELEMENTO,
-  //       atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
-  //     });
-  //     //eventos = getEventosQuePossuemElementos(state.ui.events);
-  //   });
-  //   it('Deveria possuir 53 artigos', () => {
-  //     expect(state.articulacao.artigos.length).to.equal(53);
-  //   });
-  //   it('Suprimiu artigo 1º', () => {
-  //     const artigo = state.articulacao.artigos[0] as Artigo;
-  //     expect(artigo.rotulo).to.equal('Art. 1º');
-  //     expect(artigo.situacao.descricaoSituacao).to.equal(DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
-  //   });
-  //   describe('Testando os eventos resultantes da ação de supressão do artigo', () => {
-  //     it('Deveria apresentar 6 elementos suprimidos', () => {
-  //       const suprimido = getEvento(state.ui.events, StateType.ElementoSuprimido);
-  //       expect(suprimido.elementos!.length).equal(6);
-  //       expect(suprimido.elementos![0].rotulo).equal('Art. 1º');
-  //       expect(suprimido.elementos![1].rotulo).equal('Parágrafo único.');
-  //       expect(suprimido.elementos![2].rotulo).equal('I –');
-  //       expect(suprimido.elementos![3].rotulo).equal('II –');
-  //       expect(suprimido.elementos![4].rotulo).equal('III –');
-  //       expect(suprimido.elementos![5].rotulo).equal('IV –');
-  //     });
-  //   });
-  // });
 });
