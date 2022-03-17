@@ -46,6 +46,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       documento.articulacao!.artigos[0]!.numero = undefined;
       documento.articulacao!.artigos[0]!.rotulo = 'Art.';
       documento.articulacao!.artigos[0]!.situacao = new DispositivoAdicionado();
+      documento.articulacao!.artigos[0]!.situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
     } else {
       documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
     }

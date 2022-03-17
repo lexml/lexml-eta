@@ -1,7 +1,9 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
+import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
 
@@ -34,7 +36,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     createRotulo(dispositivo: Dispositivo): void {
       if (dispositivo === undefined) {
         this.rotulo = TipoDispositivo.artigo.descricao;
-      } else if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      } else if (
+        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+        (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER
+      ) {
         this.rotulo = 'Art.';
       } else if (this.numero === undefined) {
         this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
