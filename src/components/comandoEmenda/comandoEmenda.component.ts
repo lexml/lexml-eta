@@ -6,10 +6,6 @@ import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 export class ComandoEmendaComponent extends LitElement {
   @property({ type: Object }) emenda;
 
-  createRenderRoot(): LitElement {
-    return this;
-  }
-
   update(changedProperties: PropertyValues): void {
     super.update(changedProperties);
   }
