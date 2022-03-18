@@ -10,16 +10,13 @@ import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { CmdEmdSupressao } from './cmd-emd-supressao';
-
-export class ItemComandoEmenda {
-  constructor(public cabecalho: string, public citacao: string) {}
-}
+import { ComandoEmenda, ItemComandoEmenda } from '../model/lexml/documento/emenda';
 
 export class ComandoEmendaBuilder {
   constructor(private urn: string, private articulacao: Articulacao) {}
 
-  getComandos(): ItemComandoEmenda[] {
-    const ret: ItemComandoEmenda[] = [];
+  getComandoEmenda(): ComandoEmenda {
+    const ret = new ComandoEmenda();
 
     const dispositivosEmenda = this.getDispositivosEmenda();
 
@@ -27,7 +24,7 @@ export class ComandoEmendaBuilder {
     list.sort(DispositivoComparator.compare);
 
     if (!list.length) {
-      return [new ItemComandoEmenda('', '')];
+      return ret;
     }
 
     const refGenericaProjeto = getRefGenericaProjeto(this.urn);
@@ -52,11 +49,10 @@ export class ComandoEmendaBuilder {
         citacao = '';
       }
 
-      ret.push(new ItemComandoEmenda(cabecalho, citacao));
+      ret.comandos.push(new ItemComandoEmenda(cabecalho, citacao));
     });
 
     return ret;
-    // return [new ItemComandoEmenda('Acrescente-se art. 1º-A ao Projeto, com a seguinte redação:', '')];
   }
 
   private getDispositivosRepresentativosDeCadaComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {

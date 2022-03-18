@@ -32,7 +32,7 @@ export class ComandoEmendaComponent extends LitElement {
     if (!this.emenda) {
       return html`<div></div>`;
     }
-    const comandos = this.emenda?.comandosEmenda;
+    const comandos = this.emenda?.comandos;
     return html`
       <style>
         lexml-emenda-comando {

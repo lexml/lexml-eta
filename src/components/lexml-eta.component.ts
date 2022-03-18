@@ -1,3 +1,4 @@
+import { ComandoEmenda } from './../model/lexml/documento/emenda';
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
@@ -18,10 +19,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  getEmenda(): any {
-    return {
-      comandosEmenda: new ComandoEmendaBuilder((this.projetoNorma as any).value.metadado.identificacao.urn!, rootStore.getState().elementoReducer.articulacao).getComandos(),
-    };
+  getComandoEmenda(): ComandoEmenda {
+    return new ComandoEmendaBuilder((this.projetoNorma as any).value.metadado.identificacao.urn!, rootStore.getState().elementoReducer.articulacao).getComandoEmenda();
   }
 
   getProjetoAtualizado(): any {

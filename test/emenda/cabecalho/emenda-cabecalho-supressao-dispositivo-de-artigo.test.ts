@@ -22,20 +22,20 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
 
   it('supressaoDispositivoSemFilhos', () => {
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o § 1º do art. 9º do Projeto.');
   });
 
   it('supressaoDispositivoComFilhos', () => {
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par6_inc1');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o inciso I do § 6º do art. 9º do Projeto.');
   });
 
   it('supressaoDoisDispositivosConsecutivos', () => {
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par2');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º e 2º do art. 9º do Projeto.');
   });
 
@@ -43,7 +43,7 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par5');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º, 3º e 5º do art. 9º do Projeto.');
   });
 
@@ -51,7 +51,7 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par1');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par2');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º a 3º do art. 9º do Projeto.');
   });
 
@@ -59,7 +59,7 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par3');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par4');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 3º, 4º e 7º do art. 9º do Projeto.');
   });
 
@@ -69,13 +69,13 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par4');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par5');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º, 3º a 5º e 7º do art. 9º do Projeto.');
   });
 
   it('supressaoParagrafoUnico', () => {
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_par1u');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o parágrafo único do art. 8º do Projeto.');
   });
 
@@ -85,7 +85,7 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par4');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par5');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par6_inc1');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se os §§ 1º e 3º a 5º do art. 9º e o inciso I do § 6º do art. 9º do Projeto.');
   });
 
@@ -94,7 +94,7 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art3');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_par1u');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandos()[0];
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se o inciso IX do caput do art. 2º, o art. 3º, o parágrafo único do art. 8º e o art. 9º do Projeto.');
   });
 });

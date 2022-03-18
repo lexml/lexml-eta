@@ -13,9 +13,6 @@ export interface Projeto extends Classificacao, Metadado, ParteInicial, TextoArt
   classificacao: ClassificacaoDocumento.PROJETO;
   tipo?: TipoDocumento;
 }
-export interface Emenda extends Classificacao {
-  classificacao: ClassificacaoDocumento.EMENDA;
-}
 
 export const isNorma = (projetoNorma: ProjetoNorma): boolean => {
   return projetoNorma.classificacao === ClassificacaoDocumento.NORMA;

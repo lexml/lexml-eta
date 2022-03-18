@@ -98,7 +98,7 @@
           console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
 
           if (this.modo.startsWith('emenda')) {
-            const emenda = this.querySelector('lexml-eta').getEmenda();
+            const emenda = this.querySelector('lexml-eta').getComandoEmenda();
             this.querySelector('lexml-emenda-comando').emenda = emenda;
           }
         }
