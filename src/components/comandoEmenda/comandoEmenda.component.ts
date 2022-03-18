@@ -29,9 +29,6 @@ export class ComandoEmendaComponent extends LitElement {
   }
 
   render(): TemplateResult {
-    if (!this.emenda) {
-      return html`<div></div>`;
-    }
     const comandos = this.emenda?.comandosEmenda;
     return html`
       <style>
