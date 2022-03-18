@@ -30,7 +30,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return out;
   }
 
-  // aqui abaixo tem que trataqr a possibilidade de emenda artigo novo
   update(changedProperties: PropertyValues): void {
     let documento;
 

@@ -73,7 +73,6 @@
         onChangeDocumento() {
           const elmDocumento = this.querySelector('#projetoNorma');
           let elmAcao = this.querySelector('#modo');
-
           if (elmDocumento.value === 'novo') {
             this.querySelector('#emenda').disabled = this.querySelector('#emendaArtigoOndeCouber').disabled = true;
             this.querySelector('#edicao').selected = true;
@@ -85,6 +84,7 @@
         executar() {
           const elmAcao = this.querySelector('#modo');
           const elmDocumento = this.querySelector('#projetoNorma');
+          this.querySelector('lexml-emenda-comando').emenda = {};
 
           if (elmDocumento && elmAcao) {
             setTimeout(() => {
