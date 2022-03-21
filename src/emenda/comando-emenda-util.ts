@@ -1,12 +1,22 @@
-import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
-import { getDispositivoPosterior } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoPosterior, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
 import { isArticulacaoAlteracao, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export class CmdEmdUtil {
+  static getDispositivosNaoOriginais(articulacao: Articulacao): Dispositivo[] {
+    const ret: Dispositivo[] = [];
+    percorreHierarquiaDispositivos(articulacao, d => {
+      if (d.pai && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+        ret.push(d);
+      }
+    });
+    return ret;
+  }
+
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {
     const dispositivos = new Array<Dispositivo>();
 

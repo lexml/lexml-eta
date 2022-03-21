@@ -1,4 +1,4 @@
-import { ComandoEmenda } from './../model/lexml/documento/emenda';
+import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
@@ -9,6 +9,7 @@ import { buildProjetoNormaFromJsonix, getUrn } from '../model/lexml/documento/co
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { rootStore } from '../redux/store';
+import { EmendaBuilder } from '../emenda/emenda-builder';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -19,8 +20,20 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
+  getEmenda(): Emenda | undefined {
+    const classificacao = this.modo;
+    if (classificacao !== ClassificacaoDocumento.EMENDA && classificacao !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER) {
+      return undefined;
+    }
+    const urn = (this.projetoNorma as any).value.metadado.identificacao.urn!;
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    return new EmendaBuilder(classificacao, urn, articulacao).getEmenda();
+  }
+
   getComandoEmenda(): ComandoEmenda {
-    return new ComandoEmendaBuilder((this.projetoNorma as any).value.metadado.identificacao.urn!, rootStore.getState().elementoReducer.articulacao).getComandoEmenda();
+    const urn = (this.projetoNorma as any).value.metadado.identificacao.urn!;
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    return new ComandoEmendaBuilder(urn, articulacao).getComandoEmenda();
   }
 
   getProjetoAtualizado(): any {

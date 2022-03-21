@@ -18,6 +18,7 @@ class RefProposicaoEmendada {
 
 export class DispositivoEmenda {
   id = ''; // ID LexML
+  rotulo?: string;
 }
 
 export class DispositivoEmendaSuprimido extends DispositivoEmenda {}

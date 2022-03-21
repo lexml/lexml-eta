@@ -3,7 +3,7 @@ import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
-import { getArticulacao, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { getArticulacao } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdAdicao } from './cmd-emd-adicao';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdUtil } from './comando-emenda-util';
@@ -18,7 +18,7 @@ export class ComandoEmendaBuilder {
   getComandoEmenda(): ComandoEmenda {
     const ret = new ComandoEmenda();
 
-    const dispositivosEmenda = this.getDispositivosEmenda();
+    const dispositivosEmenda = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
 
     const list = this.getDispositivosRepresentativosDeCadaComando(dispositivosEmenda);
     list.sort(DispositivoComparator.compare);
@@ -73,16 +73,6 @@ export class ComandoEmendaBuilder {
       }
     });
 
-    return ret;
-  }
-
-  private getDispositivosEmenda(): Dispositivo[] {
-    const ret: Dispositivo[] = [];
-    percorreHierarquiaDispositivos(this.articulacao, d => {
-      if (d.pai && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-        ret.push(d);
-      }
-    });
     return ret;
   }
 }
