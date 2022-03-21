@@ -1,4 +1,4 @@
-import { Articulacao, Artigo } from '../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { Emenda } from '../model/lexml/documento/emenda';
 import { isArtigo, isCaput, isOmissis } from './../model/dispositivo/tipo';
@@ -25,9 +25,6 @@ export class EmendaBuilder {
   }
 
   private preencheDispositivos(emd: Emenda): void {
-    // const dispositivosEmenda = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
-
-    // const dispositivos = CmdEmdUtil.getDispositivosComando(dispositivosEmenda);
     const dispositivos = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
 
     const dispositivosSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
@@ -60,34 +57,47 @@ export class EmendaBuilder {
     const dispositivosAdicionados = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
-        const da = new DispositivoEmendaAdicionado();
-        da.id = d.id!;
-        da.rotulo = d.rotulo;
-        da.texto = d.texto;
-        if (isCaput(d)) {
-          da.idPai = d.pai?.id;
-        } else {
-          const irmaos = CmdEmdUtil.getFilhosEstiloLexML(d.pai!);
-          if (d !== irmaos[0]) {
-            da.idIrmaoAnterior = irmaos[irmaos.indexOf(d) - 1].id;
-          } else if (!isDispositivoRaiz(d.pai!)) {
-            da.idPai = d.pai?.id;
-          }
-        }
-        if (isArticulacaoAlteracao(d)) {
-          da.urnNormaAlterada = d.pai?.alteracoes?.base;
-        }
-        if (!isOmissis(d) && da.texto.indexOf(TEXTO_OMISSIS) >= 0) {
-          da.textoOmitido = true;
-        }
-        if (da.rotulo && da.rotulo.indexOf('“') >= 0) {
-          da.abreAspas = true;
-        }
-        if (da.texto.indexOf('” (NR)') >= 0) {
-          da.fechaAspas = true;
-        }
+        const da = this.criaDispositivoEmendaAdicionado(d);
         emd.dispositivosAdicionados.push(da);
+        if (isArtigo(d)) {
+          const ca = this.criaDispositivoEmendaAdicionado((d as Artigo).caput!);
+          emd.dispositivosAdicionados.push(ca);
+        }
       }
     }
+  }
+
+  private criaDispositivoEmendaAdicionado(d: Dispositivo): DispositivoEmendaAdicionado {
+    const da = new DispositivoEmendaAdicionado();
+    da.id = d.id!;
+    if (!isCaput(d)) {
+      da.rotulo = d.rotulo;
+    }
+    if (!isArtigo(d)) {
+      da.texto = d.texto;
+    }
+    if (isCaput(d)) {
+      da.idPai = d.pai?.id;
+    } else {
+      const irmaos = CmdEmdUtil.getFilhosEstiloLexML(d.pai!);
+      if (d !== irmaos[0]) {
+        da.idIrmaoAnterior = irmaos[irmaos.indexOf(d) - 1].id;
+      } else if (!isDispositivoRaiz(d.pai!)) {
+        da.idPai = d.pai?.id;
+      }
+    }
+    if (isArticulacaoAlteracao(d)) {
+      da.urnNormaAlterada = d.pai?.alteracoes?.base;
+    }
+    if (!isOmissis(d) && da.texto && da.texto.indexOf(TEXTO_OMISSIS) >= 0) {
+      da.textoOmitido = true;
+    }
+    if (da.rotulo && da.rotulo.indexOf('“') >= 0) {
+      da.abreAspas = true;
+    }
+    if (da.texto && da.texto.indexOf('” (NR)') >= 0) {
+      da.fechaAspas = true;
+    }
+    return da;
   }
 }

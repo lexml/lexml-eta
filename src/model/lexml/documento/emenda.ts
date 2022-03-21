@@ -30,7 +30,7 @@ export class DispositivoEmendaModificado extends DispositivoEmenda {
 export class DispositivoEmendaAdicionado extends DispositivoEmenda {
   idPai?: string;
   idIrmaoAnterior?: string;
-  texto = '';
+  texto?: string;
   urnNormaAlterada?: string;
   textoOmitido?: boolean;
   abreAspas?: boolean;

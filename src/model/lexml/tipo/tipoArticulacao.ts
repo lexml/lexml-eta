@@ -37,6 +37,10 @@ export class TipoArticulacao extends TipoLexml {
         filho.numero = calculaNumeracao(filho);
         filho.createRotulo(filho);
         filho.id = buildHref(filho);
+        const caput = (filho as Artigo).caput;
+        if (caput) {
+          caput.id = buildHref(caput);
+        }
       });
   }
 
