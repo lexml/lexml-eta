@@ -35,7 +35,7 @@ describe('Titulo', () => {
         const artigo = criaDispositivo(titulo, TipoDispositivo.artigo.tipo);
         titulo.renumeraFilhos();
 
-        expect(artigo.numero).to.equal('1u');
+        expect(artigo.numero).to.equal('1');
       });
       it('O titulo não comanda a renumeração de artigos que não pertençam a ele', () => {
         criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);

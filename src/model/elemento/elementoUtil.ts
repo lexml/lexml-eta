@@ -15,7 +15,7 @@ import {
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
-import { buildHref } from '../lexml/util/idUtil';
+import { buildHref, buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -51,6 +51,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
 };
 
 export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento => {
+  console.log(buildId(dispositivo));
   const pai = dispositivo.pai!;
   return {
     tipo: dispositivo.tipo,

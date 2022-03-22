@@ -1,12 +1,12 @@
 import { expect } from '@open-wc/testing';
+import { openArticulacaoAction } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
+import { TEXTO_OMISSIS } from '../../../src/model/lexml/conteudo/textoOmissis';
+import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../../doc/parser/mpv_885_20190617';
-import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { openArticulacaoAction } from '../../../src/model/lexml/acao/openArticulacaoAction';
-import { TEXTO_OMISSIS } from '../../../src/model/lexml/conteudo/textoOmissis';
 
 let state: any;
 
@@ -64,10 +64,12 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
         expect(state.ui.events[0].elementos.length).equal(14);
       });
       it('Deveria apresentar o artigo 3 no evento de ElementoRemoved', () => {
-        expect(state.ui.events[0].elementos[0].conteudo.texto).equal('A <a href="urn:lex:br:federal:lei:1993-12-09;8745"> Lei nº 8.745, de 9 de dezembro de 1993 </a>, passa a vigorar com as seguintes alterações:');
+        expect(state.ui.events[0].elementos[0].conteudo.texto).equal(
+          'A <a href="urn:lex:br:federal:lei:1993-12-09;8745"> Lei nº 8.745, de 9 de dezembro de 1993 </a>, passa a vigorar com as seguintes alterações:'
+        );
       });
       it('Deveria apresentar o lexml id do artigo 2 do bloco de alteração no evento de ElementoRemoved', () => {
-        expect(state.ui.events[0].elementos[1].lexmlId).equal('art3_cpt_alt1_art2');
+        expect(state.ui.events[0].elementos[1].lexmlId).equal('art2');
       });
       it('Deveria apresentar o texto omisses após o artigo 2 do bloco de alteração no evento de ElementoRemoved', () => {
         expect(state.ui.events[0].elementos[2].conteudo.texto).equal(TEXTO_OMISSIS);
@@ -76,7 +78,7 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
         expect(state.ui.events[0].elementos[4].conteudo.texto).equal(TEXTO_OMISSIS);
       });
       it('Deveria apresentar o lexml id do artigo 4 do bloco de alteração no evento de ElementoRemoved', () => {
-        expect(state.ui.events[0].elementos[7].lexmlId).equal('art3_cpt_alt1_art4');
+        expect(state.ui.events[0].elementos[7].lexmlId).equal('art4');
       });
       it('Deveria apresentar o texto omisses após o artigo 4 do bloco de alteração no evento de ElementoRemoved', () => {
         expect(state.ui.events[0].elementos[8].conteudo.texto).equal(TEXTO_OMISSIS);

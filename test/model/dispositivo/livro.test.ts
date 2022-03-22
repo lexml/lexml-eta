@@ -33,7 +33,7 @@ describe('Livro', () => {
       it('O livro comanda a criação e renumeração dos dispositivos imediatamente abaixo dele', () => {
         const artigo = criaDispositivo(livro, TipoDispositivo.artigo.tipo);
         livro.renumeraFilhos();
-        expect(artigo.numero).to.equal('1u');
+        expect(artigo.numero).to.equal('1');
         expect(artigo.rotulo).to.equal('Artigo único.');
       });
       it('O livro não comanda a renumeração de artigos que não pertençam a ele', () => {

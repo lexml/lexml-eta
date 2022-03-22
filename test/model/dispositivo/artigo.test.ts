@@ -33,7 +33,7 @@ describe('Artigo: inicialização', () => {
   it('o artigo pode ser numerado a partir do pai', () => {
     secao.renumeraFilhos();
 
-    expect(artigo.numero).to.equal('1u');
+    expect(artigo.numero).to.equal('1');
   });
 
   it('o artigo pode ser criado sem agrupamentos', () => {
