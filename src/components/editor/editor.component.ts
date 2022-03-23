@@ -88,6 +88,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   render(): TemplateResult {
     return html`
       <link rel="stylesheet" href="assets/css/editor.css" />
+      <link rel="stylesheet" href="assets/css/estilos.css" />
       <style>
         #lx-eta-box {
           display: grid;
