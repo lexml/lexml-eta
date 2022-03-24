@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isArticulacao, isArtigo, isCaput, isOmissis } from '../../dispositivo/tipo';
-import { getDispositivosAnterioresMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
+import { getDispositivosAnterioresMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
 import { converteLetraComplementoParaNumero } from './../numeracao/numeracaoUtil';
 
 export const buildHref = (dispositivo: Dispositivo): string | undefined => {
@@ -9,20 +9,17 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
   }
 
   if (dispositivo.tagId) {
-    dispositivo.createNumeroFromRotulo(dispositivo.rotulo ?? '');
-    const prefixoPai = isArtigo(dispositivo) ? '' : dispositivo.pai!.id + '_';
     return (
-      prefixoPai +
       dispositivo.tagId +
       (isCaput(dispositivo)
         ? ''
         : isOmissis(dispositivo)
         ? getDispositivosAnterioresMesmoTipo(dispositivo).length + 1
         : dispositivo.numero
-        ? converteLetraComplementoParaNumero(dispositivo.numero!)
-        : isArtigo(dispositivo)
-        ? 'Art.'
-        : '')
+        ? dispositivo.numero === '1' && isUnicoMesmoTipo(dispositivo)
+          ? '1u'
+          : converteLetraComplementoParaNumero(dispositivo.numero!)
+        : `[urn:${dispositivo.uuid}]`)
     );
   }
 
@@ -59,9 +56,9 @@ export const buildIdAlteracao = (dispositivo: Dispositivo): string => {
   return idArray.join('_') + '_alt1';
 };
 
-export const gHref = (dispositivo: Dispositivo): string => {
+/* export const gHref = (dispositivo: Dispositivo): string => {
   if (!dispositivo.numero && dispositivo.rotulo) {
     dispositivo.createNumeroFromRotulo(dispositivo.rotulo);
   }
   return dispositivo.numero ?? '';
-};
+}; */

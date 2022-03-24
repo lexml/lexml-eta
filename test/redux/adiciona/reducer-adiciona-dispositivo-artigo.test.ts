@@ -422,7 +422,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
           expect(state.articulacao.artigos[1].filhos[1].texto).to.equal('texto do inciso II do caput do Artigo 2.');
         });
         it('Deveria posicionar o inciso recém criado após o primeiro inciso', () => {
-          expect(state.articulacao.artigos[1].filhos[2].numero).to.equal('1u');
+          expect(state.articulacao.artigos[1].filhos[2].numero).to.equal('1');
           expect(state.articulacao.artigos[1].filhos[2].rotulo).to.equal('Parágrafo único.');
           expect(state.articulacao.artigos[1].filhos[2].texto).to.equal('');
         });

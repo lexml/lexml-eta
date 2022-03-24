@@ -1,7 +1,7 @@
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
-import { buildHref } from '../util/idUtil';
+import { buildId } from '../util/idUtil';
 import { TipoLexml } from './tipoLexml';
 
 export class TipoArticulacao extends TipoLexml {
@@ -36,10 +36,10 @@ export class TipoArticulacao extends TipoLexml {
       .forEach(filho => {
         filho.numero = calculaNumeracao(filho);
         filho.createRotulo(filho);
-        filho.id = buildHref(filho);
+        filho.id = buildId(filho);
         const caput = (filho as Artigo).caput;
         if (caput) {
-          caput.id = buildHref(caput);
+          caput.id = buildId(caput);
         }
       });
   }

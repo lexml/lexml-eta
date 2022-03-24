@@ -1,9 +1,9 @@
-import { isDispositivoRaiz } from './../hierarquia/hierarquiaUtil';
-import { removeEspacosDuplicados, StringBuilder } from '../../../util/string-util';
+import { StringBuilder } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
-import { converteNumeroArabicoParaRomano, isNumeracaoValida, trataComplemento, isRomano, converteNumeroRomanoParaArabico } from './numeracaoUtil';
+import { isDispositivoRaiz } from './../hierarquia/hierarquiaUtil';
+import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, isRomano, trataComplemento } from './numeracaoUtil';
 
 export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {

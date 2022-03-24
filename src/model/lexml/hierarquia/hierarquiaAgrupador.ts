@@ -2,7 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo'
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
-import { buildHref } from '../util/idUtil';
+import { buildId } from '../util/idUtil';
 import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior } from './hierarquiaUtil';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
@@ -58,7 +58,7 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
         .forEach(f => {
           f.numero = calculaNumeracao(f);
           f.createRotulo(f);
-          f.id = buildHref(f);
+          f.id = buildId(f);
         });
       (getArticulacao(this.filhos[0]) as Articulacao)?.renumeraArtigos();
     }

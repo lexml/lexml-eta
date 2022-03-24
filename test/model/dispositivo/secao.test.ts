@@ -34,7 +34,7 @@ describe('Secao', () => {
       it('A seção comanda a criação e renumeração dos dispositivos imediatamente abaixo dela', () => {
         const artigo = criaDispositivo(secao, TipoDispositivo.artigo.tipo);
         secao.renumeraFilhos();
-        expect(artigo.numero).to.equal('1u');
+        expect(artigo.numero).to.equal('1');
       });
       it('A secao não comanda a renumeração de artigos que não pertençam a ela', () => {
         const outraSecao = criaDispositivo(articulacao, TipoDispositivo.secao.tipo);

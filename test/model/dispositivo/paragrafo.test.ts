@@ -35,7 +35,7 @@ describe(TipoDispositivo.paragrafo.tipo, () => {
   describe('Renumeração de Paragrafo', () => {
     it('quando inicializado corretamente, o paragrafo obtém um número quando comandada a renumeração a partir do pai', () => {
       artigo.renumeraFilhos();
-      expect(paragrafo.numero).to.equal('1u');
+      expect(paragrafo.numero).to.equal('1');
     });
     it('quando inicializado corretamente, o paragrafo obtém um rótulo de parágrafo único quando se trata do único parágrafo', () => {
       artigo.renumeraFilhos();

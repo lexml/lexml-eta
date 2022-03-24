@@ -1,5 +1,6 @@
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
+import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
@@ -22,6 +23,7 @@ import { VALIDAR_ELEMENTO } from '../../../model/lexml/acao/validarElementoActio
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';
+import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
@@ -42,6 +44,8 @@ import { validaElemento } from './validaElemento';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
+    case APLICAR_ALTERACOES_EMENDA:
+      return aplicaAlteracoesEmenda(state, action);
     case ATUALIZAR_ELEMENTO:
       return atualizaElemento(state, action);
     case ATUALIZAR_REFERENCIA_ELEMENTO:

@@ -1,20 +1,23 @@
-import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
+import { EMENDA_MPV_00930_2020 } from '../../demo/doc/emenda_exemplo_mpv_00930_2020';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
+import { EmendaBuilder } from '../emenda/emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
+import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { rootStore } from '../redux/store';
-import { EmendaBuilder } from '../emenda/emenda-builder';
+import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
+  @property({ type: Object }) emenda = {};
 
   createRenderRoot(): LitElement {
     return this;
@@ -63,6 +66,19 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
 
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
+
+    // TODO feito apenas para teste
+    if ((this.projetoNorma as any).value.metadado.identificacao.urn === 'urn:lex:br:congresso.nacional:medida.provisoria;mpv:2020;930') {
+      setTimeout(() => {
+        rootStore.dispatch(
+          aplicarAlteracoesEmendaAction.execute({
+            dispositivosModificados: EMENDA_MPV_00930_2020.emenda.dispositivosModificados,
+            dispositivosSuprimidos: EMENDA_MPV_00930_2020.emenda.dispositivosSuprimidos,
+          })
+        );
+        this.emenda = EMENDA_MPV_00930_2020.emenda;
+      }, 1000);
+    }
 
     super.update(changedProperties);
   }
