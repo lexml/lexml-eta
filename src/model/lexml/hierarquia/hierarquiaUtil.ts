@@ -419,7 +419,7 @@ export const buscaDispositivoById = (articulacao: Articulacao, id: string): Disp
   if (idArtigo) {
     const artigo = articulacao.artigos.find(a => idArtigo === a.id);
     if (artigo) {
-      if (id === idArtigo) {
+      if (id === idArtigo || id === idArtigo + '_cpt') {
         return artigo;
       } else {
         raiz = artigo;

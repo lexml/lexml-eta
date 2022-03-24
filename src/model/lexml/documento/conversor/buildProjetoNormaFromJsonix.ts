@@ -1,4 +1,3 @@
-import { isArtigo } from './../../../dispositivo/tipo';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isOmissis } from '../../../dispositivo/tipo';
 import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
@@ -8,6 +7,7 @@ import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispo
 import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
 import { getTipo } from '../urnUtil';
+import { isArtigo } from './../../../dispositivo/tipo';
 
 export let isEmendamento = false;
 
@@ -63,6 +63,7 @@ const buildArticulacao = (tree: any): Articulacao => {
   const articulacao = createArticulacao();
 
   buildTree(articulacao, tree.lXhier);
+
   return articulacao;
 };
 

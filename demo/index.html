@@ -37,6 +37,7 @@
       import '../out-tsc/src/index.js';
       import { MPV_ALTERACAO } from '../out-tsc/demo/doc/mpv_alteracao.js';
       import { MPV_SIMPLES } from '../out-tsc/demo/doc/mpv_simples.js';
+      import { MPV_930_2020 } from '../out-tsc/demo/doc/mpv_930_2020.js';
       import { COD_CIVIL_COMPLETO } from '../out-tsc/demo/doc/codigocivil_completo.js';
       import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
       import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
@@ -46,6 +47,7 @@
         novo: {},
         mpv_alteracao: MPV_ALTERACAO,
         mpv_simples: MPV_SIMPLES,
+        mpv_930_2020: MPV_930_2020,
         codcivil_completo: COD_CIVIL_COMPLETO,
         codcivil_parcial1: COD_CIVIL_PARCIAL1,
         codcivil_parcial2: COD_CIVIL_PARCIAL2,
@@ -102,7 +104,7 @@
             this.querySelector('lexml-emenda-comando').emenda = emenda;
 
             console.log('Emenda ---------------------');
-            console.log(this.querySelector('lexml-eta').getEmenda())
+            console.log(this.querySelector('lexml-eta').getEmenda());
           }
         }
         render() {
@@ -159,6 +161,7 @@
                     <option value="novo">Nova articulação</option>
                     <option value="mpv_alteracao" selected>MP 885, de 2019</option>
                     <option value="mpv_simples">MP 905, de 2019</option>
+                    <option value="mpv_930_2020">MP 930, de 2020</option>
                     <option value="codcivil_completo">Código Civil Completo</option>
                     <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
                     <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
