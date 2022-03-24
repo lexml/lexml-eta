@@ -1,3 +1,4 @@
+import { Alteracoes } from './../model/dispositivo/blocoAlteracao';
 import { buildId } from './../model/lexml/util/idUtil';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
@@ -70,11 +71,16 @@ export class EmendaBuilder {
 
   private criaDispositivoEmendaAdicionado(d: Dispositivo): DispositivoEmendaAdicionado {
     const da = new DispositivoEmendaAdicionado();
-    da.id = d.id ? d.id : buildId(d);
-    if (!isCaput(d) && !isArticulacaoAlteracao(d)) {
+
+    if (!d.id) {
+      d.id = buildId(d);
+    }
+    da.id = d.id;
+
+    if (!isCaput(d) && !isArticulacaoAlteracao(d) && !isOmissis(d)) {
       da.rotulo = d.rotulo;
     }
-    if (!isArtigo(d)) {
+    if (!isArtigo(d) && !isArticulacaoAlteracao(d)) {
       da.texto = d.texto;
     }
     if (isCaput(d) || isArticulacaoAlteracao(d)) {
@@ -88,7 +94,10 @@ export class EmendaBuilder {
       }
     }
     if (isArticulacaoAlteracao(d)) {
-      da.urnNormaAlterada = d.pai?.alteracoes?.base;
+      const base = (d as Alteracoes).base;
+      if (base) {
+        da.urnNormaAlterada = base;
+      }
     }
     if (!isOmissis(d) && da.texto && da.texto.indexOf(TEXTO_OMISSIS) >= 0) {
       da.textoOmitido = true;
