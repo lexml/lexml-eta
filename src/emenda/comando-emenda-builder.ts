@@ -64,7 +64,7 @@ export class ComandoEmendaBuilder {
       const articulacao = getArticulacao(d);
       // Separa alterações
       if (articulacao && articulacao.pai && articulacao.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-        if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO) {
+        if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
           ret.push(articulacao);
         }
       } else if (!temDispositivoDeProjeto) {

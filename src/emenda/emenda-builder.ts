@@ -1,3 +1,4 @@
+import { buildId } from './../model/lexml/util/idUtil';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { Emenda } from '../model/lexml/documento/emenda';
@@ -69,14 +70,14 @@ export class EmendaBuilder {
 
   private criaDispositivoEmendaAdicionado(d: Dispositivo): DispositivoEmendaAdicionado {
     const da = new DispositivoEmendaAdicionado();
-    da.id = d.id!;
-    if (!isCaput(d)) {
+    da.id = d.id ? d.id : buildId(d);
+    if (!isCaput(d) && !isArticulacaoAlteracao(d)) {
       da.rotulo = d.rotulo;
     }
     if (!isArtigo(d)) {
       da.texto = d.texto;
     }
-    if (isCaput(d)) {
+    if (isCaput(d) || isArticulacaoAlteracao(d)) {
       da.idPai = d.pai?.id;
     } else {
       const irmaos = CmdEmdUtil.getFilhosEstiloLexML(d.pai!);

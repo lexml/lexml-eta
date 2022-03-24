@@ -118,7 +118,7 @@ export class RangeDispositivos {
     if (!anterior || !anterior.isMesmoTipoSituacao(this)) {
       return true;
     }
-    if (this.isSituacao(DescricaoSituacao.DISPOSITIVO_NOVO) && !this.isMesmoPai(anterior)) {
+    if (this.isSituacao(DescricaoSituacao.DISPOSITIVO_ADICIONADO) && !this.isMesmoPai(anterior)) {
       return true;
     }
     return false;
@@ -131,7 +131,7 @@ export class RangeDispositivos {
   private getRotuloCompletoSingular(dispositivo: Dispositivo): string {
     const sb = new StringBuilder();
 
-    if (dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO) {
+    if (dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
       sb.append(dispositivo.artigoDefinidoSingular);
     } else {
       sb.append(' ');
@@ -149,7 +149,7 @@ export class RangeDispositivos {
 
   private getRotuloCompletoPlural(dispositivo: Dispositivo): string {
     const sb = new StringBuilder();
-    if (dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO) {
+    if (dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
       sb.append(dispositivo.artigoDefinidoPlural);
     } else {
       sb.append(' ');

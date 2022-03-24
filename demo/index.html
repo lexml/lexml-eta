@@ -68,6 +68,8 @@
           super();
           this.projetoNorma = 'mpv_alteracao';
           this.modo = 'edicao';
+          // this.projetoNorma = 'plc_artigos_agrupados';
+          // this.modo = 'emenda';
         }
 
         onChangeDocumento() {
@@ -101,8 +103,9 @@
             const emenda = this.querySelector('lexml-eta').getComandoEmenda();
             this.querySelector('lexml-emenda-comando').emenda = emenda;
 
+            const emd = this.querySelector('lexml-eta').getEmenda();
             console.log('Emenda ---------------------');
-            console.log(this.querySelector('lexml-eta').getEmenda())
+            console.log(emd);
           }
         }
         render() {
