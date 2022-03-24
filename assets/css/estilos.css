@@ -15,11 +15,11 @@
   padding-left: calc(var(--level) * var(--lexml-eta-level-padding) + 5px);
 }
 
-.text-align-left {
+.dispositivo {
   text-align: left !important;
 }
 
-.text-align-center {
+.agrupador {
   text-align: center !important;
 }
 

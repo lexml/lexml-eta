@@ -7,18 +7,17 @@ export class EtaContainerTdEsquerdo extends Container {
   static tagName = 'DIV';
   static className = 'container-td-esquerdo';
   static classLevel = 'level';
-  static classAlign = 'text-align';
 
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 
     // const padding: number = (elemento.agrupador ? 0 : elemento.nivel) * 20 + 5;
-    const textAlign = elemento.agrupador ? 'center' : 'left';
+    const classAlign = elemento.agrupador ? 'agrupador' : 'dispositivo';
 
     node.setAttribute('contenteditable', elemento.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTdEsquerdo.className);
     node.classList.add(EtaContainerTdEsquerdo.classLevel);
-    node.classList.add(EtaContainerTdEsquerdo.classAlign + '-' + textAlign);
+    node.classList.add(classAlign);
     node.setAttribute('nivel', `${elemento.nivel}`);
     // node.setAttribute('style', `text-align: ${textAlign} !important; padding-left: ${padding}px;`);
 
