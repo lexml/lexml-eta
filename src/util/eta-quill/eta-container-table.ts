@@ -142,29 +142,41 @@ export class EtaContainerTable extends Container {
 
   // TODO Rever a forma atual de se atribuir estilos
   setEstilo(valor: string): void {
-    let rotuloStyle = '';
-    let conteudoStyle = '';
+    // let rotuloStyle = '';
+    // let conteudoStyle = '';
+    let rotuloClass = '';
+    let conteudoClass = '';
 
     switch (valor) {
       case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-        rotuloStyle = 'color: green;';
-        conteudoStyle = 'color: green;';
+        // rotuloStyle = 'color: green;';
+        // conteudoStyle = 'color: green;';
+        rotuloClass = 'dispositivo-adicionado-rotulo';
+        conteudoClass = 'dispositivo-adicionado-conteudo';
         break;
       case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
-        rotuloStyle = 'color: blue;';
-        conteudoStyle = 'color: blue;';
+        // rotuloStyle = 'color: blue;';
+        // conteudoStyle = 'color: blue;';
+        rotuloClass = 'dispositivo-modificado-rotulo';
+        conteudoClass = 'dispositivo-modificado-conteudo';
         break;
       case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
-        rotuloStyle = 'color: red;';
-        conteudoStyle = 'text-decoration: line-through; color: red;';
+        // rotuloStyle = 'color: red;';
+        // conteudoStyle = 'text-decoration: line-through; color: red;';
+        rotuloClass = 'dispositivo-suprimido-rotulo';
+        conteudoClass = 'dispositivo-suprimido-conteudo';
         break;
       default:
-        rotuloStyle = 'color: black;';
-        conteudoStyle = 'text-decoration: none; color: #9d9d9d;';
+        // rotuloStyle = 'color: black;';
+        // conteudoStyle = 'text-decoration: none; color: #9d9d9d;';
+        rotuloClass = 'dispositivo-default-rotulo';
+        conteudoClass = 'dispositivo-default-conteudo';
         break;
     }
-    this.blotRotulo.domNode.setAttribute('style', (this.blotRotulo.domNode.getAttribute('style') ?? '') + rotuloStyle);
-    this.blotConteudo.domNode.setAttribute('style', (this.blotConteudo.domNode.getAttribute('style') ?? '') + conteudoStyle);
+    // this.blotRotulo.domNode.setAttribute('style', (this.blotRotulo.domNode.getAttribute('style') ?? '') + rotuloStyle);
+    // this.blotConteudo.domNode.setAttribute('style', (this.blotConteudo.domNode.getAttribute('style') ?? '') + conteudoStyle);
+    this.blotRotulo.domNode.setAttribute('class', rotuloClass);
+    this.blotConteudo.domNode.setAttribute('class', conteudoClass);
   }
 
   constructor(elemento: Elemento) {
