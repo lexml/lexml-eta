@@ -984,10 +984,24 @@ export const EMENDA_MPV_00930_2020 = {
     ],
     dispositivosAdicionados: [
       {
+        id: 'art1_par1u',
+        rotulo: 'Parágrafo único',
+        texto: 'um parágrafo novo.',
+        idPai: 'art1',
+        tipo: 'Paragrafo',
+      },
+      {
+        id: 'art2_cpt_inc2_ite1',
+        rotulo: '1.',
+        texto: 'novo item',
+        idPai: 'art2_cpt_inc2',
+        tipo: 'Item',
+      },
+      {
         id: 'art2_cpt_inc3',
         rotulo: 'III –',
         texto: 'novo insico.',
-        idIrmaoAnterior: 'art2_cpt_inc2',
+        idIrmaoAnterior: 'art2_cpt_inc3',
       },
     ],
     comandoEmenda: {

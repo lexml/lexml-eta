@@ -47,9 +47,31 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   update(changedProperties: PropertyValues): void {
+    if (this.hasChangedProjetoNorma(changedProperties) || this.hasChangedModo(changedProperties)) {
+      this.loadProjetoNorma();
+    }
+    if (this.hasChangedEmenda(changedProperties) && Object.keys(this.emenda).length > /*  */ 0) {
+      this.loadEmenda();
+    }
+    super.update(changedProperties);
+  }
+
+  private hasChangedProjetoNorma(changedProperties: PropertyValues): boolean {
+    return changedProperties.has('projetoNorma') && changedProperties.get('projetoNorma') !== undefined;
+  }
+
+  private hasChangedModo(changedProperties: PropertyValues): boolean {
+    return changedProperties.has('modo') && changedProperties.get('modo') !== undefined;
+  }
+
+  private hasChangedEmenda(changedProperties: PropertyValues): boolean {
+    return changedProperties.has('emenda') && changedProperties.get('emenda') !== undefined;
+  }
+
+  private loadProjetoNorma(): void {
     let documento;
 
-    if (!this.projetoNorma) {
+    if (!this.projetoNorma || !(this.projetoNorma as any).value) {
       this.projetoNorma = DOCUMENTO_PADRAO;
     }
 
@@ -69,18 +91,23 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     // TODO feito apenas para teste
     if ((this.projetoNorma as any).value.metadado.identificacao.urn === 'urn:lex:br:congresso.nacional:medida.provisoria;mpv:2020;930') {
+      // this.emenda = EMENDA_MPV_00930_2020.emenda;
+    }
+  }
+
+  private loadEmenda(): void {
+    if (this.emenda) {
       setTimeout(() => {
         rootStore.dispatch(
           aplicarAlteracoesEmendaAction.execute({
             dispositivosModificados: EMENDA_MPV_00930_2020.emenda.dispositivosModificados,
             dispositivosSuprimidos: EMENDA_MPV_00930_2020.emenda.dispositivosSuprimidos,
+            dispositivosAdicionados: EMENDA_MPV_00930_2020.emenda.dispositivosAdicionados,
           })
         );
         this.emenda = EMENDA_MPV_00930_2020.emenda;
       }, 1000);
     }
-
-    super.update(changedProperties);
   }
 
   render(): TemplateResult {
@@ -105,9 +132,5 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       <lexml-eta-articulacao></lexml-eta-articulacao>
     `;
-  }
-
-  private hasProjetoNorma(): boolean {
-    return this.projetoNorma && this.projetoNorma['name'];
   }
 }
