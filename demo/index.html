@@ -71,6 +71,7 @@
           super();
           this.projetoNorma = 'mpv_alteracao';
           this.modo = 'edicao';
+          this.emenda = {};
         }
 
         onChangeDocumento() {
@@ -184,7 +185,7 @@
                     @onchange=${this.onChange}
                     modo=${this.modo}
                     .projetoNorma=${mapProjetosNormas[this.projetoNorma]}
-                    .emenda=${this.projetoNorma === 'mpv_930_2020' ? EMENDA_MPV_00930_2020.emenda : {}}
+                    .emenda=${this.projetoNorma === 'mpv_930_2020' ? EMENDA_MPV_00930_2020.emenda : this.emenda}
                   </lexml-eta>
                 </div>
                 <div id="comandoEmenda">
