@@ -14,22 +14,19 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const urnNova = action.atual.norma;
   const urnAnterior = dispositivo?.alteracoes!.base || '';
   const regex = new RegExp(`<a.+href=.${urnAnterior}.*?>.*?</a>`, 'ig');
-  const normaExtenso = getNomeExtensoComDataExtenso(urnNova)
-  
-  if (dispositivo === undefined ||
-      !dispositivo.alteracoes ||
-      urnAnterior === urnNova && dispositivo.texto.match(regex)) {
+  const normaExtenso = getNomeExtensoComDataExtenso(urnNova);
+
+  if (dispositivo === undefined || !dispositivo.alteracoes || (urnAnterior === urnNova && dispositivo.texto.match(regex))) {
     state.ui = [];
     return state;
   }
-  
-  const normaLink = buildHtmlLink(urnNova)
-  const textoDispositivo = dispositivo.texto
-  
+
+  const normaLink = buildHtmlLink(urnNova);
+  const textoDispositivo = dispositivo.texto;
+
   if (dispositivo.texto.match(regex)) {
     dispositivo.texto = textoDispositivo.replace(regex, normaLink);
-  }
-  else if (dispositivo.texto.includes(normaExtenso)) {
+  } else if (dispositivo.texto.includes(normaExtenso)) {
     dispositivo.texto = textoDispositivo.replace(normaExtenso, normaLink);
   } else {
     const index = parseInt(localStorage.indexCursor);
