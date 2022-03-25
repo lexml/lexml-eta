@@ -88,11 +88,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
 
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
-
-    // TODO feito apenas para teste
-    if ((this.projetoNorma as any).value.metadado.identificacao.urn === 'urn:lex:br:congresso.nacional:medida.provisoria;mpv:2020;930') {
-      // this.emenda = EMENDA_MPV_00930_2020.emenda;
-    }
   }
 
   private loadEmenda(): void {
@@ -105,7 +100,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
             dispositivosAdicionados: EMENDA_MPV_00930_2020.emenda.dispositivosAdicionados,
           })
         );
-        this.emenda = EMENDA_MPV_00930_2020.emenda;
       }, 1000);
     }
   }

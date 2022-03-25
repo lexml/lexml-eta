@@ -106,8 +106,11 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
 const buildAlteracao = (pai: Dispositivo, el: any): void => {
   if (el) {
     createAlteracao(pai);
-    pai.alteracoes!.uuid = el.id;
+    pai.alteracoes!.id = el.id;
     pai.alteracoes!.base = el.base;
+    if (isEmendamento) {
+      pai.alteracoes!.situacao = new DispositivoOriginal();
+    }
     el.content?.forEach((c: any) => {
       const d = buildDispositivo(pai.alteracoes!, c);
       d.isDispositivoAlteracao = true;
