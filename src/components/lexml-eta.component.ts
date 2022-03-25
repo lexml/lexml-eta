@@ -1,6 +1,5 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { EMENDA_MPV_00930_2020 } from '../../demo/doc/emenda_exemplo_mpv_00930_2020';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
 import { EmendaBuilder } from '../emenda/emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
@@ -17,7 +16,7 @@ import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
-  @property({ type: Object }) emenda = {};
+  @property({ type: Object }) emendaModificada = {};
 
   createRenderRoot(): LitElement {
     return this;
@@ -68,15 +67,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
 
     // TODO feito apenas para teste
-    if ((this.projetoNorma as any).value.metadado.identificacao.urn === 'urn:lex:br:congresso.nacional:medida.provisoria;mpv:2020;930') {
+    if (this.emendaModificada) {
       setTimeout(() => {
         rootStore.dispatch(
           aplicarAlteracoesEmendaAction.execute({
-            dispositivosModificados: EMENDA_MPV_00930_2020.emenda.dispositivosModificados,
-            dispositivosSuprimidos: EMENDA_MPV_00930_2020.emenda.dispositivosSuprimidos,
+            dispositivosModificados: (this.emendaModificada as any).dispositivosModificados,
+            dispositivosSuprimidos: (this.emendaModificada as any).dispositivosSuprimidos,
           })
         );
-        this.emenda = EMENDA_MPV_00930_2020.emenda;
       }, 1000);
     }
 
