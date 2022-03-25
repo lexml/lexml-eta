@@ -42,6 +42,7 @@
       import { COD_CIVIL_PARCIAL1 } from '../out-tsc/demo/doc/codigocivil_parcial1.js';
       import { COD_CIVIL_PARCIAL2 } from '../out-tsc/demo/doc/codigocivil_parcial2.js';
       import { PLC_ARTIGOS_AGRUPADOS } from '../out-tsc/demo/doc/plc_artigos_agrupados.js';
+      import { EMENDA_MPV_00930_2020 } from '../out-tsc/demo/doc/emenda_exemplo_mpv_00930_2020.js';
 
       const mapProjetosNormas = {
         novo: {},
@@ -53,6 +54,10 @@
         codcivil_parcial2: COD_CIVIL_PARCIAL2,
         plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
       };
+
+      const mapEmendas = {
+        mpv_930_2020: EMENDA_MPV_00930_2020,
+      }
 
       class DemoView extends LitElement {
         static get properties() {
@@ -182,7 +187,8 @@
                     id="lexmlEta"
                     @onchange=${this.onChange}
                     modo=${this.modo}
-                    .projetoNorma=${mapProjetosNormas[this.projetoNorma]}>
+                    .projetoNorma=${mapProjetosNormas[this.projetoNorma]}
+                    .emendaModificada=${mapEmendas[this.projetoNorma]?.emenda}>
                   </lexml-eta>
                 </div>
                 <div id="comandoEmenda">

@@ -16,7 +16,7 @@ import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
-  @property({ type: String }) emendaModificada = '';
+  @property({ type: Object }) emendaModificada = {};
 
   createRenderRoot(): LitElement {
     return this;
@@ -68,15 +68,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     // TODO feito apenas para teste
     if (this.emendaModificada) {
-      const emenda = JSON.parse(this.emendaModificada);
       setTimeout(() => {
         rootStore.dispatch(
           aplicarAlteracoesEmendaAction.execute({
-            dispositivosModificados: emenda.dispositivosModificados,
-            dispositivosSuprimidos: emenda.dispositivosSuprimidos,
+            dispositivosModificados: (this.emendaModificada as any).dispositivosModificados,
+            dispositivosSuprimidos: (this.emendaModificada as any).dispositivosSuprimidos,
           })
         );
-        this.emendaModificada = emenda;
       }, 1000);
     }
 
