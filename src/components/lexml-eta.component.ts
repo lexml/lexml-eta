@@ -56,10 +56,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       const urn = getUrn(this.projetoNorma) ?? '';
       documento = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
       documento.urn = urn;
-      documento.articulacao!.artigos[0]!.numero = undefined;
-      documento.articulacao!.artigos[0]!.rotulo = 'Art.';
-      documento.articulacao!.artigos[0]!.situacao = new DispositivoAdicionado();
-      documento.articulacao!.artigos[0]!.situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+      const artigo = documento.articulacao!.artigos[0]!;
+      artigo.rotulo = 'Art.';
+      artigo.numero = '1';
+      artigo.id = 'art1';
+      const situacao = new DispositivoAdicionado();
+      situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+      artigo.situacao = situacao;
     } else {
       documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
     }

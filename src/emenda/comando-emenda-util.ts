@@ -30,10 +30,6 @@ export class CmdEmdUtil {
       }
     }
 
-    // TODO - Verificar por que não funcina aqui
-    // Por enquanto não está fazendo falta
-    // dispositivos.sort(DispositivoComparator.compare);
-
     return dispositivos;
   }
 
@@ -164,17 +160,6 @@ export class CmdEmdUtil {
   //         }
   //     }
 
-  //     return ret;
-  // }
-
-  // public static List<Dispositivo> filtraArtigosOndeCouber(final List<Dispositivo> dispositivos) {
-  //     List<Dispositivo> ret = new ArrayList<Dispositivo>();
-  //     for (Dispositivo d : dispositivos) {
-  //         if (d.getPai().isTipo(AgrupadorDeArtigosOndeCouber.class) && d.isTipo(Artigo.class)
-  //             && d.isSituacao(DispositivoNovo.class)) {
-  //             ret.add(d);
-  //         }
-  //     }
   //     return ret;
   // }
 
