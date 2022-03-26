@@ -5,6 +5,7 @@ export interface DispositivoAlteracaoEmenda {
 }
 
 export interface DispositivoAdicionadoPelaEmenda extends DispositivoAlteracaoEmenda {
+  tipo?: string;
   idIrmaoAnterior?: string;
   idPai?: string;
 }

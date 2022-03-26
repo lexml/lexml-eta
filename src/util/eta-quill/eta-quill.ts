@@ -217,7 +217,7 @@ export class EtaQuill extends Quill {
 
   desmarcarLinhaAtual(linhaCursorAnt: EtaContainerTable): void {
     this._linhaAnterior = linhaCursorAnt;
-    linhaCursorAnt.desativarBorda();
+    linhaCursorAnt?.desativarBorda();
   }
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {
@@ -299,7 +299,7 @@ export class EtaQuill extends Quill {
     // OBS: o valor de "this.linhaAtual" será alterado dentro de "this.verificarMudouLinha" de acordo com alguns critérios.
     const linhaAtualAux = this.linhaAtual;
 
-    this._mudouDeLinha = this.verificarMudouLinha(range, oldRange);
+    this._mudouDeLinha = this.linhaAtual && this.verificarMudouLinha(range, oldRange);
 
     if (this._mudouDeLinha) {
       this.observableSelectionChange.notify(linhaAtualAux);

@@ -57,7 +57,7 @@
 
       const mapEmendas = {
         mpv_930_2020: EMENDA_MPV_00930_2020,
-      }
+      };
 
       class DemoView extends LitElement {
         static get properties() {
@@ -75,8 +75,7 @@
           super();
           this.projetoNorma = 'mpv_alteracao';
           this.modo = 'edicao';
-          // this.projetoNorma = 'plc_artigos_agrupados';
-          // this.modo = 'emenda';
+          this.emenda = {};
         }
 
         onChangeDocumento() {
@@ -190,7 +189,7 @@
                     @onchange=${this.onChange}
                     modo=${this.modo}
                     .projetoNorma=${mapProjetosNormas[this.projetoNorma]}
-                    .emendaModificada=${mapEmendas[this.projetoNorma]?.emenda}>
+                    .emenda=${this.projetoNorma === 'mpv_930_2020' ? EMENDA_MPV_00930_2020.emenda : this.emenda}
                   </lexml-eta>
                 </div>
                 <div id="comandoEmenda">
