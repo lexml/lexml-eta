@@ -1,3 +1,4 @@
+import { getArticulacao, isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
@@ -38,8 +39,13 @@ const buildHierarquia = (dispositivo: Dispositivo, idArray: string[] = []): void
     idArray.unshift(href);
   }
 
-  // ID de artigo e de dispositivos de artigo iniciam em 'art'
+  // ID de artigo e de dispositivos de artigo não incluem ids de agrupadores de artigo.
   if (isArtigo(dispositivo)) {
+    if (isDispositivoAlteracao(dispositivo)) {
+      // Pula agrupadores de artigo dentro do bloco de alteração
+      const alteracao = getArticulacao(dispositivo);
+      buildHierarquia(alteracao, idArray);
+    }
     return;
   }
 
