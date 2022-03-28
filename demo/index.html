@@ -134,7 +134,8 @@
           a.download = fileName;
           document.body.appendChild(a);
           a.click();
-      }
+        }
+
         render() {
           return html`
               <style>
@@ -178,9 +179,6 @@
                 #comandoEmenda {
                   display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
                 }
-                #salvarEmenda {
-                  display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
-                }
               </style>
               <div class="lexml-eta-main-header">
                 <div class="lexml-eta-main-header--title">
@@ -188,7 +186,7 @@
                   <input type="button" class="lexml-eta-btn--demo" title="Aplicação exemplo" value="Demo"></input>
                 </div>
                 <div class="lexml-eta-main-header--actions">
-                  <input type="button" value="Salvar" id="salvarEmenda" @click=${this.salvar}></input>
+                  <input type="button" value="Salvar" @click=${this.salvar}></input>
                 </div>
                 <div class="lexml-eta-main-header--selecao">
                   <select id="projetoNorma" @change=${this.onChangeDocumento}>
