@@ -5,7 +5,7 @@ const Container = Quill.import('blots/container');
 export class EtaContainerTdDireito extends Container {
   static blotName = 'containerTdDireito';
   static tagName = 'DIV';
-  static className = 'container-td-direito';
+  static className = 'container__menu';
 
   alinhamentoMenu: AlinhamentoMenu;
 
@@ -14,7 +14,6 @@ export class EtaContainerTdDireito extends Container {
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaContainerTdDireito.className);
-    node.setAttribute('style', 'width: 30px; vertical-align: top; text-align: center');
     return node;
   }
 
