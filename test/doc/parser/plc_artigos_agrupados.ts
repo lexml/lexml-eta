@@ -140,7 +140,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc1',
-                            rotulo: ' I - ',
+                            rotulo: ' I – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -162,7 +162,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc2',
-                            rotulo: ' II - ',
+                            rotulo: ' II – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -184,7 +184,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc3',
-                            rotulo: ' III - ',
+                            rotulo: ' III – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -206,7 +206,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc4',
-                            rotulo: ' IV - ',
+                            rotulo: ' IV – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -228,7 +228,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc5',
-                            rotulo: ' V - ',
+                            rotulo: ' V – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -250,7 +250,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc6',
-                            rotulo: ' VI - ',
+                            rotulo: ' VI – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -272,7 +272,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc7',
-                            rotulo: ' VII - ',
+                            rotulo: ' VII – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -331,7 +331,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                 id: 'art2_cpt_inc7_alt1_art1_cpt_inc1',
-                                                rotulo: 'I - ',
+                                                rotulo: 'I – ',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -351,7 +351,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                 id: 'art2_cpt_inc7_alt1_art1_cpt_inc2',
-                                                rotulo: 'II - ',
+                                                rotulo: 'II – ',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -411,7 +411,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                 id: 'art2_cpt_inc7_alt1_art7_cpt_inc1',
-                                                rotulo: 'I - ',
+                                                rotulo: 'I – ',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -444,7 +444,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                 id: 'art2_cpt_inc7_alt1_art7_cpt_inc3',
-                                                rotulo: 'III - ',
+                                                rotulo: 'III – ',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -464,7 +464,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                 id: 'art2_cpt_inc7_alt1_art7_cpt_inc4',
-                                                rotulo: 'IV - ',
+                                                rotulo: 'IV – ',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -484,7 +484,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                 id: 'art2_cpt_inc7_alt1_art7_cpt_inc5',
-                                                rotulo: 'V - ',
+                                                rotulo: 'V – ',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -527,7 +527,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc8',
-                            rotulo: ' VIII - ',
+                            rotulo: ' VIII – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -549,7 +549,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc9',
-                            rotulo: ' IX - ',
+                            rotulo: ' IX – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -571,7 +571,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc10',
-                            rotulo: ' X - ',
+                            rotulo: ' X – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -593,7 +593,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc11',
-                            rotulo: ' XI - ',
+                            rotulo: ' XI – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -615,7 +615,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc12',
-                            rotulo: ' XII - ',
+                            rotulo: ' XII – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -637,7 +637,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                           value: {
                             TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                             id: 'art2_cpt_inc13',
-                            rotulo: ' XIII - ',
+                            rotulo: ' XIII – ',
                             p: [
                               {
                                 TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -892,7 +892,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                                     value: {
                                                       TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                                       id: 'art6_cpt_alt1_art1_cpt_inc3',
-                                                      rotulo: 'III - ',
+                                                      rotulo: 'III – ',
                                                       p: [
                                                         {
                                                           TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1028,7 +1028,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                       value: {
                                         TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                         id: 'art8_cpt_inc1',
-                                        rotulo: ' I - ',
+                                        rotulo: ' I – ',
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1108,7 +1108,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par1',
-                                  rotulo: '§ 1º.',
+                                  rotulo: '§ 1º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1128,7 +1128,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par2',
-                                  rotulo: '§ 2º.',
+                                  rotulo: '§ 2º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1148,7 +1148,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par3',
-                                  rotulo: '§ 3º.',
+                                  rotulo: '§ 3º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1168,7 +1168,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par4',
-                                  rotulo: '§ 4º.',
+                                  rotulo: '§ 4º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1188,7 +1188,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par5',
-                                  rotulo: '§ 5º.',
+                                  rotulo: '§ 5º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1208,7 +1208,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par6',
-                                  rotulo: '§ 6º.',
+                                  rotulo: '§ 6º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1227,7 +1227,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                       value: {
                                         TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                         id: 'art9_par6_inc1',
-                                        rotulo: ' I - ',
+                                        rotulo: ' I – ',
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1331,7 +1331,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                       value: {
                                         TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                         id: 'art9_par6_inc2',
-                                        rotulo: ' II - ',
+                                        rotulo: ' II – ',
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1354,7 +1354,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                   id: 'art9_par7',
-                                  rotulo: '§ 7º.',
+                                  rotulo: '§ 7º',
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1373,7 +1373,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                       value: {
                                         TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                         id: 'art9_par7_inc1',
-                                        rotulo: ' I - ',
+                                        rotulo: ' I – ',
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -1393,7 +1393,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                       value: {
                                         TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                                         id: 'art9_par7_inc2',
-                                        rotulo: ' II - ',
+                                        rotulo: ' II – ',
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',

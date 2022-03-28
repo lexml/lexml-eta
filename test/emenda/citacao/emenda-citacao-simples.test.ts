@@ -24,6 +24,89 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
   it('acrescimoParagrafo', () => {
     TesteCmdEmdUtil.incluiParagrafo(state, 'art1', false, 'art1_par1u');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<Citacao><p><Rotulo>“Parágrafo único.</Rotulo>Texto”</p></Citacao>');
+    expect(cit).to.equal('<p>“<Rotulo>Parágrafo único.</Rotulo>Texto”</p>');
+  });
+
+  it('acrescimoInciso', () => {
+    /*
+     * "I – Nonono ono"
+     */
+    TesteCmdEmdUtil.incluiInciso(state, 'art1_cpt', false, 'art1_cpt_inc1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>I –</Rotulo>Texto”</p>');
+  });
+
+  it('acrescimoAlinea', () => {
+    /*
+     * "a) Nonono ono"
+     */
+    TesteCmdEmdUtil.incluiAlinea(state, 'art9_par7_inc1', false, 'art9_par7_inc1_ali1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>a)</Rotulo>Texto”</p>');
+  });
+
+  it('acrescimoItem', () => {
+    /*
+     * "1. Nonono ono"
+     */
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
+  });
+
+  // --------------------------------------------------------------------------------
+  // Modificação
+
+  // it('modificacaoCaput', () => {
+  //   /*
+  //    * "Art. 1º Nonono ono"
+  //    */
+  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt');
+  //   const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+  //   expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo>Texto”</p>');
+  // });
+
+  it('modificacaoParagrafo', () => {
+    /*
+     * "§ 6º Nonono ono"
+     */
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>§ 6º</Rotulo>Texto</p><p><Omissis/>”</p>');
+  });
+
+  it('modificacaoInciso', () => {
+    /*
+     * "I – Nonono ono"
+     */
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>I –</Rotulo>Texto</p><p><Omissis/>”</p>');
+  });
+
+  it('modificacaoAlinea', () => {
+    /*
+     * "a) Nonono ono"
+     */
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>a)</Rotulo>Texto</p><p><Omissis/>”</p>');
+  });
+
+  it('modificacaoItem', () => {
+    /*
+     * "1. Nonono ono"
+     */
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali1_ite1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
+  });
+
+  // // --------------------------------------------------------------------------------
+  // // Emenda sem dispositivos
+
+  it('citacaoEmendaSemDispositivos', () => {
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('');
   });
 });
