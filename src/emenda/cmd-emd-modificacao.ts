@@ -6,7 +6,7 @@ import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { DispositivosWriterCmdEmd, ArtigoAntesDispositivo } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdModificacao extends CmdEmdCombinavel {
-  constructor(public dispositivos: Dispositivo[]) {
+  constructor(protected dispositivos: Dispositivo[]) {
     super(dispositivos);
   }
 

@@ -369,4 +369,8 @@ export class CmdEmdUtil {
     }
     return true;
   }
+
+  static getTextoParaCitacao(d: Dispositivo): string {
+    return d.texto.replace(/^\s*<p>\s*/i, '').replace(/\s*<\/p>\s*$/i, '');
+  }
 }

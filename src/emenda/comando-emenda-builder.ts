@@ -14,6 +14,7 @@ import { CmdEmdSupressao } from './cmd-emd-supressao';
 import { ComandoEmenda, ItemComandoEmenda } from '../model/lexml/documento/emenda';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { CmdEmdAdicaoArtigoOndeCouber } from './cmd-emd-adicao-artigo-onde-couber';
+import { CitacaoComandoDispPrj } from './citacao-cmd-disp-prj';
 
 export class ComandoEmendaBuilder {
   constructor(private urn: string, private articulacao: Articulacao) {}
@@ -48,8 +49,8 @@ export class ComandoEmendaBuilder {
         const cmd = new CmdEmdDispPrj(dispositivosEmenda);
         cabecalho = cmd.getTexto(refGenericaProjeto);
 
-        //     CitacaoComandoDispPrj cit = new CitacaoComandoDispPrj(emenda);
-        citacao = '';
+        const cit = new CitacaoComandoDispPrj(this.articulacao);
+        citacao = cit.getTexto();
       }
 
       ret.comandos.push(new ItemComandoEmenda(cabecalho, citacao));

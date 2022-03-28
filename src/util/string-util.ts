@@ -69,6 +69,12 @@ export function removeEspacosDuplicados(str: string): string {
 export class StringBuilder {
   private strs = new Array<string>();
 
+  constructor(str?: string) {
+    if (str) {
+      this.append(str);
+    }
+  }
+
   append(str: string | undefined): void {
     if (str) {
       this.strs.push(str);

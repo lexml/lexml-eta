@@ -6,7 +6,7 @@ import { DispositivoComparator } from './dispositivo-comparator';
  * Representa um comando de emenda que pode ser combinado com outros.
  */
 export abstract class CmdEmdCombinavel {
-  constructor(public dispositivos: Dispositivo[]) {}
+  constructor(protected dispositivos: Dispositivo[]) {}
 
   abstract getTexto(refGenericaProjeto: NomeComGenero, isPrimeiro: boolean, isUltimo: boolean): string;
 

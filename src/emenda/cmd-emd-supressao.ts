@@ -7,7 +7,7 @@ import { CmdEmdUtil } from './comando-emenda-util';
 import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdSupressao extends CmdEmdCombinavel {
-  constructor(public dispositivos: Dispositivo[]) {
+  constructor(protected dispositivos: Dispositivo[]) {
     super(dispositivos);
   }
 
