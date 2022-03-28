@@ -8,18 +8,18 @@ export class EtaBlotMensagem extends EtaBlot {
 
   static create(mensagem: Mensagem): any {
     const node: HTMLElement = super.create();
-    let cor = '';
+    let classe = '';
 
     if (mensagem.tipo === TipoMensagem.INFO) {
-      cor = 'green';
+      classe = 'mensagem--info';
     } else if (mensagem.tipo === TipoMensagem.WARNING) {
-      cor = '#FF5733';
+      classe = 'mensagem--warning';
     } else {
-      cor = 'red';
+      classe = 'mensagem--danger';
     }
 
     node.setAttribute('contenteditable', 'false');
-    node.setAttribute('style', `font-size: 0.8em; font-weight: 600; color:${cor};`);
+    node.classList.add(classe);
     node.innerHTML = mensagem.descricao ? '- ' + mensagem.descricao : '';
     return node;
   }

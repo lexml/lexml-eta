@@ -89,6 +89,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return html`
       <link rel="stylesheet" href="assets/css/editor.css" />
       <style>
+
+        :root {
+            --elemento-padding-factor: 20;
+        }
+
         #lx-eta-box {
           display: grid;
           grid-template-columns: 1fr;
@@ -270,6 +275,105 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         }
 
+        .container__linha {
+            display: flex;
+            width: 100%;
+        }
+
+        .container__linha--reverse {
+            flex-direction: row-reverse;
+        }
+
+        .container__texto {
+            flex: 1;
+        }
+
+        .container__menu {
+            width: 30px;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .container__elemento--padrao {
+            width: 100%;
+            min-height: 26px;
+            border: 1px solid #ffffff;
+            line-height: 1.42;
+            margin: 0px 2px 0px 5px !important;
+        }
+
+        .container__elemento--articulacao {
+            width: 100%;
+            min-height: 1px;
+            line-height: 0.42;
+            margin: 1px;
+        }
+
+        .agrupador {
+            text-align: center;
+        }
+
+        .texto__rotulo {
+            color: black;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .texto__rotulo--agrupador {
+            display: block;
+        }
+
+        .texto__rotulo--padrao {
+            float: left;
+            margin-right: 10px;
+        }
+
+        .dispositivo--adicionado {
+            color: green;
+        }
+
+        .dispositivo--modificado {
+            color: blue;
+        }
+
+        .dispositivo--suprimido {
+            color: red;
+        }
+
+        .texto--suprimido {
+            text-decoration: line-through;
+        }
+
+        .container__elemento--ativo {
+            border-color: #24d421;
+        }
+
+        .mensagem {
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .mensagem--info {
+            color: green;
+        }
+
+        .mensagem--warning {
+            color: #ff5733;
+        }
+
+        .mensagem--danger {
+            color: red;
+        }
+
+        lexml-eta-help {
+          float:right;
+        }
+
+        #lx-eta-buffer {
+          display: none;
+          height: 0px;
+        }
+
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -295,14 +399,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
-          <lexml-eta-help style="float:right;"></lexml-eta-help>
+          <lexml-eta-help></lexml-eta-help>
         </div>
         <div id="lx-eta-editor"></div>
       </div>
       <elix-toast id="toast-alerta" duration="3000">
         <div id="toast-msg"></div>
       </elix-toast>
-      <div id="lx-eta-buffer" style="display: none; height: 0px;"><p></p></div>
+      <div id="lx-eta-buffer"><p></p></div>
     `;
   }
 
