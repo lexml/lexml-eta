@@ -10,7 +10,7 @@ const Container = Quill.import('blots/container');
 export class EtaContainerTable extends Container {
   static blotName = 'containerTable';
   static tagName = 'DIV';
-  static className = 'container-table';
+  static className = 'container__elemento';
 
   static criarId(uuid?: number): string {
     return `lxEtaId${uuid ?? 0}`;
@@ -20,9 +20,8 @@ export class EtaContainerTable extends Container {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
-    node.setAttribute('class', EtaContainerTable.className);
+    node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
-    node.setAttribute('style', EtaContainerTable.criarAtributoStyle(elemento));
     node.setAttribute('cellpadding', '0');
     node.setAttribute('cellspacing', '0');
     node.setAttribute('border', '0');
@@ -142,29 +141,23 @@ export class EtaContainerTable extends Container {
 
   // TODO Rever a forma atual de se atribuir estilos
   setEstilo(valor: string): void {
-    let rotuloStyle = '';
-    let conteudoStyle = '';
+    let classeCSS = '';
+    let classeCSSAdicional = 'texto__dispositivo';
 
     switch (valor) {
       case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-        rotuloStyle = 'color: green;';
-        conteudoStyle = 'color: green;';
+        classeCSS = 'dispositivo--adicionado';
         break;
       case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
-        rotuloStyle = 'color: blue;';
-        conteudoStyle = 'color: blue;';
+        classeCSS = 'dispositivo--modificado';
         break;
       case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
-        rotuloStyle = 'color: red;';
-        conteudoStyle = 'text-decoration: line-through; color: red;';
-        break;
-      default:
-        rotuloStyle = 'color: black;';
-        conteudoStyle = 'text-decoration: none; color: #9d9d9d;';
+        classeCSS = 'dispositivo--suprimido';
+        classeCSSAdicional = 'texto--suprimido';
         break;
     }
-    this.blotRotulo.domNode.setAttribute('style', (this.blotRotulo.domNode.getAttribute('style') ?? '') + rotuloStyle);
-    this.blotConteudo.domNode.setAttribute('style', (this.blotConteudo.domNode.getAttribute('style') ?? '') + conteudoStyle);
+    this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(this._agrupador)} ${classeCSS}`);
+    this.blotConteudo.domNode.setAttribute('class', `${classeCSS} ${classeCSSAdicional}`);
   }
 
   constructor(elemento: Elemento) {
@@ -188,11 +181,11 @@ export class EtaContainerTable extends Container {
   }
 
   ativarBorda(): void {
-    this.domNode.style.borderColor = '#24d421';
+    this.domNode.classList.add('container__elemento--ativo');
   }
 
   desativarBorda(): void {
-    this.domNode.style.borderColor = '#ffffff';
+    this.domNode.classList.remove('container__elemento--ativo');
     this.limparContainerDireito();
   }
 
@@ -214,5 +207,13 @@ export class EtaContainerTable extends Container {
     }
 
     return style;
+  }
+  private static getClasseCSS(elemento: Elemento): string {
+    let classe = elemento.tipo === 'Articulacao' ? 'container__elemento--articulacao' : 'container__elemento--padrao';
+    if (elemento.agrupador) {
+      classe = `${classe} agrupador`;
+    }
+
+    return classe;
   }
 }
