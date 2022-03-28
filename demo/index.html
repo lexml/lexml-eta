@@ -73,8 +73,8 @@
 
         constructor() {
           super();
-          this.projetoNorma = 'mpv_alteracao';
-          this.modo = 'edicao';
+          this.projetoNorma = '';
+          this.modo = '';
           this.emenda = {};
         }
 
@@ -165,8 +165,8 @@
                 <div class="lexml-eta-main-header--selecao">
                   <select id="projetoNorma" @change=${this.onChangeDocumento}>
                     <option value="novo">Nova articulação</option>
-                    <option value="mpv_alteracao" selected>MP 885, de 2019</option>
-                    <option value="mpv_simples">MP 905, de 2019</option>
+                    <option value="mpv_alteracao">MP 885, de 2019</option>
+                    <option value="mpv_simples" selected>MP 905, de 2019</option>
                     <option value="mpv_930_2020">MP 930, de 2020</option>
                     <option value="codcivil_completo">Código Civil Completo</option>
                     <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
@@ -174,8 +174,8 @@
                     <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
                   </select>
                   <select id="modo">
-                    <option value="edicao" id="edicao" selected>Edição</option>
-                    <option value="emenda" id="emenda"}">Emenda</option>
+                    <option value="edicao" id="edicao">Edição</option>
+                    <option value="emenda" id="emenda" selected>Emenda</option>
                     <option value="emendaArtigoOndeCouber" id="emendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
 
                   </select>
