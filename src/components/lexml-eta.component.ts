@@ -1,20 +1,23 @@
-import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
+import { EMENDA_MPV_00930_2020 } from '../../demo/doc/emenda_exemplo_mpv_00930_2020';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
+import { EmendaBuilder } from '../emenda/emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
+import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { rootStore } from '../redux/store';
-import { EmendaBuilder } from '../emenda/emenda-builder';
+import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
+  @property({ type: Object }) emenda = {};
 
   createRenderRoot(): LitElement {
     return this;
@@ -44,9 +47,31 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   update(changedProperties: PropertyValues): void {
+    if (this.hasChangedProjetoNorma(changedProperties) || this.hasChangedModo(changedProperties)) {
+      this.loadProjetoNorma();
+    }
+    if (this.hasChangedEmenda(changedProperties) && Object.keys(this.emenda).length > /*  */ 0) {
+      this.loadEmenda();
+    }
+    super.update(changedProperties);
+  }
+
+  private hasChangedProjetoNorma(changedProperties: PropertyValues): boolean {
+    return changedProperties.has('projetoNorma') && changedProperties.get('projetoNorma') !== undefined;
+  }
+
+  private hasChangedModo(changedProperties: PropertyValues): boolean {
+    return changedProperties.has('modo') && changedProperties.get('modo') !== undefined;
+  }
+
+  private hasChangedEmenda(changedProperties: PropertyValues): boolean {
+    return changedProperties.has('emenda') && changedProperties.get('emenda') !== undefined;
+  }
+
+  private loadProjetoNorma(): void {
     let documento;
 
-    if (!this.projetoNorma) {
+    if (!this.projetoNorma || !(this.projetoNorma as any).value) {
       this.projetoNorma = DOCUMENTO_PADRAO;
     }
 
@@ -54,17 +79,32 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       const urn = getUrn(this.projetoNorma) ?? '';
       documento = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
       documento.urn = urn;
-      documento.articulacao!.artigos[0]!.numero = undefined;
-      documento.articulacao!.artigos[0]!.rotulo = 'Art.';
-      documento.articulacao!.artigos[0]!.situacao = new DispositivoAdicionado();
-      documento.articulacao!.artigos[0]!.situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+      const artigo = documento.articulacao!.artigos[0]!;
+      artigo.rotulo = 'Art.';
+      artigo.numero = '1';
+      artigo.id = 'art1';
+      const situacao = new DispositivoAdicionado();
+      situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+      artigo.situacao = situacao;
     } else {
       documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
     }
 
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
+  }
 
-    super.update(changedProperties);
+  private loadEmenda(): void {
+    if (this.emenda) {
+      setTimeout(() => {
+        rootStore.dispatch(
+          aplicarAlteracoesEmendaAction.execute({
+            dispositivosModificados: EMENDA_MPV_00930_2020.emenda.dispositivosModificados,
+            dispositivosSuprimidos: EMENDA_MPV_00930_2020.emenda.dispositivosSuprimidos,
+            dispositivosAdicionados: EMENDA_MPV_00930_2020.emenda.dispositivosAdicionados,
+          })
+        );
+      }, 1000);
+    }
   }
 
   render(): TemplateResult {
@@ -89,9 +129,5 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       <lexml-eta-articulacao></lexml-eta-articulacao>
     `;
-  }
-
-  private hasProjetoNorma(): boolean {
-    return this.projetoNorma && this.projetoNorma['name'];
   }
 }

@@ -1,4 +1,3 @@
-import { isArtigo } from './../../../dispositivo/tipo';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isOmissis } from '../../../dispositivo/tipo';
 import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
@@ -8,6 +7,7 @@ import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispo
 import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
 import { getTipo } from '../urnUtil';
+import { isArtigo } from './../../../dispositivo/tipo';
 
 export let isEmendamento = false;
 
@@ -63,6 +63,7 @@ const buildArticulacao = (tree: any): Articulacao => {
   const articulacao = createArticulacao();
 
   buildTree(articulacao, tree.lXhier);
+
   return articulacao;
 };
 
@@ -105,8 +106,11 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
 const buildAlteracao = (pai: Dispositivo, el: any): void => {
   if (el) {
     createAlteracao(pai);
-    pai.alteracoes!.uuid = el.id;
+    pai.alteracoes!.id = el.id;
     pai.alteracoes!.base = el.base;
+    if (isEmendamento) {
+      pai.alteracoes!.situacao = new DispositivoOriginal();
+    }
     el.content?.forEach((c: any) => {
       const d = buildDispositivo(pai.alteracoes!, c);
       d.isDispositivoAlteracao = true;

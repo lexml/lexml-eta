@@ -1050,7 +1050,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                                 },
                                 value: {
                                   TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                  id: 'art8_par1',
+                                  id: 'art8_par1u',
                                   rotulo: 'Parágrafo único.',
                                   p: [
                                     {

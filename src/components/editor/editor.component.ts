@@ -912,6 +912,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const acoesMenu: ElementoAction[] = (elemento?.acoesPossiveis ?? []).filter((acao: ElementoAction) => isAcaoMenu(acao));
 
     if (acoesMenu.length > 0) {
+      if (!this.quill.linhaAtual) {
+        this.marcarLinha(event);
+      }
       const blotMenu: EtaBlotMenu = new EtaBlotMenu();
       const blotMenuConteudo: EtaBlotMenuConteudo = new EtaBlotMenuConteudo(this.quill.linhaAtual.containerDireito.alinhamentoMenu);
       const callback: any = (itemMenu: string) => {
@@ -1060,7 +1063,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       setTimeout(() => {
         if (!this.quill) {
           verificarQuillInicializado(elementos);
-        } else {
+        } else if (elementos.length > 0) {
           this.carregarArticulacao(elementos);
         }
       }, 70);

@@ -1,5 +1,6 @@
-import { Dispositivo } from '../model/dispositivo/dispositivo';
-import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
+import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
+import { isArtigo, isCaput, isParagrafo } from './../model/dispositivo/tipo';
+import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 
 export class DispositivoComparator {
   static compare(d1: Dispositivo, d2: Dispositivo): number {
@@ -15,25 +16,47 @@ export class DispositivoComparator {
       return 1;
     }
 
-    return this.comparaIndices(this.getIndices(d1), this.getIndices(d2));
+    const i1 = DispositivoComparator.getIndices(d1);
+    const i2 = DispositivoComparator.getIndices(d2);
+    return DispositivoComparator.comparaIndices(i1, i2);
   }
 
   private static getIndices(d: Dispositivo): number[] {
     const indices: number[] = [];
 
-    let pai = d.pai;
+    // Considera alteração como filha do caput
+    let pai = this.getPaiParaComparacao(d);
     while (pai) {
       indices.push(this.getIndexDoFilho(pai, d));
       d = pai;
-      pai = d.pai;
+      pai = this.getPaiParaComparacao(d);
     }
     indices.reverse();
 
     return indices;
   }
 
+  // Considera alteração em artigo como filha do caput
+  private static getPaiParaComparacao(d: Dispositivo): Dispositivo | undefined {
+    if (!d.pai) {
+      return undefined;
+    }
+    if (isArtigo(d.pai!) && isArticulacaoAlteracao(d)) {
+      return (d.pai! as Artigo).caput!;
+    }
+    return d.pai!;
+  }
+
   private static getIndexDoFilho(pai: Dispositivo, d: Dispositivo): number {
-    if (d.tipo === TipoDispositivo.caput.tipo) {
+    if (isCaput(d)) {
+      return 0;
+    }
+    if (isParagrafo(d)) {
+      // Após o caput
+      return pai.filhos.indexOf(d) + 1;
+    }
+    if (isArticulacaoAlteracao(d)) {
+      // Antes dos filhos
       return -1;
     }
     return pai.filhos.indexOf(d);

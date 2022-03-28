@@ -1,3 +1,4 @@
+import { isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
@@ -53,6 +54,10 @@ export const adicionaElemento = (state: any, action: any): State => {
   ) {
     novo.situacao = new DispositivoAdicionado();
     (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+    const pai = novo.pai!;
+    if (isArticulacaoAlteracao(pai) && pai.filhos.length === 1) {
+      pai.situacao = new DispositivoAdicionado();
+    }
   }
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {

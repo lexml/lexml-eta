@@ -1,3 +1,4 @@
+import { DispositivoAdicionado } from './../model/lexml/situacao/dispositivoAdicionado';
 import { CmdEmdModificacao } from './cmd-emd-modificacao';
 import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
@@ -11,6 +12,8 @@ import { DispositivoComparator } from './dispositivo-comparator';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { CmdEmdSupressao } from './cmd-emd-supressao';
 import { ComandoEmenda, ItemComandoEmenda } from '../model/lexml/documento/emenda';
+import { ClassificacaoDocumento } from '../model/documento/classificacao';
+import { CmdEmdAdicaoArtigoOndeCouber } from './cmd-emd-adicao-artigo-onde-couber';
 
 export class ComandoEmendaBuilder {
   constructor(private urn: string, private articulacao: Articulacao) {}
@@ -64,7 +67,7 @@ export class ComandoEmendaBuilder {
       const articulacao = getArticulacao(d);
       // Separa alterações
       if (articulacao && articulacao.pai && articulacao.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-        if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO) {
+        if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
           ret.push(articulacao);
         }
       } else if (!temDispositivoDeProjeto) {
@@ -88,19 +91,18 @@ class CmdEmdDispPrj {
 
     const dispositivos = CmdEmdUtil.getDispositivosComando(this.dispositivosEmenda);
 
-    // TODO Tratar artigos onde couber
-    // List<Dispositivo> artigosOndeCouber = CmdEmdUtil.filtraArtigosOndeCouber(dispositivos);
-    // // Se for caso de artigos onde couber, não pode ter outro tipo de alteração
-    // if (!artigosOndeCouber.isEmpty()) {
-    //     if (artigosOndeCouber.size() < dispositivos.size()) {
-    //         throw new RuntimeException("Adição de artigos onde couber e outras alterações na mesma emenda.");
-    //     }
+    const artigosOndeCouber = dispositivos.filter(d => {
+      return d.situacao instanceof DispositivoAdicionado && (d.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+    });
+    // Se for caso de artigos onde couber, não pode ter outro tipo de alteração
+    if (artigosOndeCouber.length) {
+      if (artigosOndeCouber.length < dispositivos.length) {
+        throw new Error('Adição de artigos onde couber e outras alterações na mesma emenda.');
+      }
 
-    //     CmdEmdAdicaoArtigoOndeCouber cmd = new CmdEmdAdicaoArtigoOndeCouber(artigosOndeCouber);
-    //     sb.append(cmd.getTexto(refGenericaProjeto));
-
-    //     return sb.toString();
-    // }
+      const cmd = new CmdEmdAdicaoArtigoOndeCouber(artigosOndeCouber);
+      return cmd.getTexto(refGenericaProjeto);
+    }
 
     // Combinar comandos
     const comandos: CmdEmdCombinavel[] = [];

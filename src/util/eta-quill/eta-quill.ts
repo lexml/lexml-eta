@@ -217,7 +217,7 @@ export class EtaQuill extends Quill {
 
   desmarcarLinhaAtual(linhaCursorAnt: EtaContainerTable): void {
     this._linhaAnterior = linhaCursorAnt;
-    linhaCursorAnt.desativarBorda();
+    linhaCursorAnt?.desativarBorda();
   }
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {

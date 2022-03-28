@@ -374,6 +374,9 @@ export const percorreHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispos
     const artigo = d as Artigo;
     if (artigo.caput) {
       percorreHierarquiaDispositivos(artigo.caput, visit);
+      if (d.alteracoes) {
+        percorreHierarquiaDispositivos(d.alteracoes, visit);
+      }
       d.filhos
         .filter(f => isParagrafo(f))
         .forEach(f => {
@@ -381,6 +384,9 @@ export const percorreHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispos
         });
     }
   } else {
+    if (d.alteracoes) {
+      percorreHierarquiaDispositivos(d.alteracoes, visit);
+    }
     d.filhos.forEach(f => {
       percorreHierarquiaDispositivos(f, visit);
     });
@@ -396,12 +402,20 @@ export const buscaNaHierarquiaDispositivos = (d: Dispositivo, visit: (d: Disposi
     if (artigo.caput) {
       ret = buscaNaHierarquiaDispositivos(artigo.caput, visit);
       if (ret) return ret;
+      if (d.alteracoes) {
+        ret = buscaNaHierarquiaDispositivos(d.alteracoes, visit);
+        if (ret) return ret;
+      }
       for (const f of d.filhos.filter(f => isParagrafo(f))) {
         ret = buscaNaHierarquiaDispositivos(f, visit);
         if (ret) return ret;
       }
     }
   } else {
+    if (d.alteracoes) {
+      ret = buscaNaHierarquiaDispositivos(d.alteracoes, visit);
+      if (ret) return ret;
+    }
     for (const f of d.filhos) {
       ret = buscaNaHierarquiaDispositivos(f, visit);
       if (ret) return ret;
@@ -419,7 +433,7 @@ export const buscaDispositivoById = (articulacao: Articulacao, id: string): Disp
   if (idArtigo) {
     const artigo = articulacao.artigos.find(a => idArtigo === a.id);
     if (artigo) {
-      if (id === idArtigo) {
+      if (id === idArtigo || id === idArtigo + '_cpt') {
         return artigo;
       } else {
         raiz = artigo;
