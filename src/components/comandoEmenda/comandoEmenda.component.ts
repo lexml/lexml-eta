@@ -16,14 +16,11 @@ export class ComandoEmendaComponent extends LitElement {
   }
 
   buildTemplateCitacao(citacao: any): string {
+    // eslint-disable-next-line prettier/prettier
     const corpo = citacao
-      .replace(/^<Citacao>/, '')
-      .replace(/$<\/Citacao>/, '')
-      .replaceAll('<Citacao>', '<div style="padding-left: 20px">')
-      .replaceAll('</Citacao>', '</div>')
       .replaceAll('<Rotulo>', '<b>')
       .replaceAll('</Rotulo>', '</b> ')
-      .replaceAll('<Omissis />', ' .........................................................................................................');
+      .replaceAll('<Omissis/>', ' ..........................................................');
 
     return corpo;
   }
@@ -32,15 +29,16 @@ export class ComandoEmendaComponent extends LitElement {
     const comandos = this.emenda?.comandos;
     return html`
       <style>
-        lexml-emenda-comando {
+        .lexml-emenda-comando {
           display: block;
           border: 1px solid #ccc;
           height: 100%;
           padding: 0 10px;
           margin: 0px 5px;
+          font-size: 14px;
         }
 
-        lexml-emenda-comando:focus {
+        .lexml-emenda-comando:focus {
           outline: 0;
           border: 0px solid #f1f1f1;
           -webkit-box-shadow: 0px;
@@ -48,30 +46,31 @@ export class ComandoEmendaComponent extends LitElement {
         }
 
         .lexml-emenda-tituloComando {
-          margin: 0;
-          padding: 3px 10px 3px 10px;
+          margin: 3px 10px;
           text-align: center;
           font-weight: bold;
         }
 
-        .lexml-emenda-corpoComando {
-          font-size: 14px;
-        }
-
         .lexml-emenda-cabecalhoComando {
-          padding-left: 20px;
+          display: block;
+          margin-top: 1em;
+          text-align: justify;
+          text-indent: 3em;
         }
 
         .lexml-emenda-citacaoComando {
-          padding-left: 40px;
+          display: block;
+          margin-top: 1em;
         }
 
-        lexml-emenda-citacaoComando p {
+        .lexml-emenda-citacaoComando p {
           text-align: justify;
+          text-indent: 3em;
+          margin: 0;
         }
       </style>
 
-      <section class="lexml-emenda-comando">
+      <div class="lexml-emenda-comando">
         <p class="lexml-emenda-tituloComando">Comando de emenda</p>
         <p>${(this.emenda as any)?.comandoEmenda?.cabecalhoComum}</p>
 
@@ -81,13 +80,13 @@ export class ComandoEmendaComponent extends LitElement {
               '<div class="lexml-emenda-cabecalhoComando">' +
                 comando.cabecalho +
                 '</div>' +
-                '<div class="lexml-emenda-corpoComando lexml-emenda-citacaoComando">' +
+                '<div class="lexml-emenda-citacaoComando">' +
                 this.buildTemplateCitacao(comando.citacao) +
                 '</div>'
             )}
           `;
         })}
-      </section>
+      </div>
     `;
   }
 }

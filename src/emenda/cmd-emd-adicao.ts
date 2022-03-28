@@ -12,7 +12,7 @@ import { NomeComGenero } from '../model/dispositivo/genero';
 import { isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 
 export class CmdEmdAdicao extends CmdEmdCombinavel {
-  constructor(public dispositivos: Dispositivo[]) {
+  constructor(protected dispositivos: Dispositivo[]) {
     super(dispositivos);
   }
 

@@ -11,7 +11,7 @@ export class EtaBlotRotulo extends EtaBlot {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
-    node.setAttribute('style', EtaBlotRotulo.criarAtributoStyle(elemento));
+    node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento.agrupador));
     node.setAttribute('data-rotulo', elemento.rotulo);
     node.innerHTML = '';
     return node;
@@ -44,5 +44,9 @@ export class EtaBlotRotulo extends EtaBlot {
       style = `${style} float: left; margin-right: 10px;`;
     }
     return style;
+  }
+
+  public static getClasseCSS(agrupador: boolean): string {
+    return 'texto__rotulo' + (agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao');
   }
 }

@@ -9,7 +9,6 @@ export class EtaBlotEspaco extends EtaBlot {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
-    node.setAttribute('style', 'font-size: 1em;');
     node.innerHTML = '&nbsp;';
     return node;
   }

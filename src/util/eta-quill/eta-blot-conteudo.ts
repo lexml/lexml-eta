@@ -4,6 +4,7 @@ import { EtaBlot } from './eta-blot';
 export class EtaBlotConteudo extends EtaBlot {
   static blotName = 'texto';
   static tagName = 'P';
+  static className = 'texto__dispositivo';
 
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();

@@ -194,6 +194,7 @@ export class TesteCmdEmdUtil {
     }
     const d = buscaDispositivoById(state.articulacao!, expectedId);
     expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idDispRef}. Dispositivo com id ${expectedId} não encontrado.`).to.not.be.undefined;
+    d!.texto = '<p> Texto</p> ';
     return d!;
   }
 
