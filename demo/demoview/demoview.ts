@@ -79,6 +79,26 @@ export class DemoView extends LitElement {
     }
   }
 
+  salvar(): void {
+    const projetoNorma = mapProjetosNormas[this.projetoNorma];
+    const emenda = this.getElement('lexml-eta').getEmenda();
+    const emendaJson = JSON.stringify({
+      projetoNorma: projetoNorma,
+      emenda: emenda,
+    });
+    const blob = new Blob([emendaJson], {
+      type: 'application/json',
+    });
+    const fileName = `${this.projetoNorma}.json`;
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    a.href = objectUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+  }
+
   onClickAutoria(e: EventTarget): void {
     console.log(11111, 'Exibir formulário de autoria', e);
   }
@@ -136,8 +156,12 @@ export class DemoView extends LitElement {
         <div class="lexml-eta-main-header--title">
           <span>ETA - Editor de Textos Articulados </span>
           <input type="button" class="lexml-eta-btn--demo" title="Aplicação exemplo" value="Demo" />
+        </div>
+        <div class="lexml-eta-main-header--actions">
+          <input type="button" value="Salvar" @click=${this.salvar} />
           <input type="button" class="lexml-eta-btn--autoria" title="Autores" value="Autoria" @click=${this.onClickAutoria} />
         </div>
+
         <div class="lexml-eta-main-header--selecao">
           <select id="projetoNorma" @change=${this.onChangeDocumento}>
             <option value="novo">Nova articulação</option>
