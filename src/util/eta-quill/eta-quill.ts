@@ -221,7 +221,7 @@ export class EtaQuill extends Quill {
   }
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {
-    if (linhaCursor?.tipo !== 'Articulacao') {
+    if (linhaCursor && linhaCursor.tipo !== 'Articulacao') {
       this.atualizarLinhaCorrente(linhaCursor);
       this.elementoSelecionado.notify(linhaCursor.uuid);
     }
@@ -342,6 +342,7 @@ export class EtaQuill extends Quill {
 
   atualizarLinhaCorrente(linha: EtaContainerTable): void {
     this.processandoMudancaLinha = true;
+
     this._linhaAtual = linha;
     this._linhaAtual.blotConteudo.htmlAnt = this._linhaAtual.blotConteudo.html;
     linha.ativarBorda();
