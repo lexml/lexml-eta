@@ -221,7 +221,7 @@ export class EtaQuill extends Quill {
   }
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {
-    if (linhaCursor.tipo !== 'Articulacao') {
+    if (linhaCursor?.tipo !== 'Articulacao') {
       this.atualizarLinhaCorrente(linhaCursor);
       this.elementoSelecionado.notify(linhaCursor.uuid);
     }
