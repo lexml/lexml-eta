@@ -10,6 +10,7 @@ import 'elix/define/MenuButton';
 import 'elix/define/MenuItem';
 import 'elix/define/MenuSeparator';
 import 'elix/define/Toast';
+import 'elix/define/AutoCompleteComboBox';
 import 'quill/dist/quill';
 
 // ---------------------------------------------------
