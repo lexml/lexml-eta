@@ -1,4 +1,5 @@
-import { isDispositivoAlteracao, isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isAgrupador } from './../model/dispositivo/tipo';
+import { isDispositivoAlteracao, isArticulacaoAlteracao, getArtigo } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { Articulacao } from './../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
@@ -7,6 +8,7 @@ import { isArtigo } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { CitacaoComandoSimples } from './citacao-cmd-simples';
+import { CitacaoComandoMultipla } from './citacao-cmd-multipla';
 
 export class CitacaoComandoDispPrj {
   constructor(private articulacao: Articulacao) {}
@@ -24,8 +26,7 @@ export class CitacaoComandoDispPrj {
       if (dispositivos.length === 1 && !isArtigo(disp)) {
         sb.append(new CitacaoComandoSimples().getTexto(disp));
       } else {
-        sb.append('<p>Citação múltipla não implementada.</p>');
-        // this.getCitacoesMultiplas(sb, dispositivos);
+        this.getCitacoesMultiplas(sb, dispositivos);
       }
     }
 
@@ -58,42 +59,37 @@ export class CitacaoComandoDispPrj {
     return ret;
   }
 
-  // private void getCitacoesMultiplas(final StringBuilder sb, final List<Dispositivo> dispositivos) {
-  //     List<Dispositivo> dispArtigo = new ArrayList<Dispositivo>();
-  //     Dispositivo artigo, artigoAtual = null;
+  getCitacoesMultiplas(sb: StringBuilder, dispositivos: Dispositivo[]): void {
+    // O dispositivo de referência será um artigo ou um agrupador de artigo.
+    let listaDispRef = new Array<Dispositivo>();
+    let dispRef;
+    let dispRefAtual;
 
-  //     sb.append("<Citacao>");
+    dispositivos.forEach(d => {
+      dispRef = (isArtigo(d) || isAgrupador(d)) && !isDispositivoAlteracao(d) ? d : getArtigo(d);
 
-  //     for (Dispositivo d : dispositivos) {
+      if (dispRef !== dispRefAtual) {
+        if (listaDispRef.length) {
+          this.getCitacaoMultipla(sb, listaDispRef);
+        }
 
-  //         artigo = DispositivoUtil.getArtigoDoProjeto(d);
+        listaDispRef = [];
+        listaDispRef.push(dispRef);
 
-  //         if (artigo != artigoAtual) {
+        dispRefAtual = dispRef;
+      }
 
-  //             if (!dispArtigo.isEmpty()) {
-  //                 getCitacaoMultipla(sb, dispArtigo);
-  //             }
+      if (listaDispRef.indexOf(d) < 0) {
+        listaDispRef.push(d);
+      }
+    });
 
-  //             dispArtigo.clear();
-  //             dispArtigo.add(artigo);
+    if (listaDispRef.length) {
+      this.getCitacaoMultipla(sb, listaDispRef);
+    }
+  }
 
-  //             artigoAtual = artigo;
-  //         }
-
-  //         if (!dispArtigo.contains(d)) {
-  //             dispArtigo.add(d);
-  //         }
-  //     }
-
-  //     if (!dispArtigo.isEmpty()) {
-  //         getCitacaoMultipla(sb, dispArtigo);
-  //     }
-
-  //     sb.append("</Citacao>");
-  // }
-
-  // private void getCitacaoMultipla(final StringBuilder sb, final List<Dispositivo> dispositivos) {
-  //     CitacaoComandoMultipla cit = new CitacaoComandoMultipla(emenda);
-  //     sb.append(cit.getTexto(dispositivos));
-  // }
+  getCitacaoMultipla(sb: StringBuilder, dispositivos: Dispositivo[]): void {
+    sb.append(new CitacaoComandoMultipla().getTexto(dispositivos));
+  }
 }

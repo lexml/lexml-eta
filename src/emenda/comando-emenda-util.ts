@@ -3,7 +3,7 @@ import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { getDispositivoPosterior, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
-import { isArticulacaoAlteracao, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export class CmdEmdUtil {
@@ -117,20 +117,49 @@ export class CmdEmdUtil {
   //     return d.isSituacao(DispositivoNovo.class) && !CmdEmdUtil.isTextoOmitido(d);
   // }
 
-  // public static Map<Dispositivo , Map> getArvoreDispositivos(final List<Dispositivo> dispositivos) {
+  static getArvoreDispositivos(dispositivos: Dispositivo[]): HierSimplesDispositivo[] {
+    const mapa = new Array<HierSimplesDispositivo>();
 
-  //     Map<Dispositivo , Map> mapa = new HashMap<Dispositivo , Map>();
+    if (!dispositivos.length) {
+      return mapa;
+    }
 
-  //     if (dispositivos == null || dispositivos.isEmpty()) {
-  //         return mapa;
-  //     }
+    dispositivos.forEach(dispositivo => {
+      this.atualizaMapa(dispositivo, mapa);
+    });
 
-  //     for (Dispositivo dispositivo : dispositivos) {
-  //         EmendaUtil.atualizaMapa(dispositivo, mapa);
-  //     }
+    return mapa;
+  }
 
-  //     return mapa;
-  // }
+  private static atualizaMapa(dispositivo: Dispositivo, mapa: HierSimplesDispositivo[]): void {
+    const hierarquia = this.getHierarquiaDispositivosDeUmDispositivo(dispositivo);
+    let mapaAtual = mapa;
+
+    hierarquia.forEach(dispositivoAtual => {
+      const mapaFilho = mapa.find(h => h.dispositivo === dispositivoAtual);
+      if (mapaFilho) {
+        mapaAtual = mapaFilho.filhos;
+      } else {
+        const novaEntrada = new HierSimplesDispositivo(dispositivoAtual);
+        mapaAtual.push(novaEntrada);
+        mapaAtual = novaEntrada.filhos;
+      }
+    });
+  }
+
+  private static getHierarquiaDispositivosDeUmDispositivo(dispositivo: Dispositivo): Dispositivo[] {
+    const hierarquia = new Array<Dispositivo>();
+    hierarquia.push(dispositivo);
+
+    let pai = dispositivo.pai;
+    while (pai && !isDispositivoRaiz(pai) && !isAgrupador(pai)) {
+      hierarquia.push(pai);
+      pai = pai.pai;
+    }
+    hierarquia.reverse();
+
+    return hierarquia;
+  }
 
   // public static Map<Dispositivo , Map> getArvoreDispositivosDeAlteracaoDeNorma(final List<Dispositivo> dispositivos) {
 
@@ -370,7 +399,12 @@ export class CmdEmdUtil {
     return true;
   }
 
-  static getTextoParaCitacao(d: Dispositivo): string {
-    return d.texto.replace(/^\s*<p>\s*/i, '').replace(/\s*<\/p>\s*$/i, '');
+  static trataTextoParaCitacao(d: Dispositivo): string {
+    const texto = isArtigo(d) ? (d as Artigo).caput!.texto : d.texto;
+    return texto.replace(/^\s*<p>\s*/i, '').replace(/\s*<\/p>\s*$/i, '');
   }
+}
+
+export class HierSimplesDispositivo {
+  constructor(public dispositivo: Dispositivo, public filhos = new Array<HierSimplesDispositivo>()) {}
 }

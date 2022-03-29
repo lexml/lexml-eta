@@ -116,6 +116,7 @@ export class TesteCmdEmdUtil {
     }
     // console.log(d?.rotulo);
     expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idArtigoRef}`).to.not.be.undefined;
+    d!.texto = '<p>Texto</p>';
     return d!;
   }
 

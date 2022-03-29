@@ -12,7 +12,7 @@ import { TesteCmdEmdUtil } from '../teste-cmd-emd-util';
 let documento: ProjetoNorma;
 const state: State = new DefaultState();
 
-describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
+describe('Cabeçalho de comando de emenda com inclusão de artigos onde couber', () => {
   beforeEach(function () {
     const urn = 'urn:lex:br:senado.federal:projeto.lei;plc:2010;00007';
     documento = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
@@ -21,9 +21,13 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
     artigo.rotulo = 'Art.';
     artigo.numero = '1';
     artigo.id = 'art1';
-    const situacao = new DispositivoAdicionado();
+    let situacao = new DispositivoAdicionado();
     situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
     artigo.situacao = situacao;
+    const caput = artigo.caput!;
+    situacao = new DispositivoAdicionado();
+    situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+    caput.situacao = situacao;
     state.articulacao = documento.articulacao;
     state.modo = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
   });

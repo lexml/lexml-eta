@@ -22,7 +22,7 @@ export class TagNode {
     return resultado.toString();
   }
 
-  addValor(valor?: string): TagNode {
+  add(valor?: any): TagNode {
     if (valor) {
       this.valores.push(valor);
     }
@@ -36,13 +36,6 @@ export class TagNode {
       this.atributos.append("='");
       this.atributos.append(valor);
       this.atributos.append("'");
-    }
-    return this;
-  }
-
-  add(child: TagNode): TagNode {
-    if (child) {
-      this.valores.push(child);
     }
     return this;
   }

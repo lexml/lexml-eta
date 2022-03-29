@@ -11,15 +11,15 @@ export class CitacaoComandoSimples {
     const sb = new StringBuilder();
 
     const rotulo = isCaput(d) ? d.pai!.rotulo : d.rotulo;
-    const tagRotulo = new TagNode('Rotulo').addValor(rotulo?.trim());
-    const tagDispositivo = new TagNode('p').addValor('“').add(tagRotulo).addValor(CmdEmdUtil.getTextoParaCitacao(d));
+    const tagRotulo = new TagNode('Rotulo').add(rotulo?.trim());
+    const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.trataTextoParaCitacao(d));
 
     if (this.necessitaOmissis(d)) {
-      const tagOmissis = new TagNode('p').add(new TagNode('Omissis')).addValor('”');
+      const tagOmissis = new TagNode('p').add(new TagNode('Omissis')).add('”');
       sb.append(tagDispositivo.toString());
       sb.append(tagOmissis.toString());
     } else {
-      tagDispositivo.addValor('”');
+      tagDispositivo.add('”');
       sb.append(tagDispositivo.toString());
     }
 
