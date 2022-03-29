@@ -38,9 +38,8 @@ import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
 
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
-import { quillSnowCss } from '../../assets/css/quill.snow.css';
-import { editorCss } from '../../assets/css/editor.css';
+import { quillSnowStyles } from '../../assets/css/quill.snow.css';
+import { editorStyles } from '../../assets/css/editor.css';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -89,20 +88,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     super.disconnectedCallback();
   }
 
-  private buildCss(): string {
-    return `
-      <style>
-        ${quillSnowCss.cssText}
-      </style>
-      <style>
-        ${editorCss.cssText}
-      </style>
-    `;
-  }
-
   render(): TemplateResult {
     return html`
-      ${unsafeHTML(this.buildCss())}
+      ${quillSnowStyles}
+      ${editorStyles}
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
           <button class="ql-bold" title="Negrito (Ctrl+b)"></button>
