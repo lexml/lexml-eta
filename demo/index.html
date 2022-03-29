@@ -113,6 +113,29 @@
             console.log(this.querySelector('lexml-eta').getEmenda());
           }
         }
+
+        salvar() {
+          const projetoNorma = mapProjetosNormas[this.projetoNorma]
+          const emenda = this.querySelector('lexml-eta').getEmenda();
+          const emendaJson = JSON.stringify({
+            'projetoNorma': projetoNorma,
+            'emenda': emenda
+          });
+          const blob = new Blob([
+            emendaJson
+          ], {
+            type: 'application/json'
+          });
+          const fileName = `${this.projetoNorma}.json`;
+          const objectUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+
+          a.href = objectUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+        }
+
         render() {
           return html`
               <style>
@@ -161,6 +184,9 @@
                 <div class="lexml-eta-main-header--title">
                   <span>ETA - Editor de Textos Articulados </span>
                   <input type="button" class="lexml-eta-btn--demo" title="Aplicação exemplo" value="Demo"></input>
+                </div>
+                <div class="lexml-eta-main-header--actions">
+                  <input type="button" value="Salvar" @click=${this.salvar}></input>
                 </div>
                 <div class="lexml-eta-main-header--selecao">
                   <select id="projetoNorma" @change=${this.onChangeDocumento}>
