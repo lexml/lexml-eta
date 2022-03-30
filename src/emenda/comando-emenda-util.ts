@@ -136,7 +136,7 @@ export class CmdEmdUtil {
     let mapaAtual = mapa;
 
     hierarquia.forEach(dispositivoAtual => {
-      const mapaFilho = mapa.find(h => h.dispositivo === dispositivoAtual);
+      const mapaFilho = mapaAtual.find(h => h.dispositivo === dispositivoAtual);
       if (mapaFilho) {
         mapaAtual = mapaFilho.filhos;
       } else {

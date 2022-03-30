@@ -1,5 +1,5 @@
 import { isAgrupador } from './../model/dispositivo/tipo';
-import { isDispositivoAlteracao, isArticulacaoAlteracao, getArtigo } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, isArticulacaoAlteracao, getArtigo, isDescendenteDeSuprimido } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { Articulacao } from './../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
@@ -50,8 +50,8 @@ export class CitacaoComandoDispPrj {
         if (ret.indexOf(d.pai!) >= 0) {
           ret.push(d);
         }
-      } else {
-        // dispositivos que não são de alteração de norma vigente
+      } else if (!isDescendenteDeSuprimido(d)) {
+        // dispositivos que não são de alteração de norma vigente e que não são descendentes de suprimidos.
         ret.push(d);
       }
     });

@@ -52,6 +52,7 @@ export class CitacaoComandoMultipla {
       const d = h.dispositivo;
 
       if (isCaput(d)) {
+        this.ultimoProcessado = d;
         if (h.filhos.length) {
           this.writeDispositivoTo(sb, h.filhos);
         }
@@ -71,7 +72,7 @@ export class CitacaoComandoMultipla {
         }
       } else if (
         this.ultimoProcessado !== dispositivoAnterior &&
-        !(this.ultimoProcessado!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && isAscendente(this.ultimoProcessado!, dispositivoAnterior))
+        !(this.ultimoProcessado!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && isAscendente(dispositivoAnterior, this.ultimoProcessado!))
       ) {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
       }
