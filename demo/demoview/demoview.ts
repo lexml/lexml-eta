@@ -82,8 +82,8 @@ export class DemoView extends LitElement {
       const emenda = this.getElement('lexml-eta').getComandoEmenda();
       this.getElement('lexml-emenda-comando').emenda = emenda;
 
-      console.log('Emenda ---------------------');
-      console.log(this.getElement('lexml-eta').getEmenda());
+      // console.log('Emenda ---------------------');
+      // console.log(this.getElement('lexml-eta').getEmenda());
     }
   }
 

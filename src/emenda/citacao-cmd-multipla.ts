@@ -4,11 +4,13 @@ import { isArtigo, isCaput } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { TagNode } from '../util/tag-node';
 import { Artigo } from './../model/dispositivo/dispositivo';
-import { isAscendente, isDescendenteDeSuprimido } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, isAscendente, isDescendenteDeSuprimido } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdUtil, HierSimplesDispositivo } from './comando-emenda-util';
 
 export class CitacaoComandoMultipla {
-  ultimoProcessado?: Dispositivo;
+  private ultimoProcessado?: Dispositivo;
+  private emAlteracao = false;
+  private abrirAspasSimples = false;
 
   public getTexto(dispositivos: Dispositivo[]): string {
     let arvoreDispositivos = CmdEmdUtil.getArvoreDispositivos(dispositivos);
@@ -26,16 +28,18 @@ export class CitacaoComandoMultipla {
 
     if (arvoreDispositivos.length) {
       this.ultimoProcessado = artigo;
+      // this.emAlteracao = false;
+      // this.abrirAspasSimples = false;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
 
     this.writeOmissisFinal(sb, artigo);
 
-    return sb.toString().replace(/<\/p>$/, '”</p>');
+    return sb.toString().replace(/(<\/p>(?:<\/Alteracao>)?)$/, '”$1');
   }
 
   getTextoDoDispositivoOuOmissis(d: Dispositivo): TagNode | string {
-    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
       return CmdEmdUtil.trataTextoParaCitacao(d);
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       return '(Suprimido)';
@@ -47,6 +51,18 @@ export class CitacaoComandoMultipla {
   writeDispositivoTo(sb: StringBuilder, arvoreDispositivos: HierSimplesDispositivo[]): void {
     arvoreDispositivos.forEach(h => {
       const d = h.dispositivo;
+
+      if (isArticulacaoAlteracao(d)) {
+        sb.append('<Alteracao>');
+        this.emAlteracao = true;
+        this.abrirAspasSimples = true;
+        this.ultimoProcessado = d;
+        if (h.filhos.length) {
+          this.writeDispositivoTo(sb, h.filhos);
+        }
+        sb.append('</Alteracao>');
+        return;
+      }
 
       if (isCaput(d)) {
         this.ultimoProcessado = d;
@@ -78,7 +94,14 @@ export class CitacaoComandoMultipla {
       // o dispositivo atual
       if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(h.filhos)) {
         const dispRotulo = isArtigo(d) ? (d as Artigo).caput! : d;
-        sb.append(new TagNode('p').add(new TagNode('Rotulo').add(d.rotulo)).add(this.getTextoDoDispositivoOuOmissis(dispRotulo)).toString());
+        const rotulo = this.emAlteracao ? d.rotulo?.replace('“', '') : d.rotulo;
+        const tag = new TagNode('p');
+        if (this.abrirAspasSimples) {
+          tag.add('‘');
+          this.abrirAspasSimples = false;
+        }
+        tag.add(new TagNode('Rotulo').add(rotulo)).add(this.getTextoDoDispositivoOuOmissis(dispRotulo));
+        sb.append(tag.toString());
       } else {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
       }
@@ -117,7 +140,7 @@ export class CitacaoComandoMultipla {
   //                                                          && !ultimoProcessado.hasFilhosPropostos());
   // }
 
-  private hasFilhosPropostos(hFilhos: HierSimplesDispositivo[]) {
+  private hasFilhosPropostos(hFilhos: HierSimplesDispositivo[]): boolean {
     if (!hFilhos.length) {
       return false;
     }

@@ -1,14 +1,14 @@
-import { isAgrupador } from './../model/dispositivo/tipo';
-import { isDispositivoAlteracao, isArticulacaoAlteracao, getArtigo, isDescendenteDeSuprimido } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoComparator } from './dispositivo-comparator';
-import { Articulacao } from './../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { isArtigo } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
-import { CmdEmdUtil } from './comando-emenda-util';
-import { CitacaoComandoSimples } from './citacao-cmd-simples';
+import { Articulacao } from './../model/dispositivo/dispositivo';
+import { DescricaoSituacao } from './../model/dispositivo/situacao';
+import { isAgrupador } from './../model/dispositivo/tipo';
+import { getArtigoDoProjeto, isArticulacaoAlteracao, isDescendenteDeSuprimido, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultipla } from './citacao-cmd-multipla';
+import { CitacaoComandoSimples } from './citacao-cmd-simples';
+import { CmdEmdUtil } from './comando-emenda-util';
+import { DispositivoComparator } from './dispositivo-comparator';
 
 export class CitacaoComandoDispPrj {
   constructor(private articulacao: Articulacao) {}
@@ -66,7 +66,7 @@ export class CitacaoComandoDispPrj {
     let dispRefAtual;
 
     dispositivos.forEach(d => {
-      dispRef = (isArtigo(d) || isAgrupador(d)) && !isDispositivoAlteracao(d) ? d : getArtigo(d);
+      dispRef = (isArtigo(d) || isAgrupador(d)) && !isDispositivoAlteracao(d) ? d : getArtigoDoProjeto(d);
 
       if (dispRef !== dispRefAtual) {
         if (listaDispRef.length) {

@@ -17,7 +17,12 @@ export class ComandoEmendaComponent extends LitElement {
 
   buildTemplateCitacao(citacao: any): string {
     // eslint-disable-next-line prettier/prettier
-    const corpo = citacao.replaceAll('<Rotulo>', '<b>').replaceAll('</Rotulo>', '</b> ').replaceAll('<Omissis/>', ' ..........................................................');
+    const corpo = citacao
+      .replaceAll('<Rotulo>', '<b>')
+      .replaceAll('</Rotulo>', '</b> ')
+      .replaceAll('<Alteracao>', '<div class="alteracao">')
+      .replaceAll('</Alteracao>', '</div> ')
+      .replaceAll('<Omissis/>', ' ..........................................................');
 
     return corpo;
   }
@@ -64,6 +69,14 @@ export class ComandoEmendaComponent extends LitElement {
           text-align: justify;
           text-indent: 3em;
           margin: 0;
+        }
+
+        .lexml-emenda-citacaoComando div.alteracao {
+          margin-left: 4em;
+        }
+
+        .lexml-emenda-citacaoComando div.alteracao p {
+          text-indent: 2em;
         }
       </style>
 
