@@ -10,6 +10,9 @@ import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { EMENDA_MPV_00930_2020 } from '../doc/emenda_exemplo_mpv_00930_2020';
 
+import '../../src/index';
+import '../../src/components/autoria/autoria-dialog.component';
+
 const mapProjetosNormas = {
   novo: {},
   mpv_alteracao: MPV_ALTERACAO,
@@ -99,8 +102,11 @@ export class DemoView extends LitElement {
     a.click();
   }
 
-  onClickAutoria(e: EventTarget): void {
-    console.log(11111, 'Exibir formulário de autoria', e);
+  onClickAutoria(): void {
+    const el = this.getElement('lexml-autoria-dialog');
+    if (el) {
+      el.open();
+    }
   }
 
   render(): TemplateResult {
@@ -196,6 +202,7 @@ export class DemoView extends LitElement {
           <lexml-emenda-comando></lexml-emenda-comando>
         </div>
       </div>
+      <lexml-autoria-dialog></lexml-autoria-dialog>
     `;
   }
 }
