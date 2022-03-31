@@ -1,33 +1,21 @@
 import { html, TemplateResult } from 'lit-html';
-import { LitElement, customElement, property, PropertyValues, css } from 'lit-element';
+import { LitElement, customElement, property, PropertyValues } from 'lit-element';
 import { Parlamentar } from '../../model/autoria/parlamentar';
+import { autoriaCss } from '../../assets/css/autoria.css';
 
 @customElement('lexml-parlamentar-autocomplete')
 export class ParlamentarAutocomplete extends LitElement {
-  static styles = css`
-    .arrow {
-      border: solid black;
-      border-width: 0 3px 3px 0;
-      display: inline-block;
-      padding: 3px;
-    }
-
-    .up {
-      transform: rotate(-135deg);
-      -webkit-transform: rotate(-135deg);
-    }
-
-    .down {
-      transform: rotate(45deg);
-      -webkit-transform: rotate(45deg);
-    }
-  `;
+  static styles = [autoriaCss];
 
   @property({ type: Array })
   parlamentares: Parlamentar[] = [];
 
   @property({ type: Object })
   parlamentar?: Parlamentar;
+
+  createRenderRoot(): LitElement {
+    return this;
+  }
 
   update(changedProperties: PropertyValues): void {
     super.update(changedProperties);
@@ -37,17 +25,36 @@ export class ParlamentarAutocomplete extends LitElement {
     return html`<div>${parlamentar.nome}</div>`;
   }
 
+  emitEvent(tipo: string): void {
+    const ev = new CustomEvent(tipo, {
+      detail: {
+        parlamentar: this.parlamentar,
+      },
+    });
+    this.dispatchEvent(ev);
+  }
+
+  atualizarObjeto(): void {
+    const inputs = this.getElementsByTagName('input');
+    this.parlamentar!.nome = inputs[0].value;
+    this.parlamentar!.cargo = inputs[1].value;
+  }
+
   render(): TemplateResult {
     return html`
-      <div>
-        <label for="tex-parlamentar">Parlamentar</label>
-        <elix-auto-complete-combo-box aria-label="parlamentar"> ${this.parlamentares.map(this.montarItemAutocomplete)} </elix-auto-complete-combo-box>
+      <div class="grid-autoria" @input=${this.atualizarObjeto}>
+        <!-- <label for="tex-parlamentar">Parlamentar</label> -->
+        <!-- <elix-auto-complete-combo-box aria-label="parlamentar"> ${this.parlamentares.map(this.montarItemAutocomplete)} </elix-auto-complete-combo-box> -->
+        <input type="text" aria-label="parlamentar" placeholder="Digite o nome..." value=${this.parlamentar?.nome || ''} />
 
-        <label for="tex-cargo">Cargo</label>
+        <!-- <label for="tex-cargo">Cargo</label> -->
         <input type="text" id="tex-cargo" placeholder="ex: Presidente da Comissão ..., Líder do ..." />
 
-        <button class="arrow down"></button>
-        <button class="arrow up"></button>
+        <div>
+          <button id="paraBaixo" @click=${(): void => this.emitEvent('paraBaixo')}>Para baixo</button>
+          <button id="paraCima" @click=${(): void => this.emitEvent('paraCima')}>Para cima</button>
+          <button id="excluir" @click=${(): void => this.emitEvent('excluir')}>Excluir</button>
+        </div>
       </div>
     `;
   }
