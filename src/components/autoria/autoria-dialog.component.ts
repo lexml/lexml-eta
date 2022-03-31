@@ -55,7 +55,7 @@ export class AutoriaDialog extends LitElement {
     this.getParlamentares().then(dados => {
       this.parlamentares = dados;
       this.autoria = {
-        tipo: 'parlamentar',
+        tipo: 'Parlamentar',
         parlamentares: dados.filter(p => p.id === '1' || p.id === '2'),
         indImprimirPartidoUF: true,
         qtdAssinaturasAdicionaisDeputados: 0,
@@ -73,6 +73,10 @@ export class AutoriaDialog extends LitElement {
     this.getDialog()?.close();
   }
 
+  exibirDados(): void {
+    console.log(11111, 'EXIBIR AUTORIA', this.autoria);
+  }
+
   id = 'autoriaDialog';
   private getDialog(): any {
     return this.shadowRoot?.getElementById(this.id) as any;
@@ -85,6 +89,7 @@ export class AutoriaDialog extends LitElement {
         <div>
           <button @click=${this.close}>OK</button>
           <button @click=${this.close}>Cancelar</button>
+          <button @click=${this.exibirDados}>Exibir dados</button>
         </div>
       </elix-dialog>
     `;
