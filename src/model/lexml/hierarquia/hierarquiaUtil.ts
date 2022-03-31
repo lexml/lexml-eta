@@ -120,6 +120,14 @@ export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
   return getArtigo(dispositivo.pai!);
 };
 
+export const getArtigoDoProjeto = (dispositivo: Dispositivo): Dispositivo => {
+  const pai = dispositivo.pai!;
+  if (isArtigo(pai) && !isDispositivoAlteracao(pai)) {
+    return dispositivo.pai!;
+  }
+  return getArtigoDoProjeto(dispositivo.pai!);
+};
+
 export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Dispositivo): Dispositivo[] => {
   const pos = getArticulacao(dispositivo).indexOfArtigo(dispositivo);
 

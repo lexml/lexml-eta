@@ -2,7 +2,7 @@ import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositi
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { getDispositivoPosterior, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
-import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
+import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
@@ -152,7 +152,7 @@ export class CmdEmdUtil {
     hierarquia.push(dispositivo);
 
     let pai = dispositivo.pai;
-    while (pai && !isDispositivoRaiz(pai) && !isAgrupador(pai)) {
+    while (pai && !isDispositivoRaiz(pai) && !isAgrupadorNaoArticulacao(pai)) {
       hierarquia.push(pai);
       pai = pai.pai;
     }
@@ -401,7 +401,10 @@ export class CmdEmdUtil {
 
   static trataTextoParaCitacao(d: Dispositivo): string {
     const texto = isArtigo(d) ? (d as Artigo).caput!.texto : d.texto;
-    return texto.replace(/^\s*<p>\s*/i, '').replace(/\s*<\/p>\s*$/i, '');
+    return texto
+      .replace(/”( *(?:\(NR\)) *)?/, '’$1 ')
+      .replace(/^\s*<p>\s*/i, '')
+      .replace(/\s*<\/p>\s*$/i, '');
   }
 }
 
