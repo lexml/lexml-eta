@@ -45,10 +45,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.incluiParagrafo(state, 'art1', false, 'art1_par1u'); // parágrafo único do art. 1º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     // eslint-disable-next-line prettier/prettier
-    expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 1º</Rotulo><Omissis/></p>' +
-        '<p><Rotulo>I –</Rotulo>Texto</p>' +
-        '<p><Rotulo>Parágrafo único.</Rotulo>Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo><Omissis/></p>' + '<p><Rotulo>I –</Rotulo>Texto</p>' + '<p><Rotulo>Parágrafo único.</Rotulo>Texto”</p>');
   });
 
   it('acrescimoParagrafoEIncisoEmArtigosDistintos', () => {

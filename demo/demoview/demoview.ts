@@ -10,6 +10,9 @@ import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { EMENDA_MPV_00930_2020 } from '../doc/emenda_exemplo_mpv_00930_2020';
 
+import '../../src/index';
+import '../../src/components/autoria/autoria-dialog.component';
+
 const mapProjetosNormas = {
   novo: {},
   mpv_alteracao: MPV_ALTERACAO,
@@ -128,8 +131,11 @@ export class DemoView extends LitElement {
     }
   }
 
-  onClickAutoria(e: EventTarget): void {
-    console.log(11111, 'Exibir formulário de autoria', e);
+  onClickAutoria(): void {
+    const el = this.getElement('lexml-autoria-dialog');
+    if (el) {
+      el.open();
+    }
   }
 
   render(): TemplateResult {
@@ -188,14 +194,8 @@ export class DemoView extends LitElement {
         </div>
         <div class="lexml-eta-main-header--actions">
           <input type="button" value="Salvar" @click=${this.salvar} />
-          <input type="button" value="Abrir" @click=${this.abrir}></input>
-          <input
-              type="file"
-              id="fileUpload"
-              accept="application/json"
-              @change="${this.selecionaArquivo}"
-              style="display: none"
-          />
+          <input type="button" value="Abrir" @click=${this.abrir} />
+          <input type="file" id="fileUpload" accept="application/json" @change="${this.selecionaArquivo}" style="display: none" />
           <input type="button" class="lexml-eta-btn--autoria" title="Autores" value="Autoria" @click=${this.onClickAutoria} />
         </div>
 
@@ -233,6 +233,7 @@ export class DemoView extends LitElement {
           <lexml-emenda-comando></lexml-emenda-comando>
         </div>
       </div>
+      <lexml-autoria-dialog></lexml-autoria-dialog>
     `;
   }
 }

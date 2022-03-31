@@ -10,6 +10,7 @@ import 'elix/define/MenuButton';
 import 'elix/define/MenuItem';
 import 'elix/define/MenuSeparator';
 import 'elix/define/Toast';
+import 'elix/define/AutoCompleteComboBox';
 import 'quill/dist/quill';
 
 // ---------------------------------------------------
@@ -20,3 +21,4 @@ export { EditorComponent } from './components/editor/editor.component';
 export { ElementoComponent } from './components/elemento/elemento.component';
 export { HelpComponent } from './components/help.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
+export { AutoriaComponent } from './components/autoria/autoria.component';

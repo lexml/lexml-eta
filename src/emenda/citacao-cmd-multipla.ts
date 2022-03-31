@@ -22,10 +22,7 @@ export class CitacaoComandoMultipla {
     arvoreDispositivos = hArtigo.filhos;
 
     // eslint-disable-next-line prettier/prettier
-    const node = new TagNode('p')
-      .add('“')
-      .add(new TagNode('Rotulo').add(artigo.rotulo))
-      .add(this.getTextoDoDispositivoOuOmissis(artigo));
+    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(artigo.rotulo)).add(this.getTextoDoDispositivoOuOmissis(artigo));
 
     sb.append(node.toString());
 
