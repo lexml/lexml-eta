@@ -32,6 +32,8 @@ const mapEmendas = {
 export class DemoView extends LitElement {
   @property({ type: String }) modo = '';
   @property({ type: String }) projetoNorma = '';
+  @property({ type: Object }) emenda = {};
+  @property({ type: Object }) arquivoProjetoNorma = {};
 
   constructor() {
     super();
@@ -61,11 +63,14 @@ export class DemoView extends LitElement {
     const elmAcao = this.getElement('#modo');
     const elmDocumento = this.getElement('#projetoNorma');
     this.getElement('lexml-emenda-comando').emenda = {};
+    this.getElement('#fileUpload').value = null;
 
     if (elmDocumento && elmAcao) {
       setTimeout(() => {
         this.projetoNorma = elmDocumento.value;
         this.modo = elmAcao.value;
+        this.emenda = {};
+        this.arquivoProjetoNorma = {};
       }, 0);
     }
   }
@@ -100,6 +105,30 @@ export class DemoView extends LitElement {
     a.download = fileName;
     document.body.appendChild(a);
     a.click();
+  }
+
+  abrir(): void {
+    const fileUpload = document.getElementById('fileUpload');
+    if (fileUpload !== null) {
+      fileUpload.click();
+    }
+  }
+
+  selecionaArquivo(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    if (fileInput && fileInput.files) {
+      const fReader = new FileReader();
+      fReader.readAsText(fileInput.files[0]);
+      fReader.onloadend = e => {
+        if (e.target?.result) {
+          const result = JSON.parse(e.target.result as string);
+          this.modo = result.emenda.classificacao;
+          this.arquivoProjetoNorma = result.projetoNorma;
+          this.emenda = result.emenda;
+          this.projetoNorma = '';
+        }
+      };
+    }
   }
 
   onClickAutoria(): void {
@@ -165,6 +194,8 @@ export class DemoView extends LitElement {
         </div>
         <div class="lexml-eta-main-header--actions">
           <input type="button" value="Salvar" @click=${this.salvar} />
+          <input type="button" value="Abrir" @click=${this.abrir} />
+          <input type="file" id="fileUpload" accept="application/json" @change="${this.selecionaArquivo}" style="display: none" />
           <input type="button" class="lexml-eta-btn--autoria" title="Autores" value="Autoria" @click=${this.onClickAutoria} />
         </div>
 
@@ -193,8 +224,8 @@ export class DemoView extends LitElement {
             id="lexmlEta"
             @onchange=${this.onChange}
             modo=${this.modo}
-            .projetoNorma=${mapProjetosNormas[this.projetoNorma] || {}}
-            .emenda=${mapEmendas[this.projetoNorma] || {}}
+            .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
+            .emenda=${this.projetoNorma === 'mpv_930_2020' ? mapEmendas[this.projetoNorma].emenda : this.emenda}
           >
           </lexml-eta>
         </div>

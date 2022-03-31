@@ -1,6 +1,5 @@
 import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
-import { EMENDA_MPV_00930_2020 } from '../../demo/doc/emenda_exemplo_mpv_00930_2020';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
 import { EmendaBuilder } from '../emenda/emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
@@ -98,9 +97,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       setTimeout(() => {
         rootStore.dispatch(
           aplicarAlteracoesEmendaAction.execute({
-            dispositivosModificados: EMENDA_MPV_00930_2020.emenda.dispositivosModificados,
-            dispositivosSuprimidos: EMENDA_MPV_00930_2020.emenda.dispositivosSuprimidos,
-            dispositivosAdicionados: EMENDA_MPV_00930_2020.emenda.dispositivosAdicionados,
+            dispositivosModificados: (this.emenda as any).dispositivosModificados,
+            dispositivosSuprimidos: (this.emenda as any).dispositivosSuprimidos,
+            dispositivosAdicionados: (this.emenda as any).dispositivosAdicionados,
           })
         );
       }, 1000);

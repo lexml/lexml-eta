@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { CitacaoComandoDispPrj } from '../../../src/emenda/citacao-cmd-disp-prj';
 
+import { CitacaoComandoDispPrj } from '../../../src/emenda/citacao-cmd-disp-prj';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { State } from '../../../src/redux/state';
@@ -11,7 +11,7 @@ import { PLC_ARTIGOS_AGRUPADOS } from './../../doc/parser/plc_artigos_agrupados'
 let documento: ProjetoNorma;
 const state: State = new DefaultState();
 
-describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
+describe('Citação em comando de emenda com apenas um dispositivo', () => {
   beforeEach(function () {
     documento = buildProjetoNormaFromJsonix(PLC_ARTIGOS_AGRUPADOS, true);
     state.articulacao = documento.articulacao;
@@ -57,14 +57,14 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
   // --------------------------------------------------------------------------------
   // Modificação
 
-  // it('modificacaoCaput', () => {
-  //   /*
-  //    * "Art. 1º Nonono ono"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt');
-  //   const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-  //   expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo>Texto”</p>');
-  // });
+  it('modificacaoCaput', () => {
+    /*
+     * "Art. 1º Nonono ono"
+     */
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1');
+    const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo>Texto”</p>');
+  });
 
   it('modificacaoParagrafo', () => {
     /*
@@ -102,8 +102,8 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
     expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
   });
 
-  // // --------------------------------------------------------------------------------
-  // // Emenda sem dispositivos
+  // --------------------------------------------------------------------------------
+  // Emenda sem dispositivos
 
   it('citacaoEmendaSemDispositivos', () => {
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
