@@ -1,5 +1,6 @@
-import { html, TemplateResult } from 'lit-html';
-import { LitElement, customElement, PropertyValues, property } from 'lit-element';
+import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 import { Autoria } from './../../model/autoria/autoria';
 
 @customElement('lexml-tipo-autoria')

@@ -1,5 +1,6 @@
-import { html, TemplateResult } from 'lit-html';
-import { LitElement, customElement, property, PropertyValues } from 'lit-element';
+import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 import { Parlamentar } from '../../model/autoria/parlamentar';
 import { autoriaCss } from '../../assets/css/autoria.css';
 

@@ -1,6 +1,6 @@
-import { customElement, LitElement, property, PropertyValues } from 'lit-element';
-import { html, TemplateResult } from 'lit-html';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 @customElement('lexml-emenda-comando')
 export class ComandoEmendaComponent extends LitElement {
@@ -17,10 +17,7 @@ export class ComandoEmendaComponent extends LitElement {
 
   buildTemplateCitacao(citacao: any): string {
     // eslint-disable-next-line prettier/prettier
-    const corpo = citacao
-      .replaceAll('<Rotulo>', '<b>')
-      .replaceAll('</Rotulo>', '</b> ')
-      .replaceAll('<Omissis/>', ' ..........................................................');
+    const corpo = citacao.replaceAll('<Rotulo>', '<b>').replaceAll('</Rotulo>', '</b> ').replaceAll('<Omissis/>', ' ..........................................................');
 
     return corpo;
   }

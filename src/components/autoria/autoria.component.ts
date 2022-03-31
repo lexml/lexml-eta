@@ -1,7 +1,8 @@
 import { Parlamentar } from './../../model/autoria/parlamentar';
 import { Autoria } from './../../model/autoria/autoria';
-import { customElement, LitElement, property, PropertyValues } from 'lit-element';
-import { html, TemplateResult } from 'lit-html';
+import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 import { autoriaCss } from '../../assets/css/autoria.css';
 
 export * from './tipo-autoria.component';

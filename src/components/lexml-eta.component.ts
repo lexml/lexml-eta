@@ -1,4 +1,6 @@
-import { customElement, html, LitElement, property, PropertyValues, TemplateResult } from 'lit-element';
+import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 import { connect } from 'pwa-helpers';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
 import { EmendaBuilder } from '../emenda/emenda-builder';

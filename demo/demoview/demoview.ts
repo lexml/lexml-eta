@@ -1,5 +1,5 @@
-import { customElement, LitElement, property } from 'lit-element';
-import { html, TemplateResult } from 'lit-html';
+import { LitElement, html, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 
 import { MPV_ALTERACAO } from '../doc/mpv_alteracao';
 import { MPV_SIMPLES } from '../doc/mpv_simples';

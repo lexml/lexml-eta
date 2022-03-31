@@ -1,4 +1,4 @@
-import { html } from 'lit-html';
+import { html } from 'lit';
 // Foi utilizado TemplateResult porque o editor.component.ts não usa ShadowDom
 export const editorStyles = html`
   <style>
