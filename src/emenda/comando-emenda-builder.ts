@@ -40,7 +40,7 @@ export class ComandoEmendaBuilder {
       if (isArticulacao(d)) {
         //     CmdEmdAlteracaoNormaVigente cmd = new CmdEmdAlteracaoNormaVigente(d);
         //     cabecalho = cmd.getTexto(refGenericaProjeto);
-        cabecalho = 'não implementado';
+        cabecalho = 'O comando de emenda a dispositivos de norma alterada ainda não foi implementado.';
 
         //     CitacaoComandoAlteracaoNormaVigente cit = new CitacaoComandoAlteracaoNormaVigente(emenda, d);
         //     citacao = cit.getTexto();
