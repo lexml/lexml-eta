@@ -1,5 +1,6 @@
 import { Parlamentar } from './../../model/autoria/parlamentar';
 import { Autoria } from './../../model/autoria/autoria';
+import { incluirNovoParlamentar, excluirParlamentar, moverParlamentar } from '../../model/autoria/parlamentarUtil';
 import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
@@ -26,44 +27,17 @@ export class AutoriaComponent extends LitElement {
   }
 
   incluirNovoParlamentar(): void {
-    this.autoria?.parlamentares.push({
-      id: this.autoria.parlamentares.length + 1 + '',
-      nome: 'Parlamentar ' + (this.autoria.parlamentares.length + 1),
-      siglaPartido: '',
-      siglaUF: '',
-      indSexo: '',
-      siglaCasa: '',
-      cargo: '',
-    });
-
+    this.autoria!.parlamentares = incluirNovoParlamentar(this.autoria!.parlamentares);
     this.requestUpdate();
   }
 
   moverParlamentar(parlamentar: Parlamentar, deslocamento: number): void {
-    const parlamentares = this.autoria!.parlamentares;
-    const index = parlamentares.findIndex(p => p.id === parlamentar.id);
-    const newIndex = index + deslocamento;
-
-    if (newIndex < 0 || newIndex >= parlamentares.length) {
-      return;
-    }
-
-    parlamentares.splice(newIndex, 0, parlamentares.splice(index, 1)[0]);
-    this.autoria!.parlamentares = parlamentares;
+    this.autoria!.parlamentares = moverParlamentar(this.autoria!.parlamentares, parlamentar, deslocamento);
     this.requestUpdate();
   }
 
-  moverParaBaixo(ev: CustomEvent): void {
-    this.moverParlamentar(ev.detail.parlamentar as Parlamentar, 1);
-  }
-
-  moverParaCima(ev: CustomEvent): void {
-    this.moverParlamentar(ev.detail.parlamentar as Parlamentar, -1);
-  }
-
   excluir(ev: CustomEvent): void {
-    const parlamentar = ev.detail.parlamentar as Parlamentar;
-    this.autoria!.parlamentares = this.autoria!.parlamentares.filter(p => p.id !== parlamentar.id);
+    this.autoria!.parlamentares = excluirParlamentar(this.autoria!.parlamentares, ev.detail.parlamentar as Parlamentar);
     this.requestUpdate();
   }
 
@@ -71,8 +45,8 @@ export class AutoriaComponent extends LitElement {
     return html`<lexml-parlamentar-autocomplete
       .parlamentar=${parlamentar}
       .parlamentares=${parlamentares}
-      @paraBaixo=${this.moverParaBaixo}
-      @paraCima=${this.moverParaCima}
+      @paraBaixo=${(ev: CustomEvent): void => this.moverParlamentar(ev.detail.parlamentar as Parlamentar, 1)}
+      @paraCima=${(ev: CustomEvent): void => this.moverParlamentar(ev.detail.parlamentar as Parlamentar, -1)}
       @excluir=${this.excluir}
     ></lexml-parlamentar-autocomplete>`;
   }
