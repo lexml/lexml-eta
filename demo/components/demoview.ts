@@ -11,7 +11,7 @@ import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { EMENDA_MPV_00930_2020 } from '../doc/emenda_exemplo_mpv_00930_2020';
 
 import '../../src/index';
-import '../../src/components/autoria/autoria-dialog.component';
+import './autoria-dialog.component';
 
 const mapProjetosNormas = {
   novo: {},

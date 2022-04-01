@@ -1,8 +1,8 @@
 import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-import { Autoria } from '../../model/autoria/autoria';
-import { Parlamentar } from '../../model/autoria/parlamentar';
+import { Autoria } from '../../src/model/autoria/autoria';
+import { Parlamentar } from '../../src/model/autoria/parlamentar';
 
 const listaParlamentares: Parlamentar[] = [
   {
