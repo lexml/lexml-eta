@@ -17,7 +17,7 @@ export const incluirParlamentar = (parlamentares: Parlamentar[], parlamentar: Pa
 };
 
 export const incluirNovoParlamentar = (parlamentares: Parlamentar[]): Parlamentar[] => {
-  return incluirParlamentar(parlamentares, { ...novoParlamentar });
+  return incluirParlamentar(parlamentares, { ...novoParlamentar, id: 'novo' + (parlamentares.length + 1) });
 };
 
 export const excluirParlamentar = (parlamentares: Parlamentar[], parlamentar: Parlamentar): Parlamentar[] => {

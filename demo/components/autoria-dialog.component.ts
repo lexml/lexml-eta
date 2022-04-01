@@ -57,7 +57,7 @@ export class AutoriaDialog extends LitElement {
       this.parlamentares = dados;
       this.autoria = {
         tipo: 'Parlamentar',
-        parlamentares: dados.filter(p => p.id === '1' || p.id === '2'),
+        parlamentares: dados,
         indImprimirPartidoUF: true,
         qtdAssinaturasAdicionaisDeputados: 0,
         qtdAssinaturasAdicionaisSenadores: 0,
