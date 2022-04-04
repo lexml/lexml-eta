@@ -1,69 +1,44 @@
-import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { LitElement, html, TemplateResult } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
 
 import { Autoria } from '../../src/model/autoria/autoria';
 import { Parlamentar } from '../../src/model/autoria/parlamentar';
 
-const listaParlamentares: Parlamentar[] = [
-  {
-    id: '1',
-    nome: 'Erivânio Vasconcelos',
-    siglaPartido: 'PX',
-    siglaUF: 'DF',
-    siglaCasa: 'CD',
-    cargo: '',
-    indSexo: 'M',
-  },
-  {
-    id: '2',
-    nome: 'João Holanda',
-    siglaPartido: 'PX',
-    siglaUF: 'DF',
-    siglaCasa: 'SF',
-    cargo: '',
-    indSexo: 'M',
-  },
-  {
-    id: '3',
-    nome: 'Marcos Fragomeni',
-    siglaPartido: 'PX',
-    siglaUF: 'DF',
-    siglaCasa: 'SF',
-    cargo: '',
-    indSexo: 'M',
-  },
-  {
-    id: '4',
-    nome: 'Robson Barros',
-    siglaPartido: 'PX',
-    siglaUF: 'DF',
-    siglaCasa: 'CD',
-    cargo: '',
-    indSexo: 'M',
-  },
-];
-
 @customElement('lexml-autoria-dialog')
 export class AutoriaDialog extends LitElement {
-  autoria?: Autoria;
+  @state()
+  autoria: Autoria = {
+    tipo: 'Parlamentar',
+    parlamentares: [],
+    indImprimirPartidoUF: false,
+    qtdAssinaturasAdicionaisDeputados: 0,
+    qtdAssinaturasAdicionaisSenadores: 0,
+  };
+
+  @state()
   parlamentares: Parlamentar[] = [];
 
-  getParlamentares(): PromiseLike<Parlamentar[]> {
-    return Promise.resolve(listaParlamentares);
+  async getParlamentares(): Promise<Parlamentar[]> {
+    return (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
   }
 
-  update(changedProperties: PropertyValues): void {
-    this.getParlamentares().then(dados => {
-      this.parlamentares = dados;
-      this.autoria = {
-        tipo: 'Parlamentar',
-        parlamentares: dados,
-        indImprimirPartidoUF: true,
-        qtdAssinaturasAdicionaisDeputados: 0,
-        qtdAssinaturasAdicionaisSenadores: 0,
-      };
-      super.update(changedProperties);
-    });
+  // update(changedProperties: PropertyValues): void {
+  //   this.getParlamentares().then(dados => {
+  //     this.parlamentares = dados;
+  //     this.autoria = {
+  //       tipo: 'Parlamentar',
+  //       parlamentares: dados,
+  //       indImprimirPartidoUF: true,
+  //       qtdAssinaturasAdicionaisDeputados: 0,
+  //       qtdAssinaturasAdicionaisSenadores: 0,
+  //     };
+  //     super.update(changedProperties);
+  //   });
+  // }
+
+  constructor() {
+    super();
+    this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
   }
 
   open(): void {

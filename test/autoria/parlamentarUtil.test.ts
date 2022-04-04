@@ -71,7 +71,7 @@ describe('Testando operações em lista de parlamentares', () => {
     let parlamentar: Parlamentar;
     beforeEach(() => {
       parlamentar = parlamentares[2];
-      parlamentares = excluirParlamentar(parlamentares, parlamentares[2]);
+      parlamentares = excluirParlamentar(parlamentares, 2);
     });
 
     it('Deveria possuir autoria com 3 parlamentares', () => {
@@ -86,9 +86,10 @@ describe('Testando operações em lista de parlamentares', () => {
 
   describe('Testando movimentação para baixo', () => {
     it('Deveria não mover último parlamentar', () => {
-      const ultimoParlamentar = parlamentares[parlamentares.length - 1];
-      parlamentares = moverParlamentar(parlamentares, ultimoParlamentar, 1);
-      expect(ultimoParlamentar.id).to.equal(parlamentares[parlamentares.length - 1].id);
+      const lastIndex = parlamentares.length - 1;
+      const ultimoParlamentar = parlamentares[lastIndex];
+      parlamentares = moverParlamentar(parlamentares, lastIndex, 1);
+      expect(ultimoParlamentar.id).to.equal(parlamentares[lastIndex].id);
     });
 
     describe('Testando movimentação para baixo de parlamentar no meio da lista', () => {
@@ -97,7 +98,7 @@ describe('Testando operações em lista de parlamentares', () => {
       beforeEach(() => {
         parlamentarA = parlamentares[2];
         parlamentarB = parlamentares[3];
-        parlamentares = moverParlamentar(parlamentares, parlamentarA, 1);
+        parlamentares = moverParlamentar(parlamentares, 2, 1);
       });
 
       it('Parlamentar "A" deveria ter se movimentado para baixo', () => {
@@ -113,7 +114,7 @@ describe('Testando operações em lista de parlamentares', () => {
   describe('Testando movimentação para cima', () => {
     it('Deveria não mover primeiro parlamentar', () => {
       const primeiro = parlamentares[0];
-      parlamentares = moverParlamentar(parlamentares, primeiro, -1);
+      parlamentares = moverParlamentar(parlamentares, 0, -1);
       expect(primeiro.id).to.equal(parlamentares[0].id);
     });
 
@@ -123,7 +124,7 @@ describe('Testando operações em lista de parlamentares', () => {
       beforeEach(() => {
         parlamentarA = parlamentares[3];
         parlamentarB = parlamentares[2];
-        parlamentares = moverParlamentar(parlamentares, parlamentarA, -1);
+        parlamentares = moverParlamentar(parlamentares, 3, -1);
       });
 
       it('Parlamentar "A" deveria ter se movimentado para cima', () => {

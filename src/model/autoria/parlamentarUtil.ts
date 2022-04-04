@@ -16,16 +16,15 @@ export const incluirParlamentar = (parlamentares: Parlamentar[], parlamentar: Pa
   return novoArray;
 };
 
-export const incluirNovoParlamentar = (parlamentares: Parlamentar[]): Parlamentar[] => {
-  return incluirParlamentar(parlamentares, { ...novoParlamentar, id: 'novo' + (parlamentares.length + 1) });
+export const incluirNovoParlamentar = (parlamentares: Parlamentar[]): Parlamentar[] => incluirParlamentar(parlamentares, { ...novoParlamentar });
+
+export const excluirParlamentar = (parlamentares: Parlamentar[], index: number): Parlamentar[] => {
+  const novoArray = [...parlamentares];
+  novoArray.splice(index, 1);
+  return novoArray;
 };
 
-export const excluirParlamentar = (parlamentares: Parlamentar[], parlamentar: Parlamentar): Parlamentar[] => {
-  return parlamentares.filter(p => p.id !== parlamentar.id);
-};
-
-export const moverParlamentar = (parlamentares: Parlamentar[], parlamentar: Parlamentar, deslocamento: number): Parlamentar[] => {
-  const index = parlamentares.findIndex(p => p.id === parlamentar.id);
+export const moverParlamentar = (parlamentares: Parlamentar[], index: number, deslocamento: number): Parlamentar[] => {
   const newIndex = index + deslocamento;
 
   if (newIndex < 0 || newIndex >= parlamentares.length) {
