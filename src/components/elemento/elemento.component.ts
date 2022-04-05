@@ -1,4 +1,6 @@
-import { css, customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { LitElement, html, TemplateResult, css } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 import { unsafeHTML } from 'lit-html/directives/unsafe-html';
 import { Elemento } from '../../model/elemento';
 

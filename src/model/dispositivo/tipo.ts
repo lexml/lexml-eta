@@ -75,6 +75,10 @@ export const isAgrupador = (dispositivo: Dispositivo): boolean => {
   ].includes(dispositivo.tipo);
 };
 
+export const isAgrupadorNaoArticulacao = (dispositivo: Dispositivo): boolean => {
+  return isAgrupador(dispositivo) && !isArticulacao(dispositivo);
+};
+
 export const isAgrupadorGenerico = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.agrupadorGenerico.tipo;
 };

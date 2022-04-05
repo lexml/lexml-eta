@@ -45,7 +45,7 @@ export class TesteCmdEmdUtil {
   static modificaDispositivo(state: State, id: string): Dispositivo {
     const disp = buscaDispositivoById(state.articulacao!, id);
     expect(disp, `Dispositivo não encontrado para o id ${id}.`).not.be.undefined;
-    const action = atualizarTextoElementoAction.execute({ tipo: disp?.tipo, uuid: disp?.uuid, conteudo: { texto: 'Novo texto.' } });
+    const action = atualizarTextoElementoAction.execute({ tipo: disp?.tipo, uuid: disp?.uuid, conteudo: { texto: ' <p>Texto</p>' } });
     state = atualizaTextoElemento(state, action);
     return disp!;
   }
@@ -116,6 +116,7 @@ export class TesteCmdEmdUtil {
     }
     // console.log(d?.rotulo);
     expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idArtigoRef}`).to.not.be.undefined;
+    d!.texto = '<p>Texto</p>';
     return d!;
   }
 

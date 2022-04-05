@@ -20,13 +20,6 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     expect(state.articulacao?.artigos.length).to.equal(9);
   });
 
-  it('Inclusão de um artigo', () => {
-    const artigo = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
-    expect(artigo.rotulo).to.equal('Art. 1º-A');
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A ao Projeto, com a seguinte redação:');
-  });
-
   // --------------------------------------------------
   // Parágrafo
 

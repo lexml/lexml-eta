@@ -1,4 +1,5 @@
-import { css, customElement, html, LitElement, TemplateResult } from 'lit-element';
+import { LitElement, html, TemplateResult, css } from 'lit';
+import { customElement } from 'lit/decorators.js';
 
 @customElement('lexml-eta-help')
 export class HelpComponent extends LitElement {

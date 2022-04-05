@@ -1,4 +1,6 @@
-import { customElement, html, LitElement, property, TemplateResult } from 'lit-element';
+import { LitElement, html, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+
 import { connect } from 'pwa-helpers';
 
 import { Elemento } from '../model/elemento';

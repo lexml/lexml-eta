@@ -1,6 +1,6 @@
-import { customElement, LitElement, property, PropertyValues } from 'lit-element';
-import { html, TemplateResult } from 'lit-html';
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 @customElement('lexml-emenda-comando')
 export class ComandoEmendaComponent extends LitElement {
@@ -20,6 +20,8 @@ export class ComandoEmendaComponent extends LitElement {
     const corpo = citacao
       .replaceAll('<Rotulo>', '<b>')
       .replaceAll('</Rotulo>', '</b> ')
+      .replaceAll('<Alteracao>', '<div class="alteracao">')
+      .replaceAll('</Alteracao>', '</div> ')
       .replaceAll('<Omissis/>', ' ..........................................................');
 
     return corpo;
@@ -67,6 +69,14 @@ export class ComandoEmendaComponent extends LitElement {
           text-align: justify;
           text-indent: 3em;
           margin: 0;
+        }
+
+        .lexml-emenda-citacaoComando div.alteracao {
+          margin-left: 4em;
+        }
+
+        .lexml-emenda-citacaoComando div.alteracao p {
+          text-indent: 2em;
         }
       </style>
 

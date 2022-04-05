@@ -120,6 +120,14 @@ export const getArtigo = (dispositivo: Dispositivo): Dispositivo => {
   return getArtigo(dispositivo.pai!);
 };
 
+export const getArtigoDoProjeto = (dispositivo: Dispositivo): Dispositivo => {
+  const pai = dispositivo.pai!;
+  if (isArtigo(pai) && !isDispositivoAlteracao(pai)) {
+    return dispositivo.pai!;
+  }
+  return getArtigoDoProjeto(dispositivo.pai!);
+};
+
 export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Dispositivo): Dispositivo[] => {
   const pos = getArticulacao(dispositivo).indexOfArtigo(dispositivo);
 
@@ -448,4 +456,32 @@ export const buscaDispositivoById = (articulacao: Articulacao, id: string): Disp
 export const extraiIdArtigo = (id: string): string | undefined => {
   const l = /^art\d+(-\d+)*/.exec(id);
   return l?.length ? l[0] : undefined;
+};
+
+export const isAscendente = (d: Dispositivo, dAscendente: Dispositivo): boolean => {
+  if (!d || !dAscendente) {
+    return false;
+  }
+  let pai = d.pai;
+  while (pai) {
+    if (pai === dAscendente) {
+      return true;
+    }
+    pai = pai.pai;
+  }
+  return false;
+};
+
+export const isDescendenteDeSuprimido = (d: Dispositivo): boolean => {
+  if (!d) {
+    return false;
+  }
+  let pai = d.pai;
+  while (pai) {
+    if (pai.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      return true;
+    }
+    pai = pai.pai;
+  }
+  return false;
 };
