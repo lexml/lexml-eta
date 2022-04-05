@@ -30,6 +30,9 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     createNumeroFromRotulo(rotulo: string): void {
+      if (!rotulo) {
+        return;
+      }
       this.informouAgrupadorUnico = /.*[uú]nic[ao]/i.test(rotulo);
       if (this.informouAgrupadorUnico) {
         this.numero = '1';
