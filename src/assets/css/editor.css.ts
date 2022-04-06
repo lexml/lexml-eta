@@ -222,6 +222,15 @@ export const editorStyles = html`
       margin-right: 10px;
     }
 
+    .Omissis {
+      word-break: break-all;
+      word-break: break-word;
+      -webkit-hyphens: auto;
+      -moz-hyphens: auto;
+      -ms-hyphens: auto;
+      hyphens: auto;
+    }
+
     .dispositivo--adicionado {
       color: green;
     }

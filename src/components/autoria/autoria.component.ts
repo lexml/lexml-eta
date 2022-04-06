@@ -71,33 +71,38 @@ export class AutoriaComponent extends LitElement {
       <div>
         <div class="lexml-autoria">
           <h3>${this.titulo}</h3>
-          ${this.getTipoAutoriaTemplate()} ${this.getParlamentaresTemplate()}
+          ${this.getTipoAutoriaTemplate()}
+          <div class="autoria-list">${this.getParlamentaresTemplate()}</div>
+          <button @click=${this.incluirNovoParlamentar}>Incluir outro parlamentar</button>
         </div>
-        <button @click=${this.incluirNovoParlamentar}>Incluir outro parlamentar</button>
-        <button @click=${(): void => console.log(11111, 'AUTORIA', this.autoria.parlamentares)}>Exibir AUTORIA</button>
       </div>
     `;
   }
 
   private getTipoAutoriaTemplate(): TemplateResult {
     return html`
-      <div>
-        <p><strong>Tipo de autoria</strong></p>
-        <input type="radio" id="opt-parlamentar" name="tipoAutoria" value="Parlamentar" ?checked=${this.autoria?.tipo === 'Parlamentar'} />
-        <label for="opt-parlamentar">Parlamentar</label>
-
-        <input type="radio" id="opt-comissao" name="tipoAutoria" value="Comissão" ?checked=${this.autoria?.tipo === 'Comissão'} />
-        <label for="opt-comissao">Comissão</label>
-      </div>
+      <fieldset class="autoria-label--tipo-autoria">
+        <legend>Tipo de autoria</legend>
+        <div class="control">
+          <label class="radio">
+            <input type="radio" id="opt-parlamentar" name="tipoAutoria" value="Parlamentar" ?checked=${this.autoria?.tipo === 'Parlamentar'} />
+            Parlamentar
+          </label>
+          <label class="radio">
+            <input type="radio" id="opt-comissao" name="tipoAutoria" value="Comissão" ?checked=${this.autoria?.tipo === 'Comissão'} />
+            Comissão
+          </label>
+        </div>
+      </fieldset>
     `;
   }
 
   private getParlamentaresTemplate(): TemplateResult {
     return html`
-      <div class="grid-autoria">
-        <div>Parlamentar</div>
-        <div>Cargo</div>
-        <div></div>
+      <div class="autoria-grid autoria-labels">
+        <div class="autoria-grid--col1"><div class="autoria-header">Parlamentar</div></div>
+        <div class="autoria-grid--col2"><div class="autoria-header">Cargo</div></div>
+        <div class="autoria-grid--col3"><div class="autoria-buttons"></div></div>
       </div>
       ${this.autoria?.parlamentares.map((_, index) => this.getParlamentarAutocompleteTemplate(index))}
     `;
@@ -106,19 +111,40 @@ export class AutoriaComponent extends LitElement {
   private getParlamentarAutocompleteTemplate(index: number): TemplateResult {
     const parlamentar = this.autoria.parlamentares[index];
     return html`
-      <div class="grid-autoria">
-        <lexml-autocomplete .items=${this.nomes} .text=${parlamentar.nome} @autocomplete=${(ev: CustomEvent): void => this.atualizarParlamentar(ev, index)}></lexml-autocomplete>
-        <input
-          type="text"
-          id="tex-cargo"
-          placeholder="ex: Presidente da Comissão ..., Líder do ..."
-          .value=${parlamentar.cargo ?? ''}
-          @input=${(ev: Event): void => this.atualizarCargo(ev, index)}
-        />
-        <div>
-          <button id="paraBaixo" @click=${(): void => this.moverParlamentar(index, 1)}>Para baixo</button>
-          <button id="paraCima" @click=${(): void => this.moverParlamentar(index, -1)}>Para cima</button>
-          <button id="excluir" @click=${(): void => this.excluirParlamentar(index)}>Excluir</button>
+      <div class="autoria-grid">
+        <div class="autoria-grid--col1">
+          <label for="defaultInput" class="autoria-label">Parlamentar</label>
+          <lexml-autocomplete .items=${this.nomes} .text=${parlamentar.nome} @autocomplete=${(ev: CustomEvent): void => this.atualizarParlamentar(ev, index)}></lexml-autocomplete>
+        </div>
+
+        <div class="autoria-grid--col2">
+          <label for="tex-cargo" class="autoria-label">Cargo</label>
+          <input
+            type="text"
+            id="tex-cargo"
+            placeholder="ex: Presidente da Comissão ..., Líder do ..."
+            class="autoria-input"
+            aria-label="Cargo"
+            .value=${parlamentar.cargo ?? ''}
+            @input=${(ev: Event): void => this.atualizarCargo(ev, index)}
+          />
+        </div>
+
+        <div class="autoria-grid--col3">
+          <div class="autoria-buttons">
+            <button class="autoria-button" id="paraBaixo" aria-label="Para baixo" title="Para baixo" @click=${(): void => this.moverParlamentar(index, 1)}>
+              <i class="autoria-icon icon-down"></i>
+              <span class="sr-only">Para baixo</span>
+            </button>
+            <button class="autoria-button" id="paraBaixo" aria-label="Para cima" title="Para cima" @click=${(): void => this.moverParlamentar(index, -1)}>
+              <i class="autoria-icon icon-up"></i>
+              <span class="sr-only">Para cima</span>
+            </button>
+            <button class="autoria-button" id="paraBaixo" aria-label="Excluir" title="Excluir" @click=${(): void => this.excluirParlamentar(index)}>
+              <i class="autoria-icon icon-delete"></i>
+              <span class="sr-only">Exluir</span>
+            </button>
+          </div>
         </div>
       </div>
     `;
