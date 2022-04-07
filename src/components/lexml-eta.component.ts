@@ -1,6 +1,5 @@
-import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
 import { connect } from 'pwa-helpers';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
 import { EmendaBuilder } from '../emenda/emenda-builder';
@@ -50,6 +49,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   update(changedProperties: PropertyValues): void {
     if (this.hasChangedProjetoNorma(changedProperties) || this.hasChangedModo(changedProperties)) {
       this.loadProjetoNorma();
+      document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
     }
     if (this.hasChangedEmenda(changedProperties) && Object.keys(this.emenda).length > /*  */ 0) {
       this.loadEmenda();
@@ -112,11 +112,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return html`
       <style>
         #gtx-trans {
-          display: none;
+          display: block;
         }
 
         lexml-eta-articulacao {
-          display: block;
+          display: none;
           height: 100%;
         }
 

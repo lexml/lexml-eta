@@ -203,6 +203,7 @@ export const quillSnowStyles = html`
       content: counter(list-9, decimal) '. ';
     }
     .ql-editor .ql-indent-1:not(.ql-direction-rtl) {
+      text-indent: 6em;
       padding-left: 3em;
     }
     .ql-editor li.ql-indent-1:not(.ql-direction-rtl) {

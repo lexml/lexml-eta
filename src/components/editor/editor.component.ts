@@ -1,7 +1,8 @@
-import { LitElement, html, TemplateResult } from 'lit';
+import { html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
-
 import { connect } from 'pwa-helpers';
+import { editorStyles } from '../../assets/css/editor.css';
+import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
@@ -38,9 +39,6 @@ import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
-
-import { quillSnowStyles } from '../../assets/css/quill.snow.css';
-import { editorStyles } from '../../assets/css/editor.css';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
