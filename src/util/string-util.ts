@@ -85,3 +85,5 @@ export class StringBuilder {
     return join(this.strs);
   }
 }
+
+export const REGEX_ACCENTS = /[\u0300-\u036f]/g;

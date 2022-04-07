@@ -1,3 +1,4 @@
+import { REGEX_ACCENTS } from './../../util/string-util';
 import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
@@ -239,10 +240,17 @@ export class ParlamentarAutocomplete extends LitElement {
         // TODO debounce
         if (this.items.length) {
           const { value } = this.contentElement;
+          const regex = new RegExp('^' + value.normalize('NFD').replace(REGEX_ACCENTS, ''), 'gi');
           const suggestions =
             value &&
             this.items
-              .filter(item => item.toLowerCase().startsWith(value.toLowerCase()) && item !== value) // Collect the items that match
+              // .filter(item => item.toLowerCase().startsWith(value.toLowerCase()) && item !== value) // Collect the items that match
+              .filter(item =>
+                item
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .match(regex)
+              ) // Collect the items that match
               .slice(0, this.maxSuggestions); // Limit results
           this.suggest(suggestions);
         }
@@ -252,13 +260,14 @@ export class ParlamentarAutocomplete extends LitElement {
   _handleFocus(): void {
     this._blur = false;
     // eslint-disable-next-line no-unused-expressions
-    this._suggestions.length && this.open();
+    this._suggestions.length > 1 && this.open();
   }
 
   _handleBlur(): void {
     this._blur = true;
     // eslint-disable-next-line no-unused-expressions
     !this._mouseEnter && this.close();
+    this._suggestions = [];
   }
 
   // Handle mouse change focus to suggestions
