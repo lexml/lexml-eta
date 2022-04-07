@@ -60,9 +60,14 @@ export class AutoriaDialog extends LitElement {
 
   render(): TemplateResult {
     return html`
+      <style>
+        .lexml-dialog-footer {
+          padding: 10px;
+        }
+      </style>
       <elix-dialog id=${this.id}>
         <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
-        <div>
+        <div class="lexml-dialog-footer">
           <button @click=${this.close}>OK</button>
           <button @click=${this.close}>Cancelar</button>
           <button @click=${this.exibirDados}>Exibir dados</button>
