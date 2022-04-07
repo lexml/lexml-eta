@@ -62,8 +62,22 @@ export class ParlamentarAutocomplete extends LitElement {
         [hidden] {
           display: none;
         }
+
+        .lexml-autocomplete-input {
+          width: 180px;
+        }
+
+        @media (max-width: 576px) {
+          .lexml-autocomplete-label {
+            width: calc(100% - 10px);
+            display: block;
+          }
+          .lexml-autocomplete-input {
+            width: calc(100% - 10px);
+          }
+        }
       </style>
-      <slot id="dropdown-input"><input id="defaultInput" type="text" .value=${this.text} /></slot>
+      <slot id="dropdown-input"><input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.text} /></slot>
       <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>
         ${this._suggestions.map(item => html`<li @click=${(): void => this.autocomplete(item)}>${item}</li>`)}
       </ul>
