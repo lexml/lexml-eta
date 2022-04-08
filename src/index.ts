@@ -22,3 +22,4 @@ export { HelpComponent } from './components/help.component';
 export { JustificativaEmendaComponent } from './components/justificativa/justificativa.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
+export { LexmlAutocomplete } from './components/autoria/lexml-autocomplete';

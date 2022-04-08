@@ -1,3 +1,4 @@
+import { AutoriaComponent } from './../../src/components/autoria/autoria.component';
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
@@ -50,7 +51,8 @@ export class AutoriaDialog extends LitElement {
   }
 
   exibirDados(): void {
-    console.log(11111, 'EXIBIR AUTORIA', this.autoria);
+    const el = this.shadowRoot?.querySelector('lexml-autoria') as AutoriaComponent;
+    console.log(11111, 'EXIBIR AUTORIA', el.autoria);
   }
 
   id = 'autoriaDialog';
@@ -70,7 +72,7 @@ export class AutoriaDialog extends LitElement {
         <div class="lexml-dialog-footer">
           <button @click=${this.close}>OK</button>
           <button @click=${this.close}>Cancelar</button>
-          <button @click=${this.exibirDados}>Exibir dados</button>
+          <!-- <button @click=${this.exibirDados}>Exibir dados</button> -->
         </div>
       </elix-dialog>
     `;
