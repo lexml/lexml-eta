@@ -1,22 +1,10 @@
 import { Parlamentar } from './parlamentar';
 
-const novoParlamentar: Parlamentar = {
-  id: '',
-  nome: '',
-  siglaPartido: '',
-  siglaUF: '',
-  indSexo: '',
-  siglaCasa: '',
-  cargo: '',
-};
-
 export const incluirParlamentar = (parlamentares: Parlamentar[], parlamentar: Parlamentar): Parlamentar[] => {
   const novoArray = [...parlamentares];
   novoArray.push(parlamentar);
   return novoArray;
 };
-
-export const incluirNovoParlamentar = (parlamentares: Parlamentar[]): Parlamentar[] => incluirParlamentar(parlamentares, { ...novoParlamentar });
 
 export const excluirParlamentar = (parlamentares: Parlamentar[], index: number): Parlamentar[] => {
   const novoArray = [...parlamentares];

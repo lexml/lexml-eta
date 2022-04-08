@@ -1,8 +1,18 @@
 import { Parlamentar } from './../../src/model/autoria/parlamentar';
 import { expect } from '@open-wc/testing';
-import { incluirNovoParlamentar, excluirParlamentar, moverParlamentar } from '../../src/model/autoria/parlamentarUtil';
+import { incluirParlamentar, excluirParlamentar, moverParlamentar } from '../../src/model/autoria/parlamentarUtil';
 
 let parlamentares: Parlamentar[] = [];
+
+const parlamentarVazio: Parlamentar = {
+  id: '',
+  nome: '',
+  siglaPartido: '',
+  siglaUF: '',
+  indSexo: '',
+  siglaCasa: '',
+  cargo: '',
+};
 
 describe('Testando operações em lista de parlamentares', () => {
   beforeEach(() => {
@@ -52,7 +62,7 @@ describe('Testando operações em lista de parlamentares', () => {
 
   describe('Testando inclusão de novo parlamentar', () => {
     beforeEach(() => {
-      parlamentares = incluirNovoParlamentar(parlamentares);
+      parlamentares = incluirParlamentar(parlamentares, { ...parlamentarVazio });
     });
 
     it('Deveria possuir autoria com 5 parlamentares', () => {
