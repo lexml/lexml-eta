@@ -3,7 +3,7 @@ import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
 @customElement('lexml-autocomplete')
-export class ParlamentarAutocomplete extends LitElement {
+export class LexmlAutocomplete extends LitElement {
   @property({ type: Array })
   items: string[] = [];
 
@@ -137,6 +137,12 @@ export class ParlamentarAutocomplete extends LitElement {
     this.contentElement.removeEventListener('blur', this._bound.onBlur);
   }
 
+  focus(options?: FocusOptions): void {
+    if (this.contentElement) {
+      this.contentElement.focus(options);
+    }
+  }
+
   updated(changed: PropertyValues): void {
     if (changed.has('opened') && this.opened && this._suggestionEl.childElementCount) {
       // Highlight the first when there are suggestions
@@ -174,7 +180,7 @@ export class ParlamentarAutocomplete extends LitElement {
   suggest(suggestions: string[]): void {
     this._suggestions = suggestions || [];
     // eslint-disable-next-line no-unused-expressions
-    this._suggestions.length ? this.open() : this.close();
+    this._suggestions.length > 1 || (this._suggestions.length === 1 && this._suggestions[0] !== this.contentElement.value) ? this.open() : this.close();
     this.requestUpdate();
   }
 
@@ -240,21 +246,46 @@ export class ParlamentarAutocomplete extends LitElement {
         // TODO debounce
         if (this.items.length) {
           const { value } = this.contentElement;
-          const regex = new RegExp('^' + value.normalize('NFD').replace(REGEX_ACCENTS, ''), 'gi');
-          const suggestions =
-            value &&
-            this.items
-              // .filter(item => item.toLowerCase().startsWith(value.toLowerCase()) && item !== value) // Collect the items that match
-              .filter(item =>
-                item
-                  .normalize('NFD')
-                  .replace(/[\u0300-\u036f]/g, '')
-                  .match(regex)
-              ) // Collect the items that match
-              .slice(0, this.maxSuggestions); // Limit results
+          const normalizedValue = value.normalize('NFD').replace(REGEX_ACCENTS, '');
+          let suggestions = this._filterStartWith(normalizedValue);
+          if (suggestions.length < this.maxSuggestions) {
+            suggestions = [...suggestions, ...this._filterContains(normalizedValue, this.maxSuggestions - suggestions.length).filter(item => !suggestions.includes(item))];
+          }
           this.suggest(suggestions);
         }
     }
+  }
+
+  _filterStartWith(value, itemsResult = this.maxSuggestions): string[] {
+    const regexStartWith = new RegExp('^' + value, 'gi');
+    return (
+      (value &&
+        this.items
+          .filter(item =>
+            item
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .match(regexStartWith)
+          )
+          .slice(0, itemsResult)) ||
+      []
+    );
+  }
+
+  _filterContains(value, itemsResult = this.maxSuggestions): string[] {
+    const regexContains = new RegExp(value, 'gi');
+    return (
+      (value &&
+        this.items
+          .filter(item =>
+            item
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .match(regexContains)
+          )
+          .slice(0, itemsResult)) ||
+      []
+    );
   }
 
   _handleFocus(): void {
@@ -266,7 +297,8 @@ export class ParlamentarAutocomplete extends LitElement {
   _handleBlur(): void {
     this._blur = true;
     // eslint-disable-next-line no-unused-expressions
-    !this._mouseEnter && this.close();
+    // !this._mouseEnter && this.close();
+    setTimeout(() => this.close(), 200);
     this._suggestions = [];
   }
 
@@ -279,5 +311,11 @@ export class ParlamentarAutocomplete extends LitElement {
     this._mouseEnter = false;
     // eslint-disable-next-line no-unused-expressions
     this._blur && setTimeout(() => this.close(), 500); // Give user some slack before closing
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lexml-autocomplete': LexmlAutocomplete;
   }
 }
