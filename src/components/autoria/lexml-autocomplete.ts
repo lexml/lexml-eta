@@ -247,16 +247,23 @@ export class LexmlAutocomplete extends LitElement {
         if (this.items.length) {
           const { value } = this.contentElement;
           const normalizedValue = value.normalize('NFD').replace(REGEX_ACCENTS, '');
-          let suggestions = this._filterStartWith(normalizedValue);
-          if (suggestions.length < this.maxSuggestions) {
-            suggestions = [...suggestions, ...this._filterContains(normalizedValue, this.maxSuggestions - suggestions.length).filter(item => !suggestions.includes(item))];
-          }
-          this.suggest(suggestions);
+          this.suggest(this._findSuggetions(normalizedValue));
         }
     }
   }
 
-  _filterStartWith(value, itemsResult = this.maxSuggestions): string[] {
+  _findSuggetions(value?: string, nItemsResult = this.maxSuggestions): string[] {
+    if (!value) {
+      return [];
+    }
+    let suggestions = this._filterStartWith(value, nItemsResult);
+    if (suggestions.length < this.maxSuggestions) {
+      suggestions = [...suggestions, ...this._filterContains(value, this.maxSuggestions - suggestions.length).filter(item => !suggestions.includes(item))];
+    }
+    return suggestions;
+  }
+
+  _filterStartWith(value: string, itemsResult = this.maxSuggestions): string[] {
     const regexStartWith = new RegExp('^' + value, 'gi');
     return (
       (value &&
@@ -272,7 +279,7 @@ export class LexmlAutocomplete extends LitElement {
     );
   }
 
-  _filterContains(value, itemsResult = this.maxSuggestions): string[] {
+  _filterContains(value: string, itemsResult = this.maxSuggestions): string[] {
     const regexContains = new RegExp(value, 'gi');
     return (
       (value &&
