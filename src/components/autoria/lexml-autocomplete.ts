@@ -13,9 +13,6 @@ export class LexmlAutocomplete extends LitElement {
   @property({ type: Number })
   maxSuggestions = 10;
 
-  @property({ type: String })
-  text = '';
-
   _suggestions: string[] = [];
 
   _bound: any = {};
@@ -78,7 +75,7 @@ export class LexmlAutocomplete extends LitElement {
           }
         }
       </style>
-      <slot id="dropdown-input"><input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.text} /></slot>
+      <slot id="dropdown-input"><input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /></slot>
       <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>
         ${this._suggestions.map(item => html`<li @click=${(): void => this.autocomplete(item)}>${item}</li>`)}
       </ul>
@@ -108,6 +105,7 @@ export class LexmlAutocomplete extends LitElement {
   /**
    * Value setter to input element.
    */
+  @property({ type: String })
   set value(value) {
     if (!this.contentElement) return;
 
@@ -228,14 +226,18 @@ export class LexmlAutocomplete extends LitElement {
   _handleKeyUp(ev: KeyboardEvent): void {
     switch (ev.key) {
       case 'ArrowUp':
-        ev.preventDefault();
-        ev.stopPropagation();
-        this._highlightPrev();
+        if (this._highlightedEl?.previousElementSibling) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          this._highlightPrev();
+        }
         break;
       case 'ArrowDown':
-        ev.preventDefault();
-        ev.stopPropagation();
-        this._highlightNext();
+        if (this._highlightedEl?.nextElementSibling) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          this._highlightNext();
+        }
         break;
       case 'Enter':
         // Select

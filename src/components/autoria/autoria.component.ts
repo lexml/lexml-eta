@@ -26,6 +26,35 @@ const parlamentarVazio: Parlamentar = {
   cargo: '',
 };
 
+// Decorator para aguardar fim da validação para executar um método
+function executarAposValidacao(interval = 200) {
+  return function (_target: unknown, key: string | symbol, descriptor: PropertyDescriptor): any {
+    return {
+      get(): any {
+        const wrapperFn = (...args: any[]): any => {
+          let timer = 0;
+
+          const executarMetodo = (): void => {
+            clearInterval(timer);
+            if (this['_isProcessandoValidacao']) {
+              timer = window.setTimeout(() => executarMetodo(), interval);
+              return;
+            }
+
+            descriptor.value.apply(this, args);
+          };
+
+          executarMetodo();
+        };
+
+        Object.defineProperty(this, key, { value: wrapperFn, configurable: true, writable: true });
+
+        return wrapperFn;
+      },
+    };
+  };
+}
+
 @customElement('lexml-autoria')
 export class AutoriaComponent extends LitElement {
   static styles = [autoriaCss];
@@ -39,14 +68,14 @@ export class AutoriaComponent extends LitElement {
   @queryAll('lexml-autocomplete')
   private _autocompletes!: NodeListOf<LexmlAutocomplete>;
 
-  @property({ type: Object })
-  autoria: Autoria = { ...estadoInicialAutoria, parlamentares: [] };
-
   @state()
   private _nomesAutocomplete: string[] = [];
 
   @state()
   private _podeIncluirParlamentar = true;
+
+  @property({ type: Object })
+  autoria: Autoria = { ...estadoInicialAutoria, parlamentares: [] };
 
   private _parlamentaresAutocomplete: Parlamentar[] = [];
   @property({ type: Array })
@@ -120,6 +149,7 @@ export class AutoriaComponent extends LitElement {
             @blur=${(ev: Event): void => this._validarNomeParlamentar(ev, index)}
             @autocomplete=${(ev: CustomEvent): void => this._atualizarParlamentar(ev, index)}
             @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
+            @click=${this._handleClickAutoComplete}
           ></lexml-autocomplete>
         </div>
 
@@ -187,26 +217,37 @@ export class AutoriaComponent extends LitElement {
     `;
   }
 
+  updated(): void {
+    this._isProcessandoMovimentacao = false;
+  }
+
+  private _isAllAutoresOk(): boolean {
+    return this.autoria.parlamentares.every(p => p.id);
+  }
+
   private _incluirNovoParlamentar(): void {
     this.autoria.parlamentares = incluirParlamentar(this.autoria.parlamentares, { ...parlamentarVazio });
-    this.autoria = { ...this.autoria };
     this._podeIncluirParlamentar = false;
     setTimeout(() => this._autocompletes[this.autoria.parlamentares.length - 1].focus(), 200);
   }
 
+  @executarAposValidacao()
   private _moverParlamentar(index: number, deslocamento: number): void {
     this.autoria.parlamentares = moverParlamentar(this.autoria.parlamentares, index, deslocamento);
-    this.autoria = { ...this.autoria };
+    this.requestUpdate();
   }
 
+  @executarAposValidacao()
   private _excluirParlamentar(index: number): void {
     this.autoria.parlamentares = excluirParlamentar(this.autoria.parlamentares, index);
-    this._podeIncluirParlamentar = this.autoria.parlamentares.every(p => p.id);
-    this.autoria = { ...this.autoria };
+    this._podeIncluirParlamentar = this._isAllAutoresOk();
+    this.requestUpdate();
   }
 
   private _timerValidacao = 0;
+  protected _isProcessandoValidacao = false;
   private _validarNomeParlamentar(ev: Event, index: number): void {
+    this._isProcessandoValidacao = true;
     const isBlur = ev.type === 'blur';
 
     if (!isBlur) {
@@ -234,13 +275,11 @@ export class AutoriaComponent extends LitElement {
         const parlamentarEhValido = !!parlamentar.id;
 
         parlamentar.cargo = isBlur && !parlamentarEhValido ? '' : cargoAtual;
-        this._podeIncluirParlamentar = parlamentarEhValido && this.autoria.parlamentares.filter((_, _index) => _index !== index).every(p => p.id);
 
         this.autoria.parlamentares[index] = { ...parlamentar };
+        this._podeIncluirParlamentar = parlamentarEhValido && this._isAllAutoresOk();
 
-        // TODO: descobrir como atualizar os inputs via "dados reativos"
-        elLexmlAutocomplete.value = parlamentar.nome;
-        this._inputCargos[index].value = parlamentar.cargo!;
+        this._isProcessandoValidacao = false;
       },
       ev.type === 'blur' ? 200 : 0
     );
@@ -255,9 +294,10 @@ export class AutoriaComponent extends LitElement {
         cargo,
       };
     }
-    this._podeIncluirParlamentar = !!parlamentarAutocomplete;
+    this._podeIncluirParlamentar = !!parlamentarAutocomplete && this._isAllAutoresOk();
     (ev.target as HTMLElement).focus();
     this._lastIndexAutoCompleted = index;
+    this.requestUpdate();
   }
 
   private _atualizarCargo(ev: Event, index: number): void {
@@ -272,12 +312,44 @@ export class AutoriaComponent extends LitElement {
     this.autoria.qtdAssinaturasAdicionaisDeputados = Number((ev.target as HTMLInputElement).value);
   }
 
+  private _isProcessandoMovimentacao = false;
   private _lastIndexAutoCompleted = -1;
   private _handleKeyUp(ev: KeyboardEvent, index: number): void {
-    if (ev.key === 'Enter' && !ev.ctrlKey && !ev.altKey && !ev.shiftKey && this._podeIncluirParlamentar && index !== this._lastIndexAutoCompleted) {
-      this._btnNovoParlamentar.click();
+    if (!ev.ctrlKey && !ev.altKey && !ev.shiftKey) {
+      if (ev.key === 'Enter' && this._podeIncluirParlamentar && index !== this._lastIndexAutoCompleted) {
+        this._btnNovoParlamentar.click();
+        this._lastIndexAutoCompleted = -1;
+      } else if (['ArrowUp', 'ArrowDown'].includes(ev.key) && this.autoria.parlamentares[index].id) {
+        this._focarAutocompleteOuCargo(ev.target!, index, ev.key === 'ArrowUp' ? -1 : 1);
+      }
+    } else if (ev.ctrlKey && !ev.altKey && !ev.shiftKey) {
+      if (ev.key === 'ArrowUp') {
+        if (!this._isProcessandoMovimentacao) {
+          this._isProcessandoMovimentacao = true;
+          this._moverParlamentar(index, -1);
+          this._focarAutocompleteOuCargo(ev.target!, index, -1);
+        }
+      } else if (ev.key === 'ArrowDown') {
+        if (!this._isProcessandoMovimentacao) {
+          this._isProcessandoMovimentacao = true;
+          this._moverParlamentar(index, 1);
+          this._focarAutocompleteOuCargo(ev.target!, index, 1);
+        }
+      }
     }
-    this._lastIndexAutoCompleted = -1;
+  }
+
+  private _focarAutocompleteOuCargo(el: EventTarget, index: number, deslocamento: number): void {
+    const nodes = (el as HTMLElement).tagName === 'LEXML-AUTOCOMPLETE' ? this._autocompletes : this._inputCargos;
+    const newIndex = index + deslocamento;
+    if (newIndex < 0 || newIndex >= nodes.length) {
+      return;
+    }
+    setTimeout(() => nodes[newIndex].focus(), 0);
+  }
+
+  private _handleClickAutoComplete(): void {
+    window.setTimeout(() => (this._lastIndexAutoCompleted = -1), 0);
   }
 }
 
