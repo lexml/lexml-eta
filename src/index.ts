@@ -23,3 +23,4 @@ export { JustificativaEmendaComponent } from './components/justificativa/justifi
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
 export { LexmlAutocomplete } from './components/autoria/lexml-autocomplete';
+export { DataComponent } from './components/data/data.component';

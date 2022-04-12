@@ -68,6 +68,8 @@ export class AutoriaDialog extends LitElement {
         }
       </style>
       <elix-dialog id=${this.id}>
+        <lexml-data></lexml-data>
+        <hr />
         <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
         <div class="lexml-dialog-footer">
           <button @click=${this.close}>OK</button>
