@@ -29,7 +29,7 @@ class RefProposicaoEmendada {
 // Destino da emenda ----------------------------
 class DestinoEmenda {
   siglaCasaLegislativa: 'CN' | 'SF' | 'CD' = 'CN';
-  tipoColegiado: 'plenário' | 'comissão' = 'plenário';
+  tipoColegiado: 'Plenário' | 'Comissão' = 'Plenário';
   siglaComissao?: string;
 }
 
