@@ -971,39 +971,42 @@ export const EMENDA_MPV_00930_2020 = {
     },
   },
   emenda: {
-    classificacao: 'emenda',
+    tipo: 'emenda',
     proposicao: { urn: '', identificacao: '' },
-    dispositivosSuprimidos: [{ id: 'art3_par1u', rotulo: 'Parágrafo único.' }],
-    dispositivosModificados: [
-      {
-        id: 'art1_cpt',
-        texto:
-          'Esta Medida Provisória dispõe sobre o tratamento tributário incidente sobre a variação cambial do valor de investimentos realizados por instituições financeiras e demais instituições autorizadas a funcionar pelo Banco Central do Brasil em sociedade controlada estabelecida no exterior e sobre a proteção legal oferecida aos integrantes da Diretoria Colegiada e aos membros das carreiras do Banco Central do Brasil no exercício de suas atribuições e altera a Lei nº 12.865, de 9 de outubro de 2013, que dispõe, dentre outras matérias, sobre os arranjos de pagamento e sobre as instituições de pagamento integrantes do Sistema de Pagamentos Brasileiro, teste de modificação.',
-        rotulo: 'Art. 1º',
-      },
-    ],
-    dispositivosAdicionados: [
-      {
-        id: 'art1_par1u',
-        rotulo: 'Parágrafo único',
-        texto: 'um parágrafo novo.',
-        idPai: 'art1',
-        tipo: 'Paragrafo',
-      },
-      {
-        id: 'art2_cpt_inc2_ite1',
-        rotulo: '1.',
-        texto: 'novo item',
-        idPai: 'art2_cpt_inc2',
-        tipo: 'Item',
-      },
-      {
-        id: 'art2_cpt_inc3',
-        rotulo: 'III –',
-        texto: 'novo insico.',
-        idIrmaoAnterior: 'art2_cpt_inc3',
-      },
-    ],
+    dispositivos: {
+      dispositivosSuprimidos: [{ tipo: 'Paragrafo', id: 'art3_par1u', rotulo: 'Parágrafo único.' }],
+      dispositivosModificados: [
+        {
+          tipo: 'Caput',
+          id: 'art1_cpt',
+          texto:
+            'Esta Medida Provisória dispõe sobre o tratamento tributário incidente sobre a variação cambial do valor de investimentos realizados por instituições financeiras e demais instituições autorizadas a funcionar pelo Banco Central do Brasil em sociedade controlada estabelecida no exterior e sobre a proteção legal oferecida aos integrantes da Diretoria Colegiada e aos membros das carreiras do Banco Central do Brasil no exercício de suas atribuições e altera a Lei nº 12.865, de 9 de outubro de 2013, que dispõe, dentre outras matérias, sobre os arranjos de pagamento e sobre as instituições de pagamento integrantes do Sistema de Pagamentos Brasileiro, teste de modificação.',
+          rotulo: 'Art. 1º',
+        },
+      ],
+      dispositivosAdicionados: [
+        {
+          id: 'art1_par1u',
+          rotulo: 'Parágrafo único',
+          texto: 'um parágrafo novo.',
+          idPai: 'art1',
+          tipo: 'Paragrafo',
+        },
+        {
+          id: 'art2_cpt_inc2_ite1',
+          rotulo: '1.',
+          texto: 'novo item',
+          idPai: 'art2_cpt_inc2',
+          tipo: 'Item',
+        },
+        {
+          id: 'art2_cpt_inc3',
+          rotulo: 'III –',
+          texto: 'novo insico.',
+          idIrmaoAnterior: 'art2_cpt_inc3',
+        },
+      ],
+    },
     comandoEmenda: {
       comandos: [
         {

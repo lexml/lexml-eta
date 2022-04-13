@@ -1,41 +1,33 @@
-import { Alteracoes } from './../model/dispositivo/blocoAlteracao';
-import { buildId } from './../model/lexml/util/idUtil';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
-import { Emenda } from '../model/lexml/documento/emenda';
-import { isArtigo, isCaput, isOmissis } from './../model/dispositivo/tipo';
-import { ClassificacaoDocumento } from './../model/documento/classificacao';
-import { TEXTO_OMISSIS } from './../model/lexml/conteudo/textoOmissis';
-import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido } from './../model/lexml/documento/emenda';
-import { isArticulacaoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { ComandoEmendaBuilder } from './comando-emenda-builder';
+import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, TipoEmenda } from '../model/emenda/emenda';
+import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
+import { isArticulacao, isArtigo, isCaput, isOmissis } from '../model/dispositivo/tipo';
+import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
+import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { buildId } from '../model/lexml/util/idUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
 
-export class EmendaBuilder {
-  constructor(private classificacao: ClassificacaoDocumento.EMENDA | ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER, private urn: string, private articulacao: Articulacao) {}
+export class DispositivosEmendaBuilder {
+  constructor(private tipoEmenda: TipoEmenda, private urn: string, private articulacao: Articulacao) {}
 
-  getEmenda(): Emenda {
-    const emd = new Emenda();
-
-    emd.classificacao = this.classificacao;
-
-    this.preencheDispositivos(emd);
-
-    emd.comandoEmenda = new ComandoEmendaBuilder(this.urn, this.articulacao).getComandoEmenda();
-
-    return emd;
+  getDispositivosEmenda(): DispositivosEmenda {
+    const dispositivos = new DispositivosEmenda();
+    this.preencheDispositivos(dispositivos);
+    return dispositivos;
   }
 
-  private preencheDispositivos(emd: Emenda): void {
+  private preencheDispositivos(dispositivosEmenda: DispositivosEmenda): void {
     const dispositivos = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
 
     const dispositivosSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
     if (dispositivosSuprimidos.length) {
       for (const d of dispositivosSuprimidos) {
         const ds = new DispositivoEmendaSuprimido();
+        ds.tipo = this.getTipoDispositivoParaEmenda(d);
         ds.id = d.id!;
         ds.rotulo = d.rotulo;
-        emd.dispositivosSuprimidos.push(ds);
+        dispositivosEmenda.dispositivosSuprimidos.push(ds);
       }
     }
 
@@ -45,14 +37,16 @@ export class EmendaBuilder {
         const dm = new DispositivoEmendaModificado();
         if (isArtigo(d)) {
           const caput = (d as Artigo).caput!;
+          dm.tipo = this.getTipoDispositivoParaEmenda(caput);
           dm.id = caput.id!;
           dm.texto = caput.texto;
         } else {
+          dm.tipo = this.getTipoDispositivoParaEmenda(d);
           dm.id = d.id!;
           dm.texto = d.texto;
         }
         dm.rotulo = d.rotulo;
-        emd.dispositivosModificados.push(dm);
+        dispositivosEmenda.dispositivosModificados.push(dm);
       }
     }
 
@@ -60,10 +54,10 @@ export class EmendaBuilder {
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
         const da = this.criaDispositivoEmendaAdicionado(d);
-        emd.dispositivosAdicionados.push(da);
+        dispositivosEmenda.dispositivosAdicionados.push(da);
         if (isArtigo(d)) {
           const ca = this.criaDispositivoEmendaAdicionado((d as Artigo).caput!);
-          emd.dispositivosAdicionados.push(ca);
+          dispositivosEmenda.dispositivosAdicionados.push(ca);
         }
       }
     }
@@ -71,6 +65,8 @@ export class EmendaBuilder {
 
   private criaDispositivoEmendaAdicionado(d: Dispositivo): DispositivoEmendaAdicionado {
     const da = new DispositivoEmendaAdicionado();
+
+    da.tipo = this.getTipoDispositivoParaEmenda(d);
 
     if (!d.id) {
       d.id = buildId(d);
@@ -109,5 +105,9 @@ export class EmendaBuilder {
       da.fechaAspas = true;
     }
     return da;
+  }
+
+  private getTipoDispositivoParaEmenda(d: Dispositivo): string {
+    return isArticulacao(d) ? 'Alteracao' : d.tipo;
   }
 }

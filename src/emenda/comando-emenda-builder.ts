@@ -11,7 +11,7 @@ import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { CmdEmdSupressao } from './cmd-emd-supressao';
-import { ComandoEmenda, ItemComandoEmenda } from '../model/lexml/documento/emenda';
+import { ComandoEmenda, ItemComandoEmenda } from '../model/emenda/emenda';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { CmdEmdAdicaoArtigoOndeCouber } from './cmd-emd-adicao-artigo-onde-couber';
 import { CitacaoComandoDispPrj } from './citacao-cmd-disp-prj';

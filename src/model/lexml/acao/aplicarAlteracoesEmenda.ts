@@ -1,4 +1,4 @@
-import { AlteracoesEmenda } from '../../emenda/alteracoesEmenda';
+import { DispositivosEmenda } from './../../emenda/emenda';
 
 export const APLICAR_ALTERACOES_EMENDA = 'APLICAR_ALTERACOES_EMENDA';
 
@@ -10,7 +10,7 @@ export class AplicarAlteracoesEmenda {
     this.descricao = 'Atualizar dispositivo';
   }
 
-  execute(alteracoesEmenda: AlteracoesEmenda): any {
+  execute(alteracoesEmenda: DispositivosEmenda): any {
     return {
       type: APLICAR_ALTERACOES_EMENDA,
       alteracoesEmenda,

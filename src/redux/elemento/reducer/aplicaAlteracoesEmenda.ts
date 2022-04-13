@@ -1,5 +1,5 @@
+import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
 import { createElemento } from '../../../model/elemento/elementoUtil';
-import { AlteracoesEmenda, DispositivoAdicionadoPelaEmenda } from '../../../model/emenda/alteracoesEmenda';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
@@ -59,7 +59,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   return retorno;
 };
 
-const processaDispositivosAdicionados = (state: any, alteracoesEmenda: AlteracoesEmenda): StateEvent[] => {
+const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
   const eventos: StateEvent[] = [];
 
   const mapa = criaMapaElementosIncluidos(alteracoesEmenda);
@@ -71,7 +71,7 @@ const processaDispositivosAdicionados = (state: any, alteracoesEmenda: Alteracoe
   return eventos;
 };
 
-const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: DispositivoAdicionadoPelaEmenda[]): StateEvent => {
+const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: DispositivoEmendaAdicionado[]): StateEvent => {
   const evento: StateEvent = {
     stateType: StateType.ElementoIncluido,
     referencia: undefined,
@@ -120,11 +120,11 @@ const IsIrmaoUltimoProcessado = (idAtual: string, idAnterior: string): boolean =
   return idAnterior.substring(0, idAnterior.lastIndexOf('_')) === idAtual.substring(0, idAtual.lastIndexOf('_'));
 };
 
-const criaNovaEntradaNoMapa = (mapa: Map<string, DispositivoAdicionadoPelaEmenda[]>, dispositivo: DispositivoAdicionadoPelaEmenda): void => {
+const criaNovaEntradaNoMapa = (mapa: Map<string, DispositivoEmendaAdicionado[]>, dispositivo: DispositivoEmendaAdicionado): void => {
   mapa.set(dispositivo.id, [dispositivo]);
 };
 
-const criaMapaElementosIncluidos = (alteracoesEmenda: AlteracoesEmenda): Map<string, []> => {
+const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<string, []> => {
   const mapaElementosIncluidos = new Map();
 
   alteracoesEmenda.dispositivosAdicionados?.forEach((d, index) => {

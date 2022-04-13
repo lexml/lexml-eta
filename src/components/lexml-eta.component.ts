@@ -1,9 +1,11 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
+
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
-import { EmendaBuilder } from '../emenda/emenda-builder';
+import { DispositivosEmendaBuilder } from '../emenda/dispositivos-emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
+import { ComandoEmenda, TipoEmenda } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -11,26 +13,26 @@ import { buildProjetoNormaFromJsonix, getUrn } from '../model/lexml/documento/co
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { rootStore } from '../redux/store';
-import { ComandoEmenda, Emenda } from './../model/lexml/documento/emenda';
+import { DispositivosEmenda } from './../model/emenda/emenda';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
-  @property({ type: Object }) emenda = {};
+  @property({ type: Object }) dispositivosEmenda: DispositivosEmenda | undefined;
 
   createRenderRoot(): LitElement {
     return this;
   }
 
-  getEmenda(): Emenda | undefined {
+  getDispositivosEmenda(): DispositivosEmenda | undefined {
     const classificacao = this.modo;
     if (classificacao !== ClassificacaoDocumento.EMENDA && classificacao !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER) {
       return undefined;
     }
     const urn = (this.projetoNorma as any).value.metadado.identificacao.urn!;
     const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return new EmendaBuilder(classificacao, urn, articulacao).getEmenda();
+    return new DispositivosEmendaBuilder(classificacao as unknown as TipoEmenda, urn, articulacao).getDispositivosEmenda();
   }
 
   getComandoEmenda(): ComandoEmenda {
@@ -51,7 +53,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.loadProjetoNorma();
       document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
     }
-    if (this.hasChangedEmenda(changedProperties) && Object.keys(this.emenda).length > /*  */ 0) {
+    if (this.dispositivosEmenda && this.hasChangedEmenda(changedProperties)) {
       this.loadEmenda();
     }
     super.update(changedProperties);
@@ -66,7 +68,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private hasChangedEmenda(changedProperties: PropertyValues): boolean {
-    return changedProperties.has('emenda') && changedProperties.get('emenda') !== undefined;
+    return changedProperties.has('dispositivosEmenda') && changedProperties.get('dispositivosEmenda');
   }
 
   private loadProjetoNorma(): void {
@@ -95,15 +97,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private loadEmenda(): void {
-    if (this.emenda) {
+    if (this.dispositivosEmenda) {
       setTimeout(() => {
-        rootStore.dispatch(
-          aplicarAlteracoesEmendaAction.execute({
-            dispositivosModificados: (this.emenda as any).dispositivosModificados,
-            dispositivosSuprimidos: (this.emenda as any).dispositivosSuprimidos,
-            dispositivosAdicionados: (this.emenda as any).dispositivosAdicionados,
-          })
-        );
+        rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!));
       }, 1000);
     }
   }

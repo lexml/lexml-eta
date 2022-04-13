@@ -1,6 +1,10 @@
+import '../../src';
+import './autoria-dialog.component';
+
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import '../../src/index';
+
+import { Emenda } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
@@ -10,7 +14,8 @@ import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_ALTERACAO } from '../doc/mpv_alteracao';
 import { MPV_SIMPLES } from '../doc/mpv_simples';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
-import './autoria-dialog.component';
+import { DispositivosEmenda, TipoEmenda } from './../../src/model/emenda/emenda';
+import { getUrn } from './../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 
 const mapProjetosNormas = {
   novo: {},
@@ -32,9 +37,11 @@ const mapEmendas = {
 export class DemoView extends LitElement {
   @property({ type: String }) modo = '';
   @property({ type: String }) projetoNorma = '';
-  @property({ type: Object }) emenda = {};
+  @property({ type: Object }) emenda: any = {};
   @property({ type: Object }) arquivoProjetoNorma = {};
   @property({ type: String }) textoJustificativa = "<p class='align-center'>texto centralizado</p>";
+
+  dispositivosEmenda?: DispositivosEmenda;
 
   constructor() {
     super();
@@ -80,17 +87,18 @@ export class DemoView extends LitElement {
     console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
 
     if (this.modo.startsWith('emenda')) {
-      const emenda = this.getElement('lexml-eta').getComandoEmenda();
-      this.getElement('lexml-emenda-comando').emenda = emenda;
-
-      // console.log('Emenda ---------------------');
-      // console.log(this.getElement('lexml-eta').getEmenda());
+      const comandoEmenda = this.getElement('lexml-eta').getComandoEmenda();
+      this.getElement('lexml-emenda-comando').emenda = comandoEmenda;
     }
   }
 
   salvar(): void {
     const projetoNorma = mapProjetosNormas[this.projetoNorma];
-    const emenda = this.getElement('lexml-eta').getEmenda();
+    const emenda = new Emenda();
+    emenda.tipo = this.modo as any as TipoEmenda;
+    emenda.proposicao.urn = getUrn(projetoNorma);
+    emenda.dispositivos = this.getElement('lexml-eta').getDispositivosEmenda();
+    emenda.comandoEmenda = this.getElement('lexml-eta').getComandoEmenda();
     const emendaJson = JSON.stringify({
       projetoNorma: projetoNorma,
       emenda: emenda,
@@ -123,9 +131,10 @@ export class DemoView extends LitElement {
       fReader.onloadend = e => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.modo = result.emenda.classificacao;
+          this.modo = result.emenda.tipo;
           this.arquivoProjetoNorma = result.projetoNorma;
           this.emenda = result.emenda;
+          this.dispositivosEmenda = this.getDispositivosEmenda();
           this.projetoNorma = '';
         }
       };
@@ -137,6 +146,14 @@ export class DemoView extends LitElement {
     if (el) {
       el.open();
     }
+  }
+
+  getDispositivosEmenda(): DispositivosEmenda | undefined {
+    // TODO - Atualizar mapEmendas com emendas no novo formato.
+    // if (this.projetoNorma === 'mpv_930_2020') {
+    //   return mapEmendas[this.projetoNorma].emenda.dispositivos;
+    // } else
+    return this.emenda?.dispositivos;
   }
 
   render(): TemplateResult {
@@ -227,7 +244,7 @@ export class DemoView extends LitElement {
             @onchange=${this.onChange}
             modo=${this.modo}
             .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
-            .emenda=${this.projetoNorma === 'mpv_930_2020' ? mapEmendas[this.projetoNorma].emenda : this.emenda}
+            .dispositivosEmenda=${this.dispositivosEmenda}
           >
           </lexml-eta>
         </div>
