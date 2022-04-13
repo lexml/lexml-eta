@@ -96,6 +96,7 @@ class Autoria {
 class Parlamentar {
   identificacao = '';
   nome = '';
+  sexo: 'M' | 'F' = 'M';
   siglaPartido = '';
   siglaUF = '';
   siglaCasaLegislativa: 'SF' | 'CD' = 'CD';
