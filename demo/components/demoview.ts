@@ -8,7 +8,6 @@ import { Emenda } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
-import { EMENDA_MPV_00930_2020 } from '../doc/emenda_exemplo_mpv_00930_2020';
 import { MPV_1089_2021 } from '../doc/mpv_1089_2021';
 import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_ALTERACAO } from '../doc/mpv_alteracao';
@@ -27,10 +26,6 @@ const mapProjetosNormas = {
   codcivil_parcial1: COD_CIVIL_PARCIAL1,
   codcivil_parcial2: COD_CIVIL_PARCIAL2,
   plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
-};
-
-const mapEmendas = {
-  mpv_930_2020: EMENDA_MPV_00930_2020,
 };
 
 @customElement('demo-view')
@@ -128,13 +123,13 @@ export class DemoView extends LitElement {
     if (fileInput && fileInput.files) {
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
-      fReader.onloadend = e => {
+      fReader.onloadend = (e): void => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
           this.modo = result.emenda.tipo;
           this.arquivoProjetoNorma = result.projetoNorma;
           this.emenda = result.emenda;
-          this.dispositivosEmenda = this.getDispositivosEmenda();
+          this.dispositivosEmenda = result.emenda?.dispositivos;
           this.projetoNorma = '';
         }
       };

@@ -1,57 +1,49 @@
-import { Parlamentar } from './../../src/model/autoria/parlamentar';
+import { Parlamentar } from './../../src/model/emenda/emenda';
 import { expect } from '@open-wc/testing';
 import { incluirParlamentar, excluirParlamentar, moverParlamentar } from '../../src/model/autoria/parlamentarUtil';
 
 let parlamentares: Parlamentar[] = [];
 
-const parlamentarVazio: Parlamentar = {
-  id: '',
-  nome: '',
-  siglaPartido: '',
-  siglaUF: '',
-  indSexo: '',
-  siglaCasa: '',
-  cargo: '',
-};
+const parlamentarVazio = new Parlamentar();
 
 describe('Testando operações em lista de parlamentares', () => {
   beforeEach(() => {
     parlamentares = [
       {
-        id: '1',
+        identificacao: '1',
         nome: 'Erivânio Vasconcelos',
         siglaPartido: 'PX',
         siglaUF: 'DF',
-        siglaCasa: 'CD',
+        siglaCasaLegislativa: 'CD',
         cargo: '',
-        indSexo: 'M',
+        sexo: 'M',
       },
       {
-        id: '2',
+        identificacao: '2',
         nome: 'João Holanda',
         siglaPartido: 'PX',
         siglaUF: 'DF',
-        siglaCasa: 'SF',
+        siglaCasaLegislativa: 'SF',
         cargo: '',
-        indSexo: 'M',
+        sexo: 'M',
       },
       {
-        id: '3',
+        identificacao: '3',
         nome: 'Marcos Fragomeni',
         siglaPartido: 'PX',
         siglaUF: 'DF',
-        siglaCasa: 'SF',
+        siglaCasaLegislativa: 'SF',
         cargo: '',
-        indSexo: 'M',
+        sexo: 'M',
       },
       {
-        id: '4',
+        identificacao: '4',
         nome: 'Robson Barros',
         siglaPartido: 'PX',
         siglaUF: 'DF',
-        siglaCasa: 'CD',
+        siglaCasaLegislativa: 'CD',
         cargo: '',
-        indSexo: 'M',
+        sexo: 'M',
       },
     ];
   });
@@ -71,7 +63,7 @@ describe('Testando operações em lista de parlamentares', () => {
 
     it('Novo parlamentar deveria possuir dados vazios', () => {
       const novoParlamentar = parlamentares[parlamentares.length - 1];
-      expect(novoParlamentar.id).to.equal('');
+      expect(novoParlamentar.identificacao).to.equal('');
       expect(novoParlamentar.nome).to.equal('');
       expect(novoParlamentar.cargo).to.equal('');
     });
@@ -89,7 +81,7 @@ describe('Testando operações em lista de parlamentares', () => {
     });
 
     it('Parlamentar excluído não deveria ser encontrado na lista', () => {
-      const indexParlamentarExcluido = parlamentares.findIndex(p => p.id === parlamentar.id);
+      const indexParlamentarExcluido = parlamentares.findIndex(p => p.identificacao === parlamentar.identificacao);
       expect(indexParlamentarExcluido).to.equal(-1);
     });
   });
@@ -99,7 +91,7 @@ describe('Testando operações em lista de parlamentares', () => {
       const lastIndex = parlamentares.length - 1;
       const ultimoParlamentar = parlamentares[lastIndex];
       parlamentares = moverParlamentar(parlamentares, lastIndex, 1);
-      expect(ultimoParlamentar.id).to.equal(parlamentares[lastIndex].id);
+      expect(ultimoParlamentar.identificacao).to.equal(parlamentares[lastIndex].identificacao);
     });
 
     describe('Testando movimentação para baixo de parlamentar no meio da lista', () => {
@@ -112,11 +104,11 @@ describe('Testando operações em lista de parlamentares', () => {
       });
 
       it('Parlamentar "A" deveria ter se movimentado para baixo', () => {
-        expect(parlamentares[3].id).to.equal(parlamentarA.id);
+        expect(parlamentares[3].identificacao).to.equal(parlamentarA.identificacao);
       });
 
       it('Parlamentar "B" deveria ter se movimentado para cima', () => {
-        expect(parlamentares[2].id).to.equal(parlamentarB.id);
+        expect(parlamentares[2].identificacao).to.equal(parlamentarB.identificacao);
       });
     });
   });
@@ -125,7 +117,7 @@ describe('Testando operações em lista de parlamentares', () => {
     it('Deveria não mover primeiro parlamentar', () => {
       const primeiro = parlamentares[0];
       parlamentares = moverParlamentar(parlamentares, 0, -1);
-      expect(primeiro.id).to.equal(parlamentares[0].id);
+      expect(primeiro.identificacao).to.equal(parlamentares[0].identificacao);
     });
 
     describe('Testando movimentação para cima de parlamentar no meio da lista', () => {
@@ -138,11 +130,11 @@ describe('Testando operações em lista de parlamentares', () => {
       });
 
       it('Parlamentar "A" deveria ter se movimentado para cima', () => {
-        expect(parlamentares[2].id).to.equal(parlamentarA.id);
+        expect(parlamentares[2].identificacao).to.equal(parlamentarA.identificacao);
       });
 
       it('Parlamentar "B" deveria ter se movimentado para baixo', () => {
-        expect(parlamentares[3].id).to.equal(parlamentarB.id);
+        expect(parlamentares[3].identificacao).to.equal(parlamentarB.identificacao);
       });
     });
   });

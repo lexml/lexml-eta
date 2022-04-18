@@ -6,10 +6,9 @@ export class DataComponent extends LitElement {
   static styles = css`
     .lexml-data {
       display: block;
-      border: 1px solid #ccc;
       height: 100%;
-      padding: 5px 10px;
-      margin: 0px 5px;
+      /* padding: 5px 10px; */
+      /* margin: 0px 5px; */
       font-size: 1em;
       max-width: 700px;
     }

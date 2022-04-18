@@ -2,29 +2,12 @@ import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state, query, queryAll } from 'lit/decorators.js';
 
 import { REGEX_ACCENTS } from './../../util/string-util';
-import { Parlamentar } from './../../model/autoria/parlamentar';
-import { Autoria } from './../../model/autoria/autoria';
+import { Parlamentar, Autoria } from '../../model/emenda/emenda';
 import { incluirParlamentar, excluirParlamentar, moverParlamentar } from '../../model/autoria/parlamentarUtil';
 import { autoriaCss } from '../../assets/css/autoria.css';
 import { LexmlAutocomplete } from './lexml-autocomplete';
 
-const estadoInicialAutoria: Autoria = {
-  tipo: 'Parlamentar',
-  parlamentares: [],
-  indImprimirPartidoUF: false,
-  qtdAssinaturasAdicionaisDeputados: 0,
-  qtdAssinaturasAdicionaisSenadores: 0,
-};
-
-const parlamentarVazio: Parlamentar = {
-  id: '',
-  nome: '',
-  siglaPartido: '',
-  siglaUF: '',
-  indSexo: '',
-  siglaCasa: '',
-  cargo: '',
-};
+const parlamentarVazio = new Parlamentar();
 
 // Decorator para aguardar fim da validação para executar um método
 function executarAposValidacao(interval = 200) {
@@ -74,9 +57,6 @@ export class AutoriaComponent extends LitElement {
   @state()
   private _podeIncluirParlamentar = true;
 
-  @property({ type: Object })
-  autoria: Autoria = { ...estadoInicialAutoria, parlamentares: [] };
-
   private _parlamentaresAutocomplete: Parlamentar[] = [];
   @property({ type: Array })
   set parlamentares(value: Parlamentar[]) {
@@ -90,6 +70,30 @@ export class AutoriaComponent extends LitElement {
     return this._parlamentaresAutocomplete;
   }
 
+  private _autoriaOriginal?: Autoria;
+  private _autoria!: Autoria;
+  @property({ type: Object })
+  set autoria(value: Autoria | undefined) {
+    const oldValue = this._autoriaOriginal;
+    this._autoriaOriginal = value;
+
+    this._autoria = value ? { ...value, parlamentares: [...value.parlamentares] } : new Autoria();
+    if (!this._autoria.parlamentares.length) {
+      this._autoria.parlamentares = [{ ...parlamentarVazio }];
+    }
+
+    this._podeIncluirParlamentar = this._isAllAutoresOk();
+    this.requestUpdate('autoria', oldValue);
+  }
+
+  get autoria(): Autoria | undefined {
+    return this._autoriaOriginal;
+  }
+
+  getAutoriaAtualizada(): Autoria {
+    return { ...this._autoria, parlamentares: this._autoria.parlamentares.filter(p => p.identificacao) };
+  }
+
   render(): TemplateResult {
     return html`
       <div class="lexml-autoria">
@@ -97,9 +101,16 @@ export class AutoriaComponent extends LitElement {
         ${this._getTipoAutoriaTemplate()}
         <div class="autoria-list">${this._getParlamentaresTemplate()}</div>
         <button id="btnNovoParlamentar" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
-          Incluir ${this.autoria.parlamentares.length ? 'outro' : ''} parlamentar
+          Incluir ${this._autoria.parlamentares.length ? 'outro' : ''} parlamentar
         </button>
         ${this._getAssinaturasAdicionaisTemplate()}
+
+        <div class="assinaturas-adicionais">
+          <label>
+            <input type="checkbox" id="chk-exibir-partido-uf" ?checked=${this._autoria?.imprimirPartidoUF} @input=${(ev: Event): void => this._atualizarExibirPartidoUF(ev)} />
+            Imprimir partido e UF para os signatários
+          </label>
+        </div>
       </div>
     `;
   }
@@ -113,11 +124,11 @@ export class AutoriaComponent extends LitElement {
             <legend>Tipo de autoria</legend>
             <div class="control">
               <label class="radio">
-                <input type="radio" id="opt-parlamentar" name="tipoAutoria" value="Parlamentar" ?checked=${this.autoria?.tipo === 'Parlamentar'} />
+                <input type="radio" id="opt-parlamentar" name="tipoAutoria" value="Parlamentar" ?checked=${this._autoria?.tipo === 'Parlamentar'} />
                 Parlamentar
               </label>
               <label class="radio">
-                <input type="radio" id="opt-comissao" name="tipoAutoria" value="Comissão" ?checked=${this.autoria?.tipo === 'Comissão'} />
+                <input type="radio" id="opt-comissao" name="tipoAutoria" value="Comissão" ?checked=${this._autoria?.tipo === 'Comissão'} />
                 Comissão
               </label>
             </div>
@@ -132,7 +143,7 @@ export class AutoriaComponent extends LitElement {
         <div class="autoria-grid--col2"><div class="autoria-header">Cargo</div></div>
         <div class="autoria-grid--col3"><div class="autoria-buttons"></div></div>
       </div>
-      ${this.autoria?.parlamentares.map((_, index) => this._getParlamentarAutocompleteTemplate(index))}
+      ${this._autoria?.parlamentares.map((_, index) => this._getParlamentarAutocompleteTemplate(index))}
     `;
   }
 
@@ -144,7 +155,7 @@ export class AutoriaComponent extends LitElement {
           <lexml-autocomplete
             class="lexml-autocomplete"
             .items=${this._nomesAutocomplete}
-            value=${this.autoria.parlamentares[index].nome}
+            value=${this._autoria.parlamentares[index].nome}
             @input=${(ev: Event): void => this._validarNomeParlamentar(ev, index)}
             @blur=${(ev: Event): void => this._validarNomeParlamentar(ev, index)}
             @autocomplete=${(ev: CustomEvent): void => this._atualizarParlamentar(ev, index)}
@@ -161,7 +172,7 @@ export class AutoriaComponent extends LitElement {
             placeholder="ex: Presidente da Comissão ..., Líder do ..."
             class="autoria-input"
             aria-label="Cargo"
-            .value=${this.autoria.parlamentares[index].cargo ?? ''}
+            .value=${this._autoria.parlamentares[index].cargo ?? ''}
             @input=${(ev: Event): void => this._atualizarCargo(ev, index)}
             @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
           />
@@ -189,27 +200,27 @@ export class AutoriaComponent extends LitElement {
 
   private _getAssinaturasAdicionaisTemplate(): TemplateResult {
     return html`
-      <div class="assinaturas-adicionais">
-        <div>
+      <div>
+        <div class="assinaturas-adicionais">
           <label for="num-assinaturas-adicionais-senadores" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Senadores</label>
           <input
             type="text"
             id="num-assinaturas-adicionais-senadores"
             class="autoria-input"
             aria-label="Assinaturas Adicionais Senadores"
-            .value=${this.autoria.qtdAssinaturasAdicionaisSenadores.toString()}
+            .value=${this._autoria.quantidadeAssinaturasAdicionaisSenadores.toString()}
             @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
           />
         </div>
 
-        <div>
+        <div class="assinaturas-adicionais">
           <label for="num-assinaturas-adicionais-deputados" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Deputados Federais</label>
           <input
             type="text"
             id="num-assinaturas-adicionais-deputados"
             class="autoria-input"
             aria-label="Assinaturas Adicionais deputados"
-            .value=${this.autoria.qtdAssinaturasAdicionaisDeputados.toString()}
+            .value=${this._autoria.quantidadeAssinaturasAdicionaisDeputados.toString()}
             @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
           />
         </div>
@@ -222,24 +233,27 @@ export class AutoriaComponent extends LitElement {
   }
 
   private _isAllAutoresOk(): boolean {
-    return this.autoria.parlamentares.every(p => p.id);
+    return this._autoria.parlamentares.every(p => p.identificacao);
   }
 
   private _incluirNovoParlamentar(): void {
-    this.autoria.parlamentares = incluirParlamentar(this.autoria.parlamentares, { ...parlamentarVazio });
+    this._autoria.parlamentares = incluirParlamentar(this._autoria.parlamentares, { ...parlamentarVazio });
     this._podeIncluirParlamentar = false;
-    setTimeout(() => this._autocompletes[this.autoria.parlamentares.length - 1].focus(), 200);
+    setTimeout(() => this._autocompletes[this._autoria.parlamentares.length - 1].focus(), 200);
   }
 
   @executarAposValidacao()
   private _moverParlamentar(index: number, deslocamento: number): void {
-    this.autoria.parlamentares = moverParlamentar(this.autoria.parlamentares, index, deslocamento);
+    this._autoria.parlamentares = moverParlamentar(this._autoria.parlamentares, index, deslocamento);
     this.requestUpdate();
   }
 
   @executarAposValidacao()
   private _excluirParlamentar(index: number): void {
-    this.autoria.parlamentares = excluirParlamentar(this.autoria.parlamentares, index);
+    this._autoria.parlamentares = excluirParlamentar(this._autoria.parlamentares, index);
+    if (!this._autoria.parlamentares.length) {
+      this._autoria.parlamentares = [{ ...parlamentarVazio }];
+    }
     this._podeIncluirParlamentar = this._isAllAutoresOk();
     this.requestUpdate();
   }
@@ -261,7 +275,7 @@ export class AutoriaComponent extends LitElement {
     this._timerValidacao = window.setTimeout(
       () => {
         const elLexmlAutocomplete = this._autocompletes[index];
-        const cargoAtual = this.autoria.parlamentares[index].cargo;
+        const cargoAtual = this._autoria.parlamentares[index].cargo;
         const nomeAtual = elLexmlAutocomplete.value ?? '';
 
         const regex = new RegExp('^' + nomeAtual.normalize('NFD').replace(REGEX_ACCENTS, '') + '$', 'i');
@@ -272,11 +286,11 @@ export class AutoriaComponent extends LitElement {
             .match(regex)
         ) || { ...parlamentarVazio, nome: isBlur ? '' : nomeAtual };
 
-        const parlamentarEhValido = !!parlamentar.id;
+        const parlamentarEhValido = !!parlamentar.identificacao;
 
         parlamentar.cargo = isBlur && !parlamentarEhValido ? '' : cargoAtual;
 
-        this.autoria.parlamentares[index] = { ...parlamentar };
+        this._autoria.parlamentares[index] = { ...parlamentar };
         this._podeIncluirParlamentar = parlamentarEhValido && this._isAllAutoresOk();
 
         this._isProcessandoValidacao = false;
@@ -288,8 +302,8 @@ export class AutoriaComponent extends LitElement {
   private _atualizarParlamentar(ev: CustomEvent, index: number): void {
     const parlamentarAutocomplete = this.parlamentares.find(p => p.nome === ev.detail.value);
     if (parlamentarAutocomplete) {
-      const { cargo } = this.autoria.parlamentares[index];
-      this.autoria.parlamentares[index] = {
+      const { cargo } = this._autoria.parlamentares[index];
+      this._autoria.parlamentares[index] = {
         ...parlamentarAutocomplete,
         cargo,
       };
@@ -301,15 +315,19 @@ export class AutoriaComponent extends LitElement {
   }
 
   private _atualizarCargo(ev: Event, index: number): void {
-    this.autoria.parlamentares[index].cargo = (ev.target as HTMLInputElement).value;
+    this._autoria.parlamentares[index].cargo = (ev.target as HTMLInputElement).value;
   }
 
   private _atualizarQtdAssinaturasAdicionaisSenadores(ev: Event): void {
-    this.autoria.qtdAssinaturasAdicionaisSenadores = Number((ev.target as HTMLInputElement).value);
+    this._autoria.quantidadeAssinaturasAdicionaisSenadores = Number((ev.target as HTMLInputElement).value);
   }
 
   private _atualizarQtdAssinaturasAdicionaisDeputados(ev: Event): void {
-    this.autoria.qtdAssinaturasAdicionaisDeputados = Number((ev.target as HTMLInputElement).value);
+    this._autoria.quantidadeAssinaturasAdicionaisDeputados = Number((ev.target as HTMLInputElement).value);
+  }
+
+  private _atualizarExibirPartidoUF(ev: Event): void {
+    this._autoria.imprimirPartidoUF = (ev.target as HTMLInputElement).checked;
   }
 
   private _isProcessandoMovimentacao = false;
@@ -319,7 +337,7 @@ export class AutoriaComponent extends LitElement {
       if (ev.key === 'Enter' && this._podeIncluirParlamentar && index !== this._lastIndexAutoCompleted) {
         this._btnNovoParlamentar.click();
         this._lastIndexAutoCompleted = -1;
-      } else if (['ArrowUp', 'ArrowDown'].includes(ev.key) && this.autoria.parlamentares[index].id) {
+      } else if (['ArrowUp', 'ArrowDown'].includes(ev.key) && this._autoria.parlamentares[index].identificacao) {
         this._focarAutocompleteOuCargo(ev.target!, index, ev.key === 'ArrowUp' ? -1 : 1);
       }
     } else if (ev.ctrlKey && !ev.altKey && !ev.shiftKey) {

@@ -18,7 +18,7 @@ export enum TipoEmenda {
 }
 
 // Dados da proposição ----------------------------
-class RefProposicaoEmendada {
+export class RefProposicaoEmendada {
   urn = '';
   identificacao = ''; // sigla número/ano
   genero: 'M' | 'F' = 'M';
@@ -27,14 +27,14 @@ class RefProposicaoEmendada {
 }
 
 // Destino da emenda ----------------------------
-class DestinoEmenda {
+export class DestinoEmenda {
   siglaCasaLegislativa: 'CN' | 'SF' | 'CD' = 'CN';
   tipoColegiado: 'Plenário' | 'Comissão' = 'Plenário';
   siglaComissao?: string;
 }
 
 // Epígrafe ----------------------------
-class Epigrafe {
+export class Epigrafe {
   texto = '';
   complemento = '';
 }
@@ -85,7 +85,7 @@ export enum TipoAutoria {
   PARLAMENTAR = 'Parlamentar',
   COMISSAO = 'Comissão',
 }
-class Autoria {
+export class Autoria {
   tipo = TipoAutoria.PARLAMENTAR;
   imprimirPartidoUF = true;
   quantidadeAssinaturasAdicionaisSenadores = 0;
@@ -93,7 +93,7 @@ class Autoria {
   parlamentares: Array<Parlamentar> = [];
 }
 
-class Parlamentar {
+export class Parlamentar {
   identificacao = '';
   nome = '';
   sexo: 'M' | 'F' = 'M';

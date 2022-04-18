@@ -1,41 +1,39 @@
 import { AutoriaComponent } from './../../src/components/autoria/autoria.component';
-import { LitElement, html, TemplateResult } from 'lit';
+import { LitElement, html, TemplateResult, css } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
-import { Autoria } from '../../src/model/autoria/autoria';
-import { Parlamentar } from '../../src/model/autoria/parlamentar';
-
+import { Autoria, Parlamentar } from '../../src/model/emenda/emenda';
 @customElement('lexml-autoria-dialog')
 export class AutoriaDialog extends LitElement {
+  static styles = css`
+    lexml-data,
+    lexml-autoria {
+      border: 1px solid #ccc;
+      margin: 0 10px;
+      padding: 5px 10px;
+    }
+
+    lexml-data {
+      margin-top: 10px;
+    }
+  `;
   @state()
-  autoria: Autoria = {
-    tipo: 'Parlamentar',
-    parlamentares: [],
-    indImprimirPartidoUF: false,
-    qtdAssinaturasAdicionaisDeputados: 0,
-    qtdAssinaturasAdicionaisSenadores: 0,
-  };
+  autoria = new Autoria();
 
   @state()
   parlamentares: Parlamentar[] = [];
 
   async getParlamentares(): Promise<Parlamentar[]> {
-    return (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
+    const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
+    return _parlamentares.map(p => ({
+      identificacao: p.id,
+      nome: p.nome,
+      sexo: p.sexo,
+      siglaPartido: p.siglaPartido,
+      siglaUF: p.siglaUF,
+      siglaCasaLegislativa: p.siglaCasa,
+    }));
   }
-
-  // update(changedProperties: PropertyValues): void {
-  //   this.getParlamentares().then(dados => {
-  //     this.parlamentares = dados;
-  //     this.autoria = {
-  //       tipo: 'Parlamentar',
-  //       parlamentares: dados,
-  //       indImprimirPartidoUF: true,
-  //       qtdAssinaturasAdicionaisDeputados: 0,
-  //       qtdAssinaturasAdicionaisSenadores: 0,
-  //     };
-  //     super.update(changedProperties);
-  //   });
-  // }
 
   constructor() {
     super();
@@ -50,9 +48,9 @@ export class AutoriaDialog extends LitElement {
     this.getDialog()?.close();
   }
 
-  exibirDados(): void {
+  exibirDados(original?: boolean): void {
     const el = this.shadowRoot?.querySelector('lexml-autoria') as AutoriaComponent;
-    console.log(11111, 'EXIBIR AUTORIA', el.autoria);
+    console.log(11111, 'EXIBIR AUTORIA', original ? el.autoria : el.getAutoriaAtualizada());
   }
 
   id = 'autoriaDialog';
@@ -74,7 +72,8 @@ export class AutoriaDialog extends LitElement {
         <div class="lexml-dialog-footer">
           <button @click=${this.close}>OK</button>
           <button @click=${this.close}>Cancelar</button>
-          <!-- <button @click=${this.exibirDados}>Exibir dados</button> -->
+          <!-- <button @click=${(): void => this.exibirDados(true)}>Exibir Autoria Original</button> -->
+          <!-- <button @click=${(): void => this.exibirDados(false)}>Exibir Autoria Atualizada</button> -->
         </div>
       </elix-dialog>
     `;
