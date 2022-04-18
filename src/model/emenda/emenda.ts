@@ -1,4 +1,5 @@
 export class Emenda {
+  metadados: MetadadosEmenda = {};
   tipo = TipoEmenda.EMENDA;
   numero?: number;
   proposicao = new RefProposicaoEmendada();
@@ -11,6 +12,10 @@ export class Emenda {
   data?: string; // formato “YYYY-MM-DD”
   autoria = new Autoria();
 }
+
+export type MetadadosEmenda = {
+  [key: string]: string | number | boolean | string[] | number[] | boolean[];
+};
 
 export enum TipoEmenda {
   EMENDA = 'emenda',
