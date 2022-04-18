@@ -30,14 +30,6 @@ export class LexmlAutocomplete extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        :host {
-          --nega-autocomplete-container: {
-          }
-          --nega-autocomplete-item: {
-          }
-          --nega-autocomplete-highlight: {
-          }
-        }
         ul {
           position: absolute;
           display: block;
@@ -47,15 +39,12 @@ export class LexmlAutocomplete extends LitElement {
           z-index: 10000;
           border: 1px solid grey;
           background: white;
-          @apply --nega-autocomplete-container;
         }
         li {
           padding: 4px;
-          @apply --nega-autocomplete-item;
         }
         li.active {
           background: whitesmoke;
-          @apply --nega-autocomplete-highlight;
         }
         [hidden] {
           display: none;
