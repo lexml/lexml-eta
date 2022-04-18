@@ -787,7 +787,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (state.elementoReducer.ui) {
       const event: StateEvent | undefined = state.elementoReducer.ui.events.find((event: StateEvent): boolean => event.stateType === StateType.DocumentoCarregado);
-      elementos = event!.elementos ?? [];
+      elementos = event?.elementos ?? [];
     }
     verificarQuillInicializado(elementos);
   }
