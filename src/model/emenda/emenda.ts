@@ -20,7 +20,9 @@ export enum TipoEmenda {
 // Dados da proposição ----------------------------
 export class RefProposicaoEmendada {
   urn = '';
-  identificacao = ''; // sigla número/ano
+  sigla = '';
+  numero = '';
+  ano = '';
   genero: 'M' | 'F' = 'M';
   substitutivo = false;
   identificacaoTexto = '';
