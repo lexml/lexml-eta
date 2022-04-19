@@ -20,6 +20,10 @@ export function isValidHtmlParagraph(html: string): boolean {
   return isHTMLParagraph(html) && isValidHTML(html);
 }
 
+export function getTextoSemHtml(html: string): string {
+  return removeEspacosDuplicados(html.replace(/(<([^>]+)>)/gi, '').trim());
+}
+
 export function getLastCharacter(texto: string): string {
   const soTexto = texto.replace(/(<([^>]+)>)/gi, '').trim();
   return soTexto.length > 0 ? soTexto.charAt(soTexto.length - 1) : '';

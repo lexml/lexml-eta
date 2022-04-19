@@ -7,6 +7,7 @@ import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { buildId } from '../model/lexml/util/idUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
+import { escapeRegex, getTextoSemHtml } from '../util/string-util';
 
 export class DispositivosEmendaBuilder {
   constructor(private tipoEmenda: TipoEmenda, private urn: string, private articulacao: Articulacao) {}
@@ -100,9 +101,19 @@ export class DispositivosEmendaBuilder {
     }
     if (da.rotulo && da.rotulo.indexOf('“') >= 0) {
       da.abreAspas = true;
+      da.rotulo = da.rotulo.replace('“', '');
     }
-    if (da.texto && da.texto.indexOf('” (NR)') >= 0) {
-      da.fechaAspas = true;
+    if (da.texto) {
+      const textoSemHtml = getTextoSemHtml(da.texto);
+      const partes = /”(?: (\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
+      if (partes) {
+        const sufixo = partes[0];
+        da.fechaAspas = true;
+        if (partes.length === 2) {
+          da.notaAlteracao = partes[1] as any;
+        }
+        da.texto = da.texto.replace(new RegExp(escapeRegex(sufixo)), '');
+      }
     }
     return da;
   }
