@@ -1,4 +1,4 @@
-import { generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
+import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
 import { VOCABULARIO } from './vocabulario';
@@ -110,4 +110,9 @@ export const getRefGenericaProjeto = (urn: string): NomeComGenero => {
   }
 
   return new NomeComGenero(nome, genero);
+};
+
+export const getGeneroUrnNorma = (urn: string): Genero => {
+  const tipo = getTipo(urn);
+  return generoFromLetra(tipo.genero);
 };

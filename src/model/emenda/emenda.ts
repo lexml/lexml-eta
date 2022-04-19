@@ -107,5 +107,5 @@ export class Parlamentar {
   siglaPartido = '';
   siglaUF = '';
   siglaCasaLegislativa: 'SF' | 'CD' = 'CD';
-  cargo?: string;
+  cargo = '';
 }
