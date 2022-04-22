@@ -1,12 +1,14 @@
-import { Dispositivo } from '../model/dispositivo/dispositivo';
+import { SituacaoNormaVigente } from './../model/dispositivo/situacao';
+import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
+import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
+import { DescricaoSituacao } from '../model/dispositivo/situacao';
+import { isOmissis } from '../model/dispositivo/tipo';
+import { getGeneroUrnNorma, getNomeExtensoComDataExtenso } from '../model/lexml/documento/urnUtil';
 import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
-import { Alteracoes } from './../model/dispositivo/blocoAlteracao';
-import { Articulacao } from './../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from './../model/dispositivo/situacao';
-import { isOmissis } from './../model/dispositivo/tipo';
-import { getGeneroUrnNorma, getNomeExtensoComDataExtenso } from './../model/lexml/documento/urnUtil';
+import { CmdEmdAdicaoANormaVigente } from './cmd-emd-adicao-a-norma-vigente';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
+import { CmdEmdModificacaoDeNormaVigente } from './cmd-emd-modificacao-de-norma-vigente';
 import { CmdEmdSupressaoDeNormaVigente } from './cmd-emd-supressao-norma-vigente';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
@@ -14,7 +16,7 @@ import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 /**
  * Comando de emenda que trata comandos de alteração de norma vigente.
  */
-export class CmdEmdAlteracaoNormaVigente {
+export class CmdEmdDispNormaVigente {
   //private UrnService urnService;
 
   constructor(private alteracao: Articulacao) {}
@@ -44,25 +46,23 @@ export class CmdEmdAlteracaoNormaVigente {
     // Consideramos modificados os dispositivos já existentes na proposição e os que foram
     // adicionados pela emenda, mas que já existiam na norma vigente.
     const dispositivosModificados = dispositivos.filter(
-      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO
-      // TODO - Considerar situação na norma vigente
-      // || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-      //       && StringUtils.defaultString(d.getSituacaoNaNormaVigente()).equals(Dispositivo.NOVA_REDACAO);
+      d =>
+        d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+          (!d.situacaoNormaVigente || d.situacaoNormaVigente === SituacaoNormaVigente.DISPOSITIVO_EXISTENTE))
     );
     if (dispositivosModificados.length) {
-      // comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
+      comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
       imprimirPrefixoESufixo = true;
     }
 
     // Consideramos adicionados os dispositivos adicionados pela emenda e que não existiam na
     // norma vigente
     const dispositivosAdicionados = dispositivos.filter(
-      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
-      // TODO - Considerar situação na norma vigente
-      // && (StringUtils.defaultString(d.getSituacaoNaNormaVigente()).equals(Dispositivo.ACRESCIMO) || d.isTipo(Omissis.class));
+      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (d.situacaoNormaVigente === SituacaoNormaVigente.DISPOSITIVO_NOVO || isOmissis(d))
     );
     if (dispositivosAdicionados.length) {
-      // comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));
+      comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));
       imprimirPrefixoESufixo = true;
     }
 

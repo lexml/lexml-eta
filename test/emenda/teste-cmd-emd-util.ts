@@ -2,7 +2,9 @@ import { expect } from '@open-wc/testing';
 
 import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
 import { isAgrupador } from '../../src/model/dispositivo/tipo';
+import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElementoAction';
+import { iniciarBlocoAlteracao } from '../../src/model/lexml/acao/blocoAlteracaoAction';
 import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
@@ -23,6 +25,10 @@ import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/
 import { atualizaTextoElemento } from './../../src/redux/elemento/reducer/atualizaTextoElemento';
 
 export class TesteCmdEmdUtil {
+  static readonly URN_LEI = 'urn:lex:br:federal:lei:2006-08-07;11340';
+
+  static readonly URN_DECRETO = 'urn:lex:br:federal:decreto:1966-08-03;58979';
+
   // protected Dispositivo getDispositivo(final String id) {
   //     return ArvoreDispositivosUtil.getDispositivoById(raiz, id);
   // }
@@ -45,7 +51,9 @@ export class TesteCmdEmdUtil {
   static modificaDispositivo(state: State, id: string): Dispositivo {
     const disp = buscaDispositivoById(state.articulacao!, id);
     expect(disp, `Dispositivo não encontrado para o id ${id}.`).not.be.undefined;
-    const action = atualizarTextoElementoAction.execute({ tipo: disp?.tipo, uuid: disp?.uuid, conteudo: { texto: ' <p>Texto</p>' } });
+    const elem = createElemento(disp!, false);
+    elem.conteudo = { texto: ' <p>Texto</p>' };
+    const action = atualizarTextoElementoAction.execute(elem);
     state = atualizaTextoElemento(state, action);
     return disp!;
   }
@@ -208,15 +216,24 @@ export class TesteCmdEmdUtil {
   //     return false;
   // }
 
-  // protected void incluiAlteracaoNormaVigente(final String idAlvo, final String urn, final String idNovo,
-  //                                           final boolean novo) {
-  //     Dispositivo dAlvo = ArvoreDispositivosUtil.getDispositivoById(raiz, idAlvo);
-  //     ComandoIncluirAlteracaoNorma cmd = new ComandoIncluirAlteracaoNorma(emenda, dAlvo, urn, idNovo);
-  //     cmd.executa();
-
-  //     Dispositivo d = cmd.getDispositivoAdicionado();
-  //     d.setSituacaoNaNormaVigente(novo ? Dispositivo.ACRESCIMO : Dispositivo.NOVA_REDACAO);
-  // }
+  static incluiAlteracaoNormaVigente(state: State, idAlvo: string, urn: string, idNovo: string, novo: boolean): Dispositivo {
+    const dispRef = buscaDispositivoById(state.articulacao!, idAlvo);
+    expect(dispRef, `Dispositivo com id ${idAlvo} não encontrado.`).not.be.undefined;
+    const elemAtual = createElemento(dispRef!, false);
+    const elemNovo = {
+      isDispositivoAlteracao: true,
+      conteudo: {},
+    };
+    iniciarBlocoAlteracao.execute(elemAtual, undefined, elemNovo, false);
+    const dispAlteracoes = dispRef!.alteracoes;
+    return dispAlteracoes!;
+    // dispAlteracoes!.base = urn;
+    // return dispAlteracoes!.filhos[0];
+    //  ComandoIncluirAlteracaoNorma cmd = new ComandoIncluirAlteracaoNorma(emenda, dAlvo, urn, idNovo);
+    //   cmd.executa();
+    //   Dispositivo d = cmd.getDispositivoAdicionado();
+    // d.SituacaoNormaVigente = novo ? SituacaoNormaVigente.DISPOSITIVO_NOVO : SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
+  }
 
   // protected void suprimeAlteracaoNormaVigente(final String idAlvo) {
   //     Dispositivo dAlvo = ArvoreDispositivosUtil.getDispositivoById(raiz, idAlvo);

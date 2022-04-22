@@ -60,9 +60,6 @@ export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
 
   private escreveDispositivoAlterado(sb: StringBuilder, d: Dispositivo): void {
     sb.append(d.pronomePossessivoSingular);
-    if (isArtigo(d)) {
-      sb.append(' caput do ');
-    }
     sb.append(DispositivosWriterCmdEmd.getRotuloTipoDispositivo(d, false));
     sb.append(' ');
     sb.append(d.getNumeracaoParaComandoEmenda());

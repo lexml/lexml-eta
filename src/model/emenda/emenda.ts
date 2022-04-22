@@ -1,3 +1,4 @@
+import { SituacaoNormaVigente } from './../dispositivo/situacao';
 export class Emenda {
   metadados: MetadadosEmenda = {};
   tipo = TipoEmenda.EMENDA;
@@ -28,6 +29,7 @@ export class RefProposicaoEmendada {
   sigla = '';
   numero = '';
   ano = '';
+  ementa = '';
   genero: 'M' | 'F' = 'M';
   substitutivo = false;
   identificacaoTexto = '';
@@ -74,7 +76,7 @@ export class DispositivoEmendaAdicionado extends DispositivoEmenda {
   abreAspas?: boolean;
   fechaAspas?: boolean;
   notaAlteracao?: '(NR)' | '(AC)';
-  situacaoNormaVigente?: 'DE' | 'DN';
+  situacaoNormaVigente?: SituacaoNormaVigente;
 }
 
 export class ComandoEmenda {
