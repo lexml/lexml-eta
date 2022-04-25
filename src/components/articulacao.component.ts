@@ -6,15 +6,17 @@ import { connect } from 'pwa-helpers';
 import { Elemento } from '../model/elemento';
 import { rootStore } from '../redux/store';
 
-// import '@shoelace-style/shoelace/dist/themes/light.css';
-import '@shoelace-style/shoelace';
+import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
+import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
+import '@shoelace-style/shoelace/dist/components/tab/tab';
+import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
 
 import { Autoria, Parlamentar } from '../../src/model/emenda/emenda';
 
 @customElement('lexml-eta-articulacao')
 export class ArticulacaoComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) elementos: Elemento[] = [];
-  @property({ type: String }) textoJustificativa = "<p class='align-center'>texto centralizado</p>";
+  @property({ type: String }) textoJustificativa = '';
   @state()
   autoria = new Autoria();
 
@@ -45,7 +47,7 @@ export class ArticulacaoComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.73/dist/themes/light.css" />
+      ${shoelaceLightThemeStyles}
       <style>
         lexml-eta-editor {
           display: block;
