@@ -170,7 +170,7 @@ export class DemoView extends LitElement {
           height: 1.5rem;
         }
 
-        lexml-eta {
+        lexml-emenda {
           display: block;
           height: calc(100vh - 80px);
           outline: 0;
@@ -224,14 +224,13 @@ export class DemoView extends LitElement {
       </div>
       <div class="wrapper">
         <div>
-          <lexml-eta
-            id="lexmlEta"
+          <lexml-emenda
             @onchange=${this.onChange}
             modo=${this.modo}
             .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
             .dispositivosEmenda=${this.dispositivosEmenda}
           >
-          </lexml-eta>
+          </lexml-emenda>
         </div>
         <div id="comandoEmenda">
           <lexml-emenda-comando></lexml-emenda-comando>
