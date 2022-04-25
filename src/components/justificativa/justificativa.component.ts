@@ -1,5 +1,5 @@
-import { customElement, LitElement, property, PropertyValues } from 'lit-element';
-import { html, TemplateResult } from 'lit-html';
+import { customElement, property } from 'lit/decorators.js';
+import { html, TemplateResult, LitElement, PropertyValues } from 'lit';
 
 @customElement('lexml-emenda-justificativa')
 export class JustificativaEmendaComponent extends LitElement {

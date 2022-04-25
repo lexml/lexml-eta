@@ -1,7 +1,7 @@
 import { LitElement, html, TemplateResult, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { Elemento } from '../../model/elemento';
 
 @customElement('lexml-eta-elemento')
