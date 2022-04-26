@@ -387,7 +387,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
-          this.inserirNovosElementosNoQuill(event);
+          this.inserirNovosElementosNoQuill(event, true);
           break;
 
         case StateType.ElementoModificado:

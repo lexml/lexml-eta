@@ -1,3 +1,4 @@
+import { getDispositivoAnteriorMesmoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -8,6 +9,7 @@ import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoS
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
+import { ajustaReferencia } from '../util/reducerUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -88,16 +90,23 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
 
       if (d) {
         novo = criaDispositivo(d.pai!, d.tipo, d);
-        evento.referencia = createElemento(d);
+        // evento.referencia = createElemento(d);
       }
-    }
-    if (dispositivo.idPai) {
+    } else if (dispositivo.idPai) {
       const d = buscaDispositivoById(state.articulacao, dispositivo.idPai);
 
       if (d) {
         novo = criaDispositivo(d!, dispositivo.tipo!, undefined, 0);
-        evento.referencia = createElemento(novo.pai);
+        // evento.referencia = createElemento(novo.pai);
       }
+    } else {
+      novo = criaDispositivo(state.articulacao, dispositivo.tipo!, undefined, 0);
+    }
+
+    novo.id = dispositivo.id;
+    if (!evento.referencia) {
+      const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
+      evento.referencia = createElemento(ajustaReferencia(dispositivoAnterior || novo.pai, novo));
     }
 
     if (novo) {
@@ -116,9 +125,9 @@ const IsFilhoUltimoProcessado = (idAtual: string, idAnterior: string): boolean =
   return idAnterior === idAtual.substring(0, idAtual.lastIndexOf('_'));
 };
 
-const IsIrmaoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
-  return idAnterior.substring(0, idAnterior.lastIndexOf('_')) === idAtual.substring(0, idAtual.lastIndexOf('_'));
-};
+// const IsIrmaoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
+//   return idAnterior.substring(0, idAnterior.lastIndexOf('_')) === idAtual.substring(0, idAtual.lastIndexOf('_'));
+// };
 
 const criaNovaEntradaNoMapa = (mapa: Map<string, DispositivoEmendaAdicionado[]>, dispositivo: DispositivoEmendaAdicionado): void => {
   mapa.set(dispositivo.id, [dispositivo]);
@@ -133,8 +142,9 @@ const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<s
     } else {
       const ultimoProcessado = alteracoesEmenda.dispositivosAdicionados![index - 1];
 
-      if (IsFilhoUltimoProcessado(d.id, ultimoProcessado.id) || IsIrmaoUltimoProcessado(d.id, ultimoProcessado.id)) {
-        mapaElementosIncluidos.get(ultimoProcessado).push(d);
+      // if (IsFilhoUltimoProcessado(d.id, ultimoProcessado.id) || IsIrmaoUltimoProcessado(d.id, ultimoProcessado.id)) {
+      if (IsFilhoUltimoProcessado(d.id, ultimoProcessado.id)) {
+        mapaElementosIncluidos.get(ultimoProcessado.id).push(d);
       } else {
         criaNovaEntradaNoMapa(mapaElementosIncluidos, d);
       }
