@@ -5,7 +5,7 @@ import { getArticulacao } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
 import { CitacaoComandoDispPrj } from './citacao-cmd-disp-prj';
-import { CmdEmdAlteracaoNormaVigente } from './cmd-emd-alteracao-norma-vigente';
+import { CmdEmdDispNormaVigente } from './cmd-emd-disp-norma-vigente';
 import { CmdEmdDispPrj } from './cmd-emd-disp-prj';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
@@ -32,7 +32,7 @@ export class ComandoEmendaBuilder {
       let citacao: string;
 
       if (isArticulacao(d)) {
-        const cmd = new CmdEmdAlteracaoNormaVigente(d as Articulacao);
+        const cmd = new CmdEmdDispNormaVigente(d as Articulacao);
         cabecalho = cmd.getTexto(refGenericaProjeto);
 
         //     CitacaoComandoAlteracaoNormaVigente cit = new CitacaoComandoAlteracaoNormaVigente(emenda, d);
