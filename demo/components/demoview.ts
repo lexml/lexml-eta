@@ -1,5 +1,4 @@
 import '../../src';
-import './autoria-dialog.component';
 
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
@@ -34,7 +33,6 @@ export class DemoView extends LitElement {
   @property({ type: String }) projetoNorma = '';
   @property({ type: Object }) emenda: any = {};
   @property({ type: Object }) arquivoProjetoNorma = {};
-  @property({ type: String }) textoJustificativa = "<p class='align-center'>texto centralizado</p>";
 
   dispositivosEmenda?: DispositivosEmenda;
 
@@ -136,13 +134,6 @@ export class DemoView extends LitElement {
     }
   }
 
-  onClickAutoria(): void {
-    const el = this.getElement('lexml-autoria-dialog');
-    if (el) {
-      el.open();
-    }
-  }
-
   getDispositivosEmenda(): DispositivosEmenda | undefined {
     // TODO - Atualizar mapEmendas com emendas no novo formato.
     // if (this.projetoNorma === 'mpv_930_2020') {
@@ -179,7 +170,7 @@ export class DemoView extends LitElement {
           height: 1.5rem;
         }
 
-        lexml-eta {
+        lexml-emenda {
           display: block;
           height: calc(100vh - 80px);
           outline: 0;
@@ -209,7 +200,6 @@ export class DemoView extends LitElement {
           <input type="button" value="Salvar" @click=${this.salvar} />
           <input type="button" value="Abrir" @click=${this.abrir} />
           <input type="file" id="fileUpload" accept="application/json" @change="${this.selecionaArquivo}" style="display: none" />
-          <input type="button" class="lexml-eta-btn--autoria" title="Autores" value="Autoria" @click=${this.onClickAutoria} />
         </div>
 
         <div class="lexml-eta-main-header--selecao">
@@ -234,23 +224,18 @@ export class DemoView extends LitElement {
       </div>
       <div class="wrapper">
         <div>
-          <lexml-eta
-            id="lexmlEta"
+          <lexml-emenda
             @onchange=${this.onChange}
             modo=${this.modo}
             .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
             .dispositivosEmenda=${this.dispositivosEmenda}
           >
-          </lexml-eta>
+          </lexml-emenda>
         </div>
         <div id="comandoEmenda">
           <lexml-emenda-comando></lexml-emenda-comando>
         </div>
       </div>
-      <div>
-        <lexml-emenda-justificativa texto=${this.textoJustificativa}></lexml-emenda-justificativa>
-      </div>
-      <lexml-autoria-dialog></lexml-autoria-dialog>
     `;
   }
 }
