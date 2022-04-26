@@ -2,7 +2,6 @@ import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import { connect } from 'pwa-helpers';
-
 import { rootStore } from '../redux/store';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
@@ -15,12 +14,12 @@ import { Autoria, Parlamentar } from '../../src/model/emenda/emenda';
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) textoJustificativa = '';
-  @state()
-  autoria = new Autoria();
   @property({ type: String }) modo = '';
   @property({ type: String }) projetoNorma = '';
   @property({ type: Object }) dispositivosEmenda = {};
 
+  @state()
+  autoria = new Autoria();
   @state()
   parlamentares: Parlamentar[] = [];
 
