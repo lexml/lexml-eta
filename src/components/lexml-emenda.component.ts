@@ -1,5 +1,5 @@
 import { LitElement, html, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
@@ -9,7 +9,8 @@ import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
 
-import { Autoria, Parlamentar } from '../../src/model/emenda/emenda';
+import { Autoria, Parlamentar, Emenda, TipoEmenda } from '../model/emenda/emenda';
+import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -23,6 +24,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @state()
   parlamentares: Parlamentar[] = [];
 
+  @query('lexml-eta')
+  _lexmlEta;
+  @query('lexml-emenda-justificativa')
+  _lexmlJustificativa;
+  @query('lexml-autoria')
+  _lexmlAutoria;
+  @query('lexml-data')
+  _lexmlData;
+
   async getParlamentares(): Promise<Parlamentar[]> {
     const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
     return _parlamentares.map(p => ({
@@ -33,6 +43,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       siglaUF: p.siglaUF,
       siglaCasaLegislativa: p.siglaCasa,
     }));
+  }
+
+  getEmenda(): Emenda {
+    const emenda = new Emenda();
+    emenda.tipo = this.modo as any as TipoEmenda;
+    emenda.proposicao.urn = getUrn(this.projetoNorma);
+    emenda.dispositivos = this._lexmlEta.getDispositivosEmenda();
+    emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    emenda.justificativa = this._lexmlJustificativa.texto;
+    emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
+    emenda.data = this._lexmlData.data;
+    return emenda;
   }
 
   constructor() {
