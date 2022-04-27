@@ -3,7 +3,6 @@ import '../../src';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { Emenda } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
@@ -12,8 +11,7 @@ import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_ALTERACAO } from '../doc/mpv_alteracao';
 import { MPV_SIMPLES } from '../doc/mpv_simples';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
-import { DispositivosEmenda, TipoEmenda } from './../../src/model/emenda/emenda';
-import { getUrn } from './../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { DispositivosEmenda } from './../../src/model/emenda/emenda';
 
 const mapProjetosNormas = {
   novo: {},
@@ -87,11 +85,7 @@ export class DemoView extends LitElement {
 
   salvar(): void {
     const projetoNorma = mapProjetosNormas[this.projetoNorma];
-    const emenda = new Emenda();
-    emenda.tipo = this.modo as any as TipoEmenda;
-    emenda.proposicao.urn = getUrn(projetoNorma);
-    emenda.dispositivos = this.getElement('lexml-eta').getDispositivosEmenda();
-    emenda.comandoEmenda = this.getElement('lexml-eta').getComandoEmenda();
+    const emenda = this.getElement('lexml-emenda').getEmenda();
     const emendaJson = JSON.stringify({
       projetoNorma: projetoNorma,
       emenda: emenda,
