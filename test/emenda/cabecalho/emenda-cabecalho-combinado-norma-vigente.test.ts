@@ -1,7 +1,6 @@
 import { expect } from '@open-wc/testing';
 
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
-import { SituacaoNormaVigente } from '../../../src/model/dispositivo/situacao';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { DefaultState, State } from '../../../src/redux/state';
@@ -22,7 +21,7 @@ describe('Cabeçalho de comando de emenda com diferentes operações sobre dispo
   });
 
   it('alteracaoCaputESupressaoInciso', () => {
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').existeNaNormaAlterada = true;
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art6_cpt_alt1_art1_cpt_inc3');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(

@@ -20,11 +20,6 @@ export enum DescricaoSituacao {
   DISPOSITIVO_SUPRIMIDO = 'Dispositivo Suprimido',
 }
 
-export enum SituacaoNormaVigente {
-  DISPOSITIVO_EXISTENTE = 'DE',
-  DISPOSITIVO_NOVO = 'DN',
-}
-
 export const isSituacaoExclusivaDispositivoEmenda = (dispositivo: Dispositivo): boolean => {
   return [DescricaoSituacao.DISPOSITIVO_ADICIONADO.toString(), DescricaoSituacao.DISPOSITIVO_MODIFICADO.toString(), DescricaoSituacao.DISPOSITIVO_SUPRIMIDO.toString()].includes(
     dispositivo.situacao.descricaoSituacao

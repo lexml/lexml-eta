@@ -4,7 +4,7 @@ import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';
 import { Numeracao } from './numeracao';
-import { Situacao, SituacaoNormaVigente } from './situacao';
+import { Situacao } from './situacao';
 import { Tipo } from './tipo';
 import { Validacao } from './validacao';
 
@@ -15,7 +15,7 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
   uuid?: number;
   cabecaAlteracao?: boolean;
   notaAlteracao?: string;
-  situacaoNormaVigente?: SituacaoNormaVigente;
+  existeNaNormaAlterada?: boolean;
 }
 
 export interface Articulacao extends Dispositivo {

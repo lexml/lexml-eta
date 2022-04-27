@@ -1,7 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
-import { SituacaoNormaVigente } from '../../../src/model/dispositivo/situacao';
 
+import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { DefaultState, State } from '../../../src/redux/state';
@@ -70,13 +69,13 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
   // });
 
   it('modificacaoCaput', () => {
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').existeNaNormaAlterada = true;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 6º do Projeto para modificar o caput do art. 1º da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
   });
 
   it('modificacaoCaput2', () => {
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_NOVO;
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').existeNaNormaAlterada = false;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 6º do Projeto para modificar o caput do art. 1º da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
   });

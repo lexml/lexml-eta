@@ -1,4 +1,3 @@
-import { SituacaoNormaVigente } from './../model/dispositivo/situacao';
 import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
@@ -48,8 +47,7 @@ export class CmdEmdDispNormaVigente {
     const dispositivosModificados = dispositivos.filter(
       d =>
         d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-          (!d.situacaoNormaVigente || d.situacaoNormaVigente === SituacaoNormaVigente.DISPOSITIVO_EXISTENTE))
+        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (!d.existeNaNormaAlterada || d.existeNaNormaAlterada))
     );
     if (dispositivosModificados.length) {
       comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
@@ -59,7 +57,7 @@ export class CmdEmdDispNormaVigente {
     // Consideramos adicionados os dispositivos adicionados pela emenda e que não existiam na
     // norma vigente
     const dispositivosAdicionados = dispositivos.filter(
-      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (d.situacaoNormaVigente === SituacaoNormaVigente.DISPOSITIVO_NOVO || isOmissis(d))
+      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (!d.existeNaNormaAlterada || isOmissis(d))
     );
     if (dispositivosAdicionados.length) {
       comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));

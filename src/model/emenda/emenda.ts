@@ -1,4 +1,3 @@
-import { SituacaoNormaVigente } from './../dispositivo/situacao';
 export class Emenda {
   metadados: MetadadosEmenda = {};
   tipo = TipoEmenda.EMENDA;
@@ -76,7 +75,7 @@ export class DispositivoEmendaAdicionado extends DispositivoEmenda {
   abreAspas?: boolean;
   fechaAspas?: boolean;
   notaAlteracao?: '(NR)' | '(AC)';
-  situacaoNormaVigente?: SituacaoNormaVigente;
+  existeNaNormaAlterada?: boolean;
 }
 
 export class ComandoEmenda {
