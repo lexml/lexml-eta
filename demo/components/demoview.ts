@@ -13,6 +13,8 @@ import { MPV_SIMPLES } from '../doc/mpv_simples';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { DispositivosEmenda } from './../../src/model/emenda/emenda';
 
+import { Emenda } from '../../src/model/emenda/emenda';
+
 const mapProjetosNormas = {
   novo: {},
   mpv_alteracao: MPV_ALTERACAO,
@@ -61,7 +63,9 @@ export class DemoView extends LitElement {
   executar(): void {
     const elmAcao = this.getElement('#modo');
     const elmDocumento = this.getElement('#projetoNorma');
+    const emenda = new Emenda();
     this.getElement('lexml-emenda-comando').emenda = {};
+    this.getElement('lexml-emenda').setEmenda(emenda);
     this.getElement('#fileUpload').value = null;
 
     if (elmDocumento && elmAcao) {
@@ -125,7 +129,7 @@ export class DemoView extends LitElement {
           const result = JSON.parse(e.target.result as string);
           this.getElement('lexml-emenda').setEmenda(result.emenda);
           this.arquivoProjetoNorma = result.projetoNorma;
-          this.projetoNorma = result.projetoNorma.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
+          this.projetoNorma = result.projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
           this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
           this.getElement('#comandoEmenda')!['style'].display = 'block';
         }
