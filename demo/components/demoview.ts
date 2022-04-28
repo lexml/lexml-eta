@@ -123,11 +123,12 @@ export class DemoView extends LitElement {
       fReader.onloadend = (e): void => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.modo = result.emenda.tipo;
+          this.getElement('lexml-emenda').setEmenda(result.emenda);
+          this.dispositivosEmenda = result.emenda.dispositivos;
           this.arquivoProjetoNorma = result.projetoNorma;
-          this.emenda = result.emenda;
-          this.dispositivosEmenda = result.emenda?.dispositivos;
           this.projetoNorma = '';
+          this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
+          this.getElement('#comandoEmenda')!['style'].display = 'block';
         }
       };
     }

@@ -1,4 +1,4 @@
-import { LitElement, html, TemplateResult } from 'lit';
+import { LitElement, html, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 
 import { connect } from 'pwa-helpers';
@@ -14,9 +14,8 @@ import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFrom
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: String }) textoJustificativa = '';
   @property({ type: String }) modo = '';
-  @property({ type: String }) projetoNorma = '';
+  @property({ type: Object }) projetoNorma = {};
   @property({ type: Object }) dispositivosEmenda = {};
 
   @state()
@@ -32,6 +31,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlAutoria;
   @query('lexml-data')
   _lexmlData;
+  @query('lexml-emenda-comando')
+  _lexmlEmendaComando;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
@@ -57,6 +58,21 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return emenda;
   }
 
+  setEmenda(emenda: Emenda): void {
+    this.modo = emenda.tipo;
+    this.dispositivosEmenda = emenda.dispositivos;
+    this.autoria = emenda.autoria;
+    this._lexmlJustificativa.setContent(emenda.justificativa);
+    this._lexmlData.data = emenda.data;
+  }
+
+  update(changedProperties: PropertyValues): void {
+    if (this.dispositivosEmenda) {
+      this._lexmlEta.loadEmenda();
+    }
+    super.update(changedProperties);
+  }
+
   constructor() {
     super();
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
@@ -76,14 +92,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       </style>
       <sl-tab-group>
-        <sl-tab slot="nav" panel="lexml-eta" ${this.projetoNorma ? '' : html`disabled`}>Texto</sl-tab>
-        <sl-tab slot="nav" panel="justificativa" ${this.projetoNorma ? '' : html`disabled`}>Justificativa</sl-tab>
-        <sl-tab slot="nav" panel="autoria" ${this.projetoNorma ? '' : html`disabled`}>Data e Autoria</sl-tab>
+        <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
+        <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
+        <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
         <sl-tab-panel name="lexml-eta">
           <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma} .dispositivosEmenda=${this.dispositivosEmenda}></lexml-eta>
         </sl-tab-panel>
         <sl-tab-panel name="justificativa">
-          <lexml-emenda-justificativa texto=${this.textoJustificativa}></lexml-emenda-justificativa>
+          <lexml-emenda-justificativa></lexml-emenda-justificativa>
         </sl-tab-panel>
         <sl-tab-panel name="autoria">
           <lexml-data></lexml-data>
