@@ -24,7 +24,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   }
 
   if (!isAcaoPermitida(atual, MoverElementoAcima)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' });
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
   const anterior = getDispositivoAnteriorMesmoTipoInclusiveOmissis(atual);
