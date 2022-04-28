@@ -1,5 +1,6 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { isDispositivoAlteracao } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from './../model/lexml/tipo/tipoDispositivo';
 
 export class DispositivoEmendaUtil {
@@ -18,5 +19,9 @@ export class DispositivoEmendaUtil {
       d = d.pai;
     }
     return d;
+  }
+
+  static existeNaNormaAlterada(dispositivo: Dispositivo): boolean {
+    return (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
   }
 }

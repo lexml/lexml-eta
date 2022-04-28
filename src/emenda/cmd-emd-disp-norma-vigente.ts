@@ -10,6 +10,7 @@ import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdModificacaoDeNormaVigente } from './cmd-emd-modificacao-de-norma-vigente';
 import { CmdEmdSupressaoDeNormaVigente } from './cmd-emd-supressao-norma-vigente';
 import { CmdEmdUtil } from './comando-emenda-util';
+import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
 import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 
 /**
@@ -47,7 +48,7 @@ export class CmdEmdDispNormaVigente {
     const dispositivosModificados = dispositivos.filter(
       d =>
         d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (!d.existeNaNormaAlterada || d.existeNaNormaAlterada))
+        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && DispositivoEmendaUtil.existeNaNormaAlterada(d))
     );
     if (dispositivosModificados.length) {
       comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
@@ -57,7 +58,7 @@ export class CmdEmdDispNormaVigente {
     // Consideramos adicionados os dispositivos adicionados pela emenda e que não existiam na
     // norma vigente
     const dispositivosAdicionados = dispositivos.filter(
-      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (!d.existeNaNormaAlterada || isOmissis(d))
+      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (!DispositivoEmendaUtil.existeNaNormaAlterada(d) || isOmissis(d))
     );
     if (dispositivosAdicionados.length) {
       comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));

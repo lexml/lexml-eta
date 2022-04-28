@@ -229,19 +229,49 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const atual = linha.blotConteudo.html;
     const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
 
+    let opcaoInformada;
+
     if (!podeRenumerar(elemento)) {
       return;
     }
 
+    if (elemento.existenteNaNorma !== undefined) {
+      (document.getElementById(`${elemento.existenteNaNorma ? 'existente' : 'adicionado'}`) as HTMLInputElement).checked = elemento.existenteNaNorma;
+    }
+
     const dialogElem = document.createElement('elix-dialog');
 
+    const dispositivoAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+
+    if (dispositivoAdicionado && elemento.existenteNaNorma) {
+      (document.querySelector('input[id="existente"]')! as any).checked = true;
+    }
+
     const content = document.createRange().createContextualFragment(`
+      <style>
+        .dispositivoDeNorma {
+          display: ${dispositivoAdicionado ? 'block' : 'none'};
+        }
+      </style>
       <div style="padding: 15px; text-align: center">
         <div>
           Numeração do dispositivo:
           <input type="text" style="width: 60px">
         </div>
         <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
+        <div class="dispositivoDeNorma">
+          <p>O dispositivo já existe na norma a ser alterada?</p>
+            <div>
+              <input type="radio" id="existente" name="existeNaNorma" value=true>
+              <label for="existente">Sim</label>
+            </div>
+      
+            <div>
+              <input type="radio" id="adicionado" name="existeNaNorma" value=false>
+              <label for="adicionado">Não</label>
+            </div>
+      
+        </div>
         <div style="margin-top: 10px;">
           <button>Ok</button>
           <button>Cancelar</button>
@@ -259,8 +289,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const erro = <HTMLDivElement>content.querySelector('.erro');
 
     ok.onclick = (): void => {
+      if (!validarElementoAdicionado()) {
+        return;
+      }
       this.quill.focus();
       (<any>dialogElem).close();
+
+      elemento.existenteNaNorma = !!opcaoInformada;
       if (elemento.conteudo?.texto !== atual) {
         elemento.conteudo!.texto = atual;
         rootStore.dispatch(atualizarElementoAction.execute(elemento));
@@ -272,6 +307,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     cancelar.onclick = (): void => {
       this.quill.focus();
       (<any>dialogElem).close();
+    };
+
+    const validarElementoAdicionado = (): boolean => {
+      document.querySelectorAll('input[name="existeNaNorma"]').forEach(o => ((o as any).checked ? (opcaoInformada = (o as any).value) : undefined));
+      if (dispositivoAdicionado && opcaoInformada === undefined) {
+        const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
+        erro.innerText = msgErro;
+        erro.style.display = msgErro ? 'block' : 'none';
+        return false;
+      }
+      erro.style.display = 'none';
+      return true;
     };
 
     const validar = (): string => {

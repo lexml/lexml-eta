@@ -1,5 +1,4 @@
 import { expect } from '@open-wc/testing';
-
 import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
 import { isAgrupador } from '../../src/model/dispositivo/tipo';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
@@ -216,7 +215,8 @@ export class TesteCmdEmdUtil {
   //     return false;
   // }
 
-  static incluiAlteracaoNormaVigente(state: State, idAlvo: string, urn: string, idNovo: string, novo: boolean): Dispositivo {
+  // static incluiAlteracaoNormaVigente(state: State, idAlvo: string, urn: string, idNovo: string, novo: boolean): Dispositivo {
+  static incluiAlteracaoNormaVigente(state: State, idAlvo: string): Dispositivo {
     const dispRef = buscaDispositivoById(state.articulacao!, idAlvo);
     expect(dispRef, `Dispositivo com id ${idAlvo} não encontrado.`).not.be.undefined;
     const elemAtual = createElemento(dispRef!, false);

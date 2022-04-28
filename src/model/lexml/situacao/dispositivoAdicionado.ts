@@ -9,6 +9,7 @@ import { DispositivoNovo } from './dispositivoNovo';
 export class DispositivoAdicionado extends DispositivoNovo {
   descricaoSituacao = DescricaoSituacao.DISPOSITIVO_ADICIONADO;
   tipoEmenda = ClassificacaoDocumento.EMENDA;
+  existeNaNormaAlterada = false;
 
   getAcoesPermitidas(dispositivo: Dispositivo, acoes: any[]): any[] {
     const acoesSemDuplicidade = [...new Set(acoes)];

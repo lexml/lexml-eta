@@ -1,8 +1,8 @@
 import { expect } from '@open-wc/testing';
-
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
+import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { DefaultState, State } from '../../../src/redux/state';
 import { PLC_ARTIGOS_AGRUPADOS } from '../../doc/parser/plc_artigos_agrupados';
 import { TesteCmdEmdUtil } from '../teste-cmd-emd-util';
@@ -69,13 +69,15 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
   // });
 
   it('modificacaoCaput', () => {
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').existeNaNormaAlterada = true;
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1');
+    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 6º do Projeto para modificar o caput do art. 1º da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
   });
 
   it('modificacaoCaput2', () => {
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1').existeNaNormaAlterada = false;
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1');
+    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 6º do Projeto para modificar o caput do art. 1º da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
   });
