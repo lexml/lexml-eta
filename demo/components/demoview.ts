@@ -98,7 +98,7 @@ export class DemoView extends LitElement {
     const blob = new Blob([emendaJson], {
       type: 'application/json',
     });
-    const fileName = `${this.projetoNorma}.json`;
+    const fileName = `${projetoNorma.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
 
@@ -124,9 +124,8 @@ export class DemoView extends LitElement {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
           this.getElement('lexml-emenda').setEmenda(result.emenda);
-          this.dispositivosEmenda = result.emenda.dispositivos;
           this.arquivoProjetoNorma = result.projetoNorma;
-          this.projetoNorma = '';
+          this.projetoNorma = result.projetoNorma.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
           this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
           this.getElement('#comandoEmenda')!['style'].display = 'block';
         }
