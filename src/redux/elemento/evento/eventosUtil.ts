@@ -170,23 +170,31 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   return eventos.build();
 };
 
-export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL);
+const restaura = (d: Dispositivo): void => {
+  d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
+  d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
+  d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
+  d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
+  d.situacao = new DispositivoOriginal();
+};
 
-  aRestaurar.forEach(d => {
-    d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
-    d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
-    d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
-    d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
-    d.situacao = new DispositivoOriginal();
-  });
+export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
+  const elementosRestaurados: Elemento[] = [];
+
+  if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+    const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
+    aRestaurar.forEach(d => {
+      restaura(d);
+      elementosRestaurados.push(createElemento(d));
+    });
+  } else {
+    restaura(dispositivo);
+    elementosRestaurados.push(createElemento(dispositivo));
+  }
 
   const eventos = new Eventos();
 
-  eventos.add(
-    StateType.ElementoRestaurado,
-    aRestaurar.map(a => createElemento(a))
-  );
+  eventos.add(StateType.ElementoRestaurado, elementosRestaurados);
 
   return eventos.build();
 };

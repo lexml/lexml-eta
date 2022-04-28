@@ -3,7 +3,7 @@ import { Referencia } from '../../elemento';
 
 export const RESTAURAR_ELEMENTO = 'RESTAURAR_ELEMENTO';
 
-class RestaurarElemento implements ElementoAction {
+export class RestaurarElemento implements ElementoAction {
   descricao: string;
   tipo?: string;
 

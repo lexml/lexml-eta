@@ -2,7 +2,7 @@ import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
 export const INFORMAR_NORMA = 'INFORMAR_NORMA';
 
-class InformarNorma implements ElementoAction {
+export class InformarNorma implements ElementoAction {
   descricao: string;
   tipo?: string;
 
