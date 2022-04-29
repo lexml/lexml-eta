@@ -16,7 +16,6 @@ import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFrom
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
-  @property({ type: Object }) dispositivosEmenda = {};
 
   @state()
   autoria = new Autoria();
@@ -58,7 +57,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   setEmenda(emenda: Emenda): void {
     this.modo = emenda.tipo;
-    this.dispositivosEmenda = emenda.dispositivos;
+    this._lexmlEta.dispositivosEmenda = emenda.dispositivos;
     this.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
@@ -87,7 +86,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
         <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
         <sl-tab-panel name="lexml-eta">
-          <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma} .dispositivosEmenda=${this.dispositivosEmenda}></lexml-eta>
+          <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
         </sl-tab-panel>
         <sl-tab-panel name="justificativa">
           <lexml-emenda-justificativa></lexml-emenda-justificativa>

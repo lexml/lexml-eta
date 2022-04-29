@@ -239,7 +239,6 @@ export class DemoView extends LitElement {
             @onchange=${this.onChange}
             modo=${this.modo}
             .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
-            .dispositivosEmenda=${this.dispositivosEmenda}
           >
           </lexml-emenda>
         </div>
