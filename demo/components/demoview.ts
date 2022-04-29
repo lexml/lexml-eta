@@ -63,9 +63,6 @@ export class DemoView extends LitElement {
   executar(): void {
     const elmAcao = this.getElement('#modo');
     const elmDocumento = this.getElement('#projetoNorma');
-    const emenda = new Emenda();
-    this.getElement('lexml-emenda-comando').emenda = {};
-    this.getElement('lexml-emenda').setEmenda(emenda);
     this.getElement('#fileUpload').value = null;
 
     if (elmDocumento && elmAcao) {
@@ -122,6 +119,9 @@ export class DemoView extends LitElement {
   selecionaArquivo(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput && fileInput.files) {
+      const emenda = new Emenda();
+      this.getElement('lexml-emenda').setEmenda(emenda);
+      this.getElement('lexml-emenda-comando').emenda = {};
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
       fReader.onloadend = (e): void => {
