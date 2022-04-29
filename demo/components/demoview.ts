@@ -48,6 +48,12 @@ export class DemoView extends LitElement {
     return document.querySelector(selector);
   }
 
+  private resetaEmenda(): void {
+    const emenda = new Emenda();
+    this.getElement('lexml-emenda').setEmenda(emenda);
+    this.getElement('lexml-emenda-comando').emenda = {};
+  }
+
   onChangeDocumento(): void {
     const elmDocumento = this.getElement('#projetoNorma');
     if (elmDocumento?.value === 'novo') {
@@ -64,9 +70,7 @@ export class DemoView extends LitElement {
     const elmAcao = this.getElement('#modo');
     const elmDocumento = this.getElement('#projetoNorma');
     if (this.getElement('lexml-emenda').style.display) {
-      const emenda = new Emenda();
-      this.getElement('lexml-emenda').setEmenda(emenda);
-      this.getElement('lexml-emenda-comando').emenda = {};
+      this.resetaEmenda();
     }
     this.getElement('#fileUpload').value = null;
 
@@ -124,9 +128,7 @@ export class DemoView extends LitElement {
   selecionaArquivo(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput && fileInput.files) {
-      const emenda = new Emenda();
-      this.getElement('lexml-emenda').setEmenda(emenda);
-      this.getElement('lexml-emenda-comando').emenda = {};
+      this.resetaEmenda();
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
       fReader.onloadend = (e): void => {
