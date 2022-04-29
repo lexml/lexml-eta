@@ -1,4 +1,4 @@
-import { LitElement, html, PropertyValues, TemplateResult } from 'lit';
+import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 
 import { connect } from 'pwa-helpers';
@@ -64,13 +64,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
-  }
-
-  update(changedProperties: PropertyValues): void {
-    if (this.dispositivosEmenda) {
-      this._lexmlEta.loadEmenda();
-    }
-    super.update(changedProperties);
   }
 
   constructor() {
