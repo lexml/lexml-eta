@@ -31,8 +31,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlAutoria;
   @query('lexml-data')
   _lexmlData;
-  @query('lexml-emenda-comando')
-  _lexmlEmendaComando;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
