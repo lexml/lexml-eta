@@ -132,6 +132,7 @@ export class DemoView extends LitElement {
           this.projetoNorma = result.projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
           this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
           this.getElement('#comandoEmenda')!['style'].display = 'block';
+          this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
         }
       };
     }
