@@ -99,7 +99,7 @@ export class DemoView extends LitElement {
   }
 
   salvar(): void {
-    const projetoNorma = mapProjetosNormas[this.projetoNorma];
+    const projetoNorma = Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma];
     const emenda = this.getElement('lexml-emenda').getEmenda();
     const emendaJson = JSON.stringify({
       projetoNorma: projetoNorma,
@@ -108,7 +108,7 @@ export class DemoView extends LitElement {
     const blob = new Blob([emendaJson], {
       type: 'application/json',
     });
-    const fileName = `${projetoNorma.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
+    const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
 
