@@ -91,9 +91,9 @@ export class DispositivosEmendaBuilder {
         da.idPai = d.pai?.id;
       }
     }
-    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-      da.existeNaNormaAlterada = (d.situacao as DispositivoAdicionado).existeNaNormaAlterada;
-    }
+
+    da.existeNaNormaAlterada = (d.situacao as DispositivoAdicionado)?.existeNaNormaAlterada;
+
     if (isArticulacaoAlteracao(d)) {
       const base = (d as Alteracoes).base;
       if (base) {
