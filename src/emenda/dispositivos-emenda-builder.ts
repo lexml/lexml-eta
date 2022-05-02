@@ -1,13 +1,14 @@
+import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
-import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, TipoEmenda } from '../model/emenda/emenda';
-import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { isArticulacao, isArtigo, isCaput, isOmissis } from '../model/dispositivo/tipo';
+import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, TipoEmenda } from '../model/emenda/emenda';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../model/lexml/util/idUtil';
-import { CmdEmdUtil } from './comando-emenda-util';
 import { escapeRegex, getTextoSemHtml } from '../util/string-util';
+import { CmdEmdUtil } from './comando-emenda-util';
 
 export class DispositivosEmendaBuilder {
   constructor(private tipoEmenda: TipoEmenda, private urn: string, private articulacao: Articulacao) {}
@@ -90,6 +91,9 @@ export class DispositivosEmendaBuilder {
         da.idPai = d.pai?.id;
       }
     }
+    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      da.existeNaNormaAlterada = (d.situacao as DispositivoAdicionado).existeNaNormaAlterada;
+    }
     if (isArticulacaoAlteracao(d)) {
       const base = (d as Alteracoes).base;
       if (base) {
@@ -103,6 +107,7 @@ export class DispositivosEmendaBuilder {
       da.abreAspas = true;
       da.rotulo = da.rotulo.replace('“', '');
     }
+
     if (da.texto) {
       const textoSemHtml = getTextoSemHtml(da.texto);
       const partes = /”(?: (\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
