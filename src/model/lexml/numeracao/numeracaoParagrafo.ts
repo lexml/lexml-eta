@@ -57,14 +57,14 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
+        return '[ainda não numerado]'; // TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
       }
       return this.isParagrafoUnico() ? 'parágrafo único' : this.getNumeroAndSufixoNumeracao();
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
+        return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + ' [ainda não numerado]';
       }
       return this.isParagrafoUnico() ? 'parágrafo único' : '§ ' + this.getNumeroAndSufixoNumeracao();
     }

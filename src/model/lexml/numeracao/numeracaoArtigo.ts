@@ -67,7 +67,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.artigo.descricao?.toLowerCase() + '';
+        return '[ainda não numerado]'; //TipoDispositivo.artigo.descricao?.toLowerCase() + '';
       }
       if (this.informouArtigoUnico) {
         return 'artigo único';
@@ -77,12 +77,12 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.artigo.descricao?.toLowerCase() + '';
+        return TipoDispositivo.artigo.descricao?.toLowerCase() + ' [ainda não numerado]';
       }
       if (this.informouArtigoUnico) {
         return 'artigo único';
       }
-      return 'art. ' + this.getNumeroAndSufixoNumeracao();
+      return 'art. ' + this.getNumeroAndSufixoNumeracao(true);
     }
   };
 }

@@ -1,7 +1,7 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, trataComplemento, converteLetraComplementoParaNumero } from './numeracaoUtil';
+import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, trataComplemento } from './numeracaoUtil';
 
 export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -26,14 +26,14 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
+        return '[ainda não numerado]'; // TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
       }
       return trataComplemento(this.numero, converteNumeroArabicoParaRomano);
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
+        return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + ' [ainda não numerado]';
       }
       return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
     }

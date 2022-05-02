@@ -26,14 +26,14 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.item.descricao?.toLowerCase() + '';
+        return '[ainda não numerado]'; // TipoDispositivo.item.descricao?.toLowerCase() + '';
       }
       return trataComplemento(this.numero);
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.item.descricao?.toLocaleLowerCase() + '';
+        return TipoDispositivo.item.descricao?.toLocaleLowerCase() + ' [ainda não numerado]';
       }
       return TipoDispositivo.item.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
     }
