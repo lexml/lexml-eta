@@ -84,6 +84,7 @@ export class LexmlAutocomplete extends LitElement {
     return this._inputEl;
   }
 
+  private _tempValue?: string;
   /**
    * Value getter from input element.
    */
@@ -96,7 +97,10 @@ export class LexmlAutocomplete extends LitElement {
    */
   @property({ type: String })
   set value(value) {
-    if (!this.contentElement) return;
+    if (!this.contentElement) {
+      this._tempValue = value;
+      return;
+    }
 
     this.contentElement.value = value;
   }
@@ -114,6 +118,10 @@ export class LexmlAutocomplete extends LitElement {
     this.contentElement.addEventListener('keyup', this._bound.onKeyUp);
     this.contentElement.addEventListener('focus', this._bound.onFocus);
     this.contentElement.addEventListener('blur', this._bound.onBlur);
+
+    if (this._tempValue !== undefined) {
+      this.contentElement.value = this._tempValue;
+    }
   }
 
   disconnectedCallback(): void {
