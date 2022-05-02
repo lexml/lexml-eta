@@ -25,14 +25,14 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
+        return '[ainda não numerada]'; // TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
       }
       return '“' + trataComplemento(this.numero, converteNumeroArabicoParaLetra) + '”';
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
       if (this.numero === undefined) {
-        return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
+        return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + ' [ainda não numerada]';
       }
       return TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
     }

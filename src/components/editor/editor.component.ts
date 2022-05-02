@@ -4,6 +4,7 @@ import { connect } from 'pwa-helpers';
 import { editorStyles } from '../../assets/css/editor.css';
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
+import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -266,12 +267,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               <input type="radio" id="existente" name="existeNaNorma" value=true>
               <label for="existente">Sim</label>
             </div>
-      
+
             <div>
               <input type="radio" id="adicionado" name="existeNaNorma" value=false>
               <label for="adicionado">Não</label>
             </div>
-      
+
         </div>
         <div style="margin-top: 10px;">
           <button>Ok</button>
@@ -536,14 +537,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         novaLinha.insertInto(this.quill.scroll);
       }
 
-      if (this.quill.linhaAtual.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '') {
+      const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+      if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber) {
         if (selecionarLinha) {
           this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
           this.quill.marcarLinhaAtual(novaLinha);
           try {
             this.quill.setIndex(this.quill.getIndex(novaLinha.blotConteudo), Quill.sources.SILENT);
           } catch (e) {
-            console.log(e);
+            // console.log(e);
           }
         }
       } else {
@@ -788,17 +790,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private carregarArticulacao(elementos: Elemento[]): void {
     setTimeout(() => {
       this.quill.getLine(0)[0].remove();
-      elementos.map((elemento: Elemento) => {
+      elementos.forEach((elemento: Elemento) => {
         const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
         etaContainerTable.insertInto(this.quill.scroll);
         elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
         elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && etaContainerTable.setEstilo(DescricaoSituacao.DISPOSITIVO_ADICIONADO);
       });
       this.quill.limparHistory();
-      setTimeout(() => {
-        const el = this.quill.getLinha(elementos![1].uuid!);
-        this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
-      }, 0);
+      if (elementos.length > 1) {
+        setTimeout(() => {
+          const el = this.quill.getLinha(elementos[1].uuid!);
+          this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
+        }, 0);
+      }
       rootStore.dispatch(validarArticulacaAction.execute());
     }, 0);
   }
