@@ -89,6 +89,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       const situacao = new DispositivoAdicionado();
       situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
       artigo.situacao = situacao;
+
+      // Se estiver abrindo emenda, remove artigo inicial do documento padrão
+      if (this.dispositivosEmenda?.dispositivosAdicionados?.length) {
+        documento.articulacao.removeFilho(documento.articulacao.filhos[0]);
+      }
     } else {
       documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
     }

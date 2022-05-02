@@ -1,3 +1,4 @@
+import { Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { getDispositivoAnteriorMesmoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
 import { createElemento } from '../../../model/elemento/elementoUtil';
@@ -89,45 +90,58 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
       const d = buscaDispositivoById(state.articulacao, dispositivo.idIrmaoAnterior);
 
       if (d) {
-        novo = criaDispositivo(d.pai!, d.tipo, d);
-        // evento.referencia = createElemento(d);
+        if (d.tipo === dispositivo.tipo) {
+          novo = criaDispositivo(d.pai!, dispositivo.tipo, d);
+        } else {
+          // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
+          // Nesse caso, "d" já é o "Artigo" que será "pai" do novo dispositivo
+          novo = criaDispositivo(d, dispositivo.tipo);
+        }
       }
     } else if (dispositivo.idPai) {
       const d = buscaDispositivoById(state.articulacao, dispositivo.idPai);
 
       if (d) {
-        novo = criaDispositivo(d!, dispositivo.tipo!, undefined, 0);
-        // evento.referencia = createElemento(novo.pai);
+        if (dispositivo.tipo === 'Inciso' && d.tipo === 'Artigo') {
+          novo = criaDispositivo((d as Artigo).caput!, dispositivo.tipo);
+        } else {
+          novo = criaDispositivo(d, dispositivo.tipo);
+        }
       }
     } else {
-      novo = criaDispositivo(state.articulacao, dispositivo.tipo!, undefined, 0);
+      novo = criaDispositivo(state.articulacao, dispositivo.tipo, undefined, 0);
     }
 
     novo.id = dispositivo.id;
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
-      evento.referencia = createElemento(ajustaReferencia(dispositivoAnterior || novo.pai, novo));
+      const pai = novo.pai.tipo === 'Caput' ? novo.pai.pai : novo.pai;
+      evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai, novo));
     }
 
     if (novo) {
       novo.situacao = new DispositivoAdicionado();
       novo.rotulo = dispositivo.rotulo;
       novo.texto = dispositivo.texto;
-      novo.lexmlId = buildId(novo);
-      evento.elementos?.push(createElemento(novo));
+      if (novo.tipo !== 'Caput') {
+        const novoEl = createElemento(novo);
+        novoEl.lexmlId = buildId(novo);
+        evento.elementos?.push(novoEl);
+      }
     }
   });
 
   return evento;
 };
 
+const referenciaAjustada = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {
+  const ref = ajustaReferencia(referencia, dispositivo);
+  return ref.id !== dispositivo.id ? ref : dispositivo.pai!.filhos[dispositivo.pai!.filhos.length - 2];
+};
+
 const IsFilhoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
   return idAnterior === idAtual.substring(0, idAtual.lastIndexOf('_'));
 };
-
-// const IsIrmaoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
-//   return idAnterior.substring(0, idAnterior.lastIndexOf('_')) === idAtual.substring(0, idAtual.lastIndexOf('_'));
-// };
 
 const criaNovaEntradaNoMapa = (mapa: Map<string, DispositivoEmendaAdicionado[]>, dispositivo: DispositivoEmendaAdicionado): void => {
   mapa.set(dispositivo.id, [dispositivo]);
@@ -140,9 +154,14 @@ const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<s
     if (index === 0) {
       criaNovaEntradaNoMapa(mapaElementosIncluidos, d);
     } else {
-      const ultimoProcessado = alteracoesEmenda.dispositivosAdicionados![index - 1];
+      const tipoDispositivoAnterior = alteracoesEmenda.dispositivosAdicionados[index - 1].tipo;
+      const deslocamentoIndex = tipoDispositivoAnterior !== 'Caput' ? 1 : 2;
+      const ultimoProcessado = alteracoesEmenda.dispositivosAdicionados[index - deslocamentoIndex];
 
-      // if (IsFilhoUltimoProcessado(d.id, ultimoProcessado.id) || IsIrmaoUltimoProcessado(d.id, ultimoProcessado.id)) {
+      if (d.tipo === 'Caput') {
+        ultimoProcessado.texto = d.texto;
+      }
+
       if (IsFilhoUltimoProcessado(d.id, ultimoProcessado.id)) {
         mapaElementosIncluidos.get(ultimoProcessado.id).push(d);
       } else {

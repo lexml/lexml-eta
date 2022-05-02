@@ -70,6 +70,11 @@ export class DemoView extends LitElement {
         this.modo = elmAcao.value;
         this.emenda = {};
         this.arquivoProjetoNorma = {};
+        this.dispositivosEmenda = {
+          dispositivosSuprimidos: [],
+          dispositivosModificados: [],
+          dispositivosAdicionados: [],
+        };
       }, 0);
     }
   }
