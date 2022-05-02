@@ -1,6 +1,8 @@
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RenumerarElemento } from '../../../model/lexml/acao/renumerarElementoAction';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
@@ -27,6 +29,10 @@ export const renumeraElemento = (state: any, action: any): State => {
   }
 
   dispositivo.createRotulo(dispositivo);
+
+  if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.novo.existenteNaNorma;
+  }
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {

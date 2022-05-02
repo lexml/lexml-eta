@@ -227,7 +227,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia, linha.descricaoSituacao);
+    const elemento: Elemento = this.criarElemento(
+      linha!.uuid ?? 0,
+      linha.lexmlId,
+      linha!.tipo ?? '',
+      '',
+      linha.numero,
+      linha.hierarquia,
+      linha.descricaoSituacao,
+      linha.existeNaNormaAlterada
+    );
 
     let opcaoInformada;
 
@@ -235,17 +244,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    if (elemento.existenteNaNorma !== undefined) {
-      (document.getElementById(`${elemento.existenteNaNorma ? 'existente' : 'adicionado'}`) as HTMLInputElement).checked = elemento.existenteNaNorma;
-    }
-
     const dialogElem = document.createElement('elix-dialog');
 
     const dispositivoAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-
-    if (dispositivoAdicionado && elemento.existenteNaNorma) {
-      (document.querySelector('input[id="existente"]')! as any).checked = true;
-    }
 
     const content = document.createRange().createContextualFragment(`
       <style>
@@ -282,6 +283,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const input = <HTMLInputElement>content.querySelector('input');
     input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
 
+    if (elemento.existeNaNormaAlterada !== undefined) {
+      (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as HTMLInputElement).checked = true;
+    }
+    if (dispositivoAdicionado && elemento.existeNaNormaAlterada) {
+      (content.querySelector('input[id="existente"]')! as any).checked = true;
+    }
+
     const botoes = content.querySelectorAll('button');
     const ok = botoes[0];
     const cancelar = botoes[1];
@@ -295,13 +303,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.focus();
       (<any>dialogElem).close();
 
-      elemento.existenteNaNorma = !!opcaoInformada;
       if (elemento.conteudo?.texto !== atual) {
         elemento.conteudo!.texto = atual;
         rootStore.dispatch(atualizarElementoAction.execute(elemento));
       }
 
-      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
+      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim(), opcaoInformada === 'true'));
     };
 
     cancelar.onclick = (): void => {
@@ -543,6 +550,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
       this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
+      this.quill.linhaAtual.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
       this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
     }
   }
@@ -609,6 +617,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
           linha.setEstilo(elemento.descricaoSituacao!);
+        }
+
+        if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
+          linha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
         }
 
         if (linha.children.length === 2) {
@@ -697,7 +709,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(uuid: number, lexmlId: string, tipo: string, html: string, numero: string, hierarquia: any, descricaoSituacao?: string): Elemento {
+  private criarElemento(
+    uuid: number,
+    lexmlId: string,
+    tipo: string,
+    html: string,
+    numero: string,
+    hierarquia: any,
+    descricaoSituacao?: string,
+    existeNaNormaAlterada?: boolean
+  ): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.lexmlId = lexmlId;
@@ -706,6 +727,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elemento.conteudo = { texto: html };
     elemento.hierarquia = hierarquia;
     elemento.descricaoSituacao = descricaoSituacao;
+    elemento.existeNaNormaAlterada = existeNaNormaAlterada;
     return elemento;
   }
 

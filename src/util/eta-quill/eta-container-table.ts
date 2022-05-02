@@ -118,6 +118,15 @@ export class EtaContainerTable extends Container {
     return this._descricaoSituacao;
   }
 
+  private _existeNaNormaAlterada: any;
+  set existeNaNormaAlterada(existeNaNormaAlterada: any) {
+    this._existeNaNormaAlterada = existeNaNormaAlterada;
+  }
+
+  get existeNaNormaAlterada(): any {
+    return this._existeNaNormaAlterada;
+  }
+
   get uuid(): number {
     return parseInt(this.id.substr(7), 0);
   }
@@ -170,6 +179,7 @@ export class EtaContainerTable extends Container {
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia?.pai?.uuidAlteracao ? elemento.hierarquia : undefined;
     this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
+    this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   }
 
   format(name: string, value: any): void {

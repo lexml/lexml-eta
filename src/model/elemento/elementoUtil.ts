@@ -73,7 +73,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
       texto: dispositivo.texto,
     },
     norma: dispositivo.alteracoes?.base,
-    existenteNaNorma:
+    existeNaNormaAlterada:
       dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],

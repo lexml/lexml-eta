@@ -1,5 +1,3 @@
-import { getDispositivoAnteriorMesmoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -10,6 +8,8 @@ import { buildId } from '../../../model/lexml/util/idUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia } from '../util/reducerUtil';
+import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
+import { getDispositivoAnteriorMesmoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -110,7 +110,10 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
     }
 
     if (novo) {
-      novo.situacao = new DispositivoAdicionado();
+      const situacao = new DispositivoAdicionado();
+      situacao.existeNaNormaAlterada = dispositivo.existeNaNormaAlterada ? dispositivo.existeNaNormaAlterada : undefined;
+      novo.situacao = situacao;
+
       novo.rotulo = dispositivo.rotulo;
       novo.texto = dispositivo.texto;
       novo.lexmlId = buildId(novo);

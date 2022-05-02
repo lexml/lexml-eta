@@ -11,13 +11,14 @@ export class RenumerarElemento implements ElementoAction {
     this.descricao = 'Numerar e criar rótulo para o dispositivo ';
   }
 
-  execute(atual: Referencia, numero: string): any {
+  execute(atual: Referencia, numero: string, existenteNaNorma?: any): any {
     this.tipo = atual.tipo;
     return {
       type: RENUMERAR_ELEMENTO,
       atual,
       novo: {
         numero,
+        existenteNaNorma,
       },
     };
   }
