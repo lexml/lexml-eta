@@ -26,7 +26,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
-      this.informouParagrafoUnico = /.[uú]nico/i.test(rotulo);
+      this.informouParagrafoUnico = /.*[uú]nico/i.test(rotulo);
       this.numero = this.informouParagrafoUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
     }
 
