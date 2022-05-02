@@ -48,6 +48,9 @@ export class DispositivosEmendaBuilder {
           dm.texto = d.texto;
         }
         dm.rotulo = d.rotulo;
+        if (d.isDispositivoAlteracao) {
+          this.preencheAtributosAlteracao(d, dm);
+        }
         dispositivosEmenda.dispositivosModificados.push(dm);
       }
     }
@@ -92,38 +95,41 @@ export class DispositivosEmendaBuilder {
       }
     }
 
-    da.existeNaNormaAlterada = (d.situacao as DispositivoAdicionado)?.existeNaNormaAlterada;
-
     if (isArticulacaoAlteracao(d)) {
       const base = (d as Alteracoes).base;
       if (base) {
         da.urnNormaAlterada = base;
       }
-    }
-    if (!isOmissis(d) && da.texto && da.texto.indexOf(TEXTO_OMISSIS) >= 0) {
-      da.textoOmitido = true;
-    }
-    if (da.rotulo && da.rotulo.indexOf('“') >= 0) {
-      da.abreAspas = true;
-      da.rotulo = da.rotulo.replace('“', '');
-    }
-
-    if (da.texto) {
-      const textoSemHtml = getTextoSemHtml(da.texto);
-      const partes = /”(?: (\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
-      if (partes) {
-        const sufixo = partes[0];
-        da.fechaAspas = true;
-        if (partes.length === 2) {
-          da.notaAlteracao = partes[1] as any;
-        }
-        da.texto = da.texto.replace(new RegExp(escapeRegex(sufixo)), '');
-      }
+    } else if (d.isDispositivoAlteracao) {
+      da.existeNaNormaAlterada = (d.situacao as DispositivoAdicionado)?.existeNaNormaAlterada;
+      this.preencheAtributosAlteracao(d, da);
     }
     return da;
   }
 
   private getTipoDispositivoParaEmenda(d: Dispositivo): string {
     return isArticulacao(d) ? 'Alteracao' : d.tipo;
+  }
+
+  private preencheAtributosAlteracao(d: Dispositivo, dm: DispositivoEmendaModificado): void {
+    if (!isOmissis(d) && dm.texto && dm.texto.indexOf(TEXTO_OMISSIS) >= 0) {
+      dm.textoOmitido = true;
+    }
+    if (dm.rotulo && dm.rotulo.indexOf('“') >= 0) {
+      dm.abreAspas = true;
+      dm.rotulo = dm.rotulo.replace('“', '');
+    }
+    if (dm.texto) {
+      const textoSemHtml = getTextoSemHtml(dm.texto);
+      const partes = /”(?: (\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
+      if (partes) {
+        const sufixo = partes[0];
+        dm.fechaAspas = true;
+        if (partes.length === 2) {
+          dm.notaAlteracao = partes[1] as any;
+        }
+        dm.texto = dm.texto.replace(new RegExp(escapeRegex(sufixo)), '');
+      }
+    }
   }
 }

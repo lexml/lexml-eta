@@ -63,18 +63,17 @@ export class DispositivoEmenda {
 export class DispositivoEmendaSuprimido extends DispositivoEmenda {}
 
 export class DispositivoEmendaModificado extends DispositivoEmenda {
-  texto = '';
-}
-
-export class DispositivoEmendaAdicionado extends DispositivoEmenda {
-  idPai?: string;
-  idIrmaoAnterior?: string;
   texto?: string;
-  urnNormaAlterada?: string;
   textoOmitido?: boolean;
   abreAspas?: boolean;
   fechaAspas?: boolean;
   notaAlteracao?: '(NR)' | '(AC)';
+}
+
+export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
+  idPai?: string;
+  idIrmaoAnterior?: string;
+  urnNormaAlterada?: string;
   existeNaNormaAlterada?: boolean;
 }
 
