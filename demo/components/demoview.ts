@@ -13,6 +13,8 @@ import { MPV_SIMPLES } from '../doc/mpv_simples';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { DispositivosEmenda } from './../../src/model/emenda/emenda';
 
+import { Emenda } from '../../src/model/emenda/emenda';
+
 const mapProjetosNormas = {
   novo: {},
   mpv_alteracao: MPV_ALTERACAO,
@@ -46,6 +48,12 @@ export class DemoView extends LitElement {
     return document.querySelector(selector);
   }
 
+  private resetaEmenda(): void {
+    const emenda = new Emenda();
+    this.getElement('lexml-emenda').setEmenda(emenda);
+    this.getElement('lexml-emenda-comando').emenda = {};
+  }
+
   onChangeDocumento(): void {
     const elmDocumento = this.getElement('#projetoNorma');
     if (elmDocumento?.value === 'novo') {
@@ -61,7 +69,9 @@ export class DemoView extends LitElement {
   executar(): void {
     const elmAcao = this.getElement('#modo');
     const elmDocumento = this.getElement('#projetoNorma');
-    this.getElement('lexml-emenda-comando').emenda = {};
+    if (this.getElement('lexml-emenda').style.display) {
+      this.resetaEmenda();
+    }
     this.getElement('#fileUpload').value = null;
 
     if (elmDocumento && elmAcao) {
@@ -89,7 +99,7 @@ export class DemoView extends LitElement {
   }
 
   salvar(): void {
-    const projetoNorma = mapProjetosNormas[this.projetoNorma];
+    const projetoNorma = Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma];
     const emenda = this.getElement('lexml-emenda').getEmenda();
     const emendaJson = JSON.stringify({
       projetoNorma: projetoNorma,
@@ -98,7 +108,7 @@ export class DemoView extends LitElement {
     const blob = new Blob([emendaJson], {
       type: 'application/json',
     });
-    const fileName = `${this.projetoNorma}.json`;
+    const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
 
@@ -118,16 +128,18 @@ export class DemoView extends LitElement {
   selecionaArquivo(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput && fileInput.files) {
+      this.resetaEmenda();
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
       fReader.onloadend = (e): void => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.modo = result.emenda.tipo;
+          this.getElement('lexml-emenda').setEmenda(result.emenda);
           this.arquivoProjetoNorma = result.projetoNorma;
-          this.emenda = result.emenda;
-          this.dispositivosEmenda = result.emenda?.dispositivos;
-          this.projetoNorma = '';
+          this.projetoNorma = result.projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
+          this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
+          this.getElement('#comandoEmenda')!['style'].display = 'block';
+          this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
         }
       };
     }
@@ -227,7 +239,6 @@ export class DemoView extends LitElement {
             @onchange=${this.onChange}
             modo=${this.modo}
             .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
-            .dispositivosEmenda=${this.dispositivosEmenda}
           >
           </lexml-emenda>
         </div>

@@ -54,7 +54,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       document.querySelector('lexml-emenda')!['style'].display = 'block';
     }
     if (this.dispositivosEmenda && this.hasChangedEmenda(changedProperties)) {
-      this.loadEmenda();
+      if (
+        Object.values(this.dispositivosEmenda)
+          .map(dispositivos => dispositivos.length)
+          .reduce((soma, total_lista) => soma + total_lista) !== 0
+      ) {
+        this.loadEmenda();
+      }
     }
     super.update(changedProperties);
   }

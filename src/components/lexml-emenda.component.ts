@@ -14,10 +14,8 @@ import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFrom
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: String }) textoJustificativa = '';
   @property({ type: String }) modo = '';
-  @property({ type: String }) projetoNorma = '';
-  @property({ type: Object }) dispositivosEmenda = {};
+  @property({ type: Object }) projetoNorma = {};
 
   @state()
   autoria = new Autoria();
@@ -57,6 +55,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return emenda;
   }
 
+  setEmenda(emenda: Emenda): void {
+    this.modo = emenda.tipo;
+    this._lexmlEta.dispositivosEmenda = emenda.dispositivos;
+    this.autoria = emenda.autoria;
+    this._lexmlJustificativa.setContent(emenda.justificativa);
+    this._lexmlData.data = emenda.data;
+  }
+
   constructor() {
     super();
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
@@ -76,14 +82,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       </style>
       <sl-tab-group>
-        <sl-tab slot="nav" panel="lexml-eta" ${this.projetoNorma ? '' : html`disabled`}>Texto</sl-tab>
-        <sl-tab slot="nav" panel="justificativa" ${this.projetoNorma ? '' : html`disabled`}>Justificativa</sl-tab>
-        <sl-tab slot="nav" panel="autoria" ${this.projetoNorma ? '' : html`disabled`}>Data e Autoria</sl-tab>
+        <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
+        <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
+        <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
         <sl-tab-panel name="lexml-eta">
-          <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma} .dispositivosEmenda=${this.dispositivosEmenda}></lexml-eta>
+          <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
         </sl-tab-panel>
         <sl-tab-panel name="justificativa">
-          <lexml-emenda-justificativa texto=${this.textoJustificativa}></lexml-emenda-justificativa>
+          <lexml-emenda-justificativa></lexml-emenda-justificativa>
         </sl-tab-panel>
         <sl-tab-panel name="autoria">
           <lexml-data></lexml-data>
