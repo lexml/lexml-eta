@@ -16,6 +16,7 @@ import { moverElementoAbaixoAction } from '../../model/lexml/acao/moverElementoA
 import { moverElementoAcimaAction } from '../../model/lexml/acao/moverElementoAcimaAction';
 import { redoAction } from '../../model/lexml/acao/redoAction';
 import { removerElementoAction } from '../../model/lexml/acao/removerElementoAction';
+import { removerElementoSemTextoAction } from '../../model/lexml/acao/removerElementoSemTextoAction';
 import { renumerarElementoAction } from '../../model/lexml/acao/renumerarElementoAction';
 import { shiftTabAction } from '../../model/lexml/acao/shiftTabAction';
 import { tabAction } from '../../model/lexml/acao/tabAction';
@@ -356,6 +357,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     await (<any>dialogElem).open();
   }
 
+  private removerElementoSemTexto(key: string): void {
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+    const tamRotulo = linha.blotRotulo.rotulo.length;
+    const posicao = key === 'Backspace' && this.quill.getSelection() ? this.quill.getSelection()!.index - tamRotulo : undefined;
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    rootStore.dispatch(removerElementoSemTextoAction.execute(elemento, key, posicao));
+  }
+
   private removerElemento(): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}`;
@@ -510,6 +519,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill.setIndex(index, Quill.sources.SILENT);
     this.quill.atualizarLinhaCorrente(linha);
     this.elementoSelecionado(linha.uuid);
+    if (event.posicao) {
+      this.quill.setSelection(event.posicao, 0, Quill.sources.USER);
+    }
   }
 
   private processarEscolhaMenu(itemMenu: string): void {
@@ -744,6 +756,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.moveElemento.subscribe(this.moverElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.removeElemento.subscribe(this.removerElemento.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.removeElementoSemTexto.subscribe(this.removerElementoSemTexto.bind(this)));
     this.inscricoes.push(this.quill.keyboard.renumeraElemento.subscribe(this.renumerarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
@@ -800,7 +813,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (elementos.length > 1) {
         setTimeout(() => {
           const el = this.quill.getLinha(elementos[1].uuid!);
-          this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
+          if (el?.blotConteudo) {
+            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
+          }
         }, 0);
       }
       rootStore.dispatch(validarArticulacaAction.execute());

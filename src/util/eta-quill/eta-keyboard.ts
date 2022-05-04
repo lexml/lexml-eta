@@ -12,6 +12,7 @@ export class EtaKeyboard extends Keyboard {
   operacaoTecladoInvalida: Observable<void> = new Observable<void>();
   adicionaElementoTeclaEnter: Observable<RangeStatic> = new Observable<RangeStatic>();
   removeElemento: Observable<void> = new Observable<void>();
+  removeElementoSemTexto: Observable<string> = new Observable<string>();
   renumeraElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   transformaElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   moveElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
@@ -207,14 +208,20 @@ export class EtaKeyboard extends Keyboard {
 
   private onTeclaDelete(ev: KeyboardEvent): void {
     const range: RangeStatic = this.quill.getSelection(true);
-    if (!this.verificarOperacaoTecladoPermitida() || range.index === this.quill.fimConteudoAtual) {
+    if (!this.quill.linhaAtual.blotConteudo.html) {
+      cancelarPropagacaoDoEvento(ev);
+      this.removeElementoSemTexto.notify(ev.key);
+    } else if (!this.verificarOperacaoTecladoPermitida() || range.index === this.quill.fimConteudoAtual) {
       cancelarPropagacaoDoEvento(ev);
     }
   }
 
   private onTeclaBackspace(ev: KeyboardEvent): void {
     const range: RangeStatic = this.quill.getSelection(true);
-    if (!this.verificarOperacaoTecladoPermitida() || (range.index === this.quill.inicioConteudoAtual && range.length === 0)) {
+    if (!this.quill.linhaAtual.blotConteudo.html) {
+      cancelarPropagacaoDoEvento(ev);
+      this.removeElementoSemTexto.notify(ev.key);
+    } else if (!this.verificarOperacaoTecladoPermitida() || (range.index === this.quill.inicioConteudoAtual && range.length === 0)) {
       cancelarPropagacaoDoEvento(ev);
     }
   }
