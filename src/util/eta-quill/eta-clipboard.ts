@@ -50,4 +50,29 @@ export class EtaClipboard extends Clipboard {
     this.container.innerHTML = '';
     return delta;
   }
+
+  onPaste(e: ClipboardEvent): void {
+    e.preventDefault();
+    const range = this.quill.getSelection();
+    const html = e?.clipboardData?.getData('text/html');
+    const parser = new DOMParser().parseFromString(html!, 'text/html');
+    let text = '';
+    const allowedTags = ['A', 'B', 'STRONG', 'S', 'U', 'I', 'EM'];
+    const walkDOM = (node, func) => {
+      func(node);
+      node = node.firstChild;
+      while (node) {
+        walkDOM(node, func);
+        node = node.nextSibling;
+      }
+    };
+    walkDOM(parser, function (node) {
+      if (allowedTags.includes(node.tagName)) {
+        text += node.outerHTML;
+      } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
+        text += node.nodeValue;
+      }
+    });
+    this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
+  }
 }
