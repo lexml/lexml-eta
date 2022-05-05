@@ -64,7 +64,9 @@ export class EtaKeyboard extends Keyboard {
         }
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
-          if (ev.key === 'Home') {
+          if (ev.key === 'Delete') {
+            cancelarPropagacaoDoEvento(ev);
+          } else if (ev.key === 'Home') {
             this.onTeclaHome(ev);
           } else if (ev.key === 'End') {
             this.onTeclaEnd(ev);
