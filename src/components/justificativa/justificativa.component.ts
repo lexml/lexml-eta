@@ -63,6 +63,7 @@ export class JustificativaEmendaComponent extends LitElement {
     this.container = document.querySelector('#editor-justificativa');
     if (this.container) {
       this.quill = new Quill(this.container as HTMLElement, {
+        formats: ['bold', 'italic', 'link', 'underline', 'strike'],
         modules: {
           toolbar: {
             container: this.toolbarOptions,

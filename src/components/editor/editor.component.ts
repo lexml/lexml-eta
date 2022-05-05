@@ -825,6 +825,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptionsStatic {
     return {
+      formats: ['bold', 'italic', 'link', 'underline', 'strike'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
