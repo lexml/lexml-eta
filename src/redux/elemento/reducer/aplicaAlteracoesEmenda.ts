@@ -79,7 +79,6 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
     stateType: StateType.ElementoIncluido,
     referencia: undefined,
     pai: undefined,
-    posicao: undefined,
     elementos: [],
   };
 
