@@ -20,16 +20,16 @@ export const removeElementoSemTexto = (state: any, action: any): State => {
 
   const retorno = removeElemento(state, action);
   if (action.key === 'Backspace' && dispositivoAnterior) {
-    retorno.ui?.events.push(getEventoMarcacaoElemento(dispositivoAnterior, action.posicao));
+    retorno.ui?.events.push(getEventoMarcacaoElemento(dispositivoAnterior));
   }
   return retorno;
 };
 
-const getEventoMarcacaoElemento = (dispositivo: Dispositivo, posicao?: number): StateEvent => {
+const getEventoMarcacaoElemento = (dispositivo: Dispositivo): StateEvent => {
   return {
     stateType: StateType.ElementoMarcado,
     elementos: [createElemento(dispositivo)],
-    posicao,
+    moverParaFimLinha: true,
   };
 };
 

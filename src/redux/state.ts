@@ -22,7 +22,7 @@ export interface StateEvent {
   stateType: StateType;
   referencia?: Elemento;
   pai?: Elemento;
-  posicao?: number;
+  moverParaFimLinha?: boolean;
   elementos?: Elemento[];
 }
 

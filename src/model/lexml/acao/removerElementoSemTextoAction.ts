@@ -9,12 +9,11 @@ export class RemoverElementoSemTexto {
     this.descricao = 'Remover dispositivo sem texto';
   }
 
-  execute(atual: Referencia, key: string, posicao?: number): any {
+  execute(atual: Referencia, key: string): any {
     return {
       type: REMOVER_ELEMENTO_SEM_TEXTO,
       atual,
       key,
-      posicao,
     };
   }
 }

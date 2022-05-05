@@ -359,10 +359,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElementoSemTexto(key: string): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const tamRotulo = linha.blotRotulo.rotulo.length;
-    const posicao = key === 'Backspace' && this.quill.getSelection() ? this.quill.getSelection()!.index - tamRotulo : undefined;
     const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
-    rootStore.dispatch(removerElementoSemTextoAction.execute(elemento, key, posicao));
+    rootStore.dispatch(removerElementoSemTextoAction.execute(elemento, key));
   }
 
   private removerElemento(): void {
@@ -519,8 +517,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill.setIndex(index, Quill.sources.SILENT);
     this.quill.atualizarLinhaCorrente(linha);
     this.elementoSelecionado(linha.uuid);
-    if (event.posicao) {
-      this.quill.setSelection(event.posicao, 0, Quill.sources.USER);
+    if (event.moverParaFimLinha) {
+      setTimeout(() => {
+        const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
+        this.quill.setSelection(posicao, 0, Quill.sources.USER);
+      }, 0);
     }
   }
 
