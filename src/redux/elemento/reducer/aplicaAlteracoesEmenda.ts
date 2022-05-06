@@ -1,5 +1,5 @@
 import { createElemento } from '../../../model/elemento/elementoUtil';
-import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
@@ -65,12 +65,13 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
   const eventos: StateEvent[] = [];
 
-  const mapa = criaMapaElementosIncluidos(alteracoesEmenda);
+  /*   const mapa = criaMapaElementosIncluidos(alteracoesEmenda);
 
   for (const value of mapa.values()) {
     eventos.push(criaEventoElementosIncluidos(state, value));
-  }
+  } */
 
+  eventos.push(criaEventoElementosIncluidos(state, alteracoesEmenda.dispositivosAdicionados));
   return eventos;
 };
 
@@ -90,7 +91,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
       const d = buscaDispositivoById(state.articulacao, dispositivo.idIrmaoAnterior);
 
       if (d) {
-        if (d.tipo === dispositivo.tipo) {
+        if (d.tipo === dispositivo.tipo || d.tipo === 'Omissis') {
           novo = criaDispositivo(d.pai!, dispositivo.tipo, d);
         } else {
           // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
@@ -99,33 +100,54 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
         }
       }
     } else if (dispositivo.idPai) {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.idPai);
+      const d = buscaDispositivoById(state.articulacao, dispositivo.idPai.endsWith('cpt') ? dispositivo.idPai.replace(/(_cpt)$/g, '') : dispositivo.idPai);
 
       if (d) {
-        if (dispositivo.tipo === 'Inciso' && d.tipo === 'Artigo') {
+        if ((dispositivo.tipo === 'Inciso' || dispositivo.tipo === 'Omissis') && d.tipo === 'Artigo') {
           novo = criaDispositivo((d as Artigo).caput!, dispositivo.tipo);
+        } else if (dispositivo.tipo === 'Caput') {
+          d.texto = dispositivo.texto ?? '';
+          evento.elementos![evento.elementos!.length - 1].conteudo!.texto = d.texto;
+        } else if (dispositivo.tipo === 'Alteracao') {
+          createAlteracao(d);
+          d.alteracoes!.id = dispositivo.id;
+          d.alteracoes!.base = dispositivo.urnNormaAlterada;
         } else {
           novo = criaDispositivo(d, dispositivo.tipo);
+          novo.texto = dispositivo.texto ?? '';
         }
       }
     } else {
       novo = criaDispositivo(state.articulacao, dispositivo.tipo, undefined, 0);
     }
 
-    novo.id = dispositivo.id;
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
       const pai = novo.pai.tipo === 'Caput' ? novo.pai.pai : novo.pai;
       evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai, novo));
     }
 
-    if (novo) {
+    if (novo && dispositivo.tipo !== 'Alteracao') {
+      novo.id = dispositivo.id;
       const situacao = new DispositivoAdicionado();
       situacao.existeNaNormaAlterada = dispositivo.existeNaNormaAlterada ? dispositivo.existeNaNormaAlterada : undefined;
       novo.situacao = situacao;
 
-      novo.rotulo = dispositivo.rotulo;
-      novo.texto = dispositivo.texto;
+      if (dispositivo.abreAspas) {
+        novo.rotulo = '\u201C' + dispositivo.rotulo;
+        novo.cabecaAlteracao = true;
+      } else {
+        novo.rotulo = dispositivo.rotulo;
+        novo.createNumeroFromRotulo(dispositivo.rotulo);
+      }
+
+      if (dispositivo.fechaAspas) {
+        novo.notaAlteracao = dispositivo.notaAlteracao;
+        novo.texto = dispositivo.texto + `” ${dispositivo.notaAlteracao}`;
+      } else {
+        novo.texto = dispositivo.texto;
+      }
+
       if (novo.tipo !== 'Caput') {
         const novoEl = createElemento(novo);
         novoEl.lexmlId = buildId(novo);
@@ -142,19 +164,19 @@ const referenciaAjustada = (referencia: Dispositivo, dispositivo: Dispositivo): 
   return ref.id !== dispositivo.id ? ref : dispositivo.pai!.filhos[dispositivo.pai!.filhos.length - 2];
 };
 
-const IsFilhoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
+/* const IsFilhoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
   return idAnterior === idAtual.substring(0, idAtual.lastIndexOf('_'));
 };
 
 const criaNovaEntradaNoMapa = (mapa: Map<string, DispositivoEmendaAdicionado[]>, dispositivo: DispositivoEmendaAdicionado): void => {
   mapa.set(dispositivo.id, [dispositivo]);
-};
+}; */
 
-const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<string, []> => {
+/* const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<string, []> => {
   const mapaElementosIncluidos = new Map();
 
   alteracoesEmenda.dispositivosAdicionados?.forEach((d, index) => {
-    if (index === 0) {
+    if (index === 0 || d.tipo === 'Alteracao') {
       criaNovaEntradaNoMapa(mapaElementosIncluidos, d);
     } else {
       const tipoDispositivoAnterior = alteracoesEmenda.dispositivosAdicionados[index - 1].tipo;
@@ -174,4 +196,4 @@ const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<s
   });
 
   return mapaElementosIncluidos;
-};
+};*/
