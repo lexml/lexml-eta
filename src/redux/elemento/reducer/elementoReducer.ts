@@ -11,6 +11,7 @@ import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAci
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
+import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerElementoSemTextoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SHIFT_TAB } from '../../../model/lexml/acao/shiftTabAction';
@@ -32,6 +33,7 @@ import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
 import { redo } from './redo';
 import { removeElemento } from './removeElemento';
+import { removeElementoSemTexto } from './removeElementoSemTexto';
 import { renumeraElemento } from './renumeraElemento';
 import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
@@ -78,6 +80,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return redo(state);
     case REMOVER_ELEMENTO:
       return removeElemento(state, action);
+    case REMOVER_ELEMENTO_SEM_TEXTO:
+      return removeElementoSemTexto(state, action);
     case SHIFT_TAB:
     case TAB:
       return modificaTipoElementoWithTab(state, action);

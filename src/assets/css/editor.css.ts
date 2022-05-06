@@ -191,7 +191,7 @@ export const editorStyles = html`
     .container__elemento--padrao {
       width: 100%;
       min-height: 26px;
-      border: 1px solid #ffffff;
+      border: 3px solid #ffffff;
       line-height: 1.42;
       margin: 0px 2px 0px 5px !important;
     }
@@ -248,7 +248,7 @@ export const editorStyles = html`
     }
 
     .container__elemento--ativo {
-      border-color: #24d421;
+      border: 3px solid #24d421;
     }
 
     .mensagem {

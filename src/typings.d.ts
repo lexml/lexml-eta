@@ -115,6 +115,7 @@ declare interface KeyboardStatic {
   criaAlteracao: any;
   moveElemento: any;
   removeElemento: any;
+  removeElementoSemTexto: any;
   transformaElemento: any;
   renumeraElemento: any;
   verificarOperacaoTecladoPermitida: any;
