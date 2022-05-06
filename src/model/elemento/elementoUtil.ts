@@ -209,7 +209,7 @@ export const criaListaElementosAfinsValidados = (dispositivo: Dispositivo | unde
 };
 
 export const listaDispositivosRenumerados = (dispositivo: Dispositivo): Dispositivo[] => {
-  return (isArtigo(dispositivo) || isParagrafo(dispositivo)) && irmaosMesmoTipo(dispositivo).length === 2
+  return (isArtigo(dispositivo) || isParagrafo(dispositivo)) && irmaosMesmoTipo(dispositivo).length <= 2
     ? irmaosMesmoTipo(dispositivo).filter(d => dispositivo.uuid !== d.uuid)
     : getDispositivosPosteriores(dispositivo, true).filter(d => d.tipo === dispositivo.tipo);
 };

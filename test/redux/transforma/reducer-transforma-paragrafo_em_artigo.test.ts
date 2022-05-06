@@ -176,15 +176,16 @@ describe('Testando a transformação de parágrafo em artigo', () => {
         expect(removido.elementos![0].rotulo).equal('§ 2º');
         expect(removido.elementos![0].conteudo?.texto).equal('Texto do parágrafo 2 do Artigo 1 que não possui incisos.');
       });
-      it('Deveria apresentar os artigos seguintes no array de elementos no evento de ElementoRenumerado', () => {
+      it('Deveria apresentar o paragrafo unico e os artigos seguintes no array de elementos no evento de ElementoRenumerado', () => {
         const renumerado = getEvento(state.ui.events, StateType.ElementoRenumerado);
-        expect(renumerado.elementos!.length).equal(3);
-        expect(renumerado.elementos![0].rotulo).equal('Art. 3º');
-        expect(renumerado.elementos![0].conteudo?.texto).to.equal('Texto do caput do Artigo 2 que possui DOIS incisos e um parágrafo único:');
-        expect(renumerado.elementos![1].rotulo).equal('Art. 4º');
-        expect(renumerado.elementos![1].conteudo?.texto).to.equal('Texto do caput do artigo 3 que possui DOIS parágrafos sendo que o primeiro tem DOIS incisos.');
-        expect(renumerado.elementos![2].rotulo).equal('Parágrafo único.');
-        expect(renumerado.elementos![2].conteudo?.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+        expect(renumerado.elementos!.length).equal(4);
+        expect(renumerado.elementos![0].rotulo).equal('Parágrafo único.');
+        expect(renumerado.elementos![1].rotulo).equal('Art. 3º');
+        expect(renumerado.elementos![1].conteudo?.texto).to.equal('Texto do caput do Artigo 2 que possui DOIS incisos e um parágrafo único:');
+        expect(renumerado.elementos![2].rotulo).equal('Art. 4º');
+        expect(renumerado.elementos![2].conteudo?.texto).to.equal('Texto do caput do artigo 3 que possui DOIS parágrafos sendo que o primeiro tem DOIS incisos.');
+        expect(renumerado.elementos![3].rotulo).equal('Parágrafo único.');
+        expect(renumerado.elementos![3].conteudo?.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
       });
     });
   });

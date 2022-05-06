@@ -3,7 +3,7 @@ import { createElemento, getDispositivoFromElemento, getElementos, listaDisposit
 import { isAcaoTransformacaoPermitida, normalizaNomeAcaoTransformacao } from '../../../model/lexml/acao/acaoUtil';
 import { converteDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnterior, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../state';
 import { buildEventoTransformacaooElemento } from '../evento/eventosUtil';
 import { getElementosDoDispositivo } from '../util/reducerUtil';
@@ -11,7 +11,6 @@ import { buildPast } from '../util/stateReducerUtil';
 
 export const transformaTipoElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
-
   if (atual === undefined) {
     state.ui = [];
     return state;
@@ -20,6 +19,8 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   if (!isAcaoTransformacaoPermitida(atual, action)) {
     return state;
   }
+
+  const dispositivoAnteriorAtual = getDispositivoAnterior(atual);
 
   action.subType = normalizaNomeAcaoTransformacao(atual, action.subType);
 
@@ -36,6 +37,11 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   const validados = getElementosDoDispositivo(novo, true);
 
   const paiNovo = isIncisoCaput(novo) ? novo.pai!.pai! : novo.pai!;
+
+  if (dispositivoAnteriorAtual && isParagrafoUnico(dispositivoAnteriorAtual)) {
+    dispositivoAnteriorAtual.pai!.renumeraFilhos();
+    renumerados.unshift(dispositivoAnteriorAtual);
+  }
 
   const dispositivoAnterior = getDispositivoAnterior(novo);
 
