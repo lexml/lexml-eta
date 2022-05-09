@@ -18,7 +18,7 @@ export const editorStyles = html`
       box-sizing: border-box;
       padding: 3px 10px 3px 10px;
       position: sticky;
-      top: 0;
+      top: 50px;
       background-color: #ffffff;
       z-index: 99;
     }
