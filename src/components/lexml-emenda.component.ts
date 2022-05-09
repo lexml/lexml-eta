@@ -77,7 +77,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       ${shoelaceLightThemeStyles}
       <style>
         lexml-emenda {
-          display: none;
           height: 100%;
         }
       </style>

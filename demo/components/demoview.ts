@@ -85,6 +85,7 @@ export class DemoView extends LitElement {
           dispositivosModificados: [],
           dispositivosAdicionados: [],
         };
+        document.querySelector('lexml-emenda')!['style'].display = 'block';
       }, 0);
     }
   }
@@ -140,6 +141,7 @@ export class DemoView extends LitElement {
           this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
           this.getElement('#comandoEmenda')!['style'].display = 'block';
           this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
+          document.querySelector('lexml-emenda')!['style'].display = 'block';
         }
       };
     }
@@ -182,7 +184,7 @@ export class DemoView extends LitElement {
         }
 
         lexml-emenda {
-          display: block;
+          display: none;
           height: calc(100vh - 80px);
           outline: 0;
           border: 0;
