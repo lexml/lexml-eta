@@ -31,15 +31,21 @@ export class ComandoEmendaComponent extends LitElement {
     const comandos = this.emenda?.comandos;
     return html`
       <style>
+        :host {
+          --lexml-emenda-comando-height: 100%;
+          --lexml-emenda-comando-overflow: display;
+          --lexml-emenda-comando-border: 1px solid #ccc;
+        }
         .lexml-emenda-comando {
           display: block;
-          border: 1px solid #ccc;
-          height: 100%;
+          border: var(--lexml-emenda-comando-border);
+          height: var(--lexml-emenda-comando-height);
+          overflow: var(--lexml-emenda-comando-overflow);
+          overflow-y: auto;
           padding: 0 10px;
           margin: 0px 5px;
           font-size: 14px;
         }
-
         .lexml-emenda-comando:focus {
           outline: 0;
           border: 0px solid #f1f1f1;

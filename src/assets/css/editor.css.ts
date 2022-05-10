@@ -17,10 +17,6 @@ export const editorStyles = html`
       border: 1px solid #ccc;
       box-sizing: border-box;
       padding: 3px 10px 3px 10px;
-      position: sticky;
-      top: 50px;
-      background-color: #ffffff;
-      z-index: 99;
     }
 
     #lx-eta-box .ql-snow.ql-toolbar button,
@@ -62,6 +58,7 @@ export const editorStyles = html`
       color: #646260;
       text-transform: none !important;
       padding: 5px;
+      min-height: 400px;
     }
 
     #lx-eta-editor .ql-editor *:focus {

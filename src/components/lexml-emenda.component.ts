@@ -79,11 +79,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         lexml-emenda {
           height: 100%;
         }
-        sl-tab-group::part(nav) {
-          position: sticky;
-          top: 0;
-          background-color: #ffffff;
-          z-index: 99;
+        sl-tab-panel {
+          --padding: 0px;
         }
       </style>
       <sl-tab-group>
