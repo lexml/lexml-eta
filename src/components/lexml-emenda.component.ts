@@ -77,8 +77,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       ${shoelaceLightThemeStyles}
       <style>
         lexml-emenda {
-          display: none;
           height: 100%;
+        }
+        sl-tab-group::part(nav) {
+          position: sticky;
+          top: 0;
+          background-color: #ffffff;
+          z-index: 99;
         }
       </style>
       <sl-tab-group>

@@ -51,16 +51,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   update(changedProperties: PropertyValues): void {
     if (this.hasChangedProjetoNorma(changedProperties) || this.hasChangedModo(changedProperties)) {
       this.loadProjetoNorma();
-      document.querySelector('lexml-emenda')!['style'].display = 'block';
     }
     if (this.dispositivosEmenda && this.hasChangedEmenda(changedProperties)) {
-      if (
-        Object.values(this.dispositivosEmenda)
-          .map(dispositivos => dispositivos.length)
-          .reduce((soma, total_lista) => soma + total_lista) !== 0
-      ) {
-        this.loadEmenda();
-      }
+      // if (
+      //   Object.values(this.dispositivosEmenda)
+      //     .map(dispositivos => dispositivos.length)
+      //     .reduce((soma, total_lista) => soma + total_lista, 0) !== 0
+      // ) {
+      //   this.loadEmenda();
+      // }
+      this.loadEmenda();
     }
     super.update(changedProperties);
   }
