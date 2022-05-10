@@ -67,7 +67,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: 'O conteúdo do dispositivo não é um HTML válido',
     });
   }
-  if (!isArticulacao(dispositivo) && dispositivo.texto && dispositivo.texto.trim().length > 300) {
+  if (!isArticulacao(dispositivo) && dispositivo.texto && dispositivo.texto.trim().length > 500) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
       descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas`,
