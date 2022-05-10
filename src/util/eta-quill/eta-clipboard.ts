@@ -57,7 +57,7 @@ export class EtaClipboard extends Clipboard {
     const html = e?.clipboardData?.getData('text/html');
     const parser = new DOMParser().parseFromString(html!, 'text/html');
     let text = '';
-    const allowedTags = ['A', 'B', 'STRONG', 'S', 'U', 'I', 'EM'];
+    const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB'];
     const walkDOM = (node, func) => {
       func(node);
       node = node.firstChild;
