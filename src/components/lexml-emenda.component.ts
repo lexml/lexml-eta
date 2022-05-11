@@ -79,6 +79,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         lexml-emenda {
           height: 100%;
         }
+        sl-tab-panel {
+          --padding: 0px;
+        }
       </style>
       <sl-tab-group>
         <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>

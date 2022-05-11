@@ -17,10 +17,6 @@ export const editorStyles = html`
       border: 1px solid #ccc;
       box-sizing: border-box;
       padding: 3px 10px 3px 10px;
-      position: sticky;
-      top: 0;
-      background-color: #ffffff;
-      z-index: 99;
     }
 
     #lx-eta-box .ql-snow.ql-toolbar button,
@@ -62,6 +58,7 @@ export const editorStyles = html`
       color: #646260;
       text-transform: none !important;
       padding: 5px;
+      min-height: 400px;
     }
 
     #lx-eta-editor .ql-editor *:focus {
@@ -257,19 +254,36 @@ export const editorStyles = html`
 
     .mensagem {
       font-size: 0.8em;
-      font-weight: 600;
+      font-weight: normal;
+      border: 1px solid;
+      padding: 4px 10px;
+      margin: 2px;
+      display: inline-block;
+      border-radius: 2px;
+    }
+
+    .mensagem--success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
     }
 
     .mensagem--info {
-      color: green;
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
     }
 
     .mensagem--warning {
-      color: #ff5733;
+      color: #856404;
+      background-color: #fff3cd;
+      border-color: #ffeeba;
     }
 
     .mensagem--danger {
-      color: red;
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
     }
 
     lexml-eta-help {
