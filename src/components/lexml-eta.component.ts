@@ -51,15 +51,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   update(changedProperties: PropertyValues): void {
     if (this.hasChangedProjetoNorma(changedProperties) || this.hasChangedModo(changedProperties)) {
       this.loadProjetoNorma();
+      document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
     }
     if (this.dispositivosEmenda && this.hasChangedEmenda(changedProperties)) {
-      // if (
-      //   Object.values(this.dispositivosEmenda)
-      //     .map(dispositivos => dispositivos.length)
-      //     .reduce((soma, total_lista) => soma + total_lista, 0) !== 0
-      // ) {
-      //   this.loadEmenda();
-      // }
       this.loadEmenda();
     }
     super.update(changedProperties);
@@ -107,9 +101,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
   }
 
+  private _timerLoadEmenda = 0;
   private loadEmenda(): void {
     if (this.dispositivosEmenda) {
-      setTimeout(() => {
+      clearInterval(this._timerLoadEmenda);
+      this._timerLoadEmenda = window.setTimeout(() => {
         rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!));
       }, 1000);
     }
@@ -120,6 +116,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       <style>
         #gtx-trans {
           display: block;
+        }
+
+        lexml-eta-articulacao {
+          display: none;
+          height: 100%;
         }
 
         lexml-eta-articulacao:focus {
