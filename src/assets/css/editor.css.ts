@@ -254,19 +254,36 @@ export const editorStyles = html`
 
     .mensagem {
       font-size: 0.8em;
-      font-weight: 600;
+      font-weight: normal;
+      border: 1px solid;
+      padding: 4px 10px;
+      margin: 2px;
+      display: inline-block;
+      border-radius: 2px;
+    }
+
+    .mensagem--success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
     }
 
     .mensagem--info {
-      color: green;
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
     }
 
     .mensagem--warning {
-      color: #ff5733;
+      color: #856404;
+      background-color: #fff3cd;
+      border-color: #ffeeba;
     }
 
     .mensagem--danger {
-      color: red;
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
     }
 
     lexml-eta-help {
