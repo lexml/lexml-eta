@@ -88,6 +88,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         .badge-pulse {
           margin-left: 5px;
         }
+        sl-alert {
+          margin: 10px;
+        }
       </style>
       <sl-tab-group>
         <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
