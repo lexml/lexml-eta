@@ -250,6 +250,7 @@ export const editorStyles = html`
 
     .container__elemento--ativo {
       border: 3px solid #24d421;
+      border-radius: 3px;
     }
 
     .mensagem {
