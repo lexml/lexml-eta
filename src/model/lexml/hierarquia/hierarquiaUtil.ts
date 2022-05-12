@@ -1,4 +1,4 @@
-import { isOmissis } from './../../dispositivo/tipo';
+import { isOmissis, isCaput } from './../../dispositivo/tipo';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
@@ -387,7 +387,7 @@ export const percorreHierarquiaDispositivos = (d: Dispositivo, visit: (d: Dispos
         percorreHierarquiaDispositivos(d.alteracoes, visit);
       }
       d.filhos
-        .filter(f => isParagrafo(f) || isOmissis(f))
+        .filter(f => isParagrafo(f) || (isOmissis(f) && !isCaput(f.pai!)))
         .forEach(f => {
           percorreHierarquiaDispositivos(f, visit);
         });
@@ -415,7 +415,7 @@ export const buscaNaHierarquiaDispositivos = (d: Dispositivo, visit: (d: Disposi
         ret = buscaNaHierarquiaDispositivos(d.alteracoes, visit);
         if (ret) return ret;
       }
-      for (const f of d.filhos.filter(f => isParagrafo(f) || isOmissis(f))) {
+      for (const f of d.filhos.filter(f => isParagrafo(f) || (isOmissis(f) && !isCaput(f.pai!)))) {
         ret = buscaNaHierarquiaDispositivos(f, visit);
         if (ret) return ret;
       }

@@ -85,7 +85,7 @@ const TituloLexml = SituacaoDispositivo(
   RegrasAgrupadores(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoLexml)))))))
 );
 
-const OmissisLexml = SituacaoDispositivo(RegrasOmissis(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
+const OmissisLexml = SituacaoDispositivo(RegrasOmissis(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
 
 const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);

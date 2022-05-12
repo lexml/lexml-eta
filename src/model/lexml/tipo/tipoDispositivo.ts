@@ -135,7 +135,7 @@ export const TipoDispositivo: Record<string, Tipo> = {
     tipo: 'Omissis',
     name: 'Omissis',
     tagId: 'omi',
-    descricao: 'Omissis',
+    descricao: 'Linha pontilhada (omissis)',
     descricaoPlural: 'Linhas pontilhadas (omissis)',
     tiposPermitidosPai: ['Articulacao', 'Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Caput', 'Paragrafo', 'Alinea', 'Inciso'],
     tiposPermitidosFilhos: ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo', 'Paragrafo', 'Alinea', 'Inciso', 'Item'],

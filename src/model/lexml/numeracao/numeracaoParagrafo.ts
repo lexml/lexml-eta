@@ -70,7 +70,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     }
 
     private isParagrafoUnico(): boolean {
-      return (this.isDispositivoAlteracao && this.informouParagrafoUnico) || this.pai?.filhos.filter(f => isParagrafo(f)).length === 1;
+      return (this.isDispositivoAlteracao && this.informouParagrafoUnico) || (!this.isDispositivoAlteracao && this.pai?.filhos.filter(f => isParagrafo(f)).length === 1);
     }
   };
 }

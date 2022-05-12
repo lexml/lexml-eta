@@ -68,11 +68,11 @@ export class CmdEmdUtil {
       return undefined;
     }
 
-    const pai = d.pai!;
+    const pai = isCaput(d.pai!) ? d.pai!.pai! : d.pai!;
     // Se o pai for uma alteração integral
     if (CmdEmdUtil.isAlteracaoIntegralEmAlteracao(pai)) {
       // Chama recursivamente para o pai
-      return CmdEmdUtil.getDispositivoAfetado(pai);
+      return CmdEmdUtil.getDispositivoAfetadoEmAlteracao(pai);
     }
 
     return d;
@@ -113,7 +113,10 @@ export class CmdEmdUtil {
       return false;
     }
 
-    return d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !CmdEmdUtil.isTextoOmitido(d);
+    return (
+      (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !CmdEmdUtil.isTextoOmitido(d)) ||
+      d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+    );
   }
 
   static getArvoreDispositivos(dispositivos: Dispositivo[]): HierSimplesDispositivo[] {
@@ -281,7 +284,7 @@ export class CmdEmdUtil {
   static getFilhosEstiloLexML(d: Dispositivo): Dispositivo[] {
     if (isArtigo(d)) {
       const artigo = d as Artigo;
-      return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f) || isOmissis(f))];
+      return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f) || (isOmissis(f) && !isCaput(f.pai!)))];
     }
     return d.filhos;
   }
@@ -295,8 +298,10 @@ export class CmdEmdUtil {
     } else {
       return pai;
     }
-    while (d.filhos.length) {
-      d = d.filhos[d.filhos.length - 1];
+    let filhos = this.getFilhosEstiloLexML(d);
+    while (filhos.length) {
+      d = filhos[filhos.length - 1];
+      filhos = this.getFilhosEstiloLexML(d);
     }
     return d;
   }

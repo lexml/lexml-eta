@@ -9,6 +9,7 @@ import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
+import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export enum ArtigoAntesDispositivo {
@@ -176,7 +177,11 @@ export class DispositivosWriterCmdEmd {
       if (pai && !isDispositivoRaiz(pai as Dispositivo) && (!isAgrupador(pai) || (isArtigo(disp) && localizarArtigoEmAgrupador))) {
         const dispAlteracao = isDispositivoAlteracao(disp);
         const dispositivoNovoForaDeAlteracao = !dispAlteracao && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-        const dispositivoNovoEmAlteracao = dispAlteracao && !CmdEmdUtil.isTextoOmitido(disp) && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+        const dispositivoNovoEmAlteracao =
+          dispAlteracao &&
+          !CmdEmdUtil.isTextoOmitido(disp) &&
+          disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+          !DispositivoEmendaUtil.existeNaNormaAlterada(disp);
         // TODO Tratar diferentes situações na norma vigente
         // && StringUtils
         //         .defaultString(disp.getSituacaoNaNormaVigente())

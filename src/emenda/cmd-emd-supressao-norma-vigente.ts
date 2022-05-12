@@ -1,7 +1,6 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero, NomeComGenero } from '../model/dispositivo/genero';
 import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
-import { isArtigo } from './../model/dispositivo/tipo';
 import { getNomeExtensoComDataExtenso } from './../model/lexml/documento/urnUtil';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
