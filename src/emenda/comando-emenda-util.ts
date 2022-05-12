@@ -281,7 +281,7 @@ export class CmdEmdUtil {
   static getFilhosEstiloLexML(d: Dispositivo): Dispositivo[] {
     if (isArtigo(d)) {
       const artigo = d as Artigo;
-      return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f))];
+      return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f) || isOmissis(f))];
     }
     return d.filhos;
   }
