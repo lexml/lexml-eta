@@ -63,6 +63,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   async firstUpdated(): Promise<void> {
     this.inicializar(this.configEditor());
+    const nodePai = this.parentNode?.parentNode?.parentNode?.parentNode?.parentNode?.parentElement;
+    const nodePaiAltura = nodePai?.scrollHeight ? nodePai.scrollHeight : 0;
+    if (nodePaiAltura > 0) {
+      this.style.setProperty('--lx-eta-editor-height', nodePaiAltura - 84 + 'px');
+      this.style.setProperty('--lx-eta-editor-overflow', 'hidden');
+    }
   }
 
   stateChanged(state: any): void {
@@ -93,6 +99,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return html`
       ${quillSnowStyles}
       ${editorStyles}
+      <style>
+        :host {
+          --lx-eta-editor-height: 100%;
+          --lx-eta-editor-overflow: display;
+        }
+        #lx-eta-editor {
+          height: var(--lx-eta-editor-height);
+          overflow: var(--lx-eta-editor-overflow);
+          display: block;
+        }
+      </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
           <button class="ql-bold" title="Negrito (Ctrl+b)"></button>

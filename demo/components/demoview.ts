@@ -158,10 +158,6 @@ export class DemoView extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        :root {
-          --offset-ql-editor: 180px;
-          --offset-ql-comando: 99px;
-        }
         .lexml-eta-main-header {
           display: flex;
           justify-content: space-between;
@@ -193,16 +189,7 @@ export class DemoView extends LitElement {
           -webkit-box-shadow: 0px;
           box-shadow: none;
         }
-        #lx-eta-editor .ql-editor {
-          height: calc(100vh - var(--offset-ql-editor));
-          overflow: hidden;
-          overflow-y: scroll;
-        }
-        lexml-emenda-comando {
-          --lexml-emenda-comando-height: calc(100vh - var(--offset-ql-comando));
-          --lexml-emenda-comando-overflow: hidden;
-          --lexml-emenda-comando-border: 1px solid #ccc;
-        }
+
         /*
         Apesar do problema de performance mencionado em https://lit.dev/docs/components/styles/#styles-in-the-template
         as expressões abaixo foram mantidas por se tratar de um código para teste.
@@ -210,6 +197,8 @@ export class DemoView extends LitElement {
         .wrapper {
           display: grid;
           grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
+          border: 2px solid red;
+          height: calc(100vh - 110px);
         }
         #comandoEmenda {
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
@@ -247,7 +236,7 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="wrapper">
-        <div>
+        <div class="emenda">
           <lexml-emenda
             @onchange=${this.onChange}
             modo=${this.modo}

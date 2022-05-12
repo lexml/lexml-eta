@@ -7,6 +7,12 @@ export class ComandoEmendaComponent extends LitElement {
   @property({ type: Object }) emenda;
 
   update(changedProperties: PropertyValues): void {
+    const nodePai = this.parentNode?.parentElement;
+    const nodePaiAltura = nodePai?.scrollHeight ? nodePai.scrollHeight : 0;
+    if (nodePaiAltura > 0) {
+      this.style.setProperty('--lexml-emenda-comando-height', nodePaiAltura - 4 + 'px');
+      this.style.setProperty('--lexml-emenda-comando-overflow', 'hidden');
+    }
     super.update(changedProperties);
   }
 
