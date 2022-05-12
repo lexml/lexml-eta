@@ -89,7 +89,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin-left: 5px;
         }
         sl-alert {
-          margin: 10px;
+          --box-shadow: var(--sl-shadow-x-large);
+          margin: 20px;
         }
       </style>
       <sl-tab-group>
