@@ -197,7 +197,7 @@ export class DemoView extends LitElement {
         .wrapper {
           display: grid;
           grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
-          border: 2px solid red;
+          border: 1px dashed #ccc;
           height: calc(100vh - 110px);
         }
         #comandoEmenda {
