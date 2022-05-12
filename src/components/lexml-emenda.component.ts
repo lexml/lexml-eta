@@ -8,6 +8,9 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
+import '@shoelace-style/shoelace/dist/components/alert/alert.js';
+import '@shoelace-style/shoelace/dist/components/badge/badge.js';
+import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 
 import { Autoria, Parlamentar, Emenda, TipoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -82,11 +85,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-tab-panel {
           --padding: 0px;
         }
+        .badge-pulse {
+          margin-left: 5px;
+        }
       </style>
       <sl-tab-group>
         <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
         <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
         <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
+        <sl-tab slot="nav" panel="avisos">
+          Avisos
+          <div class="badge-pulse">
+            <sl-badge variant="danger" pill pulse>4</sl-badge>
+          </div>
+        </sl-tab>
         <sl-tab-panel name="lexml-eta">
           <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
         </sl-tab-panel>
@@ -97,6 +109,28 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           <lexml-data></lexml-data>
           <hr />
           <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
+        </sl-tab-panel>
+        <sl-tab-panel name="avisos">
+          <sl-alert variant="success" open closable class="alert-closable">
+            <sl-icon slot="icon" name="check2-circle"></sl-icon>
+            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
+            antes de submetê-la.
+          </sl-alert>
+          <sl-alert variant="warning" open closable class="alert-closable">
+            <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
+            antes de submetê-la.
+          </sl-alert>
+          <sl-alert variant="danger" open closable class="alert-closable">
+            <sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
+            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
+            antes de submetê-la.
+          </sl-alert>
+          <sl-alert variant="primary" open closable class="alert-closable">
+            <sl-icon slot="icon" name="info-circle"></sl-icon>
+            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
+            antes de submetê-la.
+          </sl-alert>
         </sl-tab-panel>
       </sl-tab-group>
     `;
