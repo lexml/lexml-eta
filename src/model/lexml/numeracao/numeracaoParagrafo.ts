@@ -44,29 +44,30 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       }
     }
 
-    private getNumeroAndSufixoNumeracao(): string {
+    private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
       if (!this.numero) {
         return '';
       }
 
       const num = this.numero.search(/[a-zA-Z-]/) === -1 ? parseInt(this.numero) : parseInt(this.numero.substring(0, this.numero.search(/[a-zA-Z-]/)));
       const resto = this.numero.search(/[a-zA-Z-]/) === -1 ? '' : this.numero.substring(this.numero.search(/[a-zA-Z-]/));
+      const ordinal = num < 10;
 
-      return (num < 10 ? num + this.SUFIXO : num) + (resto?.length > 0 ? resto : '') + (num > 9 ? '.' : '');
+      return (ordinal ? num + this.SUFIXO : num) + (resto?.length > 0 ? resto : '') + (!paraComandoEmenda && (!ordinal || resto?.length) ? '.' : '');
     }
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
       }
-      return this.isParagrafoUnico() ? 'parágrafo único' : this.getNumeroAndSufixoNumeracao();
+      return this.isParagrafoUnico() ? 'parágrafo único' : this.getNumeroAndSufixoNumeracao(true);
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
       if (this.numero === undefined) {
         return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + ' [ainda não numerado]';
       }
-      return this.isParagrafoUnico() ? 'parágrafo único' : '§ ' + this.getNumeroAndSufixoNumeracao();
+      return this.isParagrafoUnico() ? 'parágrafo único' : '§ ' + this.getNumeroAndSufixoNumeracao(true);
     }
 
     private isParagrafoUnico(): boolean {

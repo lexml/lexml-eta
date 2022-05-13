@@ -57,11 +57,12 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
+      const ordinal = parseInt(num ?? '1', 10) < 10;
 
       return (
-        (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
+        (ordinal ? num + this.SUFIXO : num) +
         (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
-        (!paraComandoEmenda ? '.' : '')
+        (!paraComandoEmenda && (!ordinal || remaining.length) ? '.' : '')
       );
     }
 
