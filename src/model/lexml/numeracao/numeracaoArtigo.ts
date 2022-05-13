@@ -61,7 +61,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       return (
         (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
         (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
-        (!paraComandoEmenda && parseInt(num ?? '1', 10) > 9 ? '.' : '')
+        (!paraComandoEmenda ? '.' : '')
       );
     }
 
