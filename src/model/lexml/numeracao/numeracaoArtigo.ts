@@ -54,14 +54,13 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       }
     }
 
-    private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
+    private getNumeroAndSufixoNumeracao(): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
 
       return (
         (parseInt(num ?? '1', 10) < 10 ? num + this.SUFIXO : num) +
-        (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
-        (!paraComandoEmenda && parseInt(num ?? '1', 10) > 9 ? '.' : '')
+        (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase().concat('.') : '')
       );
     }
 
@@ -72,7 +71,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       if (this.informouArtigoUnico) {
         return 'artigo único';
       }
-      return this.getNumeroAndSufixoNumeracao(true);
+      return this.getNumeroAndSufixoNumeracao();
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
@@ -82,7 +81,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       if (this.informouArtigoUnico) {
         return 'artigo único';
       }
-      return 'art. ' + this.getNumeroAndSufixoNumeracao(true);
+      return 'art. ' + this.getNumeroAndSufixoNumeracao();
     }
   };
 }
