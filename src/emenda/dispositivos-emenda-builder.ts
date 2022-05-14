@@ -121,7 +121,7 @@ export class DispositivosEmendaBuilder {
     }
     if (dm.texto) {
       const textoSemHtml = getTextoSemHtml(dm.texto);
-      const partes = /”(?: (\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
+      const partes = /”(?: ?(\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
       if (partes) {
         const sufixo = partes[0];
         dm.fechaAspas = true;

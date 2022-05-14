@@ -1,3 +1,4 @@
+import { TagNode } from './../util/tag-node';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
@@ -6,7 +7,7 @@ import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
-import { StringBuilder } from '../util/string-util';
+import { getTextoSemHtml, StringBuilder } from '../util/string-util';
 
 export class CmdEmdUtil {
   static getDispositivosNaoOriginais(articulacao: Articulacao): Dispositivo[] {
@@ -119,8 +120,8 @@ export class CmdEmdUtil {
     );
   }
 
-  static getArvoreDispositivos(dispositivos: Dispositivo[]): HierSimplesDispositivo[] {
-    const mapa = new Array<HierSimplesDispositivo>();
+  static getArvoreDispositivos(dispositivos: Dispositivo[]): Map<Dispositivo, any> {
+    const mapa = new Map<Dispositivo, any>();
 
     if (!dispositivos.length) {
       return mapa;
@@ -133,18 +134,18 @@ export class CmdEmdUtil {
     return mapa;
   }
 
-  private static atualizaMapa(dispositivo: Dispositivo, mapa: HierSimplesDispositivo[]): void {
+  private static atualizaMapa(dispositivo: Dispositivo, mapa: Map<Dispositivo, any>): void {
     const hierarquia = this.getHierarquiaDispositivosDeUmDispositivo(dispositivo);
     let mapaAtual = mapa;
 
     hierarquia.forEach(dispositivoAtual => {
-      const mapaFilho = mapaAtual.find(h => h.dispositivo === dispositivoAtual);
+      const mapaFilho = mapaAtual.get(dispositivoAtual) as Map<Dispositivo, any>;
       if (mapaFilho) {
-        mapaAtual = mapaFilho.filhos;
+        mapaAtual = mapaFilho;
       } else {
-        const novaEntrada = new HierSimplesDispositivo(dispositivoAtual);
-        mapaAtual.push(novaEntrada);
-        mapaAtual = novaEntrada.filhos;
+        const novoMapa = new Map<Dispositivo, any>();
+        mapaAtual.set(dispositivoAtual, novoMapa);
+        mapaAtual = novoMapa;
       }
     });
   }
@@ -163,20 +164,39 @@ export class CmdEmdUtil {
     return hierarquia;
   }
 
-  // public static Map<Dispositivo , Map> getArvoreDispositivosDeAlteracaoDeNorma(final List<Dispositivo> dispositivos) {
+  static getArvoreDispositivosDeAlteracaoDeNorma(dispositivos: Dispositivo[]): Map<Dispositivo, any> {
+    const mapa = new Map<Dispositivo, any>();
 
-  //     Map<Dispositivo , Map> mapa = new HashMap<Dispositivo , Map>();
+    if (!dispositivos.length) {
+      return mapa;
+    }
 
-  //     if (dispositivos == null || dispositivos.isEmpty()) {
-  //         return mapa;
-  //     }
+    for (const dispositivo of dispositivos) {
+      this.atualizaMapaDeAlteracaoDeNorma(dispositivo, mapa);
+    }
 
-  //     for (Dispositivo dispositivo : dispositivos) {
-  //         EmendaUtil.atualizaMapaDeAlteracaoDeNorma(dispositivo, mapa);
-  //     }
+    return mapa;
+  }
 
-  //     return mapa;
-  // }
+  static atualizaMapaDeAlteracaoDeNorma(dispositivo: Dispositivo, mapa: Map<Dispositivo, any>): void {
+    const hierarquia = this.getHierarquiaDispositivosDeUmDispositivo(dispositivo);
+    let mapaAtual = mapa;
+
+    for (const dispositivoAtual of hierarquia) {
+      if (!isDispositivoAlteracao(dispositivoAtual) || isArticulacaoAlteracao(dispositivoAtual)) {
+        continue;
+      }
+
+      if (mapaAtual.has(dispositivoAtual)) {
+        mapaAtual = mapaAtual.get(dispositivoAtual);
+      } else {
+        const novoMapa = new Map<Dispositivo, any>();
+        mapaAtual.set(dispositivoAtual, novoMapa);
+        mapaAtual = novoMapa;
+      }
+    }
+    mapa = mapaAtual;
+  }
 
   // public static List<Dispositivo> filtraDispositivosModificados(final List<Dispositivo> dispositivos) {
 
@@ -397,15 +417,28 @@ export class CmdEmdUtil {
     return true;
   }
 
-  static trataTextoParaCitacao(d: Dispositivo): string {
-    const texto = isArtigo(d) ? (d as Artigo).caput!.texto : d.texto;
-    return texto
-      .replace(/”( *(?:\(NR\)) *)?/, '’$1 ')
-      .replace(/^\s*<p>\s*/i, '')
-      .replace(/\s*<\/p>\s*$/i, '');
+  static getTextoDoDispositivoOuOmissis(d: Dispositivo, alteracaoNormaVigente = false): TagNode | string {
+    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
+      return CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
+    } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      return '(Suprimido)';
+    } else {
+      return new TagNode('Omissis');
+    }
   }
-}
 
-export class HierSimplesDispositivo {
-  constructor(public dispositivo: Dispositivo, public filhos = new Array<HierSimplesDispositivo>()) {}
+  static trataTextoParaCitacao(d: Dispositivo, alteracaoNormaVigente = false): string {
+    let texto = isArtigo(d) ? (d as Artigo).caput!.texto : d.texto;
+    if (alteracaoNormaVigente) {
+      texto = texto.replace(/”( *(?:\(NR\)) *)?/, '');
+    } else {
+      texto = texto.replace(/”( *(?:\(NR\)) *)?/, '’$1 ');
+    }
+    return texto.replace(/^\s*<p>\s*/i, '').replace(/\s*<\/p>\s*$/i, '');
+  }
+
+  static isFechaAspas(d: Dispositivo): boolean {
+    const textoSemHtml = getTextoSemHtml(d.texto);
+    return /”(?: ?(\(NR\)|\(AC\)))?$/.test(textoSemHtml);
+  }
 }

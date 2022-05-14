@@ -1,11 +1,11 @@
-import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArtigo, isCaput } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { TagNode } from '../util/tag-node';
-import { Artigo } from './../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from './../model/dispositivo/dispositivo';
 import { isArticulacaoAlteracao, isAscendente, isDescendenteDeSuprimido } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { CmdEmdUtil, HierSimplesDispositivo } from './comando-emenda-util';
+import { CmdEmdUtil } from './comando-emenda-util';
+import { DispositivoComparator } from './dispositivo-comparator';
 
 export class CitacaoComandoMultipla {
   private ultimoProcessado?: Dispositivo;
@@ -17,16 +17,15 @@ export class CitacaoComandoMultipla {
 
     const sb = new StringBuilder();
 
-    const hArtigo = arvoreDispositivos[0];
-    const artigo = hArtigo.dispositivo as Artigo;
-    arvoreDispositivos = hArtigo.filhos;
+    const artigo = [...arvoreDispositivos.keys()][0];
+    arvoreDispositivos = arvoreDispositivos.get(artigo);
 
     // eslint-disable-next-line prettier/prettier
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(artigo.rotulo)).add(this.getTextoDoDispositivoOuOmissis(artigo));
+    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(artigo.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(artigo));
 
     sb.append(node.toString());
 
-    if (arvoreDispositivos.length) {
+    if (arvoreDispositivos.size) {
       this.ultimoProcessado = artigo;
       // this.emAlteracao = false;
       // this.abrirAspasSimples = false;
@@ -38,38 +37,30 @@ export class CitacaoComandoMultipla {
     return sb.toString().replace(/(<\/p>(?:<\/Alteracao>)?)$/, '”$1');
   }
 
-  getTextoDoDispositivoOuOmissis(d: Dispositivo): TagNode | string {
-    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
-      return CmdEmdUtil.trataTextoParaCitacao(d);
-    } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return '(Suprimido)';
-    } else {
-      return new TagNode('Omissis');
-    }
-  }
+  writeDispositivoTo(sb: StringBuilder, arvoreDispositivos: Map<Dispositivo, any>): void {
+    const dispositivos = Array.from(arvoreDispositivos.keys());
+    dispositivos.sort(DispositivoComparator.compare);
 
-  writeDispositivoTo(sb: StringBuilder, arvoreDispositivos: HierSimplesDispositivo[]): void {
-    arvoreDispositivos.forEach(h => {
-      const d = h.dispositivo;
-
+    for (const d of dispositivos) {
+      const mapFilhos = arvoreDispositivos.get(d);
       if (isArticulacaoAlteracao(d)) {
         sb.append('<Alteracao>');
         this.emAlteracao = true;
         this.abrirAspasSimples = true;
         this.ultimoProcessado = d;
-        if (h.filhos.length) {
-          this.writeDispositivoTo(sb, h.filhos);
+        if (mapFilhos.size) {
+          this.writeDispositivoTo(sb, mapFilhos);
         }
         sb.append('</Alteracao>');
-        return;
+        continue;
       }
 
       if (isCaput(d)) {
         this.ultimoProcessado = d;
-        if (h.filhos.length) {
-          this.writeDispositivoTo(sb, h.filhos);
+        if (mapFilhos.size) {
+          this.writeDispositivoTo(sb, mapFilhos);
         }
-        return;
+        continue;
       }
 
       const dispositivoAnterior = CmdEmdUtil.getDispositivoAnteriorDireto(d);
@@ -92,7 +83,7 @@ export class CitacaoComandoMultipla {
 
       // -------------------------------------------
       // o dispositivo atual
-      if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(h.filhos)) {
+      if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(mapFilhos)) {
         const dispRotulo = isArtigo(d) ? (d as Artigo).caput! : d;
         const rotulo = this.emAlteracao ? d.rotulo?.replace('“', '') : d.rotulo;
         const tag = new TagNode('p');
@@ -100,7 +91,7 @@ export class CitacaoComandoMultipla {
           tag.add('‘');
           this.abrirAspasSimples = false;
         }
-        tag.add(new TagNode('Rotulo').add(rotulo)).add(this.getTextoDoDispositivoOuOmissis(dispRotulo));
+        tag.add(new TagNode('Rotulo').add(rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(dispRotulo));
         sb.append(tag.toString());
       } else {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
@@ -110,10 +101,10 @@ export class CitacaoComandoMultipla {
 
       // -------------------------------------------
       // varre os filhos do dispositivo atual
-      if (h.filhos.length) {
-        this.writeDispositivoTo(sb, h.filhos);
+      if (mapFilhos.size) {
+        this.writeDispositivoTo(sb, mapFilhos);
       }
-    });
+    }
   }
 
   private writeOmissisFinal(sb: StringBuilder, artigo: Dispositivo): void {
@@ -140,23 +131,21 @@ export class CitacaoComandoMultipla {
   //                                                          && !ultimoProcessado.hasFilhosPropostos());
   // }
 
-  private hasFilhosPropostos(hFilhos: HierSimplesDispositivo[]): boolean {
-    if (!hFilhos.length) {
+  private hasFilhosPropostos(map: Map<Dispositivo, any>): boolean {
+    if (!map.size) {
       return false;
     }
 
     let hasPropostos = false;
 
-    for (const hFilho of hFilhos) {
-      const d = hFilho.dispositivo;
-
+    for (const [d, mapFilhos] of map.entries()) {
       if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
         hasPropostos = true;
         break;
       }
 
-      if (!hasPropostos && hFilho.filhos.length) {
-        hasPropostos = this.hasFilhosPropostos(hFilho.filhos);
+      if (!hasPropostos && mapFilhos.size) {
+        hasPropostos = this.hasFilhosPropostos(mapFilhos);
         if (hasPropostos) {
           break;
         }
