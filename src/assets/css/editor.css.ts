@@ -57,8 +57,9 @@ export const editorStyles = html`
       line-height: 1.42;
       color: #646260;
       text-transform: none !important;
-      padding: 5px;
-      min-height: 400px;
+      padding: 0 10px 0 8px;
+      min-height: 250px;
+      overflow-x: hidden;
     }
 
     #lx-eta-editor .ql-editor *:focus {
@@ -78,7 +79,7 @@ export const editorStyles = html`
     }
 
     .lx-eta-dropbtn {
-      background-color: #ffffff;
+      background-color: transparent;
       color: #444444;
       width: 26px;
       font-weight: bold;
@@ -194,7 +195,8 @@ export const editorStyles = html`
       min-height: 26px;
       border: 3px solid #ffffff;
       line-height: 1.42;
-      margin: 0px 2px 0px 5px !important;
+      margin: 0;
+      padding: 0 5px 0 0;
     }
 
     .container__elemento--articulacao {
@@ -250,7 +252,7 @@ export const editorStyles = html`
 
     .container__elemento--ativo {
       border: 3px solid #24d421;
-      border-radius: 3px;
+      border-radius: 4px;
     }
 
     .mensagem {
