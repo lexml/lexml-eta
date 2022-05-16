@@ -75,15 +75,55 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
+  updated(): void {
+    let alturaElemento = this.pesquisarAlturaParentElement(this);
+    // altura dos tabs
+    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
+    const alturaLexmlEtaTabs = lexmlEtaTabs?.scrollHeight;
+    if (alturaLexmlEtaTabs) {
+      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 2;
+      if (alturaElemento > 0) {
+        this?.style.setProperty('--height', alturaElemento + 'px');
+        this?.style.setProperty('--overflow', 'hidden');
+      }
+    }
+  }
+
+  private pesquisarAlturaParentElement(elemento): number {
+    if (elemento.parentElement === null) {
+      // chegou no HTML e não encontrou altura
+      return 0;
+    } else {
+      const minHeight = getComputedStyle(this).getPropertyValue('--min-height').replace('px', '');
+      if (elemento.scrollHeight >= minHeight) {
+        console.log('h:', elemento.scrollHeight, 'encontrada no elemento:', elemento.localName, elemento.className);
+        return elemento.scrollHeight;
+      } else {
+        return this.pesquisarAlturaParentElement(elemento.parentElement);
+      }
+    }
+  }
+
   render(): TemplateResult {
     return html`
       ${shoelaceLightThemeStyles}
       <style>
+        :root {
+          --height: 100%;
+          --overflow: visible;
+          --min-height: 300px;
+        }
         lexml-emenda {
-          height: 100%;
+        }
+        lexml-eta {
         }
         sl-tab-panel {
           --padding: 0px;
+        }
+        sl-tab-panel::part(base) {
+          height: var(--height);
+          overflow: var(--overflow);
+          overflow-y: auto;
         }
         .badge-pulse {
           margin-left: 5px;
@@ -93,6 +133,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin: 20px;
         }
       </style>
+
       <sl-tab-group>
         <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
         <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
