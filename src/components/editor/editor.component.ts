@@ -63,12 +63,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   async firstUpdated(): Promise<void> {
     this.inicializar(this.configEditor());
-    const nodePai = this.parentNode?.parentNode?.parentNode?.parentNode?.parentNode?.parentElement;
-    const nodePaiAltura = nodePai?.scrollHeight ? nodePai.scrollHeight : 0;
-    if (nodePaiAltura > 0) {
-      this.style.setProperty('--lx-eta-editor-height', nodePaiAltura - 84 + 'px');
-      this.style.setProperty('--lx-eta-editor-overflow', 'hidden');
-    }
   }
 
   stateChanged(state: any): void {
