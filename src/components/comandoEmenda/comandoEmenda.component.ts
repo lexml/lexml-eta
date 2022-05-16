@@ -7,12 +7,6 @@ export class ComandoEmendaComponent extends LitElement {
   @property({ type: Object }) emenda;
 
   update(changedProperties: PropertyValues): void {
-    const nodePai = this.parentNode?.parentElement;
-    const nodePaiAltura = nodePai?.scrollHeight ? nodePai.scrollHeight : 0;
-    if (nodePaiAltura > 0) {
-      this.style.setProperty('--lexml-emenda-comando-height', nodePaiAltura - 4 + 'px');
-      this.style.setProperty('--lexml-emenda-comando-overflow', 'hidden');
-    }
     super.update(changedProperties);
   }
 
@@ -39,7 +33,7 @@ export class ComandoEmendaComponent extends LitElement {
       <style>
         :host {
           --lexml-emenda-comando-height: 100%;
-          --lexml-emenda-comando-overflow: display;
+          --lexml-emenda-comando-overflow: hidden;
           --lexml-emenda-comando-border: 1px solid #ccc;
         }
         .lexml-emenda-comando {
@@ -47,7 +41,7 @@ export class ComandoEmendaComponent extends LitElement {
           border: var(--lexml-emenda-comando-border);
           height: var(--lexml-emenda-comando-height);
           overflow: var(--lexml-emenda-comando-overflow);
-          overflow-y: auto;
+          overflow-y: scroll;
           padding: 0 10px;
           margin: 0px 5px;
           font-size: 14px;
