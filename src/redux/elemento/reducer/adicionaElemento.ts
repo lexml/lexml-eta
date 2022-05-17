@@ -1,4 +1,3 @@
-import { isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
@@ -13,13 +12,14 @@ import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { createElementoValidado, isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const adicionaElemento = (state: any, action: any): State => {
   let textoModificado = false;
 
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
-  if (atual === undefined) {
+  if (atual === undefined || atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     return state;
   }
 
