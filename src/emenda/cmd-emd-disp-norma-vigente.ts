@@ -10,7 +10,6 @@ import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdModificacaoDeNormaVigente } from './cmd-emd-modificacao-de-norma-vigente';
 import { CmdEmdSupressaoDeNormaVigente } from './cmd-emd-supressao-norma-vigente';
 import { CmdEmdUtil } from './comando-emenda-util';
-import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
 import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 
 /**
@@ -45,11 +44,7 @@ export class CmdEmdDispNormaVigente {
 
     // Consideramos modificados os dispositivos já existentes na proposição e os que foram
     // adicionados pela emenda, mas que já existiam na norma vigente.
-    const dispositivosModificados = dispositivos.filter(
-      d =>
-        d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && DispositivoEmendaUtil.existeNaNormaAlterada(d))
-    );
+    const dispositivosModificados = dispositivos.filter(d => CmdEmdUtil.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_MODIFICADO);
     if (dispositivosModificados.length) {
       comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
       imprimirPrefixoESufixo = true;
@@ -57,9 +52,7 @@ export class CmdEmdDispNormaVigente {
 
     // Consideramos adicionados os dispositivos adicionados pela emenda e que não existiam na
     // norma vigente
-    const dispositivosAdicionados = dispositivos.filter(
-      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && (!DispositivoEmendaUtil.existeNaNormaAlterada(d) || isOmissis(d))
-    );
+    const dispositivosAdicionados = dispositivos.filter(d => CmdEmdUtil.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
     if (dispositivosAdicionados.length) {
       comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));
       imprimirPrefixoESufixo = true;

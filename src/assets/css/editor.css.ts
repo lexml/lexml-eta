@@ -17,10 +17,6 @@ export const editorStyles = html`
       border: 1px solid #ccc;
       box-sizing: border-box;
       padding: 3px 10px 3px 10px;
-      position: sticky;
-      top: 50px;
-      background-color: #ffffff;
-      z-index: 99;
     }
 
     #lx-eta-box .ql-snow.ql-toolbar button,
@@ -61,7 +57,9 @@ export const editorStyles = html`
       line-height: 1.42;
       color: #646260;
       text-transform: none !important;
-      padding: 5px;
+      padding: 0 10px 0 8px;
+      min-height: 250px;
+      overflow-x: hidden;
     }
 
     #lx-eta-editor .ql-editor *:focus {
@@ -81,7 +79,7 @@ export const editorStyles = html`
     }
 
     .lx-eta-dropbtn {
-      background-color: #ffffff;
+      background-color: transparent;
       color: #444444;
       width: 26px;
       font-weight: bold;
@@ -197,7 +195,8 @@ export const editorStyles = html`
       min-height: 26px;
       border: 3px solid #ffffff;
       line-height: 1.42;
-      margin: 0px 2px 0px 5px !important;
+      margin: 0;
+      padding: 0 5px 0 0;
     }
 
     .container__elemento--articulacao {
@@ -253,23 +252,41 @@ export const editorStyles = html`
 
     .container__elemento--ativo {
       border: 3px solid #24d421;
+      border-radius: 4px;
     }
 
     .mensagem {
       font-size: 0.8em;
-      font-weight: 600;
+      font-weight: normal;
+      border: 1px solid;
+      padding: 4px 10px;
+      margin: 2px;
+      display: inline-block;
+      border-radius: 2px;
+    }
+
+    .mensagem--success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
     }
 
     .mensagem--info {
-      color: green;
+      color: #0c5460;
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
     }
 
     .mensagem--warning {
-      color: #ff5733;
+      color: #856404;
+      background-color: #fff3cd;
+      border-color: #ffeeba;
     }
 
     .mensagem--danger {
-      color: red;
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
     }
 
     lexml-eta-help {

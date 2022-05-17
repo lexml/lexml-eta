@@ -28,11 +28,11 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
 
   it('acrescimoArtigo', () => {
     /*
-     * 'Art. 1º-A nononoono'
+     * 'Art. 1º-A. nononoono'
      */
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-A</Rotulo>Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-A.</Rotulo>Texto”</p>');
   });
 
   it('acrescimoParagrafoEIncisoNoMesmoArtigo', () => {
@@ -75,10 +75,10 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     /*
      * 'Art. 9º ..................
      * ...........................
-     * § 2º-A nononono
+     * § 2º-A. nononono
      * ...........................
-     * § 4º-A nononono
-     * § 4º-B nononono
+     * § 4º-A. nononono
+     * § 4º-B. nononono
      * ..........................'
      */
     TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par2', false, 'art9_par2-1'); // § 2º-A do art. 9º
@@ -88,10 +88,10 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     expect(cit).to.equal(
       '<p>“<Rotulo>Art. 9º</Rotulo><Omissis/></p>' +
         '<p><Omissis/></p>' +
-        '<p><Rotulo>§ 2º-A</Rotulo>Texto</p>' +
+        '<p><Rotulo>§ 2º-A.</Rotulo>Texto</p>' +
         '<p><Omissis/></p>' +
-        '<p><Rotulo>§ 4º-A</Rotulo>Texto</p>' +
-        '<p><Rotulo>§ 4º-B</Rotulo>Texto</p>' +
+        '<p><Rotulo>§ 4º-A.</Rotulo>Texto</p>' +
+        '<p><Rotulo>§ 4º-B.</Rotulo>Texto</p>' +
         '<p><Omissis/>”</p>'
     );
   });

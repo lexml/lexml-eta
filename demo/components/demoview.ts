@@ -182,14 +182,13 @@ export class DemoView extends LitElement {
           width: 4rem;
           height: 1.5rem;
         }
-
         lexml-emenda {
           display: none;
-          height: calc(100vh - 80px);
           outline: 0;
           border: 0;
           -webkit-box-shadow: 0px;
           box-shadow: none;
+          height: calc(100vh - 100px);
         }
 
         /*
@@ -200,8 +199,9 @@ export class DemoView extends LitElement {
           display: grid;
           grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
         }
-        #comandoEmenda {
+        lexml-emenda-comando {
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
+          height: calc(100vh - 104px);
         }
       </style>
       <div class="lexml-eta-main-header">
@@ -236,17 +236,13 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="wrapper">
-        <div>
-          <lexml-emenda
-            @onchange=${this.onChange}
-            modo=${this.modo}
-            .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
-          >
-          </lexml-emenda>
-        </div>
-        <div id="comandoEmenda">
-          <lexml-emenda-comando></lexml-emenda-comando>
-        </div>
+        <lexml-emenda
+          @onchange=${this.onChange}
+          modo=${this.modo}
+          .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
+        >
+        </lexml-emenda>
+        <lexml-emenda-comando></lexml-emenda-comando>
       </div>
     `;
   }

@@ -20,12 +20,14 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
     expect(state.articulacao?.artigos.length).to.equal(9);
   });
 
+  // OK
   // it('modificacaoArtigoComCaput', () => {
   //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_cpt', false);
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
   //   expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 1º do Projeto para modificar o art. 10 da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
   // });
 
+  // OK
   // it('modificacaoParagrafo', () => {
   //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par5', false);
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
@@ -34,6 +36,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
   //   );
   // });
 
+  // OK
   // it('modificacaoParagrafoUnico', () => {
   //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par1u', false);
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
@@ -42,6 +45,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
   //   );
   // });
 
+  // OK
   // it('modificacaoIncisoDoCaput', () => {
   //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_cpt_inc3', false);
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
@@ -50,6 +54,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
   //   );
   // });
 
+  // OK
   // it('modificacaoAlinea', () => {
   //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par2_inc1_ali2', false);
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
@@ -58,6 +63,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
   //   );
   // });
 
+  // OK
   // it('modificacaoItemEmDecreto', () => {
   //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_DECRETO, 'art10_par2_inc1_ali2_ite8', false);
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];

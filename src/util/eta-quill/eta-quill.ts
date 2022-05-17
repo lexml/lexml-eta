@@ -255,6 +255,13 @@ export class EtaQuill extends Quill {
     }, 0);
   }
 
+  private desmarcarLinhas(): void {
+    document.querySelectorAll('.container__elemento--ativo').forEach(elemento => {
+      const linha = this.getLinhaPorId(parseInt(elemento.id.substr(7), 0));
+      linha.desativarBorda();
+    });
+  }
+
   private verificarMudouLinha(range: RangeStatic, oldRange?: RangeStatic): boolean {
     // correção bug: cursor se perde ao teclar ↑ na primeira linha
     if (oldRange && range?.index === 0 && range?.length === 0) {
@@ -284,9 +291,9 @@ export class EtaQuill extends Quill {
           if (linhaCursor === linhaCursorAnt) {
             return false;
           }
-          this.desmarcarLinhaAtual(linhaCursorAnt);
         }
       }
+      this.desmarcarLinhas();
       this.marcarLinhaAtual(linhaCursor);
       return true;
     }

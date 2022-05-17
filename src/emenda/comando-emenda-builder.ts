@@ -4,6 +4,7 @@ import { ComandoEmenda, ItemComandoEmenda } from '../model/emenda/emenda';
 import { getArticulacao } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
+import { CitacaoComandoDeNormaVigente } from './citacao-cmd-de-norma-vigente';
 import { CitacaoComandoDispPrj } from './citacao-cmd-disp-prj';
 import { CmdEmdDispNormaVigente } from './cmd-emd-disp-norma-vigente';
 import { CmdEmdDispPrj } from './cmd-emd-disp-prj';
@@ -35,9 +36,8 @@ export class ComandoEmendaBuilder {
         const cmd = new CmdEmdDispNormaVigente(d as Articulacao);
         cabecalho = cmd.getTexto(refGenericaProjeto);
 
-        //     CitacaoComandoAlteracaoNormaVigente cit = new CitacaoComandoAlteracaoNormaVigente(emenda, d);
-        //     citacao = cit.getTexto();
-        citacao = '';
+        const cit = new CitacaoComandoDeNormaVigente();
+        citacao = cit.getTexto(d);
       } else {
         const cmd = new CmdEmdDispPrj(dispositivosEmenda);
         cabecalho = cmd.getTexto(refGenericaProjeto);

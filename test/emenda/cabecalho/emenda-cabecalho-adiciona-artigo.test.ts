@@ -38,16 +38,16 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
 
   it('Inclusão de um artigo', () => {
     const artigo = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
-    expect(artigo.rotulo).to.equal('Art. 1º-A');
+    expect(artigo.rotulo).to.equal('Art. 1º-A.');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se art. 1º-A ao Projeto, com a seguinte redação:');
   });
 
   it('Inclusão de dois artigos consecutivos', () => {
     const artigo1 = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
-    expect(artigo1.rotulo).to.equal('Art. 1º-A');
+    expect(artigo1.rotulo).to.equal('Art. 1º-A.');
     const artigo2 = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1-1');
-    expect(artigo2.rotulo).to.equal('Art. 1º-B');
+    expect(artigo2.rotulo).to.equal('Art. 1º-B.');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A e 1º-B ao Projeto, com a seguinte redação:');
   });

@@ -20,7 +20,7 @@ export class EtaBlotMensagem extends EtaBlot {
 
     node.setAttribute('contenteditable', 'false');
     node.classList.add(classe);
-    node.innerHTML = mensagem.descricao ? '- ' + mensagem.descricao : '';
+    node.innerHTML = mensagem.descricao ? mensagem.descricao : '';
     return node;
   }
 

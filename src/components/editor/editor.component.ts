@@ -93,6 +93,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return html`
       ${quillSnowStyles}
       ${editorStyles}
+      <style>
+        :host {
+          --lx-eta-editor-height: 100%;
+          --lx-eta-editor-overflow: display;
+        }
+        #lx-eta-editor {
+          height: var(--lx-eta-editor-height);
+          overflow: var(--lx-eta-editor-overflow);
+          display: block;
+        }
+      </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
           <button class="ql-bold" title="Negrito (Ctrl+b)"></button>
@@ -112,6 +123,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               <path
                 d="M488,256c0,123.4-100.5,223.9-223.9,223.9c-48.8,0-95.2-15.6-134.2-44.9c-14.1-10.6-17-30.7-6.4-44.8 c10.6-14.1,30.6-16.9,44.8-6.4c27.8,20.9,61,31.9,95.9,31.9c88.1,0,159.8-71.7,159.8-159.8S352.3,96.2,264.2,96.2 c-37.5,0-73.1,13.5-101.3,36.6L208,178c17,17,5,46.1-19.1,46.1H43.2c-10.6,0-19.2-8.6-19.2-19.2V59C24,35,53.1,23,70.1,40l47.6,47.6 c40.2-34.9,91.8-55.5,146.4-55.5C387.5,32.1,488,132.6,488,256z"
               />
+            </svg>
+          </button>
+          <button type="button" class="ql-clean">
+            <svg class="" viewBox="0 0 18 18">
+              <line class="ql-stroke" x1="5" x2="13" y1="3" y2="3"></line>
+              <line class="ql-stroke" x1="6" x2="9.35" y1="12" y2="3"></line>
+              <line class="ql-stroke" x1="11" x2="15" y1="11" y2="15"></line>
+              <line class="ql-stroke" x1="15" x2="11" y1="11" y2="15"></line>
+              <rect class="ql-fill" height="1" rx="0.5" ry="0.5" width="7" x="2" y="14"></rect>
             </svg>
           </button>
 

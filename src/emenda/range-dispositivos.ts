@@ -204,7 +204,7 @@ export class RangeDispositivos {
     }
 
     // Mesma situação
-    if (ultimo.situacao.descricaoSituacao !== atual.situacao.descricaoSituacao) {
+    if (!CmdEmdUtil.isMesmaSituacaoParaComandoEmenda(ultimo, atual)) {
       return false;
     }
 

@@ -7,12 +7,12 @@ import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { TagNode } from '../util/tag-node';
 
 export class CitacaoComandoSimples {
-  public getTexto(d: Dispositivo): string {
+  public getTexto(d: Dispositivo, alteracaoNormaVigente = false): string {
     const sb = new StringBuilder();
 
     const rotulo = isCaput(d) ? d.pai!.rotulo : d.rotulo;
     const tagRotulo = new TagNode('Rotulo').add(rotulo?.trim());
-    const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.trataTextoParaCitacao(d));
+    const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente));
 
     if (this.necessitaOmissis(d)) {
       const tagOmissis = new TagNode('p').add(new TagNode('Omissis')).add('”');
