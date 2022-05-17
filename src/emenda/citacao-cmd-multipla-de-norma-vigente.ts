@@ -13,6 +13,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
   private adjacentesOmissis: Dispositivo[] = []; // Dispositivos da lista que são adjacentes às omissis modificadas
 
   public getTexto(dispositivos: Dispositivo[]): string {
+    dispositivos = dispositivos.filter(d => d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
     this.adjacentesOmissis = this.buscaDispositivosAdjacentesAsOmissis(dispositivos);
     dispositivos.push(...this.adjacentesOmissis);
     dispositivos.sort(DispositivoComparator.compare);
