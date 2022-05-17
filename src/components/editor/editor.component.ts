@@ -125,6 +125,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               />
             </svg>
           </button>
+          <button type="button" class="ql-clean">
+            <svg class="" viewBox="0 0 18 18">
+              <line class="ql-stroke" x1="5" x2="13" y1="3" y2="3"></line>
+              <line class="ql-stroke" x1="6" x2="9.35" y1="12" y2="3"></line>
+              <line class="ql-stroke" x1="11" x2="15" y1="11" y2="15"></line>
+              <line class="ql-stroke" x1="15" x2="11" y1="11" y2="15"></line>
+              <rect class="ql-fill" height="1" rx="0.5" ry="0.5" width="7" x="2" y="14"></rect>
+            </svg>
+          </button>
 
           <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
@@ -196,6 +205,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private onScript(value: any): void {
     if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
       this.quill.format('script', value);
+      this.formatacaoAlterada();
+    }
+  }
+
+  private onClean(value: any): void {
+    if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
+      this.quill.format('clean', value);
       this.formatacaoAlterada();
     }
   }
