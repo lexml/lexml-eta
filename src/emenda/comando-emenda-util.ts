@@ -1,13 +1,14 @@
-import { TagNode } from './../util/tag-node';
-import { DispositivoComparator } from './dispositivo-comparator';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { getDispositivoPosterior, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
-import { DescricaoSituacao } from './../model/dispositivo/situacao';
-import { isAgrupador, isArtigo, isCaput, isOmissis, isParagrafo, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
-import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 import { getTextoSemHtml, StringBuilder } from '../util/string-util';
+import { DescricaoSituacao } from './../model/dispositivo/situacao';
+import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
+import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { TagNode } from './../util/tag-node';
+import { DispositivoComparator } from './dispositivo-comparator';
+import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
+import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export class CmdEmdUtil {
   static getDispositivosNaoOriginais(articulacao: Articulacao): Dispositivo[] {
@@ -84,18 +85,31 @@ export class CmdEmdUtil {
     return isOmissis(d) || d.texto.startsWith(TEXTO_OMISSIS) || (isAgrupador(d) && !!(d as Artigo).caput?.texto.startsWith(TEXTO_OMISSIS));
   }
 
+  static getDescricaoSituacaoParaComandoEmenda(d: Dispositivo): string {
+    // Trata dispositivo já existente na norma adicionado em bloco de alteração como dispositivo modificado
+    return d.isDispositivoAlteracao && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && DispositivoEmendaUtil.existeNaNormaAlterada(d)
+      ? DescricaoSituacao.DISPOSITIVO_MODIFICADO
+      : d.situacao.descricaoSituacao;
+  }
+
+  static isMesmaSituacaoParaComandoEmenda(d1: Dispositivo, d2: Dispositivo): boolean {
+    return this.getDescricaoSituacaoParaComandoEmenda(d1) === this.getDescricaoSituacaoParaComandoEmenda(d2);
+  }
+
   static isAlteracaoIntegral(d: Dispositivo): boolean {
-    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+    const descricaoSituacao = this.getDescricaoSituacaoParaComandoEmenda(d);
+
+    if (descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       return false;
     }
 
-    if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    if (descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
       return true;
     }
 
     if (!d.filhos.length) {
       if (isArtigo(d)) {
-        return d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL;
+        return descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL;
       }
       return true;
     }

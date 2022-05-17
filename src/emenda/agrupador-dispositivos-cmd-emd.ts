@@ -84,7 +84,7 @@ export class AgrupadorDispositivosCmdEmd {
     const dispRange = range.getUltimo();
     return (
       CmdEmdUtil.isMesmoTipoParaComandoEmenda(dispSequencia, dispRange) &&
-      dispSequencia.situacao.descricaoSituacao === dispRange.situacao.descricaoSituacao &&
+      CmdEmdUtil.isMesmaSituacaoParaComandoEmenda(dispSequencia, dispRange) &&
       (dispSequencia.tipo === TipoDispositivo.artigo.tipo || dispSequencia.pai === dispRange.pai) &&
       dispSequencia.tipo !== TipoDispositivo.omissis.tipo
     );
