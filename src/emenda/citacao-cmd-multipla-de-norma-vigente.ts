@@ -82,7 +82,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
         if (!isCaput(dispositivoAnterior) && !isOmissis(d)) {
           sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
         }
-      } else if (this.ultimoProcessado !== dispositivoAnterior && !isOmissis(d)) {
+      } else if (this.ultimoProcessado !== dispositivoAnterior && !isOmissis(d) && dispositivoAnterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
       }
 
