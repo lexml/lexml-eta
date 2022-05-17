@@ -68,7 +68,7 @@ export class ComandoEmendaBuilder {
     dispositivosEmenda.forEach(d => {
       const articulacao = getArticulacao(d);
       // Separa alterações
-      if (articulacao && articulacao.pai && articulacao.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      if (articulacao && articulacao.pai && articulacao.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
         if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
           ret.push(articulacao);
         }
