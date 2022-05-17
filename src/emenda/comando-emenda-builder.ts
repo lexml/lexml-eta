@@ -1,3 +1,4 @@
+import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
@@ -68,8 +69,12 @@ export class ComandoEmendaBuilder {
     dispositivosEmenda.forEach(d => {
       const articulacao = getArticulacao(d);
       // Separa alterações
-      if (articulacao && articulacao.pai && articulacao.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-        if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      if (articulacao && isArticulacaoAlteracao(articulacao)) {
+        if (
+          !ret.includes(articulacao) &&
+          articulacao.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+          articulacao.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+        ) {
           ret.push(articulacao);
         }
       } else if (!temDispositivoDeProjeto) {
