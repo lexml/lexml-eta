@@ -75,11 +75,8 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
       // -------------------------------------------
       // Omissões antes
 
-      // Trata caso específico de parágrafo modificado sem caput modificado
+      // Trata caso específico de primeiro parágrafo
       if (isArtigo(this.ultimoProcessado as Dispositivo) && !isCaput(d)) {
-        // Omissis para o caput
-        sb.append(new TagNode('Omissis').toString());
-
         // Omissis entre o caput e o dispositivo
         if (!isCaput(dispositivoAnterior) && !isOmissis(d)) {
           sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
