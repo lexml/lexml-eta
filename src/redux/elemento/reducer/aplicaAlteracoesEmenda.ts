@@ -65,12 +65,6 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
   const eventos: StateEvent[] = [];
 
-  /*   const mapa = criaMapaElementosIncluidos(alteracoesEmenda);
-
-  for (const value of mapa.values()) {
-    eventos.push(criaEventoElementosIncluidos(state, value));
-  } */
-
   eventos.push(criaEventoElementosIncluidos(state, alteracoesEmenda.dispositivosAdicionados));
   return eventos;
 };
@@ -87,7 +81,10 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
     let novo;
 
     if (dispositivo.idIrmaoAnterior) {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.idIrmaoAnterior);
+      const d = buscaDispositivoById(
+        state.articulacao,
+        dispositivo.idIrmaoAnterior.endsWith('cpt') ? dispositivo.idIrmaoAnterior.replace(/(_cpt)$/g, '') : dispositivo.idIrmaoAnterior
+      );
 
       if (d) {
         if (d.tipo === dispositivo.tipo || d.tipo === 'Omissis') {
@@ -162,37 +159,3 @@ const referenciaAjustada = (referencia: Dispositivo, dispositivo: Dispositivo): 
   const ref = ajustaReferencia(referencia, dispositivo);
   return ref.id !== dispositivo.id ? ref : dispositivo.pai!.filhos[dispositivo.pai!.filhos.length - 2];
 };
-
-/* const IsFilhoUltimoProcessado = (idAtual: string, idAnterior: string): boolean => {
-  return idAnterior === idAtual.substring(0, idAtual.lastIndexOf('_'));
-};
-
-const criaNovaEntradaNoMapa = (mapa: Map<string, DispositivoEmendaAdicionado[]>, dispositivo: DispositivoEmendaAdicionado): void => {
-  mapa.set(dispositivo.id, [dispositivo]);
-}; */
-
-/* const criaMapaElementosIncluidos = (alteracoesEmenda: DispositivosEmenda): Map<string, []> => {
-  const mapaElementosIncluidos = new Map();
-
-  alteracoesEmenda.dispositivosAdicionados?.forEach((d, index) => {
-    if (index === 0 || d.tipo === 'Alteracao') {
-      criaNovaEntradaNoMapa(mapaElementosIncluidos, d);
-    } else {
-      const tipoDispositivoAnterior = alteracoesEmenda.dispositivosAdicionados[index - 1].tipo;
-      const deslocamentoIndex = tipoDispositivoAnterior !== 'Caput' ? 1 : 2;
-      const ultimoProcessado = alteracoesEmenda.dispositivosAdicionados[index - deslocamentoIndex];
-
-      if (d.tipo === 'Caput') {
-        ultimoProcessado.texto = d.texto;
-      }
-
-      if (IsFilhoUltimoProcessado(d.id, ultimoProcessado.id)) {
-        mapaElementosIncluidos.get(ultimoProcessado.id).push(d);
-      } else {
-        criaNovaEntradaNoMapa(mapaElementosIncluidos, d);
-      }
-    }
-  });
-
-  return mapaElementosIncluidos;
-};*/
