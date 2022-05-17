@@ -28,6 +28,7 @@ export class ComandoEmendaComponent extends LitElement {
   }
 
   render(): TemplateResult {
+    const cabecalhoComum = this.emenda?.cabecalhoComum;
     const comandos = this.emenda?.comandos;
     return html`
       <style>
@@ -88,19 +89,18 @@ export class ComandoEmendaComponent extends LitElement {
 
       <div class="lexml-emenda-comando">
         <p class="lexml-emenda-tituloComando">Comando de emenda</p>
-        <p>${(this.emenda as any)?.comandoEmenda?.cabecalhoComum}</p>
 
+        ${cabecalhoComum ? unsafeHTML(`<p class="lexml-emenda-cabecalhoComando">${cabecalhoComum}</p>`) : ''}
         ${comandos?.map(comando => {
-          return html`
-            ${unsafeHTML(
-              '<div class="lexml-emenda-cabecalhoComando">' +
-                comando.cabecalho +
-                '</div>' +
-                '<div class="lexml-emenda-citacaoComando">' +
-                this.buildTemplateCitacao(comando.citacao) +
-                '</div>'
-            )}
-          `;
+          return unsafeHTML(
+            '<div class="lexml-emenda-cabecalhoComando">' +
+              (comando.rotulo ? `<strong>${comando.rotulo}</strong> ` : '') +
+              comando.cabecalho +
+              '</div>' +
+              '<div class="lexml-emenda-citacaoComando">' +
+              this.buildTemplateCitacao(comando.citacao) +
+              '</div>'
+          );
         })}
       </div>
     `;

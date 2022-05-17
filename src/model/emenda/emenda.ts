@@ -84,6 +84,8 @@ export class ComandoEmenda {
 
 export class ItemComandoEmenda {
   constructor(public cabecalho: string, public citacao?: string) {}
+  rotulo?: string;
+  complemento?: string;
 }
 
 // Autoria ----------------------------
