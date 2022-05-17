@@ -209,13 +209,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private onClean(value: any): void {
-    if (this.quill.keyboard.verificarOperacaoTecladoPermitida()) {
-      this.quill.format('clean', value);
-      this.formatacaoAlterada();
-    }
-  }
-
   private onOperacaoInvalida(): void {
     this.alertar('Operação não permitida.');
   }
