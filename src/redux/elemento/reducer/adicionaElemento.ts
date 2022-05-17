@@ -50,6 +50,7 @@ export const adicionaElemento = (state: any, action: any): State => {
   if (
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+    atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO ||
     atual.situacao instanceof DispositivoAdicionado
   ) {
     novo.situacao = new DispositivoAdicionado();
