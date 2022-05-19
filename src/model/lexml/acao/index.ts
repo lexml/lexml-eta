@@ -1,5 +1,22 @@
 import { Referencia } from '../../elemento';
-import { adicionarAlinea, adicionarArtigo, adicionarElementoAction, adicionarInciso, adicionarItem, adicionarParagrafo } from './adicionarElementoAction';
+import {
+  adicionarAlinea,
+  adicionarAlineaAntes,
+  adicionarAlineaDepois,
+  adicionarArtigo,
+  adicionarArtigoAntes,
+  adicionarArtigoDepois,
+  adicionarElementoAction,
+  adicionarInciso,
+  adicionarIncisoAntes,
+  adicionarIncisoDepois,
+  adicionarItem,
+  adicionarItemAntes,
+  adicionarItemDepois,
+  adicionarParagrafo,
+  adicionarParagrafoAntes,
+  adicionarParagrafoDepois,
+} from './adicionarElementoAction';
 import { adicionarCapitulo, adicionarLivro, adicionarParte, adicionarSecao, adicionarSubsecao, adicionarTitulo, AgruparElemento } from './agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
 import { informarNormaAction } from './informarNormaAction';
@@ -87,6 +104,17 @@ acoesMenu.push(adicionarTitulo);
 acoesMenu.push(adicionarCapitulo);
 acoesMenu.push(adicionarSecao);
 acoesMenu.push(adicionarSubsecao);
+
+acoesMenu.push(adicionarArtigoAntes);
+acoesMenu.push(adicionarArtigoDepois);
+acoesMenu.push(adicionarAlineaAntes);
+acoesMenu.push(adicionarAlineaDepois);
+acoesMenu.push(adicionarIncisoAntes);
+acoesMenu.push(adicionarIncisoDepois);
+acoesMenu.push(adicionarItemAntes);
+acoesMenu.push(adicionarItemDepois);
+acoesMenu.push(adicionarParagrafoAntes);
+acoesMenu.push(adicionarParagrafoDepois);
 
 export const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);

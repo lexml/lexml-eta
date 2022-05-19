@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoGenerico, isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
-import { adicionarAlinea, adicionarInciso, adicionarParagrafo } from '../acao/adicionarElementoAction';
+import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -42,6 +42,8 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(removerElementoAction);
+      acoes.push(adicionarIncisoAntes);
+      acoes.push(adicionarIncisoDepois);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);
