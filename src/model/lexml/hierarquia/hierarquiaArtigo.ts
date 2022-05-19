@@ -1,9 +1,10 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isCaput, isInciso } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import { isDispositivoAlteracao, isOriginal } from './hierarquiaUtil';
+import { isDispositivoAlteracao } from './hierarquiaUtil';
 
 export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -29,7 +30,6 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
-      // isInciso(filho) ? this.caput!.addFilhoOnPosition(filho, posicao) : this.paragrafos.splice(posicao, 0, filho);
       if (isInciso(filho)) {
         this.caput!.addFilhoOnPosition(filho, posicao);
       } else {
@@ -75,13 +75,15 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     private renumeraParagrafos(): void {
-      this.paragrafos
-        .filter(f => !isDispositivoAlteracao(f) && !isOriginal(f))
-        .forEach(filho => {
+      this.paragrafos.forEach(filho => {
+        if (isDispositivoAlteracao(filho)) {
+          filho.createRotulo(filho);
+        } else if (filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
           filho.id = buildId(filho);
-        });
+        }
+      });
     }
 
     isParagrafoUnico(): boolean {

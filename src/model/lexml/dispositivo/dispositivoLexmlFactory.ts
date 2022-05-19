@@ -90,12 +90,7 @@ const OmissisLexml = SituacaoDispositivo(RegrasOmissis(GeneroFeminino(BlocoAlter
 const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
-  if (isDispositivoAlteracao(dispositivo)) {
-    dispositivo.renumeraFilhos = (): void => undefined;
-    if (isArtigo(dispositivo)) {
-      (dispositivo as Artigo).caput!.renumeraFilhos = (): void => undefined;
-    }
-    getArticulacao(dispositivo).renumeraFilhos = (): void => undefined;
+  if (isDispositivoAlteracao(dispositivo) && isArtigo(dispositivo)) {
     getArticulacao(dispositivo).renumeraArtigos = (): void => undefined;
   }
 };

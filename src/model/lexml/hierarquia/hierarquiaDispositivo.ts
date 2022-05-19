@@ -46,17 +46,15 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
     }
 
     renumeraFilhos(): void {
-      this.filhos
-        .filter(
-          f =>
-            !isDispositivoAlteracao(f) &&
-            (f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
-        )
-        .forEach(filho => {
+      this.filhos.forEach(filho => {
+        if (isDispositivoAlteracao(filho)) {
+          filho.createRotulo(filho);
+        } else if (filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
           filho.id = buildId(filho);
-        });
+        }
+      });
     }
   };
 }

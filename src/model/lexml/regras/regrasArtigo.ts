@@ -28,6 +28,7 @@ import {
   hasDispositivosPosterioresAlteracao,
   hasFilhos,
   isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -44,8 +45,6 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(adicionarElementoAction);
-      acoes.push(adicionarArtigoAntes);
-      acoes.push(adicionarArtigoDepois);
 
       acoes.push(removerElementoAction);
 
@@ -54,6 +53,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
       if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAcimaAction);
+      }
+
+      if (!isDispositivoCabecaAlteracao(dispositivo)) {
+        acoes.push(adicionarArtigoAntes);
+        acoes.push(adicionarArtigoDepois);
       }
 
       if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
