@@ -22,7 +22,9 @@ export class DispositivosEmendaBuilder {
   private preencheDispositivos(dispositivosEmenda: DispositivosEmenda): void {
     const dispositivos = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
 
-    const dispositivosSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
+    const dispositivosSuprimidos = dispositivos.filter(
+      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+    );
     if (dispositivosSuprimidos.length) {
       for (const d of dispositivosSuprimidos) {
         const ds = new DispositivoEmendaSuprimido();
