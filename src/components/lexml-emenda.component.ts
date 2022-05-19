@@ -19,6 +19,7 @@ import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFrom
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
+  @property({ type: Boolean }) existeObserverEmenda = false;
 
   @state()
   autoria = new Autoria();
@@ -77,7 +78,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   updated(): void {
     // cria resizeObserver apenas se altura for ajustada
-    if (this?.ajustarAltura()) this.observarAltura();
+    if (this?.ajustarAltura()) {
+      if (this.existeObserverEmenda !== true) {
+        this.observarAltura();
+      }
+    }
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -104,6 +109,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       if (alturaElemento > 0) {
         this?.style.setProperty('--height', alturaElemento + 'px');
         this?.style.setProperty('--overflow', 'hidden');
+        // console.log('H ajustada: ' + alturaElemento);
         return true;
       }
     }
@@ -111,15 +117,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   // recupera redimensionamento da caixa do componente e reajusta altura
-  private observarAltura(): void {
-    const resizeObserver = new ResizeObserver(entries => {
+  private observarAltura() {
+    const emendaObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         if (entry.contentBoxSize) {
           this.ajustarAltura(entry.contentBoxSize[0].blockSize);
         }
       }
     });
-    resizeObserver.observe(this);
+    this.existeObserverEmenda = true;
+    emendaObserver.observe(this);
   }
 
   render(): TemplateResult {
