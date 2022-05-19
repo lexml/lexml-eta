@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
@@ -32,7 +32,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     return state;
   }
 
-  const ref = atual.pai!.indexOf(atual) === 0 ? atual.pai : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
+  const ref = atual.pai!.indexOf(atual) === 0 ? (isIncisoCaput(atual!) ? atual.pai!.pai! : atual.pai) : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
 
   if (atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     action.atual.conteudo.texto = atual.texto;
