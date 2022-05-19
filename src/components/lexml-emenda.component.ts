@@ -12,7 +12,7 @@ import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 
-import { Autoria, Parlamentar, Emenda, TipoEmenda } from '../model/emenda/emenda';
+import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 
 @customElement('lexml-emenda')
@@ -48,9 +48,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   getEmenda(): Emenda {
     const emenda = new Emenda();
-    emenda.tipo = this.modo as any as TipoEmenda;
+    emenda.modoEdicao = this.modo as any as ModoEdicaoEmenda;
     emenda.proposicao.urn = getUrn(this.projetoNorma);
-    emenda.dispositivos = this._lexmlEta.getDispositivosEmenda();
+    emenda.componentes[0].urn = emenda.proposicao.urn;
+    emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda();
     emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
@@ -59,8 +60,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   setEmenda(emenda: Emenda): void {
-    this.modo = emenda.tipo;
-    this._lexmlEta.dispositivosEmenda = emenda.dispositivos;
+    this.modo = emenda.modoEdicao;
+    this._lexmlEta.dispositivosEmenda = emenda.componentes[0].dispositivos;
     this.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;

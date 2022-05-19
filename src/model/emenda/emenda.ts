@@ -1,23 +1,29 @@
 export class Emenda {
+  // Metadados padronizados para o lexml-eta
+  dataUltimaModificacao = new Date().toISOString();
+  aplicacao = '';
+  versaoAplicacao = '';
+  modoEdicao = ModoEdicaoEmenda.EMENDA;
+  // Metadados específicos de sistemas
   metadados: MetadadosEmenda = {};
-  tipo = TipoEmenda.EMENDA;
-  numero?: number;
+
   proposicao = new RefProposicaoEmendada();
-  destino = new DestinoEmenda();
+  colegiadoApreciador = new ColegiadoApreciador();
   epigrafe = new Epigrafe();
-  dispositivos = new DispositivosEmenda();
+  componentes = [new ComponenteEmendado()];
   comandoEmenda = new ComandoEmenda();
   justificativa = '';
   local = '';
   data?: string; // formato “YYYY-MM-DD”
   autoria = new Autoria();
+  opcoesImpressao = new OpcoesImpressao();
 }
 
 export type MetadadosEmenda = {
   [key: string]: string | number | boolean | string[] | number[] | boolean[];
 };
 
-export enum TipoEmenda {
+export enum ModoEdicaoEmenda {
   EMENDA = 'emenda',
   EMENDA_ARTIGO_ONDE_COUBER = 'emendaArtigoOndeCouber',
 }
@@ -29,13 +35,11 @@ export class RefProposicaoEmendada {
   numero = '';
   ano = '';
   ementa = '';
-  genero: 'M' | 'F' = 'M';
-  substitutivo = false;
   identificacaoTexto = '';
 }
 
-// Destino da emenda ----------------------------
-export class DestinoEmenda {
+// Colegiado apreciador da emenda ----------------------------
+export class ColegiadoApreciador {
   siglaCasaLegislativa: 'CN' | 'SF' | 'CD' = 'CN';
   tipoColegiado: 'Plenário' | 'Comissão' = 'Plenário';
   siglaComissao?: string;
@@ -45,6 +49,15 @@ export class DestinoEmenda {
 export class Epigrafe {
   texto = '';
   complemento = '';
+}
+
+// Componente emendado -------------------------------
+export class ComponenteEmendado {
+  urn = '';
+  articulado = true;
+  rotuloAnexo?: string;
+  tituloAnexo?: string;
+  dispositivos = new DispositivosEmenda();
 }
 
 // Dispositivos da emenda ----------------------------
@@ -75,6 +88,7 @@ export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
   idIrmaoAnterior?: string;
   urnNormaAlterada?: string;
   existeNaNormaAlterada?: boolean;
+  filhos?: Array<DispositivoEmendaAdicionado>;
 }
 
 export class ComandoEmenda {
@@ -93,13 +107,16 @@ export enum TipoAutoria {
   NAO_IDENTIFICADO = 'Não identificado',
   PARLAMENTAR = 'Parlamentar',
   COMISSAO = 'Comissão',
+  CASA_LEGISLATIVA = 'Casa Legislativa',
 }
 export class Autoria {
   tipo = TipoAutoria.PARLAMENTAR;
   imprimirPartidoUF = true;
   quantidadeAssinaturasAdicionaisSenadores = 0;
   quantidadeAssinaturasAdicionaisDeputados = 0;
+  // TODO - Tornar opcional quando formos implementar outro tipo de autoria.
   parlamentares: Array<Parlamentar> = [];
+  colegiado?: ColegiadoAutor;
 }
 
 export class Parlamentar {
@@ -110,4 +127,17 @@ export class Parlamentar {
   siglaUF = '';
   siglaCasaLegislativa: 'SF' | 'CD' = 'CD';
   cargo = '';
+}
+
+export class ColegiadoAutor {
+  identificacao = '';
+  nome = '';
+  sigla = '';
+}
+
+// Opções de impressão -----------------------------
+export class OpcoesImpressao {
+  imprimirBrasao = true;
+  textoCabecalho = '';
+  reduzirEspacoEntreLinhas = false;
 }

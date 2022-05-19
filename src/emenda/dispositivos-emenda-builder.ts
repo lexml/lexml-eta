@@ -2,7 +2,7 @@ import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isCaput, isOmissis } from '../model/dispositivo/tipo';
-import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, TipoEmenda } from '../model/emenda/emenda';
+import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
@@ -11,7 +11,7 @@ import { escapeRegex, getTextoSemHtml } from '../util/string-util';
 import { CmdEmdUtil } from './comando-emenda-util';
 
 export class DispositivosEmendaBuilder {
-  constructor(private tipoEmenda: TipoEmenda, private urn: string, private articulacao: Articulacao) {}
+  constructor(private tipoEmenda: ModoEdicaoEmenda, private urn: string, private articulacao: Articulacao) {}
 
   getDispositivosEmenda(): DispositivosEmenda {
     const dispositivos = new DispositivosEmenda();

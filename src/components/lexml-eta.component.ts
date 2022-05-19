@@ -5,7 +5,7 @@ import { connect } from 'pwa-helpers';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
 import { DispositivosEmendaBuilder } from '../emenda/dispositivos-emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
-import { ComandoEmenda, TipoEmenda } from '../model/emenda/emenda';
+import { ComandoEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -32,7 +32,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
     const urn = (this.projetoNorma as any).value.metadado.identificacao.urn!;
     const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return new DispositivosEmendaBuilder(classificacao as unknown as TipoEmenda, urn, articulacao).getDispositivosEmenda();
+    return new DispositivosEmendaBuilder(classificacao as unknown as ModoEdicaoEmenda, urn, articulacao).getDispositivosEmenda();
   }
 
   getComandoEmenda(): ComandoEmenda {
