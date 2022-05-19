@@ -19,6 +19,7 @@ import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFrom
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
+  @property({ type: Boolean }) existeObserverEmenda = false;
 
   @state()
   autoria = new Autoria();
@@ -77,15 +78,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    let alturaElemento = this.pesquisarAlturaParentElement(this);
-    // altura dos tabs
-    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
-    const alturaLexmlEtaTabs = lexmlEtaTabs?.scrollHeight;
-    if (alturaLexmlEtaTabs) {
-      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 2;
-      if (alturaElemento > 0) {
-        this?.style.setProperty('--height', alturaElemento + 'px');
-        this?.style.setProperty('--overflow', 'hidden');
+    // cria resizeObserver apenas se altura for ajustada
+    if (this?.ajustarAltura()) {
+      if (this.existeObserverEmenda !== true) {
+        this.observarAltura();
       }
     }
   }
@@ -97,12 +93,41 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } else {
       const minHeight = getComputedStyle(this).getPropertyValue('--min-height').replace('px', '');
       if (elemento.scrollHeight >= minHeight) {
-        console.log('h:', elemento.scrollHeight, 'encontrada no elemento:', elemento.localName, elemento.className);
         return elemento.scrollHeight;
       } else {
         return this.pesquisarAlturaParentElement(elemento.parentElement);
       }
     }
+  }
+  // procura por uma altura definida e ajusta componente
+  private ajustarAltura(altura?: number): boolean {
+    let alturaElemento = altura !== undefined ? altura : this.pesquisarAlturaParentElement(this);
+    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
+    // altura dos tabs
+    const alturaLexmlEtaTabs = lexmlEtaTabs?.scrollHeight;
+    if (alturaLexmlEtaTabs) {
+      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 2;
+      if (alturaElemento > 0) {
+        this?.style.setProperty('--height', alturaElemento + 'px');
+        this?.style.setProperty('--overflow', 'hidden');
+        // console.log('H ajustada: ' + alturaElemento);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // recupera redimensionamento da caixa do componente e reajusta altura
+  private observarAltura() {
+    const emendaObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        if (entry.contentBoxSize) {
+          this.ajustarAltura(entry.contentBoxSize[0].blockSize);
+        }
+      }
+    });
+    this.existeObserverEmenda = true;
+    emendaObserver.observe(this);
   }
 
   render(): TemplateResult {
