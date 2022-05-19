@@ -8,9 +8,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
-import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/badge/badge.js';
-import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -161,10 +159,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         .badge-pulse {
           margin-left: 5px;
         }
-        sl-alert {
-          --box-shadow: var(--sl-shadow-x-large);
-          margin: 20px;
-        }
       </style>
 
       <sl-tab-group>
@@ -189,26 +183,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
         </sl-tab-panel>
         <sl-tab-panel name="avisos" class="overflow-hidden">
-          <sl-alert variant="success" open closable class="alert-closable">
-            <sl-icon slot="icon" name="check2-circle"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
-          <sl-alert variant="warning" open closable class="alert-closable">
-            <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
-          <sl-alert variant="danger" open closable class="alert-closable">
-            <sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
-          <sl-alert variant="primary" open closable class="alert-closable">
-            <sl-icon slot="icon" name="info-circle"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
+          <lexml-eta-alertas></lexml-eta-alertas>
         </sl-tab-panel>
       </sl-tab-group>
     `;
