@@ -13,7 +13,6 @@ import {
   getDispositivoAnteriorMesmoTipo,
   getProximoArtigoAnterior,
   getUltimoFilho,
-  hasFilhos,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Counter } from '../../../util/counter';
 import { StateType } from '../../state';
@@ -73,9 +72,6 @@ export const naoPodeCriarFilho = (dispositivo: Dispositivo, action: any): boolea
     dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO &&
     !getProximoArtigoAnterior(dispositivo.pai!, dispositivo)
   ) {
-    return true;
-  }
-  if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && hasIndicativoDesdobramento(dispositivo) && hasFilhos(dispositivo)) {
     return true;
   }
   return (

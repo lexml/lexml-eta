@@ -21,7 +21,13 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     }
 
     createRotulo(): void {
-      this.rotulo = this.numero === undefined ? TipoDispositivo.inciso.name : trataComplemento(this.numero, converteNumeroArabicoParaRomano) + this.SUFIXO;
+      if (!this.numero) {
+        this.rotulo = TipoDispositivo.inciso.name;
+      } else {
+        const num = this.numero.search(/[a-zA-Z-]/) === -1 ? parseInt(this.numero) : parseInt(this.numero.substring(0, this.numero.search(/[a-zA-Z-]/)));
+        const resto = this.numero.search(/[a-zA-Z-]/) === -1 ? '' : this.numero.substring(this.numero.search(/[a-zA-Z-]/));
+        this.rotulo = (num === 0 ? num + resto : trataComplemento(this.numero, converteNumeroArabicoParaRomano)) + this.SUFIXO;
+      }
     }
 
     getNumeracaoParaComandoEmenda(): string {

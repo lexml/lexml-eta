@@ -1,18 +1,28 @@
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElemento, createElementos, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
-import { createByInferencia } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { hasFilhos, irmaosMesmoTipo, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { createElementoValidado, isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+
+const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined => {
+  const posicaoAtual = atual.pai!.indexOf(atual);
+  if (posicao === 'antes') {
+    return posicaoAtual;
+  }
+  return posicaoAtual === atual.pai!.filhos.length - 1 ? undefined : posicaoAtual + 1;
+};
 
 export const adicionaElemento = (state: any, action: any): State => {
   let textoModificado = false;
@@ -22,6 +32,9 @@ export const adicionaElemento = (state: any, action: any): State => {
   if (atual === undefined || atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     return state;
   }
+
+  const ref =
+    atual.pai!.indexOf(atual) === 0 ? (atual.hasAlteracao() ? atual : isIncisoCaput(atual!) ? atual.pai!.pai! : atual.pai) : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
 
   if (atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     action.atual.conteudo.texto = atual.texto;
@@ -45,7 +58,11 @@ export const adicionaElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
-  const novo = createByInferencia(atual, action);
+  const novo = atual.hasAlteracao()
+    ? criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0)
+    : action.posicao
+    ? criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao))
+    : createByInferencia(atual, action);
 
   if (
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||
@@ -71,7 +88,7 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   novo.pai!.renumeraFilhos();
 
-  const eventos = buildEventoAdicionarElemento(atual, novo);
+  const eventos = action.posicao && action.posicao === 'antes' ? buildEventoAdicionarElemento(ref!, novo) : buildEventoAdicionarElemento(atual, novo);
 
   const elementoAtualAtualizado = createElementoValidado(atual);
 
@@ -95,6 +112,13 @@ export const adicionaElemento = (state: any, action: any): State => {
   if (isArtigoUnico(atual) || originalmenteUnico) {
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
     eventos.add(StateType.ElementoRenumerado, [elementoAtualAtualizado]);
+  }
+
+  if (action.posicao && action.posicao === 'antes') {
+    eventos.add(
+      StateType.ElementoRenumerado,
+      listaDispositivosRenumerados(novo).map(d => createElemento(d))
+    );
   }
 
   return {

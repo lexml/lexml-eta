@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isDispositivoGenerico, isItem } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
+import { adicionarItemAntes, adicionarItemDepois } from '../acao/adicionarElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -29,6 +30,8 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(removerElementoAction);
+      acoes.push(adicionarItemAntes);
+      acoes.push(adicionarItemDepois);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);
