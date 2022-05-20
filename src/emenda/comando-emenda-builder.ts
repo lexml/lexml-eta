@@ -1,4 +1,6 @@
+import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
+import { NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { ComandoEmenda, ItemComandoEmenda } from '../model/emenda/emenda';
 import { getArticulacao } from '../model/lexml/hierarquia/hierarquiaUtil';
@@ -26,7 +28,7 @@ export class ComandoEmendaBuilder {
       return ret;
     }
 
-    const refGenericaProjeto = getRefGenericaProjeto(this.urn);
+    const refProjeto = getRefGenericaProjeto(this.urn);
 
     list.forEach(d => {
       let cabecalho: string;
@@ -34,13 +36,13 @@ export class ComandoEmendaBuilder {
 
       if (isArticulacao(d)) {
         const cmd = new CmdEmdDispNormaVigente(d as Articulacao);
-        cabecalho = cmd.getTexto(refGenericaProjeto);
+        cabecalho = cmd.getTexto(refProjeto);
 
         const cit = new CitacaoComandoDeNormaVigente();
         citacao = cit.getTexto(d);
       } else {
         const cmd = new CmdEmdDispPrj(dispositivosEmenda);
-        cabecalho = cmd.getTexto(refGenericaProjeto);
+        cabecalho = cmd.getTexto(refProjeto);
 
         const cit = new CitacaoComandoDispPrj(this.articulacao);
         citacao = cit.getTexto();
@@ -48,6 +50,13 @@ export class ComandoEmendaBuilder {
 
       ret.comandos.push(new ItemComandoEmenda(cabecalho, citacao));
     });
+
+    if (ret.comandos.length > 1) {
+      ret.cabecalhoComum = this.montaCabecalhoComum(refProjeto, ret.comandos.length);
+      ret.comandos.forEach((c, i) => {
+        c.rotulo = `Item ${i + 1} –`;
+      });
+    }
 
     return ret;
   }
@@ -60,8 +69,12 @@ export class ComandoEmendaBuilder {
     dispositivosEmenda.forEach(d => {
       const articulacao = getArticulacao(d);
       // Separa alterações
-      if (articulacao && articulacao.pai && articulacao.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-        if (ret.indexOf(articulacao) === -1 && articulacao.pai.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      if (articulacao && isArticulacaoAlteracao(articulacao)) {
+        if (
+          !ret.includes(articulacao) &&
+          articulacao.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+          articulacao.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+        ) {
           ret.push(articulacao);
         }
       } else if (!temDispositivoDeProjeto) {
@@ -71,5 +84,17 @@ export class ComandoEmendaBuilder {
     });
 
     return ret;
+  }
+
+  montaCabecalhoComum(refProjeto: NomeComGenero, qtdItens: number): string {
+    return `Dê-se nova redação ${refProjeto.genero.artigoDefinidoPrecedidoPreposicaoASingular} ${refProjeto.nome} nos termos dos itens ${this.listarItens(qtdItens)} a seguir.`;
+  }
+
+  listarItens(qtdItens: number): string {
+    return Array(qtdItens)
+      .fill(0)
+      .map((_, i) => i + 1)
+      .join(', ')
+      .replace(/, (\d+?)$/, ' e $1');
   }
 }

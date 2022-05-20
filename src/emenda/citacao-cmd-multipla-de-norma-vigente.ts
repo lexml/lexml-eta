@@ -13,6 +13,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
   private adjacentesOmissis: Dispositivo[] = []; // Dispositivos da lista que são adjacentes às omissis modificadas
 
   public getTexto(dispositivos: Dispositivo[]): string {
+    dispositivos = dispositivos.filter(d => d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
     this.adjacentesOmissis = this.buscaDispositivosAdjacentesAsOmissis(dispositivos);
     dispositivos.push(...this.adjacentesOmissis);
     dispositivos.sort(DispositivoComparator.compare);
@@ -81,7 +82,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
         if (!isCaput(dispositivoAnterior) && !isOmissis(d)) {
           sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
         }
-      } else if (this.ultimoProcessado !== dispositivoAnterior && !isOmissis(d)) {
+      } else if (this.ultimoProcessado !== dispositivoAnterior && !isOmissis(d) && dispositivoAnterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
       }
 

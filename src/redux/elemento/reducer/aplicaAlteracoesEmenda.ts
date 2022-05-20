@@ -10,7 +10,7 @@ import { Eventos } from '../evento/eventos';
 import { ajustaReferencia } from '../util/reducerUtil';
 import { Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import { getDispositivoAnteriorMesmoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo, percorreHierarquiaDispositivos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -33,8 +33,10 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
       const d = buscaDispositivoById(state.articulacao, dispositivo.id);
 
       if (d) {
-        d.situacao = new DispositivoSuprimido(createElemento(d));
-        eventos.get(StateType.ElementoSuprimido).elementos?.push(createElemento(d));
+        percorreHierarquiaDispositivos(d, d => {
+          d.situacao = new DispositivoSuprimido(createElemento(d));
+          eventos.get(StateType.ElementoSuprimido).elementos?.push(createElemento(d));
+        });
       }
     });
   }

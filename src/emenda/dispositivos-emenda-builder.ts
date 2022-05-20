@@ -2,7 +2,7 @@ import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isCaput, isOmissis } from '../model/dispositivo/tipo';
-import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, TipoEmenda } from '../model/emenda/emenda';
+import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
@@ -11,7 +11,7 @@ import { escapeRegex, getTextoSemHtml } from '../util/string-util';
 import { CmdEmdUtil } from './comando-emenda-util';
 
 export class DispositivosEmendaBuilder {
-  constructor(private tipoEmenda: TipoEmenda, private urn: string, private articulacao: Articulacao) {}
+  constructor(private tipoEmenda: ModoEdicaoEmenda, private urn: string, private articulacao: Articulacao) {}
 
   getDispositivosEmenda(): DispositivosEmenda {
     const dispositivos = new DispositivosEmenda();
@@ -22,7 +22,9 @@ export class DispositivosEmendaBuilder {
   private preencheDispositivos(dispositivosEmenda: DispositivosEmenda): void {
     const dispositivos = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
 
-    const dispositivosSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
+    const dispositivosSuprimidos = dispositivos.filter(
+      d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+    );
     if (dispositivosSuprimidos.length) {
       for (const d of dispositivosSuprimidos) {
         const ds = new DispositivoEmendaSuprimido();
@@ -55,20 +57,23 @@ export class DispositivosEmendaBuilder {
       }
     }
 
-    const dispositivosAdicionados = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
+    const dispositivosAdicionados = dispositivos.filter(
+      d =>
+        d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+        !(
+          d.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
+          (isCaput(d.pai!) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
+        )
+    );
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
         const da = this.criaDispositivoEmendaAdicionado(d);
         dispositivosEmenda.dispositivosAdicionados.push(da);
-        if (isArtigo(d)) {
-          const ca = this.criaDispositivoEmendaAdicionado((d as Artigo).caput!);
-          dispositivosEmenda.dispositivosAdicionados.push(ca);
-        }
       }
     }
   }
 
-  private criaDispositivoEmendaAdicionado(d: Dispositivo): DispositivoEmendaAdicionado {
+  private criaDispositivoEmendaAdicionado(d: Dispositivo, posicionar = true): DispositivoEmendaAdicionado {
     const da = new DispositivoEmendaAdicionado();
 
     da.tipo = this.getTipoDispositivoParaEmenda(d);
@@ -84,14 +89,17 @@ export class DispositivosEmendaBuilder {
     if (!isArtigo(d) && !isArticulacaoAlteracao(d)) {
       da.texto = d.texto;
     }
-    if (isCaput(d) || isArticulacaoAlteracao(d)) {
-      da.idPai = d.pai?.id;
-    } else {
-      const irmaos = CmdEmdUtil.getFilhosEstiloLexML(d.pai!);
-      if (d !== irmaos[0]) {
-        da.idIrmaoAnterior = irmaos[irmaos.indexOf(d) - 1].id;
-      } else if (!isDispositivoRaiz(d.pai!)) {
+
+    if (posicionar) {
+      if (isCaput(d) || isArticulacaoAlteracao(d)) {
         da.idPai = d.pai?.id;
+      } else {
+        const irmaos = CmdEmdUtil.getFilhosEstiloLexML(d.pai!);
+        if (d !== irmaos[0]) {
+          da.idIrmaoAnterior = irmaos[irmaos.indexOf(d) - 1].id;
+        } else if (!isDispositivoRaiz(d.pai!)) {
+          da.idPai = d.pai?.id;
+        }
       }
     }
 
@@ -104,6 +112,19 @@ export class DispositivosEmendaBuilder {
       da.existeNaNormaAlterada = (d.situacao as DispositivoAdicionado)?.existeNaNormaAlterada;
       this.preencheAtributosAlteracao(d, da);
     }
+
+    // Adiciona filhos
+    const filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
+    if (filhos.length) {
+      da.filhos = [];
+      filhos.forEach(f => {
+        // Pode ocorrer do filho nao ser um dispositivo adicionado no caso de filho de agrupador de artigo.
+        if (isCaput(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+          da.filhos!.push(this.criaDispositivoEmendaAdicionado(f, false));
+        }
+      });
+    }
+
     return da;
   }
 

@@ -448,7 +448,13 @@ export class CmdEmdUtil {
     } else {
       texto = texto.replace(/”( *(?:\(NR\)) *)?/, '’$1 ');
     }
-    return texto.replace(/^\s*<p>\s*/i, '').replace(/\s*<\/p>\s*$/i, '');
+    return texto
+      .trim()
+      .replace(/\s{2,}/g, ' ')
+      .replace(/^<p>\s?/i, '')
+      .replace(/\s?<\/p>$/i, '')
+      .replace(/<\/?a.*?>/gi, '')
+      .replace(/\s([\\.,:?!])/g, '$1');
   }
 
   static isFechaAspas(d: Dispositivo): boolean {
