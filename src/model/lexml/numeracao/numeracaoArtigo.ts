@@ -1,3 +1,4 @@
+import { isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
@@ -38,7 +39,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         this.rotulo = TipoDispositivo.artigo.descricao;
       } else if (
         dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-        (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER
+        (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
+        !isDispositivoAlteracao(dispositivo)
       ) {
         this.rotulo = 'Art.';
       } else if (this.numero === undefined) {
