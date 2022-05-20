@@ -11,3 +11,16 @@ export function adicionaAlerta(alerta: Alerta): any {
     },
   };
 }
+
+// export function removerAlerta(stringID: string): any {
+//   return {
+//     type: 'REMOVER_ALERTA',
+//     id: stringID,
+//   };
+// }
+
+export function limparAlertas(): any {
+  return {
+    type: 'LIMPAR_ALERTAS',
+  };
+}

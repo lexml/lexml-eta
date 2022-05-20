@@ -13,7 +13,16 @@ export function alertaReducer(state = { alertas: [] }, action: any): any {
           },
         ],
       };
-
+    // case 'REMOVER_ALERTA':
+    //   return {
+    //     ...state,
+    //     alertas: state.alertas.filter(alerta => alerta.id !== action.id),
+    //   };
+    case 'LIMPAR_ALERTAS':
+      return {
+        ...state,
+        alertas: [],
+      };
     default:
       return state;
   }
