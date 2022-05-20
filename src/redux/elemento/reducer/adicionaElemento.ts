@@ -4,10 +4,11 @@ import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositiv
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
-import { createByInferencia, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { hasFilhos, irmaosMesmoTipo, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
@@ -32,7 +33,8 @@ export const adicionaElemento = (state: any, action: any): State => {
     return state;
   }
 
-  const ref = atual.pai!.indexOf(atual) === 0 ? (isIncisoCaput(atual!) ? atual.pai!.pai! : atual.pai) : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
+  const ref =
+    atual.pai!.indexOf(atual) === 0 ? (atual.hasAlteracao() ? atual : isIncisoCaput(atual!) ? atual.pai!.pai! : atual.pai) : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
 
   if (atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     action.atual.conteudo.texto = atual.texto;
@@ -56,7 +58,11 @@ export const adicionaElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
-  const novo = action.posicao ? criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao)) : createByInferencia(atual, action);
+  const novo = atual.hasAlteracao()
+    ? criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0)
+    : action.posicao
+    ? criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao))
+    : createByInferencia(atual, action);
 
   if (
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||

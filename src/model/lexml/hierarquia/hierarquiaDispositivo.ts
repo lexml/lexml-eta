@@ -4,7 +4,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import { isDispositivoAlteracao } from './hierarquiaUtil';
+import { isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao } from './hierarquiaUtil';
 
 export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -47,12 +47,16 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
 
     renumeraFilhos(): void {
       this.filhos.forEach(filho => {
-        if (isDispositivoAlteracao(filho)) {
-          filho.createRotulo(filho);
-        } else if (filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        if (
+          (isDispositivoAlteracao(filho) && isAntesDoPrimeiroDispositivoOriginal(filho)) ||
+          filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO ||
+          filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
+        ) {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
           filho.id = buildId(filho);
+        } else {
+          filho.createRotulo(filho);
         }
       });
     }

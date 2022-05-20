@@ -1,8 +1,8 @@
-import { isOmissis, isCaput } from './../../dispositivo/tipo';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
+import { isCaput, isOmissis } from './../../dispositivo/tipo';
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
@@ -291,6 +291,10 @@ export const getDispositivoCabecaAlteracao = (dispositivo: Dispositivo): Disposi
 
 export const isDispositivoCabecaAlteracao = (dispositivo: Dispositivo): boolean => {
   return isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai!) && dispositivo.pai!.pai !== undefined;
+};
+
+export const isAntesDoPrimeiroDispositivoOriginal = (dispositivo: Dispositivo): boolean => {
+  return getDispositivosPosterioresMesmoTipo(dispositivo).filter(d => isOriginal(d) && d.numero === '1').length > 0;
 };
 
 export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {

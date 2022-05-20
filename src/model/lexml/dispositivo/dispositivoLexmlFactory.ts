@@ -279,8 +279,8 @@ const createWhenReferenciaIsAgrupador = (referencia: Dispositivo): Dispositivo =
   return criaDispositivo(referencia, TipoDispositivo.artigo.tipo, undefined, 0);
 };
 
-export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alteracoes): Dispositivo => {
-  const dispositivo = criaDispositivo(alteracoes!, tipo);
+export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alteracoes, referencia?: Dispositivo, posicao?: number): Dispositivo => {
+  const dispositivo = criaDispositivo(alteracoes!, tipo, referencia, posicao);
   dispositivo.createRotulo(dispositivo);
 
   return dispositivo;
