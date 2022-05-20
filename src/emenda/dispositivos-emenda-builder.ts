@@ -115,11 +115,15 @@ export class DispositivosEmendaBuilder {
 
     // Adiciona filhos
     const filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
+    // TODO - As alterações deveriam estar listadas nos getFilhosEstiloLexML (tem que rever todo o código que usa esse método)
+    if (isCaput(d) && d.pai!.alteracoes) {
+      filhos.push(d.pai!.alteracoes);
+    }
     if (filhos.length) {
       da.filhos = [];
       filhos.forEach(f => {
         // Pode ocorrer do filho nao ser um dispositivo adicionado no caso de filho de agrupador de artigo.
-        if (isCaput(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        if (isCaput(f) || isArticulacaoAlteracao(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
           da.filhos!.push(this.criaDispositivoEmendaAdicionado(f, false));
         }
       });

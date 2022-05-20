@@ -1,3 +1,4 @@
+import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -8,9 +9,10 @@ import { buildId } from '../../../model/lexml/util/idUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia } from '../util/reducerUtil';
-import { Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
+import { isArticulacao, isOmissis } from './../../../model/dispositivo/tipo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import { getDispositivoAnteriorMesmoTipo, percorreHierarquiaDispositivos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo, percorreHierarquiaDispositivos, isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -56,7 +58,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   }
 
   if (action.alteracoesEmenda.dispositivosAdicionados) {
-    processaDispositivosAdicionados(state, action.alteracoesEmenda).forEach(e => eventos.eventos.push(e));
+    eventos.eventos.push(...processaDispositivosAdicionados(state, action.alteracoesEmenda));
   }
 
   retorno.ui!.events = eventos.build();
@@ -65,13 +67,10 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
-  const eventos: StateEvent[] = [];
-
-  eventos.push(criaEventoElementosIncluidos(state, alteracoesEmenda.dispositivosAdicionados));
-  return eventos;
+  return alteracoesEmenda.dispositivosAdicionados.map(da => criaEventoElementosIncluidos(state, da));
 };
 
-const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: DispositivoEmendaAdicionado[]): StateEvent => {
+const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmendaAdicionado): StateEvent => {
   const evento: StateEvent = {
     stateType: StateType.ElementoIncluido,
     referencia: undefined,
@@ -79,80 +78,23 @@ const criaEventoElementosIncluidos = (state: any, dispositivosAdicionados: Dispo
     elementos: [],
   };
 
-  dispositivosAdicionados.forEach(dispositivo => {
-    let novo;
+  const novo = criaArvoreDispositivos(state.articulacao, dispositivo);
 
-    if (dispositivo.idIrmaoAnterior) {
-      const d = buscaDispositivoById(
-        state.articulacao,
-        dispositivo.idIrmaoAnterior.endsWith('cpt') ? dispositivo.idIrmaoAnterior.replace(/(_cpt)$/g, '') : dispositivo.idIrmaoAnterior
-      );
-
-      if (d) {
-        if (d.tipo === dispositivo.tipo || d.tipo === 'Omissis') {
-          novo = criaDispositivo(d.pai!, dispositivo.tipo, d);
-        } else {
-          // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
-          // Nesse caso, "d" já é o "Artigo" que será "pai" do novo dispositivo
-          novo = criaDispositivo(d, dispositivo.tipo);
-        }
-      }
-    } else if (dispositivo.idPai) {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.idPai.endsWith('cpt') ? dispositivo.idPai.replace(/(_cpt)$/g, '') : dispositivo.idPai);
-
-      if (d) {
-        if ((dispositivo.tipo === 'Inciso' || dispositivo.tipo === 'Omissis') && d.tipo === 'Artigo') {
-          novo = criaDispositivo((d as Artigo).caput!, dispositivo.tipo);
-        } else if (dispositivo.tipo === 'Caput') {
-          d.texto = dispositivo.texto ?? '';
-          evento.elementos![evento.elementos!.length - 1].conteudo!.texto = d.texto;
-        } else if (dispositivo.tipo === 'Alteracao') {
-          createAlteracao(d);
-          d.alteracoes!.id = dispositivo.id;
-          d.alteracoes!.base = dispositivo.urnNormaAlterada;
-        } else {
-          novo = criaDispositivo(d, dispositivo.tipo);
-          novo.texto = dispositivo.texto ?? '';
-        }
-      }
-    } else {
-      novo = criaDispositivo(state.articulacao, dispositivo.tipo, undefined, 0);
-    }
-
+  if (novo) {
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
-      const pai = novo.pai.tipo === 'Caput' ? novo.pai.pai : novo.pai;
-      evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai, novo));
+      const pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
+      evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai!, novo));
     }
 
-    if (novo && dispositivo.tipo !== 'Alteracao') {
-      novo.id = dispositivo.id;
-      const situacao = new DispositivoAdicionado();
-      situacao.existeNaNormaAlterada = dispositivo.existeNaNormaAlterada ? dispositivo.existeNaNormaAlterada : undefined;
-      novo.situacao = situacao;
-
-      if (dispositivo.abreAspas) {
-        novo.rotulo = '\u201C' + dispositivo.rotulo;
-        novo.cabecaAlteracao = true;
-      } else {
-        novo.rotulo = dispositivo.rotulo;
-        novo.createNumeroFromRotulo(dispositivo.rotulo);
-      }
-
-      if (dispositivo.fechaAspas) {
-        novo.notaAlteracao = dispositivo.notaAlteracao;
-        novo.texto = dispositivo.texto + `” ${dispositivo.notaAlteracao}`;
-      } else {
-        novo.texto = dispositivo.texto;
-      }
-
-      if (novo.tipo !== 'Caput') {
-        const novoEl = createElemento(novo);
-        novoEl.lexmlId = buildId(novo);
+    percorreHierarquiaDispositivos(novo, d => {
+      if (!isCaput(d) && !isArticulacaoAlteracao(d)) {
+        const novoEl = createElemento(d);
+        novoEl.lexmlId = buildId(d);
         evento.elementos?.push(novoEl);
       }
-    }
-  });
+    });
+  }
 
   return evento;
 };
@@ -161,3 +103,85 @@ const referenciaAjustada = (referencia: Dispositivo, dispositivo: Dispositivo): 
   const ref = ajustaReferencia(referencia, dispositivo);
   return ref.id !== dispositivo.id ? ref : dispositivo.pai!.filhos[dispositivo.pai!.filhos.length - 2];
 };
+
+const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaAdicionado): Dispositivo | undefined => {
+  let novo: Dispositivo | undefined;
+
+  const ehCaput = da.tipo === 'Caput';
+
+  if (da.idIrmaoAnterior) {
+    const d = buscaDispositivoById(articulacao, idSemCpt(da.idIrmaoAnterior));
+
+    if (d) {
+      if (d.tipo === da.tipo || d.tipo === 'Omissis') {
+        novo = criaDispositivo(d.pai!, da.tipo, d);
+      } else {
+        // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
+        // Nesse caso, "d" já é o "Artigo" que será "pai" do novo dispositivo
+        novo = criaDispositivo(d, da.tipo);
+      }
+    }
+  } else if (da.idPai) {
+    const d = buscaDispositivoById(articulacao, idSemCpt(da.idPai));
+
+    if (d) {
+      if ((da.tipo === 'Inciso' || da.tipo === 'Omissis') && d.tipo === 'Artigo') {
+        novo = criaDispositivo((d as Artigo).caput!, da.tipo);
+      } else if (ehCaput) {
+        d.texto = da.texto ?? '';
+        novo = (d as Artigo).caput!;
+      } else if (da.tipo === 'Alteracao') {
+        createAlteracao(d);
+        novo = d.alteracoes!;
+        d.alteracoes!.id = da.id;
+        d.alteracoes!.base = da.urnNormaAlterada;
+      } else {
+        novo = criaDispositivo(d, da.tipo);
+        novo.texto = da.texto ?? '';
+      }
+    }
+  } else {
+    novo = criaDispositivo(articulacao, da.tipo, undefined, 0);
+  }
+
+  if (novo) {
+    novo.id = da.id;
+    const situacao = new DispositivoAdicionado();
+    novo.situacao = situacao;
+    situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
+
+    if (!ehCaput && !isOmissis(novo) && !isArticulacao(novo)) {
+      if (da.abreAspas) {
+        novo.rotulo = '\u201C' + da.rotulo;
+        novo.cabecaAlteracao = true;
+      } else {
+        novo.rotulo = da.rotulo;
+        novo.createNumeroFromRotulo(da.rotulo!);
+      }
+    }
+
+    if (!isArticulacao(novo)) {
+      if (da.fechaAspas) {
+        novo.notaAlteracao = da.notaAlteracao;
+        novo.texto = da.texto + `” ${da.notaAlteracao}`;
+      } else {
+        novo.texto = da.texto!;
+      }
+    }
+  }
+
+  if (novo && da.filhos) {
+    da.filhos.forEach((f, i) => {
+      if (i === 0) {
+        f.idPai = da.id;
+      } else {
+        f.idIrmaoAnterior = da.filhos![i - 1].id;
+      }
+      criaArvoreDispositivos(articulacao, f);
+    });
+  }
+
+  return novo;
+};
+
+const idSemCpt = (id: string): string => id.replace(/(_cpt)$/, '');
