@@ -10,7 +10,6 @@ import { DispositivoComparator } from './dispositivo-comparator';
 export class CitacaoComandoMultipla {
   private ultimoProcessado?: Dispositivo;
   private emAlteracao = false;
-  private abrirAspasSimples = false;
 
   public getTexto(dispositivos: Dispositivo[]): string {
     let arvoreDispositivos = CmdEmdUtil.getArvoreDispositivos(dispositivos);
@@ -46,7 +45,6 @@ export class CitacaoComandoMultipla {
       if (isArticulacaoAlteracao(d)) {
         sb.append('<Alteracao>');
         this.emAlteracao = true;
-        this.abrirAspasSimples = true;
         this.ultimoProcessado = d;
         if (mapFilhos.size) {
           this.writeDispositivoTo(sb, mapFilhos);
@@ -85,11 +83,11 @@ export class CitacaoComandoMultipla {
       // o dispositivo atual
       if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(mapFilhos)) {
         const dispRotulo = isArtigo(d) ? (d as Artigo).caput! : d;
+        const abrirAspasSimples = d.rotulo?.startsWith('“');
         const rotulo = this.emAlteracao ? d.rotulo?.replace('“', '') : d.rotulo;
         const tag = new TagNode('p');
-        if (this.abrirAspasSimples) {
+        if (abrirAspasSimples) {
           tag.add('‘');
-          this.abrirAspasSimples = false;
         }
         tag.add(new TagNode('Rotulo').add(rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(dispRotulo));
         sb.append(tag.toString());
