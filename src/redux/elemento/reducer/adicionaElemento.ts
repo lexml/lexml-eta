@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArtigo, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
@@ -34,7 +34,13 @@ export const adicionaElemento = (state: any, action: any): State => {
   }
 
   const ref =
-    atual.pai!.indexOf(atual) === 0 ? (atual.hasAlteracao() ? atual : isIncisoCaput(atual!) ? atual.pai!.pai! : atual.pai) : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
+    atual.pai!.indexOf(atual) === 0
+      ? !action.posicao && atual.hasAlteracao()
+        ? atual
+        : isIncisoCaput(atual!)
+        ? atual.pai!.pai!
+        : atual.pai
+      : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
 
   if (atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     action.atual.conteudo.texto = atual.texto;
@@ -58,11 +64,25 @@ export const adicionaElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
-  const novo = atual.hasAlteracao()
-    ? criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0)
-    : action.posicao
-    ? criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao))
-    : createByInferencia(atual, action);
+  let novo;
+
+  if (isArtigo(atual)) {
+    if (action.posicao && action.posicao === 'antes') {
+      novo = criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao));
+    } else if (action.posicao && action.posicao === 'depois') {
+      novo = criaDispositivo(atual.pai!, atual.tipo, atual);
+    } else if (atual.hasAlteracao()) {
+      novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
+    } else {
+      novo = createByInferencia(atual, action);
+    }
+  } else {
+    if (action.posicao) {
+      novo = criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao));
+    } else {
+      novo = createByInferencia(atual, action);
+    }
+  }
 
   if (
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||

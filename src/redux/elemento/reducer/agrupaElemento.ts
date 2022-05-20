@@ -1,8 +1,9 @@
+import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArticulacao } from '../../../model/dispositivo/tipo';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
-import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
   getAgrupadorAcimaByTipo,
   getAgrupadoresAcimaByTipo,
@@ -13,7 +14,9 @@ import {
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
@@ -24,6 +27,29 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   if (atual === undefined) {
     return state;
+  }
+
+  if (isDispositivoCabecaAlteracao(atual)) {
+    const pos = atual.pai!.indexOf(atual);
+    const novo = criaDispositivoCabecaAlteracao(action.novo.tipo, atual.pai! as Alteracoes, undefined, pos);
+    novo.situacao = new DispositivoAdicionado();
+    novo.addFilho(atual);
+    atual.pai = novo;
+    atual.createRotulo(atual);
+    const eventos = new Eventos();
+    eventos.setReferencia(createElemento(pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1]));
+    eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
+    eventos.add(StateType.ElementoRenumerado, [createElemento(atual)]);
+    return {
+      articulacao: state.articulacao,
+      modo: state.modo,
+      past: buildPast(state, eventos.build()),
+      present: eventos.build(),
+      future: [],
+      ui: {
+        events: eventos.build(),
+      },
+    };
   }
 
   const dispositivoAnterior = getDispositivoAnterior(atual);

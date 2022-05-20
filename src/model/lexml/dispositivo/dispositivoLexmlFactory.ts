@@ -87,14 +87,6 @@ const TituloLexml = SituacaoDispositivo(
 
 const OmissisLexml = SituacaoDispositivo(RegrasOmissis(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
 
-const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
-  dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
-
-  if (isDispositivoAlteracao(dispositivo) && isArtigo(dispositivo)) {
-    getArticulacao(dispositivo).renumeraArtigos = (): void => undefined;
-  }
-};
-
 export const criaDispositivo = (parent: Dispositivo, tipo: string, referencia?: Dispositivo, posicao?: number): Dispositivo => {
   const dispositivo = create(tipo, parent);
   posicao !== undefined && posicao >= 0 ? parent!.addFilhoOnPosition(dispositivo, posicao) : referencia ? parent!.addFilho(dispositivo, referencia) : parent!.addFilho(dispositivo);
@@ -156,8 +148,6 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
   dispositivo.uuid = Counter.next();
   dispositivo.name = name;
   dispositivo.pai = parent;
-
-  desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);
 
   return dispositivo;
 };
