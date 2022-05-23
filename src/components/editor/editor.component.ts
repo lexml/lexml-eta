@@ -587,7 +587,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
       this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
       this.quill.linhaAtual.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-      this.quill.linhaAtual.setEstilo(elemento.descricaoSituacao!);
+      this.quill.linhaAtual.setEstilo(elemento!);
     }
   }
 
@@ -608,7 +608,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (linha) {
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstilo(elemento.descricaoSituacao!);
+          linha.setEstilo(elemento);
         }
       }
     });
@@ -652,7 +652,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstilo(elemento.descricaoSituacao!);
+          linha.setEstilo(elemento);
         }
 
         if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
@@ -834,7 +834,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
         etaContainerTable.insertInto(this.quill.scroll);
         elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
-        elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && etaContainerTable.setEstilo(DescricaoSituacao.DISPOSITIVO_ADICIONADO);
       });
       this.quill.limparHistory();
       if (elementos.length > 1) {
