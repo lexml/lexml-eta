@@ -10,7 +10,13 @@ import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermit
 import { BlocoAlteracaoPermitido } from '../alteracao/BlocoAlteracaoPermitido';
 import { ConteudoDispositivo } from '../conteudo/conteudoDispositivo';
 import { ConteudoOmissis } from '../conteudo/conteudoOmissis';
-import { hasIndicativoDesdobramento, hasIndicativoFinalSequencia, hasIndicativoInicioAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
+import {
+  hasIndicativoContinuacaoSequencia,
+  hasIndicativoDesdobramento,
+  hasIndicativoFinalSequencia,
+  hasIndicativoInicioAlteracao,
+  normalizaSeForOmissis,
+} from '../conteudo/conteudoUtil';
 import { HierarquiaAgrupador } from '../hierarquia/hierarquiaAgrupador';
 import { HierarquiaArtigo } from '../hierarquia/hierarquiaArtigo';
 import { HierarquiaDispositivo } from '../hierarquia/hierarquiaDispositivo';
@@ -262,8 +268,8 @@ const createWhenReferenciaIsArtigo = (referencia: Dispositivo): Dispositivo => {
     return referencia.pai!.filhos!.length > 0 ? criaDispositivo(referencia, type, undefined, 0) : criaDispositivo(referencia, type);
   }
 
-  if (hasIndicativoFinalSequencia(referencia) && referencia.pai!.isLastFilho(referencia)) {
-    return criaDispositivo(referencia!.pai!.pai!, referencia.pai!.tipo, referencia!.pai!);
+  if (hasIndicativoContinuacaoSequencia(referencia) && referencia.filhos.length > 0 && isParagrafo(referencia.filhos[0])) {
+    return criaDispositivo(referencia!, TipoDispositivo.paragrafo.tipo, undefined, 0);
   }
   return criaDispositivo(referencia.pai!, referencia.tipo, referencia);
 };
