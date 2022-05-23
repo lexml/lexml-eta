@@ -149,11 +149,11 @@ export class EtaContainerTable extends Container {
   }
 
   // TODO Rever a forma atual de se atribuir estilos
-  setEstilo(valor: string): void {
+  setEstilo(elemento: Elemento): void {
     let classeCSS = '';
     let classeCSSAdicional = 'texto__dispositivo';
 
-    switch (valor) {
+    switch (elemento.descricaoSituacao) {
       case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
         classeCSS = 'dispositivo--adicionado';
         break;
@@ -165,7 +165,8 @@ export class EtaContainerTable extends Container {
         classeCSSAdicional = 'texto--suprimido';
         break;
     }
-    this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(this._agrupador)} ${classeCSS}`);
+
+    this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(this._agrupador)} ${classeCSS} ${elemento.numero === undefined ? 'rotulo' : ''}`);
     this.blotConteudo.domNode.setAttribute('class', `${classeCSS} ${classeCSSAdicional}`);
   }
 

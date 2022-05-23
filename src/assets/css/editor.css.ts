@@ -210,6 +210,10 @@ export const editorStyles = html`
       text-align: center;
     }
 
+    .rotulo {
+      cursor: pointer;
+    }
+
     .texto__rotulo {
       color: black;
       font-weight: 600;

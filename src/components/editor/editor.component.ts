@@ -85,6 +85,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   disconnectedCallback(): void {
     this.inscricoes.forEach((i: Subscription) => i.cancel());
     this.removeEventListener('ontextchange', (event: any) => console.log(event));
+    this.removeEventListener('rotulo', (event: any) => console.log(event));
     this.destroiQuill();
     super.disconnectedCallback();
   }
@@ -786,6 +787,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.observableSelectionChange.subscribe(this.atualizarTextoElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(this.quill.clipboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
+
+    editorHtml.addEventListener('rotulo', (event: any) => {
+      event.stopImmediatePropagation();
+      this.renumerarElemento();
+    });
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string): void {

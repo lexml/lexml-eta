@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isDispositivoGenerico, isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -52,7 +52,7 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(moverElementoAcimaAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
@@ -60,10 +60,6 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         if (hasDispositivosPosterioresAlteracao(dispositivo)) {
           acoes.push(finalizarBlocoAlteracao);
         }
-      }
-
-      if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
-        acoes.push(renumerarElementoAction);
       }
 
       if (hasIndicativoDesdobramento(dispositivo)) {

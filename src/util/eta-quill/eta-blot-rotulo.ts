@@ -14,6 +14,7 @@ export class EtaBlotRotulo extends EtaBlot {
     node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento.agrupador));
     node.setAttribute('data-rotulo', elemento.rotulo);
     node.innerHTML = '';
+    node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
     return node;
   }
 
