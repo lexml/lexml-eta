@@ -148,6 +148,9 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
   dispositivo.uuid = Counter.next();
   dispositivo.name = name;
   dispositivo.pai = parent;
+  dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
+
+  desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);
 
   return dispositivo;
 };
@@ -274,4 +277,15 @@ export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alterac
   dispositivo.createRotulo(dispositivo);
 
   return dispositivo;
+};
+
+const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
+  if (isDispositivoAlteracao(dispositivo)) {
+    dispositivo.renumeraFilhos = (): void => undefined;
+    if (isArtigo(dispositivo)) {
+      (dispositivo as Artigo).caput!.renumeraFilhos = (): void => undefined;
+    }
+    getArticulacao(dispositivo).renumeraFilhos = (): void => undefined;
+    getArticulacao(dispositivo).renumeraArtigos = (): void => undefined;
+  }
 };
