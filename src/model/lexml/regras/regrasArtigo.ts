@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isAlinea, isArticulacao, isArtigo, isDispositivoGenerico, isIncisoCaput, isIncisoParagrafo, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
@@ -60,7 +60,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(adicionarArtigoDepois);
       }
 
-      if (isDispositivoAlteracao(dispositivo) && !isDispositivoGenerico(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
