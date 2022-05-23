@@ -1,4 +1,4 @@
-export function alertaReducer(state = { alertas: [] }, action: any): any {
+export const alertaReducer = (state = { alertas: [] }, action: any): any => {
   switch (action.type) {
     case 'ADICIONAR_ALERTA':
       return {
@@ -13,17 +13,13 @@ export function alertaReducer(state = { alertas: [] }, action: any): any {
           },
         ],
       };
-    // case 'REMOVER_ALERTA':
-    //   return {
-    //     ...state,
-    //     alertas: state.alertas.filter(alerta => alerta.id !== action.id),
-    //   };
+    case 'REMOVER_ALERTA':
+      return state.alertas.filter(({ id }) => id !== action.id);
     case 'LIMPAR_ALERTAS':
       return {
-        ...state,
         alertas: [],
       };
     default:
       return state;
   }
-}
+};

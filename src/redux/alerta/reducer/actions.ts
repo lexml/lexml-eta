@@ -12,12 +12,12 @@ export function adicionaAlerta(alerta: Alerta): any {
   };
 }
 
-// export function removerAlerta(stringID: string): any {
-//   return {
-//     type: 'REMOVER_ALERTA',
-//     id: stringID,
-//   };
-// }
+export function removerAlerta(id: string): any {
+  return {
+    type: 'REMOVER_ALERTA',
+    id,
+  };
+}
 
 export function limparAlertas(): any {
   return {
