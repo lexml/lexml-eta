@@ -103,6 +103,7 @@ export const adicionaElemento = (state: any, action: any): State => {
   }
 
   if (isDispositivoAlteracao(novo)) {
+    novo.createRotulo(novo);
     novo.mensagens?.push({ tipo: TipoMensagem.WARNING, descricao: `É necessário informar o rótulo do dispositivo` });
   }
 
