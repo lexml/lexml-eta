@@ -156,7 +156,7 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
   dispositivo.pai = parent;
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
-  desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);
+  desativaRotuloAutomaticoSeDispositivoAlteracaoAndCriaRotuloProvisorio(dispositivo);
 
   return dispositivo;
 };
@@ -285,7 +285,7 @@ export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alterac
   return dispositivo;
 };
 
-const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
+const desativaRotuloAutomaticoSeDispositivoAlteracaoAndCriaRotuloProvisorio = (dispositivo: Dispositivo): void => {
   if (isDispositivoAlteracao(dispositivo)) {
     dispositivo.renumeraFilhos = (): void => undefined;
     if (isArtigo(dispositivo)) {
@@ -293,5 +293,6 @@ const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo
     }
     getArticulacao(dispositivo).renumeraFilhos = (): void => undefined;
     getArticulacao(dispositivo).renumeraArtigos = (): void => undefined;
+    dispositivo.createRotulo(dispositivo);
   }
 };
