@@ -57,7 +57,9 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
       ${map(
         this.alertas,
         alerta =>
-          html` <sl-alert variant="${alerta.tipo}" id="${alerta.id}" open closable class="alert-closable"> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `
+          html`${alerta.podeFechar
+            ? html` <sl-alert variant="${alerta.tipo}" id="${alerta.id}" open closable class="alert-closable"> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `
+            : html` <sl-alert variant="${alerta.tipo}" id="${alerta.id}" open> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `}`
       )}
     `;
   }

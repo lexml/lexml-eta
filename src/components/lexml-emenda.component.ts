@@ -76,7 +76,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           id: 'successID',
           tipo: 'success',
           mensagem: 'Abriu emenda de um arquivo.',
-          podeFechar: true,
+          podeFechar: false,
         })
       );
     } else {
