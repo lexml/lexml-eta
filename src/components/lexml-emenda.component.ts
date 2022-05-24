@@ -19,7 +19,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
   @property({ type: Boolean }) existeObserverEmenda = false;
-  @property({ type: Number }) contadorAlertas = 0;
+  @property({ type: Number }) totalAlertas = 0;
 
   @state()
   autoria = new Autoria();
@@ -153,10 +153,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emendaObserver.observe(this);
   }
 
-  getContadorAlertas(): number {
-    return rootStore.getState().alertaReducer.alertas?.length;
-  }
-
   render(): TemplateResult {
     return html`
       ${shoelaceLightThemeStyles}
@@ -196,10 +192,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
         <sl-tab slot="nav" panel="avisos">
           Avisos
-          ${this.getContadorAlertas() > 0
+          ${this.totalAlertas > 0
             ? html`
                 <div class="badge-pulse">
-                  <sl-badge variant="danger" pill pulse>${this.getContadorAlertas()}</sl-badge>
+                  <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge>
                 </div>
               `
             : ''}

@@ -7,6 +7,7 @@ import { connect } from 'pwa-helpers';
 import { rootStore } from '../../redux/store';
 import { Alerta } from '../../model/alerta/alerta';
 import { limparAlertas, removerAlerta } from '../../redux/alerta/reducer/actions';
+import { LexmlEmendaComponent } from '../lexml-emenda.component';
 
 @customElement('lexml-eta-alertas')
 export class AlertasComponent extends connect(rootStore)(LitElement) {
@@ -46,6 +47,8 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(removerAlerta((event.target as Element).id));
       });
     });
+    const lexmlEmenda = document.querySelector('lexml-emenda') as LexmlEmendaComponent;
+    lexmlEmenda.totalAlertas = this.alertas.length;
   }
 
   render(): TemplateResult {
