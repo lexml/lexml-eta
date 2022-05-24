@@ -130,7 +130,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.numero !== undefined &&
     !dispositivo.pai!.isLastFilho(dispositivo) &&
     getDispositivosPosteriores(dispositivo)
-      .filter(d => dispositivo.pai === d.pai && d.numero !== undefined)
+      .filter(d => d !== dispositivo && dispositivo.pai === d.pai && d.numero !== undefined)
       .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === 1).length > 0
   ) {
     mensagens.push({
