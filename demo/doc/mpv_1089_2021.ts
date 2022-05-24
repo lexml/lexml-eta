@@ -2421,42 +2421,54 @@ export const MPV_1089_2021 = {
                           {
                             name: {
                               namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Omissis',
+                              localPart: 'Artigo',
                               prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Omissis',
-                              string: '{http://www.lexml.gov.br/1.0}Omissis',
+                              key: '{http://www.lexml.gov.br/1.0}Artigo',
+                              string: '{http://www.lexml.gov.br/1.0}Artigo',
                             },
                             value: {
-                              TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                              id: 'art2_cpt_alt1_omi1',
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'p',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}p',
-                              string: '{http://www.lexml.gov.br/1.0}p',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                              content: ['“Art. 203. Os serviços de transporte aéreo internacional podem ser realizados por empresas nacionais ou estrangeiras.\n'],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Omissis',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Omissis',
-                              string: '{http://www.lexml.gov.br/1.0}Omissis',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                              id: 'art2_cpt_alt1_omi2',
-                              fechaAspas: 's',
-                              notaAlteracao: 'NR',
+                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                              href: 'art203',
+                              id: 'art2_cpt_alt1_art203',
+                              abreAspas: 's',
+                              rotulo: 'Art. 203.',
+                              lXcontainersOmissis: [
+                                {
+                                  name: {
+                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                    localPart: 'Caput',
+                                    prefix: '',
+                                    key: '{http://www.lexml.gov.br/1.0}Caput',
+                                    string: '{http://www.lexml.gov.br/1.0}Caput',
+                                  },
+                                  value: {
+                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                    href: 'art203_cpt',
+                                    id: 'art2_cpt_alt1_art203_cpt',
+                                    p: [
+                                      {
+                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                        content: ['\n Os serviços de transporte aéreo internacional podem ser realizados por empresas nacionais ou estrangeiras.\n\n  '],
+                                      },
+                                    ],
+                                  },
+                                },
+                                {
+                                  name: {
+                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                    localPart: 'Omissis',
+                                    prefix: '',
+                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                  },
+                                  value: {
+                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                    id: 'art2_cpt_alt1_art203_omi1',
+                                    fechaAspas: 's',
+                                    notaAlteracao: 'NR',
+                                  },
+                                },
+                              ],
                             },
                           },
                           {
