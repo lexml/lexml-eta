@@ -12,17 +12,14 @@ import '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-// import { adicionaAlerta } from '../redux/alerta/reducer/actions';
+import { adicionaAlerta } from '../redux/alerta/reducer/actions';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
-<<<<<<< HEAD
   @property({ type: Boolean }) existeObserverEmenda = false;
-=======
   @property({ type: Number }) contadorAlertas = 0;
->>>>>>> 44a176d (adiciona contador de alertas e exemplo de adição de alerta)
 
   @state()
   autoria = new Autoria();
@@ -69,29 +66,29 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
-    // if (
-    //   Object.values(emenda.dispositivos)
-    //     .map(dispositivos => dispositivos.length)
-    //     .reduce((soma, total_lista) => soma + total_lista) !== 0
-    // ) {
-    //   rootStore.dispatch(
-    //     adicionaAlerta({
-    //       id: 'stringID',
-    //       tipo: 'success',
-    //       mensagem: 'Abriu emenda de um arquivo.',
-    //       podeFechar: true,
-    //     })
-    //   );
-    // } else {
-    //   rootStore.dispatch(
-    //     adicionaAlerta({
-    //       id: 'stringID',
-    //       tipo: 'info',
-    //       mensagem: 'Removeu emenda.',
-    //       podeFechar: true,
-    //     })
-    //   );
-    // }
+    if (
+      Object.values(emenda.componentes[0].dispositivos)
+        .map(dispositivos => dispositivos.length)
+        .reduce((soma, total_lista) => soma + total_lista) !== 0
+    ) {
+      rootStore.dispatch(
+        adicionaAlerta({
+          id: 'successID',
+          tipo: 'success',
+          mensagem: 'Abriu emenda de um arquivo.',
+          podeFechar: true,
+        })
+      );
+    } else {
+      rootStore.dispatch(
+        adicionaAlerta({
+          id: 'infoID',
+          tipo: 'info',
+          mensagem: 'Emendas inicializadas',
+          podeFechar: true,
+        })
+      );
+    }
   }
 
   constructor() {
@@ -157,7 +154,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   getContadorAlertas(): number {
-    return rootStore.getState().alertaReducer.alertas.length;
+    return rootStore.getState().alertaReducer.alertas?.length;
   }
 
   render(): TemplateResult {
