@@ -165,12 +165,38 @@ export const converteLetraComplementoParaNumero = (numero: string): string => {
 };
 
 export const comparaNumeracao = (a?: string, b?: string): number => {
-  if (!a || (b && a < b)) {
+  const partesA = a?.split('-');
+  const partesB = b?.split('-');
+
+  const [numA, ...remainingA] = partesA!;
+  const [numB, ...remainingB] = partesB!;
+
+  if (!numA || (numB && numA < numB)) {
+    return 1;
+  }
+  if (!numB || (numA && numA > numB)) {
+    return -1;
+  }
+
+  if (a && b && b.includes(a)) {
     return 1;
   }
 
-  if (!b || (a && a > b)) {
-    return -1;
+  for (let i = 0; i < remainingA?.length; i++) {
+    for (let j = 0; i < remainingB?.length; i++) {
+      if (remainingA[i] > remainingB[j]) {
+        return -1;
+      }
+      if (remainingA[i] < remainingB[j]) {
+        return 1;
+      }
+      if (remainingA.length > i + 1 && remainingB.length === j + 1) {
+        return 1;
+      }
+      if (remainingA.length === i + 1 && remainingB.length < j + 1) {
+        return 1;
+      }
+    }
   }
 
   return 0;
