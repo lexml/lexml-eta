@@ -14,7 +14,7 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
-import { comparaNumeracao, isNumero } from './numeracaoUtil';
+import { comparaNumeracao } from './numeracaoUtil';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -118,7 +118,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivosAnterioresMesmoTipo(dispositivo)
       .filter(d => d.numero !== undefined)
-      .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === -1).length > 0
+      .filter(anterior => comparaNumeracao(dispositivo.numero, anterior.numero) === 1).length > 0
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -131,7 +131,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     !dispositivo.pai!.isLastFilho(dispositivo) &&
     getDispositivosPosteriores(dispositivo)
       .filter(d => d !== dispositivo && dispositivo.pai === d.pai && d.numero !== undefined)
-      .filter(d => comparaNumeracao(d.numero, dispositivo.numero) === 1).length > 0
+      .filter(posterior => comparaNumeracao(posterior.numero, dispositivo.numero) === 1).length > 0
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -153,8 +153,6 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo !== null &&
     !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero !== undefined &&
-    isNumero(dispositivo.numero) &&
-    parseInt(dispositivo.numero) > 2 &&
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&

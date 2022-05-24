@@ -171,10 +171,10 @@ export const comparaNumeracao = (a?: string, b?: string): number => {
   const [numA, ...remainingA] = partesA!;
   const [numB, ...remainingB] = partesB!;
 
-  if (!numA || (numB && numA < numB)) {
+  if (!numA || (numB && parseInt(numA) < parseInt(numB))) {
     return 1;
   }
-  if (!numB || (numA && numA > numB)) {
+  if (!numB || (numA && parseInt(numA) > parseInt(numB))) {
     return -1;
   }
 
