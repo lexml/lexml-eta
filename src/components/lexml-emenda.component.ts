@@ -8,7 +8,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
-import '@shoelace-style/shoelace/dist/components/badge/badge.js';
+import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -107,6 +107,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.observarAltura();
       }
     }
+    const tabAvisos = document.querySelector('#sl-tab-4');
+    tabAvisos?.addEventListener('focus', event => {
+      const badge = (event.target as Element).querySelector('sl-badge') as SlBadge;
+      badge.pulse = false;
+    });
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -192,13 +197,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
         <sl-tab slot="nav" panel="avisos">
           Avisos
-          ${this.totalAlertas > 0
-            ? html`
-                <div class="badge-pulse">
-                  <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge>
-                </div>
-              `
-            : ''}
+          <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
         </sl-tab>
         <sl-tab-panel name="lexml-eta">
           <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>

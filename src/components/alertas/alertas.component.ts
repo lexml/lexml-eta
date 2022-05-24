@@ -1,4 +1,4 @@
-import { LitElement, html, TemplateResult, css } from 'lit';
+import { LitElement, html, TemplateResult, css, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import '@shoelace-style/shoelace/dist/components/alert/alert.js';
@@ -8,6 +8,7 @@ import { rootStore } from '../../redux/store';
 import { Alerta } from '../../model/alerta/alerta';
 import { limparAlertas, removerAlerta } from '../../redux/alerta/reducer/actions';
 import { LexmlEmendaComponent } from '../lexml-emenda.component';
+import { SlBadge } from '@shoelace-style/shoelace';
 
 @customElement('lexml-eta-alertas')
 export class AlertasComponent extends connect(rootStore)(LitElement) {
@@ -40,15 +41,23 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(limparAlertas());
   }
 
-  updated(): void {
-    const slAlertas = this.shadowRoot?.querySelectorAll('sl-alert');
-    slAlertas?.forEach(alerta => {
-      alerta.addEventListener('sl-after-hide', event => {
-        rootStore.dispatch(removerAlerta((event.target as Element).id));
+  updated(changedProperties: PropertyValues): void {
+    if (changedProperties.has('alertas')) {
+      const slAlertas = this.shadowRoot?.querySelectorAll('sl-alert');
+      slAlertas?.forEach(alerta => {
+        alerta.addEventListener('sl-after-hide', event => {
+          rootStore.dispatch(removerAlerta((event.target as Element).id));
+        });
       });
-    });
-    const lexmlEmenda = document.querySelector('lexml-emenda') as LexmlEmendaComponent;
-    lexmlEmenda.totalAlertas = this.alertas.length;
+      const lexmlEmenda = document.querySelector('lexml-emenda') as LexmlEmendaComponent;
+      lexmlEmenda.totalAlertas = this.alertas.length;
+      const oldValue = changedProperties.get('alertas')?.length || 0;
+
+      if (lexmlEmenda.totalAlertas > oldValue) {
+        const badge = document.querySelector('#contadorAvisos')?.querySelector('sl-badge') as SlBadge;
+        badge.pulse = true;
+      }
+    }
   }
 
   render(): TemplateResult {
