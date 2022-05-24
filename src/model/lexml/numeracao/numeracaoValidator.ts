@@ -158,8 +158,6 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
-    Number.isInteger(dispositivo.numero) &&
-    Number.isInteger(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) &&
     parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
   ) {
     mensagens.push({
