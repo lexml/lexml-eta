@@ -149,6 +149,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo tem número igual a de outro dispositivo',
     });
   }
+
   if (
     dispositivo !== null &&
     !isDispositivoCabecaAlteracao(dispositivo) &&
@@ -156,7 +157,6 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
-    irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length === 0 &&
     parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
   ) {
     mensagens.push({
@@ -164,6 +164,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'É necessário um omissis antes deste dispositivo',
     });
   }
+
   return mensagens;
 };
 
