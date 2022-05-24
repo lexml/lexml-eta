@@ -118,11 +118,12 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivosAnterioresMesmoTipo(dispositivo)
       .filter(d => d.numero !== undefined)
-      .filter(anterior => comparaNumeracao(dispositivo.numero, anterior.numero) === 1).length > 0
+      .filter(d => d !== dispositivo)
+      .filter(anterior => dispositivo.numero !== anterior.numero && comparaNumeracao(dispositivo.numero, anterior.numero) === 1).length > 0
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'O dispositivo tem número menor do que algum dispositivo anterior',
+      descricao: 'O dispositivo tem número menor ao de algum dispositivo anterior',
     });
   }
   if (
@@ -146,7 +147,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'O dispositivo tem número igual a de outro dispositivo',
+      descricao: 'O dispositivo tem número igual ao de outro dispositivo',
     });
   }
 
@@ -157,6 +158,8 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo.pai!.indexOf(dispositivo) > 0 &&
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
+    Number.isInteger(dispositivo.numero) &&
+    Number.isInteger(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) &&
     parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
   ) {
     mensagens.push({
