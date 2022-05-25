@@ -25,3 +25,4 @@ export { AutoriaComponent } from './components/autoria/autoria.component';
 export { LexmlAutocomplete } from './components/autoria/lexml-autocomplete';
 export { DataComponent } from './components/data/data.component';
 export { LexmlEmendaComponent } from './components/lexml-emenda.component';
+export { AlertasComponent } from './components/alertas/alertas.component';

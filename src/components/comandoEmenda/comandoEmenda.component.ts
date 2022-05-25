@@ -60,7 +60,8 @@ export class ComandoEmendaComponent extends LitElement {
           font-weight: bold;
         }
 
-        .lexml-emenda-cabecalhoComando {
+        .lexml-emenda-cabecalhoComando,
+        .lexml-emenda-complementoComando {
           display: block;
           margin-top: 1em;
           text-align: justify;
@@ -99,7 +100,8 @@ export class ComandoEmendaComponent extends LitElement {
               '</div>' +
               '<div class="lexml-emenda-citacaoComando">' +
               this.buildTemplateCitacao(comando.citacao) +
-              '</div>'
+              '</div>' +
+              (comando.complemento ? '<div class="lexml-emenda-complementoComando">' + comando.complemento + '</div>' : '')
           );
         })}
       </div>

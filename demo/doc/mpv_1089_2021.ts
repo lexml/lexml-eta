@@ -12,7 +12,7 @@ export const MPV_1089_2021 = {
       TYPE_NAME: 'br_gov_lexml__1.Metadado',
       identificacao: {
         TYPE_NAME: 'br_gov_lexml__1.Identificacao',
-        urn: 'urn:lex:br:federal:medida.provisoria:LEXML_URN_ID',
+        urn: 'urn:lex:br:federal:medida.provisoria:2021-12-29;1089',
       },
     },
     projetoNorma: {
@@ -24,7 +24,7 @@ export const MPV_1089_2021 = {
           epigrafe: {
             TYPE_NAME: 'br_gov_lexml__1.GenInline',
             id: 'epigrafe',
-            content: ['MEDIDA PROVISÓRIA Nº LEXML_EPIGRAFE_NUMERO de LEXML_EPIGRAFE_DATA '],
+            content: ['MEDIDA PROVISÓRIA Nº 1.089, DE 29 DE DEZEMBRO DE 2021 '],
           },
           ementa: {
             TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -87,9 +87,6 @@ export const MPV_1089_2021 = {
                 content: [
                   '\n    O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:\n  ',
                 ],
-              },
-              {
-                TYPE_NAME: 'br_gov_lexml__1.GenInline',
               },
             ],
           },
@@ -2322,19 +2319,6 @@ export const MPV_1089_2021 = {
                                       {
                                         name: {
                                           namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Omissis',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                          string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                          id: 'art2_cpt_alt1_cap3_sec4_omi1',
-                                        },
-                                      },
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
                                           localPart: 'Artigo',
                                           prefix: '',
                                           key: '{http://www.lexml.gov.br/1.0}Artigo',
@@ -2413,736 +2397,38 @@ export const MPV_1089_2021 = {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
                                       content: ['\n    Do Transporte Aéreo Internacional\n\n  '],
                                     },
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art203',
-                              id: 'art2_cpt_alt1_art203',
-                              abreAspas: 's',
-                              rotulo: 'Art. 203.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art203_cpt',
-                                    id: 'art2_cpt_alt1_art203_cpt',
-                                    p: [
-                                      {
-                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                        content: ['\n Os serviços de transporte aéreo internacional podem ser realizados por empresas nacionais ou estrangeiras.\n\n  '],
-                                      },
-                                    ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art203_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art205',
-                              id: 'art2_cpt_alt1_art205',
-                              abreAspas: 's',
-                              rotulo: 'Art. 205.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art205_cpt',
-                                    id: 'art2_cpt_alt1_art205_cpt',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                    p: [
-                                      {
-                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                        content: [
-                                          '\n    Para explorar o serviço de transporte aéreo internacional, a empresa estrangeira deverá obter autorização de operação, conforme o disposto em regulamentação da autoridade de aviação civil, sem prejuízo da aplicação das demais exigências previstas em lei para o funcionamento de empresas estrangeiras no País.\n\n  ',
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art216',
-                              id: 'art2_cpt_alt1_art216',
-                              abreAspas: 's',
-                              rotulo: 'Art. 216.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art216_cpt',
-                                    id: 'art2_cpt_alt1_art216_cpt',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                    p: [
-                                      {
-                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                        content: [
-                                          '\n    Os serviços aéreos de transporte doméstico são reservados a pessoas jurídicas constituídas sob as leis brasileiras, com sede e administração no País.\n\n  ',
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art222',
-                              id: 'art2_cpt_alt1_art222',
-                              abreAspas: 's',
-                              rotulo: 'Art. 222.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art222_cpt',
-                                    id: 'art2_cpt_alt1_art222_cpt',
-                                    p: [
-                                      {
-                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                        content: [
-                                          '\n    Pelo contrato de transporte aéreo, obriga-se o empresário a transportar passageiro, bagagem ou carga, por meio de aeronave, mediante pagamento.\n\n  ',
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art222_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art267',
-                              id: 'art2_cpt_alt1_art267',
-                              abreAspas: 's',
-                              rotulo: 'Art. 267.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art267_cpt',
-                                    id: 'art2_cpt_alt1_art267_cpt',
-                                    textoOmitido: 's',
-                                    lXcontainersOmissis: [
+                                    lXhier: [
                                       {
                                         name: {
                                           namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
+                                          localPart: 'Artigo',
                                           prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
                                         },
                                         value: {
                                           TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art267_cpt_inc1',
-                                          id: 'art2_cpt_alt1_art267_cpt_inc1',
-                                          rotulo: 'I –',
-                                          p: [
-                                            {
-                                              TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                              content: [
-                                                '\n    o proprietário da aeronave responde por danos ao pessoal técnico a bordo e às pessoas e bens na superfície, nos limites previstos, respectivamente, nos art. 257 e art. 269, e deverão contratar o seguro de que trata o § 1º do art. 178;\n\n  ',
-                                              ],
-                                            },
-                                          ],
-                                        },
-                                      },
-                                    ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art267_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art281',
-                              id: 'art2_cpt_alt1_art281',
-                              abreAspas: 's',
-                              rotulo: 'Art. 281.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art281_cpt',
-                                    id: 'art2_cpt_alt1_art281_cpt',
-                                    textoOmitido: 's',
-                                    lXcontainersOmissis: [
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Omissis',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                          string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                          id: 'art2_cpt_alt1_art281_cpt_omi1',
-                                        },
-                                      },
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art281_cpt_inc3',
-                                          id: 'art2_cpt_alt1_art281_cpt_inc3',
-                                          rotulo: 'III –',
-                                          p: [
-                                            {
-                                              TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                              content: ['\n    ao pessoal técnico a bordo, às pessoas e aos bens na superfície;\n\n  '],
-                                            },
-                                          ],
-                                        },
-                                      },
-                                    ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art281_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art289',
-                              id: 'art2_cpt_alt1_art289',
-                              abreAspas: 's',
-                              rotulo: 'Art. 289.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art289_cpt',
-                                    id: 'art2_cpt_alt1_art289_cpt',
-                                    textoOmitido: 's',
-                                    lXcontainersOmissis: [
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Omissis',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                          string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                          id: 'art2_cpt_alt1_art289_cpt_omi1',
-                                        },
-                                      },
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art289_cpt_inc2',
-                                          id: 'art2_cpt_alt1_art289_cpt_inc2',
-                                          rotulo: 'II –',
-                                          p: [
-                                            {
-                                              TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                              content: ['\n    suspensão de certificados, licenças ou autorizações;\n\n  '],
-                                            },
-                                          ],
-                                        },
-                                      },
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art289_cpt_inc3',
-                                          id: 'art2_cpt_alt1_art289_cpt_inc3',
-                                          rotulo: 'III –',
-                                          p: [
-                                            {
-                                              TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                              content: ['\n    cassação de certificados, licenças ou autorizações;\n\n  '],
-                                            },
-                                          ],
-                                        },
-                                      },
-                                    ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art289_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art291',
-                              id: 'art2_cpt_alt1_art291',
-                              abreAspas: 's',
-                              rotulo: 'Art. 291.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art291_cpt',
-                                    id: 'art2_cpt_alt1_art291_cpt',
-                                    textoOmitido: 's',
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art291_omi1',
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Paragrafo',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Paragrafo',
-                                    string: '{http://www.lexml.gov.br/1.0}Paragrafo',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art291_par2',
-                                    id: 'art2_cpt_alt1_art291_par2',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                    rotulo: '§ 2º',
-                                    p: [
-                                      {
-                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                        content: [
-                                          '\n    Tratando-se de crime em que se deva deter membros de tripulação de aeronave que realize serviço aéreo, a autoridade aeronáutica, concomitantemente à providência prevista no § 1º, deverá tomar as medidas que possibilitem a continuação do voo.\n\n  ',
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art299',
-                              id: 'art2_cpt_alt1_art299',
-                              abreAspas: 's',
-                              rotulo: 'Art. 299.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art299_cpt',
-                                    id: 'art2_cpt_alt1_art299_cpt',
-                                    p: [
-                                      {
-                                        TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                        content: [
-                                          '\n    Será aplicada multa de até mil valores de referência, ou de suspensão ou cassação de quaisquer certificados de matrícula, de habilitação, de autorização ou de homologação expedidos segundo as regras deste Código, nos seguintes casos:\n\n  ',
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art299_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            name: {
-                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                              localPart: 'Artigo',
-                              prefix: '',
-                              key: '{http://www.lexml.gov.br/1.0}Artigo',
-                              string: '{http://www.lexml.gov.br/1.0}Artigo',
-                            },
-                            value: {
-                              TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                              href: 'art302',
-                              id: 'art2_cpt_alt1_art302',
-                              abreAspas: 's',
-                              rotulo: 'Art. 302.',
-                              lXcontainersOmissis: [
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Caput',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Caput',
-                                    string: '{http://www.lexml.gov.br/1.0}Caput',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                    href: 'art302_cpt',
-                                    id: 'art2_cpt_alt1_art302_cpt',
-                                    textoOmitido: 's',
-                                    lXcontainersOmissis: [
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art302_cpt_inc1',
-                                          id: 'art2_cpt_alt1_art302_cpt_inc1',
-                                          textoOmitido: 's',
-                                          rotulo: 'I –',
+                                          href: 'art203',
+                                          id: 'art2_cpt_alt1_art203',
+                                          rotulo: 'Art. 203.',
                                           lXcontainersOmissis: [
                                             {
                                               name: {
                                                 namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                                localPart: 'Omissis',
+                                                localPart: 'Caput',
                                                 prefix: '',
-                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                              },
-                                              value: {
-                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc1_omi1',
-                                              },
-                                            },
-                                            {
-                                              name: {
-                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                                localPart: 'Alinea',
-                                                prefix: '',
-                                                key: '{http://www.lexml.gov.br/1.0}Alinea',
-                                                string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
                                               },
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                                href: 'art302_cpt_inc1_ali5',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc1_ali5',
-                                                rotulo: 'e)',
-                                                p: [
-                                                  {
-                                                    TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                    content: ['\n    utilizar ou empregar aeronave sem a necessária homologação do órgão competente quando exigida;\n\n  '],
-                                                  },
-                                                ],
-                                              },
-                                            },
-                                          ],
-                                        },
-                                      },
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Omissis',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                          string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                          id: 'art2_cpt_alt1_art302_cpt_omi1',
-                                        },
-                                      },
-                                      {
-                                        name: {
-                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
-                                          prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
-                                        },
-                                        value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art302_cpt_inc3',
-                                          id: 'art2_cpt_alt1_art302_cpt_inc3',
-                                          rotulo: 'III –',
-                                          p: [
-                                            {
-                                              TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                              content: ['\n    infrações imputáveis aos prestadores de serviços aéreos:\n\n  '],
-                                            },
-                                          ],
-                                          lXcontainersOmissis: [
-                                            {
-                                              name: {
-                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                                localPart: 'Omissis',
-                                                prefix: '',
-                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                              },
-                                              value: {
-                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc3_omi1',
-                                              },
-                                            },
-                                            {
-                                              name: {
-                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                                localPart: 'Alinea',
-                                                prefix: '',
-                                                key: '{http://www.lexml.gov.br/1.0}Alinea',
-                                                string: '{http://www.lexml.gov.br/1.0}Alinea',
-                                              },
-                                              value: {
-                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                                href: 'art302_cpt_inc3_ali4',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc3_ali4',
-                                                rotulo: 'd)',
+                                                href: 'art203_cpt',
+                                                id: 'art2_cpt_alt1_art203_cpt',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
                                                     content: [
-                                                      '\n    firmar acordo com outro explorador de serviços aéreos, ou com terceiros, para estabelecimento de conexão, consórcio, pool ou consolidação de serviços ou interesses, sem conhecimento ou consentimento expresso da autoridade de aviação civil, quando exigido;\n\n  ',
+                                                      '\n    Os serviços de transporte aéreo internacional podem ser realizados por empresas nacionais ou estrangeiras.\n\n  ',
                                                     ],
                                                   },
                                                 ],
@@ -3158,26 +2444,49 @@ export const MPV_1089_2021 = {
                                               },
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc3_omi2',
+                                                id: 'art2_cpt_alt1_art203_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
                                               },
                                             },
+                                          ],
+                                        },
+                                      },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art205',
+                                          id: 'art2_cpt_alt1_art205',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 205.',
+                                          lXcontainersOmissis: [
                                             {
                                               name: {
                                                 namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                                localPart: 'Alinea',
+                                                localPart: 'Caput',
                                                 prefix: '',
-                                                key: '{http://www.lexml.gov.br/1.0}Alinea',
-                                                string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
                                               },
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                                href: 'art302_cpt_inc3_ali6',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc3_ali6',
-                                                rotulo: 'f)',
+                                                href: 'art205_cpt',
+                                                id: 'art2_cpt_alt1_art205_cpt',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                    content: ['\n    explorar qualquer serviço aéreo sem a observância da regulação da autoridade aeronáutica;\n\n  '],
+                                                    content: [
+                                                      '\n    Para explorar o serviço de transporte aéreo internacional, a empresa estrangeira deverá obter autorização de operação, conforme o disposto em regulamentação da autoridade de aviação civil, sem prejuízo da aplicação das demais exigências previstas em lei para o funcionamento de empresas estrangeiras no País.\n\n  ',
+                                                    ],
                                                   },
                                                 ],
                                               },
@@ -3188,31 +2497,82 @@ export const MPV_1089_2021 = {
                                       {
                                         name: {
                                           namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Omissis',
+                                          localPart: 'Artigo',
                                           prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                          string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
                                         },
                                         value: {
-                                          TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                          id: 'art2_cpt_alt1_art302_cpt_omi2',
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art216',
+                                          id: 'art2_cpt_alt1_art216',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 216.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art216_cpt',
+                                                id: 'art2_cpt_alt1_art216_cpt',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                                p: [
+                                                  {
+                                                    TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                    content: [
+                                                      '\n    Os serviços aéreos de transporte doméstico são reservados a pessoas jurídicas constituídas sob as leis brasileiras, com sede e administração no País.\n\n  ',
+                                                    ],
+                                                  },
+                                                ],
+                                              },
+                                            },
+                                          ],
                                         },
                                       },
                                       {
                                         name: {
                                           namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                          localPart: 'Inciso',
+                                          localPart: 'Artigo',
                                           prefix: '',
-                                          key: '{http://www.lexml.gov.br/1.0}Inciso',
-                                          string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
                                         },
                                         value: {
                                           TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art302_cpt_inc6',
-                                          id: 'art2_cpt_alt1_art302_cpt_inc6',
-                                          textoOmitido: 's',
-                                          rotulo: 'VI –',
+                                          href: 'art222',
+                                          id: 'art2_cpt_alt1_art222',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 222.',
                                           lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art222_cpt',
+                                                id: 'art2_cpt_alt1_art222_cpt',
+                                                p: [
+                                                  {
+                                                    TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                    content: [
+                                                      '\n    Pelo contrato de transporte aéreo, obriga-se o empresário a transportar passageiro, bagagem ou carga, por meio de aeronave, mediante pagamento.\n\n  ',
+                                                    ],
+                                                  },
+                                                ],
+                                              },
+                                            },
                                             {
                                               name: {
                                                 namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -3223,26 +2583,340 @@ export const MPV_1089_2021 = {
                                               },
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc6_omi1',
+                                                id: 'art2_cpt_alt1_art222_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art267',
+                                          id: 'art2_cpt_alt1_art267',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 267.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art267_cpt',
+                                                id: 'art2_cpt_alt1_art267_cpt',
+                                                textoOmitido: 's',
+                                                lXcontainersOmissis: [
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art267_cpt_inc1',
+                                                      id: 'art2_cpt_alt1_art267_cpt_inc1',
+                                                      rotulo: 'I –',
+                                                      p: [
+                                                        {
+                                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                          content: [
+                                                            '\n    o proprietário da aeronave responde por danos ao pessoal técnico a bordo e às pessoas e bens na superfície, nos limites previstos, respectivamente, nos art. 257 e art. 269, e deverão contratar o seguro de que trata o § 1º do art. 178;\n\n  ',
+                                                          ],
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                ],
                                               },
                                             },
                                             {
                                               name: {
                                                 namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                                localPart: 'Alinea',
+                                                localPart: 'Omissis',
                                                 prefix: '',
-                                                key: '{http://www.lexml.gov.br/1.0}Alinea',
-                                                string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                id: 'art2_cpt_alt1_art267_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art281',
+                                          id: 'art2_cpt_alt1_art281',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 281.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
                                               },
                                               value: {
                                                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                                href: 'art302_cpt_inc6_ali5',
-                                                id: 'art2_cpt_alt1_art302_cpt_inc6_ali5',
-                                                rotulo: 'e)',
+                                                href: 'art281_cpt',
+                                                id: 'art2_cpt_alt1_art281_cpt',
+                                                textoOmitido: 's',
+                                                lXcontainersOmissis: [
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Omissis',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                      string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                      id: 'art2_cpt_alt1_art281_cpt_omi1',
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art281_cpt_inc3',
+                                                      id: 'art2_cpt_alt1_art281_cpt_inc3',
+                                                      rotulo: 'III –',
+                                                      p: [
+                                                        {
+                                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                          content: ['\n    ao pessoal técnico a bordo, às pessoas e aos bens na superfície;\n\n  '],
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                ],
+                                              },
+                                            },
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Omissis',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                id: 'art2_cpt_alt1_art281_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art289',
+                                          id: 'art2_cpt_alt1_art289',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 289.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art289_cpt',
+                                                id: 'art2_cpt_alt1_art289_cpt',
+                                                textoOmitido: 's',
+                                                lXcontainersOmissis: [
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Omissis',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                      string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                      id: 'art2_cpt_alt1_art289_cpt_omi1',
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art289_cpt_inc2',
+                                                      id: 'art2_cpt_alt1_art289_cpt_inc2',
+                                                      rotulo: 'II –',
+                                                      p: [
+                                                        {
+                                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                          content: ['\n    suspensão de certificados, licenças ou autorizações;\n\n  '],
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art289_cpt_inc3',
+                                                      id: 'art2_cpt_alt1_art289_cpt_inc3',
+                                                      rotulo: 'III –',
+                                                      p: [
+                                                        {
+                                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                          content: ['\n    cassação de certificados, licenças ou autorizações;\n\n  '],
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                ],
+                                              },
+                                            },
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Omissis',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                id: 'art2_cpt_alt1_art289_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art291',
+                                          id: 'art2_cpt_alt1_art291',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 291.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art291_cpt',
+                                                id: 'art2_cpt_alt1_art291_cpt',
+                                                textoOmitido: 's',
+                                              },
+                                            },
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Omissis',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                id: 'art2_cpt_alt1_art291_omi1',
+                                              },
+                                            },
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Paragrafo',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Paragrafo',
+                                                string: '{http://www.lexml.gov.br/1.0}Paragrafo',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art291_par2',
+                                                id: 'art2_cpt_alt1_art291_par2',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                                rotulo: '§ 2º',
                                                 p: [
                                                   {
                                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                    content: ['\n    executar qualquer serviço aéreo sem a observância da regulação da autoridade aeronáutica;\n\n  '],
+                                                    content: [
+                                                      '\n    Tratando-se de crime em que se deva deter membros de tripulação de aeronave que realize serviço aéreo, a autoridade aeronáutica, concomitantemente à providência prevista no § 1º, deverá tomar as medidas que possibilitem a continuação do voo.\n\n  ',
+                                                    ],
                                                   },
                                                 ],
                                               },
@@ -3250,22 +2924,337 @@ export const MPV_1089_2021 = {
                                           ],
                                         },
                                       },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art299',
+                                          id: 'art2_cpt_alt1_art299',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 299.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art299_cpt',
+                                                id: 'art2_cpt_alt1_art299_cpt',
+                                                p: [
+                                                  {
+                                                    TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                    content: [
+                                                      '\n    Será aplicada multa de até mil valores de referência, ou de suspensão ou cassação de quaisquer certificados de matrícula, de habilitação, de autorização ou de homologação expedidos segundo as regras deste Código, nos seguintes casos:\n\n  ',
+                                                    ],
+                                                  },
+                                                ],
+                                              },
+                                            },
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Omissis',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                id: 'art2_cpt_alt1_art299_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
+                                      {
+                                        name: {
+                                          namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                          localPart: 'Artigo',
+                                          prefix: '',
+                                          key: '{http://www.lexml.gov.br/1.0}Artigo',
+                                          string: '{http://www.lexml.gov.br/1.0}Artigo',
+                                        },
+                                        value: {
+                                          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                          href: 'art302',
+                                          id: 'art2_cpt_alt1_art302',
+                                          abreAspas: 's',
+                                          rotulo: 'Art. 302.',
+                                          lXcontainersOmissis: [
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Caput',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Caput',
+                                                string: '{http://www.lexml.gov.br/1.0}Caput',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                href: 'art302_cpt',
+                                                id: 'art2_cpt_alt1_art302_cpt',
+                                                textoOmitido: 's',
+                                                lXcontainersOmissis: [
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art302_cpt_inc1',
+                                                      id: 'art2_cpt_alt1_art302_cpt_inc1',
+                                                      textoOmitido: 's',
+                                                      rotulo: 'I –',
+                                                      lXcontainersOmissis: [
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Omissis',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                            string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc1_omi1',
+                                                          },
+                                                        },
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Alinea',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                            string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                            href: 'art302_cpt_inc1_ali5',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc1_ali5',
+                                                            rotulo: 'e)',
+                                                            p: [
+                                                              {
+                                                                TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                                content: [
+                                                                  '\n    utilizar ou empregar aeronave sem a necessária homologação do órgão competente quando exigida;\n\n  ',
+                                                                ],
+                                                              },
+                                                            ],
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Omissis',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                      string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                      id: 'art2_cpt_alt1_art302_cpt_omi1',
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art302_cpt_inc3',
+                                                      id: 'art2_cpt_alt1_art302_cpt_inc3',
+                                                      rotulo: 'III –',
+                                                      p: [
+                                                        {
+                                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                          content: ['\n    infrações imputáveis aos prestadores de serviços aéreos:\n\n  '],
+                                                        },
+                                                      ],
+                                                      lXcontainersOmissis: [
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Omissis',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                            string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc3_omi1',
+                                                          },
+                                                        },
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Alinea',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                            string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                            href: 'art302_cpt_inc3_ali4',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc3_ali4',
+                                                            rotulo: 'd)',
+                                                            p: [
+                                                              {
+                                                                TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                                content: [
+                                                                  '\n    firmar acordo com outro explorador de serviços aéreos, ou com terceiros, para estabelecimento de conexão, consórcio, pool ou consolidação de serviços ou interesses, sem conhecimento ou consentimento expresso da autoridade de aviação civil, quando exigido;\n\n  ',
+                                                                ],
+                                                              },
+                                                            ],
+                                                          },
+                                                        },
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Omissis',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                            string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc3_omi2',
+                                                          },
+                                                        },
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Alinea',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                            string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                            href: 'art302_cpt_inc3_ali6',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc3_ali6',
+                                                            rotulo: 'f)',
+                                                            p: [
+                                                              {
+                                                                TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                                content: ['\n    explorar qualquer serviço aéreo sem a observância da regulação da autoridade aeronáutica;\n\n  '],
+                                                              },
+                                                            ],
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Omissis',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                      string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                      id: 'art2_cpt_alt1_art302_cpt_omi2',
+                                                    },
+                                                  },
+                                                  {
+                                                    name: {
+                                                      namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                      localPart: 'Inciso',
+                                                      prefix: '',
+                                                      key: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                      string: '{http://www.lexml.gov.br/1.0}Inciso',
+                                                    },
+                                                    value: {
+                                                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                      href: 'art302_cpt_inc6',
+                                                      id: 'art2_cpt_alt1_art302_cpt_inc6',
+                                                      textoOmitido: 's',
+                                                      rotulo: 'VI –',
+                                                      lXcontainersOmissis: [
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Omissis',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                            string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc6_omi1',
+                                                          },
+                                                        },
+                                                        {
+                                                          name: {
+                                                            namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                            localPart: 'Alinea',
+                                                            prefix: '',
+                                                            key: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                            string: '{http://www.lexml.gov.br/1.0}Alinea',
+                                                          },
+                                                          value: {
+                                                            TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                                                            href: 'art302_cpt_inc6_ali5',
+                                                            id: 'art2_cpt_alt1_art302_cpt_inc6_ali5',
+                                                            rotulo: 'e)',
+                                                            p: [
+                                                              {
+                                                                TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                                content: ['\n    executar qualquer serviço aéreo sem a observância da regulação da autoridade aeronáutica;\n\n  '],
+                                                              },
+                                                            ],
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  },
+                                                ],
+                                              },
+                                            },
+                                            {
+                                              name: {
+                                                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                                localPart: 'Omissis',
+                                                prefix: '',
+                                                key: '{http://www.lexml.gov.br/1.0}Omissis',
+                                                string: '{http://www.lexml.gov.br/1.0}Omissis',
+                                              },
+                                              value: {
+                                                TYPE_NAME: 'br_gov_lexml__1.Omissis',
+                                                id: 'art2_cpt_alt1_art302_omi1',
+                                                fechaAspas: 's',
+                                                notaAlteracao: 'NR',
+                                              },
+                                            },
+                                          ],
+                                        },
+                                      },
                                     ],
-                                  },
-                                },
-                                {
-                                  name: {
-                                    namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                    localPart: 'Omissis',
-                                    prefix: '',
-                                    key: '{http://www.lexml.gov.br/1.0}Omissis',
-                                    string: '{http://www.lexml.gov.br/1.0}Omissis',
-                                  },
-                                  value: {
-                                    TYPE_NAME: 'br_gov_lexml__1.Omissis',
-                                    id: 'art2_cpt_alt1_art302_omi1',
-                                    fechaAspas: 's',
-                                    notaAlteracao: 'NR',
                                   },
                                 },
                               ],
@@ -4084,7 +4073,7 @@ export const MPV_1089_2021 = {
                                   p: [
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                      content: ['\n    as alíneas “a” e “b” do parágrafo único do art. 2º;\n\n  '],
+                                      content: ["\n    as alíneas 'a' e 'b' do parágrafo único do art. 2º;\n\n  "],
                                     },
                                   ],
                                 },
@@ -5319,7 +5308,7 @@ export const MPV_1089_2021 = {
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                            content: ['\n    a alínea “w” do inciso I do caput;\n\n  '],
+                                            content: ["\n    a alínea 'w' do inciso I do caput;\n\n  "],
                                           },
                                         ],
                                       },
@@ -5339,7 +5328,7 @@ export const MPV_1089_2021 = {
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                            content: ['\n    as alíneas “i”, “y” e “z” do inciso III do caput; e\n\n  '],
+                                            content: ["\n    as alíneas 'i', 'y' e 'z' do inciso III do caput; e\n\n  "],
                                           },
                                         ],
                                       },
@@ -5359,7 +5348,7 @@ export const MPV_1089_2021 = {
                                         p: [
                                           {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                            content: ['\n    a alínea “j” do inciso VI do caput; e\n\n  '],
+                                            content: ["\n    a alínea 'j' do inciso VI do caput; e\n\n  "],
                                           },
                                         ],
                                       },
@@ -5502,7 +5491,7 @@ export const MPV_1089_2021 = {
                                     {
                                       TYPE_NAME: 'br_gov_lexml__1.GenInline',
                                       content: [
-                                        '\n    o art. 34, na parte em que altera a alínea “a” do ',
+                                        '\n    o art. 34, na parte em que altera a ',
                                         {
                                           name: {
                                             namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -5513,8 +5502,8 @@ export const MPV_1089_2021 = {
                                           },
                                           value: {
                                             TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                            href: 'urn:lex:br:federal:lei:1973;6009!art2_par1u',
-                                            content: ['parágrafo único do art. 2º da Lei nº 6.009, de 1973'],
+                                            href: 'urn:lex:br:federal:lei:1973;6009!art2_par1u_ali1',
+                                            content: ["alínea 'a' do parágrafo único do art. 2º da Lei nº 6.009, de 1973"],
                                           },
                                         },
                                         ';\n\n  ',

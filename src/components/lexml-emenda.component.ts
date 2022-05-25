@@ -1,5 +1,7 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+// eslint-disable-next-line import/no-duplicates
+import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
@@ -8,9 +10,8 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
-import '@shoelace-style/shoelace/dist/components/alert/alert.js';
-import '@shoelace-style/shoelace/dist/components/badge/badge.js';
-import '@shoelace-style/shoelace/dist/components/icon/icon.js';
+// eslint-disable-next-line import/no-duplicates
+import '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -20,6 +21,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
   @property({ type: Boolean }) existeObserverEmenda = false;
+  @property({ type: Number }) totalAlertas = 0;
 
   @state()
   autoria = new Autoria();
@@ -84,6 +86,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.observarAltura();
       }
     }
+    const tabAvisos = document.querySelector('#sl-tab-4');
+    tabAvisos?.addEventListener('focus', (event: any) => {
+      event.stopImmediatePropagation();
+      const badge = (event.target as Element).querySelector('sl-badge') as SlBadge;
+      if (badge) {
+        badge.pulse = false;
+      }
+    });
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -149,26 +159,28 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-tab-panel::part(base) {
           height: var(--height);
           overflow: var(--overflow);
+          /* overflow-y: auto; */
+        }
+        sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
-        .badge-pulse {
-          margin-left: 5px;
+        lexml-emenda-justificativa #editor-justificativa {
+          height: calc(var(--height) - 44px);
+          overflow: var(--overflow);
         }
-        sl-alert {
-          --box-shadow: var(--sl-shadow-x-large);
-          margin: 20px;
+        .badge-pulse {
+          margin-left: 7px;
+          height: 16px;
+          margin-top: -4px;
         }
       </style>
-
       <sl-tab-group>
         <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
         <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
         <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
         <sl-tab slot="nav" panel="avisos">
           Avisos
-          <div class="badge-pulse">
-            <sl-badge variant="danger" pill pulse>4</sl-badge>
-          </div>
+          <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
         </sl-tab>
         <sl-tab-panel name="lexml-eta">
           <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
@@ -176,32 +188,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-tab-panel name="justificativa">
           <lexml-emenda-justificativa></lexml-emenda-justificativa>
         </sl-tab-panel>
-        <sl-tab-panel name="autoria">
+        <sl-tab-panel name="autoria" class="overflow-hidden">
           <lexml-data></lexml-data>
           <hr />
           <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
         </sl-tab-panel>
-        <sl-tab-panel name="avisos">
-          <sl-alert variant="success" open closable class="alert-closable">
-            <sl-icon slot="icon" name="check2-circle"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
-          <sl-alert variant="warning" open closable class="alert-closable">
-            <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
-          <sl-alert variant="danger" open closable class="alert-closable">
-            <sl-icon slot="icon" name="exclamation-octagon"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
-          <sl-alert variant="primary" open closable class="alert-closable">
-            <sl-icon slot="icon" name="info-circle"></sl-icon>
-            Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
-            antes de submetê-la.
-          </sl-alert>
+        <sl-tab-panel name="avisos" class="overflow-hidden">
+          <lexml-eta-alertas></lexml-eta-alertas>
         </sl-tab-panel>
       </sl-tab-group>
     `;

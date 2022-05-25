@@ -4,7 +4,7 @@ import { getDispositivoPosterior, percorreHierarquiaDispositivos } from '../mode
 import { getTextoSemHtml, StringBuilder } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
-import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz, irmaosMesmoTipo } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { TagNode } from './../util/tag-node';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
@@ -460,5 +460,35 @@ export class CmdEmdUtil {
   static isFechaAspas(d: Dispositivo): boolean {
     const textoSemHtml = getTextoSemHtml(d.texto);
     return /”(?: ?(\(NR\)|\(AC\)))?$/.test(textoSemHtml);
+  }
+
+  // Considera que dispositivosAdicionadosProposicao é uma lista de dispositivos adicionados à proposição
+  // e que não contém dispositivos adicionados em bloco de alteração.
+  // Podem ser utilizados apenas os dispositivos raiz em um grupo de dispositivos adicionados.
+  static verificaNecessidadeRenumeracaoRedacaoFinal(dispositivosAdicionadosProposicao: Dispositivo[]): boolean {
+    for (const d of dispositivosAdicionadosProposicao) {
+      if (CmdEmdUtil.implicaEmRenumeracaoRedacaoFinal(d)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Testa características do dispositivo (considerado fora de bloco de alteração) que implicam
+  // em necessidade de renumeração na redação final.
+  static implicaEmRenumeracaoRedacaoFinal(d: Dispositivo): boolean {
+    // rótulo 0 (zero) ou possui sufixo de encaixe (-A, -B...)
+    if (d.rotulo && /.*(?:0|-[A-Z]).*/i.test(d.rotulo)) {
+      return true;
+    }
+    // adjacente a parágrafo ou artigo único
+    if (isArtigo(d) || isParagrafo(d)) {
+      // Se o dispositivo tiver sido adicionado antes do único cairá no caso anterior de rótulo com 0 (zero)
+      // Não é possível testar pelo rótulo porque o parágrafo único está sendo renumerado.
+      if (irmaosMesmoTipo(d).filter(i => i.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length === 1) {
+        return true;
+      }
+    }
+    return false;
   }
 }

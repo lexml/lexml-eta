@@ -1,3 +1,4 @@
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
@@ -7,6 +8,19 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+
+const ajustarNumero = (dispositivo: Dispositivo, numero: string | undefined): string => {
+  if (!numero) {
+    return '';
+  }
+
+  if (dispositivo.tipo !== 'Alinea') {
+    return numero.toUpperCase();
+  }
+
+  const partes = numero.split('-');
+  return partes.map((parte, index) => (index > 0 ? parte.toUpperCase() : parte)).join('-');
+};
 
 export const renumeraElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -23,7 +37,8 @@ export const renumeraElemento = (state: any, action: any): State => {
   const past = buildPast(state, buildUpdateEvent(dispositivo));
 
   try {
-    dispositivo.createNumeroFromRotulo(action.novo?.numero);
+    const numero = ajustarNumero(dispositivo, action.novo?.numero);
+    dispositivo.createNumeroFromRotulo(numero);
   } catch (error) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'O rótulo informado é inválido', detalhe: error });
   }

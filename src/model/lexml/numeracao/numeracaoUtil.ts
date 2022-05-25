@@ -297,6 +297,45 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
 export const calculaNumeracao = (d: Dispositivo): string => {
   return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
 };
+
+const REGEX_CHECK_NUMERACAO_ROMANA = /(^(?=[MDCLXVI])M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$)/i;
+const REGEX_CHECK_NUMERACAO_ARABICA = /^\d+$/i;
+const REGEX_CHECK_NUMERACAO_ALFABETICA = /^[a-z]{1,2}$/i;
+const REGEX_CHECK_UNICO = /^[uUúU]nico$/i;
+const REGEX_SUFIXO_ENCAIXE = /^[a-z]{1,2}$/i;
+
+export const isNumeracaoArabicaValida = (numero: string): boolean => {
+  return REGEX_CHECK_NUMERACAO_ARABICA.test(numero);
+};
+
+export const isNumeracaoRomanaValida = (numero: string): boolean => {
+  return REGEX_CHECK_NUMERACAO_ROMANA.test(numero);
+};
+
+export const isNumeracaoAlfabeticaValida = (numero: string): boolean => {
+  return REGEX_CHECK_NUMERACAO_ALFABETICA.test(numero);
+};
+
+export const isNumeracaoArtigoOuParagrafoValida = (numero: string): boolean => {
+  return isNumeracaoArabicaValida(numero) || REGEX_CHECK_UNICO.test(numero);
+};
+
+const mapValidacaoNumeracao = {
+  Artigo: isNumeracaoArtigoOuParagrafoValida,
+  Paragrafo: isNumeracaoArtigoOuParagrafoValida,
+  Inciso: isNumeracaoRomanaValida,
+  Alinea: isNumeracaoAlfabeticaValida,
+  Item: isNumeracaoArabicaValida,
+};
+
+export const isNumeracaoValidaPorTipo = (numero: string, tipo: string): boolean => {
+  const partes = numero.split('-');
+  const partePrincipal = partes[0];
+  const parteSufixo = partes.slice(1, partes.length).join('-');
+  const fnValidacao = mapValidacaoNumeracao[tipo] || isNumeracaoRomanaValida;
+  return partes.length === 1 ? fnValidacao(partePrincipal) : fnValidacao(partePrincipal) && REGEX_SUFIXO_ENCAIXE.test(parteSufixo);
+};
+
 class SeqOrdem {
   seq: number;
   letras?: string;
