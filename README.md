@@ -1,12 +1,12 @@
 # Editor de Textos Articulados
 
-<p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas.</p>
+<p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas, inclusive emendas.</p>
+
+[![Integração Contínua](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml)
 
 ## Demo
 
-
 - https://lexml.github.io/lexml-eta/
-
 
 ## Motivação
 A autoria de normas jurídicas pode se beneficiar de uma solução que codifique as regras de técnica legislativa estabelecidas em normas jurídicas como também as regras convencionadas pela tradição legislativa do Brasil. 
@@ -33,34 +33,31 @@ Trata-se de uma proposta inicial, a ser discutida com todos os interessados em s
 - Permitir a criação e edição do texto articulado em consonância com as normas vigentes (LC 95) e a especificação contida no padrão LexML;
 - Oferecer recursos básicos de formatação de dispositivo, quando isso for permitido;
 - Numerar automaticamente os dispositivos do texto articulado que estejam em consonância com as normas vigentes;
-- Numerar dispositivos agrupadores (Livros, Partes, Capítulos, Títulos, Subtítulos)
-- Numerar artigos sequencialmente;
-- Numerar sequencialmente dispositivos filhos de artigos, como parágrafo (único e sequencial), alíneas, incisos e itens;
+- Permitir a numeração manual do dispositivo quando se tratar de alteração de norma existente;
+- Numerar dispositivos agrupadores (Livros, Partes, Capítulos, Títulos, Seções e Subseções)
 - Definir regras de edição do texto articulado;
-- Oferecer ações permitidas sobre os dispositivos, segundo as regras previstas; 
+- Oferecer ações permitidas sobre os dispositivos, segundo as regras previstas e dependentes do contexto; 
 - Possibilitar a criação de dispositivos automaticamente, à medida que o usuário for digitando, inclusive gerando automaticamente os rótulos de dispositivo:
   - O uso dos dois pontos comanda o desdobramento dos dispositivos em filhos;
   - O uso de ponto e vírgula indica continuação de sequência de dispositivos do mesmo tipo, admitindo-se o uso de " ; e " e "; ou " quando se tratar do penúltimo dispositivo
   - No caso de artigos e parágráfos não há distinção entre continuação e fim de sequência pois só é admitido o uso de ponto final;
   - Essas regras não se aplicam a dispositivos agrupadores, pois esses não podem possuir pontuação.
-- Bloquear a edição dos rótulos de dispositivo;
-- Promover mudança estrutural de artigos e dispositivos de artigo, considerando os dispositivos dependentes:
-  - Alinea em Inciso;
-  - Alinea em Item;
-  - Artigo em Parágrafo;
-  - Inciso em Alínea;
-  - Inciso em Parágrafo;
-  - Item em Alínea;
-  - Parágrafo em Artigo.
+- Bloquear a edição dos rótulos de dispositivo, a menos que se trate de alteração de norma existente;
+- Promover mudança estrutural de artigos e dispositivos de artigo, considerando os dispositivos dependentes;
+- Suporte a emendamento de proposições, inclusive com geração automática do comando de emenda;
 - Manter histórico das modificações efetuadas sobre a articulação, permitindo desfazer e refazer operações efetuadas no documento;
-- Validar a situação atual do dispositivo;
+- Validar a situação do dispositivo;
 - Permitir a incorporação dos componentes desenvolvidos em página HTML e sua utilização em frameworks JavaScript;
 - Permitir a edição de um texto articulado independente do seu tamanho;
 - Definir estilos consistentes e protegidos contra alteração não intencional;
 
-## Como usar
+## Versão para uso em produção
 
-Ainda não está disponível para utilização em produção. Para testá-lo, basta seguir os seguintes passos:
+Somente a partir do segundo semestre de 2022
+
+## Executando o demo localmente
+
+Para testar, basta seguir os seguintes passos:
 
 ```
 git clone https://github.com/lexml/lexml-eta.git
@@ -71,21 +68,7 @@ Será aberta uma janela do browser com uma aplicação exemplo que permite testa
 
 Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
 
-## Desenvolvimento
-
-Para rodar um servidor para desenvolvimento, que serve um demo localizado em `demo/index.html`
-
-```
-npm start
-```
-
-Para rodar o servidor em modo de desenvolvimento:
-
-```
-npm run start:watch
-
-```
-### Teste
+## Teste
 
 Para executar os testes apenas uma vez:
 
@@ -107,7 +90,7 @@ Para executar um teste apenas:
 npm run test -- --grep out-tsc/test/**/parte.test.js
 ```
 
-### Linting
+## Linting
 
 Para varrer o projeto em buscar de erros (lint):
 
@@ -117,7 +100,7 @@ npm run lint
 
 ## Créditos
 
-Este projeto partiu de muita idéias do editor [Lexedit](https://legis.senado.leg.br/lexedit/), do projeto Lexml, e do [Editor de Articulação](https://github.com/silegis-mg/editor-articulacao) da Assembléia Legislativa de Minas Gerais, disponível como código aberto, no [github]( https://github.com/silegis-mg/editor-articulacao). Desse último editor, devemos muito à sua abordagem moderna e amigável de edição.
+Este projeto partiu de muita idéias do editor [Lexedit](https://legis.senado.leg.br/lexedit/), do projeto Lexml, e do [Editor de Articulação](https://silegis-mg.github.io/editor-articulacao/) da Assembléia Legislativa de Minas Gerais, disponível como código aberto, no [github]( https://github.com/silegis-mg/editor-articulacao). Desse último editor, devemos muito à sua abordagem moderna e amigável de edição.
 
 Este componente segue as recomendações do [open-wc](https://github.com/open-wc/open-wc) e utiliza-se dos seguintes softwares e componentes, entre outros:
 
@@ -125,6 +108,11 @@ Este componente segue as recomendações do [open-wc](https://github.com/open-wc
 - [Quill](https://quilljs.com/docs/quickstart/)
 - [Redux](https://redux.js.org/)
 
+
+## Patrocínio
+
+- Câmara dos Deputados
+- Senado Federal
 
 ## Contribua com o projeto
 O projeto está apenas iniciando. Toda ajuda é bem-vinda!
