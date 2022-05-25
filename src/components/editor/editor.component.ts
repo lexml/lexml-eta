@@ -41,6 +41,7 @@ import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { informarNormaDialog } from './informarNormaDialog';
+import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -360,7 +361,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     };
 
     input.onkeyup = (evt: KeyboardEvent): void => {
-      const msgErro = validar();
+      let msgErro = validar();
+      if (!msgErro && elemento.tipo && !isNumeracaoValidaPorTipo(input.value, elemento.tipo)) {
+        msgErro = 'Numeração inválida.';
+      }
       erro.innerText = msgErro;
       erro.style.display = msgErro ? 'block' : 'none';
       ok.disabled = Boolean(msgErro);
