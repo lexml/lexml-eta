@@ -11,7 +11,7 @@ export const autoriaCss = css`
 
   .lexml-autoria {
     display: block;
-    height: 100%;
+    /* height: 100%; */
     /* padding: 0 10px; */
     /* margin: 0px 5px; */
     font-size: 1em;
