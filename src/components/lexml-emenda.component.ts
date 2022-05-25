@@ -1,5 +1,6 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+// eslint-disable-next-line import/no-duplicates
 import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { connect } from 'pwa-helpers';
@@ -9,6 +10,8 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
+// eslint-disable-next-line import/no-duplicates
+import '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
