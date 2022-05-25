@@ -111,7 +111,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
     const tabAvisos = document.querySelector('#sl-tab-4');
-    tabAvisos?.addEventListener('focus', event => {
+    tabAvisos?.addEventListener('focus', (event: any) => {
+      event.stopImmediatePropagation();
       const badge = (event.target as Element).querySelector('sl-badge') as SlBadge;
       if (badge) {
         badge.pulse = false;
