@@ -1,4 +1,4 @@
-import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
@@ -12,6 +12,8 @@ import { CmdEmdDispNormaVigente } from './cmd-emd-disp-norma-vigente';
 import { CmdEmdDispPrj } from './cmd-emd-disp-prj';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
+import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
+import { ClassificacaoDocumento } from '../model/documento/classificacao';
 
 export class ComandoEmendaBuilder {
   constructor(private urn: string, private articulacao: Articulacao) {}
@@ -33,6 +35,7 @@ export class ComandoEmendaBuilder {
     list.forEach(d => {
       let cabecalho: string;
       let citacao: string;
+      let complemento: string | undefined = undefined;
 
       if (isArticulacao(d)) {
         const cmd = new CmdEmdDispNormaVigente(d as Articulacao);
@@ -46,9 +49,15 @@ export class ComandoEmendaBuilder {
 
         const cit = new CitacaoComandoDispPrj(this.articulacao);
         citacao = cit.getTexto();
+
+        complemento = this.getTextoComplemento(dispositivosEmenda);
       }
 
-      ret.comandos.push(new ItemComandoEmenda(cabecalho, citacao));
+      const item = new ItemComandoEmenda(cabecalho, citacao);
+      if (complemento) {
+        item.complemento = complemento;
+      }
+      ret.comandos.push(item);
     });
 
     if (ret.comandos.length > 1) {
@@ -96,5 +105,19 @@ export class ComandoEmendaBuilder {
       .map((_, i) => i + 1)
       .join(', ')
       .replace(/, (\d+?)$/, ' e $1');
+  }
+
+  getTextoComplemento(dispositivosNaoOriginais: Dispositivo[]): string | undefined {
+    const adicionadosProposicao = dispositivosNaoOriginais.filter(
+      d =>
+        !isDispositivoAlteracao(d) &&
+        d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+        (d.situacao as DispositivoAdicionado).tipoEmenda !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
+        d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    );
+    if (adicionadosProposicao.length && CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(adicionadosProposicao)) {
+      return 'Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.';
+    }
+    return undefined;
   }
 }
