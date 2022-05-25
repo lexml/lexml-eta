@@ -8,7 +8,7 @@ import { rootStore } from '../../redux/store';
 import { Alerta } from '../../model/alerta/alerta';
 import { limparAlertas, removerAlerta } from '../../redux/alerta/reducer/actions';
 import { LexmlEmendaComponent } from '../lexml-emenda.component';
-import { SlBadge } from '@shoelace-style/shoelace';
+import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 
 @customElement('lexml-eta-alertas')
 export class AlertasComponent extends connect(rootStore)(LitElement) {
@@ -38,6 +38,7 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
   }
 
   limparAlertas(): void {
+    // limpa o array de alertas para do state do alertaReducer
     rootStore.dispatch(limparAlertas());
   }
 
@@ -64,7 +65,6 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      <button @click=${this.limparAlertas}>Apagar alertas</button>
       ${map(
         this.alertas,
         alerta =>

@@ -15,7 +15,6 @@ import '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { adicionaAlerta } from '../redux/alerta/reducer/actions';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -69,29 +68,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
-    if (
-      Object.values(emenda.componentes[0].dispositivos)
-        .map(dispositivos => dispositivos.length)
-        .reduce((soma, total_lista) => soma + total_lista) !== 0
-    ) {
-      rootStore.dispatch(
-        adicionaAlerta({
-          id: 'successID',
-          tipo: 'success',
-          mensagem: 'Abriu emenda de um arquivo.',
-          podeFechar: false,
-        })
-      );
-    } else {
-      rootStore.dispatch(
-        adicionaAlerta({
-          id: 'infoID',
-          tipo: 'info',
-          mensagem: 'Emendas inicializadas',
-          podeFechar: true,
-        })
-      );
-    }
   }
 
   constructor() {
