@@ -159,7 +159,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           overflow: var(--overflow);
         }
         .badge-pulse {
-          margin-left: 5px;
+          margin-left: 7px;
+          height: 16px;
+          margin-top: -4px;
         }
         sl-alert {
           --box-shadow: var(--sl-shadow-x-large);
