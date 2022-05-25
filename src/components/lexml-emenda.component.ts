@@ -149,7 +149,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-tab-panel::part(base) {
           height: var(--height);
           overflow: var(--overflow);
+          /* overflow-y: auto; */
+        }
+        sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
+        }
+        lexml-emenda-justificativa #editor-justificativa {
+          height: calc(var(--height) - 44px);
+          overflow: var(--overflow);
         }
         .badge-pulse {
           margin-left: 5px;
@@ -176,12 +183,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-tab-panel name="justificativa">
           <lexml-emenda-justificativa></lexml-emenda-justificativa>
         </sl-tab-panel>
-        <sl-tab-panel name="autoria">
+        <sl-tab-panel name="autoria" class="overflow-hidden">
           <lexml-data></lexml-data>
           <hr />
           <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
         </sl-tab-panel>
-        <sl-tab-panel name="avisos">
+        <sl-tab-panel name="avisos" class="overflow-hidden">
           <sl-alert variant="success" open closable class="alert-closable">
             <sl-icon slot="icon" name="check2-circle"></sl-icon>
             Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados
