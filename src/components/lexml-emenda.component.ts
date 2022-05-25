@@ -1,5 +1,6 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
+import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
@@ -8,7 +9,6 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
-import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge.js';
 
 import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -110,7 +110,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const tabAvisos = document.querySelector('#sl-tab-4');
     tabAvisos?.addEventListener('focus', event => {
       const badge = (event.target as Element).querySelector('sl-badge') as SlBadge;
-      badge.pulse = false;
+      if (badge) {
+        badge.pulse = false;
+      }
     });
   }
 
@@ -190,7 +192,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin-left: 5px;
         }
       </style>
-
       <sl-tab-group>
         <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
         <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>

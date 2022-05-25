@@ -55,7 +55,9 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
 
       if (lexmlEmenda.totalAlertas > oldValue) {
         const badge = document.querySelector('#contadorAvisos')?.querySelector('sl-badge') as SlBadge;
-        badge.pulse = true;
+        if (badge) {
+          badge.pulse = true;
+        }
       }
     }
   }
