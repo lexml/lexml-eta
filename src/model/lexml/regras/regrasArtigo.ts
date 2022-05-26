@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
@@ -55,7 +56,12 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(moverElementoAcimaAction);
       }
 
-      if (!isDispositivoCabecaAlteracao(dispositivo)) {
+      if (
+        !isDispositivoCabecaAlteracao(dispositivo) ||
+        !isDispositivoAlteracao(dispositivo) ||
+        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
+        dispositivo.numero !== '1'
+      ) {
         acoes.push(adicionarArtigoAntes);
         acoes.push(adicionarArtigoDepois);
       }

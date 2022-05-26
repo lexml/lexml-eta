@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAlinea, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarInciso, adicionarParagrafoAntes, adicionarParagrafoDepois } from '../acao/adicionarElementoAction';
@@ -43,7 +44,9 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(removerElementoAction);
-      acoes.push(adicionarParagrafoAntes);
+      if (!isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.numero !== '1') {
+        acoes.push(adicionarParagrafoAntes);
+      }
       acoes.push(adicionarParagrafoDepois);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {

@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
@@ -41,7 +42,9 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(removerElementoAction);
-      acoes.push(adicionarIncisoAntes);
+      if (!isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.numero !== '1') {
+        acoes.push(adicionarIncisoAntes);
+      }
       acoes.push(adicionarIncisoDepois);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {

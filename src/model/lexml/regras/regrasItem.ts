@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isItem } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarItemAntes, adicionarItemDepois } from '../acao/adicionarElementoAction';
@@ -29,7 +30,9 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(removerElementoAction);
-      acoes.push(adicionarItemAntes);
+      if (!isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.numero !== '1') {
+        acoes.push(adicionarItemAntes);
+      }
       acoes.push(adicionarItemDepois);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {

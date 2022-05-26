@@ -1,12 +1,12 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isArtigo, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
+import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
-import { hasFilhos, irmaosMesmoTipo, isArtigoUnico, isDispositivoAlteracao, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, irmaosMesmoTipo, isArtigoUnico, isDispositivoAlteracao, isOriginal, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -31,6 +31,28 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   if (atual === undefined || atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     return state;
+  }
+
+  if (
+    atual.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO &&
+    atual.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+    hasIndicativoDesdobramento(atual) &&
+    !isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)
+  ) {
+    if (
+      atual.hasAlteracao() &&
+      atual.alteracoes?.filhos &&
+      isOriginal(atual.alteracoes.filhos[0]) &&
+      !isOmissis(atual.alteracoes.filhos[0]) &&
+      atual.alteracoes.filhos[0].numero === '1'
+    ) {
+      return state;
+    }
+    if (isDispositivoAlteracao(atual) && hasFilhos(atual) && isOriginal(atual.filhos[0]) && !isOmissis(atual.filhos[0])) {
+      if (!isParagrafo(atual.filhos[0]) && atual.filhos[0].numero === '1') {
+        return state;
+      }
+    }
   }
 
   const ref =

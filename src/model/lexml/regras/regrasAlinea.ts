@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAlinea, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarAlineaAntes, adicionarAlineaDepois, adicionarItem } from '../acao/adicionarElementoAction';
@@ -38,7 +39,11 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(removerElementoAction);
-      acoes.push(adicionarAlineaAntes);
+
+      if (!isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.numero !== '1') {
+        acoes.push(adicionarAlineaAntes);
+      }
+
       acoes.push(adicionarAlineaDepois);
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
