@@ -1,10 +1,10 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isCaput, isDispositivoGenerico, isInciso, isParagrafo } from '../../dispositivo/tipo';
 import { acoesDisponiveis, ElementoAction } from '../acao';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
 import { TransformarElemento } from '../acao/transformarElementoAction';
-import { hasDispositivosPosterioresAlteracao, isDispositivoAlteracao, isUltimaAlteracao } from '../hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, isUltimaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 
 export function RegrasDispositivoGenerico<TBase extends Constructor>(Base: TBase): any {
@@ -20,9 +20,6 @@ export function RegrasDispositivoGenerico<TBase extends Constructor>(Base: TBase
 
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
 
       if (

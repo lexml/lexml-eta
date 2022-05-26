@@ -3,7 +3,7 @@ import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArtigo, isIncisoCaput, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acao/blocoAlteracaoAction';
 import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermitido';
@@ -224,9 +224,12 @@ export const createFromReferencia = (referencia: Dispositivo): Dispositivo => {
   }
 
   if (isDispositivoAlteracao(referencia)) {
+    if (isOmissis(referencia)) {
+      return criaDispositivo(referencia.pai!, isArtigo(referencia.pai!) ? TipoDispositivo.paragrafo.tipo : referencia.pai!.tipoProvavelFilho!, referencia);
+    }
     return hasFilhos(referencia) || hasIndicativoDesdobramento(referencia)
       ? criaDispositivo(referencia, referencia.tipoProvavelFilho!, referencia)
-      : criaDispositivo(referencia.pai!, referencia.tipo === TipoDispositivo.omissis.tipo ? referencia.pai!.tipoProvavelFilho! : referencia.tipo, referencia);
+      : criaDispositivo(referencia.pai!, referencia.tipo, referencia);
   }
 
   return createFromReferenciaDefault(referencia);
