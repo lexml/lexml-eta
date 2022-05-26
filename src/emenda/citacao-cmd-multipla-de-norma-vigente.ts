@@ -88,18 +88,18 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
 
       // -------------------------------------------
       // o dispositivo atual
-      if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-        const node = new TagNode('p').add(new TagNode('Rotulo').add(d.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(d, true));
-        sb.append(node.toString());
-      } else if (this.hasFilhosPropostos(arvoreAtual) || this.adjacentesOmissis.includes(d)) {
-        const tag = new TagNode('p');
-        if (!isCaput(d)) {
+      if (!isCaput(d)) {
+        if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+          const node = new TagNode('p').add(new TagNode('Rotulo').add(d.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(d, true));
+          sb.append(node.toString());
+        } else if (this.hasFilhosPropostos(arvoreAtual) || this.adjacentesOmissis.includes(d)) {
+          const tag = new TagNode('p');
           tag.add(new TagNode('Rotulo').add(d.rotulo));
           tag.add(new TagNode('Omissis'));
+          sb.append(tag.toString());
+        } else {
+          sb.append(new TagNode('Omissis').toString());
         }
-        sb.append(tag.toString());
-      } else {
-        sb.append(new TagNode('Omissis').toString());
       }
 
       this.ultimoProcessado = d;

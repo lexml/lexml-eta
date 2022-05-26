@@ -410,12 +410,15 @@ export class CmdEmdUtil {
     if (!isOmissis(d)) {
       return false;
     }
-    const anterior = CmdEmdUtil.getDispositivoAnteriorDireto(d);
+    let anterior = CmdEmdUtil.getDispositivoAnteriorDireto(d);
+    if (isCaput(anterior)) {
+      anterior = anterior.pai!;
+    }
     if (anterior && anterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       return true;
     }
     const posterior = CmdEmdUtil.getDispositivoPosteriorDireto(d);
-    if (posterior && anterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+    if (posterior && posterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       return true;
     }
     return false;
@@ -435,7 +438,7 @@ export class CmdEmdUtil {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
       return CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return '(Suprimido)';
+      return isOmissis(d) ? '(Omissis suprimido)' : '(Suprimido)';
     } else {
       return new TagNode('Omissis');
     }
