@@ -58,17 +58,10 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (dispositivo.texto && hasIndicativoDesdobramento(dispositivo)) {
         acoes.push(adicionarInciso);
       }
-      if (
-        isPrimeiroMesmoTipo(dispositivo) ||
-        (isUnicoMesmoTipo(dispositivo) && !getDispositivoAnterior(dispositivo)) ||
-        (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!))
-      ) {
+      if ((isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) && (!getDispositivoAnterior(dispositivo) || !isOmissis(getDispositivoAnterior(dispositivo)!))) {
         acoes.push(transformarParagrafoEmIncisoCaput);
       }
-      if (
-        !isUnicoMesmoTipo(dispositivo) &&
-        (!getDispositivoAnterior(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!)))
-      ) {
+      if (!isPrimeiroMesmoTipo(dispositivo) && isParagrafo(getDispositivoAnterior(dispositivo)!)) {
         acoes.push(transformarParagrafoEmIncisoParagrafo);
       }
       if (isUltimoMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) {
@@ -89,7 +82,7 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       }
       return dispositivo.tiposPermitidosFilhos?.map(tipo => {
         const destino = tipo.endsWith(TipoDispositivo.inciso.name!)
-          ? isParagrafo(dispositivo) && (!isUnicoMesmoTipo(dispositivo) || !isPrimeiroMesmoTipo(dispositivo))
+          ? isParagrafo(dispositivo) && !isUnicoMesmoTipo(dispositivo) && !isPrimeiroMesmoTipo(dispositivo) && isParagrafo(getDispositivoAnterior(dispositivo)!)
             ? 'IncisoParagrafo'
             : 'IncisoCaput'
           : tipo;
