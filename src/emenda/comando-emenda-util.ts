@@ -438,7 +438,7 @@ export class CmdEmdUtil {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
       return CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return '(Suprimido)';
+      return isOmissis(d) ? '(Omissis suprimido)' : '(Suprimido)';
     } else {
       return new TagNode('Omissis');
     }
