@@ -410,7 +410,10 @@ export class CmdEmdUtil {
     if (!isOmissis(d)) {
       return false;
     }
-    const anterior = CmdEmdUtil.getDispositivoAnteriorDireto(d);
+    let anterior = CmdEmdUtil.getDispositivoAnteriorDireto(d);
+    if (isCaput(anterior)) {
+      anterior = anterior.pai!;
+    }
     if (anterior && anterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       return true;
     }
