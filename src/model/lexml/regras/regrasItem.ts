@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isItem } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarItemAntes, adicionarItemDepois } from '../acao/adicionarElementoAction';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -11,7 +11,6 @@ import { TransformarElemento, transformarEmOmissisItem, transformarItemEmAlinea 
 import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasDispositivosPosterioresAlteracao,
   isDispositivoAlteracao,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
@@ -45,9 +44,6 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
 
       if (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) {

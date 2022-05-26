@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArticulacao, isArtigo, isCaput, isDispositivoGenerico, isInciso, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -18,7 +18,6 @@ import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasDispositivosPosterioresAlteracao,
   isDispositivoAlteracao,
   isUltimaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
@@ -47,9 +46,6 @@ export function RegrasOmissis<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
 
       if (isArticulacao(dispositivo.pai!) && getDispositivoAnterior(dispositivo) !== undefined) {

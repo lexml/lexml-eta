@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarAlineaAntes, adicionarAlineaDepois, adicionarItem } from '../acao/adicionarElementoAction';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -19,7 +19,6 @@ import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasDispositivosPosterioresAlteracao,
   isDispositivoAlteracao,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
@@ -54,9 +53,6 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
 
       if (dispositivo.texto.length === 0 || hasIndicativoContinuacaoSequencia(dispositivo)) {
@@ -68,7 +64,7 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       if (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) {
         acoes.push(isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput);
       }
-      if (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!))) {
+      if (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!))) {
         acoes.push(transformaAlineaEmItem);
       }
       if (podeConverterEmOmissis(dispositivo)) {

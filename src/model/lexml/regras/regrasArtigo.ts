@@ -1,9 +1,9 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -21,11 +21,11 @@ import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
   getAgrupadoresAcima,
   getAgrupadorPosterior,
+  getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasAgrupadoresAcima,
   hasAgrupadoresPosteriores,
-  hasDispositivosPosterioresAlteracao,
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
@@ -65,9 +65,6 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
       if (dispositivo.alteracoes) {
         acoes.push(informarNormaAction);
@@ -81,7 +78,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && !hasFilhos(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
       }
-      if (dispositivo.pai!.indexOf(dispositivo) > 0) {
+      if (dispositivo.pai!.indexOf(dispositivo) > 0 && getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!)) {
         acoes.push(transformarArtigoEmParagrafo);
       }
       if (dispositivo.pai && !isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai) && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {

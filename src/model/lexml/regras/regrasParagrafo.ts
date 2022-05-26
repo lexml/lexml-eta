@@ -1,8 +1,8 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAlinea, isIncisoCaput, isIncisoParagrafo, isParagrafo } from '../../dispositivo/tipo';
+import { isAlinea, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarInciso, adicionarParagrafoAntes, adicionarParagrafoDepois } from '../acao/adicionarElementoAction';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -20,9 +20,9 @@ import {
 } from '../acao/transformarElementoAction';
 import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
+  getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasDispositivosPosterioresAlteracao,
   isDispositivoAlteracao,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
@@ -58,10 +58,17 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (dispositivo.texto && hasIndicativoDesdobramento(dispositivo)) {
         acoes.push(adicionarInciso);
       }
-      if (isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) {
+      if (
+        isPrimeiroMesmoTipo(dispositivo) ||
+        (isUnicoMesmoTipo(dispositivo) && !getDispositivoAnterior(dispositivo)) ||
+        (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!))
+      ) {
         acoes.push(transformarParagrafoEmIncisoCaput);
       }
-      if (!isUnicoMesmoTipo(dispositivo)) {
+      if (
+        !isUnicoMesmoTipo(dispositivo) &&
+        (!getDispositivoAnterior(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!)))
+      ) {
         acoes.push(transformarParagrafoEmIncisoParagrafo);
       }
       if (isUltimoMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) {
@@ -72,9 +79,6 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

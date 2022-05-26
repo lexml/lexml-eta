@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
-import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -21,7 +21,6 @@ import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasDispositivosPosterioresAlteracao,
   isDispositivoAlteracao,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
@@ -57,9 +56,6 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
-        if (hasDispositivosPosterioresAlteracao(dispositivo)) {
-          acoes.push(finalizarBlocoAlteracao);
-        }
       }
 
       if (hasIndicativoDesdobramento(dispositivo)) {
@@ -74,7 +70,7 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
 
       if (
         isIncisoCaput(dispositivo) &&
-        (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && isOmissis(getDispositivoAnterior(dispositivo)!)))
+        (!isPrimeiroMesmoTipo(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!)))
       ) {
         acoes.push(transformarIncisoCaputEmAlinea);
       }
