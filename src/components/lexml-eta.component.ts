@@ -98,6 +98,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
     }
 
+    document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
   }
 
