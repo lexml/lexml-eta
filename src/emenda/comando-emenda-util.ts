@@ -415,7 +415,7 @@ export class CmdEmdUtil {
       return true;
     }
     const posterior = CmdEmdUtil.getDispositivoPosteriorDireto(d);
-    if (posterior && anterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+    if (posterior && posterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       return true;
     }
     return false;
