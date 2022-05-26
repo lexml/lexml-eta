@@ -64,6 +64,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   async firstUpdated(): Promise<void> {
     this.inicializar(this.configEditor());
+    this.querySelectorAll('.ql-bold, .ql-italic, .ql-script').forEach(tool => {
+      tool.addEventListener('click', (event: any) => {
+        event.stopImmediatePropagation();
+      });
+    });
   }
 
   stateChanged(state: any): void {
