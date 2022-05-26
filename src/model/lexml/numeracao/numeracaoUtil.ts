@@ -301,7 +301,6 @@ export const calculaNumeracao = (d: Dispositivo): string => {
 const REGEX_CHECK_NUMERACAO_ROMANA = /(^(?=[MDCLXVI])M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$)/i;
 const REGEX_CHECK_NUMERACAO_ARABICA = /^\d+$/i;
 const REGEX_CHECK_NUMERACAO_ALFABETICA = /^[a-z]{1,2}$/i;
-const REGEX_CHECK_UNICO = /^[uUúU]nico$/i;
 const REGEX_SUFIXO_ENCAIXE = /^[a-z]{1,2}$/i;
 
 export const isNumeracaoArabicaValida = (numero: string): boolean => {
@@ -316,13 +315,17 @@ export const isNumeracaoAlfabeticaValida = (numero: string): boolean => {
   return REGEX_CHECK_NUMERACAO_ALFABETICA.test(numero);
 };
 
-export const isNumeracaoArtigoOuParagrafoValida = (numero: string): boolean => {
-  return isNumeracaoArabicaValida(numero) || REGEX_CHECK_UNICO.test(numero);
+export const isNumeracaoArtigoValida = (numero: string): boolean => {
+  return isNumeracaoArabicaValida(numero) || /^(artigo )?[uúÚ]nico$/i.test(numero);
+};
+
+export const isNumeracaoParagrafoValida = (numero: string): boolean => {
+  return isNumeracaoArabicaValida(numero) || /^(par[aáÁ]grafo )?[uúÚ]nico$/i.test(numero);
 };
 
 const mapValidacaoNumeracao = {
-  Artigo: isNumeracaoArtigoOuParagrafoValida,
-  Paragrafo: isNumeracaoArtigoOuParagrafoValida,
+  Artigo: isNumeracaoArtigoValida,
+  Paragrafo: isNumeracaoParagrafoValida,
   Inciso: isNumeracaoRomanaValida,
   Alinea: isNumeracaoAlfabeticaValida,
   Item: isNumeracaoArabicaValida,
