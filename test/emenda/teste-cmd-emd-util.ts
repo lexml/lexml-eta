@@ -1,8 +1,8 @@
 import { expect } from '@open-wc/testing';
+
 import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
-import { isAgrupador } from '../../src/model/dispositivo/tipo';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
-import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElementoAction';
+import { ADICIONAR_ELEMENTO, adicionarArtigoAntes } from '../../src/model/lexml/acao/adicionarElementoAction';
 import { iniciarBlocoAlteracao } from '../../src/model/lexml/acao/blocoAlteracaoAction';
 import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
@@ -10,6 +10,7 @@ import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaEleme
 import { suprimeElemento } from '../../src/redux/elemento/reducer/suprimeElemento';
 import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
+import { adicionarArtigoDepois } from './../../src/model/lexml/acao/adicionarElementoAction';
 import { atualizarTextoElementoAction } from './../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { SUPRIMIR_ELEMENTO } from './../../src/model/lexml/acao/suprimirElemento';
 import {
@@ -20,7 +21,7 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from './../../src/model/lexml/acao/transformarElementoAction';
-import { getDispositivoAnteriorMesmoTipo, isDispositivoRaiz } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { atualizaTextoElemento } from './../../src/redux/elemento/reducer/atualizaTextoElemento';
 
 export class TesteCmdEmdUtil {
@@ -94,34 +95,10 @@ export class TesteCmdEmdUtil {
 
   static incluiArtigo(state: State, idArtigoRef: string, antes: boolean): Artigo {
     const artigoRef = buscaDispositivoById(state.articulacao!, idArtigoRef);
-    let dispRef = artigoRef;
-    // console.log(artigoRef?.rotulo);
     expect(artigoRef, `Dispositivo ${idArtigoRef} não encontrado!`).not.to.be.undefined;
-    if (antes) {
-      const pai = artigoRef!.pai!;
-      if (!isDispositivoRaiz(pai) && isAgrupador(pai) && pai.filhos[0] === artigoRef) {
-        dispRef = pai;
-      } else {
-        dispRef = getDispositivoAnteriorMesmoTipo(artigoRef!);
-        expect(dispRef, `Dispositivo anterior ao ${idArtigoRef} não encontrado!`).not.to.be.undefined;
-      }
-    }
-    state = adicionaElemento(state, {
-      type: ADICIONAR_ELEMENTO,
-      atual: { tipo: TipoDispositivo.artigo.tipo, uuid: dispRef?.uuid },
-      novo: { tipo: TipoDispositivo.artigo.tipo },
-    });
-    let d: Dispositivo | undefined;
-    if (antes) {
-      if (dispRef === artigoRef!.pai) {
-        d = dispRef?.filhos[0];
-      } else {
-        d = getDispositivoAnteriorMesmoTipo(artigoRef!);
-      }
-    } else {
-      d = getDispositivoPosteriorMesmoTipo(artigoRef!);
-    }
-    // console.log(d?.rotulo);
+    const action = antes ? adicionarArtigoAntes.execute(artigoRef!, '', TipoDispositivo.artigo) : adicionarArtigoDepois.execute(artigoRef!, '', TipoDispositivo.artigo);
+    state = adicionaElemento(state, action);
+    const d = antes ? getDispositivoAnteriorMesmoTipo(artigoRef!) : getDispositivoPosteriorMesmoTipo(artigoRef!);
     expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idArtigoRef}`).to.not.be.undefined;
     d!.texto = '<p>Texto</p>';
     return d!;
