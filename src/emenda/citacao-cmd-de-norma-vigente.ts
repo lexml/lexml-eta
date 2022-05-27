@@ -5,7 +5,6 @@ import { isArtigo, isOmissis } from './../model/dispositivo/tipo';
 import { getArtigo, percorreHierarquiaDispositivos } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultiplaAlteracaoNormaVigente } from './citacao-cmd-multipla-de-norma-vigente';
 import { CitacaoComandoSimples } from './citacao-cmd-simples';
-import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 
 export class CitacaoComandoDeNormaVigente {
@@ -15,12 +14,7 @@ export class CitacaoComandoDeNormaVigente {
     // Identifica dispositivos alterados
     const dispositivos = new Array<Dispositivo>();
     percorreHierarquiaDispositivos(alteracao, d => {
-      if (
-        d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
-        (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO ||
-          !CmdEmdUtil.isTextoOmitido(d) ||
-          (isOmissis(d) && !CmdEmdUtil.isOmissisAdjacenteADispositivoDeEmenda(d)))
-      ) {
+      if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
         dispositivos.push(d);
       }
     });
