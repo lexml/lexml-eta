@@ -16,7 +16,7 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      this.numero = trataComplemento(this.normalizaNumeracao(rotulo!), converteLetraParaNumeroArabico);
+      this.numero = trataComplemento(this.normalizaNumeracao(rotulo!), rotulo.startsWith('0') ? null : converteLetraParaNumeroArabico);
     }
 
     createRotulo(): void {
