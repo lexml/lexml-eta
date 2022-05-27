@@ -7,6 +7,7 @@ import {
   findDispositivoByUuid,
   getArticulacao,
   getDispositivosPosteriores,
+  hasAscendenteAdicionado,
   hasFilhos,
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
@@ -138,9 +139,11 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
   const articulacao = getArticulacaoFromElemento(art, referencia);
 
   if (!ignorarElementoAlteracao && isElementoDispositivoAlteracao(referencia)) {
-    const ref = getDispositivoFromElemento(articulacao, {
-      uuid: referencia.hierarquia ? referencia.hierarquia!.pai!.uuidAlteracao : referencia.uuidAlteracao,
-    });
+    const ref = articulacao.pai
+      ? articulacao.pai
+      : getDispositivoFromElemento(articulacao, {
+          uuid: referencia.hierarquia ? referencia.hierarquia!.pai!.uuidAlteracao : referencia.uuidAlteracao,
+        });
 
     if (!ref?.alteracoes) {
       return undefined;
@@ -227,4 +230,10 @@ export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void
     criaElementoValidadoSeNecessario(validados, filho);
     filhos ? validaFilhos(validados, filho.filhos) : undefined;
   });
+};
+
+export const hasElementoAscendenteAdicionado = (articulacao: Articulacao, referencia: Partial<Elemento>): boolean => {
+  const d = getDispositivoFromElemento(articulacao, referencia);
+
+  return d ? hasAscendenteAdicionado(d) : false;
 };

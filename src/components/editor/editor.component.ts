@@ -6,6 +6,7 @@ import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
+import { hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
@@ -40,8 +41,8 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
-import { informarNormaDialog } from './informarNormaDialog';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
+import { informarNormaDialog } from './informarNormaDialog';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -278,18 +279,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const dispositivoAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
 
     const content = document.createRange().createContextualFragment(`
-      <style>
-        .dispositivoDeNorma {
-          display: ${dispositivoAdicionado ? 'block' : 'none'};
-        }
-      </style>
       <div style="padding: 15px; text-align: center">
         <div>
           Numeração do dispositivo:
           <input type="text" style="width: 60px">
         </div>
         <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
-        <div class="dispositivoDeNorma">
+        <div id="dispositivoDeNorma">
           <p>O dispositivo já existe na norma a ser alterada?</p>
             <div>
               <input type="radio" id="existente" name="existeNaNorma" value=true>
@@ -311,12 +307,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const input = <HTMLInputElement>content.querySelector('input');
     input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
+    const dispositivoNaNorma = <any>content.getElementById('dispositivoDeNorma');
 
     if (elemento.existeNaNormaAlterada !== undefined) {
       (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as HTMLInputElement).checked = true;
     }
-    if (dispositivoAdicionado && elemento.existeNaNormaAlterada) {
-      (content.querySelector('input[id="existente"]')! as any).checked = true;
+
+    if (dispositivoAdicionado) {
+      const r = hasElementoAscendenteAdicionado(rootStore.getState().elementoReducer.articulacao, elemento);
+      dispositivoNaNorma.disabled = r;
+      dispositivoNaNorma.style.display = r ? 'none' : 'block';
+      (content.querySelector('input[id="existente"]')! as any).checked = elemento.existeNaNormaAlterada;
     }
 
     const botoes = content.querySelectorAll('button');
@@ -346,12 +347,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     };
 
     const validarElementoAdicionado = (): boolean => {
-      document.querySelectorAll('input[name="existeNaNorma"]').forEach(o => ((o as any).checked ? (opcaoInformada = (o as any).value) : undefined));
-      if (dispositivoAdicionado && opcaoInformada === undefined) {
-        const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
-        erro.innerText = msgErro;
-        erro.style.display = msgErro ? 'block' : 'none';
-        return false;
+      if (dispositivoNaNorma && !dispositivoNaNorma.disabled) {
+        document.querySelectorAll('input[name="existeNaNorma"]').forEach(o => ((o as any).checked ? (opcaoInformada = (o as any).value) : undefined));
+        if (dispositivoAdicionado && opcaoInformada === undefined) {
+          const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
+          erro.innerText = msgErro;
+          erro.style.display = msgErro ? 'block' : 'none';
+          return false;
+        }
       }
       erro.style.display = 'none';
       return true;
