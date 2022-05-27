@@ -298,45 +298,21 @@ export const calculaNumeracao = (d: Dispositivo): string => {
   return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
 };
 
-const REGEX_CHECK_NUMERACAO_ROMANA = /(^(?=[MDCLXVI])M*(C[MD]|D?C{0,3})(X[CL]|L?X{0,3})(I[XV]|V?I{0,3})$)/i;
-const REGEX_CHECK_NUMERACAO_ARABICA = /^\d+$/i;
-const REGEX_CHECK_NUMERACAO_ALFABETICA = /^[a-z]{1,2}$/i;
-const REGEX_SUFIXO_ENCAIXE = /^[a-z]{1,2}$/i;
-
-export const isNumeracaoArabicaValida = (numero: string): boolean => {
-  return REGEX_CHECK_NUMERACAO_ARABICA.test(numero);
-};
-
-export const isNumeracaoRomanaValida = (numero: string): boolean => {
-  return REGEX_CHECK_NUMERACAO_ROMANA.test(numero);
-};
-
-export const isNumeracaoAlfabeticaValida = (numero: string): boolean => {
-  return REGEX_CHECK_NUMERACAO_ALFABETICA.test(numero);
-};
-
-export const isNumeracaoArtigoValida = (numero: string): boolean => {
-  return isNumeracaoArabicaValida(numero) || /^(artigo )?[uúÚ]nico$/i.test(numero);
-};
-
-export const isNumeracaoParagrafoValida = (numero: string): boolean => {
-  return isNumeracaoArabicaValida(numero) || /^(par[aáÁ]grafo )?[uúÚ]nico$/i.test(numero);
-};
-
 const mapValidacaoNumeracao = {
-  Artigo: isNumeracaoArtigoValida,
-  Paragrafo: isNumeracaoParagrafoValida,
-  Inciso: isNumeracaoRomanaValida,
-  Alinea: isNumeracaoAlfabeticaValida,
-  Item: isNumeracaoArabicaValida,
+  Artigo: (numero: string): boolean => isNumero(numero) || /^(artigo )?[uúÚ]nico$/i.test(numero),
+  Paragrafo: (numero: string): boolean => isNumero(numero) || /^(par[aáÁ]grafo )?[uúÚ]nico$/i.test(numero),
+  Inciso: isRomano,
+  Alinea: isLetra,
+  Item: isNumero,
 };
 
 export const isNumeracaoValidaPorTipo = (numero: string, tipo: string): boolean => {
   const partes = numero.split('-');
   const partePrincipal = partes[0];
   const parteSufixo = partes.slice(1, partes.length).join('-');
-  const fnValidacao = mapValidacaoNumeracao[tipo] || isNumeracaoRomanaValida;
-  return partes.length === 1 ? fnValidacao(partePrincipal) : fnValidacao(partePrincipal) && REGEX_SUFIXO_ENCAIXE.test(parteSufixo);
+  const fnValidacao = mapValidacaoNumeracao[tipo] || isRomano;
+  const resultPartePrincipal = fnValidacao(partePrincipal) || partePrincipal === '0';
+  return partes.length === 1 ? resultPartePrincipal : resultPartePrincipal && isLetra(parteSufixo);
 };
 
 class SeqOrdem {
