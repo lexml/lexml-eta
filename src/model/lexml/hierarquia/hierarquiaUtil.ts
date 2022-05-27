@@ -1,7 +1,8 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isParagrafo, Tipo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isCaput, isOmissis } from './../../dispositivo/tipo';
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
 
@@ -489,4 +490,22 @@ export const isDescendenteDeSuprimido = (d: Dispositivo): boolean => {
     pai = pai.pai;
   }
   return false;
+};
+
+export const hasAscendenteAdicionado = (d: Dispositivo): boolean => {
+  const parent = isIncisoCaput(d) ? d.pai!.pai : d.pai;
+
+  if (parent === undefined || !isDispositivoAlteracao(d) || d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO || isDispositivoCabecaAlteracao(d)) {
+    return false;
+  }
+
+  if (parent.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !(parent.situacao as DispositivoAdicionado).existeNaNormaAlterada) {
+    return true;
+  }
+
+  if (parent.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && isDispositivoCabecaAlteracao(parent)) {
+    return true;
+  }
+
+  return hasAscendenteAdicionado(parent);
 };
