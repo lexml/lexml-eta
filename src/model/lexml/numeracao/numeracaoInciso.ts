@@ -16,7 +16,7 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      const temp = trataComplemento(this.normalizaNumeracao(rotulo!), converteNumeroRomanoParaArabico);
+      const temp = trataComplemento(this.normalizaNumeracao(rotulo!), rotulo.startsWith('0') ? null : converteNumeroRomanoParaArabico);
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
