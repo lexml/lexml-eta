@@ -35,6 +35,10 @@ const ALGARISMOS_ROMANOS: { [key: string]: number } = {
   I: 1,
 };
 
+export const isNumeracaoZero = (numero: string): boolean => {
+  return /^0(-[a-z]+)?$/i.test(numero);
+};
+
 export const isNumero = (numero: string): boolean => {
   return /^\d+$/.test(numero);
 };
