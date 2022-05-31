@@ -30,7 +30,6 @@ import {
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
@@ -63,15 +62,15 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         dispositivo.numero !== '1'
       ) {
         acoes.push(adicionarArtigoAntes);
-        acoes.push(adicionarArtigoDepois);
       }
+      acoes.push(adicionarArtigoDepois);
 
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
-      if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
-        acoes.push(iniciarBlocoAlteracao);
-      }
+      // if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
+      //   acoes.push(iniciarBlocoAlteracao);
+      // }
       if (dispositivo.alteracoes) {
         acoes.push(informarNormaAction);
       }
