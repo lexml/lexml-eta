@@ -231,7 +231,11 @@ export const rotuloParaEdicao = (texto: string): string => {
 };
 
 export const podeRenumerar = (elemento: Elemento): boolean => {
-  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined && elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL;
+  return (
+    elemento.hierarquia?.pai?.uuidAlteracao !== undefined &&
+    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
+    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+  );
 };
 
 export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
