@@ -1,7 +1,7 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, trataComplemento } from './numeracaoUtil';
+import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, trataComplemento, isNumeracaoZero } from './numeracaoUtil';
 
 export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -16,7 +16,7 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      const temp = trataComplemento(this.normalizaNumeracao(rotulo!), converteNumeroRomanoParaArabico);
+      const temp = trataComplemento(this.normalizaNumeracao(rotulo!), isNumeracaoZero(rotulo) ? null : converteNumeroRomanoParaArabico);
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
