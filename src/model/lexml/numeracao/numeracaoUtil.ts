@@ -336,7 +336,7 @@ export const isNumeracaoValidaPorTipo = (numero: string, tipo: string): boolean 
   const partePrincipal = partes[0];
   const parteSufixo = partes.slice(1, partes.length).join('-');
   const fnValidacao = mapValidacaoNumeracao[tipo] || isRomano;
-  const resultPartePrincipal = fnValidacao(partePrincipal) || partePrincipal === '0';
+  const resultPartePrincipal = fnValidacao(partePrincipal) && partePrincipal !== '0';
   return partes.length === 1 ? resultPartePrincipal : resultPartePrincipal && isLetra(parteSufixo);
 };
 
