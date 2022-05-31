@@ -29,7 +29,7 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
-  if (atual === undefined || atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+  if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
     return state;
   }
 
