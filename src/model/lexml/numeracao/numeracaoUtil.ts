@@ -87,6 +87,9 @@ export const intToAlpha = (numero: number): string => {
 };
 
 export const converteNumeroRomanoParaArabico = (numeroRomano: string): string => {
+  if (numeroRomano.startsWith('0')) {
+    return '0';
+  }
   if (!isRomano(numeroRomano)) {
     throw new Error("O valor '" + numeroRomano + "' não é um número em algarismo romano válido.");
   }

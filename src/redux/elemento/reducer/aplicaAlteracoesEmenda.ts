@@ -12,7 +12,7 @@ import { ajustaReferencia } from '../util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { isArticulacao, isOmissis } from './../../../model/dispositivo/tipo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import { getDispositivoAnteriorMesmoTipo, percorreHierarquiaDispositivos, isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo, isArticulacaoAlteracao, percorreHierarquiaDispositivos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -126,7 +126,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
 
     if (d) {
       if ((da.tipo === 'Inciso' || da.tipo === 'Omissis') && d.tipo === 'Artigo') {
-        novo = criaDispositivo((d as Artigo).caput!, da.tipo);
+        novo = criaDispositivo((d as Artigo).caput!, da.tipo, undefined, 0);
       } else if (ehCaput) {
         d.texto = da.texto ?? '';
         novo = (d as Artigo).caput!;
@@ -136,7 +136,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
         d.alteracoes!.id = da.id;
         d.alteracoes!.base = da.urnNormaAlterada;
       } else {
-        novo = criaDispositivo(d, da.tipo);
+        novo = criaDispositivo(d, da.tipo, undefined, 0);
         novo.texto = da.texto ?? '';
       }
     }
