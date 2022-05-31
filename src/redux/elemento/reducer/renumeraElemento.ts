@@ -3,6 +3,7 @@ import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RenumerarElemento } from '../../../model/lexml/acao/renumerarElementoAction';
+import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
@@ -32,6 +33,10 @@ export const renumeraElemento = (state: any, action: any): State => {
 
   if (!isAcaoPermitida(dispositivo, RenumerarElemento)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível renumerar o dispositivo' });
+  }
+
+  if (isDispositivoAlteracao(dispositivo) && ajustarNumero(dispositivo, action.novo?.numero)?.startsWith('0')) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não pode haver um dispositivo com esse rótulo em alteração de norma' });
   }
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
