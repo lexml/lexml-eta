@@ -245,6 +245,7 @@ export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boo
   return (
     elemento.hierarquia?.pai?.uuidAlteracao !== undefined &&
     elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
+    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO &&
     !(
       isDispositivoAlteracao(dispositivo) &&
       dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
