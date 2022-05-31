@@ -270,7 +270,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     let opcaoInformada;
 
-    if (!podeRenumerar(elemento)) {
+    if (!podeRenumerar(rootStore.getState().elementoReducer.articulacao, elemento)) {
       return;
     }
 

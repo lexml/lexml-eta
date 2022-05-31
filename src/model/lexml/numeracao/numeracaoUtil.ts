@@ -1,12 +1,15 @@
-import { Dispositivo } from '../../dispositivo/dispositivo';
+import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao, isDispositivoEmenda } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
+import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
 import {
   getArtigosPosterioresIndependenteAgrupador,
   getDispositivoAnterior,
+  getDispositivoPosteriorMesmoTipo,
   getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
+  isDispositivoAlteracao,
   isOriginal,
   isOriginalAlteradoModificadoOuSuprimido,
 } from '../hierarquia/hierarquiaUtil';
@@ -233,8 +236,22 @@ export const rotuloParaEdicao = (texto: string): string => {
     .trim();
 };
 
-export const podeRenumerar = (elemento: Elemento): boolean => {
-  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined && elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL;
+export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boolean => {
+  const dispositivo = getDispositivoFromElemento(articulacao, elemento);
+
+  if (dispositivo === undefined) {
+    return false;
+  }
+  return (
+    elemento.hierarquia?.pai?.uuidAlteracao !== undefined &&
+    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
+    !(
+      isDispositivoAlteracao(dispositivo) &&
+      dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+      getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
+      getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    )
+  );
 };
 
 export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {

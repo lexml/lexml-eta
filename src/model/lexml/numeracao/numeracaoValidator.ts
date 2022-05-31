@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoAnterior,
@@ -77,7 +78,16 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo não contém rótulo',
     });
   }
-  if (dispositivo !== null && !isDispositivoGenerico(dispositivo) && dispositivo.rotulo?.endsWith(dispositivo.tipo)) {
+  if (
+    dispositivo !== null &&
+    !isDispositivoGenerico(dispositivo) &&
+    dispositivo.rotulo?.endsWith(dispositivo.tipo) &&
+    !(
+      dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+      getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
+      getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    )
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O rótulo informado não é válido. Numere o dispositivo',

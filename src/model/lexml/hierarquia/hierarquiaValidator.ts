@@ -1,6 +1,8 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupadorGenerico, isDispositivoGenerico } from '../../dispositivo/tipo';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
+import { getDispositivoPosteriorMesmoTipo, isDispositivoAlteracao } from './hierarquiaUtil';
 
 export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
@@ -14,6 +16,18 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Segundo a Legislação vigente, ${dispositivo.descricao} não poderia possuir filhos`,
+    });
+  }
+  if (
+    dispositivo !== null &&
+    isDispositivoAlteracao(dispositivo) &&
+    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+    getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
+    getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Não é permitido um dispositivo de alteração da norma antes do primeiro dispositivo`,
     });
   }
   if (dispositivo !== null && (isDispositivoGenerico(dispositivo) || isAgrupadorGenerico(dispositivo))) {
