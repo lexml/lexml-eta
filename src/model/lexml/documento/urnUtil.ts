@@ -8,6 +8,12 @@ export const getAutoridade = (urn: string): Autoridade | undefined => {
   return VOCABULARIO.autoridades.filter(t => t.urn === partes[0])[0];
 };
 
+export const getSigla = (urn: string): string => {
+  const tipo = getTipo(urn) ?? {};
+  const fnProcurarPorUrnTipoDocumento = (item: any): any => item.urnTipoDocumento === tipo.urn;
+  return VOCABULARIO.siglas.find(fnProcurarPorUrnTipoDocumento)?.sigla ?? VOCABULARIO.fakeUrns.find(fnProcurarPorUrnTipoDocumento)?.sigla ?? '';
+};
+
 export const getTipo = (urn: string): any => {
   const tipo = urn.replace('urn:lex:br:', '')?.split(':');
   return VOCABULARIO.tiposDocumento.filter(t => t.urn === tipo[1])[0];
@@ -29,6 +35,8 @@ export const getData = (urn: string): string => {
   const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
   return d ? d.join('/') : '';
 };
+
+export const getAno = (urn: string): string => getData(urn).split('/').slice(-1)[0];
 
 const retiraFragmento = (urn: string): string => {
   const i = urn.indexOf('!');
