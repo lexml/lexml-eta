@@ -1,4 +1,4 @@
-export const MPV_SIMPLES = {
+export const MPV_905_2019 = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
     localPart: 'LexML',
