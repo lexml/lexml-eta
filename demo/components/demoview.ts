@@ -77,11 +77,16 @@ export class DemoView extends LitElement {
     this.elNomeProposicao.style.display = 'block';
   }
 
-  private atualizarSelect(projetoNorma: any): void {
+  private atualizarSelects(projetoNorma: any): void {
     const { sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(projetoNorma?.value?.metadado?.identificacao?.urn);
+
     const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
-    const el = this.getElement(`option[value="${key}"]`);
+    let el = this.getElement(`option[value="${key}"]`);
     el ? (el.selected = true) : undefined;
+
+    el = this.getElement('#optEmenda');
+    el.disabled = false;
+    el.selected = true;
   }
 
   onChangeDocumento(): void {
@@ -139,7 +144,7 @@ export class DemoView extends LitElement {
   salvar(): void {
     const projetoNorma = this.projetoNorma;
     const emenda = this.elLexmlEmenda.getEmenda();
-    const emendaJson = JSON.stringify({ projetoNorma, emenda }, null, '\t');
+    const emendaJson = JSON.stringify({ emenda }, null, '\t');
     const blob = new Blob([emendaJson], { type: 'application/json' });
     const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
@@ -170,7 +175,7 @@ export class DemoView extends LitElement {
           this.elLexmlEmenda.setEmenda(result.emenda);
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(result.emenda);
           this.atualizarProposicaoCorrente(this.projetoNorma);
-          this.atualizarSelect(this.projetoNorma);
+          this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = result.emenda.comandoEmenda;
           this.elLexmlEmendaComando.style.display = 'block';
           this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
