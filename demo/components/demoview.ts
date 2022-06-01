@@ -1,3 +1,4 @@
+import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import '../../src';
 
 import { html, LitElement, TemplateResult } from 'lit';
@@ -14,6 +15,7 @@ import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 
 import { Emenda, RefProposicaoEmendada } from '../../src/model/emenda/emenda';
 import { getSigla, getNumero, getAno } from './../../src/model/lexml/documento/urnUtil';
+import { LexmlEmendaComponent } from '../../src/components/lexml-emenda.component';
 
 const mapProjetosNormas = {
   novo: {},
@@ -30,7 +32,16 @@ const mapProjetosNormas = {
 @customElement('demo-view')
 export class DemoView extends LitElement {
   @query('.nome-proposicao')
-  private _elNomeProposicao!: HTMLDivElement;
+  private elNomeProposicao!: HTMLDivElement;
+
+  @query('#projetoNorma')
+  private elDocumento!: HTMLSelectElement;
+
+  @query('lexml-emenda')
+  private elLexmlEmenda!: LexmlEmendaComponent;
+
+  @query('lexml-emenda-comando')
+  private elLexmlEmendaComando!: ComandoEmendaComponent;
 
   @state() modo = '';
   @state() projetoNorma: any = {};
@@ -45,7 +56,7 @@ export class DemoView extends LitElement {
   }
 
   protected firstUpdated(): void {
-    this._elNomeProposicao.style.display = 'none';
+    this.elNomeProposicao.style.display = 'none';
   }
 
   private getElement(selector: string): any {
@@ -54,8 +65,8 @@ export class DemoView extends LitElement {
 
   private resetaEmenda(): void {
     const emenda = new Emenda();
-    this.getElement('lexml-emenda').setEmenda(emenda);
-    this.getElement('lexml-emenda-comando').emenda = {};
+    this.elLexmlEmenda.setEmenda(emenda);
+    this.elLexmlEmendaComando.emenda = {};
   }
 
   private atualizarProposicaoCorrente(projetoNorma: any): void {
@@ -63,50 +74,55 @@ export class DemoView extends LitElement {
     this.proposicaoCorrente.sigla = sigla;
     this.proposicaoCorrente.numero = numero;
     this.proposicaoCorrente.ano = ano;
-    this._elNomeProposicao.style.display = 'block';
+    this.elNomeProposicao.style.display = 'block';
+  }
+
+  private atualizarSelect(projetoNorma: any): void {
+    const { sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(projetoNorma?.value?.metadado?.identificacao?.urn);
+    const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
+    const el = this.getElement(`option[value="${key}"]`);
+    el ? (el.selected = true) : undefined;
   }
 
   onChangeDocumento(): void {
-    const elmDocumento = this.getElement('#projetoNorma');
-    if (elmDocumento?.value === 'novo') {
-      this.getElement('#emenda').disabled = true;
-      this.getElement('#emendaArtigoOndeCouber').disabled = true;
-      this.getElement('#edicao').selected = true;
+    if (this.elDocumento.value === 'novo') {
+      this.getElement('#optEmenda').disabled = true;
+      this.getElement('#optEmendaArtigoOndeCouber').disabled = true;
+      this.getElement('#optEdicao').selected = true;
     } else {
-      this.getElement('#emenda').disabled = false;
-      this.getElement('#emendaArtigoOndeCouber').disabled = false;
+      this.getElement('#optEmenda').disabled = false;
+      this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
     }
   }
 
   limparTela(): void {
-    this.getElement('lexml-emenda').style.display = 'none';
-    this.getElement('lexml-emenda-comando').style.display = 'none';
+    this.elLexmlEmenda.style.display = 'none';
+    this.elLexmlEmendaComando.style.display = 'none';
     this.projetoNorma = {};
     this.resetaEmenda();
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
     this.proposicaoCorrente.ano = '';
-    this._elNomeProposicao.style.display = 'none';
+    this.elNomeProposicao.style.display = 'none';
   }
 
   executar(): void {
     const elmAcao = this.getElement('#modo');
-    const elmDocumento = this.getElement('#projetoNorma');
 
-    if (!elmDocumento.value) {
+    if (!this.elDocumento.value) {
       this.limparTela();
       return;
     }
 
     this.getElement('#fileUpload').value = null;
 
-    if (elmDocumento && elmAcao) {
+    if (this.elDocumento && elmAcao) {
       setTimeout(() => {
-        this.projetoNorma = { ...mapProjetosNormas[elmDocumento.value] };
+        this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
         this.resetaEmenda();
         this.modo = elmAcao.value;
         this.atualizarProposicaoCorrente(this.projetoNorma);
-        document.querySelector('lexml-emenda')!['style'].display = 'block';
+        this.elLexmlEmenda.style.display = 'block';
       }, 0);
     }
   }
@@ -116,13 +132,13 @@ export class DemoView extends LitElement {
 
     if (this.modo.startsWith('emenda')) {
       const comandoEmenda = this.getElement('lexml-eta').getComandoEmenda();
-      this.getElement('lexml-emenda-comando').emenda = comandoEmenda;
+      this.elLexmlEmendaComando.emenda = comandoEmenda;
     }
   }
 
   salvar(): void {
     const projetoNorma = this.projetoNorma;
-    const emenda = this.getElement('lexml-emenda').getEmenda();
+    const emenda = this.elLexmlEmenda.getEmenda();
     const emendaJson = JSON.stringify({ projetoNorma, emenda }, null, '\t');
     const blob = new Blob([emendaJson], { type: 'application/json' });
     const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
@@ -148,29 +164,17 @@ export class DemoView extends LitElement {
       this.resetaEmenda();
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
-      // fReader.onloadend = (e): void => {
-      //   if (e.target?.result) {
-      //     const result = JSON.parse(e.target.result as string);
-      //     this.getElement('lexml-emenda').setEmenda(result.emenda);
-      //     this.projetoNorma = result.projetoNorma;
-      //     this.projetoNorma = result.projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
-      //     this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
-      //     this.getElement('lexml-emenda-comando')!['style'].display = 'block';
-      //     this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
-      //     this.getElement('lexml-emenda')!['style'].display = 'block';
-      //   }
-      // };
-
       fReader.onloadend = async (e): Promise<void> => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.getElement('lexml-emenda').setEmenda(result.emenda);
+          this.elLexmlEmenda.setEmenda(result.emenda);
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(result.emenda);
           this.atualizarProposicaoCorrente(this.projetoNorma);
-          this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
-          this.getElement('lexml-emenda-comando').style.display = 'block';
+          this.atualizarSelect(this.projetoNorma);
+          this.elLexmlEmendaComando.emenda = result.emenda.comandoEmenda;
+          this.elLexmlEmendaComando.style.display = 'block';
           this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
-          this.getElement('lexml-emenda').style.display = 'block';
+          this.elLexmlEmenda.style.display = 'block';
         }
       };
     }
@@ -291,9 +295,9 @@ export class DemoView extends LitElement {
             <!-- <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option> -->
           </select>
           <select id="modo">
-            <option value="edicao" id="edicao">Edição</option>
-            <option value="emenda" id="emenda" selected>Emenda</option>
-            <option value="emendaArtigoOndeCouber" id="emendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
+            <option value="edicao" id="optEdicao">Edição</option>
+            <option value="emenda" id="optEmenda" selected>Emenda</option>
+            <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
