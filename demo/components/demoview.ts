@@ -172,8 +172,8 @@ export class DemoView extends LitElement {
       fReader.onloadend = async (e): Promise<void> => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.elLexmlEmenda.setEmenda(result.emenda);
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(result.emenda);
+          this.elLexmlEmenda.setEmenda(result.emenda);
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = result.emenda.comandoEmenda;
