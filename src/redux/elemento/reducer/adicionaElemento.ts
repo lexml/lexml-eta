@@ -6,7 +6,15 @@ import { createElemento, createElementos, getDispositivoFromElemento, listaDispo
 import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
-import { hasFilhos, irmaosMesmoTipo, isArtigoUnico, isDispositivoAlteracao, isOriginal, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  hasFilhos,
+  irmaosMesmoTipo,
+  isArtigoUnico,
+  isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
+  isOriginal,
+  isParagrafoUnico,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -48,7 +56,13 @@ export const adicionaElemento = (state: any, action: any): State => {
     ) {
       return state;
     }
-    if (isDispositivoAlteracao(atual) && hasFilhos(atual) && isOriginal(atual.filhos[0]) && !isOmissis(atual.filhos[0])) {
+    if (
+      (action.posicao === undefined || action.posicao === 'depois') &&
+      isDispositivoAlteracao(atual) &&
+      hasFilhos(atual) &&
+      isOriginal(atual.filhos[0]) &&
+      !isOmissis(atual.filhos[0])
+    ) {
       if (!isParagrafo(atual.filhos[0]) && atual.filhos[0].numero === '1') {
         return state;
       }
@@ -59,7 +73,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     atual.pai!.indexOf(atual) === 0
       ? !action.posicao && atual.hasAlteracao()
         ? atual
-        : isIncisoCaput(atual!)
+        : isIncisoCaput(atual!) || isDispositivoCabecaAlteracao(atual!)
         ? atual.pai!.pai!
         : atual.pai
       : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
