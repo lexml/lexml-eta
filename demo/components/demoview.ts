@@ -1,19 +1,17 @@
-import '../../src';
-
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-
+import '../../src';
+import { Emenda } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
 import { MPV_1089_2021 } from '../doc/mpv_1089_2021';
+import { MPV_1100_2022 } from '../doc/mpv_1100_2022';
 import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_ALTERACAO } from '../doc/mpv_alteracao';
 import { MPV_SIMPLES } from '../doc/mpv_simples';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { DispositivosEmenda } from './../../src/model/emenda/emenda';
-
-import { Emenda } from '../../src/model/emenda/emenda';
 
 const mapProjetosNormas = {
   novo: {},
@@ -21,6 +19,7 @@ const mapProjetosNormas = {
   mpv_simples: MPV_SIMPLES,
   mpv_930_2020: MPV_930_2020,
   mpv_1089_2021: MPV_1089_2021,
+  mpv_1100_2022: MPV_1100_2022,
   codcivil_completo: COD_CIVIL_COMPLETO,
   codcivil_parcial1: COD_CIVIL_PARCIAL1,
   codcivil_parcial2: COD_CIVIL_PARCIAL2,
@@ -222,6 +221,7 @@ export class DemoView extends LitElement {
             <option value="mpv_simples" selected>MP 905, de 2019</option>
             <option value="mpv_930_2020">MP 930, de 2020</option>
             <option value="mpv_1089_2021">MP 1089, de 2021</option>
+            <option value="mpv_1100_2022">MP 1100, de 2022</option>
             <option value="codcivil_completo">Código Civil Completo</option>
             <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
