@@ -3,6 +3,7 @@ import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
+  getDispositivoPosterior,
   hasFilhoGenerico,
   hasFilhos,
   isDispositivoAlteracao,
@@ -240,7 +241,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasFilhos(dispositivo) &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo)
+    !hasIndicativoContinuacaoSequencia(dispositivo) &&
+    (!getDispositivoPosterior(dispositivo) || !isOmissis(getDispositivoPosterior(dispositivo)!))
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
