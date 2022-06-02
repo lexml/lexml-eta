@@ -12,6 +12,12 @@ import 'elix/define/MenuSeparator';
 import 'elix/define/Toast';
 import 'quill/dist/quill';
 
+import '@shoelace-style/shoelace/dist/components/dialog/dialog';
+import '@shoelace-style/shoelace/dist/components/menu-item/menu-item';
+import '@shoelace-style/shoelace/dist/components/select/select';
+import '@shoelace-style/shoelace/dist/components/input/input';
+import '@shoelace-style/shoelace/dist/components/button/button';
+
 // ---------------------------------------------------
 
 export { ArticulacaoComponent } from './components/articulacao.component';
