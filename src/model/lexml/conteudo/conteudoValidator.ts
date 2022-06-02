@@ -1,4 +1,4 @@
-import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, isValidHTML } from '../../../util/string-util';
+import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
@@ -77,7 +77,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   //
   // validações comuns a dispositivos de artigo
   //
-  if (isDispositivoDeArtigo(dispositivo) && !isParagrafo(dispositivo) && dispositivo.texto && /^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+  if (isDispositivoDeArtigo(dispositivo) && !isParagrafo(dispositivo) && dispositivo.texto && /^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio`,
@@ -107,7 +107,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   //
   // validações comuns a Artigo e Parágrafo
   //
-  if ((isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto && !/^[...]{3,}/.test(dispositivo.texto) && !/^[A-ZÀ-Ú]/.test(dispositivo.texto)) {
+  if ((isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto && !/^[...]{3,}/.test(dispositivo.texto) && !/^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
