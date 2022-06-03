@@ -8,8 +8,8 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
     document.body.appendChild(dialogElem);
   } else {
     dialogElem.innerHTML = '';
+    dialogElem.label = '';
   }
-
   dialogElem.label = 'Dados da norma vigente';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
@@ -19,7 +19,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
 
   const content = document.createRange().createContextualFragment(`
   <style></style>
-  <form class="input-validation-required">
+  <div class="input-validation-required">
     <sl-select name="tipoNorma" id="tipoNorma" label="Tipo" clearable>
       <sl-menu-item value="decreto">Decreto</sl-menu-item>
       <sl-menu-item value="decreto-lei">Decreto-Lei</sl-menu-item>
@@ -28,9 +28,11 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
       <sl-menu-item value="lei.delegada">Lei Delegada</sl-menu-item>
       <sl-menu-item value="medida.provisoria">Medida Provisória</sl-menu-item>
     </sl-select>
+    <br/>
     <sl-input name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)" label="Número" clearable></sl-input>
+    <br/>
     <sl-input type="date" name="dataNorma" id="dataNorma" label="Data" clearable></sl-input>
-  </form>
+  </div>
   <br/>
   <sl-alert variant="warning" closable class="alert-closable">
     <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
@@ -88,8 +90,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
     quill.focus();
     dialogElem?.hide();
   };
-
+  quill.blur();
   dialogElem.appendChild(content);
-  console.log(dialogElem);
   dialogElem.show();
 }

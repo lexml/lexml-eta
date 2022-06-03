@@ -1,3 +1,4 @@
+import { SlInput, SlRadioButton } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
@@ -274,55 +275,62 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    const dialogElem = document.createElement('elix-dialog');
-
+    // const dialogElem = document.createElement('elix-dialog');
+    let dialogElem = document.querySelector('sl-dialog');
+    if (dialogElem === null) {
+      dialogElem = document.createElement('sl-dialog');
+      document.body.appendChild(dialogElem);
+    } else {
+      dialogElem.innerHTML = '';
+      dialogElem.label = '';
+    }
+    dialogElem.label = 'Informar numeração de dispositivo';
+    dialogElem.addEventListener('sl-request-close', (event: any) => {
+      if (event.detail.source === 'overlay') {
+        event.preventDefault();
+      }
+    });
     const dispositivoAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
 
     const content = document.createRange().createContextualFragment(`
-      <div style="padding: 15px; text-align: center">
-        <div>
-          Numeração do dispositivo:
-          <input type="text" style="width: 60px">
-        </div>
-        <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
+      <div class="input-validation-required">
+        <sl-input type="text" placeholder="" label="Numeração do dispositivo:" clearable></sl-input>
+        <div class="erro"></div>
+        <br/>
         <div id="dispositivoDeNorma">
-          <p>O dispositivo já existe na norma a ser alterada?</p>
-            <div>
-              <input type="radio" id="existente" name="existeNaNorma" value=true>
-              <label for="existente">Sim</label>
-            </div>
-
-            <div>
-              <input type="radio" id="adicionado" name="existeNaNorma" value=false>
-              <label for="adicionado">Não</label>
-            </div>
-
-        </div>
-        <div style="margin-top: 10px;">
-          <button>Ok</button>
-          <button>Cancelar</button>
+            O dispositivo já existe na norma a ser alterada?
+            <sl-radio-group label="O dispositivo já existe na norma a ser alterada?">
+              <sl-radio-button name="existeNaNorma" id="existente" value="true">Sim</sl-radio-button>
+              <sl-radio-button name="existeNaNorma" id="adicionado" value="false">Não</sl-radio-button>
+            </sl-radio-group>
         </div>
       </div>
+      <br/>
+
+      <sl-button slot="footer" variant="default">Cancelar</sl-button>
+      <sl-button slot="footer" variant="primary">Ok</sl-button>
     `);
 
-    const input = <HTMLInputElement>content.querySelector('input');
+    const input = <SlInput>content.querySelector('sl-input');
     input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
+
     const dispositivoNaNorma = <any>content.getElementById('dispositivoDeNorma');
 
+    console.log('>>>', elemento.existeNaNormaAlterada);
     if (elemento.existeNaNormaAlterada !== undefined) {
-      (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as HTMLInputElement).checked = true;
+      (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as SlRadioButton).checked = true;
     }
 
     if (dispositivoAdicionado) {
       const r = hasElementoAscendenteAdicionado(rootStore.getState().elementoReducer.articulacao, elemento);
       dispositivoNaNorma.disabled = r;
       dispositivoNaNorma.style.display = r ? 'none' : 'block';
-      (content.querySelector('input[id="existente"]')! as any).checked = elemento.existeNaNormaAlterada;
+      (content.querySelector('#existente')! as any).checked = elemento.existeNaNormaAlterada;
     }
 
-    const botoes = content.querySelectorAll('button');
-    const ok = botoes[0];
-    const cancelar = botoes[1];
+    const botoes = content.querySelectorAll('sl-button');
+    const cancelar = botoes[0];
+    const ok = botoes[1];
 
     const erro = <HTMLDivElement>content.querySelector('.erro');
 
@@ -331,7 +339,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         return;
       }
       this.quill.focus();
-      (<any>dialogElem).close();
+      // (<any>dialogElem).close();
+      dialogElem?.hide();
 
       if (elemento.conteudo?.texto !== atual) {
         elemento.conteudo!.texto = atual;
@@ -343,12 +352,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     cancelar.onclick = (): void => {
       this.quill.focus();
-      (<any>dialogElem).close();
+      // (<any>dialogElem).close();
+      dialogElem?.hide();
     };
 
     const validarElementoAdicionado = (): boolean => {
       if (dispositivoNaNorma && !dispositivoNaNorma.disabled) {
-        document.querySelectorAll('input[name="existeNaNorma"]').forEach(o => ((o as any).checked ? (opcaoInformada = (o as any).value) : undefined));
+        document.querySelectorAll('sl-radio-button').forEach(o => {
+          console.log();
+          if ((o as SlRadioButton).checked) {
+            opcaoInformada = (o as SlRadioButton).value;
+            console.log('>>', dispositivoAdicionado, opcaoInformada);
+          }
+        });
+
         if (dispositivoAdicionado && opcaoInformada === undefined) {
           const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
           erro.innerText = msgErro;
@@ -387,7 +404,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     ok.disabled = Boolean(validar());
 
-    await (<any>dialogElem).open();
+    // await (<any>dialogElem).open();
+    dialogElem?.show();
   }
 
   private removerElementoSemTexto(key: string): void {
