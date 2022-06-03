@@ -42,6 +42,7 @@ export class LexmlAutocomplete extends LitElement {
         }
         li {
           padding: 4px;
+          cursor: pointer;
         }
         li.active {
           background: whitesmoke;

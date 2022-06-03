@@ -30,7 +30,7 @@ export const autoriaCss = css`
   .autoria-list {
     max-height: 185px;
     overflow: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 
   .autoria-grid {
