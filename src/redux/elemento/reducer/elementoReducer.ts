@@ -4,6 +4,7 @@ import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlte
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
+import { AUTO_FIX } from '../../../model/lexml/acao/autoFixAction';
 import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acao/elementoSelecionadoAction';
 import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
@@ -11,7 +12,6 @@ import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAci
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
-import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerElementoSemTextoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SHIFT_TAB } from '../../../model/lexml/acao/shiftTabAction';
@@ -21,6 +21,7 @@ import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformar
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulacaoAction';
 import { VALIDAR_ELEMENTO } from '../../../model/lexml/acao/validarElementoAction';
+import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerElementoSemTextoAction';
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaElemento } from './adicionaElemento';
 import { agrupaElemento } from './agrupaElemento';
@@ -43,6 +44,7 @@ import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
+import { autoFixElemento } from './autoFixElemento';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -54,6 +56,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return atualizaReferenciaElemento(state, action);
     case ATUALIZAR_TEXTO_ELEMENTO:
       return atualizaTextoElemento(state, action);
+    case AUTO_FIX:
+      return autoFixElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case AGRUPAR_ELEMENTO:

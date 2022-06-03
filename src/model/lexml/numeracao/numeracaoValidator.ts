@@ -14,7 +14,7 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { Mensagem, TipoMensagem } from '../util/mensagem';
+import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao } from './numeracaoUtil';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
@@ -109,7 +109,8 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'É necessário um omissis antes deste dispositivo',
+      descricao: AutoFix.OMISSIS_ANTES,
+      fix: true,
     });
   }
   if (
@@ -173,7 +174,8 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'É necessário um omissis antes deste dispositivo',
+      descricao: AutoFix.OMISSIS_ANTES,
+      fix: true,
     });
   }
 

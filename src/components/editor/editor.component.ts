@@ -12,6 +12,7 @@ import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElement
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
+import { autofixAction } from '../../model/lexml/acao/autoFixAction';
 import { elementoSelecionadoAction } from '../../model/lexml/acao/elementoSelecionadoAction';
 import { moverElementoAbaixoAction } from '../../model/lexml/acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../../model/lexml/acao/moverElementoAcimaAction';
@@ -803,6 +804,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('rotulo', (event: any) => {
       event.stopImmediatePropagation();
       this.renumerarElemento();
+    });
+
+    editorHtml.addEventListener('mensagem', (event: any) => {
+      event.stopImmediatePropagation();
+
+      const linha: EtaContainerTable = this.quill.linhaAtual;
+
+      if (linha) {
+        const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+        const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
+        rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
+      }
     });
   }
 

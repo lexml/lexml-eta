@@ -21,6 +21,10 @@ export class EtaBlotMensagem extends EtaBlot {
     node.setAttribute('contenteditable', 'false');
     node.classList.add(classe);
     node.innerHTML = mensagem.descricao ? mensagem.descricao : '';
+    if (mensagem.fix) {
+      node.innerHTML += `<span class="mensagem__fix"> ( Fix disponível )</span>`;
+      node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('mensagem', { bubbles: true, cancelable: true, detail: { mensagem } }));
+    }
     return node;
   }
 

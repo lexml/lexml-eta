@@ -4,10 +4,15 @@ export enum TipoMensagem {
   ERROR,
 }
 
+export enum AutoFix {
+  OMISSIS_ANTES = `É necessário um omissis antes deste dispositivo`,
+}
+
 export interface Mensagem {
   tipo: TipoMensagem;
   descricao?: string;
   detalhe?: any;
+  fix?: any;
 }
 
 export interface MensagemErro extends Mensagem {
