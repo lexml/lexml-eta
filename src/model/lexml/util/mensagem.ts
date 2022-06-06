@@ -6,6 +6,7 @@ export enum TipoMensagem {
 
 export enum AutoFix {
   OMISSIS_ANTES = `É necessário um omissis antes deste dispositivo`,
+  RENUMERAR_DISPOSITIVO = 'O rótulo informado não é válido. Numere o dispositivo',
 }
 
 export interface Mensagem {

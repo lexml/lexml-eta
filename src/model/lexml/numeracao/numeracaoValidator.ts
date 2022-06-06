@@ -90,7 +90,8 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'O rótulo informado não é válido. Numere o dispositivo',
+      descricao: AutoFix.RENUMERAR_DISPOSITIVO,
+      fix: true,
     });
   }
   if (dispositivo !== null && isDispositivoAlteracao(dispositivo) && isParagrafo(dispositivo) && !isUnicoMesmoTipo(dispositivo) && dispositivo.rotulo?.endsWith('único.')) {

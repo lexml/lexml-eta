@@ -29,6 +29,7 @@ import { validarElementoAction } from '../../model/lexml/acao/validarElementoAct
 import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
+import { AutoFix } from '../../model/lexml/util/mensagem';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
@@ -812,9 +813,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const linha: EtaContainerTable = this.quill.linhaAtual;
 
       if (linha) {
-        const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
-        const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
-        rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
+        if (AutoFix.RENUMERAR_DISPOSITIVO === event.detail?.mensagem?.descricao) {
+          this.renumerarElemento();
+        } else {
+          const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+          const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
+          rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
+        }
       }
     });
   }
