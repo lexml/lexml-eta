@@ -7,7 +7,7 @@ import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-import { hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
+import { hasElementoAscendenteAdicionado, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
@@ -44,6 +44,8 @@ import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { informarNormaDialog } from './informarNormaDialog';
+import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
+import { adicionaAlerta } from '../../redux/alerta/reducer/actions';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -843,8 +845,33 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private alertaGlobalVerificaRenumeracao(linhaAtual: EtaContainerTable): void {
+    const elemento: Elemento = this.criarElemento(
+      linhaAtual.uuid,
+      linhaAtual.lexmlId,
+      linhaAtual.tipo,
+      linhaAtual.blotConteudo?.html ?? '',
+      linhaAtual.numero,
+      linhaAtual.hierarquia
+    );
+    const dispositivo = getDispositivoFromElemento(rootStore.getState().elementoReducer.articulacao, elemento);
+    if (dispositivo) {
+      if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal([dispositivo])) {
+        const alerta = {
+          id: 'alerta-global-renumeracao',
+          tipo: 'danger',
+          mensagem:
+            'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
+          podeFechar: true,
+        };
+        rootStore.dispatch(adicionaAlerta(alerta));
+      }
+    }
+  }
+
   private emitirEventoOnChange(origemEvento: string): void {
     this.atualizarTextoElemento(this.quill.linhaAtual);
+    rootStore.dispatch(this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual));
 
     this.dispatchEvent(
       new CustomEvent('onchange', {
