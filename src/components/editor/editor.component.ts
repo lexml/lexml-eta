@@ -871,7 +871,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private emitirEventoOnChange(origemEvento: string): void {
     this.atualizarTextoElemento(this.quill.linhaAtual);
-    rootStore.dispatch(this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual));
 
     this.dispatchEvent(
       new CustomEvent('onchange', {
@@ -882,6 +881,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
+    this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
