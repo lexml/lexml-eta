@@ -1,7 +1,5 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-// eslint-disable-next-line import/no-duplicates
-import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
@@ -11,10 +9,13 @@ import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
 // eslint-disable-next-line import/no-duplicates
+import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
+// eslint-disable-next-line import/no-duplicates
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 
-import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
+import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda, ColegiadoApreciador } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { getSigla, getNumero, getAno } from './../../src/model/lexml/documento/urnUtil';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -49,16 +50,45 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }));
   }
 
-  getEmenda(): Emenda {
+  private montarColegiadoApreciador(numero: string, ano: string): ColegiadoApreciador {
+    return {
+      siglaCasaLegislativa: 'CN',
+      tipoColegiado: 'Comissão',
+      siglaComissao: `CMMPV ${numero}/${ano}`,
+    };
+  }
+
+  private montarLocalFromColegiadoApreciador(colegiado: ColegiadoApreciador): any {
+    return colegiado.tipoColegiado === 'Comissão' ? 'Sala da comissão' : 'Sala das sessões';
+  }
+
+  private montarEmendaBasicaFromProjetoNorma(projetoNorma: any, modoEdicao: ModoEdicaoEmenda): Emenda {
     const emenda = new Emenda();
-    emenda.modoEdicao = this.modo as any as ModoEdicaoEmenda;
-    emenda.proposicao.urn = getUrn(this.projetoNorma);
-    emenda.componentes[0].urn = emenda.proposicao.urn;
+    emenda.modoEdicao = modoEdicao;
+    const urn = getUrn(this.projetoNorma);
+    emenda.componentes[0].urn = urn;
+    emenda.proposicao = {
+      urn,
+      sigla: getSigla(urn),
+      numero: getNumero(urn),
+      ano: getAno(urn),
+      ementa: projetoNorma.value.projetoNorma.norma.parteInicial.ementa.content[0],
+      identificacaoTexto: '',
+    };
+    return emenda;
+  }
+
+  getEmenda(): Emenda {
+    const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
+
     emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda();
     emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data;
+    emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.numero, emenda.proposicao.ano);
+    emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
+
     return emenda;
   }
 

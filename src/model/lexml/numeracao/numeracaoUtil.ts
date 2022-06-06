@@ -245,6 +245,7 @@ export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boo
   return (
     elemento.hierarquia?.pai?.uuidAlteracao !== undefined &&
     elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
+    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO &&
     !(
       isDispositivoAlteracao(dispositivo) &&
       dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
@@ -335,7 +336,7 @@ export const isNumeracaoValidaPorTipo = (numero: string, tipo: string): boolean 
   const partePrincipal = partes[0];
   const parteSufixo = partes.slice(1, partes.length).join('-');
   const fnValidacao = mapValidacaoNumeracao[tipo] || isRomano;
-  const resultPartePrincipal = fnValidacao(partePrincipal) || partePrincipal === '0';
+  const resultPartePrincipal = fnValidacao(partePrincipal) && partePrincipal !== '0';
   return partes.length === 1 ? resultPartePrincipal : resultPartePrincipal && isLetra(parteSufixo);
 };
 

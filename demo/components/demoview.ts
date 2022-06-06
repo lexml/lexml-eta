@@ -1,22 +1,24 @@
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import '../../src';
-import { Emenda } from '../../src/model/emenda/emenda';
+import { LexmlEmendaComponent } from '../../src/components/lexml-emenda.component';
+import { Emenda, RefProposicaoEmendada } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
 import { MPV_1089_2021 } from '../doc/mpv_1089_2021';
 import { MPV_1100_2022 } from '../doc/mpv_1100_2022';
+import { MPV_885_2019 } from '../doc/mpv_885_2019';
+import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_930_2020 } from '../doc/mpv_930_2020';
-import { MPV_ALTERACAO } from '../doc/mpv_alteracao';
-import { MPV_SIMPLES } from '../doc/mpv_simples';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
-import { DispositivosEmenda } from './../../src/model/emenda/emenda';
+import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
+import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
 
 const mapProjetosNormas = {
   novo: {},
-  mpv_alteracao: MPV_ALTERACAO,
-  mpv_simples: MPV_SIMPLES,
+  mpv_885_2019: MPV_885_2019,
+  mpv_905_2019: MPV_905_2019,
   mpv_930_2020: MPV_930_2020,
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
@@ -28,12 +30,21 @@ const mapProjetosNormas = {
 
 @customElement('demo-view')
 export class DemoView extends LitElement {
-  @property({ type: String }) modo = '';
-  @property({ type: String }) projetoNorma = '';
-  @property({ type: Object }) emenda: any = {};
-  @property({ type: Object }) arquivoProjetoNorma = {};
+  @query('.nome-proposicao')
+  private elNomeProposicao!: HTMLDivElement;
 
-  dispositivosEmenda?: DispositivosEmenda;
+  @query('#projetoNorma')
+  private elDocumento!: HTMLSelectElement;
+
+  @query('lexml-emenda')
+  private elLexmlEmenda!: LexmlEmendaComponent;
+
+  @query('lexml-emenda-comando')
+  private elLexmlEmendaComando!: ComandoEmendaComponent;
+
+  @state() modo = '';
+  @state() projetoNorma: any = {};
+  @state() proposicaoCorrente = new RefProposicaoEmendada();
 
   constructor() {
     super();
@@ -43,48 +54,79 @@ export class DemoView extends LitElement {
     return this;
   }
 
+  protected firstUpdated(): void {
+    this.elNomeProposicao.style.display = 'none';
+  }
+
   private getElement(selector: string): any {
     return document.querySelector(selector);
   }
 
   private resetaEmenda(): void {
     const emenda = new Emenda();
-    this.getElement('lexml-emenda').setEmenda(emenda);
-    this.getElement('lexml-emenda-comando').emenda = {};
+    this.elLexmlEmenda.setEmenda(emenda);
+    this.elLexmlEmendaComando.emenda = {};
+  }
+
+  private atualizarProposicaoCorrente(projetoNorma: any): void {
+    const { sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(projetoNorma?.value?.metadado?.identificacao?.urn);
+    this.proposicaoCorrente.sigla = sigla;
+    this.proposicaoCorrente.numero = numero;
+    this.proposicaoCorrente.ano = ano;
+    this.elNomeProposicao.style.display = 'block';
+  }
+
+  private atualizarSelects(projetoNorma: any): void {
+    const { sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(projetoNorma?.value?.metadado?.identificacao?.urn);
+
+    const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
+    let el = this.getElement(`option[value="${key}"]`);
+    el ? (el.selected = true) : undefined;
+
+    el = this.getElement('#optEmenda');
+    el.disabled = false;
+    el.selected = true;
   }
 
   onChangeDocumento(): void {
-    const elmDocumento = this.getElement('#projetoNorma');
-    if (elmDocumento?.value === 'novo') {
-      this.getElement('#emenda').disabled = true;
-      this.getElement('#emendaArtigoOndeCouber').disabled = true;
-      this.getElement('#edicao').selected = true;
+    if (this.elDocumento.value === 'novo') {
+      this.getElement('#optEmenda').disabled = true;
+      this.getElement('#optEmendaArtigoOndeCouber').disabled = true;
+      this.getElement('#optEdicao').selected = true;
     } else {
-      this.getElement('#emenda').disabled = false;
-      this.getElement('#emendaArtigoOndeCouber').disabled = false;
+      this.getElement('#optEmenda').disabled = false;
+      this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
     }
+  }
+
+  limparTela(): void {
+    this.elLexmlEmenda.style.display = 'none';
+    this.elLexmlEmendaComando.style.display = 'none';
+    this.projetoNorma = {};
+    this.resetaEmenda();
+    this.proposicaoCorrente.sigla = '';
+    this.proposicaoCorrente.numero = '';
+    this.proposicaoCorrente.ano = '';
+    this.elNomeProposicao.style.display = 'none';
   }
 
   executar(): void {
     const elmAcao = this.getElement('#modo');
-    const elmDocumento = this.getElement('#projetoNorma');
-    if (this.getElement('lexml-emenda').style.display) {
-      this.resetaEmenda();
+
+    if (!this.elDocumento.value) {
+      this.limparTela();
+      return;
     }
+
     this.getElement('#fileUpload').value = null;
 
-    if (elmDocumento && elmAcao) {
+    if (this.elDocumento && elmAcao) {
       setTimeout(() => {
-        this.projetoNorma = elmDocumento.value;
+        this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
+        this.resetaEmenda();
         this.modo = elmAcao.value;
-        this.emenda = {};
-        this.arquivoProjetoNorma = {};
-        this.dispositivosEmenda = {
-          dispositivosSuprimidos: [],
-          dispositivosModificados: [],
-          dispositivosAdicionados: [],
-        };
-        document.querySelector('lexml-emenda')!['style'].display = 'block';
+        this.atualizarProposicaoCorrente(this.projetoNorma);
+        this.elLexmlEmenda.style.display = 'block';
       }, 0);
     }
   }
@@ -94,20 +136,15 @@ export class DemoView extends LitElement {
 
     if (this.modo.startsWith('emenda')) {
       const comandoEmenda = this.getElement('lexml-eta').getComandoEmenda();
-      this.getElement('lexml-emenda-comando').emenda = comandoEmenda;
+      this.elLexmlEmendaComando.emenda = comandoEmenda;
     }
   }
 
   salvar(): void {
-    const projetoNorma = Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma];
-    const emenda = this.getElement('lexml-emenda').getEmenda();
-    const emendaJson = JSON.stringify({
-      projetoNorma: projetoNorma,
-      emenda: emenda,
-    });
-    const blob = new Blob([emendaJson], {
-      type: 'application/json',
-    });
+    const projetoNorma = this.projetoNorma;
+    const emenda = this.elLexmlEmenda.getEmenda();
+    const emendaJson = JSON.stringify({ emenda }, null, '\t');
+    const blob = new Blob([emendaJson], { type: 'application/json' });
     const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -131,27 +168,53 @@ export class DemoView extends LitElement {
       this.resetaEmenda();
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
-      fReader.onloadend = (e): void => {
+      fReader.onloadend = async (e): Promise<void> => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.getElement('lexml-emenda').setEmenda(result.emenda);
-          this.arquivoProjetoNorma = result.projetoNorma;
-          this.projetoNorma = result.projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
-          this.getElement('lexml-emenda-comando').emenda = result.emenda.comandoEmenda;
-          this.getElement('lexml-emenda-comando')!['style'].display = 'block';
+          this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(result.emenda);
+          this.elLexmlEmenda.setEmenda(result.emenda);
+          this.atualizarProposicaoCorrente(this.projetoNorma);
+          this.atualizarSelects(this.projetoNorma);
+          this.elLexmlEmendaComando.emenda = result.emenda.comandoEmenda;
+          this.elLexmlEmendaComando.style.display = 'block';
           this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
-          this.getElement('lexml-emenda')!['style'].display = 'block';
+          this.elLexmlEmenda.style.display = 'block';
         }
       };
     }
   }
 
-  getDispositivosEmenda(): DispositivosEmenda | undefined {
-    // TODO - Atualizar mapEmendas com emendas no novo formato.
-    // if (this.projetoNorma === 'mpv_930_2020') {
-    //   return mapEmendas[this.projetoNorma].emenda.dispositivos;
-    // } else
-    return this.emenda?.dispositivos;
+  private async getProjetoNormaJsonixFromEmenda(emenda: any): Promise<any> {
+    let { sigla, numero, ano } = emenda.proposicao;
+    if (!sigla || !numero || !ano) {
+      ({ sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(emenda.proposicao.urn));
+    }
+    return this.getProjetoNormaJsonix(sigla, numero, ano);
+  }
+
+  private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
+    const aux = mapProjetosNormas[`${sigla.toLowerCase()}_${numero}_${ano}`];
+    if (aux) {
+      return Promise.resolve(aux);
+    }
+    const res = await fetch(`https://emendas-api.herokuapp.com/proposicao/texto-lexml/json?sigla=${sigla}&numero=${numero}&ano=${ano}`);
+    return await res.json();
+  }
+
+  private getSiglaNumeroAnoFromUrn(urn: string): any {
+    if (!urn) {
+      return {
+        sigla: '',
+        numero: '',
+        ano: '',
+      };
+    }
+
+    return {
+      sigla: getSigla(urn) || 'MPV',
+      numero: getNumero(urn),
+      ano: getAno(urn),
+    };
   }
 
   render(): TemplateResult {
@@ -202,6 +265,14 @@ export class DemoView extends LitElement {
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
           height: calc(100vh - 104px);
         }
+        .nome-proposicao {
+          min-height: 20px;
+          font-family: sans-serif;
+          font-weight: bold;
+          background-color: #ccc;
+          color: black;
+          margin-bottom: 3px;
+        }
       </style>
       <div class="lexml-eta-main-header">
         <div class="lexml-eta-main-header--title">
@@ -216,32 +287,36 @@ export class DemoView extends LitElement {
 
         <div class="lexml-eta-main-header--selecao">
           <select id="projetoNorma" @change=${this.onChangeDocumento}>
+            <option value=""></option>
             <option value="novo">Nova articulação</option>
-            <option value="mpv_alteracao">MP 885, de 2019</option>
-            <option value="mpv_simples" selected>MP 905, de 2019</option>
+            <option value="mpv_885_2019">MP 885, de 2019</option>
+            <option value="mpv_905_2019" selected>MP 905, de 2019</option>
             <option value="mpv_930_2020">MP 930, de 2020</option>
             <option value="mpv_1089_2021">MP 1089, de 2021</option>
+            <<<<<<< HEAD
             <option value="mpv_1100_2022">MP 1100, de 2022</option>
             <option value="codcivil_completo">Código Civil Completo</option>
             <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
+            =======
+            <!-- <option value="codcivil_completo">Código Civil Completo</option> -->
+            <!-- <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option> -->
+            <!-- <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option> -->
+            <!-- <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option> -->
+            >>>>>>> e965c816563fda8c5ba7206200c9dfc7d77d24c8
           </select>
           <select id="modo">
-            <option value="edicao" id="edicao">Edição</option>
-            <option value="emenda" id="emenda" selected>Emenda</option>
-            <option value="emendaArtigoOndeCouber" id="emendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
+            <option value="edicao" id="optEdicao">Edição</option>
+            <option value="emenda" id="optEmenda" selected>Emenda</option>
+            <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
       </div>
+      <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
       <div class="wrapper">
-        <lexml-emenda
-          @onchange=${this.onChange}
-          modo=${this.modo}
-          .projetoNorma=${Object.keys(this.arquivoProjetoNorma).length !== 0 ? this.arquivoProjetoNorma : mapProjetosNormas[this.projetoNorma]}
-        >
-        </lexml-emenda>
+        <lexml-emenda @onchange=${this.onChange} modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-emenda>
         <lexml-emenda-comando></lexml-emenda-comando>
       </div>
     `;

@@ -2,58 +2,45 @@ import { Elemento } from '../../model/elemento';
 import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/lexml/documento/urnUtil';
 
 export async function informarNormaDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
-  const dialogElem = document.createElement('elix-dialog');
+  let dialogElem = document.querySelector('sl-dialog');
+  if (dialogElem === null) {
+    dialogElem = document.createElement('sl-dialog');
+    document.body.appendChild(dialogElem);
+  } else {
+    dialogElem.innerHTML = '';
+    dialogElem.label = '';
+  }
+  dialogElem.label = 'Dados da norma vigente';
+  dialogElem.addEventListener('sl-request-close', (event: any) => {
+    if (event.detail.source === 'overlay') {
+      event.preventDefault();
+    }
+  });
 
   const content = document.createRange().createContextualFragment(`
-    <style>
-    h1.normaDiv {
-      font-size: 1em;
-      padding: 0.5em;
-      font-weight: bold;
-    }
-    .normaDiv {
-      display: grid;
-      grid-template-columns: [labels] auto [controls] 1fr;
-      grid-auto-flow: row;
-      grid-gap: .8em;
-      padding: 0.5em;
-    }
-    .normaDiv > label  {
-      grid-column: labels;
-      grid-row: auto;
-    }
-    .normaDiv > input,
-    .normaDiv > select {
-      grid-column: controls;
-      grid-row: auto;
-      padding: 0.5em;
-    }
-  </style>
-  <h1 class="normaDiv">Dados da norma vigente</h1>
-  <div name="normaDiv" class="normaDiv">
-    <label for="tipoNorma">Tipo </label>
-      <select name="tipos" name="tipoNorma" id="tipoNorma">      
-      <option value="decreto">Decreto</option>
-      <option value="decreto-lei">Decreto-Lei</option>
-      <option value="lei" selected>Lei</option>
-      <option value="lei.complementar">Lei Complementar</option>
-      <option value="lei.delegada">Lei Delegada</option>
-      <option value="medida.provisoria">Medida Provisória</option>
-    </select>    
-    <label for="numeroNorma">Número </label>
-    <input type="text" name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)">
-    <label for="dataNorma">Data</label>
-    <input type="text" name="dataNorma" id="dataNorma" placeholder="21/06/1993">
-
-    <div style="margin-top: 10px;">
-      <button>Ok</button>
-      <button>Cancelar</button>
-    </div>
-    <div class="erro" style="margin-top: 10px; color: red; display: none;"></div>
-
+  <style></style>
+  <div class="input-validation-required">
+    <sl-select name="tipoNorma" id="tipoNorma" label="Tipo" clearable>
+      <sl-menu-item value="decreto">Decreto</sl-menu-item>
+      <sl-menu-item value="decreto-lei">Decreto-Lei</sl-menu-item>
+      <sl-menu-item value="lei">Lei</sl-menu-item>
+      <sl-menu-item value="lei.complementar">Lei Complementar</sl-menu-item>
+      <sl-menu-item value="lei.delegada">Lei Delegada</sl-menu-item>
+      <sl-menu-item value="medida.provisoria">Medida Provisória</sl-menu-item>
+    </sl-select>
+    <br/>
+    <sl-input name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)" label="Número" clearable></sl-input>
+    <br/>
+    <sl-input type="date" name="dataNorma" id="dataNorma" label="Data" clearable></sl-input>
   </div>
-
-
+  <br/>
+  <sl-alert variant="warning" closable class="alert-closable">
+    <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+    <strong>Dados inválidos. </strong><br/>
+    Revise os dados informados.
+  </sl-alert>
+  <sl-button slot="footer" variant="default">Cancelar</sl-button>
+  <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
 
   const t = elemento.norma ? getTipo(elemento.norma)?.urn : undefined;
@@ -73,36 +60,37 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   }
 
   if (d) {
-    (data! as HTMLInputElement).value = d;
+    const [dia, mes, ano] = d.split('/');
+    (data! as HTMLInputElement).value = [ano, mes, dia].join('-');
   }
 
-  const botoes = content.querySelectorAll('button');
-  const ok = botoes[0];
-  const cancelar = botoes[1];
-  const erro = <HTMLDivElement>content.querySelector('.erro');
+  const botoes = content.querySelectorAll('sl-button');
+  const cancelar = botoes[0];
+  const ok = botoes[1];
+  const alerta = content.querySelector('sl-alert');
 
   ok.onclick = (): void => {
-    const urn = buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, (data as HTMLInputElement)?.value);
+    const [ano, mes, dia] = (data as HTMLInputElement)?.value.split('-');
+    const dataFormatada = [dia, mes, ano].join('/');
+
+    const urn = buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, dataFormatada);
 
     if (validaUrn(urn)) {
       quill.focus();
-      (<any>dialogElem).close();
-
-      erro.style.display = 'none';
+      alerta?.hide();
+      dialogElem?.hide();
       elemento.norma = urn;
       store.dispatch(action.execute(elemento));
     } else {
-      erro.innerText = 'Dados inválidos';
-      erro.style.display = 'block';
+      alerta?.show();
     }
   };
 
   cancelar.onclick = (): void => {
     quill.focus();
-    (<any>dialogElem).close();
+    dialogElem?.hide();
   };
-
+  quill.blur();
   dialogElem.appendChild(content);
-
-  await (<any>dialogElem).open();
+  dialogElem.show();
 }
