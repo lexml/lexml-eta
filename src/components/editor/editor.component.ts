@@ -881,7 +881,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
-    this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
+    if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
+      this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
+    }
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
