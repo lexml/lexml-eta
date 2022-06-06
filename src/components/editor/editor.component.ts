@@ -928,12 +928,23 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private alertar(mensagem: string): void {
-    const toast: any = this.querySelector('#toast-alerta');
-    const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
+    // const toast: any = this.querySelector('#toast-alerta');
+    // const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
 
-    elmHtml.innerHTML = mensagem;
-    toast.fromEdge = 'top';
-    toast.open();
+    // elmHtml.innerHTML = mensagem;
+    // toast.fromEdge = 'top';
+    // toast.open();
+    const alert = Object.assign(document.createElement('sl-alert'), {
+      variant: 'primary',
+      closable: true,
+      duration: 3000,
+      innerHTML: `
+        <sl-icon name="info-circle" slot="icon"></sl-icon>
+        ${mensagem}
+      `,
+    });
+    document.body.append(alert);
+    alert.toast();
   }
 
   private quillNaoInicializado(state: any): void {
