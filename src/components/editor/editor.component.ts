@@ -279,7 +279,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    // const dialogElem = document.createElement('elix-dialog')
     const dialogElem = document.createElement('sl-dialog');
     document.body.appendChild(dialogElem);
 
@@ -294,7 +293,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const content = document.createRange().createContextualFragment(`
       <div class="input-validation-required">
         <sl-input type="text" placeholder="" label="Numeração do dispositivo:" clearable></sl-input>
-        <div class="erro"></div>
         <br/>
         <div id="dispositivoDeNorma">
             O dispositivo já existe na norma a ser alterada?
@@ -305,7 +303,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         </div>
       </div>
       <br/>
-
+      <sl-alert variant="warning" closable class="alert-closable">
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <div class="erro"></div>
+      </sl-alert>
       <sl-button slot="footer" variant="default">Cancelar</sl-button>
       <sl-button slot="footer" variant="primary">Ok</sl-button>
     `);
@@ -330,13 +331,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const ok = botoes[1];
 
     const erro = <HTMLDivElement>content.querySelector('.erro');
+    const alerta = content.querySelector('sl-alert');
 
     ok.onclick = (): void => {
       if (!validarElementoAdicionado()) {
         return;
       }
       this.quill.focus();
-      // (<any>dialogElem).close();
       dialogElem?.hide();
       dialogElem?.remove();
 
@@ -350,7 +351,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     cancelar.onclick = (): void => {
       this.quill.focus();
-      // (<any>dialogElem).close();
       dialogElem?.hide();
       dialogElem?.remove();
     };
@@ -361,18 +361,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           console.log();
           if ((o as SlRadioButton).checked) {
             opcaoInformada = (o as SlRadioButton).value;
-            console.log('>>', dispositivoAdicionado, opcaoInformada);
           }
         });
 
         if (dispositivoAdicionado && opcaoInformada === undefined) {
           const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
           erro.innerText = msgErro;
-          erro.style.display = msgErro ? 'block' : 'none';
+          msgErro ? alerta?.show() : alerta?.hide();
           return false;
         }
       }
       erro.style.display = 'none';
+      alerta?.hide();
       return true;
     };
 
@@ -384,13 +384,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return '';
     };
 
-    input.onkeyup = (evt: KeyboardEvent): void => {
+    const validarInput = (evt: any): void => {
+      console.log('**');
       let msgErro = validar();
       if (!msgErro && elemento.tipo && !isNumeracaoValidaPorTipo(input.value, elemento.tipo)) {
         msgErro = 'Numeração inválida.';
       }
       erro.innerText = msgErro;
-      erro.style.display = msgErro ? 'block' : 'none';
+      msgErro ? alerta?.show() : alerta?.hide();
       ok.disabled = Boolean(msgErro);
       if (!ok.disabled) {
         if (evt.key === 'Enter') {
@@ -398,6 +399,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     };
+
+    input.addEventListener('keyup', validarInput);
+    input.addEventListener('sl-clear', validarInput);
 
     dialogElem.appendChild(content);
 
