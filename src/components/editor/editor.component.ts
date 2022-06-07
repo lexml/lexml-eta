@@ -385,7 +385,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     };
 
     const validarInput = (evt: any): void => {
-      console.log('**');
       let msgErro = validar();
       if (!msgErro && elemento.tipo && !isNumeracaoValidaPorTipo(input.value, elemento.tipo)) {
         msgErro = 'Numeração inválida.';
@@ -404,10 +403,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.addEventListener('sl-clear', validarInput);
 
     dialogElem.appendChild(content);
-
     ok.disabled = Boolean(validar());
-
-    // await (<any>dialogElem).open();
     dialogElem?.show();
   }
 
