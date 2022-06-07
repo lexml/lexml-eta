@@ -279,15 +279,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    // const dialogElem = document.createElement('elix-dialog');
-    let dialogElem = document.querySelector('sl-dialog');
-    if (dialogElem === null) {
-      dialogElem = document.createElement('sl-dialog');
-      document.body.appendChild(dialogElem);
-    } else {
-      dialogElem.innerHTML = '';
-      dialogElem.label = '';
-    }
+    // const dialogElem = document.createElement('elix-dialog')
+    const dialogElem = document.createElement('sl-dialog');
+    document.body.appendChild(dialogElem);
+
     dialogElem.label = 'Informar numeração de dispositivo';
     dialogElem.addEventListener('sl-request-close', (event: any) => {
       if (event.detail.source === 'overlay') {
@@ -319,8 +314,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
 
     const dispositivoNaNorma = <any>content.getElementById('dispositivoDeNorma');
-
-    console.log('>>>', elemento.existeNaNormaAlterada);
     if (elemento.existeNaNormaAlterada !== undefined) {
       (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as SlRadioButton).checked = true;
     }
@@ -345,6 +338,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.focus();
       // (<any>dialogElem).close();
       dialogElem?.hide();
+      dialogElem?.remove();
 
       if (elemento.conteudo?.texto !== atual) {
         elemento.conteudo!.texto = atual;
@@ -358,6 +352,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.focus();
       // (<any>dialogElem).close();
       dialogElem?.hide();
+      dialogElem?.remove();
     };
 
     const validarElementoAdicionado = (): boolean => {
@@ -420,11 +415,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElemento(): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}`;
+    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}?`;
 
     this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
-      const closeResult: any = event.detail.closeResult;
-      const choice: string = closeResult && closeResult.choice;
+      const choice: any = event.detail.closeResult;
       if (choice === 'Sim') {
         const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
         rootStore.dispatch(removerElementoAction.execute(elemento));
@@ -948,14 +942,50 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private async confirmar(mensagem: string, botoes: string[], callback: any): Promise<void> {
-    const dialog: any = document.createElement('elix-alert-dialog');
+    // const dialog: any = document.createElement('elix-alert-dialog');
 
-    dialog.textContent = mensagem;
-    dialog.choices = botoes;
-    dialog.addEventListener('close', callback);
-    await dialog.open();
+    // dialog.textContent = mensagem;
+    // dialog.choices = botoes;
+    // dialog.addEventListener('close', callback);
+    // await dialog.open();
+    let choice = '';
+    const dialog = document.createElement('sl-dialog');
+    dialog.label = 'Confirmação';
+    const botoesHtml = `
+      <sl-button slot="footer" variant="default">Não</sl-button>
+      <sl-button slot="footer" variant="primary">Sim</sl-button>
+    `;
+    dialog.innerHTML = mensagem + botoesHtml;
+    document.body.appendChild(dialog);
+    dialog.show();
+
+    const botoesDialog = document.querySelectorAll('sl-button');
+    const nao = botoesDialog[0];
+    const sim = botoesDialog[1];
+
+    nao.onclick = (): void => {
+      choice = 'Não';
+      dialog?.hide();
+      dialog?.remove();
+    };
+
+    sim.onclick = (): void => {
+      choice = 'Sim';
+      dialog?.hide();
+      dialog?.remove();
+    };
+
+    dialog.addEventListener('sl-request-close', (event: any) => {
+      if (event.detail.source === 'overlay') {
+        event.preventDefault();
+      }
+    });
+
+    dialog.addEventListener('sl-hide', (event: any) => {
+      event.detail.closeResult = choice;
+      callback(event);
+    });
   }
-
   private alertar(mensagem: string): void {
     // const toast: any = this.querySelector('#toast-alerta');
     // const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
