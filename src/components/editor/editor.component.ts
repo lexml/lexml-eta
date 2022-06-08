@@ -1000,7 +1000,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const alert = Object.assign(document.createElement('sl-alert'), {
       variant: 'danger',
       closable: true,
-      // duration: 3000,
+      duration: 3000,
       innerHTML: `
         <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
         ${mensagem}
