@@ -116,6 +116,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           overflow: var(--lx-eta-editor-overflow);
           display: block;
         }
+        sl-alert::part(base) {
+          background-color: var(--sl-color-danger-100);
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -993,12 +996,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     // elmHtml.innerHTML = mensagem;
     // toast.fromEdge = 'top';
     // toast.open();
+
     const alert = Object.assign(document.createElement('sl-alert'), {
-      variant: 'primary',
+      variant: 'danger',
       closable: true,
       duration: 3000,
       innerHTML: `
-        <sl-icon name="info-circle" slot="icon"></sl-icon>
+        <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
         ${mensagem}
       `,
     });
