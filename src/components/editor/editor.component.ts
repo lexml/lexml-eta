@@ -47,7 +47,8 @@ import { Subscription } from '../../util/observable';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { informarNormaDialog } from './informarNormaDialog';
 import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
-import { adicionaAlerta } from '../../redux/alerta/reducer/actions';
+import { adicionaAlerta, removerAlerta } from '../../redux/alerta/reducer/actions';
+import { LexmlEtaComponent } from '../lexml-eta.component';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -884,6 +885,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private alertaGlobalVerificaCorrelacao(): void {
+    const dispositivosEmenda = (document.querySelector('lexml-eta') as LexmlEtaComponent).getDispositivosEmenda() || [];
+    const listaLexmlIds = Object.values(dispositivosEmenda)
+      .flat(1)
+      .map(obj => obj.id);
+    const artigos = [...new Set(listaLexmlIds.map(lexmlId => lexmlId.split('_').filter(dispositivo => dispositivo.startsWith('art'))[0]))];
+
+    if (artigos.length > 1) {
+      const alerta = {
+        id: 'alerta-global-correlacao',
+        tipo: 'info',
+        mensagem:
+          'Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
+        podeFechar: true,
+      };
+      rootStore.dispatch(adicionaAlerta(alerta));
+    } else if (rootStore.getState().alertaReducer.alertas.some(alerta => alerta.id === 'alerta-global-correlacao')) {
+      rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
+    }
+  }
+
   private emitirEventoOnChange(origemEvento: string): void {
     this.atualizarTextoElemento(this.quill.linhaAtual);
 
@@ -899,6 +921,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
       this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
     }
+    this.alertaGlobalVerificaCorrelacao();
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
