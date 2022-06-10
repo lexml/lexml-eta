@@ -171,7 +171,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
     !isOmissis(getDispositivoAnterior(dispositivo)!) &&
-    parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
+    !validaOrdemDispositivo(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -185,4 +185,25 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
 
 export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
   return isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
+};
+
+export const validaOrdemDispositivo = (dispositivo: Dispositivo): boolean => {
+  const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(dispositivo);
+  if (dispositivo!.numero!.indexOf('-') > -1) {
+    if (dispositivoAnterior!.numero!.indexOf('-') > -1) {
+      if (dispositivo!.numero!.split('-')[1].charCodeAt(0) === dispositivoAnterior!.numero!.split('-')[1].charCodeAt(0) + 1) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65) {
+      return true;
+    } else {
+      return false;
+    }
+  } else if (parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) + 1) {
+    return true;
+  } else {
+    return false;
+  }
 };
