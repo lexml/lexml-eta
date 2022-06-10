@@ -148,7 +148,9 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     novo.id = da.id;
     const situacao = new DispositivoAdicionado();
     novo.situacao = situacao;
-    situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
+    if (da.existeNaNormaAlterada !== undefined) {
+      situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
+    }
 
     if (!ehCaput && !isOmissis(novo) && !isArticulacao(novo)) {
       if (da.abreAspas) {
