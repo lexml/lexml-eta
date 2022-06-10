@@ -4,7 +4,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
 
-import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
+// import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
@@ -172,7 +172,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${shoelaceLightThemeStyles}
       <style>
         :root {
           --height: 100%;

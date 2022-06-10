@@ -18,6 +18,8 @@ import { CmdEmdUtil } from '../emenda/comando-emenda-util';
 import { adicionaAlerta, limparAlertas } from '../redux/alerta/reducer/actions';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 
+import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
+
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
@@ -128,6 +130,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
+      ${shoelaceLightThemeStyles}
       <style>
         #gtx-trans {
           display: block;
