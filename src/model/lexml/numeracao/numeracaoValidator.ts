@@ -190,19 +190,14 @@ export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
 export const validaOrdemDispositivo = (dispositivo: Dispositivo): boolean => {
   const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(dispositivo);
   if (dispositivo!.numero!.indexOf('-') > -1) {
-    // dispositivo atual tem sufixo
     if (dispositivoAnterior!.numero!.indexOf('-') > -1) {
-      //dispositivo anterior tem sufixo
       return (
         parseInt(converteLetraParaNumeroArabico(dispositivo!.numero!.split('-')[1])) === parseInt(converteLetraParaNumeroArabico(dispositivoAnterior!.numero!.split('-')[1])) + 1
       );
-      // retorna TRUE se o sufixo do atual for uma letra após o dispositivo anterior
     } else {
       return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) && dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65;
-      // retorna TRUE se o sufixo for A e o dispositivo anterior for de mesmo número e sem sufixo
     }
   } else {
     return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) + 1;
-    // retorna TRUE se não houver sufixo e o dispositivo atual seja um número após o dispositivo anterior
   }
 };
