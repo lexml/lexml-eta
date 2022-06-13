@@ -15,7 +15,8 @@ import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicio
 import { rootStore } from '../redux/store';
 import { DispositivosEmenda } from './../model/emenda/emenda';
 import { CmdEmdUtil } from '../emenda/comando-emenda-util';
-import { adicionaAlerta, limparAlertas } from '../redux/alerta/reducer/actions';
+// import { adicionaAlerta, limparAlertas } from '../redux/alerta/reducer/actions';
+import { adicionaAlerta } from '../redux/alerta/reducer/actions';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
@@ -105,7 +106,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
-    rootStore.dispatch(limparAlertas());
+    // rootStore.dispatch(limparAlertas());
   }
 
   private _timerLoadEmenda = 0;
