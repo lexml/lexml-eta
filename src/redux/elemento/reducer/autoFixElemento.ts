@@ -3,6 +3,7 @@ import { createElemento, getDispositivoFromElemento } from '../../../model/eleme
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { AutoFix } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -29,6 +30,7 @@ export const autoFixElemento = (state: any, action: any): State => {
         const anterior = getDispositivoAnterior(atual);
 
         const novo = criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
+        novo.situacao = new DispositivoAdicionado();
         novo.mensagens = validaDispositivo(novo);
         const elementoNovo = createElemento(novo, true);
 
