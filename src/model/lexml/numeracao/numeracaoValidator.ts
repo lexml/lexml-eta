@@ -153,7 +153,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
   if (
     dispositivo !== null &&
-    !isDispositivoCabecaAlteracao(dispositivo) &&
+    // !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero !== undefined &&
     irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length > 1
   ) {

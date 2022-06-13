@@ -175,6 +175,9 @@ export const converteLetraComplementoParaNumero = (numero: string): string => {
 };
 
 export const comparaNumeracao = (a?: string, b?: string): number => {
+  if (a === b) {
+    return 0;
+  }
   const partesA = a?.split('-');
   const partesB = b?.split('-');
 
