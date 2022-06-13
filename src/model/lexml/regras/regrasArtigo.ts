@@ -83,7 +83,12 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && !hasFilhos(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
       }
-      if (dispositivo.pai!.indexOf(dispositivo) > 0 && getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getDispositivoAnterior(dispositivo)!)) {
+      if (
+        dispositivo.pai!.indexOf(dispositivo) > 0 &&
+        getDispositivoAnterior(dispositivo) !== undefined &&
+        !getDispositivoAnterior(dispositivo)?.hasAlteracao &&
+        !isOmissis(getDispositivoAnterior(dispositivo)!)
+      ) {
         acoes.push(transformarArtigoEmParagrafo);
       }
       if (dispositivo.pai && !isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai) && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {
