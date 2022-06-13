@@ -39,6 +39,7 @@ export const adicionaElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
+    state.ui = [];
     return state;
   }
 
@@ -53,8 +54,10 @@ export const adicionaElemento = (state: any, action: any): State => {
       atual.alteracoes?.filhos &&
       isOriginal(atual.alteracoes.filhos[0]) &&
       !isOmissis(atual.alteracoes.filhos[0]) &&
-      atual.alteracoes.filhos[0].numero === '1'
+      atual.alteracoes.filhos[0].numero === '1' &&
+      action.posicao !== 'antes'
     ) {
+      state.ui = [];
       return state;
     }
     if (
@@ -65,6 +68,7 @@ export const adicionaElemento = (state: any, action: any): State => {
       !isOmissis(atual.filhos[0])
     ) {
       if (!isParagrafo(atual.filhos[0]) && atual.filhos[0].numero === '1') {
+        state.ui = [];
         return state;
       }
     }
