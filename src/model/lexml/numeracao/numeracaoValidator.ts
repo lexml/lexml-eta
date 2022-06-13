@@ -15,7 +15,7 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
-import { comparaNumeracao } from './numeracaoUtil';
+import { comparaNumeracao, converteLetraParaNumeroArabico } from './numeracaoUtil';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -193,7 +193,9 @@ export const validaOrdemDispositivo = (dispositivo: Dispositivo): boolean => {
     // dispositivo atual tem sufixo
     if (dispositivoAnterior!.numero!.indexOf('-') > -1) {
       //dispositivo anterior tem sufixo
-      return dispositivo!.numero!.split('-')[1].charCodeAt(0) === dispositivoAnterior!.numero!.split('-')[1].charCodeAt(0) + 1;
+      return (
+        parseInt(converteLetraParaNumeroArabico(dispositivo!.numero!.split('-')[1])) === parseInt(converteLetraParaNumeroArabico(dispositivoAnterior!.numero!.split('-')[1])) + 1
+      );
       // retorna TRUE se o sufixo do atual for uma letra após o dispositivo anterior
     } else {
       return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) && dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65;
