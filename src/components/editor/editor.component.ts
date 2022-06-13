@@ -7,7 +7,7 @@ import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-import { hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
+import { hasElementoAscendenteAdicionado, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
@@ -46,6 +46,9 @@ import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { informarNormaDialog } from './informarNormaDialog';
+import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
+import { adicionaAlerta, removerAlerta } from '../../redux/alerta/reducer/actions';
+import { LexmlEtaComponent } from '../lexml-eta.component';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -113,6 +116,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           height: var(--lx-eta-editor-height);
           overflow: var(--lx-eta-editor-overflow);
           display: block;
+        }
+        .sl-toast-stack sl-alert::part(base) {
+          background-color: var(--sl-color-danger-100);
         }
       </style>
       <div id="lx-eta-box">
@@ -277,15 +283,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    // const dialogElem = document.createElement('elix-dialog');
-    let dialogElem = document.querySelector('sl-dialog');
-    if (dialogElem === null) {
-      dialogElem = document.createElement('sl-dialog');
-      document.body.appendChild(dialogElem);
-    } else {
-      dialogElem.innerHTML = '';
-      dialogElem.label = '';
-    }
+    const dialogElem = document.createElement('sl-dialog');
+    document.body.appendChild(dialogElem);
+
     dialogElem.label = 'Informar numeração de dispositivo';
     dialogElem.addEventListener('sl-request-close', (event: any) => {
       if (event.detail.source === 'overlay') {
@@ -297,7 +297,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const content = document.createRange().createContextualFragment(`
       <div class="input-validation-required">
         <sl-input type="text" placeholder="" label="Numeração do dispositivo:" clearable></sl-input>
-        <div class="erro"></div>
         <br/>
         <div id="dispositivoDeNorma">
             O dispositivo já existe na norma a ser alterada?
@@ -308,7 +307,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         </div>
       </div>
       <br/>
-
+      <sl-alert variant="warning" closable class="alert-closable">
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        <div class="erro"></div>
+      </sl-alert>
       <sl-button slot="footer" variant="default">Cancelar</sl-button>
       <sl-button slot="footer" variant="primary">Ok</sl-button>
     `);
@@ -317,8 +319,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
 
     const dispositivoNaNorma = <any>content.getElementById('dispositivoDeNorma');
-
-    console.log('>>>', elemento.existeNaNormaAlterada);
     if (elemento.existeNaNormaAlterada !== undefined) {
       (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as SlRadioButton).checked = true;
     }
@@ -335,14 +335,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const ok = botoes[1];
 
     const erro = <HTMLDivElement>content.querySelector('.erro');
+    const alerta = content.querySelector('sl-alert');
 
     ok.onclick = (): void => {
       if (!validarElementoAdicionado()) {
         return;
       }
       this.quill.focus();
-      // (<any>dialogElem).close();
       dialogElem?.hide();
+      dialogElem?.remove();
 
       if (elemento.conteudo?.texto !== atual) {
         elemento.conteudo!.texto = atual;
@@ -354,8 +355,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     cancelar.onclick = (): void => {
       this.quill.focus();
-      // (<any>dialogElem).close();
       dialogElem?.hide();
+      dialogElem?.remove();
     };
 
     const validarElementoAdicionado = (): boolean => {
@@ -364,18 +365,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           console.log();
           if ((o as SlRadioButton).checked) {
             opcaoInformada = (o as SlRadioButton).value;
-            console.log('>>', dispositivoAdicionado, opcaoInformada);
           }
         });
 
         if (dispositivoAdicionado && opcaoInformada === undefined) {
           const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
           erro.innerText = msgErro;
-          erro.style.display = msgErro ? 'block' : 'none';
+          msgErro ? alerta?.show() : alerta?.hide();
           return false;
         }
       }
       erro.style.display = 'none';
+      alerta?.hide();
       return true;
     };
 
@@ -387,13 +388,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return '';
     };
 
-    input.onkeyup = (evt: KeyboardEvent): void => {
+    const validarInput = (evt: any): void => {
       let msgErro = validar();
       if (!msgErro && elemento.tipo && !isNumeracaoValidaPorTipo(input.value, elemento.tipo)) {
         msgErro = 'Numeração inválida.';
       }
       erro.innerText = msgErro;
-      erro.style.display = msgErro ? 'block' : 'none';
+      msgErro ? alerta?.show() : alerta?.hide();
       ok.disabled = Boolean(msgErro);
       if (!ok.disabled) {
         if (evt.key === 'Enter') {
@@ -402,11 +403,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     };
 
+    input.addEventListener('keyup', validarInput);
+    input.addEventListener('sl-clear', validarInput);
+
     dialogElem.appendChild(content);
-
     ok.disabled = Boolean(validar());
-
-    // await (<any>dialogElem).open();
     dialogElem?.show();
   }
 
@@ -418,11 +419,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElemento(): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}`;
+    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}?`;
 
     this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
-      const closeResult: any = event.detail.closeResult;
-      const choice: string = closeResult && closeResult.choice;
+      const choice: any = event.detail.closeResult;
       if (choice === 'Sim') {
         const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
         rootStore.dispatch(removerElementoAction.execute(elemento));
@@ -861,6 +861,51 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private alertaGlobalVerificaRenumeracao(linhaAtual: EtaContainerTable): void {
+    const elemento: Elemento = this.criarElemento(
+      linhaAtual.uuid,
+      linhaAtual.lexmlId,
+      linhaAtual.tipo,
+      linhaAtual.blotConteudo?.html ?? '',
+      linhaAtual.numero,
+      linhaAtual.hierarquia
+    );
+    const dispositivo = getDispositivoFromElemento(rootStore.getState().elementoReducer.articulacao, elemento);
+    if (dispositivo) {
+      if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal([dispositivo])) {
+        const alerta = {
+          id: 'alerta-global-renumeracao',
+          tipo: 'danger',
+          mensagem:
+            'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
+          podeFechar: true,
+        };
+        rootStore.dispatch(adicionaAlerta(alerta));
+      }
+    }
+  }
+
+  private alertaGlobalVerificaCorrelacao(): void {
+    const dispositivosEmenda = (document.querySelector('lexml-eta') as LexmlEtaComponent).getDispositivosEmenda() || [];
+    const listaLexmlIds = Object.values(dispositivosEmenda)
+      .flat(1)
+      .map(obj => obj.id);
+    const artigos = [...new Set(listaLexmlIds.map(lexmlId => lexmlId.split('_').filter(dispositivo => dispositivo.startsWith('art'))[0]))];
+
+    if (artigos.length > 1) {
+      const alerta = {
+        id: 'alerta-global-correlacao',
+        tipo: 'info',
+        mensagem:
+          'Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
+        podeFechar: true,
+      };
+      rootStore.dispatch(adicionaAlerta(alerta));
+    } else if (rootStore.getState().alertaReducer.alertas.some(alerta => alerta.id === 'alerta-global-correlacao')) {
+      rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
+    }
+  }
+
   private emitirEventoOnChange(origemEvento: string): void {
     this.atualizarTextoElemento(this.quill.linhaAtual);
 
@@ -873,6 +918,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
+    if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
+      this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
+    }
+    this.alertaGlobalVerificaCorrelacao();
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
@@ -919,21 +968,69 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private async confirmar(mensagem: string, botoes: string[], callback: any): Promise<void> {
-    const dialog: any = document.createElement('elix-alert-dialog');
+    // const dialog: any = document.createElement('elix-alert-dialog');
 
-    dialog.textContent = mensagem;
-    dialog.choices = botoes;
-    dialog.addEventListener('close', callback);
-    await dialog.open();
+    // dialog.textContent = mensagem;
+    // dialog.choices = botoes;
+    // dialog.addEventListener('close', callback);
+    // await dialog.open();
+    let choice = '';
+    const dialog = document.createElement('sl-dialog');
+    dialog.label = 'Confirmação';
+    const botoesHtml = `
+      <sl-button slot="footer" variant="default">Não</sl-button>
+      <sl-button slot="footer" variant="primary">Sim</sl-button>
+    `;
+    dialog.innerHTML = mensagem + botoesHtml;
+    document.body.appendChild(dialog);
+    dialog.show();
+
+    const botoesDialog = document.querySelectorAll('sl-button');
+    const nao = botoesDialog[0];
+    const sim = botoesDialog[1];
+
+    nao.onclick = (): void => {
+      choice = 'Não';
+      dialog?.hide();
+      dialog?.remove();
+    };
+
+    sim.onclick = (): void => {
+      choice = 'Sim';
+      dialog?.hide();
+      dialog?.remove();
+    };
+
+    dialog.addEventListener('sl-request-close', (event: any) => {
+      if (event.detail.source === 'overlay') {
+        event.preventDefault();
+      }
+    });
+
+    dialog.addEventListener('sl-hide', (event: any) => {
+      event.detail.closeResult = choice;
+      callback(event);
+    });
   }
-
   private alertar(mensagem: string): void {
-    const toast: any = this.querySelector('#toast-alerta');
-    const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
+    // const toast: any = this.querySelector('#toast-alerta');
+    // const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
 
-    elmHtml.innerHTML = mensagem;
-    toast.fromEdge = 'top';
-    toast.open();
+    // elmHtml.innerHTML = mensagem;
+    // toast.fromEdge = 'top';
+    // toast.open();
+
+    const alert = Object.assign(document.createElement('sl-alert'), {
+      variant: 'danger',
+      closable: true,
+      duration: 3000,
+      innerHTML: `
+        <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
+        ${mensagem}
+      `,
+    });
+    document.body.append(alert);
+    alert.toast();
   }
 
   private quillNaoInicializado(state: any): void {

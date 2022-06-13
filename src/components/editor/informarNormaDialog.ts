@@ -2,14 +2,8 @@ import { Elemento } from '../../model/elemento';
 import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/lexml/documento/urnUtil';
 
 export async function informarNormaDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
-  let dialogElem = document.querySelector('sl-dialog');
-  if (dialogElem === null) {
-    dialogElem = document.createElement('sl-dialog');
-    document.body.appendChild(dialogElem);
-  } else {
-    dialogElem.innerHTML = '';
-    dialogElem.label = '';
-  }
+  const dialogElem = document.createElement('sl-dialog');
+  document.body.appendChild(dialogElem);
   dialogElem.label = 'Dados da norma vigente';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
@@ -79,6 +73,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();
+      dialogElem?.remove();
       elemento.norma = urn;
       store.dispatch(action.execute(elemento));
     } else {
@@ -89,6 +84,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   cancelar.onclick = (): void => {
     quill.focus();
     dialogElem?.hide();
+    dialogElem?.remove();
   };
   quill.blur();
   dialogElem.appendChild(content);

@@ -21,7 +21,7 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
         ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.numero === '1' && isUnicoMesmoTipo(dispositivo)
           ? '1u'
           : converteLetraComplementoParaNumero(dispositivo.numero!)
-        : `[urn:${dispositivo.uuid}]`)
+        : `[sn:${dispositivo.uuid}]`)
     );
   }
 

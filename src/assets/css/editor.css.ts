@@ -212,6 +212,7 @@ export const editorStyles = html`
 
     .rotulo {
       cursor: pointer;
+      border-bottom: 1px dashed;
     }
 
     .texto__rotulo {
