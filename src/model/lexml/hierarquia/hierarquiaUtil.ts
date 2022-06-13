@@ -358,17 +358,16 @@ export const isOriginalAlteradoModificadoOuSuprimido = (dispositivo: Dispositivo
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
 };
 
-/* export const getFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): void => {
+export const getSomenteFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): Dispositivo[] => {
   filhos?.forEach(f => {
     dispositivos.push(f);
     if (hasFilhos(f)) {
-      getFilhosDispositivoAsLista(dispositivos, f.filhos);
-    }
-    if (f.hasAlteracao()) {
-      f.alteracoes?.filhos.forEach(a => getFilhosDispositivoAsLista(dispositivos, a.filhos));
+      getSomenteFilhosDispositivoAsLista(dispositivos, f.filhos);
     }
   });
-}; */
+
+  return dispositivos;
+};
 
 export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispositivo[] => {
   return buildListaDispositivos(dispositivo, []);

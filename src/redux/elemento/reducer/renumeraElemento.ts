@@ -3,8 +3,9 @@ import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RenumerarElemento } from '../../../model/lexml/acao/renumerarElementoAction';
-import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getSomenteFilhosDispositivoAsLista, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
+import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
@@ -44,6 +45,7 @@ export const renumeraElemento = (state: any, action: any): State => {
   try {
     const numero = ajustarNumero(dispositivo, action.novo?.numero);
     dispositivo.createNumeroFromRotulo(numero);
+    dispositivo.id = buildId(dispositivo);
   } catch (error) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'O rótulo informado é inválido', detalhe: error });
   }
@@ -52,9 +54,12 @@ export const renumeraElemento = (state: any, action: any): State => {
 
   if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
     (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.novo.existenteNaNorma;
+    const lista = getSomenteFilhosDispositivoAsLista([], dispositivo.filhos);
+    lista.forEach(f => (f.id = buildId(f)));
   }
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
+
   return {
     articulacao: state.articulacao,
     modo: state.modo,
