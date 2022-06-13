@@ -190,20 +190,17 @@ export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
 export const validaOrdemDispositivo = (dispositivo: Dispositivo): boolean => {
   const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(dispositivo);
   if (dispositivo!.numero!.indexOf('-') > -1) {
+    // dispositivo atual tem sufixo
     if (dispositivoAnterior!.numero!.indexOf('-') > -1) {
-      if (dispositivo!.numero!.split('-')[1].charCodeAt(0) === dispositivoAnterior!.numero!.split('-')[1].charCodeAt(0) + 1) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65) {
-      return true;
+      //dispositivo anterior tem sufixo
+      return dispositivo!.numero!.split('-')[1].charCodeAt(0) === dispositivoAnterior!.numero!.split('-')[1].charCodeAt(0) + 1;
+      // retorna TRUE se o sufixo do atual for uma letra após o dispositivo anterior
     } else {
-      return false;
+      return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) && dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65;
+      // retorna TRUE se o sufixo for A e o dispositivo anterior for de mesmo número e sem sufixo
     }
-  } else if (parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) + 1) {
-    return true;
   } else {
-    return false;
+    return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) + 1;
+    // retorna TRUE se não houver sufixo e o dispositivo atual seja um número após o dispositivo anterior
   }
 };
