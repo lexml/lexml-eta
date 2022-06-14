@@ -154,7 +154,8 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
 
     if (!ehCaput && !isOmissis(novo) && !isArticulacao(novo)) {
       if (da.abreAspas) {
-        novo.rotulo = '\u201C' + da.rotulo;
+        // novo.rotulo = '\u201C' + da.rotulo;
+        novo.rotulo = da.rotulo;
         novo.cabecaAlteracao = true;
       } else {
         novo.rotulo = da.rotulo;
@@ -165,7 +166,8 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     if (!isArticulacao(novo)) {
       if (da.fechaAspas) {
         novo.notaAlteracao = da.notaAlteracao;
-        novo.texto = da.texto + `” ${da.notaAlteracao}`;
+        // novo.texto = da.texto + `” ${da.notaAlteracao}`;
+        novo.texto = da.texto + '';
       } else {
         novo.texto = da.texto!;
       }
