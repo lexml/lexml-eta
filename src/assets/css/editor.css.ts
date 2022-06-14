@@ -70,7 +70,7 @@ export const editorStyles = html`
     }
 
     #lx-eta-editor .ql-editor label:before {
-      content: attr(data-rotulo) ' ';
+      /* content: attr(data-rotulo) ' '; */
     }
 
     #toast-msg {
