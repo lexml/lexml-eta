@@ -7,7 +7,7 @@ import {
   findDispositivoByUuid,
   getArticulacao,
   getDispositivosPosteriores,
-  hasAscendenteAdicionado,
+  verificaNaoPrecisaInformarSituacaoNormaVigente,
   hasFilhos,
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
@@ -235,5 +235,5 @@ export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void
 export const hasElementoAscendenteAdicionado = (articulacao: Articulacao, referencia: Partial<Elemento>): boolean => {
   const d = getDispositivoFromElemento(articulacao, referencia);
 
-  return d ? hasAscendenteAdicionado(d) : false;
+  return d ? verificaNaoPrecisaInformarSituacaoNormaVigente(d) : false;
 };
