@@ -11,8 +11,8 @@ export class EtaBlotRotulo extends EtaBlot {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
-    node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento.agrupador));
-    node.setAttribute('data-rotulo', elemento.rotulo);
+    node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento));
+    node.setAttribute('data-rotulo', (elemento.abreAspas ? '\u201C' : '') + elemento.rotulo);
     node.innerHTML = '';
     node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
     return node;
@@ -26,9 +26,9 @@ export class EtaBlotRotulo extends EtaBlot {
     super(EtaBlotRotulo.create(elemento));
   }
 
-  format(name: string, value: any): void {
+  format(name: string, value: any, abreAspas?: boolean): void {
     if (name === EtaBlotRotulo.blotName) {
-      this.domNode.setAttribute('data-rotulo', value);
+      this.domNode.setAttribute('data-rotulo', (abreAspas ? '\u201C' : '') + value);
     } else if (name === EtaBlotRotulo.formatoStyle) {
       this.domNode.setAttribute('style', EtaBlotRotulo.criarAtributoStyle(value));
     } else {
@@ -47,7 +47,7 @@ export class EtaBlotRotulo extends EtaBlot {
     return style;
   }
 
-  public static getClasseCSS(agrupador: boolean): string {
-    return 'texto__rotulo' + (agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao');
+  public static getClasseCSS(elemento: Elemento): string {
+    return 'texto__rotulo' + (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao');
   }
 }

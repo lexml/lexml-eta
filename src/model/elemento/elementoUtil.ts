@@ -1,3 +1,4 @@
+import { isUltimaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
@@ -80,6 +81,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
     mensagens: isOriginal(dispositivo) ? [] : dispositivo.mensagens,
+    abreAspas: dispositivo.cabecaAlteracao,
+    notaAlteracao: isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) ? dispositivo.notaAlteracao || '(NR)' : undefined,
   };
 };
 

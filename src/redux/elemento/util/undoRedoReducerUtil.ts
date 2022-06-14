@@ -1,8 +1,10 @@
+import { Eventos } from './../evento/eventos';
+import { isDispositivoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao, getElementos } from '../../../model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { findDispositivoByUuid, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -213,4 +215,31 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
     return validados;
   }
   return [];
+};
+
+export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao, primeiroDispositivoASerRemovido: Dispositivo | undefined, eventos: Eventos): Elemento[] => {
+  const elementos: Elemento[] = [];
+
+  if (primeiroDispositivoASerRemovido) {
+    const pai = primeiroDispositivoASerRemovido.pai?.tipo === 'Caput' ? primeiroDispositivoASerRemovido.pai.pai : primeiroDispositivoASerRemovido.pai;
+    if (pai && isDispositivoAlteracao(pai)) {
+      elementos.push(...getElementos(pai));
+    }
+  }
+
+  const incluidos = eventos.get(StateType.ElementoIncluido);
+
+  if (incluidos.elementos?.length) {
+    const elemento1 = incluidos.elementos[0];
+    const dispositivo = getDispositivoFromElemento(articulacao, elemento1);
+
+    if (dispositivo) {
+      const pai = dispositivo.pai && dispositivo.pai?.tipo === 'Caput' ? dispositivo.pai.pai : dispositivo.pai;
+      if (pai && isDispositivoAlteracao(pai)) {
+        return getElementos(pai);
+      }
+    }
+  }
+
+  return elementos;
 };

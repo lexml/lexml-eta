@@ -540,6 +540,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
           this.montarMenuContexto(event);
+          this.atualizarAtributos(event);
           break;
       }
       this.quill.limparHistory();
@@ -646,6 +647,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
+  private atualizarAtributos(event: StateEvent): void {
+    const elementos: Elemento[] = event.elementos ?? [];
+    let linha: EtaContainerTable | undefined;
+
+    elementos.forEach((elemento: Elemento) => {
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      if (linha) {
+        linha.atualizarAtributos(elemento);
+      }
+    });
+  }
+
   private atualizarQuill(event: StateEvent): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
@@ -661,7 +674,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.rotulo !== linha.blotRotulo.html) {
           linha.numero = elemento.numero ?? '';
-          linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
+          linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo, elemento.abreAspas);
         }
 
         if (elemento.nivel !== linha.nivel) {
@@ -672,7 +685,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.agrupador !== linha.agrupador) {
           linha.agrupador = elemento.agrupador;
-          linha.blotRotulo.format(EtaBlotRotulo.formatoStyle, elemento);
+          linha.blotRotulo.format(EtaBlotRotulo.formatoStyle, elemento, elemento.abreAspas);
           if (!nivelAlerado) {
             linha.format(EtaContainerTable.blotName, elemento);
           }
@@ -726,7 +739,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.map((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
+        linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo, elemento.abreAspas);
       }
     });
   }
