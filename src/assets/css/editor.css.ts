@@ -212,7 +212,25 @@ export const editorStyles = html`
 
     .rotulo {
       cursor: pointer;
-      border-bottom: 1px dashed;
+      /* border-bottom: 1px dashed; */
+      -webkit-box-shadow: 0px -1px 0px green inset;
+      -moz-box-shadow: 0px -1px 0px green inset;
+      box-shadow: 0px -1px 0px green inset;
+    }
+
+    [existenanormaalterada='true'] label:before {
+      position: relative;
+      content: 'Existente';
+      left: 0;
+      top: -1px;
+      margin-right: 5px;
+      border: 1px solid green;
+      padding: 0 4px;
+      font-weight: normal;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+      font-size: 12px;
     }
 
     .texto__rotulo {
