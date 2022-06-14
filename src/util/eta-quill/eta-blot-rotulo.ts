@@ -13,7 +13,7 @@ export class EtaBlotRotulo extends EtaBlot {
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento.agrupador));
     node.setAttribute('data-rotulo', elemento.rotulo);
-    node.innerHTML = '';
+    node.innerHTML = elemento.rotulo;
     node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
     return node;
   }
@@ -29,6 +29,7 @@ export class EtaBlotRotulo extends EtaBlot {
   format(name: string, value: any): void {
     if (name === EtaBlotRotulo.blotName) {
       this.domNode.setAttribute('data-rotulo', value);
+      this.domNode.innerHTML = value;
     } else if (name === EtaBlotRotulo.formatoStyle) {
       this.domNode.setAttribute('style', EtaBlotRotulo.criarAtributoStyle(value));
     } else {

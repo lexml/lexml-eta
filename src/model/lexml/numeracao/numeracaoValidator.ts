@@ -15,7 +15,7 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
-import { comparaNumeracao } from './numeracaoUtil';
+import { comparaNumeracao, converteLetraParaNumeroArabico } from './numeracaoUtil';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -171,7 +171,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
     !isOmissis(getDispositivoAnterior(dispositivo)!) &&
-    parseInt(dispositivo.numero) !== parseInt(getDispositivoAnteriorMesmoTipo(dispositivo)!.numero!) + 1
+    !validaOrdemDispositivo(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -185,4 +185,19 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
 
 export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
   return isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
+};
+
+export const validaOrdemDispositivo = (dispositivo: Dispositivo): boolean => {
+  const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(dispositivo);
+  if (dispositivo!.numero!.indexOf('-') > -1) {
+    if (dispositivoAnterior!.numero!.indexOf('-') > -1) {
+      return (
+        parseInt(converteLetraParaNumeroArabico(dispositivo!.numero!.split('-')[1])) === parseInt(converteLetraParaNumeroArabico(dispositivoAnterior!.numero!.split('-')[1])) + 1
+      );
+    } else {
+      return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) && dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65;
+    }
+  } else {
+    return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) + 1;
+  }
 };

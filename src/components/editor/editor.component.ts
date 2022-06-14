@@ -362,7 +362,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const validarElementoAdicionado = (): boolean => {
       if (dispositivoNaNorma && !dispositivoNaNorma.disabled) {
         document.querySelectorAll('sl-radio-button').forEach(o => {
-          console.log();
           if ((o as SlRadioButton).checked) {
             opcaoInformada = (o as SlRadioButton).value;
           }
@@ -689,6 +688,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
           linha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+          linha.domNode.setAttribute('existenanormaalterada', linha.existeNaNormaAlterada);
         }
 
         if (linha.children.length === 2) {
