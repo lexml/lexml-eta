@@ -293,7 +293,11 @@ export const editorStyles = html`
       background-color: #f8d7da;
       border-color: #f5c6cb;
     }
-
+    .mensagem__fix {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
     lexml-eta-help {
       float: right;
     }
