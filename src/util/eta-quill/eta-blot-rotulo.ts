@@ -29,6 +29,7 @@ export class EtaBlotRotulo extends EtaBlot {
   format(name: string, value: any): void {
     if (name === EtaBlotRotulo.blotName) {
       this.domNode.setAttribute('data-rotulo', value);
+      this.domNode.innerHTML = value;
     } else if (name === EtaBlotRotulo.formatoStyle) {
       this.domNode.setAttribute('style', EtaBlotRotulo.criarAtributoStyle(value));
     } else {
