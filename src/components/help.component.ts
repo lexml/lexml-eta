@@ -60,6 +60,7 @@ export class HelpComponent extends LitElement {
           <div><b>ctrl-end</b>&nbsp;-&nbsp;Vai para o último dispositivo</div>
           <div><b>ctrl-&uarr;</b>&nbsp;-&nbsp;Move o dispositivo acima</div>
           <div><b>ctrl-&darr;</b>&nbsp;-&nbsp;Move o dispositivo abaixo</div>
+          <div><b>ctrl-f;</b>&nbsp;-&nbsp;Localizar texto</div>
           <hr></hr>
           <div><b>enter</b>&nbsp;-&nbsp;Finaliza a edição do dispositivo atual e cria um novo</div>
           <div><b>ctrl-d</b>&nbsp;-&nbsp;Remove dispositivo atual</div>

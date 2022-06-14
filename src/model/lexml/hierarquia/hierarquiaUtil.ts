@@ -491,20 +491,21 @@ export const isDescendenteDeSuprimido = (d: Dispositivo): boolean => {
   return false;
 };
 
-export const hasAscendenteAdicionado = (d: Dispositivo): boolean => {
+export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): boolean => {
   const parent = isIncisoCaput(d) ? d.pai!.pai : d.pai;
 
-  if (parent === undefined || !isDispositivoAlteracao(d) || d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO || isDispositivoCabecaAlteracao(d)) {
+  if (parent === undefined || !isDispositivoAlteracao(d) || d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    return true;
+  }
+
+  if (parent.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
     return false;
   }
 
-  if (parent.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !(parent.situacao as DispositivoAdicionado).existeNaNormaAlterada) {
+  const paiExisteNaNormaAlterada = (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada;
+  if (paiExisteNaNormaAlterada !== undefined && !paiExisteNaNormaAlterada) {
     return true;
   }
 
-  if (parent.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && isDispositivoCabecaAlteracao(parent)) {
-    return true;
-  }
-
-  return hasAscendenteAdicionado(parent);
+  return verificaNaoPrecisaInformarSituacaoNormaVigente(parent);
 };
