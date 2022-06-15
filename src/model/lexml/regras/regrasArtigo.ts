@@ -88,7 +88,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (
         dispositivo.pai!.indexOf(dispositivo) > 0 &&
         getDispositivoAnterior(dispositivo) !== undefined &&
-        !getDispositivoAnterior(dispositivo)?.hasAlteracao &&
+        !getDispositivoAnterior(dispositivo)?.hasAlteracao() &&
         !isOmissis(getDispositivoAnterior(dispositivo)!)
       ) {
         acoes.push(transformarArtigoEmParagrafo);
