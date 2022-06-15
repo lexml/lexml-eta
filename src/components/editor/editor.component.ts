@@ -408,6 +408,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     dialogElem.appendChild(content);
     ok.disabled = Boolean(validar());
     dialogElem?.show();
+    setTimeout(() => {
+      (input as SlInput).focus();
+    }, 0);
   }
 
   private removerElementoSemTexto(key: string): void {
