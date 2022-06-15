@@ -1,3 +1,4 @@
+import SlInput from '@shoelace-style/shoelace/dist/components/input/input';
 import { Elemento } from '../../model/elemento';
 import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/lexml/documento/urnUtil';
 
@@ -89,4 +90,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   quill.blur();
   dialogElem.appendChild(content);
   dialogElem.show();
+  setTimeout(() => {
+    (tipoNorma as SlInput).focus();
+  }, 0);
 }
