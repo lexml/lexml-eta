@@ -46,12 +46,14 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       const prefixo = dispositivo.descricao === undefined ? dispositivo.name ?? '' : dispositivo.descricao.toLocaleUpperCase();
 
       if (this.numero === undefined) {
-        this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
+        // this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
+        this.rotulo = dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = prefixo + ' ' + this.numero;
       } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo =
-          '\u201C' + (this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano));
+          // '\u201C' + (this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano));
+          this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano);
       } else {
         irmaosMesmoTipo(dispositivo).length === 1
           ? (this.rotulo = this.getNomeAgrupadorUnico(dispositivo))

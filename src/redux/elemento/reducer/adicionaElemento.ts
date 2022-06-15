@@ -125,6 +125,8 @@ export const adicionaElemento = (state: any, action: any): State => {
     }
   }
 
+  novo.cabecaAlteracao = isDispositivoCabecaAlteracao(novo);
+
   if (
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||

@@ -1,9 +1,18 @@
+import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getEvento } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import {
+  incluir,
+  processaRenumerados,
+  processarModificados,
+  processaValidados,
+  remover,
+  restaurarSituacao,
+  getElementosAlteracaoASeremAtualizados,
+} from '../util/undoRedoReducerUtil';
 
 export const redo = (state: any): State => {
   if (state.future === undefined || state.future.length === 0) {
@@ -24,6 +33,9 @@ export const redo = (state: any): State => {
     },
   };
 
+  const stateEvent = getEvento(eventos, StateType.ElementoRemovido);
+  const primeiroDispositivoASerRemovido = stateEvent?.elementos?.length ? getDispositivoFromElemento(state.articulacao, stateEvent.elementos[0]) : undefined;
+
   const events = new Eventos();
 
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoRemovido)));
@@ -41,6 +53,8 @@ export const redo = (state: any): State => {
     events.add(StateType.ElementoMarcado, elementosParaMarcar);
     events.add(StateType.ElementoSelecionado, [elementosParaMarcar[0]]);
   }
+
+  events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, primeiroDispositivoASerRemovido, events));
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

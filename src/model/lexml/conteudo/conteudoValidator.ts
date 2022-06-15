@@ -16,7 +16,7 @@ import { Mensagem, TipoMensagem } from '../util/mensagem';
 import {
   hasIndicativoContinuacaoSequencia,
   hasIndicativoDesdobramento,
-  hasIndicativoFimAlteracao,
+  // hasIndicativoFimAlteracao,
   hasIndicativoFinalSequencia,
   hasIndicativoInicioAlteracao,
   TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
@@ -250,31 +250,31 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
-  if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `O último dispositivo do bloco de alteração deve terminar com: <b>.&#8221; (NR)</b>`,
-    });
-  }
-  if (
-    isDispositivoAlteracao(dispositivo) &&
-    dispositivo.texto &&
-    !isUltimaAlteracao(dispositivo) &&
-    /.*["”“]$/.test(dispositivo.texto) &&
-    !hasCitacaoAoFinalFrase(dispositivo.texto) &&
-    !/”.*(NR)/.test(dispositivo.texto)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Somente o último dispositivo do bloco de alteração poderia ser finalizado com aspas`,
-    });
-  }
-  if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /”.*(NR)/.test(dispositivo.texto)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Somente o último dispositivo do bloco de alteração poderia terminar com &#8221; (NR)`,
-    });
-  }
+  // if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) && (!dispositivo.texto || !hasIndicativoFimAlteracao(dispositivo.texto))) {
+  //   mensagens.push({
+  //     tipo: TipoMensagem.ERROR,
+  //     descricao: `O último dispositivo do bloco de alteração deve terminar com: <b>.&#8221; (NR)</b>`,
+  //   });
+  // }
+  // if (
+  //   isDispositivoAlteracao(dispositivo) &&
+  //   dispositivo.texto &&
+  //   !isUltimaAlteracao(dispositivo) &&
+  //   /.*["”“]$/.test(dispositivo.texto) &&
+  //   !hasCitacaoAoFinalFrase(dispositivo.texto) &&
+  //   !/”.*(NR)/.test(dispositivo.texto)
+  // ) {
+  //   mensagens.push({
+  //     tipo: TipoMensagem.ERROR,
+  //     descricao: `Somente o último dispositivo do bloco de alteração poderia ser finalizado com aspas`,
+  //   });
+  // }
+  // if (isDispositivoAlteracao(dispositivo) && dispositivo.texto && !isUltimaAlteracao(dispositivo) && /”.*(NR)/.test(dispositivo.texto)) {
+  //   mensagens.push({
+  //     tipo: TipoMensagem.ERROR,
+  //     descricao: `Somente o último dispositivo do bloco de alteração poderia terminar com &#8221; (NR)`,
+  //   });
+  // }
   if (
     isDispositivoAlteracao(dispositivo) &&
     dispositivo.texto &&

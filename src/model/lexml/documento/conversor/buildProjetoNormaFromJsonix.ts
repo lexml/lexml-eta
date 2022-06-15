@@ -75,11 +75,12 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
   filhos?.forEach((el: any) => {
     let dispositivo;
     const notaAlteracao = el.value?.notaAlteracao;
-    const complemento = el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
+    const complemento = ''; //el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
 
     if (el.name?.localPart === 'Caput') {
       if (el.value?.abreAspas === 's') {
-        dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+        // dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+        dispositivo.rotulo = el.value?.rotulo;
         dispositivo.cabecaAlteracao = true;
         dispositivo.notaAlteracao = notaAlteracao;
       } else if (el.value?.rotulo) {
@@ -114,7 +115,8 @@ const buildAlteracao = (pai: Dispositivo, el: any): void => {
     el.content?.forEach((c: any) => {
       const d = buildDispositivo(pai.alteracoes!, c);
       d.isDispositivoAlteracao = true;
-      d.rotulo = '\u201C' + c.value?.rotulo;
+      // d.rotulo = '\u201C' + c.value?.rotulo;
+      d.rotulo = c.value?.rotulo;
       buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis);
     });
   }
@@ -124,11 +126,12 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
   const dispositivo = criaDispositivo(pai, el.name?.localPart);
 
   const notaAlteracao = el.value?.notaAlteracao;
-  const complemento = el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
+  const complemento = ''; //el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
 
   if (!isOmissis(dispositivo)) {
     if (el.value?.abreAspas === 's') {
-      dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+      // dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+      dispositivo.rotulo = el.value?.rotulo;
       dispositivo.cabecaAlteracao = true;
       dispositivo.notaAlteracao = notaAlteracao;
     } else {
