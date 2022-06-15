@@ -68,9 +68,6 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
-      // if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
-      //   acoes.push(iniciarBlocoAlteracao);
-      // }
       if (dispositivo.alteracoes) {
         acoes.push(informarNormaAction);
       }
@@ -80,7 +77,12 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || hasIndicativoDesdobramento(dispositivo))) {
         acoes.push(adicionarInciso);
       }
-      if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && !hasFilhos(dispositivo)) {
+      if (
+        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+        !dispositivo.hasAlteracao() &&
+        !isDispositivoAlteracao(dispositivo) &&
+        !hasFilhos(dispositivo)
+      ) {
         acoes.push(iniciarBlocoAlteracao);
       }
       if (

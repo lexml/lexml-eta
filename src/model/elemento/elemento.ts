@@ -27,4 +27,6 @@ export class Elemento extends Referencia {
   acoesPossiveis?: ElementoAction[];
   norma?: string;
   existeNaNormaAlterada?: boolean;
+  abreAspas?: boolean;
+  notaAlteracao?: string;
 }

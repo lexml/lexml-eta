@@ -1,3 +1,4 @@
+import { isUltimaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
@@ -7,7 +8,7 @@ import {
   findDispositivoByUuid,
   getArticulacao,
   getDispositivosPosteriores,
-  hasAscendenteAdicionado,
+  verificaNaoPrecisaInformarSituacaoNormaVigente,
   hasFilhos,
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
@@ -80,6 +81,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
     mensagens: isOriginal(dispositivo) ? [] : dispositivo.mensagens,
+    abreAspas: dispositivo.cabecaAlteracao,
+    notaAlteracao: isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) ? dispositivo.notaAlteracao || '(NR)' : undefined,
   };
 };
 
@@ -235,5 +238,5 @@ export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void
 export const hasElementoAscendenteAdicionado = (articulacao: Articulacao, referencia: Partial<Elemento>): boolean => {
   const d = getDispositivoFromElemento(articulacao, referencia);
 
-  return d ? hasAscendenteAdicionado(d) : false;
+  return d ? verificaNaoPrecisaInformarSituacaoNormaVigente(d) : false;
 };
