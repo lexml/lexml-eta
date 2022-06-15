@@ -59,4 +59,12 @@ export class EtaBlotRotulo extends EtaBlot {
   public static getClasseCSS(elemento: Elemento): string {
     return 'texto__rotulo' + (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao');
   }
+
+  public atualizarAtributos(elemento: Elemento): void {
+    if (elemento.abreAspas) {
+      this.domNode.setAttribute('abre-aspas', 'true');
+    } else {
+      this.domNode.removeAttribute('abre-aspas');
+    }
+  }
 }

@@ -329,5 +329,10 @@ export const editorStyles = html`
       content: '” ' attr(data-nota-alteracao);
       font-weight: bold;
     }
+
+    [abre-aspas]::before {
+      content: '“';
+      font-weight: bold;
+    }
   </style>
 `;

@@ -171,6 +171,7 @@ export class EtaContainerTable extends Container {
   }
 
   atualizarAtributos(elemento: Elemento): void {
+    this.blotRotulo.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
   }
 
