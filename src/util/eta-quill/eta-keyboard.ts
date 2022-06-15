@@ -42,7 +42,7 @@ export class EtaKeyboard extends Keyboard {
     });
 
     this.quill.root.addEventListener('keypress', (ev: KeyboardEvent): void => {
-      if (this.quill.cursorDeTextoEstaSobreLink() && ev.key.length === 1) {
+      if (this.quill.cursorDeTextoEstaSobreLink() && ev.key.length === 1 && !this.verificaCursorNoComecoDaLinha()) {
         cancelarPropagacaoDoEvento(ev);
       }
     });
@@ -55,7 +55,7 @@ export class EtaKeyboard extends Keyboard {
       if (this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) {
         if (
           ['Delete', 'Backspace'].includes(ev.key) ||
-          (!ev.ctrlKey && ev.key.length === 1) ||
+          (!ev.ctrlKey && ev.key.length === 1 && !this.verificaCursorNoComecoDaLinha()) ||
           (ev.ctrlKey && 'xvXV'.includes(ev.key)) ||
           (ev.altKey && '0123456789'.includes(ev.key))
         ) {
@@ -114,6 +114,10 @@ export class EtaKeyboard extends Keyboard {
       }
     });
     super.listen();
+  }
+
+  private verificaCursorNoComecoDaLinha(): boolean {
+    return this.quill.getSelection().index === this.quill.inicioConteudoAtual;
   }
 
   private isTeclaComCaracterGrafico(ev: KeyboardEvent): boolean {
