@@ -166,8 +166,8 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     if (!isArticulacao(novo)) {
       if (da.fechaAspas) {
         novo.notaAlteracao = da.notaAlteracao;
-        // novo.texto = da.texto + `” ${da.notaAlteracao}`;
-        novo.texto = da.texto + '';
+        novo.texto = da.texto + `” ${da.notaAlteracao}`;
+        // novo.texto = da.texto + '';
       } else {
         novo.texto = da.texto!;
       }

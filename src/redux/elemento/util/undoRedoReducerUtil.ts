@@ -220,26 +220,30 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
 export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao, primeiroDispositivoASerRemovido: Dispositivo | undefined, eventos: Eventos): Elemento[] => {
   const elementos: Elemento[] = [];
 
-  if (primeiroDispositivoASerRemovido) {
-    const pai = primeiroDispositivoASerRemovido.pai?.tipo === 'Caput' ? primeiroDispositivoASerRemovido.pai.pai : primeiroDispositivoASerRemovido.pai;
-    if (pai && isDispositivoAlteracao(pai)) {
-      elementos.push(...getElementos(pai));
-    }
-  }
-
-  const incluidos = eventos.get(StateType.ElementoIncluido);
-
-  if (incluidos.elementos?.length) {
-    const elemento1 = incluidos.elementos[0];
-    const dispositivo = getDispositivoFromElemento(articulacao, elemento1);
-
-    if (dispositivo) {
-      const pai = dispositivo.pai && dispositivo.pai?.tipo === 'Caput' ? dispositivo.pai.pai : dispositivo.pai;
+  try {
+    if (primeiroDispositivoASerRemovido) {
+      const pai = primeiroDispositivoASerRemovido.pai?.tipo === 'Caput' ? primeiroDispositivoASerRemovido.pai.pai : primeiroDispositivoASerRemovido.pai;
       if (pai && isDispositivoAlteracao(pai)) {
-        return getElementos(pai);
+        elementos.push(...getElementos(pai));
       }
     }
-  }
 
-  return elementos;
+    const incluidos = eventos.get(StateType.ElementoIncluido);
+
+    if (incluidos.elementos?.length) {
+      const elemento1 = incluidos.elementos[0];
+      const dispositivo = getDispositivoFromElemento(articulacao, elemento1);
+
+      if (dispositivo) {
+        const pai = dispositivo.pai && dispositivo.pai?.tipo === 'Caput' ? dispositivo.pai.pai : dispositivo.pai;
+        if (pai && isDispositivoAlteracao(pai)) {
+          return getElementos(pai);
+        }
+      }
+    }
+
+    return elementos;
+  } catch (error) {
+    return elementos;
+  }
 };

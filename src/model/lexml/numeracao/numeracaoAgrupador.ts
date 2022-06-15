@@ -52,8 +52,8 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
         this.rotulo = prefixo + ' ' + this.numero;
       } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo =
-          // '\u201C' + (this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano));
-          this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano);
+          '\u201C' + (this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano));
+        // this.informouAgrupadorUnico ? this.getNomeAgrupadorUnico(dispositivo) : prefixo + ' ' + trataComplemento(this.numero, converteNumeroArabicoParaRomano);
       } else {
         irmaosMesmoTipo(dispositivo).length === 1
           ? (this.rotulo = this.getNomeAgrupadorUnico(dispositivo))
