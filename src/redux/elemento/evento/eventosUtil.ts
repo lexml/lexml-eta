@@ -106,7 +106,7 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   const dispositivosRenumerados = listaDispositivosRenumerados(dispositivo);
   const dispositivoAnterior = getDispositivoAnterior(dispositivo);
 
-  const ehDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
+  // const ehDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
   const pai = dispositivo.pai!;
   pai.removeFilho(dispositivo);
@@ -125,10 +125,10 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
 
   const eventos = buildEventoExclusaoElemento(removidos, dispositivosRenumerados, criaListaElementosAfinsValidados(dispositivoValidado, false));
 
-  if (ehDispositivoAlteracao && (dispositivoAnterior || pai)) {
-    const dispositivoParaAtualizar = dispositivoAnterior || (pai.tipo === 'Caput' ? pai.pai! : pai);
-    eventos.add(StateType.SituacaoElementoModificada, getElementos(dispositivoParaAtualizar));
-  }
+  // if (ehDispositivoAlteracao && (dispositivoAnterior || pai)) {
+  //   const dispositivoParaAtualizar = dispositivoAnterior || (pai.tipo === 'Caput' ? pai.pai! : pai);
+  //   eventos.add(StateType.SituacaoElementoModificada, getElementos(dispositivoParaAtualizar));
+  // }
 
   return eventos.build();
 };

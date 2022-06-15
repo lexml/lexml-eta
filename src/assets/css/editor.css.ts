@@ -325,7 +325,7 @@ export const editorStyles = html`
       height: 0px;
     }
 
-    [data-nota-alteracao]::after {
+    /* [data-nota-alteracao]::after {
       content: '” ' attr(data-nota-alteracao);
       font-weight: bold;
     }
@@ -333,6 +333,6 @@ export const editorStyles = html`
     [abre-aspas]::before {
       content: '“';
       font-weight: bold;
-    }
+    } */
   </style>
 `;
