@@ -61,8 +61,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
 
   if (fechaAspas) {
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-    // TODO: confirmar se deve ter '(NR)' como valor default
-    notaAlteracao = cabecaAlteracao?.notaAlteracao || '(NR)';
+    // TODO: confirmar se deve ter 'NR' como valor default
+    notaAlteracao = cabecaAlteracao?.notaAlteracao || 'NR';
   }
 
   return {

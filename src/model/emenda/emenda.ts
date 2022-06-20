@@ -80,7 +80,7 @@ export class DispositivoEmendaModificado extends DispositivoEmenda {
   textoOmitido?: boolean;
   abreAspas?: boolean;
   fechaAspas?: boolean;
-  notaAlteracao?: '(NR)' | '(AC)';
+  notaAlteracao?: 'NR' | 'AC';
 }
 
 export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
