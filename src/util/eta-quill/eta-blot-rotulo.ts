@@ -13,7 +13,6 @@ export class EtaBlotRotulo extends EtaBlot {
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento));
-    // node.setAttribute('data-rotulo', (elemento.abreAspas ? '\u201C' : '') + elemento.rotulo);
     node.setAttribute('data-rotulo', elemento.rotulo);
 
     if (elemento.abreAspas) {

@@ -36,7 +36,6 @@ export const redo = (state: any): State => {
   const stateEvent = getEvento(eventos, StateType.ElementoRemovido);
   const primeiroDispositivoASerRemovido = stateEvent?.elementos?.length ? getDispositivoFromElemento(state.articulacao, stateEvent.elementos[0]) : undefined;
   const paiDoPrimeiroDispositivoASerRemovido = primeiroDispositivoASerRemovido?.pai;
-  // const primeiroDispositivoASerRemovidoEhCabecaAlteracao = primeiroDispositivoASerRemovido ? isDispositivoCabecaAlteracao(primeiroDispositivoASerRemovido) : false;
 
   const events = new Eventos();
 

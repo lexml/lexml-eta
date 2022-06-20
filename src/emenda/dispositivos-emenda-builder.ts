@@ -8,7 +8,6 @@ import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../model/lexml/util/idUtil';
-// import { escapeRegex, getTextoSemHtml } from '../util/string-util';
 import { CmdEmdUtil } from './comando-emenda-util';
 
 export class DispositivosEmendaBuilder {
@@ -148,21 +147,5 @@ export class DispositivosEmendaBuilder {
     if (isUltimaAlteracao(d)) {
       dm.fechaAspas = true;
     }
-    // if (dm.rotulo && dm.rotulo.indexOf('“') >= 0) {
-    //   dm.abreAspas = true;
-    //   dm.rotulo = dm.rotulo.replace('“', '');
-    // }
-    // if (dm.texto) {
-    //   const textoSemHtml = getTextoSemHtml(dm.texto);
-    //   const partes = /”(?: ?(\(NR\)|\(AC\)))?$/.exec(textoSemHtml);
-    //   if (partes) {
-    //     const sufixo = partes[0];
-    //     dm.fechaAspas = true;
-    //     if (partes.length === 2) {
-    //       dm.notaAlteracao = partes[1] as any;
-    //     }
-    //     dm.texto = dm.texto.replace(new RegExp(escapeRegex(sufixo)), '');
-    //   }
-    // }
   }
 }

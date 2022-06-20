@@ -170,12 +170,6 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
 
   value['id'] = buildId(dispositivo);
 
-  // if (dispositivo.rotulo && /^["”“].*/.test(dispositivo.rotulo)) {
-  //   value['abreAspas'] = 's';
-  //   value.rotulo = dispositivo.rotulo.substring(1);
-  // } else if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
-  //   value.rotulo = dispositivo.rotulo;
-  // }
   if (isDispositivoCabecaAlteracao(dispositivo)) {
     value['abreAspas'] = 's';
     value.rotulo = dispositivo.rotulo;
@@ -183,17 +177,9 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
     value.rotulo = dispositivo.rotulo;
   }
 
-  // if (isCaput(dispositivo)) {
-  //   if (isDispositivoAlteracao(dispositivo.pai!) && isUltimaAlteracao(dispositivo.pai!)) {
-  //     value['fechaAspas'] = 's';
-  //     value['notaAlteracao'] = 'NR';
-  //   }
-  // }
-
   const dispositivoTemp = isCaput(dispositivo) ? dispositivo.pai! : dispositivo;
   if (isDispositivoAlteracao(dispositivoTemp) && isUltimaAlteracao(dispositivoTemp)) {
     value['fechaAspas'] = 's';
-    // value['notaAlteracao'] = 'NR';
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivoTemp);
     value['notaAlteracao'] = cabecaAlteracao.notaAlteracao || 'NR';
   }

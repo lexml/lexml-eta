@@ -44,12 +44,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       ) {
         this.rotulo = 'Art.';
       } else if (this.numero === undefined) {
-        // this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
         this.rotulo = dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
       } else if (isDispositivoCabecaAlteracao(dispositivo)) {
-        // this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
         this.rotulo = this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
       } else {
         getArticulacao(dispositivo).artigos.length === 1

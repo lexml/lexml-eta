@@ -166,7 +166,6 @@ export class EtaContainerTable extends Container {
         break;
     }
 
-    // this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(elemento)} ${classeCSS} ${elemento.numero === undefined ? 'rotulo' : ''}`);
     this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(elemento)} ${classeCSS}`);
     this.blotConteudo.domNode.setAttribute('class', `${EtaBlotConteudo.getClasseCSS(elemento)} ${classeCSS} ${classeCSSAdicional}`);
   }
