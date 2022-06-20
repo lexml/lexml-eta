@@ -1,3 +1,4 @@
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
@@ -58,7 +59,11 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   public static getClasseCSS(elemento: Elemento): string {
-    return 'texto__rotulo' + (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao');
+    return (
+      'texto__rotulo' +
+      (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
+      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? ' rotulo' : '')
+    );
   }
 
   public atualizarAtributos(elemento: Elemento): void {

@@ -1,5 +1,5 @@
 import { Eventos } from './../evento/eventos';
-import { isDispositivoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, isDispositivoCabecaAlteracao, getDispositivoCabecaAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
@@ -217,33 +217,34 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
   return [];
 };
 
-export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao, primeiroDispositivoASerRemovido: Dispositivo | undefined, eventos: Eventos): Elemento[] => {
+export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao, eventos: Eventos, paiDoPrimeiroDispositivoASerRemovido: Dispositivo | undefined): Elemento[] => {
   const elementos: Elemento[] = [];
 
-  try {
-    if (primeiroDispositivoASerRemovido) {
-      const pai = primeiroDispositivoASerRemovido.pai?.tipo === 'Caput' ? primeiroDispositivoASerRemovido.pai.pai : primeiroDispositivoASerRemovido.pai;
-      if (pai && isDispositivoAlteracao(pai)) {
-        elementos.push(...getElementos(pai));
+  if (paiDoPrimeiroDispositivoASerRemovido && paiDoPrimeiroDispositivoASerRemovido.tipo !== 'Articulacao') {
+    try {
+      if (isDispositivoAlteracao(paiDoPrimeiroDispositivoASerRemovido)) {
+        elementos.push(...getElementos(getDispositivoCabecaAlteracao(paiDoPrimeiroDispositivoASerRemovido)));
       }
-    }
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
+  }
 
-    const incluidos = eventos.get(StateType.ElementoIncluido);
+  const incluidos = eventos.get(StateType.ElementoIncluido);
 
-    if (incluidos.elementos?.length) {
-      const elemento1 = incluidos.elementos[0];
-      const dispositivo = getDispositivoFromElemento(articulacao, elemento1);
+  if (incluidos.elementos?.length) {
+    const elemento1 = incluidos.elementos[0];
+    const dispositivo = getDispositivoFromElemento(articulacao, elemento1);
 
-      if (dispositivo) {
-        const pai = dispositivo.pai && dispositivo.pai?.tipo === 'Caput' ? dispositivo.pai.pai : dispositivo.pai;
-        if (pai && isDispositivoAlteracao(pai)) {
-          return getElementos(pai);
+    try {
+      if (dispositivo && isDispositivoAlteracao(dispositivo) && !isDispositivoCabecaAlteracao(dispositivo)) {
+        const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+        if (cabecaAlteracao) {
+          elementos.push(...getElementos(cabecaAlteracao));
         }
       }
-    }
-
-    return elementos;
-  } catch (error) {
-    return elementos;
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
   }
+
+  return elementos;
 };

@@ -542,6 +542,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
           this.montarMenuContexto(event);
+          this.atualizarAtributos(event);
           break;
       }
       this.quill.limparHistory();
@@ -644,6 +645,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
           linha.setEstilo(elemento);
         }
+      }
+    });
+  }
+
+  private atualizarAtributos(event: StateEvent): void {
+    const elementos: Elemento[] = event.elementos ?? [];
+    let linha: EtaContainerTable | undefined;
+
+    elementos.forEach((elemento: Elemento) => {
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      if (linha) {
+        linha.atualizarAtributos(elemento);
       }
     });
   }
