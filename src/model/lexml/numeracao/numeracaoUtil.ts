@@ -160,7 +160,7 @@ export const trataComplemento = (numero: string, func?: any): string => {
   const num = numero.search(/-[a-zA-Z-]/) === -1 ? numero : numero.substring(0, numero.search(/-[a-zA-Z-]/));
   const resto = numero.search(/-[a-zA-Z-]/) === -1 ? '' : numero.substring(numero.search(/-[a-zA-Z-]/));
 
-  const converted = func ? func(num) : num;
+  const converted = num === '0' ? '0' : func ? func(num) : num;
 
   return converted + resto?.toUpperCase();
 };

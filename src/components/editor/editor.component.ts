@@ -405,12 +405,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.addEventListener('keyup', validarInput);
     input.addEventListener('sl-clear', validarInput);
 
-    dialogElem.appendChild(content);
+    await dialogElem.appendChild(content);
+    await dialogElem?.show();
     ok.disabled = Boolean(validar());
-    dialogElem?.show();
-    setTimeout(() => {
-      (input as SlInput).focus();
-    }, 0);
+    (input as SlInput).focus();
   }
 
   private removerElementoSemTexto(key: string): void {
@@ -984,12 +982,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private async confirmar(mensagem: string, botoes: string[], callback: any): Promise<void> {
-    // const dialog: any = document.createElement('elix-alert-dialog');
-
-    // dialog.textContent = mensagem;
-    // dialog.choices = botoes;
-    // dialog.addEventListener('close', callback);
-    // await dialog.open();
     let choice = '';
     const dialog = document.createElement('sl-dialog');
     dialog.label = 'Confirmação';
@@ -998,16 +990,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <sl-button slot="footer" variant="primary">Sim</sl-button>
     `;
     dialog.innerHTML = mensagem + botoesHtml;
-    document.body.appendChild(dialog);
-
+    await document.body.appendChild(dialog);
+    await dialog.show();
     const botoesDialog = document.querySelectorAll('sl-button');
-    const nao = botoesDialog[0];
-    const sim = botoesDialog[1];
-
-    dialog.show();
-    setTimeout(() => {
-      (sim as SlButton).focus();
-    }, 200);
+    const nao = botoesDialog[0] as SlButton;
+    const sim = botoesDialog[1] as SlButton;
+    sim.focus();
 
     nao.onclick = (): void => {
       choice = 'Não';

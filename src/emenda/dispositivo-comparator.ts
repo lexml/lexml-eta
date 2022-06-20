@@ -1,5 +1,5 @@
 import { Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { isArtigo, isCaput, isParagrafo } from './../model/dispositivo/tipo';
+import { isArtigo, isCaput, isParagrafo, isOmissis } from './../model/dispositivo/tipo';
 import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 
 export class DispositivoComparator {
@@ -51,7 +51,7 @@ export class DispositivoComparator {
     if (isCaput(d)) {
       return 0;
     }
-    if (isParagrafo(d)) {
+    if (isParagrafo(d) || (isOmissis(d) && isArtigo(pai))) {
       // Após o caput
       return pai.filhos.indexOf(d) + 1;
     }
