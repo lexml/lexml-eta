@@ -1,4 +1,4 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
@@ -46,6 +46,9 @@ export const renumeraElemento = (state: any, action: any): State => {
     const numero = ajustarNumero(dispositivo, action.novo?.numero);
     dispositivo.createNumeroFromRotulo(numero);
     dispositivo.id = buildId(dispositivo);
+    if (dispositivo.tipo === 'Artigo') {
+      (dispositivo as Artigo).caput!.id = buildId((dispositivo as Artigo).caput!);
+    }
   } catch (error) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'O rótulo informado é inválido', detalhe: error });
   }
