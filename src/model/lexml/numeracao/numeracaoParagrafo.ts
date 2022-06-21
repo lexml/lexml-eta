@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isParagrafo } from '../../dispositivo/tipo';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { isNumeracaoValida } from './numeracaoUtil';
+import { converteLetrasComplementoParaNumero, converteNumeroArabicoParaLetra, isNumeracaoValida, trataNumeroAndComplemento } from './numeracaoUtil';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -24,10 +24,18 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
         .trim();
     }
 
+    private isNumeracaoValidaParaRotulo(numero: string): boolean {
+      return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+    }
+
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
-      this.informouParagrafoUnico = /.*[uú]nico/i.test(rotulo);
-      this.numero = this.informouParagrafoUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
+      this.informouArtigoUnico = /.*[uú]nico/i.test(rotulo);
+      this.numero = this.informouArtigoUnico
+        ? '1'
+        : this.isNumeracaoValidaParaRotulo(temp)
+        ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero)
+        : undefined;
     }
 
     createRotulo(dispositivo: Dispositivo): void {
@@ -45,15 +53,14 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     }
 
     private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
-      if (!this.numero) {
-        return '';
-      }
-
-      const num = this.numero.search(/[a-zA-Z-]/) === -1 ? parseInt(this.numero) : parseInt(this.numero.substring(0, this.numero.search(/[a-zA-Z-]/)));
-      const resto = this.numero.search(/[a-zA-Z-]/) === -1 ? '' : this.numero.substring(this.numero.search(/[a-zA-Z-]/));
-      const ordinal = num < 10;
-
-      return (ordinal ? num + this.SUFIXO : num) + (resto?.length > 0 ? resto : '') + (!paraComandoEmenda && (!ordinal || resto?.length) ? '.' : '');
+      const partes = this.numero?.split('-');
+      const [num, ...remaining] = partes!;
+      const ordinal = parseInt(num ?? '1', 10) < 10;
+      return (
+        (ordinal ? num + this.SUFIXO : num) +
+        (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
+        (!paraComandoEmenda && (!ordinal || remaining.length) ? '.' : '')
+      );
     }
 
     getNumeracaoParaComandoEmenda(): string {

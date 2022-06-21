@@ -1,7 +1,7 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { isNumeracaoValida, trataComplemento } from './numeracaoUtil';
+import { converteLetrasComplementoParaNumero, converteNumerosComplementoParaLetra, trataNumeroAndComplemento } from './numeracaoUtil';
 
 export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -15,20 +15,24 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
       return num ? num[0] : addSpaceRegex(numero).trim().replace(/\.$/, '').trim();
     }
 
+    private isNumeracaoValidaParaRotulo(numero: string): boolean {
+      return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+    }
+
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
-      this.numero = isNumeracaoValida(temp) ? temp : undefined;
+      this.numero = this.isNumeracaoValidaParaRotulo(temp) ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero) : undefined;
     }
 
     createRotulo(): void {
-      this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : trataComplemento(this.numero) + this.SUFIXO;
+      this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : trataNumeroAndComplemento(this.numero, undefined, converteNumerosComplementoParaLetra) + this.SUFIXO;
     }
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.item.descricao?.toLowerCase() + '';
       }
-      return trataComplemento(this.numero);
+      return this.numero;
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

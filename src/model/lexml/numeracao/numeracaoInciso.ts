@@ -1,7 +1,15 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteNumeroArabicoParaRomano, converteNumeroRomanoParaArabico, isNumeracaoValida, trataComplemento, isNumeracaoZero } from './numeracaoUtil';
+import {
+  converteLetrasComplementoParaNumero,
+  converteNumeroArabicoParaRomano,
+  converteNumeroRomanoParaArabico,
+  converteNumerosComplementoParaLetra,
+  isNumeracaoValida,
+  isNumeracaoZero,
+  trataNumeroAndComplemento,
+} from './numeracaoUtil';
 
 export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -16,25 +24,26 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      const temp = trataComplemento(this.normalizaNumeracao(rotulo!), isNumeracaoZero(rotulo) ? null : converteNumeroRomanoParaArabico);
+      const temp = trataNumeroAndComplemento(
+        this.normalizaNumeracao(rotulo!),
+        isNumeracaoZero(rotulo) ? null : converteNumeroRomanoParaArabico,
+        converteLetrasComplementoParaNumero
+      );
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
     createRotulo(): void {
-      if (!this.numero) {
-        this.rotulo = TipoDispositivo.inciso.name;
-      } else {
-        const num = this.numero.search(/[a-zA-Z-]/) === -1 ? parseInt(this.numero) : parseInt(this.numero.substring(0, this.numero.search(/[a-zA-Z-]/)));
-        const resto = this.numero.search(/[a-zA-Z-]/) === -1 ? '' : this.numero.substring(this.numero.search(/[a-zA-Z-]/));
-        this.rotulo = (num === 0 ? num + resto : trataComplemento(this.numero, converteNumeroArabicoParaRomano)) + this.SUFIXO;
-      }
+      this.rotulo =
+        this.numero === undefined
+          ? TipoDispositivo.inciso.name
+          : trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra) + this.SUFIXO;
     }
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
       }
-      return trataComplemento(this.numero, converteNumeroArabicoParaRomano);
+      return trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra);
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

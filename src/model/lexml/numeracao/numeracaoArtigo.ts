@@ -1,4 +1,3 @@
-import { isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
@@ -6,7 +5,8 @@ import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteNumeroArabicoParaLetra, isNumeracaoValida } from './numeracaoUtil';
+import { isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
+import { converteLetrasComplementoParaNumero, converteNumeroArabicoParaLetra, isNumeracaoValida, trataNumeroAndComplemento } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -28,10 +28,18 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         .trim();
     }
 
+    private isNumeracaoValidaParaRotulo(numero: string): boolean {
+      return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+    }
+
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
       this.informouArtigoUnico = /.*[uú]nico/i.test(rotulo);
-      this.numero = this.informouArtigoUnico ? '1' : isNumeracaoValida(temp) ? temp : undefined;
+      this.numero = this.informouArtigoUnico
+        ? '1'
+        : this.isNumeracaoValidaParaRotulo(temp)
+        ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero)
+        : undefined;
     }
 
     createRotulo(dispositivo: Dispositivo): void {
@@ -44,12 +52,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       ) {
         this.rotulo = 'Art.';
       } else if (this.numero === undefined) {
-        // this.rotulo = isDispositivoCabecaAlteracao(dispositivo) ? '\u201C' + dispositivo.tipo : dispositivo.tipo;
         this.rotulo = dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
       } else if (isDispositivoCabecaAlteracao(dispositivo)) {
-        // this.rotulo = '\u201C' + (this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
         this.rotulo = this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
       } else {
         getArticulacao(dispositivo).artigos.length === 1
@@ -62,7 +68,6 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
       const ordinal = parseInt(num ?? '1', 10) < 10;
-
       return (
         (ordinal ? num + this.SUFIXO : num) +
         (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +

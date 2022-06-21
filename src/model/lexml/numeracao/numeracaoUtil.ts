@@ -6,6 +6,7 @@ import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
 import {
   getArtigosPosterioresIndependenteAgrupador,
   getDispositivoAnterior,
+  getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
   getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
@@ -47,7 +48,7 @@ export const isNumero = (numero: string): boolean => {
 };
 
 export const isNumeracaoValida = (numero: string): boolean => {
-  return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+  return /^\d{1,}([-]?[\d]+)?$/.test(numero);
 };
 
 const isLetra = (letra: string): boolean => {
@@ -60,7 +61,7 @@ export const isRomano = (numero: string): boolean => {
 
 export const converteLetraParaNumeroArabico = (s: string): string => {
   if (!isLetra(s)) {
-    throw new Error(`O valor ${s} não é uma sequência de letras válida.`);
+    return s;
   }
 
   s = s.toLowerCase();
@@ -141,8 +142,8 @@ const numberCharToInt = (numeroRomano: string): number => {
 export const converteNumeroArabicoParaRomano = (numero: string): string => {
   let resultado = '';
   let temp;
-  let num = numero.search(/[a-zA-Z-]/) === -1 ? parseInt(numero) : parseInt(numero.substring(0, numero.search(/[a-zA-Z-]/)));
-  const resto = numero.search(/[a-zA-Z-]/) === -1 ? '' : numero.substring(numero.search(/[a-zA-Z-]/));
+  let num = numero.search(/-/) === -1 ? parseInt(numero) : parseInt(numero.substring(0, numero.search(/-/)));
+  const resto = numero.search(/-/) === -1 ? '' : numero.substring(numero.search(/-/));
 
   for (const key in ALGARISMOS_ROMANOS) {
     temp = Math.floor(num / ALGARISMOS_ROMANOS[key]);
@@ -156,22 +157,29 @@ export const converteNumeroArabicoParaRomano = (numero: string): string => {
   return resultado + resto;
 };
 
-export const trataComplemento = (numero: string, func?: any): string => {
-  const num = numero.search(/-[a-zA-Z-]/) === -1 ? numero : numero.substring(0, numero.search(/-[a-zA-Z-]/));
-  const resto = numero.search(/-[a-zA-Z-]/) === -1 ? '' : numero.substring(numero.search(/-[a-zA-Z-]/));
+export const trataNumeroAndComplemento = (numero: string, funcNumero?: any, funcComplemento?: any): string => {
+  const num = numero.search(/-/) === -1 ? numero : numero.substring(0, numero.search(/-/));
+  const resto = numero.search(/-/) === -1 ? '' : numero.substring(numero.search(/-/));
 
-  const converted = func ? func(num) : num;
+  const converted = funcNumero ? funcNumero(num) : num;
 
-  return converted + resto?.toUpperCase();
+  return converted + (resto ? funcComplemento(resto) : '');
 };
 
-export const converteLetraComplementoParaNumero = (numero: string): string => {
+export const converteNumerosComplementoParaLetra = (numero: string): string => {
   const partes = numero?.split('-');
-  const [num, ...remaining] = partes!;
 
-  const novo = remaining.map(r => converteLetraParaNumeroArabico(r));
+  const novo = partes?.map(r => r && (isNumero(r) ? converteNumeroArabicoParaLetra(r)?.toUpperCase() : r));
 
-  return novo?.length > 0 ? num + '-' + novo?.join('-').toUpperCase() : num;
+  return novo?.length > 0 ? novo?.join('-') : '';
+};
+
+export const converteLetrasComplementoParaNumero = (numero: string): string => {
+  const partes = numero?.split('-');
+
+  const novo = partes?.map(r => r && (isLetra(r) ? converteLetraParaNumeroArabico(r) : r));
+
+  return novo?.length > 0 ? novo?.join('-') : '';
 };
 
 export const comparaNumeracao = (a?: string, b?: string): number => {
@@ -288,9 +296,8 @@ export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
     return seqOrdem;
   }
 
-  // if(temOriginalAntes && !temOriginalDepois) {
+  // if(temOriginalAntes && !temOriginalDepois)
   return new SeqOrdem(seqOriginal + seqDispEmenda);
-  // }
 };
 
 export const hasIrmaoOriginalDepois = (d: Dispositivo): boolean => {
@@ -323,6 +330,13 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
 };
 
 export const calculaNumeracao = (d: Dispositivo): string => {
+  const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(d);
+  const dispositivoPosterior = getDispositivoPosteriorMesmoTipo(d);
+
+  if (dispositivoAnterior && isOriginal(dispositivoAnterior) && dispositivoPosterior && isOriginal(dispositivoPosterior)) {
+    return dispositivoAnterior.numero + '-1';
+  }
+
   return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
 };
 
@@ -353,9 +367,9 @@ class SeqOrdem {
 
   addNovoSeqOrdem(seq2: number): void {
     if (this.seq > 0) {
-      this.letras = intToAlpha(seq2).toUpperCase();
+      this.letras = '' + seq2;
     } else if (seq2 > 1) {
-      this.letras = intToAlpha(seq2 - 1).toUpperCase();
+      this.letras = '' + --seq2;
     }
   }
   getNumeracao(isDispositivoEmenda: boolean): string {

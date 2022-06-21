@@ -1,7 +1,13 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { converteLetraParaNumeroArabico, converteNumeroArabicoParaLetra, trataComplemento, isNumeracaoZero } from './numeracaoUtil';
+import {
+  converteLetrasComplementoParaNumero,
+  converteNumeroArabicoParaLetra,
+  converteNumerosComplementoParaLetra,
+  isNumeracaoZero,
+  trataNumeroAndComplemento,
+} from './numeracaoUtil';
 
 export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -16,18 +22,21 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      this.numero = trataComplemento(this.normalizaNumeracao(rotulo!), isNumeracaoZero(rotulo) ? null : converteLetraParaNumeroArabico);
+      this.numero = trataNumeroAndComplemento(this.normalizaNumeracao(rotulo!), isNumeracaoZero(rotulo) ? null : converteLetrasComplementoParaNumero);
     }
 
     createRotulo(): void {
-      this.rotulo = this.numero === undefined ? TipoDispositivo.alinea.name : trataComplemento(this.numero, converteNumeroArabicoParaLetra) + this.SUFIXO;
+      this.rotulo =
+        this.numero === undefined
+          ? TipoDispositivo.alinea.name
+          : trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaLetra, converteNumerosComplementoParaLetra) + this.SUFIXO;
     }
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
         return '[ainda não numerada]'; // TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
       }
-      return '“' + trataComplemento(this.numero, converteNumeroArabicoParaLetra) + '”';
+      return '“' + trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaLetra, converteNumerosComplementoParaLetra) + '”';
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

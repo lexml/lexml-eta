@@ -1,9 +1,8 @@
-import { getArticulacao, isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
-import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
 import { getDispositivosAnterioresMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
-import { converteLetraComplementoParaNumero } from './../numeracao/numeracaoUtil';
+import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
+import { getArticulacao, isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
 
 export const buildHref = (dispositivo: Dispositivo): string | undefined => {
   if (isArticulacao(dispositivo)) {
@@ -20,7 +19,7 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
         : dispositivo.numero
         ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.numero === '1' && isUnicoMesmoTipo(dispositivo)
           ? '1u'
-          : converteLetraComplementoParaNumero(dispositivo.numero!)
+          : dispositivo.numero!
         : `[sn:${dispositivo.uuid}]`)
     );
   }

@@ -56,7 +56,7 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
           filho.createRotulo(filho);
           filho.id = buildId(filho);
         } else {
-          filho.createRotulo(filho);
+          //filho.createRotulo(filho);
         }
       });
     }
