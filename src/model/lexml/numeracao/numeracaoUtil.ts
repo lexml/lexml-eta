@@ -203,18 +203,14 @@ export const comparaNumeracao = (a?: string, b?: string): number => {
     return 1;
   }
 
-  for (let i = 0; i < remainingA?.length; i++) {
-    for (let j = 0; i < remainingB?.length; i++) {
-      if (remainingA[i] > remainingB[j]) {
+  for (let i = 0; i < 3; i++) {
+    const rA = i >= remainingA?.length ? 0 : remainingA[i];
+    for (let j = 0; i < 3; i++) {
+      const rB = j >= remainingB?.length ? 0 : remainingB[j];
+      if (rA > rB) {
         return -1;
       }
-      if (remainingA[i] < remainingB[j]) {
-        return 1;
-      }
-      if (remainingA.length > i + 1 && remainingB.length === j + 1) {
-        return 1;
-      }
-      if (remainingA.length === i + 1 && remainingB.length < j + 1) {
+      if (rA < rB) {
         return 1;
       }
     }

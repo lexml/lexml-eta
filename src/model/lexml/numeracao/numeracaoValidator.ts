@@ -15,7 +15,7 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
-import { comparaNumeracao, converteLetraParaNumeroArabico } from './numeracaoUtil';
+import { comparaNumeracao } from './numeracaoUtil';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -171,7 +171,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
     !isOmissis(getDispositivoAnterior(dispositivo)!) &&
-    !validaOrdemDispositivo(dispositivo)
+    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -187,17 +187,32 @@ export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
   return isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
 };
 
-export const validaOrdemDispositivo = (dispositivo: Dispositivo): boolean => {
-  const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(dispositivo);
-  if (dispositivo!.numero!.indexOf('-') > -1) {
-    if (dispositivoAnterior!.numero!.indexOf('-') > -1) {
-      return (
-        parseInt(converteLetraParaNumeroArabico(dispositivo!.numero!.split('-')[1])) === parseInt(converteLetraParaNumeroArabico(dispositivoAnterior!.numero!.split('-')[1])) + 1
-      );
-    } else {
-      return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) && dispositivo!.numero!.split('-')[1].charCodeAt(0) === 65;
-    }
-  } else {
-    return parseInt(dispositivo!.numero!) === parseInt(dispositivoAnterior!.numero!) + 1;
+export const validaOrdemDispositivo = (anterior: Dispositivo, atual: Dispositivo): boolean => {
+  if ((anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) || anterior.numero!.indexOf('-') === atual.numero!.indexOf('-')) {
+    return +anterior.numero!.charAt(anterior.numero!.length - 1) + 1 === +atual.numero!.charAt(anterior.numero!.length - 1);
   }
+  const partesA = anterior.numero!.split('-');
+  const partesB = atual.numero!.split('-');
+
+  const [numA, ...remainingA] = partesA!;
+  const [numB, ...remainingB] = partesB!;
+
+  if (+numA + 1 === +numB) {
+    return true;
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const rA = i >= remainingA?.length ? 0 : remainingA[i];
+    for (let j = 0; i < 3; i++) {
+      const rB = j >= remainingB?.length ? 0 : remainingB[j];
+      if (+rA === +rB) {
+        continue;
+      }
+      if (+rA + 1 === +rB) {
+        return true;
+      }
+      return false;
+    }
+  }
+  return true;
 };
