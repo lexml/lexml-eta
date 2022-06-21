@@ -88,9 +88,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
     dialogElem?.remove();
   };
   quill.blur();
-  dialogElem.appendChild(content);
-  dialogElem.show();
-  setTimeout(() => {
-    (tipoNorma as SlInput).focus();
-  }, 0);
+  await dialogElem.appendChild(content);
+  await dialogElem.show();
+  (tipoNorma as SlInput).focus();
 }

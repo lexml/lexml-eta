@@ -174,5 +174,14 @@ describe('Parser de medida provisória com agrupador', () => {
         'art1_cpt_alt1_art5_par4'
       );
     });
+
+    it('Deveria apresentar o Parágrafo 4º, do Art. 5º na alteração do Art. 1º, com indicação de fecha aspas e nota de alteração', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[5].value.fechaAspas).equals(
+        's'
+      );
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[5].value.notaAlteracao).equals(
+        'NR'
+      );
+    });
   });
 });

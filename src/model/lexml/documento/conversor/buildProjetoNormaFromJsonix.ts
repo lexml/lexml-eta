@@ -62,12 +62,12 @@ const getTextoArticulado = (norma: any): TextoArticulado => {
 const buildArticulacao = (tree: any): Articulacao => {
   const articulacao = createArticulacao();
 
-  buildTree(articulacao, tree.lXhier);
+  buildTree(articulacao, tree.lXhier, []);
 
   return articulacao;
 };
 
-const buildTree = (pai: Dispositivo, filhos: any): void => {
+const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[]): void => {
   if (!pai || !filhos) {
     return;
   }
@@ -75,11 +75,17 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
   filhos?.forEach((el: any) => {
     let dispositivo;
     const notaAlteracao = el.value?.notaAlteracao;
-    const complemento = ''; //el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
+
+    if (el.value?.fechaAspas) {
+      const cabecaAlteracao = cabecasAlteracao.pop();
+      if (cabecaAlteracao) {
+        cabecaAlteracao.notaAlteracao = el.value?.notaAlteracao;
+      }
+    }
 
     if (el.name?.localPart === 'Caput') {
       if (el.value?.abreAspas === 's') {
-        // dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+        cabecasAlteracao.push(dispositivo);
         dispositivo.rotulo = el.value?.rotulo;
         dispositivo.cabecaAlteracao = true;
         dispositivo.notaAlteracao = notaAlteracao;
@@ -88,23 +94,23 @@ const buildTree = (pai: Dispositivo, filhos: any): void => {
         dispositivo.createNumeroFromRotulo(dispositivo.rotulo);
       }
 
-      pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
+      pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
 
       (pai as Artigo).caput!.href = el.value?.href;
       (pai as Artigo).caput!.id = el.value?.id;
-      buildAlteracao(pai, el.value?.alteracao);
-      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis);
+      buildAlteracao(pai, el.value?.alteracao, cabecasAlteracao);
+      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao);
     } else if (el.name?.localPart === 'alteracao') {
-      buildAlteracao(pai, el);
-      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis);
+      buildAlteracao(pai, el, cabecasAlteracao);
+      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao);
     } else {
-      dispositivo = buildDispositivo(pai, el);
-      buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis);
+      dispositivo = buildDispositivo(pai, el, cabecasAlteracao);
+      buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao);
     }
   });
 };
 
-const buildAlteracao = (pai: Dispositivo, el: any): void => {
+const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[]): void => {
   if (el) {
     createAlteracao(pai);
     pai.alteracoes!.id = el.id;
@@ -113,24 +119,29 @@ const buildAlteracao = (pai: Dispositivo, el: any): void => {
       pai.alteracoes!.situacao = new DispositivoOriginal();
     }
     el.content?.forEach((c: any) => {
-      const d = buildDispositivo(pai.alteracoes!, c);
+      const d = buildDispositivo(pai.alteracoes!, c, cabecasAlteracao);
       d.isDispositivoAlteracao = true;
-      // d.rotulo = '\u201C' + c.value?.rotulo;
       d.rotulo = c.value?.rotulo;
-      buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis);
+      buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao);
     });
   }
 };
 
-const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
+const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[]): Dispositivo => {
   const dispositivo = criaDispositivo(pai, el.name?.localPart);
 
   const notaAlteracao = el.value?.notaAlteracao;
-  const complemento = ''; //el.value?.fechaAspas !== undefined ? (notaAlteracao ? `” (${notaAlteracao})` : '” (NR)') : '';
+
+  if (el.value?.fechaAspas) {
+    const cabecaAlteracao = cabecasAlteracao.pop();
+    if (cabecaAlteracao) {
+      cabecaAlteracao.notaAlteracao = el.value?.notaAlteracao;
+    }
+  }
 
   if (!isOmissis(dispositivo)) {
     if (el.value?.abreAspas === 's') {
-      // dispositivo.rotulo = '\u201C' + el.value?.rotulo;
+      cabecasAlteracao.push(dispositivo);
       dispositivo.rotulo = el.value?.rotulo;
       dispositivo.cabecaAlteracao = true;
       dispositivo.notaAlteracao = notaAlteracao;
@@ -148,7 +159,7 @@ const buildDispositivo = (pai: Dispositivo, el: any): Dispositivo => {
       (dispositivo as Artigo).caput!.situacao = new DispositivoOriginal();
     }
   }
-  dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el)) + complemento;
+  dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
   return dispositivo;
 };
 

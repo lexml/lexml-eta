@@ -126,8 +126,12 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   const eventos = buildEventoExclusaoElemento(removidos, dispositivosRenumerados, criaListaElementosAfinsValidados(dispositivoValidado, false));
 
   if (ehDispositivoAlteracao && (dispositivoAnterior || pai)) {
-    const dispositivoParaAtualizar = dispositivoAnterior || (pai.tipo === 'Caput' ? pai.pai! : pai);
-    eventos.add(StateType.SituacaoElementoModificada, getElementos(dispositivoParaAtualizar));
+    try {
+      const dispositivoParaAtualizar = dispositivoAnterior || (pai.tipo === 'Caput' ? pai.pai! : pai);
+      eventos.add(StateType.SituacaoElementoModificada, getElementos(dispositivoParaAtualizar));
+    } catch (error) {
+      eventos.add(StateType.SituacaoElementoModificada, []);
+    }
   }
 
   return eventos.build();

@@ -1,3 +1,4 @@
+import { isDispositivoAlteracao, isUltimaAlteracao, getDispositivoCabecaAlteracao, isDispositivoCabecaAlteracao } from './../../hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isAgrupador, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
@@ -169,18 +170,18 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
 
   value['id'] = buildId(dispositivo);
 
-  if (dispositivo.rotulo && /^["”“].*/.test(dispositivo.rotulo)) {
+  if (isDispositivoCabecaAlteracao(dispositivo)) {
     value['abreAspas'] = 's';
-    value.rotulo = dispositivo.rotulo.substring(1);
+    value.rotulo = dispositivo.rotulo;
   } else if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
     value.rotulo = dispositivo.rotulo;
   }
 
-  if (isCaput(dispositivo)) {
-    if (/”.*(NR)/.test(dispositivo.texto)) {
-      value['fechaAspas'] = 's';
-      value['notaAlteracao'] = 'NR';
-    }
+  const dispositivoTemp = isCaput(dispositivo) ? dispositivo.pai! : dispositivo;
+  if (isDispositivoAlteracao(dispositivoTemp) && isUltimaAlteracao(dispositivoTemp)) {
+    value['fechaAspas'] = 's';
+    const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivoTemp);
+    value['notaAlteracao'] = cabecaAlteracao.notaAlteracao || 'NR';
   }
 
   if (isAgrupador(dispositivo)) {

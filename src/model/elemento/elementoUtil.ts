@@ -1,4 +1,4 @@
-import { isUltimaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
+import { isUltimaAlteracao, getDispositivoCabecaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
@@ -56,6 +56,15 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
 
 export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento => {
   const pai = dispositivo.pai!;
+  const fechaAspas = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
+  let notaAlteracao: string | undefined;
+
+  if (fechaAspas) {
+    const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+    // TODO: confirmar se deve ter 'NR' como valor default
+    notaAlteracao = cabecaAlteracao?.notaAlteracao || 'NR';
+  }
+
   return {
     tipo: dispositivo.tipo,
     nivel: getNivel(dispositivo),
@@ -81,8 +90,9 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
     mensagens: isOriginal(dispositivo) ? [] : dispositivo.mensagens,
-    abreAspas: dispositivo.cabecaAlteracao,
-    notaAlteracao: isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo) ? dispositivo.notaAlteracao || '(NR)' : undefined,
+    abreAspas: isDispositivoCabecaAlteracao(dispositivo),
+    fechaAspas,
+    notaAlteracao,
   };
 };
 

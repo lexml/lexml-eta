@@ -325,8 +325,8 @@ export const editorStyles = html`
       height: 0px;
     }
 
-    [data-nota-alteracao]::after {
-      content: '” ' attr(data-nota-alteracao);
+    [fecha-aspas]::after {
+      content: '” (' attr(nota-alteracao) ')';
       font-weight: bold;
     }
 

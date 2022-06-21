@@ -1,14 +1,13 @@
-import { SlInput, SlRadioButton } from '@shoelace-style/shoelace';
+import { SlButton, SlInput, SlRadioButton } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { editorStyles } from '../../assets/css/editor.css';
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
-import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-import { getDispositivoFromElemento, hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
+import { hasElementoAscendenteAdicionado, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
@@ -32,7 +31,6 @@ import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { AutoFix } from '../../model/lexml/util/mensagem';
-import { adicionaAlerta, removerAlerta } from '../../redux/alerta/reducer/actions';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
@@ -46,9 +44,11 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
-import { LexmlEtaComponent } from '../lexml-eta.component';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { informarNormaDialog } from './informarNormaDialog';
+import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
+import { adicionaAlerta, removerAlerta } from '../../redux/alerta/reducer/actions';
+import { LexmlEtaComponent } from '../lexml-eta.component';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -405,12 +405,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.addEventListener('keyup', validarInput);
     input.addEventListener('sl-clear', validarInput);
 
-    dialogElem.appendChild(content);
+    await dialogElem.appendChild(content);
+    await dialogElem?.show();
     ok.disabled = Boolean(validar());
-    dialogElem?.show();
-    setTimeout(() => {
-      (input as SlInput).focus();
-    }, 0);
+    (input as SlInput).focus();
   }
 
   private removerElementoSemTexto(key: string): void {
@@ -620,9 +618,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
-      novaLinha.descricaoSituacao = elemento.descricaoSituacao;
-      novaLinha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-      novaLinha.setEstilo(elemento!);
+      this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
+      this.quill.linhaAtual.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+      this.quill.linhaAtual.setEstilo(elemento!);
     }
   }
 
@@ -676,7 +674,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.rotulo !== linha.blotRotulo.html) {
           linha.numero = elemento.numero ?? '';
-          linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo, elemento.abreAspas);
+          linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
         }
 
         if (elemento.nivel !== linha.nivel) {
@@ -687,7 +685,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.agrupador !== linha.agrupador) {
           linha.agrupador = elemento.agrupador;
-          linha.blotRotulo.format(EtaBlotRotulo.formatoStyle, elemento, elemento.abreAspas);
+          linha.blotRotulo.format(EtaBlotRotulo.formatoStyle, elemento);
           if (!nivelAlerado) {
             linha.format(EtaContainerTable.blotName, elemento);
           }
@@ -742,7 +740,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.map((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo, elemento.abreAspas);
+        linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
       }
     });
   }
@@ -984,12 +982,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private async confirmar(mensagem: string, botoes: string[], callback: any): Promise<void> {
-    // const dialog: any = document.createElement('elix-alert-dialog');
-
-    // dialog.textContent = mensagem;
-    // dialog.choices = botoes;
-    // dialog.addEventListener('close', callback);
-    // await dialog.open();
     let choice = '';
     const dialog = document.createElement('sl-dialog');
     dialog.label = 'Confirmação';
@@ -998,12 +990,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <sl-button slot="footer" variant="primary">Sim</sl-button>
     `;
     dialog.innerHTML = mensagem + botoesHtml;
-    document.body.appendChild(dialog);
-    dialog.show();
-
+    await document.body.appendChild(dialog);
+    await dialog.show();
     const botoesDialog = document.querySelectorAll('sl-button');
-    const nao = botoesDialog[0];
-    const sim = botoesDialog[1];
+    const nao = botoesDialog[0] as SlButton;
+    const sim = botoesDialog[1] as SlButton;
+    sim.focus();
 
     nao.onclick = (): void => {
       choice = 'Não';

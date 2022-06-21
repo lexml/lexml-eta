@@ -14,8 +14,13 @@ export class EtaBlotConteudo extends EtaBlot {
     node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
 
     if (elemento.notaAlteracao) {
-      node.setAttribute('data-nota-alteracao', elemento.notaAlteracao || '');
+      node.setAttribute('nota-alteracao', elemento.notaAlteracao || '');
     }
+
+    if (elemento.fechaAspas) {
+      node.setAttribute('fecha-aspas', 'true');
+    }
+
     node.innerHTML = conteudo !== '' ? conteudo : '<br>';
     return node;
   }
@@ -45,9 +50,15 @@ export class EtaBlotConteudo extends EtaBlot {
 
   public atualizarAtributos(elemento: Elemento): void {
     if (elemento.notaAlteracao) {
-      this.domNode.setAttribute('data-nota-alteracao', elemento.notaAlteracao || '');
+      this.domNode.setAttribute('nota-alteracao', elemento.notaAlteracao || '');
     } else {
-      this.domNode.removeAttribute('data-nota-alteracao');
+      this.domNode.removeAttribute('nota-alteracao');
+    }
+
+    if (elemento.fechaAspas) {
+      this.domNode.setAttribute('fecha-aspas', 'true');
+    } else {
+      this.domNode.removeAttribute('fecha-aspas');
     }
   }
 }

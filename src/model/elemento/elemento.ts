@@ -28,5 +28,6 @@ export class Elemento extends Referencia {
   norma?: string;
   existeNaNormaAlterada?: boolean;
   abreAspas?: boolean;
+  fechaAspas?: boolean;
   notaAlteracao?: string;
 }

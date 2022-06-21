@@ -73,7 +73,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       numero: getNumero(urn),
       ano: getAno(urn),
       ementa: projetoNorma.value.projetoNorma.norma.parteInicial.ementa.content[0],
-      identificacaoTexto: '',
+      identificacaoTexto: 'Texto da MPV',
     };
     return emenda;
   }

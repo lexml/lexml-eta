@@ -1,3 +1,4 @@
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
@@ -12,7 +13,7 @@ export class EtaBlotRotulo extends EtaBlot {
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRotulo.getClasseCSS(elemento));
-    node.setAttribute('data-rotulo', (elemento.abreAspas ? '\u201C' : '') + elemento.rotulo);
+    node.setAttribute('data-rotulo', elemento.rotulo);
 
     if (elemento.abreAspas) {
       node.setAttribute('abre-aspas', 'true');
@@ -57,7 +58,11 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   public static getClasseCSS(elemento: Elemento): string {
-    return 'texto__rotulo' + (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao');
+    return (
+      'texto__rotulo' +
+      (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
+      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? ' rotulo' : '')
+    );
   }
 
   public atualizarAtributos(elemento: Elemento): void {

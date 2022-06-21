@@ -35,6 +35,7 @@ export const redo = (state: any): State => {
 
   const stateEvent = getEvento(eventos, StateType.ElementoRemovido);
   const primeiroDispositivoASerRemovido = stateEvent?.elementos?.length ? getDispositivoFromElemento(state.articulacao, stateEvent.elementos[0]) : undefined;
+  const paiDoPrimeiroDispositivoASerRemovido = primeiroDispositivoASerRemovido?.pai;
 
   const events = new Eventos();
 
@@ -54,7 +55,7 @@ export const redo = (state: any): State => {
     events.add(StateType.ElementoSelecionado, [elementosParaMarcar[0]]);
   }
 
-  events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, primeiroDispositivoASerRemovido, events));
+  events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, events, paiDoPrimeiroDispositivoASerRemovido));
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

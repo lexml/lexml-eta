@@ -161,7 +161,7 @@ export const trataNumeroAndComplemento = (numero: string, funcNumero?: any, func
   const num = numero.search(/-/) === -1 ? numero : numero.substring(0, numero.search(/-/));
   const resto = numero.search(/-/) === -1 ? '' : numero.substring(numero.search(/-/));
 
-  const converted = funcNumero ? funcNumero(num) : num;
+  const converted = num === '0' ? '0' : funcNumero ? funcNumero(num) : num;
 
   return converted + (resto ? funcComplemento(resto) : '');
 };
