@@ -56,7 +56,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
 
 export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento => {
   const pai = dispositivo.pai!;
-  const fechaAspas = isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
+  const fechaAspas = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
   let notaAlteracao: string | undefined;
 
   if (fechaAspas) {
