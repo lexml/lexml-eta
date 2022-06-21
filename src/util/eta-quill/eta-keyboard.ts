@@ -41,27 +41,19 @@ export class EtaKeyboard extends Keyboard {
       }
     });
 
-    this.quill.root.addEventListener('keypress', (ev: KeyboardEvent): void => {
-      if (this.quill.cursorDeTextoEstaSobreLink() && ev.key.length === 1 && !this.verificaCursorNoComecoDaLinha()) {
-        cancelarPropagacaoDoEvento(ev);
-      }
-    });
-
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       if (ev.key === 'AltGraph') {
         this.altGraphPressionado = true;
       }
 
-      if (this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) {
-        if (
-          ['Delete', 'Backspace'].includes(ev.key) ||
-          (!ev.ctrlKey && ev.key.length === 1 && !this.verificaCursorNoComecoDaLinha()) ||
-          (ev.ctrlKey && 'xvXV'.includes(ev.key)) ||
-          (ev.altKey && '0123456789'.includes(ev.key))
-        ) {
+      if (this.quill.cursorDeTextoEstaSobreLink() && this.quill.cursorDeTextoEstaSobreLink(-1) && !['Delete', 'Backspace'].includes(ev.key)) {
+        if ((!ev.ctrlKey && ev.key.length === 1) || (ev.ctrlKey && 'xvXV'.includes(ev.key)) || (ev.altKey && '0123456789'.includes(ev.key))) {
           cancelarPropagacaoDoEvento(ev);
           return;
         }
+      } else if (this.verifiicaSelecaoComLink()) {
+        cancelarPropagacaoDoEvento(ev);
+        return;
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
           if (ev.key === 'Delete') {
@@ -114,10 +106,6 @@ export class EtaKeyboard extends Keyboard {
       }
     });
     super.listen();
-  }
-
-  private verificaCursorNoComecoDaLinha(): boolean {
-    return this.quill.getSelection().index === this.quill.inicioConteudoAtual;
   }
 
   private isTeclaComCaracterGrafico(ev: KeyboardEvent): boolean {
@@ -219,6 +207,14 @@ export class EtaKeyboard extends Keyboard {
       this.removeElementoSemTexto.notify(ev.key);
     } else if (!this.verificarOperacaoTecladoPermitida() || range.index === this.quill.fimConteudoAtual) {
       cancelarPropagacaoDoEvento(ev);
+    } else if (this.quill.cursorDeTextoEstaSobreLink()) {
+      let posicao = this.quill.getSelection().index;
+      if (!this.quill.cursorDeTextoEstaSobreLink(-1)) {
+        posicao += 1;
+      }
+      const [leaf, offset] = this.quill.getLeaf(posicao);
+      this.quill.deleteText(posicao - offset, leaf.text.length);
+      cancelarPropagacaoDoEvento(ev);
     }
   }
 
@@ -228,6 +224,11 @@ export class EtaKeyboard extends Keyboard {
       cancelarPropagacaoDoEvento(ev);
       this.removeElementoSemTexto.notify(ev.key);
     } else if (!this.verificarOperacaoTecladoPermitida() || (range.index === this.quill.inicioConteudoAtual && range.length === 0)) {
+      cancelarPropagacaoDoEvento(ev);
+    } else if (this.quill.cursorDeTextoEstaSobreLink(-1)) {
+      const posicao = this.quill.getSelection().index;
+      const [leaf, offset] = this.quill.getLeaf(posicao);
+      this.quill.deleteText(posicao - offset, leaf.text.length);
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -303,5 +304,17 @@ export class EtaKeyboard extends Keyboard {
     if (texto) {
       this.onChange.notify('toolbar(hotkey)');
     }
+  }
+
+  private verifiicaSelecaoComLink(): boolean {
+    const range: RangeStatic = this.quill.getSelection(true);
+    let hasLink = false;
+    const ops = this.quill.getContents(range).ops;
+    ops.forEach((op: DeltaOperation): void => {
+      if (op.attributes?.link) {
+        hasLink = true;
+      }
+    });
+    return hasLink;
   }
 }
