@@ -51,7 +51,7 @@ export class EtaKeyboard extends Keyboard {
           cancelarPropagacaoDoEvento(ev);
           return;
         }
-      } else if (this.verifiicaSelecaoComLink()) {
+      } else if (this.verificaSelecaoComLink()) {
         cancelarPropagacaoDoEvento(ev);
         return;
       } else if (ev.ctrlKey) {
@@ -306,15 +306,13 @@ export class EtaKeyboard extends Keyboard {
     }
   }
 
-  private verifiicaSelecaoComLink(): boolean {
+  private verificaSelecaoComLink(): boolean {
     const range: RangeStatic = this.quill.getSelection(true);
-    let hasLink = false;
+    let iniciaOuTerminaComLink = false;
     const ops = this.quill.getContents(range).ops;
-    ops.forEach((op: DeltaOperation): void => {
-      if (op.attributes?.link) {
-        hasLink = true;
-      }
-    });
-    return hasLink;
+    if (ops[0]?.attributes?.link || ops[ops.length - 1]?.attributes?.link) {
+      iniciaOuTerminaComLink = true;
+    }
+    return iniciaOuTerminaComLink;
   }
 }
