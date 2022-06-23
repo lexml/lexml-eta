@@ -769,7 +769,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const acoesMenu: ElementoAction[] = (elemento?.acoesPossiveis ?? []).filter((acao: ElementoAction) => isAcaoMenu(acao));
 
     if (acoesMenu.length > 0) {
-      if (!this.quill.linhaAtual) {
+      if (!this.quill.linhaAtual || this.quill.linhaAtual.uuid !== elemento.uuid) {
         this.marcarLinha(event);
       }
       const blotMenu: EtaBlotMenu = new EtaBlotMenu();
