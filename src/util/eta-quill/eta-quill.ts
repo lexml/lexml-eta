@@ -16,6 +16,7 @@ import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { EtaKeyboard } from './eta-keyboard';
 import { EtaQuillBuffer } from './eta-quill-buffer';
+import { negrito } from '../../../assets/icons/icons';
 
 export interface TextoSelecionado {
   conteudo: string;
@@ -104,6 +105,9 @@ export class EtaQuill extends Quill {
     const display = new Parchment.Attributor.Style('display', 'display', { scope: Parchment.Scope.BLOCK });
     const ariaLabel = new Parchment.Attributor.Style('aria-label', 'aria-label', { scope: Parchment.Scope.BLOCK });
     const DataRotulo = new Parchment.Attributor.Attribute('dataRotulo', 'data-rotulo', { scope: Parchment.Scope.BLOCK });
+
+    const icons = Quill.import('ui/icons');
+    icons['bold'] = negrito;
 
     EtaQuill.register('modules/clipboard', EtaClipboard, true);
     EtaQuill.register('modules/keyboard', EtaKeyboard, true);

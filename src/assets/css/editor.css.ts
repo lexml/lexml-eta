@@ -144,6 +144,22 @@ export const editorStyles = html`
       fill: #0066cc;
     }
 
+    .icon-negrito {
+      fill: #444;
+    }
+
+    .icon-negrito:hover {
+      fill: #0066cc;
+    }
+
+    .icon-sublinhado {
+      fill: #444;
+    }
+
+    .icon-sublinhado:hover {
+      fill: #0066cc;
+    }
+
     .lx-eta-dropdown-content-right {
       right: 0;
     }

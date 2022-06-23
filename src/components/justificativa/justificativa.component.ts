@@ -1,6 +1,6 @@
 import { customElement, property } from 'lit/decorators.js';
 import { html, TemplateResult, LitElement, PropertyValues } from 'lit';
-
+import { negrito, sublinhado } from '../../../assets/icons/icons';
 @customElement('lexml-emenda-justificativa')
 export class JustificativaEmendaComponent extends LitElement {
   @property({ type: String }) texto = '';
@@ -53,6 +53,8 @@ export class JustificativaEmendaComponent extends LitElement {
     <polygon class="ql-fill ql-stroke" points="12 10 14 12 16 10 12 10"></polygon>
     <path class="ql-stroke" d="M9.91,13.91A4.6,4.6,0,0,1,9,14a5,5,0,1,1,5-5"></path>
     </svg>`;
+    this.icons['bold'] = negrito;
+    this.icons['underline'] = sublinhado;
   }
 
   firstUpdated(): void {
