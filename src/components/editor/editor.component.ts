@@ -47,7 +47,8 @@ import { Subscription } from '../../util/observable';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { informarNormaDialog } from './informarNormaDialog';
 import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
-import { adicionaAlerta, removerAlerta } from '../../redux/alerta/reducer/actions';
+import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { LexmlEtaComponent } from '../lexml-eta.component';
 
 @customElement('lexml-eta-editor')
@@ -895,7 +896,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
           podeFechar: true,
         };
-        rootStore.dispatch(adicionaAlerta(alerta));
+        rootStore.dispatch(adicionarAlerta(alerta));
       }
     }
   }
@@ -915,8 +916,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           'Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
         podeFechar: true,
       };
-      rootStore.dispatch(adicionaAlerta(alerta));
-    } else if (rootStore.getState().alertaReducer.alertas.some(alerta => alerta.id === 'alerta-global-correlacao')) {
+      rootStore.dispatch(adicionarAlerta(alerta));
+    } else if (rootStore.getState().elementoReducer.ui.alertas.some(alerta => alerta.id === 'alerta-global-correlacao')) {
       rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
     }
   }
@@ -933,10 +934,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
-    // if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
-    //   this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
-    // }
-    // this.alertaGlobalVerificaCorrelacao();
+    if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
+      this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
+    }
+    this.alertaGlobalVerificaCorrelacao();
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {

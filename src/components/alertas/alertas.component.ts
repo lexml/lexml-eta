@@ -6,7 +6,9 @@ import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../../redux/store';
 import { Alerta } from '../../model/alerta/alerta';
-import { limparAlertas, removerAlerta } from '../../redux/alerta/reducer/actions';
+// import { limparAlertas, removerAlerta } from '../../redux/alerta/reducer/actions';
+import { limparAlertas } from '../../model/alerta/acao/limparAlertas';
+import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { LexmlEmendaComponent } from '../lexml-emenda.component';
 import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 
@@ -22,7 +24,7 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) alertas: Alerta[] = [];
 
   stateChanged(state: any): void {
-    this.alertas = state.alertaReducer.alertas;
+    this.alertas = state.elementoReducer.ui?.alertas || [];
   }
 
   getAlertIcon(tipo: string): TemplateResult {
