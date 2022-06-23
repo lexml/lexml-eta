@@ -14,10 +14,9 @@ import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadra
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { rootStore } from '../redux/store';
 import { DispositivosEmenda } from './../model/emenda/emenda';
-import { CmdEmdUtil } from '../emenda/comando-emenda-util';
+// import { CmdEmdUtil } from '../emenda/comando-emenda-util';
 // import { adicionaAlerta, limparAlertas } from '../redux/alerta/reducer/actions';
-import { adicionaAlerta } from '../redux/alerta/reducer/actions';
-import { Dispositivo } from '../model/dispositivo/dispositivo';
+// import { Dispositivo } from '../model/dispositivo/dispositivo';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
 
@@ -116,16 +115,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this._timerLoadEmenda = window.setTimeout(() => {
         rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!));
       }, 1000);
-      if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(this.dispositivosEmenda?.dispositivosAdicionados as Dispositivo[])) {
-        const alerta = {
-          id: 'alerta-global-renumeracao',
-          tipo: 'danger',
-          mensagem:
-            'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
-          podeFechar: true,
-        };
-        rootStore.dispatch(adicionaAlerta(alerta));
-      }
+      // if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(this.dispositivosEmenda?.dispositivosAdicionados as Dispositivo[])) {
+      //   const alerta = {
+      //     id: 'alerta-global-renumeracao',
+      //     tipo: 'danger',
+      //     mensagem:
+      //       'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
+      //     podeFechar: true,
+      //   };
+      //   rootStore.dispatch(adicionaAlerta(alerta));
+      // }
     }
   }
 

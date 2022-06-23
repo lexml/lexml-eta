@@ -932,10 +932,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
-    if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
-      this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
-    }
-    this.alertaGlobalVerificaCorrelacao();
+    // if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
+    //   this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
+    // }
+    // this.alertaGlobalVerificaCorrelacao();
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
