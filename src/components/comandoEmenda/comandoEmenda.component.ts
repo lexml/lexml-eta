@@ -60,8 +60,7 @@ export class ComandoEmendaComponent extends LitElement {
           font-weight: bold;
         }
 
-        .lexml-emenda-cabecalhoComando,
-        .lexml-emenda-complementoComando {
+        .lexml-emenda-cabecalhoComando {
           display: block;
           margin-top: 1em;
           text-align: justify;
@@ -70,6 +69,10 @@ export class ComandoEmendaComponent extends LitElement {
 
         .lexml-emenda-citacaoComando {
           display: block;
+          margin-top: 1em;
+        }
+
+        .lexml-emenda-complementoComando {
           margin-top: 1em;
         }
 

@@ -116,7 +116,13 @@ export class ComandoEmendaBuilder {
         d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
     );
     if (adicionadosProposicao.length && CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(adicionadosProposicao)) {
-      return 'Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.';
+      // return 'Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.';
+      return `
+      <sl-alert variant="warning" open closable>
+        <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
+        Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.
+      </sl-alert>
+      `;
     }
     return undefined;
   }
