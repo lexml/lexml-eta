@@ -6,7 +6,6 @@ import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../../redux/store';
 import { Alerta } from '../../model/alerta/alerta';
-// import { limparAlertas, removerAlerta } from '../../redux/alerta/reducer/actions';
 import { limparAlertas } from '../../model/alerta/acao/limparAlertas';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { LexmlEmendaComponent } from '../lexml-emenda.component';
@@ -40,7 +39,7 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
   }
 
   limparAlertas(): void {
-    // limpa o array de alertas para do state do alertaReducer
+    // limpa o array de alertas para do state.ui.alertas
     rootStore.dispatch(limparAlertas());
   }
 
