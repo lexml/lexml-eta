@@ -1,5 +1,11 @@
+import { criaListaElementosAfinsValidados } from './../../../model/elemento/elementoUtil';
 import { Eventos } from './../evento/eventos';
-import { isDispositivoAlteracao, isDispositivoCabecaAlteracao, getDispositivoCabecaAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
+  getDispositivoCabecaAlteracao,
+  getDispositivoAndFilhosAsLista,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
@@ -223,7 +229,10 @@ export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao,
   if (paiDoPrimeiroDispositivoASerRemovido && paiDoPrimeiroDispositivoASerRemovido.tipo !== 'Articulacao') {
     try {
       if (isDispositivoAlteracao(paiDoPrimeiroDispositivoASerRemovido)) {
-        elementos.push(...getElementos(getDispositivoCabecaAlteracao(paiDoPrimeiroDispositivoASerRemovido)));
+        const dispositivos = getDispositivoAndFilhosAsLista(paiDoPrimeiroDispositivoASerRemovido);
+        dispositivos.forEach(d => {
+          elementos.push(...criaListaElementosAfinsValidados(d, true));
+        });
       }
       // eslint-disable-next-line no-empty
     } catch (error) {}

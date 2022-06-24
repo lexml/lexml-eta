@@ -541,6 +541,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarSituacao(event);
           this.montarMenuContexto(event);
           this.atualizarAtributos(event);
+          this.atualizarMensagemQuill(event);
           break;
       }
       this.quill.limparHistory();
