@@ -1,4 +1,4 @@
-import { State } from '../../state';
+import { State, StateType } from '../../state';
 
 export const limparAlertas = (state: any): State => {
   return {
@@ -8,7 +8,7 @@ export const limparAlertas = (state: any): State => {
     present: state.present,
     future: state.future,
     ui: {
-      events: state.ui?.events,
+      events: [{ stateType: StateType.AtualizacaoAlertas }],
       message: state.ui?.mensagem,
       alertas: [],
     },

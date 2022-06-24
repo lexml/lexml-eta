@@ -90,7 +90,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (state.elementoReducer.ui) {
       if (state.elementoReducer.ui.message) {
         this.alertar(state.elementoReducer.ui.message.descricao);
-      } else {
+      } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
       }
     }
@@ -917,7 +917,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         podeFechar: true,
       };
       rootStore.dispatch(adicionarAlerta(alerta));
-    } else if (rootStore.getState().elementoReducer.ui.alertas.some(alerta => alerta.id === 'alerta-global-correlacao')) {
+    } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === 'alerta-global-correlacao')) {
       rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
     }
   }

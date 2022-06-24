@@ -18,6 +18,7 @@ export enum StateType {
   ElementoSelecionado = 'ElementoSelecionado',
   ElementoMarcado = 'ElementoMarcado',
   SituacaoElementoModificada = 'SituacaoElementoModificada',
+  AtualizacaoAlertas = 'AtualizacaoAlertas',
 }
 export interface StateEvent {
   stateType: StateType;

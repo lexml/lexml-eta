@@ -1,5 +1,5 @@
 import { Alerta } from '../../../model/alerta/alerta';
-import { State } from '../../state';
+import { State, StateType } from '../../state';
 
 export const adicionarAlerta = (state: any, action: any): State => {
   let alertas: Alerta[] = state.ui?.alertas || [];
@@ -16,7 +16,7 @@ export const adicionarAlerta = (state: any, action: any): State => {
     present: state.present,
     future: state.future,
     ui: {
-      events: state.ui?.events,
+      events: [{ stateType: StateType.AtualizacaoAlertas }],
       message: state.ui?.mensagem,
       alertas: alertas,
     },

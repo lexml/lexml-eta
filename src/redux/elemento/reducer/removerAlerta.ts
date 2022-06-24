@@ -1,4 +1,4 @@
-import { State } from '../../state';
+import { State, StateType } from '../../state';
 
 export const removerAlerta = (state: any, action: any): State => {
   const alertas = state.ui?.alertas?.filter(({ id }) => id !== action.id);
@@ -10,7 +10,7 @@ export const removerAlerta = (state: any, action: any): State => {
     present: state.present,
     future: state.future,
     ui: {
-      events: state.ui?.events,
+      events: [{ stateType: StateType.AtualizacaoAlertas }],
       message: state.ui?.mensagem,
       alertas: alertas,
     },
