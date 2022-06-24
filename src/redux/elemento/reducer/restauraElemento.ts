@@ -9,7 +9,7 @@ export const restauraElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -33,6 +33,7 @@ export const restauraElemento = (state: any, action: any): State => {
     future: [],
     ui: {
       events,
+      alertas: state.ui?.alertas,
     },
   };
 };

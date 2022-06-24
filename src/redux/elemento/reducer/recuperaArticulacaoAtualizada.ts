@@ -13,6 +13,7 @@ export const recuperaArticulacaoAtualizada = (state: any): State => {
           stateType: StateType.ArticulacaoAtualizada,
         },
       ],
+      alertas: state.ui?.alertas,
     },
   };
 };

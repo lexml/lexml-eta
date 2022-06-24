@@ -17,7 +17,7 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const normaExtenso = getNomeExtensoComDataExtenso(urnNova);
 
   if (dispositivo === undefined || !dispositivo.alteracoes || (urnAnterior === urnNova && dispositivo.texto.match(regex))) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -60,6 +60,7 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
     future: state.future,
     ui: {
       events: eventosUi.build(),
+      alertas: state.ui?.alertas,
     },
   };
 };

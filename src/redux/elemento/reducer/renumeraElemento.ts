@@ -28,7 +28,7 @@ export const renumeraElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -71,6 +71,7 @@ export const renumeraElemento = (state: any, action: any): State => {
     future: state.future,
     ui: {
       events: eventos.build(),
+      alertas: state.ui?.alertas,
     },
   };
 };

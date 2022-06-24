@@ -31,7 +31,7 @@ export const suprimeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined || dispositivo.situacao?.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -49,6 +49,7 @@ export const suprimeElemento = (state: any, action: any): State => {
     future: [],
     ui: {
       events,
+      alertas: state.ui?.alertas,
     },
   };
 };

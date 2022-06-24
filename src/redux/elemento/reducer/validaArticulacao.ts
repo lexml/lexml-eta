@@ -30,6 +30,7 @@ export const validaArticulacao = (state: any): State => {
     future: state.future,
     ui: {
       events,
+      alertas: state.ui?.alertas,
     },
   };
 };
