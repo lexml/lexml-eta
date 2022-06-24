@@ -19,7 +19,6 @@ import { Dispositivo } from '../model/dispositivo/dispositivo';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
-import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -106,7 +105,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
-    rootStore.dispatch(limparAlertas());
   }
 
   private _timerLoadEmenda = 0;

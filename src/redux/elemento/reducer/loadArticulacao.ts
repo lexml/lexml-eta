@@ -17,6 +17,7 @@ export const load = (articulacao: Articulacao, modo?: string): State => {
           elementos: elementos,
         },
       ],
+      alertas: [],
     },
   };
 };
