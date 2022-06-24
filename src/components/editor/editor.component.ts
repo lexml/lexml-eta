@@ -605,7 +605,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
 
       const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
-      if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber) {
+      if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
         if (selecionarLinha) {
           this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
           this.quill.marcarLinhaAtual(novaLinha);
