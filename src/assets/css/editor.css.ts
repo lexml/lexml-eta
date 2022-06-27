@@ -272,6 +272,9 @@ export const editorStyles = html`
       -ms-hyphens: auto;
       hyphens: auto;
     }
+    .dispositivo--adicionado br {
+      display: none;
+    }
 
     .dispositivo--adicionado {
       color: green;
