@@ -89,6 +89,20 @@ export class ComandoEmendaComponent extends LitElement {
         .lexml-emenda-citacaoComando div.alteracao p {
           text-indent: 2em;
         }
+        .mensagem {
+          font-size: 1em;
+          font-weight: normal;
+          border: 1px solid;
+          padding: 4px 10px;
+          margin: 2px;
+          display: inline-block;
+          border-radius: 2px;
+        }
+        .mensagem--warning {
+          color: #856404;
+          background-color: #fff3cd;
+          border-color: #ffeeba;
+        }
       </style>
 
       <div class="lexml-emenda-comando">
@@ -104,7 +118,7 @@ export class ComandoEmendaComponent extends LitElement {
               '<div class="lexml-emenda-citacaoComando">' +
               this.buildTemplateCitacao(comando.citacao) +
               '</div>' +
-              (comando.complemento ? '<div class="lexml-emenda-complementoComando">' + comando.complemento + '</div>' : '')
+              (comando.complemento ? '<div class="lexml-emenda-complementoComando mensagem mensagem--warning">' + comando.complemento + '</div>' : '')
           );
         })}
       </div>

@@ -116,28 +116,7 @@ export class ComandoEmendaBuilder {
         d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
     );
     if (adicionadosProposicao.length && CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(adicionadosProposicao)) {
-      // return 'Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.';
-      return `
-      <style>
-        .mensagem {
-          font-size: 1em;
-          font-weight: normal;
-          border: 1px solid;
-          padding: 4px 10px;
-          margin: 2px;
-          display: inline-block;
-          border-radius: 2px;
-        }
-        .mensagem--warning {
-          color: #856404;
-          background-color: #fff3cd;
-          border-color: #ffeeba;
-        }
-      </style>
-      <div class="mensagem mensagem--warning">
-        Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.
-      </div>
-      `;
+      return 'Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição.';
     }
     return undefined;
   }
