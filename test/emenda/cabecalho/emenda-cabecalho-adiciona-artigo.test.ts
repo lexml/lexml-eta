@@ -76,6 +76,7 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art5');
+    state.articulacao?.renumeraArtigos();
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 1º-A a 1º-C e 5º-A a 5º-C ao Projeto, com a seguinte redação:');
   });
@@ -102,6 +103,7 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
   it('Inclusão de dois artigos e inicio de capítulo', () => {
     TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8');
     TesteCmdEmdUtil.incluiArtigoAntes(state, 'art8');
+    state.articulacao?.renumeraFilhos();
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se arts. 7º-A e 7º-B ao Capítulo II do Título I do Projeto, com a seguinte redação:');
   });

@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao, isDispositivoEmenda } from '../../dispositivo/situacao';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
@@ -8,6 +8,9 @@ import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
+  getDispositivosAnteriores,
+  getDispositivosAnterioresMesmoTipo,
+  getDispositivosPosteriores,
   getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
   isDispositivoAlteracao,
@@ -325,14 +328,18 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
 };
 
 export const calculaNumeracao = (d: Dispositivo): string => {
-  const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(d);
+  return getNumeracao(d);
+  /*   const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(d);
   const dispositivoPosterior = getDispositivoPosteriorMesmoTipo(d);
 
   if (dispositivoAnterior && isOriginal(dispositivoAnterior) && dispositivoPosterior && isOriginal(dispositivoPosterior)) {
     return dispositivoAnterior.numero + '-1';
   }
 
-  return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
+  const a = getNumeracao(d);
+  const b = calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
+  a !== b ? console.log(`${a} e ${b}`) : undefined;
+  return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d)); */
 };
 
 const mapValidacaoNumeracao = {
@@ -371,3 +378,67 @@ class SeqOrdem {
     return '' + this.seq + (isDispositivoEmenda && this.letras ? '-' : '') + (this.letras ?? '');
   }
 }
+
+//
+//
+//
+
+export const getProximoNumero = (numero: string): string => {
+  const partes = numero?.split('-');
+
+  if (numero && isNumero(partes[0]) && partes.length === 1) {
+    partes[0] = '' + (+partes[0] + 1);
+    return partes.join('-');
+  }
+  if (numero && isNumero(partes[partes.length - 1])) {
+    partes[partes.length - 1] = '' + (+partes[partes.length - 1] + 1);
+    return partes.join('-');
+  }
+  return numero;
+};
+
+export const getNumeroAbaixo = (numero: string): string => {
+  const partes = numero?.split('-');
+
+  if (numero && isNumero(partes[partes.length - 1])) {
+    partes[partes.length - 1] = '' + partes[partes.length - 1] + '-1';
+    return partes.join('-');
+  }
+  return numero;
+};
+
+const getNumeracao = (d: Dispositivo): string => {
+  const dispositivosAnteriores = isArtigo(d) ? getDispositivosAnteriores(d) : getDispositivosAnterioresMesmoTipo(d);
+  const dispositivoPosteriores = isArtigo(d) ? getDispositivosPosteriores(d) : getDispositivosPosterioresMesmoTipo(d);
+
+  const dispositivoOriginalAnterior = dispositivosAnteriores && dispositivosAnteriores.filter(f => isOriginal(f)).reverse()[0];
+  const dispositivoOriginalPosterior = dispositivoPosteriores && dispositivoPosteriores.filter(f => isOriginal(f))[0];
+
+  const dispositivoAnteriorAdicionado = dispositivosAnteriores?.filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).reverse()[0];
+  const seqDispEmenda = contaIrmaosNaoOriginaisConsecutivosAte(d);
+
+  if (!getDispositivoAnteriorMesmoTipo(d) && !dispositivoOriginalPosterior) {
+    return '1';
+  }
+
+  /*   if (isOriginal(d)) {
+    return getProximoNumero(dispositivoOriginalAnterior.numero!);
+  } */
+
+  if (!dispositivoOriginalAnterior && dispositivoOriginalPosterior) {
+    return dispositivoAnteriorAdicionado ? getProximoNumero(dispositivoAnteriorAdicionado.numero!) : '0';
+  }
+
+  if (dispositivoOriginalAnterior && !dispositivoOriginalPosterior) {
+    return getProximoNumero(getDispositivoAnteriorMesmoTipo(d)!.numero!);
+  }
+
+  if (dispositivoOriginalAnterior && dispositivoOriginalPosterior) {
+    if (dispositivoOriginalAnterior === getDispositivoAnteriorMesmoTipo(d)) {
+      return getNumeroAbaixo(dispositivoOriginalAnterior.numero!);
+    }
+    return getProximoNumero(getDispositivoAnteriorMesmoTipo(d)!.numero!);
+  }
+
+  return '' + seqDispEmenda;
+};

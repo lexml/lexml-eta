@@ -268,6 +268,16 @@ export const getDispositivoPosteriorMesmoTipoInclusiveOmissis = (dispositivo: Di
   return irmaos[0];
 };
 
+export const getDispositivosAnteriores = (dispositivo: Dispositivo, isExclusao = false): Dispositivo[] => {
+  if (isArtigo(dispositivo)) {
+    const articulacao = getArticulacao(dispositivo);
+    const pos = getArticulacao(dispositivo).indexOfArtigo(dispositivo as Artigo);
+    return articulacao.artigos.filter((artigo, index) => index < pos);
+  }
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+  return dispositivo.pai!.filhos.filter((disp, index) => (isExclusao ? index > pos : index >= pos)).filter(d => dispositivo.tipo === d.tipo);
+};
+
 export const getDispositivosPosteriores = (dispositivo: Dispositivo, isExclusao = false): Dispositivo[] => {
   if (isArtigo(dispositivo)) {
     const articulacao = getArticulacao(dispositivo);

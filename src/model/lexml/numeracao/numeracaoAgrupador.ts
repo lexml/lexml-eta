@@ -10,6 +10,7 @@ import {
   converteNumerosComplementoParaLetra,
   isNumeracaoValida,
   isNumeracaoZero,
+  isRomano,
   trataNumeroAndComplemento,
 } from './numeracaoUtil';
 
@@ -63,11 +64,22 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       }
     }
 
+    setMaiusculaPrimeiraLetraDaDescricao(s: string): string {
+      const partes = s.split('-');
+      const [main, ...remaining] = partes!;
+      const palavras = main.toLocaleLowerCase().split(' ');
+
+      for (let i = 0; i < palavras.length; i++) {
+        palavras[i] = isRomano(palavras[i]) ? palavras[1].toUpperCase() : palavras[i].charAt(0).toUpperCase() + palavras[i].slice(1);
+      }
+
+      return palavras.join(' ') + (remaining.length > 0 ? '-' + remaining.join('') : '');
+    }
+
     getNumeracaoParaComandoEmenda(): string {
       const sb = new StringBuilder();
 
-      const numero = this.numero ? trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra) : '???';
-      sb.append(this.descricao + ' ' + numero);
+      sb.append(this.setMaiusculaPrimeiraLetraDaDescricao(this.rotulo!));
 
       const pai = this.pai as Dispositivo;
       if (!!pai && !isDispositivoRaiz(pai)) {

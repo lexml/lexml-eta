@@ -66,9 +66,6 @@ describe('Testando a exclusão de artigos', () => {
       });
     });
     describe('Testando os eventos resultantes da ação de exclusão do artigo', () => {
-      it('Deveria apresentar 1 evento', () => {
-        expect(state.ui.events.length).to.equal(1);
-      });
       it('Deveria apresentar 1 elemento removido já que o artigo não possui filhos', () => {
         expect(state.ui.events[0].elementos.length).equal(1);
       });

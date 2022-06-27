@@ -81,6 +81,8 @@ describe('Item', () => {
 
       terceiroItem = criaDispositivo(alinea, TipoDispositivo.item.tipo);
       terceiroItem.situacao = new DispositivoOriginal();
+      terceiroItem.numero = calculaNumeracao(terceiroItem);
+      terceiroItem.createRotulo(terceiroItem);
 
       segundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, undefined, 1);
       segundoItem.situacao = new DispositivoAdicionado();
@@ -171,6 +173,52 @@ describe('Item', () => {
       });
       it('deveria ser rotulado como 1-1. ao criar rótulo', () => {
         expect(segundoItem.rotulo).equal('1-A-A.');
+      });
+    });
+  });
+
+  describe('Testando a numeração do item adicionado em situações envolvendo 3 níveis', () => {
+    beforeEach(function () {
+      item.situacao = new DispositivoOriginal();
+      item.numero = '1-1';
+      item.createRotulo(item);
+
+      terceiroItem = criaDispositivo(alinea, TipoDispositivo.item.tipo);
+      terceiroItem.situacao = new DispositivoOriginal();
+      terceiroItem.numero = '1-2';
+      terceiroItem.createRotulo(terceiroItem);
+
+      segundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, undefined, 1);
+      segundoItem.situacao = new DispositivoAdicionado();
+
+      item.pai!.renumeraFilhos();
+    });
+    describe('Testando a numeração do item adicionado entre dois dispositivos originais com dois níveis', () => {
+      it('deveria ser numerado como 1-1-1 ao numerar', () => {
+        expect(segundoItem.numero).equal('1-1-1');
+      });
+      it('deveria ser rotulado como 1-1. ao criar rótulo', () => {
+        expect(segundoItem.rotulo).equal('1-A-A.');
+      });
+    });
+    describe('Testando a numeração do item adicionado após original e antes de adicionado', () => {
+      let antesSegundoItem;
+      beforeEach(function () {
+        antesSegundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, item);
+        antesSegundoItem.situacao = new DispositivoAdicionado();
+        item.pai!.renumeraFilhos();
+      });
+      it('deveria ser numerado como 1.1.1 ao numerar', () => {
+        expect(antesSegundoItem.numero).equal('1-1-1');
+      });
+      it('deveria ser rotulado como 1.A-A. ao criar rótulo', () => {
+        expect(antesSegundoItem.rotulo).equal('1-A-A.');
+      });
+      it('deveria ser numerado como 1.1.2 ao numerar', () => {
+        expect(segundoItem.numero).equal('1-1-2');
+      });
+      it('deveria ser rotulado como 1.2. ao criar rótulo', () => {
+        expect(segundoItem.rotulo).equal('1-A-B.');
       });
     });
   });

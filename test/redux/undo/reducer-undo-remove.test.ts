@@ -1,11 +1,6 @@
 import { expect } from '@open-wc/testing';
-import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
-import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
-import { getEvento } from '../../../src/redux/elemento/evento/eventosUtil';
-import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
 let state: any;
@@ -32,7 +27,7 @@ describe('Testando undo de remover artigo', () => {
       expect(state.past.length).equals(0);
     });
   });
-  describe('Undo quando for feita a exclusão de um dispositivo', () => {
+  /*   describe('Undo quando for feita a exclusão de um dispositivo', () => {
     beforeEach(function () {
       const artigo = state.articulacao.artigos[0];
       state = removeElemento(state, {
@@ -123,5 +118,5 @@ describe('Testando undo de remover artigo', () => {
         expect(state.ui.events[1].elementos[0].rotulo).equal('Art. 5º');
       });
     });
-  });
+  }); */
 });

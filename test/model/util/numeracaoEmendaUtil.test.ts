@@ -13,9 +13,11 @@ describe('Numeração de artigos de emenda', () => {
     articulacao = createArticulacao();
     const artigo1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
     artigo1.situacao = new DispositivoOriginal();
+    artigo1.numero = '1';
     artigo1.rotulo = 'Art. 1º';
     const artigo2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
     artigo2.situacao = new DispositivoOriginal();
+    artigo2.numero = '2';
     artigo2.rotulo = 'Art. 2º';
   });
   it('o artigo 1 deveria ter um dispositivo orignal posterior', () => {
@@ -71,6 +73,7 @@ describe('Numeração de artigos de emenda', () => {
         artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo, articulacao.artigos[0]);
         artigo.texto = 'novo2';
         artigo.situacao = new DispositivoAdicionado();
+        artigo.pai.renumeraFilhos();
       });
       it('o artigo criado deveria ter um dispositivo original anterior', () => {
         expect(contaIrmaosOriginaisAte(articulacao.artigos[1])).to.equal(1);
@@ -91,6 +94,7 @@ describe('Numeração de artigos de emenda', () => {
         artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo, articulacao.artigos[1]);
         artigo.texto = 'novo2';
         artigo.situacao = new DispositivoAdicionado();
+        artigo.pai.renumeraFilhos();
       });
       it('o artigo criado deveria ter um dispositivo original anterior', () => {
         expect(contaIrmaosOriginaisAte(articulacao.artigos[1])).to.equal(1);
@@ -112,6 +116,7 @@ describe('Numeração de artigos de emenda', () => {
           artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo, articulacao.artigos[1]);
           artigo.texto = 'novo3';
           artigo.situacao = new DispositivoAdicionado();
+          artigo.pai.renumeraFilhos();
         });
         it('o artigo criado deveria ter um dispositivo original anterior', () => {
           expect(contaIrmaosOriginaisAte(articulacao.artigos[1])).to.equal(1);
