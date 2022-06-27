@@ -15,6 +15,7 @@ import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoActio
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SHIFT_TAB } from '../../../model/lexml/acao/shiftTabAction';
+import { SUPRIMIR_AGRUPADOR } from '../../../model/lexml/acao/suprimirAgrupador';
 import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { TAB } from '../../../model/lexml/acao/tabAction';
 import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformarElementoAction';
@@ -29,6 +30,7 @@ import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
+import { autoFixElemento } from './autoFixElemento';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
@@ -39,12 +41,12 @@ import { renumeraElemento } from './renumeraElemento';
 import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
 import { solicitaNorma } from './solicitaNorma';
+import { suprimeAgrupador } from './suprimeAgrupador';
 import { suprimeElemento } from './suprimeElemento';
 import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
-import { autoFixElemento } from './autoFixElemento';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -76,6 +78,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return renumeraElemento(state, action);
     case RESTAURAR_ELEMENTO:
       return restauraElemento(state, action);
+    case SUPRIMIR_AGRUPADOR:
+      return suprimeAgrupador(state, action);
     case SUPRIMIR_ELEMENTO:
       return suprimeElemento(state, action);
     case ABRIR_ARTICULACAO:

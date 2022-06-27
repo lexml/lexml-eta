@@ -1,6 +1,7 @@
 import { addSpaceRegex, StringBuilder } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
+import { isArticulacao } from '../../dispositivo/tipo';
 import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { isDispositivoRaiz } from './../hierarquia/hierarquiaUtil';
 import {
@@ -82,7 +83,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       sb.append(this.setMaiusculaPrimeiraLetraDaDescricao(this.rotulo!));
 
       const pai = this.pai as Dispositivo;
-      if (!!pai && !isDispositivoRaiz(pai)) {
+      if (!!pai && !isDispositivoRaiz(pai) && !isArticulacao(pai)) {
         sb.append(pai.pronomePossessivoSingular);
         sb.append(' ');
         sb.append(pai.getNumeracaoParaComandoEmenda());
