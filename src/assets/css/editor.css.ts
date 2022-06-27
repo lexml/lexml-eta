@@ -9,22 +9,36 @@ export const editorStyles = html`
     #lx-eta-box {
       display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: 30px calc(100% - 30px);
+      grid-template-rows: 42px calc(100% - 30px);
       height: 100%;
     }
 
-    #lx-eta-box .ql-toolbar.ql-snow {
+    /* #lx-eta-box .ql-toolbar.ql-snow {
       border: 1px solid #ccc;
       box-sizing: border-box;
       padding: 3px 10px 3px 10px;
-    }
+    } */
 
+    .ql-toolbar.ql-snow {
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+      /* padding: 8px; */
+    }
     #lx-eta-box .ql-snow.ql-toolbar button,
     .ql-snow .ql-toolbar button {
-      height: 20px !important;
+      /* height: 20px !important;
       padding: 0px !important;
       width: 24px !important;
-      margin: 0px !important;
+      margin: 0px !important; */
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: inline-block;
+      float: left;
+      height: 24px;
+      padding: 3px 5px;
+      width: 28px;
     }
 
     #lx-eta-barra-ferramenta button:focus {
