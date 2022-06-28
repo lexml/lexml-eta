@@ -75,7 +75,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   }
 
   if (
-    (dispositivo !== null && isOmissis(dispositivo) && getDispositivoPosterior(dispositivo) && isOmissis(getDispositivoPosterior(dispositivo)!)) ||
+    (dispositivo !== null && isOmissis(dispositivo) && getDispositivoPosterior(dispositivo) !== undefined && isOmissis(getDispositivoPosterior(dispositivo)!)) ||
     buscaProximoOmissis(dispositivo.pai!)
   ) {
     mensagens.push({

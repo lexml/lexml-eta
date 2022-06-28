@@ -1,4 +1,4 @@
-import { isCaput, isIncisoCaput } from '../../../model/dispositivo/tipo';
+import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoTransformacaoPermitida, normalizaNomeAcaoTransformacao } from '../../../model/lexml/acao/acaoUtil';
 import { converteDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
@@ -36,7 +36,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   const validados = getElementosDoDispositivo(novo, true);
 
-  const paiNovo = isIncisoCaput(novo) ? novo.pai!.pai! : novo.pai!;
+  const paiNovo = isCaput(novo.pai!) ? novo.pai!.pai! : novo.pai!;
 
   if (dispositivoAnteriorAtual && isParagrafoUnico(dispositivoAnteriorAtual)) {
     dispositivoAnteriorAtual.pai!.renumeraFilhos();

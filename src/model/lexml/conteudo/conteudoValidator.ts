@@ -226,6 +226,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto !== TEXTO_OMISSIS &&
     dispositivo.texto &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
+    !isOmissis(dispositivo.filhos[0]) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
     mensagens.push({
@@ -278,6 +279,17 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}`,
+    });
+  }
+
+  if (
+    (isDispositivoAlteracao(dispositivo) && dispositivo.texto && hasFilhos(dispositivo) && !hasIndicativoContinuacaoSequencia(dispositivo)) ||
+    !hasIndicativoFinalSequencia(dispositivo) ||
+    hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `Texto do dispositivo não termina com pontuação`,
     });
   }
 
