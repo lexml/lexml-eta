@@ -50,7 +50,7 @@ export const validaNumeracaoDispositivo = (dispositivo: Dispositivo): Mensagem[]
       descricao: 'O dispositivo não contém numeração',
     });
   }
-  if (dispositivo !== null && dispositivo.rotulo && dispositivo.rotulo.trim().length === 0) {
+  if (dispositivo !== null && !isOmissis(dispositivo) && dispositivo.rotulo && dispositivo.rotulo.trim().length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O dispositivo não contém rótulo',
