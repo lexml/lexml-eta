@@ -1,4 +1,3 @@
-import { isUltimaAlteracao, getDispositivoCabecaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
@@ -8,18 +7,19 @@ import {
   findDispositivoByUuid,
   getArticulacao,
   getDispositivosPosteriores,
-  verificaNaoPrecisaInformarSituacaoNormaVigente,
   hasFilhos,
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
   isOriginal,
+  verificaNaoPrecisaInformarSituacaoNormaVigente,
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
 import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
-import { buildHref } from '../lexml/util/idUtil';
+import { buildId } from '../lexml/util/idUtil';
+import { getDispositivoCabecaAlteracao, isUltimaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -77,7 +77,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
-    lexmlId: dispositivo.id && dispositivo.numero && buildHref(dispositivo),
+    lexmlId: dispositivo.numero && buildId(dispositivo),
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {
