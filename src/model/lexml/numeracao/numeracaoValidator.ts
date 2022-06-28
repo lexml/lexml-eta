@@ -4,16 +4,17 @@ import { isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
-  getDispositivoPosterior,
   getDispositivoPosteriorMesmoTipo,
   getDispositivosAnterioresMesmoTipo,
   getDispositivosPosteriores,
+  getUltimoFilho,
   irmaosMesmoTipo,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
+  isPrimeiroMesmoTipo,
   isUnicoMesmoTipo,
+  validaOrdemDispositivo,
 } from '../hierarquia/hierarquiaUtil';
-import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao } from './numeracaoUtil';
 
@@ -106,7 +107,9 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero !== undefined &&
     dispositivo.pai?.indexOf(dispositivo) === 0 &&
-    dispositivo.numero !== '1'
+    !isParagrafo(dispositivo) &&
+    dispositivo.numero !== '1' &&
+    dispositivo.numero !== '1u'
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -114,16 +117,24 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       fix: true,
     });
   }
+
   if (
     dispositivo !== null &&
-    isOmissis(dispositivo) &&
-    (getDispositivoAnterior(dispositivo)?.tipo === TipoDispositivo.omissis.name || getDispositivoPosterior(dispositivo)?.tipo === TipoDispositivo.omissis.name)
+    dispositivo.numero !== undefined &&
+    isParagrafo(dispositivo) &&
+    isPrimeiroMesmoTipo(dispositivo) &&
+    getDispositivoAnterior(dispositivo) !== undefined &&
+    (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
+    dispositivo.numero !== '1' &&
+    dispositivo.numero !== '1u'
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não pode haver mais de um omissis sequencialmente',
+      descricao: AutoFix.OMISSIS_ANTES,
+      fix: true,
     });
   }
+
   if (
     dispositivo !== null &&
     dispositivo.numero !== undefined &&
@@ -138,6 +149,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo tem número menor ao de algum dispositivo anterior',
     });
   }
+
   if (
     dispositivo !== null &&
     dispositivo.numero !== undefined &&
@@ -151,12 +163,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo tem número maior do que algum dispositivo posterior',
     });
   }
-  if (
-    dispositivo !== null &&
-    // !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero !== undefined &&
-    irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length > 1
-  ) {
+  if (dispositivo !== null && dispositivo.numero !== undefined && irmaosMesmoTipo(dispositivo).filter(d => d.numero && d.numero === dispositivo.numero).length > 1) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O dispositivo tem número igual ao de outro dispositivo',
@@ -185,34 +192,4 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
 
 export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
   return isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
-};
-
-export const validaOrdemDispositivo = (anterior: Dispositivo, atual: Dispositivo): boolean => {
-  if ((anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) || anterior.numero!.indexOf('-') === atual.numero!.indexOf('-')) {
-    return +anterior.numero!.charAt(anterior.numero!.length - 1) + 1 === +atual.numero!.charAt(anterior.numero!.length - 1);
-  }
-  const partesA = anterior.numero!.split('-');
-  const partesB = atual.numero!.split('-');
-
-  const [numA, ...remainingA] = partesA!;
-  const [numB, ...remainingB] = partesB!;
-
-  if (+numA + 1 === +numB) {
-    return true;
-  }
-
-  for (let i = 0; i < 3; i++) {
-    const rA = i >= remainingA?.length ? 0 : remainingA[i];
-    for (let j = 0; i < 3; i++) {
-      const rB = j >= remainingB?.length ? 0 : remainingB[j];
-      if (+rA === +rB) {
-        continue;
-      }
-      if (+rA + 1 === +rB) {
-        return true;
-      }
-      return false;
-    }
-  }
-  return true;
 };

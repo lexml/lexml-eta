@@ -237,6 +237,9 @@ export const getDispositivoAnteriorMesmoTipoInclusiveOmissis = (dispositivo: Dis
 };
 
 export const getDispositivoPosterior = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  if (!dispositivo.pai) {
+    return undefined;
+  }
   const pos = dispositivo.pai!.indexOf(dispositivo);
   return pos < dispositivo.pai!.filhos.length - 1 ? dispositivo.pai!.filhos[pos + 1] : undefined;
 };
@@ -518,4 +521,56 @@ export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): 
   }
 
   return verificaNaoPrecisaInformarSituacaoNormaVigente(parent);
+};
+
+export const validaOrdemDispositivo = (anterior: Dispositivo, atual: Dispositivo): boolean => {
+  if ((anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) || anterior.numero!.indexOf('-') === atual.numero!.indexOf('-')) {
+    return +anterior.numero!.charAt(anterior.numero!.length - 1) + 1 === +atual.numero!.charAt(anterior.numero!.length - 1);
+  }
+  const partesA = anterior.numero!.split('-');
+  const partesB = atual.numero!.split('-');
+
+  const [numA, ...remainingA] = partesA!;
+  const [numB, ...remainingB] = partesB!;
+
+  if (+numA + 1 === +numB) {
+    return true;
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const rA = i >= remainingA?.length ? 0 : remainingA[i];
+    for (let j = 0; i < 3; i++) {
+      const rB = j >= remainingB?.length ? 0 : remainingB[j];
+      if (+rA === +rB) {
+        continue;
+      }
+      if (+rA + 1 === +rB) {
+        return true;
+      }
+      return false;
+    }
+  }
+  return true;
+};
+
+export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  if (!dispositivo || !dispositivo.pai || isAgrupador(dispositivo.pai!)) {
+    return undefined;
+  }
+
+  const posterior = getDispositivoPosterior(dispositivo);
+
+  if (posterior && isOmissis(posterior)) {
+    return posterior;
+  }
+
+  if (isCaput(dispositivo)) {
+    const p = dispositivo.pai.filhos.filter(f => isParagrafo(f) || isOmissis(f));
+    if (p.length > 0 && isOmissis(p[0])) {
+      return p[0];
+    }
+    return undefined;
+  }
+
+  return dispositivo.pai ? buscaProximoOmissis(dispositivo.pai!) : undefined;
 };

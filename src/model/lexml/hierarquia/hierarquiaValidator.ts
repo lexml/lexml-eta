@@ -1,8 +1,8 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupadorGenerico, isDispositivoGenerico } from '../../dispositivo/tipo';
-import { Mensagem, TipoMensagem } from '../util/mensagem';
-import { getDispositivoPosteriorMesmoTipo, isDispositivoAlteracao } from './hierarquiaUtil';
+import { isAgrupadorGenerico, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
+import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
+import { buscaProximoOmissis, getDispositivoAnterior, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, getUltimoFilho, isDispositivoAlteracao } from './hierarquiaUtil';
 
 export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
@@ -22,7 +22,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
     dispositivo !== null &&
     isDispositivoAlteracao(dispositivo) &&
     dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-    getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
+    (getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' || getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1u') &&
     getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
   ) {
     mensagens.push({
@@ -40,6 +40,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
     dispositivo !== null &&
     dispositivo.pai &&
     !isAgrupadorGenerico(dispositivo.pai) &&
+    !isOmissis(dispositivo) &&
     !isDispositivoGenerico(dispositivo) &&
     !dispositivo.tiposPermitidosPai!.includes(dispositivo.pai.tipo)
   ) {
@@ -61,5 +62,28 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
       descricao: `Segundo a Legislação vigente, ${dispositivo.descricao} ${relacaoFilhos}`,
     });
   }
+  if (
+    dispositivo !== null &&
+    isOmissis(dispositivo) &&
+    getDispositivoAnterior(dispositivo) !== undefined &&
+    isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!) || isOmissis(getDispositivoAnterior(dispositivo)!))
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não pode haver mais de um omissis sequencialmente',
+    });
+  }
+
+  if (
+    (dispositivo !== null && isOmissis(dispositivo) && getDispositivoPosterior(dispositivo) && isOmissis(getDispositivoPosterior(dispositivo)!)) ||
+    buscaProximoOmissis(dispositivo.pai!)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: AutoFix.OMISSIS_SEQUENCIAIS,
+      fix: true,
+    });
+  }
+
   return mensagens;
 };
