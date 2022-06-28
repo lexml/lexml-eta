@@ -1,6 +1,5 @@
 import { LitElement, html, TemplateResult, css, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { map } from 'lit/directives/map.js';
 import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import { connect } from 'pwa-helpers';
@@ -17,6 +16,10 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
     sl-alert {
       --box-shadow: var(--sl-shadow-x-large);
       margin: 20px;
+    }
+    .alert__close-button {
+      font-size: 1.25rem;
+      float: right;
     }
   `;
 
@@ -43,12 +46,16 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(limparAlertas());
   }
 
+  removeAlertaById(id: string): void {
+    rootStore.dispatch(removerAlerta(id));
+  }
+
   updated(changedProperties: PropertyValues): void {
     if (changedProperties.has('alertas')) {
-      const slAlertas = this.shadowRoot?.querySelectorAll('sl-alert');
-      slAlertas?.forEach(alerta => {
-        alerta.addEventListener('sl-after-hide', event => {
-          rootStore.dispatch(removerAlerta((event.target as Element).id));
+      this.alertas?.forEach(alerta => {
+        this.shadowRoot?.getElementById(alerta.id)?.addEventListener('click', event => {
+          event.stopImmediatePropagation();
+          this.removeAlertaById((event.target as Element).id);
         });
       });
       const lexmlEmenda = document.querySelector('lexml-emenda') as LexmlEmendaComponent;
@@ -66,12 +73,16 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${map(
-        this.alertas,
+      ${this.alertas.map(
         alerta =>
-          html`${alerta.podeFechar
-            ? html` <sl-alert variant="${alerta.tipo}" id="${alerta.id}" open closable class="alert-closable"> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `
-            : html` <sl-alert variant="${alerta.tipo}" id="${alerta.id}" open> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `}`
+          html` ${alerta.podeFechar
+            ? html`
+                <sl-alert variant="${alerta.tipo}" open>
+                  <sl-icon-button name="x" class="alert__close-button" id="${alerta.id}" label="fechar"></sl-icon-button>
+                  ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem}
+                </sl-alert>
+              `
+            : html` <sl-alert variant="${alerta.tipo}" open> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `}`
       )}
     `;
   }
