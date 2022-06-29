@@ -1,3 +1,4 @@
+import { Alerta } from '../model/alerta/alerta';
 import { Articulacao } from '../model/dispositivo/dispositivo';
 import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
@@ -17,6 +18,7 @@ export enum StateType {
   ElementoSelecionado = 'ElementoSelecionado',
   ElementoMarcado = 'ElementoMarcado',
   SituacaoElementoModificada = 'SituacaoElementoModificada',
+  AtualizacaoAlertas = 'AtualizacaoAlertas',
 }
 export interface StateEvent {
   stateType: StateType;
@@ -35,6 +37,7 @@ export interface State {
   ui?: {
     events: StateEvent[];
     message?: Mensagem;
+    alertas?: Alerta[];
   };
 }
 
@@ -60,5 +63,6 @@ export class DefaultState implements State {
   ui?: {
     events: StateEvent[];
     message?: Mensagem;
+    alertas?: Alerta[];
   };
 }

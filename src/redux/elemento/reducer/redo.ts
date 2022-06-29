@@ -16,7 +16,7 @@ import {
 
 export const redo = (state: any): State => {
   if (state.future === undefined || state.future.length === 0) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -30,6 +30,7 @@ export const redo = (state: any): State => {
     future: state.future,
     ui: {
       events: [],
+      alertas: state.ui?.alertas,
     },
   };
 

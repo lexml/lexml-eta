@@ -47,6 +47,12 @@ import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
+import { ADICIONAR_ALERTA } from '../../../model/alerta/acao/adicionarAlerta';
+import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
+import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
+import { adicionarAlerta } from './adicionarAlerta';
+import { removerAlerta } from './removerAlerta';
+import { limparAlertas } from './limparAlertas';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -99,6 +105,12 @@ export const elementoReducer = (state = {}, action: any): any => {
       return validaElemento(state, action);
     case VALIDAR_ARTICULACAO:
       return validaArticulacao(state);
+    case ADICIONAR_ALERTA:
+      return adicionarAlerta(state, action);
+    case REMOVER_ALERTA:
+      return removerAlerta(state, action);
+    case LIMPAR_ALERTAS:
+      return limparAlertas(state);
     default:
       return state;
   }

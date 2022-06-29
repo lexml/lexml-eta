@@ -48,6 +48,7 @@ export const agrupaElemento = (state: any, action: any): State => {
       future: [],
       ui: {
         events: eventos.build(),
+        alertas: state.ui?.alertas,
       },
     };
   }
@@ -110,6 +111,7 @@ export const agrupaElemento = (state: any, action: any): State => {
     future: [],
     ui: {
       events: eventos.build(),
+      alertas: state.ui?.alertas,
     },
   };
 };

@@ -19,7 +19,7 @@ export const autoFixElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined || !hasFix(atual)) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -71,6 +71,7 @@ export const autoFixElemento = (state: any, action: any): State => {
     future: [],
     ui: {
       events: eventos.build(),
+      alertas: state.ui?.alertas,
     },
   };
 };

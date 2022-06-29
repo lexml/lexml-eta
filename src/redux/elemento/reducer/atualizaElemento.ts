@@ -11,7 +11,7 @@ export const atualizaElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined || dispositivo.texto === action.atual.conteudo.texto) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -32,6 +32,7 @@ export const atualizaElemento = (state: any, action: any): State => {
     future: state.future,
     ui: {
       events: eventos.build(),
+      alertas: state.ui?.alertas,
     },
   };
 };

@@ -19,7 +19,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -87,6 +87,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
     future: [],
     ui: {
       events: eventos.build(),
+      alertas: state.ui?.alertas,
     },
   };
 };

@@ -1,6 +1,6 @@
 import { State, StateType } from '../../state';
 
-export const recuperaArticulacaoAtualizada = (state: any): State => {
+export const limparAlertas = (state: any): State => {
   return {
     articulacao: state.articulacao,
     modo: state.modo,
@@ -8,12 +8,9 @@ export const recuperaArticulacaoAtualizada = (state: any): State => {
     present: state.present,
     future: state.future,
     ui: {
-      events: [
-        {
-          stateType: StateType.ArticulacaoAtualizada,
-        },
-      ],
-      alertas: state.ui?.alertas,
+      events: [{ stateType: StateType.AtualizacaoAlertas }],
+      message: state.ui?.mensagem,
+      alertas: [],
     },
   };
 };

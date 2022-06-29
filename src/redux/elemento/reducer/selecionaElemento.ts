@@ -27,6 +27,7 @@ export const selecionaElemento = (state: any, action: any): State => {
     future: state.future,
     ui: {
       events,
+      alertas: state.ui?.alertas,
     },
   };
 };
