@@ -61,7 +61,7 @@ export class JustificativaEmendaComponent extends LitElement {
         </span>
         <span class="ql-formats">
           <button type="button" class="ql-undo" title="Desfazer (Ctrl+z)"></button>
-          <button type="button" class="ql-redo" title="Desfazer (Ctrl+Shift+z)"></button>
+          <button type="button" class="ql-redo" title="Refazer (Ctrl+Shift+z)"></button>
         </span>
         <span class="ql-formats">
           <select class="ql-align" title="Alinhar">
