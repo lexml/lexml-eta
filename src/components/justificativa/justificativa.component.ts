@@ -38,7 +38,43 @@ export class JustificativaEmendaComponent extends LitElement {
         #editor-justificativa p:not(.ql-align-rigth, .ql-align-center) {
           text-indent: 3em;
         }
+        .ql-toolbar.ql-snow .ql-formats {
+          margin-right: 8px;
+        }
       </style>
+      <div id="toolbar">
+        <span class="ql-formats">
+          <button type="button" class="ql-bold" title="Negrito (Ctrl+b)"></button>
+          <button type="button" class="ql-italic" title="Itálico (Ctrl+i)"></button>
+          <button type="button" class="ql-underline" title="Sublinhado (Ctrl+u)"></button>
+        </span>
+        <span class="ql-formats">
+          <button type="button" class="ql-list" value="ordered" title="Lista ordenada"></button>
+          <button type="button" class="ql-list" value="bullet" title="Lista não ordenada"></button>
+        </span>
+        <span class="ql-formats">
+          <button type="button" class="ql-script" value="sub" title="Subscrito"></button>
+          <button type="button" class="ql-script" value="super" title="Sobrescrito"></button>
+        </span>
+        <span class="ql-formats">
+          <button type="button" class="ql-blockquote" title="Bloco de citação"></button>
+        </span>
+        <span class="ql-formats">
+          <button type="button" class="ql-undo" title="Desfazer (Ctrl+z)"></button>
+          <button type="button" class="ql-redo" title="Desfazer (Ctrl+Shift+z)"></button>
+        </span>
+        <span class="ql-formats">
+          <select class="ql-align" title="Alinhar">
+            <option value=""></option>
+            <option value="center"></option>
+            <option value="right"></option>
+            <option value="justify"></option>
+          </select>
+        </span>
+        <span class="ql-formats">
+          <button type="button" class="ql-clean" title="Limpar formatação"></button>
+        </span>
+      </div>
       <div id="editor-justificativa"></div>
     `;
   }
@@ -68,7 +104,7 @@ export class JustificativaEmendaComponent extends LitElement {
         formats: ['bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
         modules: {
           toolbar: {
-            container: this.toolbarOptions,
+            container: '#toolbar',
             handlers: {
               undo: this.undo,
               redo: this.redo,
