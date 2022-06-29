@@ -30,4 +30,5 @@ export class Elemento extends Referencia {
   abreAspas?: boolean;
   fechaAspas?: boolean;
   notaAlteracao?: string;
+  dispositivoAlteracao?: boolean;
 }

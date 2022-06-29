@@ -93,6 +93,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     abreAspas: isDispositivoCabecaAlteracao(dispositivo),
     fechaAspas,
     notaAlteracao,
+    dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
   };
 };
 

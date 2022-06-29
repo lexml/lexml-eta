@@ -61,7 +61,7 @@ export class EtaBlotRotulo extends EtaBlot {
     return (
       'texto__rotulo' +
       (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
-      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? ' rotulo' : '')
+      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.dispositivoAlteracao ? ' rotulo' : '')
     );
   }
 
