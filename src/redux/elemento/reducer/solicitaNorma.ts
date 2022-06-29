@@ -27,6 +27,7 @@ export const solicitaNorma = (state: any, action: any): State => {
     future: [],
     ui: {
       events,
+      alertas: state.ui?.alertas,
     },
   };
 };

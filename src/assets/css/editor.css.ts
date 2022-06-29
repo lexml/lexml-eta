@@ -274,8 +274,11 @@ export const editorStyles = html`
     }
 
     .texto__rotulo--padrao {
-      float: left;
       margin-right: 10px;
+    }
+
+    .texto__dispositivo {
+      display: inline;
     }
 
     .Omissis {
@@ -287,7 +290,7 @@ export const editorStyles = html`
       hyphens: auto;
     }
     .dispositivo--adicionado br {
-      display: none;
+      content: '';
     }
 
     .dispositivo--adicionado {

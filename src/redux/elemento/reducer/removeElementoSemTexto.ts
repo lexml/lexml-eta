@@ -12,7 +12,7 @@ export const removeElementoSemTexto = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (dispositivo === undefined || !podeRemoverDispositivo(state, dispositivo)) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 

@@ -16,7 +16,7 @@ import {
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
-    state.ui = [];
+    state.ui.events = [];
     return state;
   }
 
@@ -30,6 +30,7 @@ export const undo = (state: any): State => {
     future: buildFuture(state, eventos),
     ui: {
       events: [],
+      alertas: state.ui?.alertas,
     },
   };
 

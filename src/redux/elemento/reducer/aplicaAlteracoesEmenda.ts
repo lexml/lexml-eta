@@ -23,6 +23,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     future: [],
     ui: {
       events: [],
+      alertas: [],
     },
   };
 
