@@ -143,7 +143,7 @@ export class DemoView extends LitElement {
   salvar(): void {
     const projetoNorma = this.projetoNorma;
     const emenda = this.elLexmlEmenda.getEmenda();
-    const emendaJson = JSON.stringify({ emenda }, null, '\t');
+    const emendaJson = JSON.stringify(emenda, null, '\t');
     const blob = new Blob([emendaJson], { type: 'application/json' });
     const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
@@ -171,11 +171,12 @@ export class DemoView extends LitElement {
       fReader.onloadend = async (e): Promise<void> => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
-          this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(result.emenda);
-          this.elLexmlEmenda.setEmenda(result.emenda);
+          const emenda = 'emenda' in result ? result.emenda : result;
+          this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
+          this.elLexmlEmenda.setEmenda(emenda);
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
-          this.elLexmlEmendaComando.emenda = result.emenda.comandoEmenda;
+          this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
           this.elLexmlEmendaComando.style.display = 'block';
           this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
           this.elLexmlEmenda.style.display = 'block';
