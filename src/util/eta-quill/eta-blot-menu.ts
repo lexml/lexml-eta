@@ -15,8 +15,8 @@ export class EtaBlotMenu extends EtaBlot {
   static create(): any {
     const node: SlDropdown = super.create();
 
-    // node.setAttribute('contenteditable', 'false');
-    // node.setAttribute('class', EtaBlotMenu.className);
+    node.setAttribute('contenteditable', 'false');
+    node.setAttribute('class', EtaBlotMenu.className);
     return node;
   }
 

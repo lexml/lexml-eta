@@ -11,8 +11,8 @@ export class EtaBlotMenuItem extends EtaBlot {
   static create(acao: ElementoAction, callback: any): any {
     const node: SlMenuItem = super.create();
 
-    // node.setAttribute('contenteditable', 'false');
-    // node.setAttribute('class', EtaBlotMenuItem.className);
+    node.setAttribute('contenteditable', 'false');
+    node.setAttribute('class', EtaBlotMenuItem.className);
     node.innerHTML = acao.descricao ?? '';
 
     node.addEventListener('mousedown', () => {

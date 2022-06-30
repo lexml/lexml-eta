@@ -12,8 +12,8 @@ export class EtaBlotMenuConteudo extends EtaBlot {
 
     const classeAdicional = alinhamentoMenu === AlinhamentoMenu.Esquerda ? '' : ' lx-eta-dropdown-content-right';
     console.log(classeAdicional);
-    // node.setAttribute('contenteditable', 'false');
-    // node.setAttribute('class', EtaBlotMenuConteudo.className + classeAdicional);
+    node.setAttribute('contenteditable', 'false');
+    node.setAttribute('class', EtaBlotMenuConteudo.className + classeAdicional);
     return node;
   }
 

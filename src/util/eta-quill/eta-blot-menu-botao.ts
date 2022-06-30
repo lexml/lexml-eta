@@ -11,8 +11,8 @@ export class EtaBlotMenuBotao extends EtaBlot {
 
     node.setAttribute('caret', 'true');
     node.setAttribute('slot', 'trigger');
-    // node.setAttribute('contenteditable', 'false');
-    // node.setAttribute('class', EtaBlotMenuBotao.className);
+    node.setAttribute('contenteditable', 'false');
+    node.setAttribute('class', EtaBlotMenuBotao.className);
     node.innerHTML = '&vellip;';
     return node;
   }
