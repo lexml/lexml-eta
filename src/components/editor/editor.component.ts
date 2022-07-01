@@ -994,7 +994,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     dialog.innerHTML = mensagem + botoesHtml;
     await document.body.appendChild(dialog);
     await dialog.show();
-    const botoesDialog = document.querySelectorAll('sl-button');
+    const botoesDialog = dialog.querySelectorAll('sl-button');
     const nao = botoesDialog[0] as SlButton;
     const sim = botoesDialog[1] as SlButton;
     sim.focus();
