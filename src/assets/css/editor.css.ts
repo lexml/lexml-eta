@@ -103,6 +103,15 @@ export const editorStyles = html`
       text-align: center;
     }
 
+    .container__menu sl-button::part(base) {
+      position: absolute;
+      margin: -13px;
+    }
+
+    .container__menu sl-button::part(base):hover {
+      background-color: #e1e1e1;
+    }
+
     .lx-eta-dropdown:hover .lx-eta-dropbtn {
       background-color: #e1e1e1;
     }

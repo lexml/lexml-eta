@@ -10,7 +10,7 @@ export class EtaBlotMenuBotao extends EtaBlot {
     const node: SlButton = super.create();
 
     node.setAttribute('variant', 'text');
-    node.setAttribute('size', 'large');
+    node.setAttribute('size', 'small');
     node.setAttribute('slot', 'trigger');
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotMenuBotao.className);
