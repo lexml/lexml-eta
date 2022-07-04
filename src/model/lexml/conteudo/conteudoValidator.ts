@@ -282,7 +282,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
-  if (
+  /*   if (
     (isDispositivoAlteracao(dispositivo) && dispositivo.texto && hasFilhos(dispositivo) && !hasIndicativoContinuacaoSequencia(dispositivo)) ||
     !hasIndicativoFinalSequencia(dispositivo) ||
     hasIndicativoDesdobramento(dispositivo)
@@ -291,7 +291,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       tipo: TipoMensagem.ERROR,
       descricao: `Texto do dispositivo não termina com pontuação`,
     });
-  }
+  } */
 
   return mensagens;
 };
