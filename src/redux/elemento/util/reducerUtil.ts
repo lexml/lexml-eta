@@ -1,19 +1,13 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isArtigo, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { AdicionarElemento } from '../../../model/lexml/acao/adicionarElementoAction';
 import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import {
-  getArticulacao,
-  getDispositivoAndFilhosAsLista,
-  getDispositivoAnteriorMesmoTipo,
-  getProximoArtigoAnterior,
-  getUltimoFilho,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getArticulacao, getDispositivoAndFilhosAsLista, getDispositivoAnteriorMesmoTipo, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Counter } from '../../../util/counter';
 import { StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
@@ -66,14 +60,9 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
 };
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo, action: any): boolean => {
-  if (
-    isAgrupador(dispositivo) &&
-    dispositivo.pai &&
-    dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO &&
-    !getProximoArtigoAnterior(dispositivo.pai!, dispositivo)
-  ) {
+  /*   if (dispositivo.pai && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO && !getProximoArtigoAnterior(dispositivo.pai!, dispositivo)) {
     return true;
-  }
+  } */
   return (
     isDispositivoGenerico(dispositivo) ||
     (hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento)) ||

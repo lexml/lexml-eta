@@ -20,7 +20,7 @@ export class AdicionarElemento implements ElementoAction {
       type: ADICIONAR_ELEMENTO,
       atual,
       novo: {
-        tipo,
+        tipo: tipo ?? this.tipo,
         isDispositivoAlteracao: this.isDispositivoAlteracao,
         conteudo: {
           texto: conteudo,

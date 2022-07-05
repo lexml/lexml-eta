@@ -55,7 +55,8 @@ export const adicionaElemento = (state: any, action: any): State => {
       isOriginal(atual.alteracoes.filhos[0]) &&
       !isOmissis(atual.alteracoes.filhos[0]) &&
       atual.alteracoes.filhos[0].numero === '1' &&
-      action.posicao !== 'antes'
+      action.posicao !== 'antes' &&
+      atual.tipo !== action.novo.tipo
     ) {
       state.ui.events = [];
       return state;
@@ -118,8 +119,8 @@ export const adicionaElemento = (state: any, action: any): State => {
       novo = createByInferencia(atual, action);
     }
   } else {
-    if (action.posicao) {
-      novo = criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao));
+    if (action.posicao === 'antes') {
+      novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, calculaPosicao(atual, action.posicao));
     } else {
       novo = createByInferencia(atual, action);
     }

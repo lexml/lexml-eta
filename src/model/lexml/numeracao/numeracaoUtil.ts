@@ -415,7 +415,6 @@ const getNumeracao = (d: Dispositivo): string => {
   const dispositivoOriginalPosterior = dispositivoPosteriores && dispositivoPosteriores.filter(f => isOriginal(f))[0];
 
   const dispositivoAnteriorAdicionado = dispositivosAnteriores?.filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).reverse()[0];
-  const seqDispEmenda = contaIrmaosNaoOriginaisConsecutivosAte(d);
 
   if (!getDispositivoAnteriorMesmoTipo(d) && !dispositivoOriginalPosterior) {
     return '1';
@@ -435,6 +434,8 @@ const getNumeracao = (d: Dispositivo): string => {
     }
     return getProximoNumero(getDispositivoAnteriorMesmoTipo(d)!.numero!);
   }
+
+  const seqDispEmenda = contaIrmaosNaoOriginaisConsecutivosAte(d);
 
   return '' + seqDispEmenda;
 };

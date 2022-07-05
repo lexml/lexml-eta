@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { adicionarArtigoAntes, adicionarArtigoDepois } from '../acao/adicionarElementoAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
@@ -20,6 +21,9 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       if (!isAgrupador(dispositivo)) {
         return [];
       }
+
+      acoes.push(adicionarArtigoAntes);
+      acoes.push(adicionarArtigoDepois);
 
       if (getDispositivosAnterioresMesmoTipo(dispositivo).length === 0 && getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 && hasAgrupador(dispositivo)) {
         //

@@ -1,9 +1,10 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior } from './hierarquiaUtil';
+import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior, isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao } from './hierarquiaUtil';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -54,11 +55,16 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
 
     renumeraFilhos(): void {
       this.filhos
-        .filter(filho => !isArtigo(filho))
-        .forEach(f => {
-          f.numero = calculaNumeracao(f);
-          f.createRotulo(f);
-          f.id = buildId(f);
+        .filter(
+          f =>
+            (isDispositivoAlteracao(f) && isAntesDoPrimeiroDispositivoOriginal(f)) ||
+            f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO ||
+            f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
+        )
+        .forEach(filho => {
+          filho.numero = calculaNumeracao(filho);
+          filho.createRotulo(filho);
+          filho.id = buildId(filho);
         });
       (getArticulacao(this.filhos[0]) as Articulacao)?.renumeraArtigos();
     }
