@@ -103,6 +103,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
     isOmissis(dispositivo) &&
     dispositivo.pai! &&
     getDispositivoPosterior(dispositivo) === undefined &&
+    getDispositivoPosterior(dispositivo.pai!) &&
     isOmissis(getDispositivoPosterior(dispositivo.pai!)!)
   ) {
     mensagens.push({
