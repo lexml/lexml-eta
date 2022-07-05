@@ -86,6 +86,7 @@ describe('Item', () => {
 
       segundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, undefined, 1);
       segundoItem.situacao = new DispositivoAdicionado();
+      segundoItem.isDispositivoAlteracao = true;
 
       item.pai!.renumeraFilhos();
     });
@@ -110,6 +111,7 @@ describe('Item', () => {
       beforeEach(function () {
         antesSegundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, item);
         antesSegundoItem.situacao = new DispositivoAdicionado();
+        antesSegundoItem.isDispositivoAlteracao = true;
         item.pai!.renumeraFilhos();
       });
       it('deveria ser numerado como 1.1 ao numerar', () => {
@@ -130,6 +132,8 @@ describe('Item', () => {
       beforeEach(function () {
         aposSegundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, segundoItem);
         aposSegundoItem.situacao = new DispositivoAdicionado();
+        aposSegundoItem.isDispositivoAlteracao = true;
+
         item.pai!.renumeraFilhos();
       });
       it('deveria ser numerado como 1.2 ao numerar', () => {
@@ -145,6 +149,8 @@ describe('Item', () => {
       beforeEach(function () {
         aposSegundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, segundoItem);
         aposSegundoItem.situacao = new DispositivoAdicionado();
+        aposSegundoItem.isDispositivoAlteracao = true;
+
         item.pai!.renumeraFilhos();
 
         entreItensAdicionados = criaDispositivo(alinea, TipoDispositivo.item.tipo, segundoItem);
@@ -190,6 +196,7 @@ describe('Item', () => {
 
       segundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, undefined, 1);
       segundoItem.situacao = new DispositivoAdicionado();
+      segundoItem.isDispositivoAlteracao = true;
 
       item.pai!.renumeraFilhos();
     });
@@ -206,6 +213,8 @@ describe('Item', () => {
       beforeEach(function () {
         antesSegundoItem = criaDispositivo(alinea, TipoDispositivo.item.tipo, item);
         antesSegundoItem.situacao = new DispositivoAdicionado();
+        antesSegundoItem.isDispositivoAlteracao = true;
+
         item.pai!.renumeraFilhos();
       });
       it('deveria ser numerado como 1.1.1 ao numerar', () => {

@@ -55,12 +55,12 @@ describe('Item', () => {
     });
     it('quando for solicitada a criação de uma rótulo após ter sido definido um número válido, o item gera um rótulo válido', () => {
       item.numero = '1';
-      item.createRotulo();
+      item.createRotulo(item);
       expect(item.rotulo).equal('1.');
     });
     it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido, o item gera um rótulo inválido', () => {
       item.numero = '0';
-      item.createRotulo();
+      item.createRotulo(item);
       expect(item.rotulo).not.equal('1.');
     });
   });

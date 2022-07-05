@@ -65,12 +65,12 @@ describe('Alínea', () => {
     });
     it('quando for solicitada a criação de uma rótulo após ter sido definido um número válido, a alinea gera um rótulo válido', () => {
       alinea.numero = '1';
-      alinea.createRotulo();
+      alinea.createRotulo(alinea);
       expect(alinea.rotulo).equal('a)');
     });
     it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido, a alinea gera um rótulo inválido', () => {
       alinea.numero = '0';
-      alinea.createRotulo();
+      alinea.createRotulo(alinea);
       expect(alinea.rotulo).not.equal('a)');
     });
   });

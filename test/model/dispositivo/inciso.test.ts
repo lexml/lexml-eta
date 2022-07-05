@@ -62,12 +62,12 @@ describe('Inciso', () => {
     });
     it('quando for solicitada a criação de uma rótulo após ter sido definido um número válido, o inciso gera um rótulo válido', () => {
       inciso.numero = '1';
-      inciso.createRotulo();
+      inciso.createRotulo(inciso);
       expect(inciso.rotulo).equal('I –');
     });
     it('quando for solicitada a criação de uma rótulo sem que tenha sido definido um número válido, o inciso gera um rótulo inválido', () => {
       inciso.numero = '0';
-      inciso.createRotulo();
+      inciso.createRotulo(inciso);
       expect(inciso.rotulo).not.equal('I –');
     });
   });

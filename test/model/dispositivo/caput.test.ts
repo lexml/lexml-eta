@@ -46,7 +46,7 @@ describe('Caput: inicialização', () => {
       expect(caput.rotulo).to.be.undefined;
     });
     it('Quando solicitada a criação de rótulo, o caput não cria rótulo', () => {
-      caput.createRotulo();
+      caput.createRotulo(caput);
 
       expect(caput.rotulo).to.be.undefined;
     });

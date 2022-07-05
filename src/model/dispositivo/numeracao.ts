@@ -5,7 +5,7 @@ export interface Numeracao {
   numero?: string;
   rotulo?: string;
 
-  createRotulo(dispositivo?: Dispositivo): void;
+  createRotulo(dispositivo: Dispositivo): void;
   createNumeroFromRotulo(rotulo: string): void;
   getNumeracaoParaComandoEmenda(dispositivo: Dispositivo): string;
   getNumeracaoComRotuloParaComandoEmenda(dispositivo: Dispositivo): string;
