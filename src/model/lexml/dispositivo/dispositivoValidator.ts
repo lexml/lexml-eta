@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { isArticulacao } from '../../dispositivo/tipo';
 import { validaTexto } from '../conteudo/conteudoValidator';
 import { validaUrn } from '../documento/urnUtil';
 import { isOriginal } from '../hierarquia/hierarquiaUtil';
@@ -24,7 +25,7 @@ const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
-  if (isOriginal(dispositivo)) {
+  if ((isArticulacao(dispositivo) && dispositivo.pai === undefined) || isOriginal(dispositivo)) {
     return [];
   }
   return validaHierarquia(dispositivo).concat(validaTexto(dispositivo), validaNumeracao(dispositivo), validaReferencia(dispositivo));

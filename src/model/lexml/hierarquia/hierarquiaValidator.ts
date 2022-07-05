@@ -1,8 +1,18 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupadorGenerico, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
+import { isAgrupadorGenerico, isCaput, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
+import { comparaNumeracao } from '../numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
-import { buscaProximoOmissis, getDispositivoAnterior, getDispositivoPosterior, getDispositivoPosteriorMesmoTipo, getUltimoFilho, isDispositivoAlteracao } from './hierarquiaUtil';
+import {
+  getDispositivoAnterior,
+  getDispositivoPosterior,
+  getDispositivoPosteriorMesmoTipo,
+  getDispositivoPosteriorMesmoTipoInclusiveOmissis,
+  getUltimoFilho,
+  isDispositivoAlteracao,
+  isOriginal,
+} from './hierarquiaUtil';
 
 export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
@@ -75,13 +85,61 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   }
 
   if (
-    (dispositivo !== null && isOmissis(dispositivo) && getDispositivoPosterior(dispositivo) !== undefined && isOmissis(getDispositivoPosterior(dispositivo)!)) ||
-    buscaProximoOmissis(dispositivo.pai!)
+    dispositivo !== null &&
+    dispositivo.pai! &&
+    isOmissis(dispositivo) &&
+    isCaput(dispositivo.pai!) &&
+    getDispositivoPosterior(dispositivo) === undefined &&
+    TipoDispositivo.omissis.tipo === dispositivo.pai!.pai!.filhos.filter(f => !isCaput(f.pai!))[0]?.tipo
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: AutoFix.OMISSIS_SEQUENCIAIS,
       fix: true,
+    });
+  }
+  if (
+    dispositivo !== null &&
+    isOmissis(dispositivo) &&
+    dispositivo.pai! &&
+    getDispositivoPosterior(dispositivo) === undefined &&
+    isOmissis(getDispositivoPosterior(dispositivo.pai!)!)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: AutoFix.OMISSIS_SEQUENCIAIS,
+      fix: true,
+    });
+  }
+
+  if (
+    dispositivo !== null &&
+    isOmissis(dispositivo) &&
+    dispositivo.pai &&
+    getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined &&
+    isOmissis(getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo)!)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: AutoFix.OMISSIS_SEQUENCIAIS,
+      fix: true,
+    });
+  }
+
+  if (
+    dispositivo !== null &&
+    isOmissis(dispositivo) &&
+    getDispositivoAnterior(dispositivo) !== undefined &&
+    isOriginal(getDispositivoAnterior(dispositivo)!) &&
+    getDispositivoAnterior(dispositivo)!.numero !== undefined &&
+    getDispositivoPosterior(dispositivo) !== undefined &&
+    isOriginal(getDispositivoPosterior(dispositivo)!) &&
+    getDispositivoPosterior(dispositivo)!.numero !== undefined &&
+    comparaNumeracao('' + (+getDispositivoAnterior(dispositivo)!.numero! + 1), getDispositivoPosterior(dispositivo)!.numero) === 0
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não pode haver omissis entre dispositivos originais sequenciais',
     });
   }
 

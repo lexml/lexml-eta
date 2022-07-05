@@ -73,7 +73,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo não contém numeração',
     });
   }
-  if (dispositivo !== null && dispositivo.rotulo?.trim().length === 0) {
+  if (dispositivo !== null && !isOmissis(dispositivo) && dispositivo.rotulo?.trim().length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: 'O dispositivo não contém rótulo',
@@ -187,6 +187,22 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     });
   }
 
+  if (
+    dispositivo !== null &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
+    dispositivo.numero !== undefined &&
+    dispositivo.pai!.indexOf(dispositivo) > 0 &&
+    getDispositivoAnteriorMesmoTipo(dispositivo) &&
+    dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
+    !isOmissis(getDispositivoAnterior(dispositivo)!) &&
+    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: AutoFix.OMISSIS_ANTES,
+      fix: true,
+    });
+  }
   return mensagens;
 };
 

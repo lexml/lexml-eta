@@ -1,6 +1,6 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
@@ -226,7 +226,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto !== TEXTO_OMISSIS &&
     dispositivo.texto &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
-    !isOmissis(dispositivo.filhos[0]) &&
+    dispositivo.filhos.filter(f => isIncisoCaput(f)).length > 0 &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
     mensagens.push({
@@ -282,16 +282,19 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
-  /*   if (
-    (isDispositivoAlteracao(dispositivo) && dispositivo.texto && hasFilhos(dispositivo) && !hasIndicativoContinuacaoSequencia(dispositivo)) ||
-    !hasIndicativoFinalSequencia(dispositivo) ||
-    hasIndicativoDesdobramento(dispositivo)
+  if (
+    isDispositivoAlteracao(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
+    !hasIndicativoContinuacaoSequencia(dispositivo) &&
+    !hasIndicativoFinalSequencia(dispositivo) &&
+    !hasIndicativoDesdobramento(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Texto do dispositivo não termina com pontuação`,
     });
-  } */
+  }
 
   return mensagens;
 };
