@@ -73,7 +73,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         (remaining.length > 0
           ? '-' +
             remaining
-              ?.map(str => (dispositivo.isDispositivoAlteracao ? converteNumeroArabicoParaLetra : str))
+              ?.map(str => (dispositivo.isDispositivoAlteracao ? converteNumeroArabicoParaLetra(str) : str))
               .join('-')
               .toUpperCase()
           : '') +
