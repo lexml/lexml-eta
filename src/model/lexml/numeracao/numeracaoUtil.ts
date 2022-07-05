@@ -421,12 +421,8 @@ const getNumeracao = (d: Dispositivo): string => {
     return '1';
   }
 
-  /*   if (isOriginal(d)) {
-    return getProximoNumero(dispositivoOriginalAnterior.numero!);
-  } */
-
   if (!dispositivoOriginalAnterior && dispositivoOriginalPosterior) {
-    return dispositivoAnteriorAdicionado ? getProximoNumero(dispositivoAnteriorAdicionado.numero!) : '0';
+    return dispositivoAnteriorAdicionado ? (dispositivoAnteriorAdicionado.numero! === '0' ? getNumeroAbaixo('0') : getProximoNumero(dispositivoAnteriorAdicionado.numero!)) : '0';
   }
 
   if (dispositivoOriginalAnterior && !dispositivoOriginalPosterior) {
