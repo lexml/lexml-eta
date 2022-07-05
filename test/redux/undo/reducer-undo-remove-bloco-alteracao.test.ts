@@ -16,6 +16,7 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR, false);
     state = openArticulacaoAction(projetoNorma.articulacao!);
+    state.ui = {};
   });
   describe('Undo quando não há histórico', () => {
     it('Deveria possui os 5 artigos originais', () => {

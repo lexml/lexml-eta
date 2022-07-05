@@ -16,6 +16,7 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
     articulacao.renumeraArtigos();
     state = {
       articulacao,
+      ui: {},
     };
   });
   describe('Quando se tratar do primeiro artigo', () => {
