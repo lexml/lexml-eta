@@ -42,39 +42,45 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       if (this.numero === undefined || !dispositivo) {
         this.rotulo = TipoDispositivo.paragrafo.name;
       } else if (!isNumeracaoValida(this.numero)) {
-        this.rotulo = this.getNumeroAndSufixoNumeracao();
+        this.rotulo = this.getNumeroAndSufixoNumeracao(dispositivo);
       } else if (dispositivo.isDispositivoAlteracao) {
-        this.rotulo = this.informouParagrafoUnico ? this.PARAGRAFO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
+        this.rotulo = this.informouParagrafoUnico ? this.PARAGRAFO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo);
       } else {
         dispositivo.pai?.filhos.filter(f => isParagrafo(f)).length === 1
           ? (this.rotulo = this.PARAGRAFO_UNICO)
-          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
+          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo));
       }
     }
 
-    private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
+    private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo, paraComandoEmenda = false): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
       const ordinal = parseInt(num ?? '1', 10) < 10;
       return (
         (ordinal ? num + this.SUFIXO : num) +
-        (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
+        (remaining.length > 0
+          ? '-' +
+            remaining
+              ?.map(str => (dispositivo.isDispositivoAlteracao ? converteNumeroArabicoParaLetra : str))
+              .join('-')
+              .toUpperCase()
+          : '') +
         (!paraComandoEmenda && (!ordinal || remaining.length) ? '.' : '')
       );
     }
 
-    getNumeracaoParaComandoEmenda(): string {
+    getNumeracaoParaComandoEmenda(dispositivo: Dispositivo): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + '';
       }
-      return this.isParagrafoUnico() ? 'parágrafo único' : this.getNumeroAndSufixoNumeracao(true);
+      return this.isParagrafoUnico() ? 'parágrafo único' : this.getNumeroAndSufixoNumeracao(dispositivo, true);
     }
 
-    getNumeracaoComRotuloParaComandoEmenda(): string {
+    getNumeracaoComRotuloParaComandoEmenda(dispositivo: Dispositivo): string {
       if (this.numero === undefined) {
         return TipoDispositivo.paragrafo.descricao?.toLocaleLowerCase() + ' [ainda não numerado]';
       }
-      return this.isParagrafoUnico() ? 'parágrafo único' : '§ ' + this.getNumeroAndSufixoNumeracao(true);
+      return this.isParagrafoUnico() ? 'parágrafo único' : '§ ' + this.getNumeroAndSufixoNumeracao(dispositivo, true);
     }
 
     private isParagrafoUnico(): boolean {

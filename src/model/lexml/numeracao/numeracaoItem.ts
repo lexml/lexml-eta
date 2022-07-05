@@ -1,4 +1,5 @@
 import { addSpaceRegex } from '../../../util/string-util';
+import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { converteLetrasComplementoParaNumero, converteNumerosComplementoParaLetra, trataNumeroAndComplemento } from './numeracaoUtil';
@@ -24,15 +25,18 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
       this.numero = this.isNumeracaoValidaParaRotulo(temp) ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero) : undefined;
     }
 
-    createRotulo(): void {
-      this.rotulo = this.numero === undefined ? TipoDispositivo.item.name : trataNumeroAndComplemento(this.numero, undefined, converteNumerosComplementoParaLetra) + this.SUFIXO;
+    createRotulo(dispositivo: Dispositivo): void {
+      this.rotulo =
+        this.numero === undefined
+          ? TipoDispositivo.item.name
+          : trataNumeroAndComplemento(this.numero, undefined, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined) + this.SUFIXO;
     }
 
     getNumeracaoParaComandoEmenda(): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.item.descricao?.toLowerCase() + '';
       }
-      return this.numero;
+      return this.rotulo!;
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

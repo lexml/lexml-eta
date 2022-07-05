@@ -166,7 +166,7 @@ export const trataNumeroAndComplemento = (numero: string, funcNumero?: any, func
 
   const converted = num === '0' ? '0' : funcNumero ? funcNumero(num) : num;
 
-  return converted + (resto ? funcComplemento(resto) : '');
+  return converted + (resto ? (funcComplemento ? funcComplemento(resto) : resto) : '');
 };
 
 export const converteNumerosComplementoParaLetra = (numero: string): string => {

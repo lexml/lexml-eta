@@ -1,4 +1,5 @@
 import { addSpaceRegex } from '../../../util/string-util';
+import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import {
@@ -32,25 +33,26 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
       this.numero = isNumeracaoValida(temp) ? temp : undefined;
     }
 
-    createRotulo(): void {
+    createRotulo(dispositivo: Dispositivo): void {
       this.rotulo =
         this.numero === undefined
           ? TipoDispositivo.inciso.name
-          : trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra) + this.SUFIXO;
+          : trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined) +
+            this.SUFIXO;
     }
 
-    getNumeracaoParaComandoEmenda(): string {
+    getNumeracaoParaComandoEmenda(dispositivo: Dispositivo): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + '';
       }
-      return trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra);
+      return trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined);
     }
 
-    getNumeracaoComRotuloParaComandoEmenda(): string {
+    getNumeracaoComRotuloParaComandoEmenda(dispositivo: Dispositivo): string {
       if (this.numero === undefined) {
         return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + ' [ainda não numerado]';
       }
-      return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda();
+      return TipoDispositivo.inciso.descricao?.toLocaleLowerCase() + ' ' + this.getNumeracaoParaComandoEmenda(dispositivo);
     }
   };
 }

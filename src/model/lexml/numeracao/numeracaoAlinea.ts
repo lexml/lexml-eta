@@ -1,4 +1,5 @@
 import { addSpaceRegex } from '../../../util/string-util';
+import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import {
@@ -30,11 +31,12 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
       );
     }
 
-    createRotulo(): void {
+    createRotulo(dispositivo: Dispositivo): void {
       this.rotulo =
         this.numero === undefined
           ? TipoDispositivo.alinea.name
-          : trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaLetra, converteNumerosComplementoParaLetra) + this.SUFIXO;
+          : trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaLetra, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined) +
+            this.SUFIXO;
     }
 
     getNumeracaoParaComandoEmenda(): string {

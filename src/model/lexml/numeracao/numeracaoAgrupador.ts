@@ -86,7 +86,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       if (!!pai && !isDispositivoRaiz(pai) && !isArticulacao(pai)) {
         sb.append(pai.pronomePossessivoSingular);
         sb.append(' ');
-        sb.append(pai.getNumeracaoParaComandoEmenda());
+        sb.append(pai.getNumeracaoParaComandoEmenda(pai));
       }
 
       return sb.toString();

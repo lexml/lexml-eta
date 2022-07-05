@@ -61,7 +61,7 @@ export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
     sb.append(d.pronomePossessivoSingular);
     sb.append(DispositivosWriterCmdEmd.getRotuloTipoDispositivo(d, false));
     sb.append(' ');
-    sb.append(d.getNumeracaoParaComandoEmenda());
+    sb.append(d.getNumeracaoParaComandoEmenda(d));
     sb.append(CmdEmdUtil.getRotuloPais(d));
   }
 }

@@ -59,9 +59,9 @@ export class RangeDispositivos {
   }
 
   getNumeracaoParaComandoEmenda(): string {
-    let numeracao = this.dispositivos[0].getNumeracaoParaComandoEmenda();
+    let numeracao = this.dispositivos[0].getNumeracaoParaComandoEmenda(this.dispositivos[0]);
     if (this.dispositivos.length > 1) {
-      numeracao += ' a ' + this.getUltimo().getNumeracaoParaComandoEmenda();
+      numeracao += ' a ' + this.getUltimo().getNumeracaoParaComandoEmenda(this.getUltimo());
     }
     return numeracao;
   }
@@ -70,7 +70,7 @@ export class RangeDispositivos {
     if (this.isRotuloNecessario(ranges)) {
       this.printRotuloInicio(comando, ranges);
     } else {
-      comando.append(this.dispositivos[0].getNumeracaoParaComandoEmenda());
+      comando.append(this.dispositivos[0].getNumeracaoParaComandoEmenda(this.dispositivos[0]));
     }
 
     this.printSeparadorProximoDispositivo(comando, ranges);
@@ -80,7 +80,8 @@ export class RangeDispositivos {
 
   private printRotuloFimSeExistir(comando: StringBuilder): void {
     if (this.dispositivos.length >= 2) {
-      comando.append(this.dispositivos[this.dispositivos.length - 1].getNumeracaoParaComandoEmenda());
+      const d = this.dispositivos[this.dispositivos.length - 1];
+      comando.append(d.getNumeracaoParaComandoEmenda(d));
     }
   }
 
@@ -136,7 +137,7 @@ export class RangeDispositivos {
     } else {
       sb.append(' ');
     }
-    const rotulo = dispositivo.getNumeracaoComRotuloParaComandoEmenda();
+    const rotulo = dispositivo.getNumeracaoComRotuloParaComandoEmenda(dispositivo);
 
     if (rotulo.endsWith('.')) {
       sb.append(rotulo.substring(0, rotulo.indexOf('.')));
@@ -157,7 +158,7 @@ export class RangeDispositivos {
 
     sb.append(this.getTipoDispositivoPlural(dispositivo));
     sb.append(' ');
-    sb.append(dispositivo.getNumeracaoParaComandoEmenda());
+    sb.append(dispositivo.getNumeracaoParaComandoEmenda(dispositivo));
 
     return sb.toString();
   }

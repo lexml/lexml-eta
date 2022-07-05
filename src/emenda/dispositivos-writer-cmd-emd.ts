@@ -117,7 +117,7 @@ export class DispositivosWriterCmdEmd {
   static getRotuloTipoDispositivo(disp: Dispositivo, plural: boolean): string {
     // TODO Verificar melhor forma de identificar que não deve ser impresso o rótulo
     // do tipo do dispositivo antes do parágrafo único e do artigo único.
-    if (disp.getNumeracaoParaComandoEmenda().indexOf('único') >= 0) {
+    if (disp.getNumeracaoParaComandoEmenda(disp).indexOf('único') >= 0) {
       return '';
     }
 
@@ -166,7 +166,7 @@ export class DispositivosWriterCmdEmd {
           if (anterior.tipo !== TipoDispositivo.alteracao.tipo) {
             sb.append('após ');
             sb.append(anterior.artigoDefinidoSingular);
-            sb.append(anterior.getNumeracaoComRotuloParaComandoEmenda());
+            sb.append(anterior.getNumeracaoComRotuloParaComandoEmenda(anterior));
             sb.append(this.getRotuloPais(anterior, localizarArtigoEmAgrupador));
             return sb.toString();
           }
@@ -194,26 +194,26 @@ export class DispositivosWriterCmdEmd {
 
           if (anterior === pai && posterior && posterior.pai === pai) {
             // Entre pai e irmão
-            const refIrmao = posterior.pronomePossessivoSingular + ' ' + posterior.descricao?.toLowerCase() + ' ' + posterior.getNumeracaoParaComandoEmenda();
+            const refIrmao = posterior.pronomePossessivoSingular + ' ' + posterior.descricao?.toLowerCase() + ' ' + posterior.getNumeracaoParaComandoEmenda(posterior);
             sb.append('antes ' + refIrmao);
             sb.append(pai.pronomePossessivoSingular);
           } else if (!(isArticulacao(anterior) && anterior.pai)) {
             sb.append('após ');
             sb.append(anterior.artigoDefinidoSingular);
-            sb.append(anterior.getNumeracaoComRotuloParaComandoEmenda());
+            sb.append(anterior.getNumeracaoComRotuloParaComandoEmenda(anterior));
             sb.append(this.getRotuloPais(anterior, localizarArtigoEmAgrupador));
             return sb.toString();
           }
         } else {
           sb.append(pai.pronomePossessivoSingular);
         }
-        sb.append(pai.getNumeracaoComRotuloParaComandoEmenda());
+        sb.append(pai.getNumeracaoComRotuloParaComandoEmenda(pai));
       } else if (isArtigo(disp) && isDispositivoRaiz(pai as Dispositivo) && localizarArtigoEmAgrupador) {
         const agrupador = CmdEmdUtil.getProximoAgrupador(disp);
         if (agrupador) {
           sb.append(' antes ');
           sb.append(agrupador.pronomePossessivoSingular);
-          sb.append(agrupador.getNumeracaoComRotuloParaComandoEmenda());
+          sb.append(agrupador.getNumeracaoComRotuloParaComandoEmenda(agrupador));
         }
       }
 

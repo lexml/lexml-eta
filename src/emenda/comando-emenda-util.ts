@@ -4,7 +4,7 @@ import { getDispositivoPosterior, percorreHierarquiaDispositivos } from '../mode
 import { getTextoSemHtml, StringBuilder } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
-import { isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz, irmaosMesmoTipo } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { irmaosMesmoTipo, isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { TagNode } from './../util/tag-node';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
@@ -378,7 +378,7 @@ export class CmdEmdUtil {
     while (disp && !isArtigo(disp)) {
       pai = disp.pai!;
       sb.append(pai.pronomePossessivoSingular);
-      sb.append(pai.getNumeracaoComRotuloParaComandoEmenda());
+      sb.append(pai.getNumeracaoComRotuloParaComandoEmenda(disp));
       disp = pai;
     }
 

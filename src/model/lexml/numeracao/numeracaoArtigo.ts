@@ -56,43 +56,49 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
       } else if (isDispositivoCabecaAlteracao(dispositivo)) {
-        this.rotulo = this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao();
+        this.rotulo = this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo);
       } else {
         getArticulacao(dispositivo).artigos.length === 1
           ? (this.rotulo = this.ARTIGO_UNICO)
-          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao());
+          : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo));
       }
     }
 
-    private getNumeroAndSufixoNumeracao(paraComandoEmenda = false): string {
+    private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo, paraComandoEmenda = false): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
       const ordinal = parseInt(num ?? '1', 10) < 10;
       return (
         (ordinal ? num + this.SUFIXO : num) +
-        (remaining.length > 0 ? '-' + remaining?.map(converteNumeroArabicoParaLetra).join('-').toUpperCase() : '') +
+        (remaining.length > 0
+          ? '-' +
+            remaining
+              ?.map(str => (dispositivo.isDispositivoAlteracao ? converteNumeroArabicoParaLetra : str))
+              .join('-')
+              .toUpperCase()
+          : '') +
         (!paraComandoEmenda && (!ordinal || remaining.length) ? '.' : '')
       );
     }
 
-    getNumeracaoParaComandoEmenda(): string {
+    getNumeracaoParaComandoEmenda(dispositivo: Dispositivo): string {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; //TipoDispositivo.artigo.descricao?.toLowerCase() + '';
       }
       if (this.informouArtigoUnico) {
         return 'artigo único';
       }
-      return this.getNumeroAndSufixoNumeracao(true);
+      return this.getNumeroAndSufixoNumeracao(dispositivo, true);
     }
 
-    getNumeracaoComRotuloParaComandoEmenda(): string {
+    getNumeracaoComRotuloParaComandoEmenda(dispositivo: Dispositivo): string {
       if (this.numero === undefined) {
         return TipoDispositivo.artigo.descricao?.toLowerCase() + ' [ainda não numerado]';
       }
       if (this.informouArtigoUnico) {
         return 'artigo único';
       }
-      return 'art. ' + this.getNumeroAndSufixoNumeracao(true);
+      return 'art. ' + this.getNumeroAndSufixoNumeracao(dispositivo, true);
     }
   };
 }
