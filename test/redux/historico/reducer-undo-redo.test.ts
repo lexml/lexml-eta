@@ -70,6 +70,7 @@ describe('Testando histórico de undo e redo', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR, false);
     state = openArticulacaoAction(projetoNorma.articulacao!);
+    state.ui = {};
   });
   describe('Undo/Redo quando não há histórico', () => {
     it('Deveria possui os 5 artigos originais', () => {

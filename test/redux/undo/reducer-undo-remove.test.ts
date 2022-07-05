@@ -13,6 +13,7 @@ describe('Testando undo de remover artigo', () => {
       articulacao,
       past: [],
       present: [],
+      ui: {},
     };
   });
   describe('Undo quando não há histórico', () => {

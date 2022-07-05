@@ -13,6 +13,7 @@ describe('Testando a atualização de texto artigos e dispositivos de artigo', (
     articulacao.renumeraArtigos();
     state = {
       articulacao,
+      ui: {},
     };
   });
   describe('Inicialização do teste ', () => {
