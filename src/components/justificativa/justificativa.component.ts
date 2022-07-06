@@ -30,7 +30,6 @@ export class JustificativaEmendaComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <link rel="stylesheet" href="http://cdn.quilljs.com/1.3.6/quill.snow.css" />
       <style>
         #editor-justificativa {
           height: 375px;

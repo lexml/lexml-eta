@@ -103,37 +103,13 @@ export const editorStyles = html`
       text-align: center;
     }
 
-    .lx-eta-dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .lx-eta-dropdown-content {
-      display: none;
+    .container__menu sl-button::part(base) {
       position: absolute;
-      background-color: #f9f9f9;
-      min-width: 160px;
-      box-shadow: 0px 4px 4px 4px rgba(0, 0, 0, 0.25);
-      z-index: 1;
+      margin: -13px;
     }
 
-    .lx-eta-dropdown-content div {
-      color: black;
-      padding: 5px 16px;
-      text-decoration: none;
-      display: block;
-      white-space: nowrap;
-      font-weight: normal !important;
-      text-align: left;
-      cursor: pointer;
-    }
-
-    .lx-eta-dropdown-content div:hover {
-      background-color: #e5e5e5;
-    }
-
-    .lx-eta-dropdown:hover .lx-eta-dropdown-content {
-      display: block;
+    .container__menu sl-button::part(base):hover {
+      background-color: #e1e1e1;
     }
 
     .lx-eta-dropdown:hover .lx-eta-dropbtn {
