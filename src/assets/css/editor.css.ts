@@ -253,6 +253,25 @@ export const editorStyles = html`
       margin-right: 10px;
     }
 
+    .texto__rotulo--omissis {
+      box-shadow: none;
+    }
+
+    .texto__rotulo--omissis:before {
+      position: relative;
+      content: ' Dispositivos omitidos ';
+      left: 0;
+      top: -1px;
+      margin-right: 5px;
+      border: 1px solid green;
+      padding: 0 4px;
+      font-weight: normal;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
     .texto__dispositivo {
       display: inline;
     }
