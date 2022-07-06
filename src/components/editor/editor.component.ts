@@ -504,9 +504,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
           this.inserirNovosElementosNoQuill(event, true);
-          if (events[events.length - 1] === event) {
-            this.marcarLinha(event);
-          }
           break;
 
         case StateType.ElementoModificado:
@@ -530,9 +527,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.ElementoRenumerado:
           this.renumerarQuill(event);
-          if (events[events.length - 1] === event) {
-            this.marcarLinha(event);
-          }
           break;
 
         case StateType.ElementoValidado:
