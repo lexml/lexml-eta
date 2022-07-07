@@ -509,12 +509,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoModificado:
         case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
-          this.montarMenuContexto(event);
+          if (events[events.length - 1] === event) {
+            this.marcarLinha(event);
+          }
           break;
 
         case StateType.ElementoSuprimido:
           this.atualizarSituacao(event);
-          this.montarMenuContexto(event);
+          if (events[events.length - 1] === event) {
+            this.marcarLinha(event);
+          }
           break;
 
         case StateType.ElementoRemovido:
@@ -530,7 +534,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoSelecionado:
-          this.montarMenuContexto(event);
+          if (events[events.length - 1] === event) {
+            this.montarMenuContexto(event);
+          }
           this.atualizarMensagemQuill(event);
           break;
 
@@ -540,7 +546,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.SituacaoElementoModificada:
           this.atualizarSituacao(event);
-          this.montarMenuContexto(event);
           this.atualizarAtributos(event);
           this.atualizarMensagemQuill(event);
           break;
@@ -771,9 +776,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const acoesMenu: ElementoAction[] = (elemento?.acoesPossiveis ?? []).filter((acao: ElementoAction) => isAcaoMenu(acao));
 
     if (acoesMenu.length > 0) {
-      if (!this.quill.linhaAtual || this.quill.linhaAtual.uuid !== elemento.uuid) {
-        this.marcarLinha(event);
-      }
       const blotMenu: EtaBlotMenu = new EtaBlotMenu();
       const blotMenuConteudo: EtaBlotMenuConteudo = new EtaBlotMenuConteudo(this.quill.linhaAtual.containerDireito.alinhamentoMenu);
       const callback: any = (itemMenu: string) => {
@@ -994,7 +996,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     dialog.innerHTML = mensagem + botoesHtml;
     await document.body.appendChild(dialog);
     await dialog.show();
-    const botoesDialog = document.querySelectorAll('sl-button');
+    const botoesDialog = dialog.querySelectorAll('sl-button');
     const nao = botoesDialog[0] as SlButton;
     const sim = botoesDialog[1] as SlButton;
     sim.focus();

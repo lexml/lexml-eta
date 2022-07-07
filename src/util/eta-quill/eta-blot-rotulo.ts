@@ -19,6 +19,10 @@ export class EtaBlotRotulo extends EtaBlot {
       node.setAttribute('abre-aspas', 'true');
     }
 
+    if (elemento.tipo) {
+      node.setAttribute('tipo-dispositivo', elemento.tipo);
+    }
+
     node.innerHTML = elemento.rotulo;
     node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
     return node;
@@ -61,7 +65,8 @@ export class EtaBlotRotulo extends EtaBlot {
     return (
       'texto__rotulo' +
       (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
-      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.dispositivoAlteracao ? ' rotulo' : '')
+      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.dispositivoAlteracao ? ' rotulo' : '') +
+      (' texto__rotulo--' + elemento.tipo?.toLowerCase())
     );
   }
 
