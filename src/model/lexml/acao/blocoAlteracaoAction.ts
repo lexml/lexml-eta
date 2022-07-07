@@ -11,7 +11,7 @@ class BlocoAlteracao implements ElementoAction {
 
   isDispositivoAlteracao = true;
   constructor(private tipoAcao: string) {
-    this.descricao = tipoAcao === INICIAR_BLOCO ? `Inserir bloco de alteração` : `Finalizar bloco de alteração`;
+    this.descricao = tipoAcao === INICIAR_BLOCO ? `Adicionar alteração de norma` : `Finalizar alteração de norma`;
   }
 
   execute(atual: Referencia, conteudo?: string, tipo?: Referencia, hasDesmembramento = false): any {
