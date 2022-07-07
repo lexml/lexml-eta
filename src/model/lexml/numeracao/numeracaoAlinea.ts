@@ -43,7 +43,7 @@ export function NumeracaoAlinea<TBase extends Constructor>(Base: TBase): any {
       if (this.numero === undefined) {
         return '[ainda não numerada]'; // TipoDispositivo.alinea.descricao?.toLocaleLowerCase() + '';
       }
-      return '“' + trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaLetra, converteNumerosComplementoParaLetra) + '”';
+      return '“' + this.rotulo!.trim().replace(this.SUFIXO, '') + '”';
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

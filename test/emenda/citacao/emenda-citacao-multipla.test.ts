@@ -28,11 +28,11 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
 
   it('acrescimoArtigo', () => {
     /*
-     * 'Art. 1º-A. nononoono'
+     * 'Art. 1º-1. nononoono'
      */
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-A.</Rotulo>Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-1.</Rotulo>Texto”</p>');
   });
 
   it('acrescimoParagrafoEIncisoNoMesmoArtigo', () => {
@@ -54,11 +54,11 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
      * Parágrafo único. nononono'
      * 'Art. 2º ..................
      * ...........................
-     * I-A - nonononono
+     * I-1 - nonononono
      * ..........................'
      */
     TesteCmdEmdUtil.incluiParagrafo(state, 'art1', false, 'art1_par1u'); // parágrafo único do art. 1º
-    TesteCmdEmdUtil.incluiInciso(state, 'art2_cpt_inc1', false, 'art2_cpt_inc1-1'); // inciso I-B do caput do art. 2º
+    TesteCmdEmdUtil.incluiInciso(state, 'art2_cpt_inc1', false, 'art2_cpt_inc1-1'); // inciso I-2 do caput do art. 2º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     // eslint-disable-next-line prettier/prettier
     expect(cit).to.equal(
@@ -66,7 +66,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
         '<p><Rotulo>Parágrafo único.</Rotulo>Texto”</p>' +
         '<p>“<Rotulo>Art. 2º</Rotulo><Omissis/></p>' +
         '<p><Omissis/></p>' +
-        '<p><Rotulo>I-A –</Rotulo>Texto</p>' +
+        '<p><Rotulo>I-1 –</Rotulo>Texto</p>' +
         '<p><Omissis/>”</p>'
     );
   });
@@ -75,23 +75,23 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     /*
      * 'Art. 9º ..................
      * ...........................
-     * § 2º-A. nononono
+     * § 2º-1. nononono
      * ...........................
-     * § 4º-A. nononono
-     * § 4º-B. nononono
+     * § 4º-1. nononono
+     * § 4º-2. nononono
      * ..........................'
      */
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par2', false, 'art9_par2-1'); // § 2º-A do art. 9º
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par4', false, 'art9_par4-1'); // § 4º-A do art. 9º
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par4-1', false, 'art9_par4-2'); // § 4º-B do art. 9º
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par2', false, 'art9_par2-1'); // § 2º-1 do art. 9º
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par4', false, 'art9_par4-1'); // § 4º-1 do art. 9º
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par4-1', false, 'art9_par4-2'); // § 4º-2 do art. 9º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
       '<p>“<Rotulo>Art. 9º</Rotulo><Omissis/></p>' +
         '<p><Omissis/></p>' +
-        '<p><Rotulo>§ 2º-A.</Rotulo>Texto</p>' +
+        '<p><Rotulo>§ 2º-1.</Rotulo>Texto</p>' +
         '<p><Omissis/></p>' +
-        '<p><Rotulo>§ 4º-A.</Rotulo>Texto</p>' +
-        '<p><Rotulo>§ 4º-B.</Rotulo>Texto</p>' +
+        '<p><Rotulo>§ 4º-1.</Rotulo>Texto</p>' +
+        '<p><Rotulo>§ 4º-2.</Rotulo>Texto</p>' +
         '<p><Omissis/>”</p>'
     );
   });
@@ -218,16 +218,16 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
      * I - .......................
      * a) ........................
      * ...........................
-     * 1-A - nnoonononon onono
+     * 1-1 - nnoonononon onono
      * ...........................
      * b) nnonono o no nonono
      * ..........................'
      */
-    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1'); // item 1-A da alínea 'a' do inciso I do § 6º do art. 9º
+    TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1'); // item 1-1 da alínea 'a' do inciso I do § 6º do art. 9º
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali2'); // alínea 'b' do inciso I do § 6º do art. 9º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo><Omissis/></p><p><Rotulo> I – </Rotulo><Omissis/></p><p><Rotulo> a) </Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>1-A.</Rotulo>Texto</p><p><Omissis/></p><p><Rotulo> b) </Rotulo>Texto</p><p><Omissis/>”</p>'
+      '<p>“<Rotulo>Art. 9º</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo><Omissis/></p><p><Rotulo> I – </Rotulo><Omissis/></p><p><Rotulo> a) </Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>1-1.</Rotulo>Texto</p><p><Omissis/></p><p><Rotulo> b) </Rotulo>Texto</p><p><Omissis/>”</p>'
     );
   });
 

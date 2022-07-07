@@ -36,7 +36,7 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
       if (this.numero === undefined) {
         return '[ainda não numerado]'; // TipoDispositivo.item.descricao?.toLowerCase() + '';
       }
-      return this.rotulo!;
+      return this.rotulo!.trim().replace('.', '');
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {

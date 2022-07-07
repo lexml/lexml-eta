@@ -118,7 +118,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
   //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', true, '');
   //   TesteCmdEmdUtil.incluiInciso(state, 'art9_par6_inc1', false, '');
   //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos 0 e I-A ao § 6º do art. 9º do Projeto, com a seguinte redação:');
+  //   expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos 0 e I-1 ao § 6º do art. 9º do Projeto, com a seguinte redação:');
   // });
 
   it('acrescimoTresIncisosEmDoisParagrafos', () => {
@@ -126,7 +126,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1-1');
     TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1-1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se inciso I ao § 5º do art. 9º e incisos I-A e I-B ao § 7º do art. 9º do Projeto, com a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se inciso I ao § 5º do art. 9º e incisos I-1 e I-2 ao § 7º do art. 9º do Projeto, com a seguinte redação:');
   });
 
   it('acrescimoQuatroIncisosEmDoisParagrafos', () => {
@@ -135,7 +135,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1');
     TesteCmdEmdUtil.incluiInciso(state, 'art9_par7_inc1', false, 'art9_par7_inc1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I e II ao § 5º do art. 9º e incisos I-A e I-B ao § 7º do art. 9º do Projeto, com a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se incisos I e II ao § 5º do art. 9º e incisos I-1 e I-2 ao § 7º do art. 9º do Projeto, com a seguinte redação:');
   });
 
   // --------------------------------------------------
@@ -175,7 +175,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
     TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc1_ali1', false, 'art9_par6_inc1_ali1-1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se alíneas “a-1” e “a-2” ao inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
   });
 
   it('acrescimoTresAlineasEmDoisIncisos', () => {
@@ -184,7 +184,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º e alínea “a” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
+      'Acrescentem-se alíneas “a-1” e “a-2” ao inciso I do § 6º do art. 9º e alínea “a” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
     );
   });
 
@@ -195,7 +195,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se alíneas “a-A” e “a-B” ao inciso I do § 6º do art. 9º e alíneas “a” e “b” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
+      'Acrescentem-se alíneas “a-1” e “a-2” ao inciso I do § 6º do art. 9º e alíneas “a” e “b” ao inciso II do § 6º do art. 9º do Projeto, com a seguinte redação:'
     );
   });
 
@@ -236,7 +236,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
     TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali1_ite1', false, 'art9_par6_inc1_ali1_ite1-1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se itens 1-1 e 1-2 à alínea “a” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:');
   });
 
   it('acrescimoTresItemsEmDuasAlineas', () => {
@@ -245,7 +245,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º e item 1 à alínea “b” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:'
+      'Acrescentem-se itens 1-1 e 1-2 à alínea “a” do inciso I do § 6º do art. 9º e item 1 à alínea “b” do inciso I do § 6º do art. 9º do Projeto, com a seguinte redação:'
     );
   });
 
@@ -256,7 +256,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se itens 1-A e 1-B à alínea “a” do inciso I do § 6º do art. 9º e' +
+      'Acrescentem-se itens 1-1 e 1-2 à alínea “a” do inciso I do § 6º do art. 9º e' +
         ' itens 1 e 2 à alínea “b” do inciso I do § 6º do art. 9º do Projeto,' +
         ' com a seguinte redação:'
     );
@@ -271,20 +271,20 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
     TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7', false, 'art9_par8');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se § 1º-A ao art. 9º, alínea “a” ao inciso II do § 6º do art. 9º e § 8º ao art. 9º do Projeto, com a seguinte redação:'
+      'Acrescentem-se § 1º-1 ao art. 9º, alínea “a” ao inciso II do § 6º do art. 9º e § 8º ao art. 9º do Projeto, com a seguinte redação:'
     );
   });
 
   it('acrescimoArtigoParagrafoIncisoAlineaItem', () => {
-    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1'); // art. 1º-A
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art1-1', false, 'art1-1_par1u'); // art. 1º-A, parágrafo único (não deve aparecer no comando)
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1'); // art. 1º-1
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art1-1', false, 'art1-1_par1u'); // art. 1º-1, parágrafo único (não deve aparecer no comando)
     TesteCmdEmdUtil.incluiParagrafo(state, 'art3', false, 'art3_par1u'); // art. 3º, parágrafo único
     TesteCmdEmdUtil.incluiInciso(state, 'art8_par1u', false, 'art8_par1u_inc1'); // art. 8º, § 1º, inciso I
     TesteCmdEmdUtil.incluiAlinea(state, 'art9_par6_inc2', false, 'art9_par6_inc2_ali1'); // art. 9º, § 6º, inciso II, alínea “a”
     TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1'); // art. 9º, § 6º, inciso I, alínea “b”, item 1
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se art. 1º-A, parágrafo único ao art. 3º,' +
+      'Acrescentem-se art. 1º-1, parágrafo único ao art. 3º,' +
         ' inciso I ao parágrafo único do art. 8º,' +
         ' item 1 à alínea “b” do inciso I do § 6º do art. 9º' +
         ' e alínea “a” ao inciso II do § 6º do art. 9º do Projeto,' +
