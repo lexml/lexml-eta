@@ -1,6 +1,6 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
@@ -223,15 +223,45 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (
     isDispositivoAlteracao(dispositivo) &&
     !isAgrupador(dispositivo) &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
     dispositivo.texto &&
-    ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
-    dispositivo.filhos.filter(f => isIncisoCaput(f)).length > 0 &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
+    !isArtigo(dispositivo) &&
+    hasFilhos(dispositivo) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
+    });
+  }
+
+  if (
+    isDispositivoAlteracao(dispositivo) &&
+    !isAgrupador(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.texto !== TEXTO_OMISSIS &&
+    isArtigo(dispositivo) &&
+    hasFilhos((dispositivo as Artigo).caput!) &&
+    !hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
+    });
+  }
+
+  if (
+    (isDispositivoAlteracao(dispositivo) &&
+      !isAgrupador(dispositivo) &&
+      dispositivo.texto &&
+      dispositivo.texto !== TEXTO_OMISSIS &&
+      isArtigo(dispositivo) &&
+      !hasFilhos((dispositivo as Artigo).caput!)) ||
+    (!isArtigo(dispositivo) && !hasFilhos(dispositivo) && hasIndicativoDesdobramento(dispositivo))
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} não deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}`,
     });
   }
 
