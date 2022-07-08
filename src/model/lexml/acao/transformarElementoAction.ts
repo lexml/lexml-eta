@@ -29,7 +29,7 @@ export class TransformarElemento implements ElementoAction {
 }
 export const transformarEmOmissisAlinea = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Alíneas', 'transformarAlineaEmOmissisAlinea');
 export const transformarEmOmissisIncisoCaput = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Incisos de Caput', 'transformarIncisoCaputEmOmissisIncisoCaput');
-export const transformarEmOmissisItem = new TransformarElemento(TipoDispositivo.omissis, ' Omitir Itens', 'transformarItemEmOmissisItem');
+export const transformarEmOmissisItem = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Itens', 'transformarItemEmOmissisItem');
 export const transformarEmOmissisParagrafo = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Parágrafos', 'transformarParagrafoEmOmissisParagrafo');
 export const transformarEmOmissisIncisoParagrafo = new TransformarElemento(
   TipoDispositivo.omissis,
