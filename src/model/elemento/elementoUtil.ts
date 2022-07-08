@@ -1,11 +1,12 @@
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo } from '../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
   buildListaDispositivos,
   findDispositivoByUuid,
   getArticulacao,
+  getDispositivoAnterior,
   getDispositivosPosteriores,
   hasFilhos,
   irmaosMesmoTipo,
@@ -220,6 +221,11 @@ export const criaListaElementosAfinsValidados = (dispositivo: Dispositivo | unde
     });
   } else if (incluiDispositivo && !isArticulacao(dispositivo) && !isAgrupador(dispositivo)) {
     criaElementoValidadoSeNecessario(validados, dispositivo, true);
+  }
+
+  const anterior = getDispositivoAnterior(dispositivo);
+  if (anterior !== undefined && isOmissis(anterior)) {
+    criaElementoValidadoSeNecessario(validados, anterior, false);
   }
 
   return validados;
