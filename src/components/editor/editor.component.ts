@@ -4,11 +4,14 @@ import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { editorStyles } from '../../assets/css/editor.css';
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
+import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
+import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-import { hasElementoAscendenteAdicionado, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
-import { ElementoAction, getAcao, isAcaoMenu } from '../../model/lexml/acao';
+import { getDispositivoFromElemento, hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
+import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
@@ -44,12 +47,9 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
+import { LexmlEtaComponent } from '../lexml-eta.component';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { informarNormaDialog } from './informarNormaDialog';
-import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
-import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
-import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
-import { LexmlEtaComponent } from '../lexml-eta.component';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -586,16 +586,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private processarEscolhaMenu(itemMenu: string): void {
-    if (itemMenu === 'Remover dispositivo') {
+  private processarEscolhaMenu(itemMenu: any): void {
+    /*     if (itemMenu === 'Remover dispositivo') {
       this.removerElemento();
-    } else if (itemMenu === renumerarElementoAction.descricao) {
+    } else
+ */ if (itemMenu === renumerarElementoAction) {
       this.renumerarElemento();
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
-      rootStore.dispatch(getAcao(itemMenu).execute(elemento));
+      rootStore.dispatch(itemMenu.execute(elemento));
     }
   }
 

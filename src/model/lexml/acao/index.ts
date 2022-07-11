@@ -59,6 +59,7 @@ import { validarElementoAction } from './validarElementoAction';
 export interface ElementoAction {
   descricao?: string;
   tipo?: string;
+  hotkey?: string;
   execute(atual: Referencia, conteudo?: string, novo?: Referencia): any;
 }
 

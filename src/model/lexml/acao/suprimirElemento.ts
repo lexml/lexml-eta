@@ -8,7 +8,7 @@ class SuprimirElemento implements ElementoAction {
   tipo?: string;
 
   constructor() {
-    this.descricao = 'Suprimir dispositivo';
+    this.descricao = 'Suprimir';
   }
 
   execute(atual: Referencia): any {

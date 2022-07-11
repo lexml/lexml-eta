@@ -1,7 +1,7 @@
-import { ElementoAction } from '../../model/lexml/acao';
-import { EtaBlot } from './eta-blot';
-import { informarNormaAction } from '../../model/lexml/acao/informarNormaAction';
 import { SlMenuItem } from '@shoelace-style/shoelace';
+import { ElementoAction } from '../../model/lexml/acao';
+import { informarNormaAction } from '../../model/lexml/acao/informarNormaAction';
+import { EtaBlot } from './eta-blot';
 
 export class EtaBlotMenuItem extends EtaBlot {
   static blotName = 'blotMenuItem';
@@ -13,7 +13,7 @@ export class EtaBlotMenuItem extends EtaBlot {
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotMenuItem.className);
-    node.innerHTML = acao.descricao ?? '';
+    node.innerHTML = (acao.descricao ?? '') + (acao.hotkey ? `<b> ${acao.hotkey} </b>` : '');
 
     node.addEventListener('mousedown', () => {
       if (acao.descricao === informarNormaAction.descricao) {
@@ -21,7 +21,7 @@ export class EtaBlotMenuItem extends EtaBlot {
         localStorage.setItem('indexCursor', JSON.stringify(index));
       }
 
-      callback(acao.descricao);
+      callback(acao);
     });
     return node;
   }

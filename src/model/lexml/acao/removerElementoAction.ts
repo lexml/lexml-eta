@@ -6,9 +6,10 @@ export const REMOVER_ELEMENTO = 'REMOVER_ELEMENTO';
 export class RemoverElemento implements ElementoAction {
   descricao: string;
   tipo?: string;
+  hotkey = 'Ctrl < Del >';
 
   constructor() {
-    this.descricao = 'Remover dispositivo';
+    this.descricao = 'Remover';
   }
 
   execute(atual: Referencia): any {

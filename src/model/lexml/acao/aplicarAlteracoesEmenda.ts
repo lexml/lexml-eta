@@ -7,7 +7,7 @@ export class AplicarAlteracoesEmenda {
   tipo?: string;
 
   constructor() {
-    this.descricao = 'Atualizar dispositivo';
+    this.descricao = 'Atualizar';
   }
 
   execute(alteracoesEmenda: DispositivosEmenda): any {

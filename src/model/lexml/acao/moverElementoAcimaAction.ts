@@ -6,6 +6,7 @@ export const MOVER_ELEMENTO_ACIMA = 'Mover para cima';
 export class MoverElementoAcima implements ElementoAction {
   descricao: string;
   tipo?: string;
+  hotkey = 'Ctrl <⇡>';
 
   constructor() {
     this.descricao = 'Mover para cima';

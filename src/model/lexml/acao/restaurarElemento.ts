@@ -8,7 +8,7 @@ export class RestaurarElemento implements ElementoAction {
   tipo?: string;
 
   constructor() {
-    this.descricao = 'Abandonar modificações do dispositivo';
+    this.descricao = 'Abandonar modificações';
   }
 
   execute(atual: Referencia): any {
