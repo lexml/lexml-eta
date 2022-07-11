@@ -260,7 +260,6 @@ export const editorStyles = html`
 
     .texto__rotulo--omissis:before {
       position: relative;
-      content: ' Dispositivos omitidos ';
       left: 0;
       top: -1px;
       margin-right: 5px;
@@ -275,6 +274,26 @@ export const editorStyles = html`
     }
     .texto__dispositivo {
       display: inline;
+    }
+
+    .container__texto[label-omissis='inciso-caput'] .texto__rotulo--omissis:before {
+      content: ' Incisos de caput omitidos ';
+    }
+
+    .container__texto[label-omissis='inciso-paragrafo'] .texto__rotulo--omissis:before {
+      content: ' Incisos de parágrafo omitidos ';
+    }
+
+    .container__texto[label-omissis='paragrafo'] .texto__rotulo--omissis:before {
+      content: ' Parágrafos omitidos ';
+    }
+
+    .container__texto[label-omissis='alinea'] .texto__rotulo--omissis:before {
+      content: ' Alíneas omitidas ';
+    }
+
+    .container__texto[label-omissis='item'] .texto__rotulo--omissis:before {
+      content: ' Itens omitidos ';
     }
 
     .Omissis {
