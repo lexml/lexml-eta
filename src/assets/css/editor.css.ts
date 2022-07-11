@@ -225,10 +225,10 @@ export const editorStyles = html`
       box-shadow: 0px -1px 0px green inset;
     }
 
-    [existenanormaalterada='true'] label:before {
+    [existenanormaalterada='true'] label:after {
       position: relative;
       content: 'Existente';
-      left: 0;
+      left: 5px;
       top: -1px;
       margin-right: 5px;
       border: 1px solid green;
