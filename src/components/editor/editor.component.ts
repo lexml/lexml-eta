@@ -114,9 +114,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           --lx-eta-editor-overflow: display;
         }
         #lx-eta-editor {
-          height: var(--lx-eta-editor-height);
           overflow: var(--lx-eta-editor-overflow);
           display: block;
+          height: calc(100% - 12px);
         }
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);
