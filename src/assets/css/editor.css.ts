@@ -225,9 +225,8 @@ export const editorStyles = html`
       box-shadow: 0px -1px 0px green inset;
     }
 
-    [existenanormaalterada='true'] label:after {
+    [existenanormaalterada] label:after {
       position: relative;
-      content: 'Existente';
       left: 5px;
       top: -1px;
       margin-right: 5px;
@@ -238,6 +237,14 @@ export const editorStyles = html`
       -moz-border-radius: 4px;
       border-radius: 4px;
       font-size: 12px;
+    }
+
+    [existenanormaalterada='true'] label:after {
+      content: 'Existente';
+    }
+
+    [existenanormaalterada='false'] label:after {
+      content: 'Novo';
     }
 
     .texto__rotulo {
