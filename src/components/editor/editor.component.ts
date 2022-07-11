@@ -596,17 +596,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(getAcao(itemMenu).execute(elemento));
-      if (itemMenu === 'Omitir Incisos de Caput') {
-        this.quill.linhaAtual.domNode.setAttribute('tipo-omitido', 'inciso-caput');
-      } else if (itemMenu === 'Omitir Incisos de Parágrafo') {
-        this.quill.linhaAtual.domNode.setAttribute('tipo-omitido', 'inciso-paragrafo');
-      } else if (itemMenu === 'Omitir Alíneas') {
-        this.quill.linhaAtual.domNode.setAttribute('tipo-omitido', 'alinea');
-      } else if (itemMenu === 'Omitir Itens') {
-        this.quill.linhaAtual.domNode.setAttribute('tipo-omitido', 'item');
-      } else if (itemMenu === 'Omitir Parágrafos') {
-        this.quill.linhaAtual.domNode.setAttribute('tipo-omitido', 'paragrafo');
-      }
     }
   }
 
