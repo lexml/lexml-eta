@@ -95,7 +95,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     fechaAspas,
     notaAlteracao,
     dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
-    labelOmissis: labelOmissis(dispositivo, pai),
+    labelOmissis: dispositivo.tipo === 'Omissis' ? labelOmissis(pai) : undefined,
   };
 };
 
@@ -259,20 +259,19 @@ export const hasElementoAscendenteAdicionado = (articulacao: Articulacao, refere
   return d ? verificaNaoPrecisaInformarSituacaoNormaVigente(d) : false;
 };
 
-export const labelOmissis = (dispositivo: Dispositivo, pai: Dispositivo | undefined): string => {
-  let label = '';
-  if (dispositivo.tipo === 'Omissis') {
-    if (pai?.tipo === 'Caput') {
-      label = 'inciso-caput';
-    } else if (pai?.tipo === 'Inciso') {
-      label = 'alinea';
-    } else if (pai?.tipo === 'Alinea') {
-      label = 'item';
-    } else if (pai?.tipo === 'Artigo') {
-      label = 'paragrafo';
-    } else if (pai?.tipo === 'Paragrafo') {
-      label = 'inciso-paragrafo';
-    }
+export const labelOmissis = (pai: Dispositivo | undefined): string => {
+  switch (pai?.tipo) {
+    case 'Caput':
+      return 'inciso-caput';
+    case 'Inciso':
+      return 'alinea';
+    case 'Alinea':
+      return 'item';
+    case 'Artigo':
+      return 'paragrafo';
+    case 'Paragrafo':
+      return 'inciso-paragrafo';
+    default:
+      return '';
   }
-  return label;
 };
