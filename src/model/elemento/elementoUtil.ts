@@ -95,7 +95,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     fechaAspas,
     notaAlteracao,
     dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
-    labelOmissis: dispositivo.tipo === 'Omissis' ? labelOmissis(pai) : undefined,
+    tipoOmissis: dispositivo.tipo === 'Omissis' ? tipoOmissis(pai) : undefined,
   };
 };
 
@@ -259,7 +259,7 @@ export const hasElementoAscendenteAdicionado = (articulacao: Articulacao, refere
   return d ? verificaNaoPrecisaInformarSituacaoNormaVigente(d) : false;
 };
 
-export const labelOmissis = (pai: Dispositivo | undefined): string => {
+export const tipoOmissis = (pai: Dispositivo | undefined): string => {
   switch (pai?.tipo) {
     case 'Caput':
       return 'inciso-caput';

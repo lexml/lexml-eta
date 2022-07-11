@@ -276,23 +276,23 @@ export const editorStyles = html`
       display: inline;
     }
 
-    .container__texto[label-omissis='inciso-caput'] .texto__rotulo--omissis:before {
-      content: ' Incisos de caput omitidos ';
+    .container__texto[tipo-omissis='inciso-caput'] .texto__rotulo--omissis:before {
+      content: ' Incisos omitidos ';
     }
 
-    .container__texto[label-omissis='inciso-paragrafo'] .texto__rotulo--omissis:before {
-      content: ' Incisos de parágrafo omitidos ';
+    .container__texto[tipo-omissis='inciso-paragrafo'] .texto__rotulo--omissis:before {
+      content: ' Incisos omitidos ';
     }
 
-    .container__texto[label-omissis='paragrafo'] .texto__rotulo--omissis:before {
+    .container__texto[tipo-omissis='paragrafo'] .texto__rotulo--omissis:before {
       content: ' Parágrafos omitidos ';
     }
 
-    .container__texto[label-omissis='alinea'] .texto__rotulo--omissis:before {
+    .container__texto[tipo-omissis='alinea'] .texto__rotulo--omissis:before {
       content: ' Alíneas omitidas ';
     }
 
-    .container__texto[label-omissis='item'] .texto__rotulo--omissis:before {
+    .container__texto[tipo-omissis='item'] .texto__rotulo--omissis:before {
       content: ' Itens omitidos ';
     }
 

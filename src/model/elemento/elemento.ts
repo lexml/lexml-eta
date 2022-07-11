@@ -31,5 +31,5 @@ export class Elemento extends Referencia {
   fechaAspas?: boolean;
   notaAlteracao?: string;
   dispositivoAlteracao?: boolean;
-  labelOmissis?: string;
+  tipoOmissis?: string;
 }
