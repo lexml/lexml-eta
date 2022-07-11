@@ -19,6 +19,12 @@ export class EtaContainerTdEsquerdo extends Container {
       const padding: number = (elemento.agrupador ? 0 : elemento.nivel) * fator + 5;
       node.setAttribute('style', `padding-left: ${padding}px;`);
     }
+    if (elemento.tipoOmissis) {
+      node.setAttribute('tipo-omissis', elemento.tipoOmissis);
+    }
+    if (elemento.existeNaNormaAlterada) {
+      node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
+    }
 
     return node;
   }
