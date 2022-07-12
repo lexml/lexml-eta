@@ -481,7 +481,7 @@ export class CmdEmdUtil {
   // em necessidade de renumeração na redação final.
   static implicaEmRenumeracaoRedacaoFinal(d: Dispositivo): boolean {
     // rótulo 0 (zero) ou possui sufixo de encaixe (-A, -B...)
-    if (d.rotulo && /.*(?:0|-[A-Z]).*/i.test(d.rotulo)) {
+    if (d.rotulo && (d.numero === '0' || /.*(?:-\d).*/i.test(d.rotulo))) {
       return true;
     }
     // adjacente a parágrafo ou artigo único

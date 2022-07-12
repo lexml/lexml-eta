@@ -24,7 +24,7 @@ export class DispositivoOriginal implements TipoSituacao {
       .filter((a: ElementoAction) => !(a instanceof RenumerarElemento))
       .filter((a: ElementoAction) => !(a instanceof InformarNorma));
 
-    if (!isDispositivoAlteracao(dispositivo) && getDispositivoAndFilhosAsLista(dispositivo).filter(f => isSituacaoExclusivaDispositivoEmenda(f)).length === 0) {
+    if (getDispositivoAndFilhosAsLista(dispositivo).filter(f => isSituacaoExclusivaDispositivoEmenda(f)).length === 0) {
       acoesFiltradas.push(suprimirElementoAction);
     }
 
