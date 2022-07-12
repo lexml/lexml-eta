@@ -40,7 +40,9 @@ import {
   transformarGenericoEmAlinea,
   transformarGenericoEmInciso,
   transformarGenericoEmItem,
+  transformarIncisoCaputEmAlinea,
   transformarIncisoCaputEmParagrafo,
+  transformarIncisoParagrafoEmAlinea,
   transformarIncisoParagrafoEmParagrafo,
   transformarItemEmAlinea,
   transformarOmissisEmAlinea,
@@ -84,9 +86,12 @@ acoesMenu.push(transformarArtigoEmParagrafo);
 acoesMenu.push(transformarGenericoEmInciso);
 acoesMenu.push(transformarGenericoEmAlinea);
 acoesMenu.push(transformarGenericoEmItem);
+acoesMenu.push(transformarIncisoParagrafoEmAlinea);
 acoesMenu.push(transformarIncisoParagrafoEmParagrafo);
 acoesMenu.push(transformarItemEmAlinea);
 acoesMenu.push(transformarIncisoCaputEmParagrafo);
+acoesMenu.push(transformarIncisoCaputEmAlinea);
+
 acoesMenu.push(transformarOmissisEmAlinea);
 acoesMenu.push(transformarOmissisEmArtigo);
 acoesMenu.push(transformarOmissisEmIncisoCaput);
