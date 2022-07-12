@@ -1,4 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArticulacao } from '../../dispositivo/tipo';
 import { validaTexto } from '../conteudo/conteudoValidator';
 import { validaUrn } from '../documento/urnUtil';
@@ -25,7 +26,11 @@ const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
-  if ((isArticulacao(dispositivo) && dispositivo.pai === undefined) || isOriginal(dispositivo)) {
+  if (
+    (isArticulacao(dispositivo) && dispositivo.pai === undefined) ||
+    isOriginal(dispositivo) ||
+    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
+  ) {
     return [];
   }
   return validaHierarquia(dispositivo).concat(validaTexto(dispositivo), validaNumeracao(dispositivo), validaReferencia(dispositivo));
