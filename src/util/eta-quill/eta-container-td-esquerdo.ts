@@ -22,10 +22,6 @@ export class EtaContainerTdEsquerdo extends Container {
     if (elemento.tipoOmissis) {
       node.setAttribute('tipo-omissis', elemento.tipoOmissis);
     }
-    if (elemento.existeNaNormaAlterada !== undefined) {
-      node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
-    }
-
     return node;
   }
 
