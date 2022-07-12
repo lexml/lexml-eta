@@ -25,6 +25,9 @@ export class EtaContainerTable extends Container {
     node.setAttribute('cellpadding', '0');
     node.setAttribute('cellspacing', '0');
     node.setAttribute('border', '0');
+    if (elemento.existeNaNormaAlterada !== undefined) {
+      node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
+    }
     return node;
   }
 
