@@ -75,7 +75,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
+    editavel: dispositivo.tipo === 'Omissis' || isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
     lexmlId: dispositivo.numero && buildId(dispositivo),
