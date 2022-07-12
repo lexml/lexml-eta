@@ -41,9 +41,9 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         dispositivo.tiposPermitidosPai?.filter((tipo, index) => index > pos!).forEach(t => acoes.push(getAcaoAgrupamento(t)));
       }
 
-      if (dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && isAgrupador(dispositivo.pai!) && !isArticulacao(dispositivo.pai)) {
+      /*       if (dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && isAgrupador(dispositivo.pai!) && !isArticulacao(dispositivo.pai)) {
         acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
-      }
+      } */
 
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
