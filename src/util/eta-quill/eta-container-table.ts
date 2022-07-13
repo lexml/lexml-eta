@@ -4,6 +4,8 @@ import { EtaBlotConteudo } from './eta-blot-conteudo';
 import { EtaBlotEspaco } from './eta-blot-espaco';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
+import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
+import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 const Container = Quill.import('blots/container');
 
@@ -18,6 +20,7 @@ export class EtaContainerTable extends Container {
 
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
+    const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();
 
     node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
@@ -27,6 +30,9 @@ export class EtaContainerTable extends Container {
     node.setAttribute('border', '0');
     if (elemento.existeNaNormaAlterada !== undefined) {
       node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
+    }
+    if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
+      node.classList.add('container_elemento--omissis');
     }
     return node;
   }

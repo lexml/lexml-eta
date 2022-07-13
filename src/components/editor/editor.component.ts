@@ -704,13 +704,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.conteudo?.texto !== linha.blotConteudo.html) {
           const texto = normalizaSeForOmissis(elemento.conteudo?.texto ?? '');
           if (texto.indexOf(TEXTO_OMISSIS) >= 0) {
-            const omissisSpan = document.createElement('span');
-            omissisSpan.setAttribute('class', 'texto-omissis');
-            omissisSpan.innerHTML = TEXTO_OMISSIS;
-            linha.blotConteudo.html = omissisSpan.outerHTML;
-          } else {
-            linha.blotConteudo.html = texto;
+            linha.domNode.classList.add('container_elemento--omissis');
           }
+          linha.blotConteudo.html = texto;
         }
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
