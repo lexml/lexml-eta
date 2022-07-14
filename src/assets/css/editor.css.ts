@@ -65,8 +65,9 @@ export const editorStyles = html`
     }
 
     #lx-eta-editor .ql-editor {
-      font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+      /* font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji'; */
+      font-family: var(--sl-font-serif);
       font-size: 1rem;
       line-height: 1.42;
       color: #646260;

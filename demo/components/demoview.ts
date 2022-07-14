@@ -221,6 +221,12 @@ export class DemoView extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
+        body {
+          font-family: var(--sl-font-sans);
+          font-size: var(--sl-font-size-medium);
+          font-weight: var(--sl-font-weight-semibold);
+          /* color: var(--sl-color-neutral-600); */
+        }
         .lexml-eta-main-header {
           display: flex;
           justify-content: space-between;
@@ -233,7 +239,7 @@ export class DemoView extends LitElement {
         }
         .lexml-eta-main-header span {
           vertical-align: middle;
-          font-family: sans-serif;
+          font-family: var(--sl-font-sans);
           font-size: 1.2rem;
           font-weight: bold;
         }
@@ -263,16 +269,22 @@ export class DemoView extends LitElement {
           grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
         }
         lexml-emenda-comando {
+          font-family: var(--sl-font-serif);
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
           height: calc(100vh - 104px);
         }
+        lexml-emenda {
+          font-family: var(--sl-font-serif);
+          text-align: left;
+        }
         .nome-proposicao {
-          min-height: 20px;
-          font-family: sans-serif;
+          font-family: var(--sl-font-sans);
           font-weight: bold;
           background-color: #ccc;
-          color: black;
-          margin-bottom: 3px;
+          /* color: black; */
+          padding: 5px 10px;
+          border-radius: 2px;
+          margin-bottom: 2px;
         }
       </style>
       <div class="lexml-eta-main-header">
