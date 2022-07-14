@@ -63,7 +63,7 @@ export class ComandoEmendaComponent extends LitElement {
         .lexml-emenda-cabecalhoComando {
           display: block;
           margin-top: 1em;
-          /* text-align: justify; */
+          text-align: justify;
           text-indent: 3em;
         }
 

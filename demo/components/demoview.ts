@@ -273,7 +273,7 @@ export class DemoView extends LitElement {
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
           height: calc(100vh - 104px);
         }
-        lexml-emenda {
+        lexml-eta {
           font-family: var(--sl-font-serif);
           text-align: left;
         }

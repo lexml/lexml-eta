@@ -227,6 +227,7 @@ export const editorStyles = html`
     }
 
     [existenanormaalterada] label:after {
+      font-family: var(--sl-font-sans);
       position: relative;
       left: 5px;
       top: -1px;
@@ -263,6 +264,7 @@ export const editorStyles = html`
     }
 
     .texto__rotulo--omissis {
+      font-family: var(--sl-font-sans);
       box-shadow: none;
     }
 
@@ -338,6 +340,7 @@ export const editorStyles = html`
     }
 
     .mensagem {
+      font-family: var(--sl-font-sans);
       font-size: 0.8em;
       font-weight: normal;
       border: 1px solid;
