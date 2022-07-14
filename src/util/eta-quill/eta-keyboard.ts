@@ -213,13 +213,17 @@ export class EtaKeyboard extends Keyboard {
       this.removeElementoSemTexto.notify(ev.key);
     } else if (!this.verificarOperacaoTecladoPermitida() || range.index === this.quill.fimConteudoAtual) {
       cancelarPropagacaoDoEvento(ev);
-    } else if (this.quill.cursorDeTextoEstaSobreLink() || this.quill.cursorDeTextoEstaSobreOmissis()) {
+    } else if (this.quill.cursorDeTextoEstaSobreLink()) {
       let posicao = this.quill.getSelection().index;
       if (!this.quill.cursorDeTextoEstaSobreLink(-1)) {
         posicao += 1;
       }
-      const [leaf, offset] = this.quill.getLeaf(posicao);
-      this.quill.deleteText(posicao - offset, leaf.text.length);
+      this.apagaTextoSobCursor(posicao);
+      cancelarPropagacaoDoEvento(ev);
+    } else if (this.quill.cursorDeTextoEstaSobreOmissis()) {
+      this.quill.linhaAtual.domNode.classList.remove('container_elemento--omissis');
+      const posicao = this.quill.getSelection().index;
+      this.apagaTextoSobCursor(posicao);
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -231,10 +235,14 @@ export class EtaKeyboard extends Keyboard {
       this.removeElementoSemTexto.notify(ev.key);
     } else if (!this.verificarOperacaoTecladoPermitida() || (range.index === this.quill.inicioConteudoAtual && range.length === 0)) {
       cancelarPropagacaoDoEvento(ev);
-    } else if (this.quill.cursorDeTextoEstaSobreLink(-1) || this.quill.cursorDeTextoEstaSobreOmissis()) {
+    } else if (this.quill.cursorDeTextoEstaSobreLink(-1)) {
       const posicao = this.quill.getSelection().index;
-      const [leaf, offset] = this.quill.getLeaf(posicao);
-      this.quill.deleteText(posicao - offset, leaf.text.length);
+      this.apagaTextoSobCursor(posicao);
+      cancelarPropagacaoDoEvento(ev);
+    } else if (this.quill.cursorDeTextoEstaSobreOmissis()) {
+      this.quill.linhaAtual.domNode.classList.remove('container_elemento--omissis');
+      const posicao = this.quill.getSelection().index;
+      this.apagaTextoSobCursor(posicao);
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -320,5 +328,10 @@ export class EtaKeyboard extends Keyboard {
       iniciaOuTerminaComLink = true;
     }
     return iniciaOuTerminaComLink;
+  }
+
+  private apagaTextoSobCursor(posicao: number): void {
+    const [leaf, offset] = this.quill.getLeaf(posicao);
+    this.quill.deleteText(posicao - offset, leaf.text.length);
   }
 }
