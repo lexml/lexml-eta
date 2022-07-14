@@ -57,6 +57,9 @@ export class EtaKeyboard extends Keyboard {
       } else if (this.quill.linhaAtual.tipo === 'Omissis') {
         cancelarPropagacaoDoEvento(ev);
         return;
+      } else if (this.quill.cursorDeTextoEstaSobreOmissis() && !['Delete', 'Backspace'].includes(ev.key) && this.isTeclaQueAlteraTexto(ev)) {
+        cancelarPropagacaoDoEvento(ev);
+        return;
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
           if (ev.key === 'Delete') {
@@ -210,7 +213,7 @@ export class EtaKeyboard extends Keyboard {
       this.removeElementoSemTexto.notify(ev.key);
     } else if (!this.verificarOperacaoTecladoPermitida() || range.index === this.quill.fimConteudoAtual) {
       cancelarPropagacaoDoEvento(ev);
-    } else if (this.quill.cursorDeTextoEstaSobreLink()) {
+    } else if (this.quill.cursorDeTextoEstaSobreLink() || this.quill.cursorDeTextoEstaSobreOmissis()) {
       let posicao = this.quill.getSelection().index;
       if (!this.quill.cursorDeTextoEstaSobreLink(-1)) {
         posicao += 1;
@@ -228,7 +231,7 @@ export class EtaKeyboard extends Keyboard {
       this.removeElementoSemTexto.notify(ev.key);
     } else if (!this.verificarOperacaoTecladoPermitida() || (range.index === this.quill.inicioConteudoAtual && range.length === 0)) {
       cancelarPropagacaoDoEvento(ev);
-    } else if (this.quill.cursorDeTextoEstaSobreLink(-1)) {
+    } else if (this.quill.cursorDeTextoEstaSobreLink(-1) || this.quill.cursorDeTextoEstaSobreOmissis()) {
       const posicao = this.quill.getSelection().index;
       const [leaf, offset] = this.quill.getLeaf(posicao);
       this.quill.deleteText(posicao - offset, leaf.text.length);
