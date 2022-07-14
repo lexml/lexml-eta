@@ -218,12 +218,12 @@ export class EtaKeyboard extends Keyboard {
       if (!this.quill.cursorDeTextoEstaSobreLink(-1)) {
         posicao += 1;
       }
-      this.apagaTextoSobCursor(posicao);
+      this.apagaTextoNaPosicao(posicao);
       cancelarPropagacaoDoEvento(ev);
     } else if (this.quill.cursorDeTextoEstaSobreOmissis()) {
       this.quill.linhaAtual.domNode.classList.remove('container_elemento--omissis');
       const posicao = this.quill.getSelection().index;
-      this.apagaTextoSobCursor(posicao);
+      this.apagaTextoNaPosicao(posicao);
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -237,12 +237,12 @@ export class EtaKeyboard extends Keyboard {
       cancelarPropagacaoDoEvento(ev);
     } else if (this.quill.cursorDeTextoEstaSobreLink(-1)) {
       const posicao = this.quill.getSelection().index;
-      this.apagaTextoSobCursor(posicao);
+      this.apagaTextoNaPosicao(posicao);
       cancelarPropagacaoDoEvento(ev);
     } else if (this.quill.cursorDeTextoEstaSobreOmissis()) {
       this.quill.linhaAtual.domNode.classList.remove('container_elemento--omissis');
       const posicao = this.quill.getSelection().index;
-      this.apagaTextoSobCursor(posicao);
+      this.apagaTextoNaPosicao(posicao);
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -330,7 +330,7 @@ export class EtaKeyboard extends Keyboard {
     return iniciaOuTerminaComLink;
   }
 
-  private apagaTextoSobCursor(posicao: number): void {
+  private apagaTextoNaPosicao(posicao: number): void {
     const [leaf, offset] = this.quill.getLeaf(posicao);
     this.quill.deleteText(posicao - offset, leaf.text.length);
   }
