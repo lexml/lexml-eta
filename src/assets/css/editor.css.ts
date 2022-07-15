@@ -192,6 +192,42 @@ export const editorStyles = html`
       flex: 1;
     }
 
+    .container_elemento--omissis .container__texto {
+      /* border: 1px solid red; */
+    }
+
+    .container_elemento--omissis .texto__rotulo {
+      /* border: 1px solid green; */
+    }
+
+    .container_elemento--omissis .texto__dispositivo {
+      /* border: 1px solid blue; */
+      /* flex: 1 1 100%; */
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 0px;
+      width: 100%;
+    }
+    .container_elemento--omissis .texto__dispositivo:after {
+      /* border: 1px solid orange; */
+      font-size: 16px;
+      vertical-align: middle;
+    }
+    .container_elemento--omissis .texto__dispositivo:before {
+      /* border: 1px solid pink; */
+      /* flex: 1 1 100%; */
+      background-image: radial-gradient(circle, currentcolor 1.1px, transparent 1.1px);
+      background-position: bottom;
+      background-size: 4.5px 3px;
+      background-repeat: space no-repeat;
+      content: '';
+      font-size: 16px;
+      display: inline-block;
+      height: 16px;
+      width: 40%;
+      vertical-align: middle;
+    }
+
     .container__menu {
       width: 30px;
       vertical-align: top;
