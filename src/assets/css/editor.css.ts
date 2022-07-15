@@ -65,8 +65,9 @@ export const editorStyles = html`
     }
 
     #lx-eta-editor .ql-editor {
-      font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+      /* font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji'; */
+      font-family: var(--sl-font-serif);
       font-size: 1rem;
       line-height: 1.42;
       color: #646260;
@@ -111,6 +112,7 @@ export const editorStyles = html`
       height: 23px;
       color: black;
       font-weight: bold;
+      font-size: 15px;
     }
 
     .lx-eta-dropdown:hover .lx-eta-dropbtn {
@@ -191,6 +193,42 @@ export const editorStyles = html`
       flex: 1;
     }
 
+    .container_elemento--omissis .container__texto {
+      /* border: 1px solid red; */
+    }
+
+    .container_elemento--omissis .texto__rotulo {
+      /* border: 1px solid green; */
+    }
+
+    .container_elemento--omissis .texto__dispositivo {
+      /* border: 1px solid blue; */
+      /* flex: 1 1 100%; */
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 0px;
+      width: 100%;
+    }
+    .container_elemento--omissis .texto__dispositivo:after {
+      /* border: 1px solid orange; */
+      font-size: 16px;
+      vertical-align: middle;
+    }
+    .container_elemento--omissis .texto__dispositivo:before {
+      /* border: 1px solid pink; */
+      /* flex: 1 1 100%; */
+      background-image: radial-gradient(circle, currentcolor 1.1px, transparent 1.1px);
+      background-position: bottom;
+      background-size: 4.5px 3px;
+      background-repeat: space no-repeat;
+      content: '';
+      font-size: 16px;
+      display: inline-block;
+      height: 16px;
+      width: 40%;
+      vertical-align: middle;
+    }
+
     .container__menu {
       width: 30px;
       vertical-align: top;
@@ -226,6 +264,7 @@ export const editorStyles = html`
     }
 
     [existenanormaalterada] label:after {
+      font-family: var(--sl-font-sans);
       position: relative;
       left: 5px;
       top: -1px;
@@ -262,6 +301,7 @@ export const editorStyles = html`
     }
 
     .texto__rotulo--omissis {
+      font-family: var(--sl-font-sans);
       box-shadow: none;
     }
 
@@ -337,6 +377,7 @@ export const editorStyles = html`
     }
 
     .mensagem {
+      font-family: var(--sl-font-sans);
       font-size: 0.8em;
       font-weight: normal;
       border: 1px solid;

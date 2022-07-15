@@ -77,7 +77,7 @@ export class ComandoEmendaComponent extends LitElement {
         }
 
         .lexml-emenda-citacaoComando p {
-          text-align: justify;
+          /* text-align: justify; */
           text-indent: 3em;
           margin: 0;
         }
@@ -94,9 +94,10 @@ export class ComandoEmendaComponent extends LitElement {
           font-weight: normal;
           border: 1px solid;
           padding: 4px 10px;
-          margin: 2px;
+          margin: 10px 0;
           display: inline-block;
           border-radius: 2px;
+          font-family: var(--sl-font-sans);
         }
         .mensagem--warning {
           color: #856404;
