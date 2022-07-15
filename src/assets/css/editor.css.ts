@@ -112,6 +112,7 @@ export const editorStyles = html`
       height: 23px;
       color: black;
       font-weight: bold;
+      font-size: 15px;
     }
 
     .lx-eta-dropdown:hover .lx-eta-dropbtn {
