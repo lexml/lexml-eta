@@ -17,6 +17,8 @@ import { EtaContainerTr } from './eta-container-tr';
 import { EtaKeyboard } from './eta-keyboard';
 import { EtaQuillBuffer } from './eta-quill-buffer';
 import { negrito } from '../../../assets/icons/icons';
+import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
+import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 export interface TextoSelecionado {
   conteudo: string;
@@ -389,5 +391,11 @@ export class EtaQuill extends Quill {
     const ops = this.getContents(range.index + deslocamento, 1).ops;
     return !ops ? false : ops[0].attributes?.link;
     // return !!this.getContents(range.index + deslocamento, 1).ops[0].attributes?.link;
+  }
+
+  cursorDeTextoEstaSobreOmissis(): boolean {
+    const range: RangeStatic = this.getSelection(true);
+    const textBlot = this.getLeaf(range.index);
+    return normalizaSeForOmissis(textBlot[0].text) === TEXTO_OMISSIS;
   }
 }
