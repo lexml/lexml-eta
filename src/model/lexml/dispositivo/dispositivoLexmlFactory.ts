@@ -39,6 +39,7 @@ import { RegrasInciso } from '../regras/regrasInciso';
 import { RegrasItem } from '../regras/regrasItem';
 import { RegrasOmissis } from '../regras/regrasOmissis';
 import { RegrasParagrafo } from '../regras/regrasParagrafo';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { SituacaoDispositivo } from '../situacao/situacaoDispositivo';
 import { TipoArticulacao } from '../tipo/tipoArticulacao';
 import { TipoArtigo } from '../tipo/tipoArtigo';
@@ -283,6 +284,10 @@ const createWhenReferenciaIsAgrupador = (referencia: Dispositivo): Dispositivo =
 
 export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alteracoes, referencia?: Dispositivo, posicao?: number): Dispositivo => {
   const dispositivo = criaDispositivo(alteracoes!, tipo, referencia, posicao);
+
+  dispositivo.situacao = new DispositivoAdicionado();
+  dispositivo.isDispositivoAlteracao = true;
+  dispositivo.notaAlteracao = 'NR';
   dispositivo.createRotulo(dispositivo);
 
   return dispositivo;
