@@ -87,7 +87,7 @@ export class CmdEmdUtil {
 
   static getDescricaoSituacaoParaComandoEmenda(d: Dispositivo): string {
     // Trata dispositivo já existente na norma adicionado em bloco de alteração como dispositivo modificado
-    return d.isDispositivoAlteracao && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && DispositivoEmendaUtil.existeNaNormaAlterada(d)
+    return d.isDispositivoAlteracao && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && DispositivoEmendaUtil.existeNaNormaAlterada(d) && !isOmissis(d)
       ? DescricaoSituacao.DISPOSITIVO_MODIFICADO
       : d.situacao.descricaoSituacao;
   }

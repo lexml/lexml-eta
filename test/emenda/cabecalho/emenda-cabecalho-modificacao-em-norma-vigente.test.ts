@@ -1,115 +1,84 @@
 import { expect } from '@open-wc/testing';
+
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { DefaultState, State } from '../../../src/redux/state';
-import { PLC_ARTIGOS_AGRUPADOS } from '../../doc/parser/plc_artigos_agrupados';
 import { TesteCmdEmdUtil } from '../teste-cmd-emd-util';
+import { MPV_885_2019 } from './../../../demo/doc/mpv_885_2019';
 
 let documento: ProjetoNorma;
 const state: State = new DefaultState();
 
 describe('Cabeçalho de comando de emenda com modficiação de dispositivos em alteração de norma vigente', () => {
   beforeEach(function () {
-    documento = buildProjetoNormaFromJsonix(PLC_ARTIGOS_AGRUPADOS, true);
+    documento = buildProjetoNormaFromJsonix(MPV_885_2019, true);
     state.articulacao = documento.articulacao;
   });
 
-  it('Deveria possuir 9 artigos', () => {
-    expect(state.articulacao?.artigos.length).to.equal(9);
+  // Dê-se nova redação ao art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:
+
+  it('modificacaoArtigoComCaput', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao art. 1º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
   });
 
-  // OK
-  // it('modificacaoArtigoComCaput', () => {
-  //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_cpt', false);
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 1º do Projeto para modificar o art. 10 da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
-  // });
+  it('modificacaoParagrafo', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao § 2º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
+  });
 
-  // OK
-  // it('modificacaoParagrafo', () => {
-  //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par5', false);
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o art. 1º do Projeto para modificar o § 5º do art. 10 da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:'
-  //   );
-  // });
+  it('modificacaoParagrafoUnico', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art3_cpt_alt1_art4_par1u');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao caput do parágrafo único do art. 4º da Lei nº 8.745, de 9 de dezembro de 1993, como proposto pelo art. 3º da Medida Provisória, nos termos a seguir:'
+    );
+  });
 
-  // OK
-  // it('modificacaoParagrafoUnico', () => {
-  //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par1u', false);
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o art. 1º do Projeto para modificar o parágrafo único do art. 10 da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:'
-  //   );
-  // });
+  it('modificacaoIncisoDoCaput', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
+  });
 
-  // OK
-  // it('modificacaoIncisoDoCaput', () => {
-  //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_cpt_inc3', false);
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o art. 1º do Projeto para modificar o inciso III do caput do art. 10 da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:'
-  //   );
-  // });
+  it('modificacaoAlinea', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação à alínea “b” do inciso I do caput do art. 63-C da Lei nº 11.343, de 23 de agosto de 2006, como proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
+    );
+  });
 
-  // OK
-  // it('modificacaoAlinea', () => {
-  //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par2_inc1_ali2', false);
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o art. 1º do Projeto para modificar a alínea “b” do inciso I do § 2º do art. 10 da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:'
-  //   );
-  // });
-
-  // OK
-  // it('modificacaoItemEmDecreto', () => {
-  //   TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, 'art1_cpt', TesteCmdEmdUtil.URN_DECRETO, 'art10_par2_inc1_ali2_ite8', false);
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o art. 1º do Projeto' +
-  //       ' para modificar o item 8 da alínea “b” do inciso I do § 2º do art. 10' +
-  //       ' do Decreto nº 58.979, de 3 de agosto de 1966, nos termos a seguir:'
-  //   );
-  // });
-
+  // Proposta de alteração de dispositivo da norma que não existia na proposição.
   it('modificacaoCaput', () => {
-    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1');
+    const d = TesteCmdEmdUtil.incluiArtigo(state, 'art1_cpt_alt1_art1', false);
+    d.numero = '1-1';
+    d.createRotulo(d);
     (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 6º do Projeto para modificar o caput do art. 1º da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
-  });
-
-  it('modificacaoCaput2', () => {
-    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1');
-    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
-    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Altere-se o art. 6º do Projeto para modificar o caput do art. 1º da Lei nº 11.340, de 7 de agosto de 2006, nos termos a seguir:');
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao art. 1º-A da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
   });
 
   // TODO - Tratar bloco de alteração em inciso (outros dispositivos que não caput de artigo)
 
-  // it('modificacaoIncisoSeguidoDeOmissis', () => {
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc7_alt1_art7_cpt_inc1').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o inciso VII do caput do art. 2º do Projeto' +
-  //       ' para modificar o caput do inciso I do caput do art. 7º da Lei nº 11.340,' +
-  //       ' de 7 de agosto de 2006, nos termos a seguir:'
-  //   );
-  // });
-
-  // it('modificacaoDoisIncisoEUmIncisoSeguidoDeOmissis', () => {
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc7_alt1_art7_cpt_inc3').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc7_alt1_art7_cpt_inc4').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc7_alt1_art7_cpt_inc5').situacaoNormaVigente = SituacaoNormaVigente.DISPOSITIVO_EXISTENTE;
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal(
-  //     'Altere-se o inciso VII do caput do art. 2º do Projeto' +
-  //       ' para modificar os incisos III e IV do caput do art. 7º' +
-  //       ' e o caput do inciso V do caput do art. 7º da Lei nº 11.340,' +
-  //       ' de 7 de agosto de 2006, nos termos a seguir:'
-  //   );
-  // });
+  it('modificacaoDoisIncisosSeguidos', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1_inc1');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação aos incisos I e II do § 1º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
+  });
 });

@@ -1,6 +1,6 @@
 import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
-import { NomeComGenero } from '../model/dispositivo/genero';
+import { generoFeminino, NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isOmissis } from '../model/dispositivo/tipo';
 import { getGeneroUrnNorma, getNomeExtensoComDataExtenso } from '../model/lexml/documento/urnUtil';
@@ -16,8 +16,6 @@ import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
  * Comando de emenda que trata comandos de alteração de norma vigente.
  */
 export class CmdEmdDispNormaVigente {
-  //private UrnService urnService;
-
   constructor(private alteracao: Articulacao) {}
 
   getTexto(refGenericaProjeto: NomeComGenero): string {
@@ -32,7 +30,7 @@ export class CmdEmdDispNormaVigente {
 
     const generoNormaAlterada = getGeneroUrnNorma(urnNormaAlterada);
 
-    let imprimirPrefixoESufixo = false;
+    // let imprimirPrefixoESufixo = false;
 
     // Combinar comandos
     const comandos = new Array<CmdEmdCombinavel>();
@@ -47,7 +45,7 @@ export class CmdEmdDispNormaVigente {
     const dispositivosModificados = dispositivos.filter(d => CmdEmdUtil.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_MODIFICADO);
     if (dispositivosModificados.length) {
       comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
-      imprimirPrefixoESufixo = true;
+      // imprimirPrefixoESufixo = true;
     }
 
     // Consideramos adicionados os dispositivos adicionados pela emenda e que não existiam na
@@ -55,21 +53,10 @@ export class CmdEmdDispNormaVigente {
     const dispositivosAdicionados = dispositivos.filter(d => CmdEmdUtil.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
     if (dispositivosAdicionados.length) {
       comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));
-      imprimirPrefixoESufixo = true;
+      // imprimirPrefixoESufixo = true;
     }
 
     comandos.sort(CmdEmdCombinavel.compare);
-
-    // Altere-se o art. 2º do Projeto para acrescentar
-    if (imprimirPrefixoESufixo) {
-      sb.append('Altere-se ');
-      this.escreveDispositivoAlterado(sb, this.alteracao.pai!);
-      sb.append(' ');
-      sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
-      sb.append(' ');
-      sb.append(refGenericaProjeto.nome);
-      sb.append(' para ');
-    }
 
     let i = 0;
     const iUltimo = comandos.length - 1;
@@ -78,14 +65,28 @@ export class CmdEmdDispNormaVigente {
       i++;
     });
 
-    // Lei nº 9.096, de 19 de setembro de 1995, nos termos a seguir:
-    if (imprimirPrefixoESufixo) {
-      this.escreveLei(sb, urnNormaAlterada);
-      if (this.temCitacao(dispositivosModificados, dispositivosAdicionados)) {
-        sb.append(', nos termos a seguir:');
-      } else {
-        sb.append('.');
-      }
+    // da/à Lei nº 11.340, de 7 de agosto de 2006
+    this.escreveLei(sb, urnNormaAlterada);
+    const terminouComAdicao = comandos[comandos.length - 1] instanceof CmdEmdAdicaoANormaVigente;
+    if (terminouComAdicao) {
+      // , na forma proposta pelo art. 6º do Projeto
+      sb.append(', na forma proposta ');
+    } else {
+      // , como propost(o/a)(s)
+      sb.append(', como ');
+      this.escreveProposto(sb, dispositivos);
+    }
+    // pelo art. 6º do Projeto
+    sb.append(' ');
+    this.escreveDispositivoAlterado(sb, this.alteracao.pai!);
+    sb.append(' ');
+    sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
+    sb.append(' ');
+    sb.append(refGenericaProjeto.nome);
+    if (this.temCitacao(dispositivosModificados, dispositivosAdicionados)) {
+      sb.append(', nos termos a seguir:');
+    } else {
+      sb.append('.');
     }
 
     return removeEspacosDuplicados(sb.toString());
@@ -99,7 +100,8 @@ export class CmdEmdDispNormaVigente {
   }
 
   private escreveDispositivoAlterado(sb: StringBuilder, d: Dispositivo): void {
-    sb.append(d.artigoDefinidoSingular);
+    sb.append('pel' + d.artigoDefinidoSingular.trim());
+    sb.append(' ');
     sb.append(DispositivosWriterCmdEmd.getRotuloTipoDispositivo(d, false));
     sb.append(' ');
     sb.append(d.getNumeracaoParaComandoEmenda(d));
@@ -108,5 +110,11 @@ export class CmdEmdDispNormaVigente {
 
   private escreveLei(sb: StringBuilder, urn: string): void {
     sb.append(getNomeExtensoComDataExtenso(urn));
+  }
+
+  private escreveProposto(sb: StringBuilder, dispositivos: Dispositivo[]): void {
+    const plural = dispositivos.length > 1;
+    const feminino = dispositivos.filter(d => d.tipoGenero === generoFeminino.tipoGenero).length === dispositivos.length;
+    sb.append('propost' + (feminino ? 'a' : 'o') + (plural ? 's' : ''));
   }
 }

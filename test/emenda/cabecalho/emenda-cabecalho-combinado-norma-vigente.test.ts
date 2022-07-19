@@ -1,10 +1,11 @@
+import { DispositivoAdicionado } from './../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { expect } from '@open-wc/testing';
+
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { DefaultState, State } from '../../../src/redux/state';
-import { PLC_ARTIGOS_AGRUPADOS } from '../../doc/parser/plc_artigos_agrupados';
+import { MPV_885_2019 } from '../../doc/mpv_885_2019';
 import { TesteCmdEmdUtil } from '../teste-cmd-emd-util';
 
 let documento: ProjetoNorma;
@@ -12,24 +13,56 @@ const state: State = new DefaultState();
 
 describe('Cabeçalho de comando de emenda com diferentes operações sobre dispositivos em alteração de norma vigente', () => {
   beforeEach(function () {
-    documento = buildProjetoNormaFromJsonix(PLC_ARTIGOS_AGRUPADOS, true);
+    documento = buildProjetoNormaFromJsonix(MPV_885_2019, true);
     state.articulacao = documento.articulacao;
   });
 
-  it('Deveria possuir 9 artigos', () => {
-    expect(state.articulacao?.artigos.length).to.equal(9);
-  });
-
   it('alteracaoCaputESupressaoInciso', () => {
-    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art6_cpt_alt1_art1');
-    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
-
-    TesteCmdEmdUtil.suprimeDispositivo(state, 'art6_cpt_alt1_art1_cpt_inc3');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Altere-se o art. 6º do Projeto para modificar o caput do art. 1º;' +
-        ' e suprimir o inciso III do caput do art. 1º da Lei nº 11.340,' +
-        ' de 7 de agosto de 2006, nos termos a seguir:'
+      'Dê-se nova redação ao caput do art. 2º; e suprima-se o inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
+  });
+
+  it('supressaoIncisoEAlteracaoCaput', () => {
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Suprima-se o inciso VII do caput do art. 2º; e dê-se nova redação ao caput do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
+  });
+
+  it('alteracaoCaputSupressaoIncisoAdicaoParagrafo', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
+    const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art1_cpt_alt1_art5_par3', false);
+    d.numero = '3-1';
+    d.createRotulo(d);
+    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao caput do art. 2º; suprima-se o inciso VII do caput do art. 2º; e acrescente-se § 3º-A ao art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
+    );
+  });
+
+  it('adicoesAlteracaoSupressoes', () => {
+    let d = TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1_cpt_alt1_art1');
+    d.numero = '1-1';
+    d.createRotulo(d);
+    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
+    d = TesteCmdEmdUtil.incluiArtigoAntes(state, 'art1_cpt_alt1_art2');
+    d.numero = '1-2';
+    d.createRotulo(d);
+    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_par1_inc1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Acrescentem-se arts. 1º-A e 1º-B; dê-se nova redação ao caput do art. 2º; e suprimam-se os incisos I e II do § 1º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 });

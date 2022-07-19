@@ -19,17 +19,18 @@ export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
     const sequencias = agrupador.separaDispositivosSeguidosDeOmissis(agrupador.getSequencias(this.dispositivos));
 
     // Prefixo
-    if (!isPrimeiro) {
+    if (isPrimeiro) {
+      sb.append('Dê-se nova redação ');
+    } else {
       sb.append(isUltimo ? '; e ' : '; ');
+      sb.append('dê-se nova redação ');
     }
-    sb.append('modificar ');
 
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
-    dispositivosWriter.setArtigoAntesDispositivo(ArtigoAntesDispositivo.DEFINIDO);
+    dispositivosWriter.setArtigoAntesDispositivo(ArtigoAntesDispositivo.DEFINIDO_COM_PREPOSICAO_A);
     sb.append(dispositivosWriter.getTexto(sequencias));
 
-    // Sufixo
     if (isUltimo) {
       sb.append(' ');
       sb.append(this.generoNormaAlterada.pronomePossessivoSingular);

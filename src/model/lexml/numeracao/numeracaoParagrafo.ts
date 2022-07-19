@@ -30,8 +30,8 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
 
     createNumeroFromRotulo(rotulo: string): void {
       const temp = this.normalizaNumeracao(rotulo!);
-      this.informouArtigoUnico = /.*[uú]nico/i.test(rotulo);
-      this.numero = this.informouArtigoUnico
+      this.informouParagrafoUnico = /.*[uú]nico/i.test(rotulo);
+      this.numero = this.informouParagrafoUnico
         ? '1'
         : this.isNumeracaoValidaParaRotulo(temp)
         ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero)
@@ -84,7 +84,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     }
 
     private isParagrafoUnico(): boolean {
-      return (this.isDispositivoAlteracao && this.informouParagrafoUnico) || (!this.isDispositivoAlteracao && this.pai?.filhos.filter(f => isParagrafo(f)).length === 1);
+      return (this.isDispositivoAlteracao && this.rotulo?.includes('único')) || (!this.isDispositivoAlteracao && this.pai?.filhos.filter(f => isParagrafo(f)).length === 1);
     }
   };
 }
