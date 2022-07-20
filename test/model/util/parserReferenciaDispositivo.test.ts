@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao, Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
-import { buildDispositivos, buildReferencia, identificaReferencias } from '../../../src/model/lexml/numeracao/parserReferenciaDispositivo';
+import { buildDispositivosAssistente, buildReferencia, identificaReferencias } from '../../../src/model/lexml/numeracao/parserReferenciaDispositivo';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
 let artigo: Artigo;
@@ -307,34 +307,35 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Apenas com artigo', () => {
       const texto = 'Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
     });
     it('Apenas com artigo único no rótulo', () => {
       const texto = 'Artigo unico';
 
-      buildDispositivos(texto, artigo);
+      buildDispositivosAssistente(texto, artigo);
       expect(artigo.alteracoes?.filhos[0].rotulo).to.be.equal('Artigo único.');
     });
     it('Com artigo e um parágrafo', () => {
       const texto = '§ 1º do Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
-      const texto = 'inciso I do § 1º do Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const texto = 'inciso II do § 1º do Art. 2º';
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
-      expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('I –');
+      expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('II –');
+      expect(dispositivo.filhos[0].filhos[0].mensagens![1].descricao).to.be.equal('É necessário um omissis antes deste dispositivo');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'inciso I, § 1º, Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
@@ -342,7 +343,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'inciso I § 1º Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
@@ -350,7 +351,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'inciso I  1º Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.tipo).to.be.equal('Artigo');
@@ -360,7 +361,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Com artigo, um parágrafo e um inciso de caput', () => {
       const texto = 'inciso I  do caput do  Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.tipo).to.be.equal('Artigo');
@@ -369,7 +370,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'I  1º Art. 2º';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.tipo).to.be.equal('Artigo');
@@ -379,7 +380,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'a I  1 art 2';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.tipo).to.be.equal('Artigo');
@@ -392,7 +393,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'a I art 2';
-      const dispositivo = buildDispositivos(texto, artigo);
+      const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.tipo).to.be.equal('Artigo');

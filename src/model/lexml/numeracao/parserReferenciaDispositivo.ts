@@ -1,8 +1,11 @@
-import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
+import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { createAlteracao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
+import { validaDispositivo } from '../dispositivo/dispositivoValidator';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
+import { buildId } from '../util/idUtil';
 import { isLetra, isRomano } from './numeracaoUtil';
 
 export interface ReferenciaDispositivo {
@@ -17,7 +20,7 @@ regex.set('Inciso', /(inciso|inc.?\s)\s*([uú]nico|[MDCLXVI]+[)]?(?:-[a-z])?).*/
 regex.set('Item', /(item)\s*([uú]nico\s*|\d+(?:-[a-z])?).*/i);
 regex.set('Paragrafo', /(§|par[aá]grafo|par.?\s)\s*([uú]nico\s*|\d+(?:-[a-z])?).*/i);
 
-const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDispositivo[]): void => {
+const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDispositivo[], modo?: ClassificacaoDocumento): void => {
   let parent = dispositivo;
   referencias?.forEach(referencia => {
     if (!parent.tiposPermitidosFilhos?.includes(referencia.tipo?.tipo)) {
@@ -34,20 +37,30 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       parent.createNumeroFromRotulo(referencia.numero!);
       parent.createRotulo(parent);
     }
+    parent.id = buildId(parent);
+    if (modo) {
+      (parent.situacao as DispositivoAdicionado).tipoEmenda = modo;
+      (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+    }
+    parent.mensagens = validaDispositivo(parent);
   });
 };
 
-const buildCabecaAlteracao = (alteracoes: Alteracoes, cabeca: ReferenciaDispositivo): Dispositivo => {
-  const novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, alteracoes, undefined, 0);
-  novo.createNumeroFromRotulo(cabeca.numero ?? '');
-
-  return novo;
-};
-
-export const buildDispositivos = (texto: string, dispositivo: Dispositivo): Dispositivo => {
+const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo, modo): Dispositivo => {
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
   }
+  const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
+  (cabeca.situacao as DispositivoAdicionado).tipoEmenda = modo;
+  (cabeca.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  cabeca.createNumeroFromRotulo(referencia.numero ?? '');
+  cabeca.createRotulo(cabeca);
+  cabeca.id = buildId(cabeca);
+
+  return cabeca;
+};
+
+export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo, modo = ClassificacaoDocumento.EMENDA): Dispositivo => {
   const referencias = identificaReferencias(texto);
 
   if (!referencias || referencias.length === 0) {
@@ -61,10 +74,9 @@ export const buildDispositivos = (texto: string, dispositivo: Dispositivo): Disp
   }
 
   const c = referencias.shift();
-  const cabeca = buildCabecaAlteracao(dispositivo.alteracoes!, c!);
-  cabeca.createRotulo(cabeca);
+  const cabeca = buildCabecaAlteracao(dispositivo, c!, modo);
 
-  processaFilhos(cabeca, referencias);
+  processaFilhos(cabeca, referencias, modo);
 
   return cabeca;
 };
