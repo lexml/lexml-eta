@@ -1,7 +1,7 @@
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { buildUrn, formataNumero, getData, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
+import { formataNumero, getData, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
 import { buildDispositivosAssistente } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../../../model/lexml/util/idUtil';
@@ -31,10 +31,10 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   buildDispositivosAssistente(action.dispositivos, novo, state.modo);
 
   if (action.norma) {
-    novo.alteracoes!.base = buildUrn('federal', action.norma.tipo, action.norma.numero, action.norma.data);
+    novo.alteracoes!.base = action.norma;
 
-    if (validaUrn(novo.alteracoes!.base)) {
-      novo.texto = `A ${getTipo(novo.alteracoes!.base)?.descricao} nº ${formataNumero(getNumero(novo.alteracoes!.base))}, de ${getData(
+    if (novo.alteracoes?.base && validaUrn(novo.alteracoes.base)) {
+      novo.texto = `A ${getTipo(novo.alteracoes.base).descricao} nº ${formataNumero(getNumero(novo.alteracoes.base))}, de ${getData(
         novo.alteracoes!.base
       )}, passa a vigorar com as seguintes alterações:`;
     }

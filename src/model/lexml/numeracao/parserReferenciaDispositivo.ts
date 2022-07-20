@@ -37,11 +37,13 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       parent.createNumeroFromRotulo(referencia.numero!);
       parent.createRotulo(parent);
     }
-    parent.id = buildId(parent);
     if (modo) {
       (parent.situacao as DispositivoAdicionado).tipoEmenda = modo;
-      (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
     }
+    parent.isDispositivoAlteracao = true;
+    parent.situacao = new DispositivoAdicionado();
+    (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+    parent.id = buildId(parent);
     parent.mensagens = validaDispositivo(parent);
   });
 };
@@ -51,6 +53,8 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
     createAlteracao(dispositivo);
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
+  cabeca.isDispositivoAlteracao = true;
+  cabeca.situacao = new DispositivoAdicionado();
   (cabeca.situacao as DispositivoAdicionado).tipoEmenda = modo;
   (cabeca.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
   cabeca.createNumeroFromRotulo(referencia.numero ?? '');

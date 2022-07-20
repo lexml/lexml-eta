@@ -3,7 +3,7 @@ import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isInciso, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acao/blocoAlteracaoAction';
 import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermitido';
@@ -154,7 +154,7 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
 
   dispositivo.uuid = Counter.next();
   dispositivo.name = name;
-  dispositivo.pai = parent;
+  dispositivo.pai = isInciso(dispositivo) && isArtigo(parent) ? (parent as Artigo).caput : parent;
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
   desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);

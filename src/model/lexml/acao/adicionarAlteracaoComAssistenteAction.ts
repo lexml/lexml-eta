@@ -6,18 +6,14 @@ export class AdicionarAlteracaoComAssistenteAction {
   descricao: string;
 
   constructor() {
-    this.descricao = 'Inserir Alteração com Assistente';
+    this.descricao = 'Alteração com Assistente';
   }
 
-  execute(atual: Referencia, tipo?: string, numero?: string, ano?: string, dispositivos?: string): any {
+  execute(atual: Referencia, norma?: string, dispositivos?: string): any {
     return {
       type: ASSISTENTE_ALTERACAO,
       atual,
-      norma: {
-        tipo,
-        numero,
-        ano,
-      },
+      norma,
       dispositivos,
     };
   }

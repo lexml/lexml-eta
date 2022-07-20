@@ -5,6 +5,7 @@ import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { InformarDadosAssistenteAction } from '../acao/informarDadosAssistenteAction';
 import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -64,6 +65,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(adicionarArtigoAntes);
       }
       acoes.push(adicionarArtigoDepois);
+
+      if (!isDispositivoAlteracao(dispositivo)) {
+        acoes.push(InformarDadosAssistenteAction);
+      }
 
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);

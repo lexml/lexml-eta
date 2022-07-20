@@ -1,5 +1,6 @@
 import { SlMenuItem } from '@shoelace-style/shoelace';
 import { ElementoAction } from '../../model/lexml/acao';
+import { InformarDadosAssistenteAction } from '../../model/lexml/acao/informarDadosAssistenteAction';
 import { informarNormaAction } from '../../model/lexml/acao/informarNormaAction';
 import { EtaBlot } from './eta-blot';
 
@@ -16,7 +17,7 @@ export class EtaBlotMenuItem extends EtaBlot {
     node.innerHTML = (acao.descricao ?? '') + (acao.hotkey ? `<b> ${acao.hotkey} </b>` : '');
 
     node.addEventListener('mousedown', () => {
-      if (acao.descricao === informarNormaAction.descricao) {
+      if (acao.descricao === informarNormaAction.descricao || acao.descricao === InformarDadosAssistenteAction.descricao) {
         const index = document.getSelection()?.focusOffset;
         localStorage.setItem('indexCursor', JSON.stringify(index));
       }

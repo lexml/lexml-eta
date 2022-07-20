@@ -19,6 +19,7 @@ import {
 } from './adicionarElementoAction';
 import { adicionarCapitulo, adicionarLivro, adicionarParte, adicionarSecao, adicionarSubsecao, adicionarTitulo, AgruparElemento } from './agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
+import { InformarDadosAssistenteAction } from './informarDadosAssistenteAction';
 import { informarNormaAction } from './informarNormaAction';
 import { moverElementoAbaixoAction } from './moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from './moverElementoAcimaAction';
@@ -68,6 +69,7 @@ export interface ElementoAction {
 export const acoesMenu: ElementoAction[] = [];
 
 acoesMenu.push(informarNormaAction);
+acoesMenu.push(InformarDadosAssistenteAction);
 acoesMenu.push(moverElementoAbaixoAction);
 acoesMenu.push(moverElementoAcimaAction);
 acoesMenu.push(renumerarElementoAction);
