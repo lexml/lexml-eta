@@ -1,183 +1,174 @@
 import { expect } from '@open-wc/testing';
 
+import { transformarEmOmissisIncisoParagrafo } from '../../../src/model/lexml/acao/transformarElementoAction';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
+import { getArticulacao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { transformaTipoElemento } from '../../../src/redux/elemento/reducer/transformaTipoElemento';
 import { DefaultState, State } from '../../../src/redux/state';
-import { PLC_ARTIGOS_AGRUPADOS } from '../../doc/parser/plc_artigos_agrupados';
+import { MPV_885_2019 } from '../../doc/mpv_885_2019';
+import { CitacaoComandoDeNormaVigente } from './../../../src/emenda/citacao-cmd-de-norma-vigente';
+import { buscaDispositivoById } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { TesteCmdEmdUtil } from './../teste-cmd-emd-util';
 
 let documento: ProjetoNorma;
 const state: State = new DefaultState();
 
 describe('Citação em comando de emenda com apenas um dispositivo de norma vigente', () => {
   beforeEach(function () {
-    documento = buildProjetoNormaFromJsonix(PLC_ARTIGOS_AGRUPADOS, true);
+    documento = buildProjetoNormaFromJsonix(MPV_885_2019, true);
     state.articulacao = documento.articulacao;
-  });
-
-  it('Deveria possuir 9 artigos', () => {
-    expect(state.articulacao?.artigos.length).to.equal(9);
   });
 
   // --------------------------------------------------------------------------------
   // Inclusão de dispositivo
 
-  // it('acrescimoParagrafo', () => {
-  //   /*
-  //    * "Parágrafo único. Nonono ono"
-  //    */
-  //   // TesteCmdEmdUtil.// TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, state, 'art1_cpt', TesteCmdEmdUtil.URN_LEI, 'art10_par1u', true);
-  //   const alteracao = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Paragrafo refid='adi4'></Paragrafo></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('acrescimoParagrafo', () => {
+    const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art1_cpt_alt1_art5_par2', true, '1-A', true);
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>§ 1º-A.</Rotulo>Texto”</p>');
+  });
 
-  // it('acrescimoInciso', () => {
-  //   /*
-  //    * "I - Nonono ono"
-  //    */
-  //   // TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, "art1_cpt", URN_LEI, "art1_cpt_inc1", true);
-  //   const alteracao = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Inciso refid='adi4'></Inciso></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('acrescimoInciso', () => {
+    const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art1_cpt_alt1_art5_par1_inc2', false, 'III', true);
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>III –</Rotulo>Texto”</p>');
+  });
 
-  // it('acrescimoAlinea', () => {
-  //   /*
-  //    * "a) Nonono ono"
-  //    */
-  //   // TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, "art1_cpt", URN_LEI, "art1_cpt_inc1_ali1", true);
-  //   const alteracao = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Alinea refid='adi5'></Alinea></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('acrescimoAlinea', () => {
+    const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false, 'b-A', true);
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>b-A)</Rotulo>Texto”</p>');
+  });
 
-  // it('acrescimoItem', () => {
-  //   /*
-  //    * "1. Nonono ono"
-  //    */
-  //   // TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, "art1_cpt", URN_LEI, "art1_cpt_inc1_ali1_ite1", true);
-  //   const alteracao = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Item refid='adi6'></Item></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('acrescimoItem', () => {
+    const d = TesteCmdEmdUtil.incluiItem(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false);
+    TesteCmdEmdUtil.numeraECriaRotulo(d, '1');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
+  });
 
-  // // --------------------------------------------------------------------------------
-  // // Modificação
+  // --------------------------------------------------------------------------------
+  // Modificação
 
-  // it('modificacaoCaput', () => {
-  //   /*
-  //    * "Art. 1º Nonono ono"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal('<Citacao><Aspas><Artigo><Rotulo>Art. 1º</Rotulo>' + "<Caput refid='mod1'></Caput></Artigo></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('modificacaoCaputSemFilhos', () => {
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art1');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo>Texto”</p>');
+  });
 
-  // it('modificacaoParagrafo', () => {
-  //   /*
-  //    * "§ 6º Nonono ono"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Paragrafo refid='mod1'></Paragrafo></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('modificacaoCaputComFilhos', () => {
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>Art. 2º</Rotulo>Texto</p><p><Omissis/>”</p>');
+  });
 
-  // it('modificacaoInciso', () => {
-  //   /*
-  //    * "I - Nonono ono"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Inciso refid='mod1'></Inciso></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('modificacaoParagrafo', () => {
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>§ 1º</Rotulo>Texto”</p>');
+  });
 
-  // it('modificacaoAlinea', () => {
-  //   /*
-  //    * "a) Nonono ono"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Alinea refid='mod1'></Alinea></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('modificacaoInciso', () => {
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>II –</Rotulo>Texto”</p>');
+  });
 
-  // it('modificacaoItem', () => {
-  //   /*
-  //    * "1. Nonono ono"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali1_ite1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Item refid='mod1'></Item></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('modificacaoAlinea', () => {
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>b)</Rotulo>Texto”</p>');
+  });
 
-  // // ----------------------- omissis-de-norma-vigente
+  it('modificacaoItem', () => {
+    const d = TesteCmdEmdUtil.incluiItem(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false);
+    TesteCmdEmdUtil.numeraECriaRotulo(d, '1', false);
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
+  });
 
-  // // Símbolos: § “a”
+  // --------------------------------------------------------------------------------
+  // Supressão
 
-  // it('acrescimoOmissisAposIrmao', () => {
-  //   incluiOmissis('art2_cpt_inc7_alt1_art1_cpt_inc2', false);
-  //   const item = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(cit).to.equal('', item.getCitacao());
-  // });
+  it('variasSupressoes', () => {
+    const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_alt1_art63-3_par3');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc2');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d!));
+    expect(cit).to.equal('');
+  });
 
-  // it('acrescimoOmissisEntreIrmaos', () => {
-  //   incluiOmissis('art2_cpt_inc7_alt1_art1_cpt_inc2', true);
-  //   const item = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(cit).to.equal('', item.getCitacao());
-  // });
+  // --------------------------------------------------------------------------------
+  // Omissis
 
-  // it('acrescimoOmissisEntrePaiEFilho', () => {
-  //   incluiOmissis('art2_cpt_inc7_alt1_art1_cpt_inc1', true);
-  //   const item = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(cit).to.equal('', item.getCitacao());
-  // });
+  it('acrescimoOmissisAposIrmao', () => {
+    const d = TesteCmdEmdUtil.incluiIncisoAlteracao(state, 'art1_cpt_alt1_art5_par1_inc1', false);
+    transformaTipoElemento(state, transformarEmOmissisIncisoParagrafo.execute(d));
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('');
+  });
 
-  // it('supressaoOmissisAposIrmao', () => {
-  //   suprimeDispositivo('art6_cpt_alt1_art1_cpt_omi2');
-  //   const item = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(cit).to.equal('', item.getCitacao());
-  // });
+  it('supressaoOmissisAposIrmao', () => {
+    const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art2_omi1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_omi1');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d!));
+    expect(cit).to.equal('');
+  });
 
-  // it('supressaoOmissisEntrePaiEFilho', () => {
-  //   suprimeDispositivo('art6_cpt_alt1_art1_cpt_omi1');
-  //   const item = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(cit).to.equal('', item.getCitacao());
-  // });
+  it('supressaoOmissisEntrePaiEFilho', () => {
+    const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art2_cpt_omi1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_omi1');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d!));
+    expect(cit).to.equal('');
+  });
 
   // // ----------------------- multipla-de-norma-vigente
 
   // // Símbolos: § “a”
 
-  // it('acrescimoArtigo', () => {
-  //   /*
-  //    * "Art. 9º A nononoono"
-  //    */
-  //   // TesteCmdEmdUtil.incluiAlteracaoNormaVigente(state, "art1_cpt", URN_LEI, "art9_cpt", true);
-  //   const alteracao = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal("<Citacao><Aspas><Artigo refid='adi2'><Rotulo>Art. 9º</Rotulo>" + "<Caput refid='adi3'></Caput></Artigo></Aspas></Citacao>", cit.getTexto(alteracao!));
-  // });
+  it('acrescimoArtigo', () => {
+    const d = TesteCmdEmdUtil.incluiArtigo(state, 'art1_cpt_alt1_art1', false);
+    TesteCmdEmdUtil.numeraECriaRotulo(d, '1-A', false);
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-A.</Rotulo>Texto”</p>');
+  });
 
-  // it('modificaIncisosDeArtigosDiferentesNaMesmaAlteracao', () => {
-  //   /*
-  //    * "Art. 1º ...................
-  //    * I - Nono nonono nonono
-  //    * ............................"
-  //    * "Art. 7º ...................
-  //    * ............................
-  //    * III - Nono nonono nonono
-  //    * ............................"
-  //    */
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc7_alt1_art1_cpt_inc1');
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc7_alt1_art7_cpt_inc3');
-  //   const alteracao = buscaDispositivoById(state.articulacao!, 'art2_cpt_inc7_alt1');
-  //   const cit = new CitacaoComandoDeNormaVigente();
-  //   expect(cit).to.equal(
-  //     '<Citacao><Aspas><Artigo><Rotulo>Art. 1º</Rotulo>' +
-  //       "<Caput><Omissis></Omissis><Inciso refid='mod1'></Inciso></Caput>" +
-  //       '<Omissis></Omissis></Artigo></Aspas><Aspas><Artigo><Rotulo>Art. 7º</Rotulo>' +
-  //       "<Caput><Omissis></Omissis><Omissis></Omissis><Inciso refid='mod2'></Inciso>" +
-  //       '</Caput><Omissis></Omissis></Artigo></Aspas></Citacao>',
-  //     cit.getTexto(alteracao!)
-  //   );
-  // });
+  it('diversasModificacoes', () => {
+    /*
+     * "Art. 2º ...................
+     * ............................
+     * VII - Nono nonono nonono
+     * ............................"
+     * "Art. 5º ...................
+     * (Suprimir omissis)
+     * § 1º .......................
+     * I – (Suprimir)
+     * I-A – Nononono
+     * ............................
+     * § 4º Nono nonono nonono"
+     */
+    const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_omi1');
+    TesteCmdEmdUtil.incluiIncisoAlteracao(state, 'art1_cpt_alt1_art5_par1_inc1', false, 'I-A', false);
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_par1_inc1');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par4');
+    const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
+    expect(cit).to.equal(
+      // eslint-disable-next-line prettier/prettier
+      '<p>“<Rotulo>Art. 2º</Rotulo><Omissis/>' +
+        '</p><p><Omissis/></p>' +
+        '<p><Rotulo>VII –</Rotulo>Texto</p>' +
+        '<p><Omissis/>”</p>' +
+        '<p>“<Rotulo>Art. 5º</Rotulo><Omissis/></p>' +
+        '<p><Rotulo/>(Suprimir omissis)</p>' +
+        '<p><Rotulo>§ 1º</Rotulo><Omissis/></p>' +
+        '<p><Rotulo>I –</Rotulo>(Suprimir)</p>' +
+        '<p><Rotulo>I-A –</Rotulo>Texto</p>' +
+        '<p><Omissis/></p>' +
+        '<p><Rotulo>§ 4º</Rotulo>Texto”</p>'
+    );
+  });
 });

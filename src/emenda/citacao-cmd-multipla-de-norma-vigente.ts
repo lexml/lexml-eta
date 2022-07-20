@@ -124,6 +124,9 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
       d = filhos[filhos.length - 1];
       filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
     }
+    if (isCaput(d)) {
+      d = d.pai!;
+    }
 
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && (!this.adjacentesOmissis.includes(d) || isOmissis(d))) {
       sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());

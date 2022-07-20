@@ -1,9 +1,11 @@
+import { CmdEmdUtil } from './../../src/emenda/comando-emenda-util';
+import { DispositivoAdicionado } from './../../src/model/lexml/situacao/dispositivoAdicionado';
 import { expect } from '@open-wc/testing';
 
 import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO, adicionarArtigoAntes, AdicionarElemento } from '../../src/model/lexml/acao/adicionarElementoAction';
-import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo, isDispositivoAlteracao } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
 import { suprimeElemento } from '../../src/redux/elemento/reducer/suprimeElemento';
@@ -116,7 +118,7 @@ export class TesteCmdEmdUtil {
     return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.alinea.tipo, expectedId);
   }
 
-  static incluiItem(state: State, idDispRef: string, antes: boolean, expectedId: string): Dispositivo {
+  static incluiItem(state: State, idDispRef: string, antes: boolean, expectedId?: string): Dispositivo {
     return this.incluiDispositivo(state, idDispRef, antes, TipoDispositivo.item.tipo, expectedId);
   }
 
@@ -125,20 +127,10 @@ export class TesteCmdEmdUtil {
   //     new ComandoIncluirDispositivo(emenda, "Omissis", dispRef, antes ? Atalho.ANTES : Atalho.DEPOIS).executa();
   // }
 
-  static incluiDispositivo(state: State, idDispRef: string, antes: boolean, tipo: string, expectedId: string): Dispositivo {
+  static incluiDispositivo(state: State, idDispRef: string, antes: boolean, tipo: string, expectedId?: string): Dispositivo {
     const dispRef = buscaDispositivoById(state.articulacao!, idDispRef);
-    // let dispRef = artigoRef;
-    // console.log(artigoRef?.rotulo);
-    // expect(artigoRef, `Dispositivo ${idArtigoRef} não encontrado!`).not.to.be.undefined;
     if (antes) {
       throw Error('Inclusão de dispositivo antes ainda não implementada.');
-      // const pai = artigoRef!.pai!;
-      // if (!isDispositivoRaiz(pai) && isAgrupador(pai) && pai.filhos[0] === artigoRef) {
-      //   dispRef = pai;
-      // } else {
-      //   dispRef = getDispositivoAnteriorMesmoTipo(artigoRef!);
-      //   expect(dispRef, `Dispositivo anterior ao ${idArtigoRef} não encontrado!`).not.to.be.undefined;
-      // }
     }
     state = adicionaElemento(state, {
       type: ADICIONAR_ELEMENTO,
@@ -177,29 +169,34 @@ export class TesteCmdEmdUtil {
         }
       }
     }
-    const d = buscaDispositivoById(state.articulacao!, expectedId);
-    expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idDispRef}. Dispositivo com id ${expectedId} não encontrado.`).to.not.be.undefined;
+    let d;
+    if (isDispositivoAlteracao(dispRef!)) {
+      d = CmdEmdUtil.getDispositivoPosteriorDireto(dispRef!);
+    } else {
+      d = buscaDispositivoById(state.articulacao!, expectedId!);
+      expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idDispRef}. Dispositivo com id ${expectedId} não encontrado.`).to.not.be.undefined;
+    }
     d!.texto = '<p> Texto</p> ';
     return d!;
   }
 
-  static incluiParagrafoAlteracao(state: State, idDispRef: string, antes: boolean): Dispositivo {
-    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.paragrafo);
+  static incluiParagrafoAlteracao(state: State, idDispRef: string, antes: boolean, rotulo?: string, existeNaNorma?: boolean): Dispositivo {
+    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.paragrafo, rotulo, existeNaNorma);
   }
 
-  static incluiIncisoAlteracao(state: State, idDispRef: string, antes: boolean): Dispositivo {
-    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.inciso);
+  static incluiIncisoAlteracao(state: State, idDispRef: string, antes: boolean, rotulo?: string, existeNaNorma?: boolean): Dispositivo {
+    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.inciso, rotulo, existeNaNorma);
   }
 
-  static incluiAlineaAlteracao(state: State, idDispRef: string, antes: boolean): Dispositivo {
-    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.alinea);
+  static incluiAlineaAlteracao(state: State, idDispRef: string, antes: boolean, rotulo?: string, existeNaNorma?: boolean): Dispositivo {
+    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.alinea, rotulo, existeNaNorma);
   }
 
-  static incluiItemAlteracao(state: State, idDispRef: string, antes: boolean): Dispositivo {
-    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.item);
+  static incluiItemAlteracao(state: State, idDispRef: string, antes: boolean, rotulo?: string, existeNaNorma?: boolean): Dispositivo {
+    return this.incluiDispositivoAlteracao(state, idDispRef, antes, TipoDispositivo.item, rotulo, existeNaNorma);
   }
 
-  static incluiDispositivoAlteracao(state: State, idDispRef: string, antes: boolean, tipo: Tipo): Dispositivo {
+  static incluiDispositivoAlteracao(state: State, idDispRef: string, antes: boolean, tipo: Tipo, rotulo?: string, existeNaNorma = true): Dispositivo {
     const dispRef = buscaDispositivoById(state.articulacao!, idDispRef);
     expect(dispRef, `Dispositivo ${idDispRef} não encontrado!`).not.to.be.undefined;
     const action = new AdicionarElemento(tipo, antes ? 'antes' : 'depois').execute(dispRef!);
@@ -207,7 +204,17 @@ export class TesteCmdEmdUtil {
     const d = antes ? getDispositivoAnteriorMesmoTipo(dispRef!) : getDispositivoPosteriorMesmoTipo(dispRef!);
     expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idDispRef}`).to.not.be.undefined;
     d!.texto = '<p>Texto</p>';
+    this.numeraECriaRotulo(d!, rotulo, existeNaNorma);
     return d!;
+  }
+
+  static numeraECriaRotulo(d: Dispositivo, rotulo?: string, existeNaNorma = true): void {
+    if (rotulo) {
+      d.rotulo = rotulo;
+      d.createNumeroFromRotulo(d.rotulo);
+      d.createRotulo(d); // Normaliza rótulo
+    }
+    (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = existeNaNorma;
   }
 
   // private boolean isAlgumTipo(final Dispositivo disp, final Class< ? extends TipoDispositivo>... tipos) {

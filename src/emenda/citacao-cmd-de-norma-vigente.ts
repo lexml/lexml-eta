@@ -43,28 +43,28 @@ export class CitacaoComandoDeNormaVigente {
   }
 
   private getCitacoesMultiplas(sb: StringBuilder, dispositivos: Dispositivo[]): void {
-    let dispArtigo = new Array<Dispositivo>();
+    let dispositivosDoArtigo = new Array<Dispositivo>();
     let artigo, artigoAtual;
 
     for (const d of dispositivos) {
       artigo = isArtigo(d) ? d : getArtigo(d);
 
       if (artigo !== artigoAtual) {
-        if (dispArtigo.length) {
-          this.getCitacaoMultipla(sb, dispArtigo);
+        if (dispositivosDoArtigo.length) {
+          this.getCitacaoMultipla(sb, dispositivosDoArtigo);
         }
 
-        dispArtigo = [artigo];
+        dispositivosDoArtigo = [artigo];
         artigoAtual = artigo;
       }
 
-      if (!dispArtigo.includes(d)) {
-        dispArtigo.push(d);
+      if (!dispositivosDoArtigo.includes(d)) {
+        dispositivosDoArtigo.push(d);
       }
     }
 
-    if (dispArtigo.length) {
-      this.getCitacaoMultipla(sb, dispArtigo);
+    if (dispositivosDoArtigo.length) {
+      this.getCitacaoMultipla(sb, dispositivosDoArtigo);
     }
   }
 
