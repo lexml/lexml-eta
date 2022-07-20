@@ -12,6 +12,7 @@ import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
 import { getDispositivoFromElemento, hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
+import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
@@ -30,6 +31,8 @@ import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
+import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
+import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
@@ -49,9 +52,8 @@ import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { LexmlEtaComponent } from '../lexml-eta.component';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
+import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
-import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
-import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -497,6 +499,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.destroiQuill();
           this.inicializar(this.configEditor());
           this.carregarArticulacao(event.elementos ?? []);
+          break;
+
+        case StateType.InformarDadosAssistente:
+          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction);
           break;
 
         case StateType.InformarNorma:

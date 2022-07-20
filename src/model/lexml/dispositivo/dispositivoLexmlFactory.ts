@@ -3,7 +3,7 @@ import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isInciso, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acao/blocoAlteracaoAction';
 import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermitido';
@@ -39,6 +39,7 @@ import { RegrasInciso } from '../regras/regrasInciso';
 import { RegrasItem } from '../regras/regrasItem';
 import { RegrasOmissis } from '../regras/regrasOmissis';
 import { RegrasParagrafo } from '../regras/regrasParagrafo';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { SituacaoDispositivo } from '../situacao/situacaoDispositivo';
 import { TipoArticulacao } from '../tipo/tipoArticulacao';
 import { TipoArtigo } from '../tipo/tipoArtigo';
@@ -153,7 +154,7 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
 
   dispositivo.uuid = Counter.next();
   dispositivo.name = name;
-  dispositivo.pai = parent;
+  dispositivo.pai = isInciso(dispositivo) && isArtigo(parent) ? (parent as Artigo).caput : parent;
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
   desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);
@@ -283,6 +284,10 @@ const createWhenReferenciaIsAgrupador = (referencia: Dispositivo): Dispositivo =
 
 export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alteracoes, referencia?: Dispositivo, posicao?: number): Dispositivo => {
   const dispositivo = criaDispositivo(alteracoes!, tipo, referencia, posicao);
+
+  dispositivo.situacao = new DispositivoAdicionado();
+  dispositivo.isDispositivoAlteracao = true;
+  dispositivo.notaAlteracao = 'NR';
   dispositivo.createRotulo(dispositivo);
 
   return dispositivo;

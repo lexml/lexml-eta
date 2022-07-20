@@ -119,14 +119,11 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
 
   if (
-    dispositivo !== null &&
-    dispositivo.numero !== undefined &&
-    isParagrafo(dispositivo) &&
-    isPrimeiroMesmoTipo(dispositivo) &&
-    getDispositivoAnterior(dispositivo) !== undefined &&
-    (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
-    dispositivo.numero !== '1' &&
-    dispositivo.numero !== '1u'
+    (dispositivo !== null && dispositivo.numero !== undefined && isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) ||
+    (getDispositivoAnterior(dispositivo) !== undefined &&
+      (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
+      dispositivo.numero !== '1' &&
+      dispositivo.numero !== '1u')
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,

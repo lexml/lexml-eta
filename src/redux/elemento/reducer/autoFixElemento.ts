@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isOmissis } from '../../../model/dispositivo/tipo';
+import { isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -38,7 +38,7 @@ export const autoFixElemento = (state: any, action: any): State => {
       const elementoAtual = createElemento(atual);
       eventos.add(StateType.ElementoIncluido, [elementoNovo]);
       eventos.add(StateType.ElementoValidado, [elementoAtual]);
-      eventos.setReferencia(createElemento(anterior ?? atual.pai!));
+      eventos.setReferencia(createElemento(anterior ?? isIncisoCaput(atual) ? atual.pai!.pai! : atual.pai!));
       break;
     }
     case AutoFix.OMISSIS_SEQUENCIAIS: {
