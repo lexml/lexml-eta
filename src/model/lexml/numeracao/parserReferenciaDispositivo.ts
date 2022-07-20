@@ -136,6 +136,7 @@ export const identificaReferencias = (texto: string): ReferenciaDispositivo[] | 
   let p = texto
     .replace(',', '')
     .replace(/\s+d[ao]*\s+/gi, ' ')
+    .replace(/\s*caput\s*/, ' ')
     .split(' ')
     .filter(e => e.length !== 0);
 

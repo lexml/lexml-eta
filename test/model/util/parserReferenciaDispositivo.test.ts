@@ -358,6 +358,15 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
       expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('I –');
     });
+    it('Com artigo, um parágrafo e um inciso de caput', () => {
+      const texto = 'inciso I  do caput do  Art. 2º';
+      const dispositivo = buildDispositivos(texto, artigo);
+
+      expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
+      expect(dispositivo.tipo).to.be.equal('Artigo');
+      expect(dispositivo.filhos[0].tipo).to.be.equal('Inciso');
+      expect(dispositivo.filhos[0].rotulo).to.be.equal('I –');
+    });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'I  1º Art. 2º';
       const dispositivo = buildDispositivos(texto, artigo);
