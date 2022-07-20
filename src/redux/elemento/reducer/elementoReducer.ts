@@ -1,3 +1,7 @@
+import { ADICIONAR_ALERTA } from '../../../model/alerta/acao/adicionarAlerta';
+import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
+import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
+import { ASSISTENTE_ALTERACAO } from '../../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
 import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
@@ -6,6 +10,7 @@ import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualiz
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
 import { AUTO_FIX } from '../../../model/lexml/acao/autoFixAction';
 import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acao/elementoSelecionadoAction';
+import { INFORMAR_DADOS_ASSISTENTE } from '../../../model/lexml/acao/informarDadosAssistenteAction';
 import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
@@ -24,22 +29,27 @@ import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulaca
 import { VALIDAR_ELEMENTO } from '../../../model/lexml/acao/validarElementoAction';
 import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerElementoSemTextoAction';
 import { abreArticulacao } from './abreArticulacao';
+import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente';
 import { adicionaElemento } from './adicionaElemento';
+import { adicionarAlerta } from './adicionarAlerta';
 import { agrupaElemento } from './agrupaElemento';
 import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { autoFixElemento } from './autoFixElemento';
+import { limparAlertas } from './limparAlertas';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
 import { redo } from './redo';
 import { removeElemento } from './removeElemento';
 import { removeElementoSemTexto } from './removeElementoSemTexto';
+import { removerAlerta } from './removerAlerta';
 import { renumeraElemento } from './renumeraElemento';
 import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
+import { solicitaDadosAssistente } from './solicitaDadosAssistente';
 import { solicitaNorma } from './solicitaNorma';
 import { suprimeAgrupador } from './suprimeAgrupador';
 import { suprimeElemento } from './suprimeElemento';
@@ -47,17 +57,13 @@ import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
-import { ADICIONAR_ALERTA } from '../../../model/alerta/acao/adicionarAlerta';
-import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
-import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
-import { adicionarAlerta } from './adicionarAlerta';
-import { removerAlerta } from './removerAlerta';
-import { limparAlertas } from './limparAlertas';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
     case APLICAR_ALTERACOES_EMENDA:
       return aplicaAlteracoesEmenda(state, action);
+    case ASSISTENTE_ALTERACAO:
+      return adicionaAlteracaoComAssistente(state, action);
     case ATUALIZAR_ELEMENTO:
       return atualizaElemento(state, action);
     case ATUALIZAR_REFERENCIA_ELEMENTO:
@@ -74,6 +80,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return transformaTipoElemento(state, action);
     case ELEMENTO_SELECIONADO:
       return selecionaElemento(state, action);
+    case INFORMAR_DADOS_ASSISTENTE:
+      return solicitaDadosAssistente(state, action);
     case INFORMAR_NORMA:
       return solicitaNorma(state, action);
     case MOVER_ELEMENTO_ABAIXO:

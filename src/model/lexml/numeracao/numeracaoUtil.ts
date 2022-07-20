@@ -54,7 +54,7 @@ export const isNumeracaoValida = (numero: string): boolean => {
   return /^\d{1,}([-]?[\d]+)?$/.test(numero);
 };
 
-const isLetra = (letra: string): boolean => {
+export const isLetra = (letra: string): boolean => {
   return /[a-zA-Z]+/.test(letra);
 };
 

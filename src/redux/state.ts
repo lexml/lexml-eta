@@ -7,6 +7,7 @@ export enum StateType {
   ArticulacaoAtualizada = 'ArticulacaoAtualizada',
   ComandoEmendaGerado = 'ComandoEmendaGerado',
   DocumentoCarregado = 'DocumentoCarregado',
+  InformarDadosAssistente = 'InformarDadosAssistente',
   InformarNorma = 'InformarNorma',
   ElementoModificado = 'ElementoModificado',
   ElementoIncluido = 'ElementoIncluido',

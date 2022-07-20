@@ -1,6 +1,6 @@
-import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
+import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
 import { VOCABULARIO } from './vocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
@@ -22,6 +22,10 @@ export const getTipo = (urn: string): any => {
 export const getNumero = (urn: string): string => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
   return partes[2]?.indexOf(';') > -1 ? partes[2]?.substring(partes[2].indexOf(';') + 1) : '';
+};
+
+export const formataNumero = (numero: string): string => {
+  return new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(+numero);
 };
 
 export const getData = (urn: string): string => {

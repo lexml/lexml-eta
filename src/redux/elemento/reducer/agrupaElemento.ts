@@ -16,7 +16,6 @@ import {
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
@@ -32,10 +31,10 @@ export const agrupaElemento = (state: any, action: any): State => {
   if (isDispositivoCabecaAlteracao(atual)) {
     const pos = atual.pai!.indexOf(atual);
     const novo = criaDispositivoCabecaAlteracao(action.novo.tipo, atual.pai! as Alteracoes, undefined, pos);
-    novo.situacao = new DispositivoAdicionado();
+    //novo.situacao = new DispositivoAdicionado();
     novo.addFilho(atual);
     atual.pai = novo;
-    atual.createRotulo(atual);
+    //atual.createRotulo(atual);
     const eventos = new Eventos();
     eventos.setReferencia(createElemento(pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1]));
     eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
