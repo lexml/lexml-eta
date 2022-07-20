@@ -26,7 +26,7 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
     if (!parent.tiposPermitidosFilhos?.includes(referencia.tipo?.tipo)) {
       if (referencia.numero && referencia.numero.match(/\d.*/)) {
         parent = criaDispositivo(parent, isArtigo(parent) ? TipoDispositivo.paragrafo.tipo : isAlinea(parent) ? TipoDispositivo.item.tipo : TipoDispositivo.generico.tipo);
-        parent.createNumeroFromRotulo(referencia.numero!);
+        referencia.numero && parent.createNumeroFromRotulo(referencia.numero);
         parent.createRotulo(parent);
       } else {
         parent = criaDispositivo(parent, TipoDispositivo.generico.tipo);
@@ -34,7 +34,7 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       }
     } else {
       parent = criaDispositivo(parent, referencia.tipo.tipo);
-      parent.createNumeroFromRotulo(referencia.numero!);
+      referencia.numero && parent.createNumeroFromRotulo(referencia.numero);
       parent.createRotulo(parent);
     }
     if (modo) {
@@ -178,7 +178,6 @@ export const identificaReferencias = (texto: string): ReferenciaDispositivo[] | 
     if (matches && matches.length === 3) {
       resultado.push({ tipo, numero: matches[2] });
     } else {
-      console.log(`${p[i]} ${p[j]}`);
       resultado.push({ tipo, numero: undefined });
     }
   }

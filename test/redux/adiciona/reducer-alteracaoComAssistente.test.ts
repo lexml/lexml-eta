@@ -23,11 +23,7 @@ describe('Testando o assistente de alteração', () => {
     state = adicionaAlteracaoComAssistente(state, {
       type: ASSISTENTE_ALTERACAO,
       atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[0].uuid },
-      norma: {
-        tipo: 'lei',
-        numero: '7560',
-        data: '19/12/1986',
-      },
+      norma: 'urn:lex:br:federal:lei:1986-12-19;7560',
       dispositivos: 'inciso I do § 1º do Art. 2º',
     });
     alteracoes = state.articulacao.artigos[1].alteracoes;

@@ -339,8 +339,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
-      expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('II –');
-      expect(dispositivo.filhos[0].filhos[0].mensagens![1].descricao).to.be.equal('É necessário um omissis antes deste dispositivo');
+      expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('Inciso');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'inciso I, § 1º, Art. 2º';
