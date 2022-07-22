@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isArtigo, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
@@ -108,22 +108,14 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   let novo;
 
-  if (isArtigo(atual)) {
-    if (action.posicao && action.posicao === 'antes') {
-      novo = criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao));
-    } else if (action.posicao && action.posicao === 'depois') {
-      novo = criaDispositivo(atual.pai!, atual.tipo, atual);
-    } else if (atual.hasAlteracao()) {
-      novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
-    } else {
-      novo = createByInferencia(atual, action);
-    }
+  if (action.posicao && action.posicao === 'antes') {
+    novo = criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao));
+  } else if (action.posicao && action.posicao === 'depois') {
+    novo = criaDispositivo(atual.pai!, atual.tipo, atual);
+  } else if (atual.hasAlteracao()) {
+    novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
   } else {
-    if (action.posicao === 'antes') {
-      novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, calculaPosicao(atual, action.posicao));
-    } else {
-      novo = createByInferencia(atual, action);
-    }
+    novo = createByInferencia(atual, action);
   }
 
   /*   if (isDispositivoCabecaAlteracao(novo)) {
