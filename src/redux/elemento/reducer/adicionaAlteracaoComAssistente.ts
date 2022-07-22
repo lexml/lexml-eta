@@ -26,19 +26,21 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   const novo = criaDispositivo(atual.pai!, atual.tipo, atual);
   novo.situacao = new DispositivoAdicionado();
   (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
-  (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
   novo.pai?.renumeraFilhos();
   novo.id = buildId(novo);
 
-  buildDispositivosAssistente(action.dispositivos, novo, state.modo);
-
+  try {
+    buildDispositivosAssistente(action.dispositivos, novo, state.modo);
+  } catch (e) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: (e as Error).message });
+  }
   if (action.norma) {
     novo.alteracoes!.base = action.norma;
 
     if (novo.alteracoes?.base && validaUrn(novo.alteracoes.base)) {
-      novo.texto = `A ${getTipo(novo.alteracoes.base).descricao} nº ${formataNumero(getNumero(novo.alteracoes.base))}, de ${getData(
-        novo.alteracoes!.base
-      )}, passa a vigorar com as seguintes alterações:`;
+      const textoUrn = `${getTipo(novo.alteracoes.base).descricao} nº ${formataNumero(getNumero(novo.alteracoes.base))}, de ${getData(novo.alteracoes!.base)}`;
+      novo.texto = `A <a href="${novo.alteracoes.base}">${textoUrn}</a>, passa a vigorar com as seguintes alterações:`;
     }
   }
 
