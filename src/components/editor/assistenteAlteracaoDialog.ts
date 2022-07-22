@@ -1,6 +1,6 @@
 import SlInput from '@shoelace-style/shoelace/dist/components/input/input';
 import { Elemento } from '../../model/elemento';
-import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/lexml/documento/urnUtil';
+import { buildUrn, validaUrn } from '../../model/lexml/documento/urnUtil';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
@@ -42,27 +42,12 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
 
-  const t = elemento.norma ? getTipo(elemento.norma)?.urn : 'lei';
-  const n = elemento.norma ? getNumero(elemento.norma) : undefined;
-  const d = elemento.norma ? getData(elemento.norma) : undefined;
-
   const tipoNorma = content.querySelector('#tipoNorma');
   const numero = content.querySelector('#numeroNorma');
   const data = content.querySelector('#dataNorma');
   const dispositivos = content.querySelector('#dispositivos');
 
-  if (t) {
-    (tipoNorma! as HTMLSelectElement).value = t;
-  }
-
-  if (n) {
-    (numero! as HTMLInputElement).value = n;
-  }
-
-  if (d) {
-    const [dia, mes, ano] = d.split('/');
-    (data! as HTMLInputElement).value = [ano, mes, dia].join('-');
-  }
+  (tipoNorma! as HTMLSelectElement).value = 'lei';
 
   const botoes = content.querySelectorAll('sl-button');
   const cancelar = botoes[0];
