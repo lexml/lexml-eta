@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
-import { createAlteracao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, createArticulacao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../dispositivo/dispositivoValidator';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
@@ -57,7 +57,7 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
   cabeca.situacao = new DispositivoAdicionado();
   (cabeca.situacao as DispositivoAdicionado).tipoEmenda = modo;
   (cabeca.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
-  cabeca.createNumeroFromRotulo(referencia.numero ?? '');
+  referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
   cabeca.createRotulo(cabeca);
   cabeca.id = buildId(cabeca);
 
@@ -66,23 +66,27 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
 
 export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo, modo = ClassificacaoDocumento.EMENDA): Dispositivo => {
   const referencias = identificaReferencias(texto);
+  let artigoInformado = true;
 
   if (!referencias || referencias.length === 0) {
-    throw new Error('Não foi possível identificar a referêrncia informada');
+    throw new Error('Não foi possível informado o dispositivo');
   }
 
   if (referencias[0].tipo !== TipoDispositivo.artigo) {
     if (referencias.reverse()[0].tipo !== TipoDispositivo.artigo) {
-      throw new Error('Não foi informado o artigo a que se refere a alteração proposta');
+      artigoInformado = false;
     }
   }
-
-  const c = referencias.shift();
-  const cabeca = buildCabecaAlteracao(dispositivo, c!, modo);
+  const c = artigoInformado ? referencias.shift() : undefined;
+  const cabeca = buildCabecaAlteracao(dispositivo, c ?? { tipo: TipoDispositivo.artigo }, modo);
 
   processaFilhos(cabeca, referencias, modo);
 
   return cabeca;
+};
+
+export const validaDispositivoAssistente = (texto: string): Dispositivo => {
+  return buildDispositivosAssistente(texto, criaDispositivo(createArticulacao(), TipoDispositivo.artigo.tipo));
 };
 
 const identificaTipo = (texto: string): Tipo | undefined => {
@@ -112,7 +116,7 @@ export const buildReferencia = (texto: string, tipoDispositivo?: Tipo): Referenc
   const tipo = tipoDispositivo ?? identificaTipo(texto);
 
   if (!tipo) {
-    throw new Error(`Não pude identificar o tipo no texto informado: ${texto}`);
+    throw new Error(`Não pude identificar o tipo em ${texto}`);
   }
 
   const r = regex.get(tipo.tipo);
