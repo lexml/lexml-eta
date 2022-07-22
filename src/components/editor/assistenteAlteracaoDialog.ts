@@ -1,11 +1,12 @@
 import SlInput from '@shoelace-style/shoelace/dist/components/input/input';
 import { Elemento } from '../../model/elemento';
 import { buildUrn, getData, getNumero, getTipo, validaUrn } from '../../model/lexml/documento/urnUtil';
+import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
-  dialogElem.label = 'Assistente de Alteração';
+  dialogElem.label = 'Assistente de Alteração de Norma';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
       event.preventDefault();
@@ -15,7 +16,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   const content = document.createRange().createContextualFragment(`
   <style></style>
   <div class="input-validation-required">
-    <sl-select name="tipoNorma" id="tipoNorma" label="Tipo" clearable>
+    <sl-select name="tipoNorma" id="tipoNorma" label="Tipo da norma" clearable>
       <sl-menu-item value="decreto">Decreto</sl-menu-item>
       <sl-menu-item value="decreto-lei">Decreto-Lei</sl-menu-item>
       <sl-menu-item value="lei">Lei</sl-menu-item>
@@ -28,7 +29,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     <br/>
     <sl-input type="date" name="dataNorma" id="dataNorma" label="Data" clearable></sl-input>
     <p>
-    <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="dispositivos da norma" clearable></sl-input>
+    <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="Dispositivo da norma" clearable></sl-input>
     </p>
   </div>
   <br/>
@@ -41,7 +42,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
 
-  const t = elemento.norma ? getTipo(elemento.norma)?.urn : undefined;
+  const t = elemento.norma ? getTipo(elemento.norma)?.urn : 'lei';
   const n = elemento.norma ? getNumero(elemento.norma) : undefined;
   const d = elemento.norma ? getData(elemento.norma) : undefined;
 
@@ -75,7 +76,16 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
 
     const urn = buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, dataFormatada);
 
-    if (validaUrn(urn) && d && d.length > 0) {
+    let ref;
+    if (d && d.length > 0) {
+      try {
+        ref = validaDispositivoAssistente(d);
+      } catch (err) {
+        console.log('erro', err);
+      }
+    }
+
+    if (validaUrn(urn) && ref !== undefined) {
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();
