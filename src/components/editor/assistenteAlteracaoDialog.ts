@@ -70,7 +70,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       }
     }
 
-    if (validaUrn(urn) && ref !== undefined) {
+    if (validaUrn(urn) && (ref === undefined || (d && d.length > 0))) {
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();
