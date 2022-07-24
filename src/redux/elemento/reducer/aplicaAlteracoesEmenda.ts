@@ -91,6 +91,9 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
   const novo = criaArvoreDispositivos(state.articulacao, dispositivo);
 
   if (novo) {
+    if (novo.rotulo) {
+      novo.createNumeroFromRotulo(novo.rotulo);
+    }
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
       const pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
@@ -123,11 +126,12 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     const d = buscaDispositivoById(articulacao, idSemCpt(da.idIrmaoAnterior));
 
     if (d) {
-      if (d.tipo === da.tipo || d.tipo === 'Omissis') {
+      if (d.id === da.idIrmaoAnterior) {
         novo = criaDispositivo(d.pai!, da.tipo, d);
       } else {
         // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
         // Nesse caso, "d" já é o "Artigo" que será "pai" do novo dispositivo
+        // Em outras palavras: quando o idIrmaoAnterior é de "caput" a função "buscaDispositivoById" traz o artigo
         novo = criaDispositivo(d, da.tipo);
       }
     }
