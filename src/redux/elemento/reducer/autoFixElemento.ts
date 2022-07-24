@@ -38,7 +38,7 @@ export const autoFixElemento = (state: any, action: any): State => {
       const elementoAtual = createElemento(atual);
       eventos.add(StateType.ElementoIncluido, [elementoNovo]);
       eventos.add(StateType.ElementoValidado, [elementoAtual]);
-      eventos.setReferencia(createElemento(anterior ?? isIncisoCaput(atual) ? atual.pai!.pai! : atual.pai!));
+      eventos.setReferencia(createElemento(anterior ?? (isIncisoCaput(atual) ? atual.pai!.pai! : atual.pai!)));
       break;
     }
     case AutoFix.OMISSIS_SEQUENCIAIS: {
