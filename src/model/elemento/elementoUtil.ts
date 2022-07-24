@@ -106,12 +106,14 @@ export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
   return el;
 };
 
-export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo): void => {
+export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo, validados = false): void => {
+  const fnCreateElemento = validados ? createElemento : createElementoValidado;
+
   if (dispositivo.filhos === undefined) {
     return;
   }
   dispositivo.filhos.forEach(d => {
-    const el = createElemento(d);
+    const el = fnCreateElemento(d);
 
     if (isArtigo(d)) {
       el.conteudo!.texto = (d as Artigo).caput!.texto;
@@ -120,23 +122,25 @@ export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo)
 
     if (isArtigo(d) && (d as Artigo).hasAlteracao()) {
       (d as Artigo).alteracoes?.filhos.forEach(f => {
-        elementos.push(createElemento(f));
-        createElementos(elementos, f);
+        elementos.push(fnCreateElemento(f));
+        createElementos(elementos, f, validados);
       });
     }
-    createElementos(elementos, d);
+    createElementos(elementos, d, validados);
   });
 };
 
-export const getElementos = (dispositivo: Dispositivo): Elemento[] => {
+export const getElementos = (dispositivo: Dispositivo, validados = false): Elemento[] => {
+  const fnCreateElemento = validados ? createElemento : createElementoValidado;
+
   const elementos: Elemento[] = [];
-  elementos.push(createElemento(dispositivo, true));
+  elementos.push(fnCreateElemento(dispositivo, true));
 
   if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
     if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
       (dispositivo as Artigo).alteracoes?.filhos.forEach(f => {
-        elementos.push(createElemento(f));
-        createElementos(elementos, f);
+        elementos.push(fnCreateElemento(f));
+        createElementos(elementos, f, validados);
       });
     }
   }

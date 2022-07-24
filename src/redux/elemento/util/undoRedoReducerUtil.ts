@@ -1,16 +1,8 @@
-import { criaListaElementosAfinsValidados } from './../../../model/elemento/elementoUtil';
-import { Eventos } from './../evento/eventos';
-import {
-  isDispositivoAlteracao,
-  isDispositivoCabecaAlteracao,
-  getDispositivoCabecaAlteracao,
-  getDispositivoAndFilhosAsLista,
-} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao, getElementos } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { findDispositivoByUuid, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -54,8 +46,7 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
 };
 
 const isOmissisCaput = (elemento: Elemento): boolean => {
-  const partesLexmlId = elemento.lexmlId?.split('_') ?? [];
-  return elemento.tipo === TipoDispositivo.omissis.tipo && partesLexmlId.length > 1 && partesLexmlId[partesLexmlId.length - 2] === 'cpt';
+  return elemento.tipo === TipoDispositivo.omissis.tipo && elemento.tipoOmissis === 'inciso-caput';
 };
 
 const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
@@ -221,39 +212,4 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
     return validados;
   }
   return [];
-};
-
-export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao, eventos: Eventos, paiDoPrimeiroDispositivoASerRemovido: Dispositivo | undefined): Elemento[] => {
-  const elementos: Elemento[] = [];
-
-  if (paiDoPrimeiroDispositivoASerRemovido && paiDoPrimeiroDispositivoASerRemovido.tipo !== 'Articulacao') {
-    try {
-      if (isDispositivoAlteracao(paiDoPrimeiroDispositivoASerRemovido)) {
-        const dispositivos = getDispositivoAndFilhosAsLista(paiDoPrimeiroDispositivoASerRemovido);
-        dispositivos.forEach(d => {
-          elementos.push(...criaListaElementosAfinsValidados(d, true));
-        });
-      }
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-  }
-
-  const incluidos = eventos.get(StateType.ElementoIncluido);
-
-  if (incluidos.elementos?.length) {
-    const elemento1 = incluidos.elementos[0];
-    const dispositivo = getDispositivoFromElemento(articulacao, elemento1);
-
-    try {
-      if (dispositivo && isDispositivoAlteracao(dispositivo) && !isDispositivoCabecaAlteracao(dispositivo)) {
-        const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-        if (cabecaAlteracao) {
-          elementos.push(...getElementos(cabecaAlteracao));
-        }
-      }
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-  }
-
-  return elementos;
 };

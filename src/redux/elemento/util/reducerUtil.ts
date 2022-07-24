@@ -1,13 +1,20 @@
-import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { AdicionarElemento } from '../../../model/lexml/acao/adicionarElementoAction';
 import { hasIndicativoDesdobramento } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { getArticulacao, getDispositivoAndFilhosAsLista, getDispositivoAnteriorMesmoTipo, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getArticulacao,
+  getDispositivoAndFilhosAsLista,
+  getDispositivoAnteriorMesmoTipo,
+  getDispositivoCabecaAlteracao,
+  getUltimoFilho,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Counter } from '../../../util/counter';
 import { StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
@@ -82,4 +89,22 @@ export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = fal
     }
   });
   return lista;
+};
+
+export const getElementosAlteracaoASeremAtualizados = (articulacao: Articulacao, elementos: Elemento[]): Elemento[] => {
+  const result: Elemento[] = [];
+  getDispositivosCabecaAlteracaoFromElementos(articulacao, elementos).forEach(d => result.push(...getElementos(d, true)));
+  return result;
+};
+
+const getDispositivosCabecaAlteracaoFromElementos = (articulacao: Articulacao, elementos: Elemento[]): Dispositivo[] => {
+  const map = new Map();
+  elementos.forEach(elemento => {
+    const d = getDispositivoFromElemento(articulacao, elemento) || (elemento.hierarquia?.pai && getDispositivoFromElemento(articulacao, elemento.hierarquia.pai));
+    if (d && isDispositivoAlteracao(d)) {
+      const ca = getDispositivoCabecaAlteracao(d);
+      map.set(ca.id, ca);
+    }
+  });
+  return Array.from(map.values());
 };

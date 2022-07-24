@@ -126,11 +126,7 @@ export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Disp
   const eventos = buildEventoExclusaoElemento(removidos, dispositivosRenumerados, criaListaElementosAfinsValidados(dispositivoValidado, false));
 
   if (ehDispositivoAlteracao) {
-    const validados = eventos.get(StateType.ElementoValidado);
-    const dispositivos = getDispositivoAndFilhosAsLista(pai);
-    dispositivos.forEach(d => {
-      validados.elementos!.push(...criaListaElementosAfinsValidados(d, true));
-    });
+    eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(pai, true));
 
     if (dispositivoAnterior || pai) {
       try {
@@ -318,4 +314,10 @@ export const createEventos = (): StateEvent[] => {
       elementos: [],
     },
   ];
+};
+
+export const getElementosRemovidosEIncluidos = (eventos: StateEvent[]): Elemento[] => {
+  const map = new Map();
+  eventos.filter(ev => [StateType.ElementoRemovido, StateType.ElementoIncluido].includes(ev.stateType)).forEach(ev => ev.elementos?.forEach(el => map.set(el.lexmlId!, el)));
+  return Array.from(map.values());
 };

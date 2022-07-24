@@ -1,3 +1,4 @@
+import { Elemento } from '../../../model/elemento';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -8,7 +9,7 @@ import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoS
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia } from '../util/reducerUtil';
+import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { isArticulacao, isOmissis } from './../../../model/dispositivo/tipo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
@@ -63,6 +64,14 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   }
 
   retorno.ui!.events = eventos.build();
+
+  const elementosInseridos: Elemento[] = [];
+  retorno.ui!.events.filter(stateEvent => stateEvent.stateType === StateType.ElementoIncluido).forEach(se => elementosInseridos.push(...se.elementos!));
+
+  retorno.ui!.events.push({
+    stateType: StateType.SituacaoElementoModificada,
+    elementos: getElementosAlteracaoASeremAtualizados(state.articulacao, elementosInseridos),
+  });
 
   return retorno;
 };
