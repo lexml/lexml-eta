@@ -2,7 +2,7 @@ import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElemento, createElementos, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
@@ -21,7 +21,7 @@ import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
-import { createElementoValidado, isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
+import { isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 

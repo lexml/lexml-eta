@@ -22,13 +22,6 @@ export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any)
   return (atual.texto !== '' && action.atual?.conteudo?.texto === '') || (action.atual?.conteudo?.texto && atual.texto.localeCompare(action.atual?.conteudo?.texto) !== 0);
 };
 
-export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
-  const el = createElemento(dispositivo);
-  el.mensagens = validaDispositivo(dispositivo);
-
-  return el;
-};
-
 export const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
   dispositivo.uuid = Counter.next();
   dispositivo.filhos?.forEach(f => resetUuidTodaArvore(f));

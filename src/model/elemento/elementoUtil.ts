@@ -99,6 +99,13 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
   };
 };
 
+export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
+  const el = createElemento(dispositivo);
+  el.mensagens = validaDispositivo(dispositivo);
+
+  return el;
+};
+
 export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo): void => {
   if (dispositivo.filhos === undefined) {
     return;
