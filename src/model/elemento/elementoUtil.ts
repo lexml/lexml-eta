@@ -145,7 +145,7 @@ export const getElementos = (dispositivo: Dispositivo, validados = false): Eleme
     }
   }
 
-  createElementos(elementos, dispositivo);
+  createElementos(elementos, dispositivo, validados);
 
   return elementos;
 };

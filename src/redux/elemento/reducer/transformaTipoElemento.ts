@@ -1,16 +1,19 @@
+import { isDispositivoAlteracao, getDispositivoCabecaAlteracao, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoTransformacaoPermitida, normalizaNomeAcaoTransformacao } from '../../../model/lexml/acao/acaoUtil';
 import { converteDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAnterior, isParagrafoUnico } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { State } from '../../state';
+import { State, StateType } from '../../state';
 import { buildEventoTransformacaooElemento } from '../evento/eventosUtil';
 import { getElementosDoDispositivo } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
 export const transformaTipoElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const cabecaAlteracao = atual && isDispositivoAlteracao(atual) && getDispositivoCabecaAlteracao(atual);
+
   if (atual === undefined) {
     state.ui.events = [];
     return state;
@@ -21,6 +24,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   }
 
   const dispositivoAnteriorAtual = getDispositivoAnterior(atual);
+  const ultimoFilhoDispositivoAnteriorAtual = cabecaAlteracao && dispositivoAnteriorAtual && getUltimoFilho(dispositivoAnteriorAtual);
 
   action.subType = normalizaNomeAcaoTransformacao(atual, action.subType);
 
@@ -70,6 +74,12 @@ export const transformaTipoElemento = (state: any, action: any): State => {
     }),
     validados
   );
+
+  if (novo.tipo === 'Artigo' && cabecaAlteracao) {
+    eventos.add(StateType.SituacaoElementoModificada, [createElemento(getUltimoFilho(cabecaAlteracao))]);
+  } else if (novo.tipo === 'Paragrafo' && ultimoFilhoDispositivoAnteriorAtual) {
+    eventos.add(StateType.SituacaoElementoModificada, [createElemento(ultimoFilhoDispositivoAnteriorAtual)]);
+  }
 
   return {
     articulacao: state.articulacao,
