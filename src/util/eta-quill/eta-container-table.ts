@@ -28,7 +28,7 @@ export class EtaContainerTable extends Container {
     node.setAttribute('cellpadding', '0');
     node.setAttribute('cellspacing', '0');
     node.setAttribute('border', '0');
-    if (elemento.existeNaNormaAlterada !== undefined) {
+    if (elemento.existeNaNormaAlterada !== undefined && elemento.tipo !== 'Omissis') {
       node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
     }
     if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
@@ -180,6 +180,11 @@ export class EtaContainerTable extends Container {
   }
 
   atualizarAtributos(elemento: Elemento): void {
+    if (elemento.tipo === 'Omissis' || elemento.existeNaNormaAlterada === undefined) {
+      this.domNode.removeAttribute('existenanormaalterada');
+    } else {
+      this.domNode.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada);
+    }
     this.blotRotulo.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
   }

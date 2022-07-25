@@ -720,10 +720,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.setEstilo(elemento);
         }
 
-        if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
-          linha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-          linha.domNode.setAttribute('existenanormaalterada', linha.existeNaNormaAlterada);
-        }
+        linha.atualizarAtributos(elemento);
+        // if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
+        //   linha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+        //   linha.domNode.setAttribute('existenanormaalterada', linha.existeNaNormaAlterada);
+        // }
 
         if (linha.children.length === 2) {
           linha.children.tail.remove();
