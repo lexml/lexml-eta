@@ -122,10 +122,6 @@ export const editorStyles = html`
       font-size: 15px;
     }
 
-    .container__menu sl-button::part(base):hover {
-      color: #fff;
-    }
-
     .container__menu sl-menu-item::part(suffix) {
       font-size: 14px;
       padding-left: 20px;
