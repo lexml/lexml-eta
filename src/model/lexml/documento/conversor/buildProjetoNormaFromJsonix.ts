@@ -190,6 +190,6 @@ const buildContent = (content: any): string => {
     }
   });
   texto = texto.replace(/"(?=\w|$)/g, '&#8220;');
-  texto = texto.replace(/(?<=\w|^)"/g, '&#8221;');
+  texto = texto.replace(/(?<=[\w,.?!)]|^)"/g, '&#8221;');
   return texto;
 };
