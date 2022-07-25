@@ -14,7 +14,7 @@ export class EtaBlotMenuItem extends EtaBlot {
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotMenuItem.className);
-    node.innerHTML = (acao.descricao ?? '') + (acao.hotkey ? `<b> ${acao.hotkey} </b>` : '');
+    node.innerHTML = (acao.descricao ?? '') + (acao.hotkey ? `<span slot="suffix"> ${acao.hotkey} </span>` : '');
 
     node.addEventListener('mousedown', () => {
       if (acao.descricao === informarNormaAction.descricao || acao.descricao === InformarDadosAssistenteAction.descricao) {

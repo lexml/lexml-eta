@@ -115,7 +115,16 @@ export const editorStyles = html`
       font-size: 15px;
     }
 
-    .lx-eta-dropdown:hover .lx-eta-dropbtn {
+    .container__menu sl-button::part(base):hover {
+      color: #fff;
+    }
+
+    .container__menu sl-menu-item::part(suffix) {
+      font-size: 14px;
+      padding-left: 20px;
+    }
+
+    .container__menu sl-menu-item:hover .lx-eta-dropbtn {
       background-color: #e1e1e1;
     }
 
