@@ -189,6 +189,7 @@ const buildContent = (content: any): string => {
       texto += element;
     }
   });
-
+  texto = texto.replace(/"(?=\w|$)/g, '&#8220;');
+  texto = texto.replace(/(?<=\w|^)"/g, '&#8221;');
   return texto;
 };
