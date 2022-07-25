@@ -269,12 +269,12 @@ export class DemoView extends LitElement {
           grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
         }
         lexml-emenda-comando {
-          font-family: var(--sl-font-serif);
+          font-family: var(--eta-font-serif);
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
           height: calc(100vh - 104px);
         }
         lexml-eta {
-          font-family: var(--sl-font-serif);
+          font-family: var(--eta-font-serif);
           text-align: left;
         }
         .nome-proposicao {

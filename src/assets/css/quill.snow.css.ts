@@ -11,7 +11,7 @@ export const quillSnowStyles = html`
     .ql-container {
       box-sizing: border-box;
       /* font-family: Helvetica, Arial, sans-serif; */
-      font-family: var(--sl-font-sans);
+      font-family: var(--eta-font-serif);
       font-size: 13px;
       height: 100%;
       margin: 0px;

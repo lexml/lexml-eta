@@ -1,11 +1,18 @@
 import { html } from 'lit';
+
 // Foi utilizado TemplateResult porque o editor.component.ts não usa ShadowDom
 export const editorStyles = html`
   <style>
     :root {
       --elemento-padding-factor: 20;
+      --eta-font-serif: 'GentiumPlus';
     }
-
+    @font-face {
+      font-family: 'GentiumPlus';
+      src: url('../../../assets/fonts/GentiumPlus-Regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
     #lx-eta-box {
       display: grid;
       grid-template-columns: 1fr;
@@ -67,7 +74,7 @@ export const editorStyles = html`
     #lx-eta-editor .ql-editor {
       /* font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji'; */
-      font-family: var(--sl-font-serif);
+      font-family: var(--eta-font-serif);
       font-size: 1rem;
       line-height: 1.42;
       color: #646260;
