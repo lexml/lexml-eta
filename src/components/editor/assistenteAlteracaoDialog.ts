@@ -29,7 +29,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     <br/>
     <sl-input type="date" name="dataNorma" id="dataNorma" label="Data" clearable></sl-input>
     <p>
-    <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="Dispositivo da norma" clearable></sl-input>
+    <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" help-text="Pode ser utilizado 'parágrafo', 'par' ou § para referenciar parágrafo" label="Dispositivo da norma" clearable></sl-input>
     </p>
   </div>
   <br/>
