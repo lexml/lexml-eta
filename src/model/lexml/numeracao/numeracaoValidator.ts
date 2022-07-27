@@ -119,7 +119,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
 
   if (
-    (dispositivo !== null && dispositivo.numero !== undefined && isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) ||
+    (dispositivo !== null && !isDispositivoCabecaAlteracao(dispositivo) && dispositivo.numero !== undefined && isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) ||
     (getDispositivoAnterior(dispositivo) !== undefined &&
       (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
       dispositivo.numero !== '1' &&
