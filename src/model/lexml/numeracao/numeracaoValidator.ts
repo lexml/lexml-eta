@@ -183,23 +183,6 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       fix: true,
     });
   }
-
-  if (
-    dispositivo !== null &&
-    !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero !== undefined &&
-    dispositivo.pai!.indexOf(dispositivo) > 0 &&
-    getDispositivoAnteriorMesmoTipo(dispositivo) &&
-    dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
-    !isOmissis(getDispositivoAnterior(dispositivo)!) &&
-    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: AutoFix.OMISSIS_ANTES,
-      fix: true,
-    });
-  }
   return mensagens;
 };
 
