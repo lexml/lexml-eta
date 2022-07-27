@@ -106,8 +106,10 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo !== null &&
     !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero !== undefined &&
-    dispositivo.pai?.indexOf(dispositivo) === 0 &&
-    !isParagrafo(dispositivo) &&
+    getDispositivoAnterior(dispositivo) !== undefined &&
+    isPrimeiroMesmoTipo(dispositivo) &&
+    !isOmissis(dispositivo) &&
+    (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
     dispositivo.numero !== '1' &&
     dispositivo.numero !== '1u'
   ) {
@@ -119,11 +121,14 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   }
 
   if (
-    (dispositivo !== null && !isDispositivoCabecaAlteracao(dispositivo) && dispositivo.numero !== undefined && isParagrafo(dispositivo) && isPrimeiroMesmoTipo(dispositivo)) ||
-    (getDispositivoAnterior(dispositivo) !== undefined &&
-      (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
-      dispositivo.numero !== '1' &&
-      dispositivo.numero !== '1u')
+    dispositivo !== null &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
+    dispositivo.numero !== undefined &&
+    dispositivo.pai!.indexOf(dispositivo) > 0 &&
+    getDispositivoAnteriorMesmoTipo(dispositivo) &&
+    dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
+    !isOmissis(getDispositivoAnterior(dispositivo)!) &&
+    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -167,22 +172,6 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     });
   }
 
-  if (
-    dispositivo !== null &&
-    !isDispositivoCabecaAlteracao(dispositivo) &&
-    dispositivo.numero !== undefined &&
-    dispositivo.pai!.indexOf(dispositivo) > 0 &&
-    getDispositivoAnteriorMesmoTipo(dispositivo) &&
-    dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
-    !isOmissis(getDispositivoAnterior(dispositivo)!) &&
-    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: AutoFix.OMISSIS_ANTES,
-      fix: true,
-    });
-  }
   return mensagens;
 };
 
