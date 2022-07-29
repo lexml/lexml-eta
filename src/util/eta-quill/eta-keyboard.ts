@@ -90,7 +90,7 @@ export class EtaKeyboard extends Keyboard {
             this.onHotKeyTransformacaoTipo(ev);
           } else if (ev.key.toLowerCase() === 'r') {
             this.onHotKeyRenumeraDispositivo(ev);
-          } else if (ev.key.toLowerCase() === 'k') {
+          } else if (ev.key.toLowerCase() === 'x') {
             this.onHotKeyToggleExistencia(ev);
           }
         }

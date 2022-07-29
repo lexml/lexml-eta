@@ -27,5 +27,5 @@ export class InformarExistenciaDoElementoNaNorma implements ElementoAction {
   }
 }
 
-export const considerarElementoExistenteNaNorma = new InformarExistenciaDoElementoNaNorma('Considerar existente na norma', 'considerarExistenteNaNorma', '(Ctrl+Alt+E)', true);
-export const considerarElementoNovoNaNorma = new InformarExistenciaDoElementoNaNorma('Considerar novo na norma', 'considerarNovoNaNorma', '(Ctrl+Alt+E)', false);
+export const considerarElementoExistenteNaNorma = new InformarExistenciaDoElementoNaNorma('Considerar existente na norma', 'considerarExistenteNaNorma', '(Ctrl+Alt+X)', true);
+export const considerarElementoNovoNaNorma = new InformarExistenciaDoElementoNaNorma('Considerar novo na norma', 'considerarNovoNaNorma', '(Ctrl+Alt+X)', false);
