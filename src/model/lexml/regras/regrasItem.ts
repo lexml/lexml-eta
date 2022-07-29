@@ -14,6 +14,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNovoNaNormaAlterada,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -44,7 +45,7 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
         acoes.push(moverElementoAcimaAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo) && !isDispositivoNovoNaNormaAlterada(dispositivo.pai!)) {
         acoes.push(renumerarElementoAction);
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {

@@ -580,6 +580,11 @@ export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): bool
   if (!isDispositivoAlteracao(dispositivo) || value === undefined) {
     return;
   }
-  const situacoes = [DescricaoSituacao.DISPOSITIVO_NOVO + '', DescricaoSituacao.DISPOSITIVO_ADICIONADO + ''];
+  const situacoes = [DescricaoSituacao.DISPOSITIVO_ADICIONADO + ''];
   return situacoes.includes(dispositivo.situacao?.descricaoSituacao) && !value;
+};
+
+export const podeRenumerarFilhosAutomaticamente = (dispositivo: Dispositivo): boolean => {
+  const d = dispositivo.tipo === 'Caput' ? dispositivo.pai! : dispositivo;
+  return !!isDispositivoNovoNaNormaAlterada(d);
 };

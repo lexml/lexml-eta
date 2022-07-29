@@ -221,3 +221,18 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
   }
   return [];
 };
+
+export const processaSituacoesAlteradas = (state: State, eventos: StateEvent[]): Elemento[] => {
+  const elementos: Elemento[] = [];
+  eventos
+    .filter(ev => ev.stateType === StateType.SituacaoElementoModificada)
+    .forEach(ev => {
+      ev.elementos?.forEach((el: Elemento) => {
+        const dispositivo = getDispositivoFromElemento(state.articulacao!, el, true);
+        if (dispositivo) {
+          elementos.push(createElemento(dispositivo));
+        }
+      });
+    });
+  return elementos;
+};

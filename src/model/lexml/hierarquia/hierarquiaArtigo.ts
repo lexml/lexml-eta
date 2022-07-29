@@ -4,7 +4,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isCaput, isInciso } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import { isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao } from './hierarquiaUtil';
+import { isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao, podeRenumerarFilhosAutomaticamente } from './hierarquiaUtil';
 
 export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -95,6 +95,9 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     renumeraFilhos(): void {
+      if (!podeRenumerarFilhosAutomaticamente(this as any)) {
+        return;
+      }
       this.renumeraIncisos();
       this.renumeraParagrafos();
     }

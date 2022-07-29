@@ -52,6 +52,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
     tipo: pai?.tipo,
     uuid: pai?.uuid,
     uuidAlteracao: pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
+    existeNaNormaAlterada: pai?.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
   };
 };
 

@@ -4,7 +4,7 @@ import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import { incluir, processaRenumerados, processarModificados, processaSituacoesAlteradas, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
 
 export const redo = (state: any): State => {
   if (state.future === undefined || state.future.length === 0) {
@@ -54,6 +54,10 @@ export const redo = (state: any): State => {
   }
 
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
+  events.eventos.push({
+    stateType: StateType.SituacaoElementoModificada,
+    elementos: processaSituacoesAlteradas(state, eventos),
+  });
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

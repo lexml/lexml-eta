@@ -14,6 +14,7 @@ import {
   isDispositivoCabecaAlteracao,
   isOriginal,
   isParagrafoUnico,
+  podeRenumerarFilhosAutomaticamente,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -148,7 +149,7 @@ export const adicionaElemento = (state: any, action: any): State => {
   }
 
   if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai);
   }
 
   novo.pai!.renumeraFilhos();

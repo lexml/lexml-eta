@@ -1,3 +1,4 @@
+import { processaSituacoesAlteradas } from './../util/undoRedoReducerUtil';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -54,6 +55,10 @@ export const undo = (state: any): State => {
   }
 
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
+  events.eventos.push({
+    stateType: StateType.SituacaoElementoModificada,
+    elementos: processaSituacoesAlteradas(state, eventos),
+  });
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

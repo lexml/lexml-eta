@@ -9,6 +9,7 @@ export class Referencia {
   conteudo?: Partial<Conteudo>;
   descricaoSituacao?: string;
   uuidAlteracao?: number;
+  existeNaNormaAlterada?: boolean;
 }
 export class Elemento extends Referencia {
   nivel = 0;

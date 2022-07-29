@@ -693,10 +693,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
 
         linha.atualizarElemento(elemento);
-        // if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
-        //   linha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-        //   linha.domNode.setAttribute('existenanormaalterada', linha.existeNaNormaAlterada);
-        // }
 
         if (linha.children.length === 2) {
           linha.children.tail.remove();

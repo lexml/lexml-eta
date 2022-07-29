@@ -19,12 +19,17 @@ export class EtaBlotRotulo extends EtaBlot {
       node.setAttribute('abre-aspas', 'true');
     }
 
+    if (podeInformarNumeracao(elemento)) {
+      node.setAttribute('pode-informar-numeracao', 'true');
+    }
+
     if (elemento.tipo) {
       node.setAttribute('tipo-dispositivo', elemento.tipo);
     }
 
     node.innerHTML = elemento.rotulo;
-    node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
+    // node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
+    node.onclick = onclick(node, elemento);
     return node;
   }
 
@@ -71,10 +76,36 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   public atualizarAtributos(elemento: Elemento): void {
+    this.domNode.setAttribute('data-rotulo', elemento.rotulo);
+
     if (elemento.abreAspas) {
       this.domNode.setAttribute('abre-aspas', 'true');
     } else {
       this.domNode.removeAttribute('abre-aspas');
     }
+
+    if (podeInformarNumeracao(elemento)) {
+      this.domNode.setAttribute('pode-informar-numeracao', 'true');
+    } else {
+      this.domNode.removeAttribute('pode-informar-numeracao');
+    }
+
+    this.domNode.onclick = onclick(this.domNode, elemento);
   }
 }
+
+const podeInformarNumeracao = (elemento: Elemento): boolean => {
+  return !!(
+    elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+    elemento.dispositivoAlteracao &&
+    (elemento.abreAspas || (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true))
+  );
+};
+
+const onclick = (node: HTMLElement, elemento: Elemento): (() => boolean) => {
+  if (podeInformarNumeracao(elemento)) {
+    return (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
+  } else {
+    return (): boolean => false;
+  }
+};

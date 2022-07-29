@@ -295,10 +295,10 @@ export const criaDispositivoCabecaAlteracao = (tipo: string, alteracoes: Alterac
 
 const desativaRotuloAutomaticoSeDispositivoAlteracao = (dispositivo: Dispositivo): void => {
   if (isDispositivoAlteracao(dispositivo)) {
-    dispositivo.renumeraFilhos = (): void => undefined;
-    if (isArtigo(dispositivo)) {
-      (dispositivo as Artigo).caput!.renumeraFilhos = (): void => undefined;
-    }
+    // dispositivo.renumeraFilhos = (): void => undefined;
+    // if (isArtigo(dispositivo)) {
+    //   (dispositivo as Artigo).caput!.renumeraFilhos = (): void => undefined;
+    // }
     getArticulacao(dispositivo).renumeraFilhos = (): void => undefined;
     getArticulacao(dispositivo).renumeraArtigos = (): void => undefined;
   }

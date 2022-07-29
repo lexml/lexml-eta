@@ -26,6 +26,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
@@ -57,7 +58,7 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAcimaAction);
       }
-      if (isDispositivoAlteracao(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo) && !isDispositivoNovoNaNormaAlterada(dispositivo.pai!)) {
         acoes.push(renumerarElementoAction);
       }
       if (dispositivo.texto && hasIndicativoDesdobramento(dispositivo)) {

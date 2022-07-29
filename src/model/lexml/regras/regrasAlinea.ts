@@ -22,6 +22,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
@@ -55,7 +56,7 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(moverElementoAcimaAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo) && !isDispositivoNovoNaNormaAlterada(dispositivo.pai!)) {
         acoes.push(renumerarElementoAction);
       }
       if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {

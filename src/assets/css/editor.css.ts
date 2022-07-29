@@ -267,7 +267,7 @@ export const editorStyles = html`
       text-align: center;
     }
 
-    .rotulo {
+    label[pode-informar-numeracao='true'] {
       cursor: pointer;
       /* border-bottom: 1px dashed; */
       -webkit-box-shadow: 0px -1px 0px green inset;
