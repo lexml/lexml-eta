@@ -123,6 +123,7 @@ declare interface KeyboardStatic {
   onItalic: any;
   onScript: any;
   onChange: any;
+  toggleExistencia: any;
 }
 
 declare interface ClipboardStatic {

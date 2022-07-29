@@ -189,6 +189,21 @@ export class EtaContainerTable extends Container {
     this.blotConteudo.atualizarAtributos(elemento);
   }
 
+  atualizarElemento(elemento: Elemento): void {
+    this._lexmlId = elemento.lexmlId ?? '';
+    this._editavel = elemento.editavel;
+    this._nivel = elemento.nivel;
+    this._numero = elemento.numero ?? '';
+    this._tipo = elemento.tipo ?? '';
+    this._agrupador = elemento.agrupador;
+    this._hierarquia = elemento.hierarquia?.pai?.uuidAlteracao ? elemento.hierarquia : undefined;
+    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
+    this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+
+    this.setEstilo(elemento);
+    this.atualizarAtributos(elemento);
+  }
+
   constructor(elemento: Elemento) {
     super(EtaContainerTable.create(elemento));
     this._lexmlId = elemento.lexmlId ?? '';

@@ -1,5 +1,5 @@
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
-import { State, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
@@ -34,7 +34,16 @@ export const undo = (state: any): State => {
     StateType.ElementoRestaurado,
     restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoRestaurado), DispositivoOriginal)
   );
-  events.add(StateType.ElementoModificado, processarModificados(state, getEvento(eventos, StateType.ElementoModificado)));
+
+  eventos
+    .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
+    .forEach((ev: StateEvent) => {
+      events.eventos.push({
+        stateType: StateType.ElementoModificado,
+        elementos: processarModificados(state, ev),
+      });
+    });
+
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
 

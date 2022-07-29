@@ -17,6 +17,7 @@ export class EtaKeyboard extends Keyboard {
   transformaElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   moveElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   onChange: Observable<string> = new Observable<string>();
+  toggleExistencia: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
 
   private altGraphPressionado = false;
 
@@ -89,6 +90,8 @@ export class EtaKeyboard extends Keyboard {
             this.onHotKeyTransformacaoTipo(ev);
           } else if (ev.key.toLowerCase() === 'r') {
             this.onHotKeyRenumeraDispositivo(ev);
+          } else if (ev.key.toLowerCase() === 'k') {
+            this.onHotKeyToggleExistencia(ev);
           }
         }
       } else if (ev.key === 'ArrowRight') {
@@ -318,6 +321,11 @@ export class EtaKeyboard extends Keyboard {
     if (texto) {
       this.onChange.notify('toolbar(hotkey)');
     }
+  }
+
+  private onHotKeyToggleExistencia(ev: KeyboardEvent): void {
+    this.toggleExistencia.notify(ev);
+    cancelarPropagacaoDoEvento(ev);
   }
 
   private verificaSelecaoComLink(): boolean {

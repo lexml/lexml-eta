@@ -6,6 +6,7 @@ import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionar
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { InformarDadosAssistenteAction } from '../acao/informarDadosAssistenteAction';
+import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -34,6 +35,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -133,6 +135,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
           ?.filter(() => pos > 0)
           .filter(t => tiposExistentes.includes(t))
           .forEach(t => acoes.push(getAcaoAgrupamento(t)));
+      }
+
+      if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

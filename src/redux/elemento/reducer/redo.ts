@@ -1,5 +1,5 @@
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
-import { State, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
@@ -30,7 +30,16 @@ export const redo = (state: any): State => {
 
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoRemovido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoIncluido), getEvento(events.eventos, StateType.ElementoIncluido)));
-  events.add(StateType.ElementoModificado, processarModificados(state, getEvento(eventos, StateType.ElementoModificado), true));
+
+  eventos
+    .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
+    .forEach((ev: StateEvent) => {
+      events.eventos.push({
+        stateType: StateType.ElementoModificado,
+        elementos: processarModificados(state, ev, true),
+      });
+    });
+
   events.add(
     StateType.ElementoSuprimido,
     restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoSuprimido), DispositivoSuprimido)

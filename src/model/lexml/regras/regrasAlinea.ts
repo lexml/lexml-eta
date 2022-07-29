@@ -4,6 +4,7 @@ import { isAlinea, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarAlineaAntes, adicionarAlineaDepois, adicionarItem } from '../acao/adicionarElementoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
+import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
@@ -26,6 +27,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
 import { podeConverterEmOmissis } from './regrasUtil';
 
@@ -74,6 +76,10 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       }
       if (podeConverterEmOmissis(dispositivo)) {
         acoes.push(transformarEmOmissisAlinea);
+      }
+
+      if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

@@ -170,6 +170,11 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;
           }
+
+          if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+            (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = e.existeNaNormaAlterada;
+          }
+
           dispositivo.mensagens = validaDispositivo(dispositivo);
           novosElementos.push(createElemento(dispositivo));
           anterior = dispositivo.uuid!;

@@ -1,4 +1,4 @@
-import { SlButton, SlInput, SlRadioButton } from '@shoelace-style/shoelace';
+import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
@@ -7,10 +7,9 @@ import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-import { getDispositivoFromElemento, hasElementoAscendenteAdicionado } from '../../model/elemento/elementoUtil';
+import { getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -19,6 +18,7 @@ import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atuali
 import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
 import { autofixAction } from '../../model/lexml/acao/autoFixAction';
 import { elementoSelecionadoAction } from '../../model/lexml/acao/elementoSelecionadoAction';
+import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
 import { moverElementoAbaixoAction } from '../../model/lexml/acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../../model/lexml/acao/moverElementoAcimaAction';
 import { redoAction } from '../../model/lexml/acao/redoAction';
@@ -282,8 +282,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha.existeNaNormaAlterada
     );
 
-    let opcaoInformada;
-
     if (!podeRenumerar(rootStore.getState().elementoReducer.articulacao, elemento)) {
       return;
     }
@@ -297,19 +295,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         event.preventDefault();
       }
     });
-    const dispositivoAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
 
     const content = document.createRange().createContextualFragment(`
       <div class="input-validation-required">
         <sl-input type="text" placeholder="" label="Numeração do dispositivo:" clearable></sl-input>
         <br/>
-        <div id="dispositivoDeNorma">
-            O dispositivo já existe na norma a ser alterada?
-            <sl-radio-group label="O dispositivo já existe na norma a ser alterada?">
-              <sl-radio-button name="existeNaNorma" id="existente" value="true">Sim</sl-radio-button>
-              <sl-radio-button name="existeNaNorma" id="adicionado" value="false">Não</sl-radio-button>
-            </sl-radio-group>
-        </div>
       </div>
       <br/>
       <sl-alert variant="warning" closable class="alert-closable">
@@ -323,18 +313,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const input = <SlInput>content.querySelector('sl-input');
     input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
 
-    const dispositivoNaNorma = <any>content.getElementById('dispositivoDeNorma');
-    if (elemento.existeNaNormaAlterada !== undefined) {
-      (content.getElementById(`${elemento.existeNaNormaAlterada ? 'existente' : 'adicionado'}`) as SlRadioButton).checked = true;
-    }
-
-    if (dispositivoAdicionado) {
-      const r = hasElementoAscendenteAdicionado(rootStore.getState().elementoReducer.articulacao, elemento);
-      dispositivoNaNorma.disabled = r;
-      dispositivoNaNorma.style.display = r ? 'none' : 'block';
-      (content.querySelector('#existente')! as any).checked = elemento.existeNaNormaAlterada;
-    }
-
     const botoes = content.querySelectorAll('sl-button');
     const cancelar = botoes[0];
     const ok = botoes[1];
@@ -343,9 +321,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const alerta = content.querySelector('sl-alert');
 
     ok.onclick = (): void => {
-      if (!validarElementoAdicionado()) {
-        return;
-      }
       this.quill.focus();
       dialogElem?.hide();
       dialogElem?.remove();
@@ -355,33 +330,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(atualizarElementoAction.execute(elemento));
       }
 
-      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim(), opcaoInformada === 'true'));
+      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
     };
 
     cancelar.onclick = (): void => {
       this.quill.focus();
       dialogElem?.hide();
       dialogElem?.remove();
-    };
-
-    const validarElementoAdicionado = (): boolean => {
-      if (dispositivoNaNorma && !dispositivoNaNorma.disabled) {
-        document.querySelectorAll('sl-radio-button').forEach(o => {
-          if ((o as SlRadioButton).checked) {
-            opcaoInformada = (o as SlRadioButton).value;
-          }
-        });
-
-        if (dispositivoAdicionado && opcaoInformada === undefined) {
-          const msgErro = 'É necessário informar se se trata de dispositivo existente na norma alterada';
-          erro.innerText = msgErro;
-          msgErro ? alerta?.show() : alerta?.hide();
-          return false;
-        }
-      }
-      erro.style.display = 'none';
-      alerta?.hide();
-      return true;
     };
 
     const validar = (): string => {
@@ -410,10 +365,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.addEventListener('keyup', validarInput);
     input.addEventListener('sl-clear', validarInput);
 
-    await dialogElem.appendChild(content);
+    dialogElem.appendChild(content);
     await dialogElem?.show();
     ok.disabled = Boolean(validar());
     (input as SlInput).focus();
+  }
+
+  private toggleExistencia(): void {
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+    const elemento: Elemento = this.criarElemento(
+      linha!.uuid ?? 0,
+      linha.lexmlId,
+      linha!.tipo ?? '',
+      '',
+      linha.numero,
+      linha.hierarquia,
+      linha.descricaoSituacao,
+      linha.existeNaNormaAlterada
+    );
+    const action = linha.existeNaNormaAlterada ? considerarElementoNovoNaNorma : considerarElementoExistenteNaNorma;
+
+    rootStore.dispatch(action.execute(elemento));
   }
 
   private removerElementoSemTexto(key: string): void {
@@ -652,7 +624,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
 
-    elementos.map((elemento: Elemento) => {
+    elementos.forEach((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
@@ -670,7 +642,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        linha.atualizarAtributos(elemento);
+        linha.atualizarElemento(elemento);
       }
     });
   }
@@ -720,7 +692,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.setEstilo(elemento);
         }
 
-        linha.atualizarAtributos(elemento);
+        linha.atualizarElemento(elemento);
         // if (elemento.existeNaNormaAlterada !== linha.existeNaNormaAlterada) {
         //   linha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
         //   linha.domNode.setAttribute('existenanormaalterada', linha.existeNaNormaAlterada);
@@ -845,6 +817,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.removeElementoSemTexto.subscribe(this.removerElementoSemTexto.bind(this)));
     this.inscricoes.push(this.quill.keyboard.renumeraElemento.subscribe(this.renumerarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.toggleExistencia.subscribe(this.toggleExistencia.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 

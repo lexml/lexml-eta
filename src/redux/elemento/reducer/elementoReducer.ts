@@ -11,6 +11,7 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTex
 import { AUTO_FIX } from '../../../model/lexml/acao/autoFixAction';
 import { ELEMENTO_SELECIONADO } from '../../../model/lexml/acao/elementoSelecionadoAction';
 import { INFORMAR_DADOS_ASSISTENTE } from '../../../model/lexml/acao/informarDadosAssistenteAction';
+import { INFORMAR_EXISTENCIA_NA_NORMA } from '../../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
 import { INFORMAR_NORMA } from '../../../model/lexml/acao/informarNormaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
@@ -38,6 +39,7 @@ import { atualizaElemento } from './atualizaElemento';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { autoFixElemento } from './autoFixElemento';
+import { informaExistenciaDoElementoNaNorma } from './informaExistenciaDoElementoNaNorma';
 import { limparAlertas } from './limparAlertas';
 import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
@@ -60,6 +62,8 @@ import { validaElemento } from './validaElemento';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
+    case INFORMAR_EXISTENCIA_NA_NORMA:
+      return informaExistenciaDoElementoNaNorma(state, action);
     case APLICAR_ALTERACOES_EMENDA:
       return aplicaAlteracoesEmenda(state, action);
     case ASSISTENTE_ALTERACAO:

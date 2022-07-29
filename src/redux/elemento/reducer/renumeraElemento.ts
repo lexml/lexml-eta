@@ -1,10 +1,8 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RenumerarElemento } from '../../../model/lexml/acao/renumerarElementoAction';
-import { getSomenteFilhosDispositivoAsLista, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
+import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
@@ -54,12 +52,6 @@ export const renumeraElemento = (state: any, action: any): State => {
   }
 
   dispositivo.createRotulo(dispositivo);
-
-  if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.novo.existenteNaNorma;
-    const lista = getSomenteFilhosDispositivoAsLista([], dispositivo.filhos);
-    lista.forEach(f => (f.id = buildId(f)));
-  }
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
 
