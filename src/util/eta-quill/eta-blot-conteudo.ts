@@ -24,10 +24,7 @@ export class EtaBlotConteudo extends EtaBlot {
     }
 
     if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
-      const omissisSpan = document.createElement('span');
-      omissisSpan.setAttribute('class', 'texto-omissis');
-      omissisSpan.innerHTML = TEXTO_OMISSIS;
-      node.appendChild(omissisSpan);
+      node.innerHTML = '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>';
     } else {
       node.innerHTML = conteudo !== '' ? conteudo : '<br>';
     }

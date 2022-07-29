@@ -40,7 +40,6 @@ import { AutoFix } from '../../model/lexml/util/mensagem';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
-import { EtaBlotConteudoOmissis } from '../../util/eta-quill/eta-blot-conteudo-omissis';
 import { EtaBlotMenu } from '../../util/eta-quill/eta-blot-menu';
 import { EtaBlotMenuBotao } from '../../util/eta-quill/eta-blot-menu-botao';
 import { EtaBlotMenuConteudo } from '../../util/eta-quill/eta-blot-menu-conteudo';
@@ -518,6 +517,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoModificado:
         case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
+          this.atualizarOmissis(event);
           if (events[events.length - 1] === event) {
             this.marcarLinha(event);
           }
@@ -684,8 +684,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
-        const blotOmissis: EtaBlotConteudoOmissis = new EtaBlotConteudoOmissis();
-        linha.blotConteudo.domNode.innerHTML = blotOmissis.domNode.outerHTML;
+        linha.blotConteudo.html = '';
+        const index = this.quill.getIndex(linha.blotConteudo);
+        this.quill.insertText(index, TEXTO_OMISSIS, { omissis: true });
       }
     });
   }
@@ -900,10 +901,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.uuid,
         linhaAtual.lexmlId,
         linhaAtual.tipo,
-        normalizaSeForOmissis(linhaAtual.blotConteudo?.html ?? '').indexOf(TEXTO_OMISSIS) >= 0
-          ? '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>'
-          : linhaAtual.blotConteudo?.html ?? '',
-        // linhaAtual.blotConteudo?.html ?? '',
+        linhaAtual.blotConteudo?.html ?? '',
         linhaAtual.numero,
         linhaAtual.hierarquia
       );
@@ -997,7 +995,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptionsStatic {
     return {
-      formats: ['bold', 'italic', 'link', 'script'],
+      formats: ['bold', 'italic', 'link', 'script', 'omissis'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
