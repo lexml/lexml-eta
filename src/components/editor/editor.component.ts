@@ -40,6 +40,7 @@ import { AutoFix } from '../../model/lexml/util/mensagem';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
+import { EtaBlotConteudoOmissis } from '../../util/eta-quill/eta-blot-conteudo-omissis';
 import { EtaBlotMenu } from '../../util/eta-quill/eta-blot-menu';
 import { EtaBlotMenuBotao } from '../../util/eta-quill/eta-blot-menu-botao';
 import { EtaBlotMenuConteudo } from '../../util/eta-quill/eta-blot-menu-conteudo';
@@ -556,6 +557,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarSituacao(event);
           this.atualizarAtributos(event);
           this.atualizarMensagemQuill(event);
+          this.atualizarOmissis(event);
           break;
       }
       this.quill.limparHistory();
@@ -671,6 +673,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
         linha.atualizarAtributos(elemento);
+      }
+    });
+  }
+
+  private atualizarOmissis(event: StateEvent): void {
+    const elementos: Elemento[] = event.elementos ?? [];
+    let linha: EtaContainerTable | undefined;
+
+    elementos.forEach((elemento: Elemento) => {
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
+        const blotOmissis: EtaBlotConteudoOmissis = new EtaBlotConteudoOmissis();
+        linha.blotConteudo.domNode.innerHTML = blotOmissis.domNode.outerHTML;
       }
     });
   }
@@ -885,7 +900,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.uuid,
         linhaAtual.lexmlId,
         linhaAtual.tipo,
-        linhaAtual.blotConteudo?.html ?? '',
+        normalizaSeForOmissis(linhaAtual.blotConteudo?.html ?? '').indexOf(TEXTO_OMISSIS) >= 0
+          ? '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>'
+          : linhaAtual.blotConteudo?.html ?? '',
+        // linhaAtual.blotConteudo?.html ?? '',
         linhaAtual.numero,
         linhaAtual.hierarquia
       );
