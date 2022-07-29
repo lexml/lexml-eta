@@ -1,3 +1,4 @@
+import { TEXTO_OMISSIS } from './../../../model/lexml/conteudo/textoOmissis';
 import { StateEvent } from './../../state';
 import { createElemento } from './../../../model/elemento/elementoUtil';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -5,10 +6,9 @@ import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { InformarExistenciaDoElementoNaNorma } from '../../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
 import { getDispositivoAndFilhosAsLista, isDispositivoNovoNaNormaAlterada } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { Mensagem, TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { validaNumeracao } from '../../../model/lexml/numeracao/numeracaoValidator';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 
 export const informaExistenciaDoElementoNaNorma = (state: any, action: any): State => {
@@ -45,10 +45,25 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     });
   } else {
     const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
-    if (!isDispositivosValidosParaNumeracaoAutomatica(dispositivos)) {
+
+    if (existeDispositivoSemNumero(dispositivos)) {
       return retornaEstadoAtualComMensagem(state, {
         tipo: TipoMensagem.INFO,
-        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" porque existe numeração não sequencial nos dispositivos filhos',
+        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando o dispositivo atual ou um de seus subordinados não possui numeração.',
+      });
+    }
+
+    if (existeOmissis(dispositivos)) {
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.INFO,
+        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe texto omitido na estrutura do dispositivo.',
+      });
+    }
+
+    if (existeNecessidadeDeOmissis(dispositivos)) {
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.INFO,
+        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe numeração não sequencial nos dispositivos subordinados.',
       });
     }
 
@@ -81,8 +96,14 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
   };
 };
 
-export const isDispositivosValidosParaNumeracaoAutomatica = (dispositivos: Dispositivo[]): boolean => {
-  const mensagens: Mensagem[] = [];
-  dispositivos.forEach(d => mensagens.push(...validaNumeracao(d)));
-  return !mensagens.some(m => m.descricao?.includes('omissis antes')) && !dispositivos.some(d => d.tipo === 'Omissis');
+const existeDispositivoSemNumero = (dispositivos: Dispositivo[]): boolean => {
+  return dispositivos.some(d => d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')));
+};
+
+const existeOmissis = (dispositivos: Dispositivo[]): boolean => {
+  return dispositivos.some(d => d.tipo === 'Omissis' || d.texto.includes(TEXTO_OMISSIS));
+};
+
+const existeNecessidadeDeOmissis = (dispositivos: Dispositivo[]): boolean => {
+  return dispositivos.some(d => d.mensagens?.some(m => m.descricao?.includes('omissis antes')));
 };
