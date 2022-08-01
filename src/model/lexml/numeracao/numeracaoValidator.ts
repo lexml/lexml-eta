@@ -106,10 +106,9 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     dispositivo !== null &&
     !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero !== undefined &&
-    getDispositivoAnterior(dispositivo) !== undefined &&
     isPrimeiroMesmoTipo(dispositivo) &&
     !isOmissis(dispositivo) &&
-    (!isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)) || !isOmissis(getDispositivoAnterior(dispositivo)!)) &&
+    (!getDispositivoAnterior(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)))) &&
     dispositivo.numero !== '1' &&
     dispositivo.numero !== '1u'
   ) {
