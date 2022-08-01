@@ -1,5 +1,7 @@
 import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
+import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
+import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 export class EtaBlotConteudo extends EtaBlot {
   static blotName = 'texto';
@@ -8,7 +10,7 @@ export class EtaBlotConteudo extends EtaBlot {
 
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
-    const conteudo: string = (elemento.conteudo?.texto ?? '').trim();
+    const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();
 
     node.setAttribute('class', EtaBlotConteudo.getClasseCSS(elemento));
     node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
@@ -21,7 +23,12 @@ export class EtaBlotConteudo extends EtaBlot {
       node.setAttribute('fecha-aspas', 'true');
     }
 
-    node.innerHTML = conteudo !== '' ? conteudo : '<br>';
+    if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
+      node.innerHTML = '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>';
+    } else {
+      node.innerHTML = conteudo !== '' ? conteudo : '<br>';
+    }
+
     return node;
   }
 

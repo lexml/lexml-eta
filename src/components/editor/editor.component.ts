@@ -489,6 +489,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoModificado:
         case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
+          this.atualizarOmissis(event);
           if (events[events.length - 1] === event) {
             this.marcarLinha(event);
           }
@@ -528,6 +529,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarSituacao(event);
           this.atualizarAtributos(event);
           this.atualizarMensagemQuill(event);
+          this.atualizarOmissis(event);
           break;
       }
       this.quill.limparHistory();
@@ -643,6 +645,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
         linha.atualizarElemento(elemento);
+      }
+    });
+  }
+
+  private atualizarOmissis(event: StateEvent): void {
+    const elementos: Elemento[] = event.elementos ?? [];
+    let linha: EtaContainerTable | undefined;
+
+    elementos.forEach((elemento: Elemento) => {
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
+        linha.blotConteudo.html = '';
+        const index = this.quill.getIndex(linha.blotConteudo);
+        this.quill.insertText(index, TEXTO_OMISSIS, { omissis: true });
       }
     });
   }
@@ -948,7 +964,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptionsStatic {
     return {
-      formats: ['bold', 'italic', 'link', 'script'],
+      formats: ['bold', 'italic', 'link', 'script', 'omissis'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
