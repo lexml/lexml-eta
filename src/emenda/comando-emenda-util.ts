@@ -436,7 +436,8 @@ export class CmdEmdUtil {
 
   static getTextoDoDispositivoOuOmissis(d: Dispositivo, alteracaoNormaVigente = false): TagNode | string {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
-      return CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
+      const texto = CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
+      return texto.indexOf(TEXTO_OMISSIS) >= 0 ? new TagNode('Omissis') : texto;
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       return isOmissis(d) ? '(Suprimir omissis)' : '(Suprimir)';
     } else {
