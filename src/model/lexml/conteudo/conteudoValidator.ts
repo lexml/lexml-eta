@@ -275,6 +275,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoAlteracao(dispositivo) &&
     isParagrafo(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !hasFilhos(dispositivo) &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
