@@ -229,13 +229,13 @@ export const editorStyles = html`
       flex-grow: 1;
     }
 
-    .texto__omissis {
+    .container_elemento--omissis .texto__omissis {
       display: -webkit-box;
       -webkit-line-clamp: 1;
       -webkit-box-orient: vertical;
       overflow: hidden;
       flex-grow: 1;
-      width: 1vw;
+      width: 0;
     }
 
     .container__menu {
