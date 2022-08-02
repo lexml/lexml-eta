@@ -186,10 +186,11 @@ const buildContent = (content: any): string => {
     if (element.value) {
       texto += montaReferencia(element.value);
     } else {
-      texto += element;
+      let elementTexto = element;
+      elementTexto = elementTexto.replace(/"(?=\w|$)/g, '&#8220;');
+      elementTexto = elementTexto.replace(/(?<=[\w,.?!)]|^)"/g, '&#8221;');
+      texto += elementTexto;
     }
   });
-  texto = texto.replace(/"(?=\w|$)/g, '&#8220;');
-  texto = texto.replace(/(?<=[\w,.?!)]|^)"/g, '&#8221;');
   return texto;
 };
