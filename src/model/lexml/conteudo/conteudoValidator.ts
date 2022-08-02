@@ -108,7 +108,13 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   //
   // validações comuns a Artigo e Parágrafo
   //
-  if ((isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.texto && !/^[...]{3,}/.test(dispositivo.texto) && !/^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))) {
+  if (
+    (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
+    dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[...]{3,}/.test(dispositivo.texto) &&
+    !/^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))
+  ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula`,
@@ -224,7 +230,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoAlteracao(dispositivo) &&
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !isArtigo(dispositivo) &&
     hasFilhos(dispositivo) &&
     !hasIndicativoDesdobramento(dispositivo)
@@ -239,7 +245,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoAlteracao(dispositivo) &&
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     isArtigo(dispositivo) &&
     hasFilhos((dispositivo as Artigo).caput!) &&
     !hasIndicativoDesdobramento(dispositivo)
@@ -254,7 +260,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     (isDispositivoAlteracao(dispositivo) &&
       !isAgrupador(dispositivo) &&
       dispositivo.texto &&
-      dispositivo.texto !== TEXTO_OMISSIS &&
+      dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
       isArtigo(dispositivo) &&
       !hasFilhos((dispositivo as Artigo).caput!)) ||
     (!isArtigo(dispositivo) && !hasFilhos(dispositivo) && hasIndicativoDesdobramento(dispositivo))
@@ -269,6 +275,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoAlteracao(dispositivo) &&
     isParagrafo(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !hasFilhos(dispositivo) &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
@@ -286,7 +293,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo === getDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.filhos.length === 0 &&
-    (dispositivo.texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || dispositivo.texto === TEXTO_OMISSIS)
+    (dispositivo.texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || dispositivo.texto.indexOf(TEXTO_OMISSIS) >= 0)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -315,7 +322,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (
     isDispositivoAlteracao(dispositivo) &&
     dispositivo.texto &&
-    dispositivo.texto !== TEXTO_OMISSIS &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     !hasIndicativoDesdobramento(dispositivo)
