@@ -5,14 +5,9 @@ export const editorStyles = html`
   <style>
     :root {
       --elemento-padding-factor: 20;
-      --eta-font-serif: 'GentiumPlus';
+      --eta-font-serif: 'Times New Roman', Times, serif;
     }
-    @font-face {
-      font-family: 'GentiumPlus';
-      src: url('../../../assets/fonts/GentiumPlus-Regular.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
+
     #lx-eta-box {
       display: grid;
       grid-template-columns: 1fr;
