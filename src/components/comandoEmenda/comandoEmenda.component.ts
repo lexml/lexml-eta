@@ -1,7 +1,6 @@
-import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 @customElement('lexml-emenda-comando')
 export class ComandoEmendaComponent extends LitElement {
@@ -23,7 +22,7 @@ export class ComandoEmendaComponent extends LitElement {
       .replaceAll('</Rotulo>', '</b> ')
       .replaceAll('<Alteracao>', '<div class="alteracao">')
       .replaceAll('</Alteracao>', '</div> ')
-      .replaceAll('<Omissis/>', '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>');
+      .replaceAll('<Omissis/>', '<span class="texto__omissis">...............................................</span>');
 
     return corpo;
   }

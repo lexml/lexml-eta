@@ -436,8 +436,7 @@ export class CmdEmdUtil {
 
   static getTextoDoDispositivoOuOmissis(d: Dispositivo, alteracaoNormaVigente = false): TagNode | string {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
-      const texto = CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
-      return texto.indexOf(TEXTO_OMISSIS) >= 0 ? new TagNode('Omissis') : texto;
+      return CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       return isOmissis(d) ? '(Suprimir omissis)' : '(Suprimir)';
     } else {
@@ -447,6 +446,9 @@ export class CmdEmdUtil {
 
   static trataTextoParaCitacao(d: Dispositivo, alteracaoNormaVigente = false): string {
     let texto = isArtigo(d) ? (d as Artigo).caput!.texto : d.texto;
+    if (texto.includes(TEXTO_OMISSIS)) {
+      texto = texto.replace(TEXTO_OMISSIS, new TagNode('Omissis').toString());
+    }
     if (alteracaoNormaVigente) {
       texto = texto.replace(/”( *(?:\(NR\)) *)?/, '');
     } else {
