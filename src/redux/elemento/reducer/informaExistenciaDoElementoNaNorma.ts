@@ -58,10 +58,10 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     });
   } else {
     const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
-    if (existeDispositivoSemNumero(dispositivos)) {
+    if (existeDispositivoSemNumero(dispositivos.slice(1))) {
       return retornaEstadoAtualComMensagem(state, {
         tipo: TipoMensagem.INFO,
-        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando o dispositivo atual ou um de seus subordinados não possui numeração.',
+        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe dispositivo subordinado sem numeração.',
       });
     }
 
@@ -72,7 +72,7 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
       });
     }
 
-    if (existeNecessidadeDeOmissis(dispositivos)) {
+    if (existeNecessidadeDeOmissis(dispositivos.slice(1))) {
       return retornaEstadoAtualComMensagem(state, {
         tipo: TipoMensagem.INFO,
         descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe numeração não sequencial nos dispositivos subordinados.',
