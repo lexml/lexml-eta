@@ -28,6 +28,9 @@ export class EtaBlotRotulo extends EtaBlot {
     }
 
     node.innerHTML = elemento.rotulo;
+    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.dispositivoAlteracao) {
+      node.title = elemento.existeNaNormaAlterada ? 'Dispositivo existente na norma alterada' : 'Dispositivo a ser adicionado à norma';
+    }
     // node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
     node.onclick = onclick(node, elemento);
     return node;
