@@ -446,6 +446,9 @@ export class CmdEmdUtil {
 
   static trataTextoParaCitacao(d: Dispositivo, alteracaoNormaVigente = false): string {
     let texto = isArtigo(d) ? (d as Artigo).caput!.texto : d.texto;
+    if (texto.includes(TEXTO_OMISSIS)) {
+      texto = texto.replace(TEXTO_OMISSIS, new TagNode('Omissis').toString());
+    }
     if (alteracaoNormaVigente) {
       texto = texto.replace(/”( *(?:\(NR\)) *)?/, '');
     } else {

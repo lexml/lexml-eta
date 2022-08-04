@@ -1,4 +1,4 @@
-import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
@@ -22,7 +22,7 @@ export class ComandoEmendaComponent extends LitElement {
       .replaceAll('</Rotulo>', '</b> ')
       .replaceAll('<Alteracao>', '<div class="alteracao">')
       .replaceAll('</Alteracao>', '</div> ')
-      .replaceAll('<Omissis/>', ' ..........................................................');
+      .replaceAll('<Omissis/>', '<span class="texto__omissis">...............................................</span>');
 
     return corpo;
   }

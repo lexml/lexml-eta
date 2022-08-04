@@ -5,14 +5,9 @@ export const editorStyles = html`
   <style>
     :root {
       --elemento-padding-factor: 20;
-      --eta-font-serif: 'GentiumPlus';
+      --eta-font-serif: 'Times New Roman', Times, serif;
     }
-    @font-face {
-      font-family: 'GentiumPlus';
-      src: url('../../../assets/fonts/GentiumPlus-Regular.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
+
     #lx-eta-box {
       display: grid;
       grid-template-columns: 1fr;
@@ -206,39 +201,36 @@ export const editorStyles = html`
     }
 
     .container_elemento--omissis .container__texto {
-      /* border: 1px solid red; */
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
     }
 
     .container_elemento--omissis .texto__rotulo {
-      /* border: 1px solid green; */
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      flex: none;
+      order: 0;
+      flex-grow: 0;
     }
 
     .container_elemento--omissis .texto__dispositivo {
-      /* border: 1px solid blue; */
-      /* flex: 1 1 100%; */
-      display: inline-block;
-      vertical-align: middle;
-      font-size: 0px;
-      width: 100%;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      padding: 0px;
+      flex-grow: 1;
     }
-    .container_elemento--omissis .texto__dispositivo:after {
-      /* border: 1px solid orange; */
-      font-size: 16px;
-      vertical-align: middle;
-    }
-    .container_elemento--omissis .texto__dispositivo:before {
-      /* border: 1px solid pink; */
-      /* flex: 1 1 100%; */
-      background-image: radial-gradient(circle, currentcolor 1.1px, transparent 1.1px);
-      background-position: bottom;
-      background-size: 4.5px 3px;
-      background-repeat: space no-repeat;
-      content: '';
-      font-size: 16px;
-      display: inline-block;
-      height: 16px;
-      width: 40%;
-      vertical-align: middle;
+
+    .container_elemento--omissis .texto__omissis {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex-grow: 1;
+      width: 0;
     }
 
     .container__menu {
