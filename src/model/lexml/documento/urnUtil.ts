@@ -40,6 +40,25 @@ export const getData = (urn: string): string => {
   return d ? d.join('/') : '';
 };
 
+export const getDataPorExtenso = (urn: string): string => {
+  const mes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+  const partes = urn.replace('urn:lex:br:', '')?.split(':');
+
+  const dataInformada = partes[2]?.substring(0, partes[2].indexOf(';'));
+
+  if (/\d{4}$/.test(dataInformada)) {
+    return dataInformada;
+  }
+  const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
+
+  if (d) {
+    d[1] = mes[+d[1] - 1];
+    return d.join(' de ');
+  }
+  return '';
+};
+
 export const getAno = (urn: string): string => getData(urn).split('/').slice(-1)[0];
 
 const retiraFragmento = (urn: string): string => {

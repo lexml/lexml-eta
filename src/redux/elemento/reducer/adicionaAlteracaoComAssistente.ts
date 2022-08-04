@@ -1,7 +1,7 @@
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { formataNumero, getData, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
+import { formataNumero, getDataPorExtenso, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
 import { buildDispositivosAssistente } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../../../model/lexml/util/idUtil';
@@ -40,7 +40,7 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
     const genero = getTipo(action.norma)?.genero;
 
     if (action.norma && validaUrn(action.norma)) {
-      const textoUrn = `${getTipo(action.norma).descricao} nº ${formataNumero(getNumero(action.norma))}, de ${getData(action.norma)}`;
+      const textoUrn = `${getTipo(action.norma).descricao} nº ${formataNumero(getNumero(action.norma))}, de ${getDataPorExtenso(action.norma)}`;
       novo.texto = `${genero && genero === 'M' ? 'O' : 'A'} <a href="${action.norma}">${textoUrn}</a>, passa a vigorar com as seguintes alterações:`;
     }
   }
