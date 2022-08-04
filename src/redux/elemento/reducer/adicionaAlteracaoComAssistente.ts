@@ -37,11 +37,11 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   }
 
   if (action.norma) {
-    novo.alteracoes!.base = action.norma;
+    const genero = getTipo(action.norma)?.genero;
 
-    if (novo.alteracoes?.base && validaUrn(novo.alteracoes.base)) {
-      const textoUrn = `${getTipo(novo.alteracoes.base).descricao} nº ${formataNumero(getNumero(novo.alteracoes.base))}, de ${getData(novo.alteracoes!.base)}`;
-      novo.texto = `A <a href="${novo.alteracoes.base}">${textoUrn}</a>, passa a vigorar com as seguintes alterações:`;
+    if (action.norma && validaUrn(action.norma)) {
+      const textoUrn = `${getTipo(action.norma).descricao} nº ${formataNumero(getNumero(action.norma))}, de ${getData(action.norma)}`;
+      novo.texto = `${genero && genero === 'M' ? 'O' : 'A'} <a href="${action.norma}">${textoUrn}</a>, passa a vigorar com as seguintes alterações:`;
     }
   }
 
