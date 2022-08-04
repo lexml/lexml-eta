@@ -75,7 +75,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
-      if (dispositivo.alteracoes) {
+      if (dispositivo.alteracoes && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
         acoes.push(informarNormaAction);
       }
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || !hasIndicativoDesdobramento(dispositivo))) {
