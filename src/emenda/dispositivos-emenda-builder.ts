@@ -1,4 +1,4 @@
-import { isDispositivoCabecaAlteracao, isUltimaAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isDispositivoCabecaAlteracao, isUltimaAlteracao, getDispositivoCabecaAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
@@ -142,10 +142,11 @@ export class DispositivosEmendaBuilder {
     }
     if (isDispositivoCabecaAlteracao(d)) {
       dm.abreAspas = true;
-      dm.notaAlteracao = d.notaAlteracao as any;
     }
     if (isUltimaAlteracao(d)) {
       dm.fechaAspas = true;
+      const cabecaAlteracao = getDispositivoCabecaAlteracao(d);
+      dm.notaAlteracao = cabecaAlteracao.notaAlteracao as any;
     }
   }
 }

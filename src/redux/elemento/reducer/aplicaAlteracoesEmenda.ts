@@ -2,7 +2,7 @@ import { Elemento } from '../../../model/elemento';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { buscaDispositivoById } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
@@ -170,7 +170,6 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
       if (da.abreAspas) {
         novo.rotulo = da.rotulo;
         novo.cabecaAlteracao = true;
-        novo.notaAlteracao = da.notaAlteracao;
       } else {
         novo.rotulo = da.rotulo;
         novo.createNumeroFromRotulo(da.rotulo!);
@@ -180,6 +179,8 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     if (!isArticulacao(novo)) {
       if (da.fechaAspas) {
         novo.texto = da.texto + '';
+        const cabecaAlteracao = getDispositivoCabecaAlteracao(novo);
+        cabecaAlteracao.notaAlteracao = da.notaAlteracao;
       } else {
         novo.texto = da.texto!;
       }
