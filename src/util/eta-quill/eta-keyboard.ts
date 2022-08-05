@@ -58,7 +58,11 @@ export class EtaKeyboard extends Keyboard {
       } else if (this.quill.linhaAtual.tipo === 'Omissis') {
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (this.quill.cursorDeTextoEstaSobreOmissis() && !['Delete', 'Backspace'].includes(ev.key) && this.isTeclaQueAlteraTexto(ev)) {
+      } else if (
+        this.quill.cursorDeTextoEstaSobreOmissis() &&
+        !['Delete', 'Backspace'].includes(ev.key) &&
+        (this.isTeclaQueAlteraTexto(ev) || (ev.key === 'Enter' && !this.verificaInicioOuFimDaLinha()))
+      ) {
         cancelarPropagacaoDoEvento(ev);
         return;
       } else if (ev.ctrlKey) {
@@ -341,5 +345,13 @@ export class EtaKeyboard extends Keyboard {
   private apagaTextoNaPosicao(posicao: number): void {
     const [leaf, offset] = this.quill.getLeaf(posicao);
     this.quill.deleteText(posicao - offset, leaf.text.length);
+  }
+
+  private verificaInicioOuFimDaLinha(): boolean {
+    const posAtual = this.quill.getSelection().index;
+    const inicioLinha = this.quill.getIndex(this.quill.linhaAtual.blotConteudo);
+    const tamanho = this.quill.linhaAtual.blotConteudo.length();
+
+    return posAtual === inicioLinha || posAtual + 1 === inicioLinha + tamanho;
   }
 }
