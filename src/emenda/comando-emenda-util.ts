@@ -434,13 +434,13 @@ export class CmdEmdUtil {
     return true;
   }
 
-  static getTextoDoDispositivoOuOmissis(d: Dispositivo, alteracaoNormaVigente = false): TagNode | string {
+  static getTextoDoDispositivoOuOmissis(d: Dispositivo, alteracaoNormaVigente = false): string {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
-      return CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
+      return ' ' + CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return isOmissis(d) ? '(Suprimir omissis)' : '(Suprimir)';
+      return isOmissis(d) ? ' (Suprimir omissis)' : ' (Suprimir)';
     } else {
-      return new TagNode('Omissis');
+      return ' ' + new TagNode('Omissis');
     }
   }
 
