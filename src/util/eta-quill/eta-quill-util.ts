@@ -42,7 +42,7 @@ export class EtaQuillUtil {
       });
     }
     new EtaBlotEspaco().insertInto(etaTdEspaco);
-
+    etaTdMensagens.domNode.classList.add('container__texto--mensagem');
     etaTdMensagens.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
 

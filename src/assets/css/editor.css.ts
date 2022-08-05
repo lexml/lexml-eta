@@ -206,6 +206,11 @@ export const editorStyles = html`
       align-items: flex-start;
     }
 
+    .container_elemento--omissis .container__texto--mensagem {
+      flex: 1;
+      display: inline-block;
+    }
+
     .container_elemento--omissis .texto__rotulo {
       box-sizing: border-box;
       display: flex;
