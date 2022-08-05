@@ -3,7 +3,14 @@ import { isArtigo, isCaput } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { TagNode } from '../util/tag-node';
 import { Artigo, Dispositivo } from './../model/dispositivo/dispositivo';
-import { isArticulacaoAlteracao, isAscendente, isDescendenteDeSuprimido } from './../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoCabecaAlteracao,
+  isArticulacaoAlteracao,
+  isAscendente,
+  isDescendenteDeSuprimido,
+  isDispositivoCabecaAlteracao,
+  isUltimaAlteracao,
+} from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 
@@ -83,13 +90,19 @@ export class CitacaoComandoMultipla {
       // o dispositivo atual
       if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(mapFilhos)) {
         const dispRotulo = isArtigo(d) ? (d as Artigo).caput! : d;
-        const abrirAspasSimples = d.rotulo?.startsWith('“');
         const rotulo = this.emAlteracao ? d.rotulo?.replace('“', '') : d.rotulo;
         const tag = new TagNode('p');
-        if (abrirAspasSimples) {
+        if (isDispositivoCabecaAlteracao(d)) {
           tag.add('‘');
         }
         tag.add(new TagNode('Rotulo').add(rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(dispRotulo));
+        if (d.isDispositivoAlteracao && isUltimaAlteracao(d)) {
+          tag.add('’');
+          const cabecaAlteracao = getDispositivoCabecaAlteracao(d);
+          if (cabecaAlteracao.notaAlteracao) {
+            tag.add(' (' + cabecaAlteracao.notaAlteracao + ')');
+          }
+        }
         sb.append(tag.toString());
       } else {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
