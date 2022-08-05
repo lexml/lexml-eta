@@ -320,7 +320,7 @@ export class CmdEmdUtil {
       const artigo = d as Artigo;
       return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f) || (isOmissis(f) && !isCaput(f.pai!)))];
     }
-    return d.filhos;
+    return [...d.filhos];
   }
 
   static getDispositivoAnteriorDireto(d: Dispositivo): Dispositivo {

@@ -62,7 +62,8 @@ export class DispositivosEmendaBuilder {
         d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
         !(
           d.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
-          (isCaput(d.pai!) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
+          (isCaput(d.pai!) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) ||
+          (d.isDispositivoAlteracao && isArtigo(d) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
         )
     );
     if (dispositivosAdicionados.length) {
