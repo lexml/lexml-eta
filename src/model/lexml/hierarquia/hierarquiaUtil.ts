@@ -586,5 +586,5 @@ export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): bool
 
 export const podeRenumerarFilhosAutomaticamente = (dispositivo: Dispositivo): boolean => {
   const d = dispositivo.tipo === 'Caput' ? dispositivo.pai! : dispositivo;
-  return isDispositivoNovoNaNormaAlterada(d) ?? false;
+  return !isDispositivoAlteracao(d) || (isDispositivoNovoNaNormaAlterada(d) ?? false);
 };
