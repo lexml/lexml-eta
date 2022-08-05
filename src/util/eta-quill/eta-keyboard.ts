@@ -58,11 +58,10 @@ export class EtaKeyboard extends Keyboard {
       } else if (this.quill.linhaAtual.tipo === 'Omissis') {
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (
-        this.quill.cursorDeTextoEstaSobreOmissis() &&
-        !['Delete', 'Backspace'].includes(ev.key) &&
-        (this.isTeclaQueAlteraTexto(ev) || (ev.key === 'Enter' && !this.verificaInicioOuFimDaLinha()))
-      ) {
+      } else if (this.quill.cursorDeTextoEstaSobreOmissis() && !['Delete', 'Backspace'].includes(ev.key) && (this.isTeclaQueAlteraTexto(ev) || ev.key === 'Enter')) {
+        if (ev.key === 'Enter') {
+          this.enterEmOmissis();
+        }
         cancelarPropagacaoDoEvento(ev);
         return;
       } else if (ev.ctrlKey) {
@@ -347,11 +346,16 @@ export class EtaKeyboard extends Keyboard {
     this.quill.deleteText(posicao - offset, leaf.text.length);
   }
 
-  private verificaInicioOuFimDaLinha(): boolean {
-    const posAtual = this.quill.getSelection().index;
-    const inicioLinha = this.quill.getIndex(this.quill.linhaAtual.blotConteudo);
-    const tamanho = this.quill.linhaAtual.blotConteudo.length();
+  private enterEmOmissis(): void {
+    if (this.verificarOperacaoTecladoPermitida()) {
+      const range: RangeStatic = this.quill.getSelection(true);
+      const inicioLinha = this.quill.getIndex(this.quill.linhaAtual.blotConteudo);
+      const tamanho = this.quill.linhaAtual.blotConteudo.length();
 
-    return posAtual === inicioLinha || posAtual + 1 === inicioLinha + tamanho;
+      if (range.index !== inicioLinha) {
+        range.index = inicioLinha + tamanho - 1;
+      }
+      this.adicionaElementoTeclaEnter.notify(range);
+    }
   }
 }
