@@ -22,7 +22,11 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
 
     const sb = new StringBuilder();
     this.montaCitacaoComando(sb, arvoreDispositivos);
-    return sb.toString().replace(/(<\/p>)$/, '”$1');
+
+    const cabeca = [...arvoreDispositivos.keys()][0];
+    const notaAlteracao = cabeca.notaAlteracao ? ' (' + cabeca.notaAlteracao + ')' : '';
+
+    return sb.toString().replace(/(<\/p>)$/, '”' + notaAlteracao + '$1');
   }
 
   private buscaDispositivosAdjacentesAsOmissis(dispositivos: Dispositivo[]): Dispositivo[] {
@@ -50,18 +54,17 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
   }
 
   private montaCitacaoComando(sb: StringBuilder, arvoreDispositivos: Map<Dispositivo, any>): void {
-    const artigo = [...arvoreDispositivos.keys()][0];
-    arvoreDispositivos = arvoreDispositivos.get(artigo);
+    const cabeca = [...arvoreDispositivos.keys()][0];
+    arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const rotuloArtigo = artigo.rotulo?.replace('“', '');
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(rotuloArtigo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(artigo, true));
+    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo!)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca, true));
     sb.append(node.toString());
 
     if (arvoreDispositivos.size > 0) {
-      this.ultimoProcessado = artigo;
+      this.ultimoProcessado = cabeca;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
-    this.writeOmissisFinal(sb, artigo);
+    this.writeOmissisFinal(sb, cabeca);
   }
 
   private writeDispositivoTo(sb: StringBuilder, arvoreDispositivos: Map<Dispositivo, any>): void {
