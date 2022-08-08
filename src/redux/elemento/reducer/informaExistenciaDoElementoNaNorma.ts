@@ -1,16 +1,15 @@
-import { isDispositivoCabecaAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { TEXTO_OMISSIS } from './../../../model/lexml/conteudo/textoOmissis';
 import { StateEvent } from './../../state';
 import { createElemento, getElementos } from './../../../model/elemento/elementoUtil';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { InformarExistenciaDoElementoNaNorma } from '../../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
-import { getDispositivoAndFilhosAsLista, isDispositivoNovoNaNormaAlterada } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, isDispositivoCabecaAlteracao, isDispositivoNovoNaNormaAlterada } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { Mensagem, TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 
 export const informaExistenciaDoElementoNaNorma = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -32,18 +31,28 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     return state;
   }
 
+  const mensagemValidacao = validaAlteracaoExistenciaDispositivo(dispositivo, newValueExisteNaNormaAlterada);
+  if (mensagemValidacao) {
+    return retornaEstadoAtualComMensagem(state, mensagemValidacao);
+  }
+
   const mudouIndicacaoDeExistenteParaNovo = currentValueExisteNaNormaAlterada && !action.existeNaNormaAlterada;
 
   const eventos: StateEvent[] = [];
 
-  if (!mudouIndicacaoDeExistenteParaNovo) {
-    if (isDispositivoPossuiPaiNovoNaNormaAlterada(dispositivo)) {
-      return retornaEstadoAtualComMensagem(state, {
-        tipo: TipoMensagem.INFO,
-        descricao: 'Não é permitido mudar a indicação de dispositivo "Novo" para "Existente" quando dispositivo hierarquicamente superior é novo na norma alteradao.',
-      });
-    }
+  if (mudouIndicacaoDeExistenteParaNovo) {
+    const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
 
+    dispositivos.forEach(d => {
+      const original = createElemento(d);
+      (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.existeNaNormaAlterada;
+      const alterado = createElemento(d);
+      eventos.push({
+        stateType: StateType.ElementoModificado,
+        elementos: [original, alterado],
+      });
+    });
+  } else {
     const original = createElemento(dispositivo);
     (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.existeNaNormaAlterada;
     const alterado = createElemento(dispositivo);
@@ -55,38 +64,6 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     eventos.push({
       stateType: StateType.SituacaoElementoModificada,
       elementos: getElementos(dispositivo),
-    });
-  } else {
-    const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
-    if (existeDispositivoSemNumero(dispositivos)) {
-      return retornaEstadoAtualComMensagem(state, {
-        tipo: TipoMensagem.INFO,
-        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando o dispositivo atual ou um de seus subordinados não possui numeração.',
-      });
-    }
-
-    if (existeOmissis(dispositivos)) {
-      return retornaEstadoAtualComMensagem(state, {
-        tipo: TipoMensagem.INFO,
-        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe texto omitido na estrutura do dispositivo.',
-      });
-    }
-
-    if (existeNecessidadeDeOmissis(dispositivos)) {
-      return retornaEstadoAtualComMensagem(state, {
-        tipo: TipoMensagem.INFO,
-        descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe numeração não sequencial nos dispositivos subordinados.',
-      });
-    }
-
-    dispositivos.forEach(d => {
-      const original = createElemento(d);
-      (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.existeNaNormaAlterada;
-      const alterado = createElemento(d);
-      eventos.push({
-        stateType: StateType.ElementoModificado,
-        elementos: [original, alterado],
-      });
     });
   }
 
@@ -108,7 +85,50 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
   };
 };
 
-const isDispositivoPossuiPaiNovoNaNormaAlterada = (dispositivo: Dispositivo) => {
+export const validaAlteracaoExistenciaDispositivo = (dispositivo: Dispositivo, newValueExisteNaNormaAlterada: boolean): Mensagem | undefined => {
+  const currentValueExisteNaNormaAlterada = !isDispositivoNovoNaNormaAlterada(dispositivo);
+  if (currentValueExisteNaNormaAlterada === newValueExisteNaNormaAlterada) {
+    return;
+  }
+
+  const mudouIndicacaoDeExistenteParaNovo = currentValueExisteNaNormaAlterada && !newValueExisteNaNormaAlterada;
+  return mudouIndicacaoDeExistenteParaNovo ? validaAlteracaoExistenteParaNovo(dispositivo) : validaAlteracaoNovoParaExistente(dispositivo);
+};
+
+const validaAlteracaoNovoParaExistente = (dispositivo: Dispositivo): Mensagem | undefined => {
+  if (isDispositivoPossuiPaiNovoNaNormaAlterada(dispositivo)) {
+    return {
+      tipo: TipoMensagem.INFO,
+      descricao: 'Não é permitido mudar a indicação de dispositivo "Novo" para "Existente" quando dispositivo hierarquicamente superior é novo na norma alteradao.',
+    };
+  }
+};
+
+const validaAlteracaoExistenteParaNovo = (dispositivo: Dispositivo): Mensagem | undefined => {
+  const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
+  if (existeDispositivoSemNumero(dispositivos.slice(1))) {
+    return {
+      tipo: TipoMensagem.INFO,
+      descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe dispositivo subordinado sem numeração.',
+    };
+  }
+
+  if (existeOmissis(dispositivos)) {
+    return {
+      tipo: TipoMensagem.INFO,
+      descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe texto omitido na estrutura do dispositivo.',
+    };
+  }
+
+  if (existeNecessidadeDeOmissis(dispositivos.slice(1))) {
+    return {
+      tipo: TipoMensagem.INFO,
+      descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe numeração não sequencial nos dispositivos subordinados.',
+    };
+  }
+};
+
+const isDispositivoPossuiPaiNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean => {
   const existe = (dispositivo.pai?.situacao as DispositivoAdicionado).existeNaNormaAlterada;
   return !isDispositivoCabecaAlteracao(dispositivo) && !(existe ?? true);
 };

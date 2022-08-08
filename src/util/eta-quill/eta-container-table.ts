@@ -28,7 +28,7 @@ export class EtaContainerTable extends Container {
     node.setAttribute('cellpadding', '0');
     node.setAttribute('cellspacing', '0');
     node.setAttribute('border', '0');
-    if (elemento.existeNaNormaAlterada !== undefined && elemento.tipo !== 'Omissis') {
+    if (podeAdicionarAtributoDeExistencia(elemento)) {
       node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
     }
     if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
@@ -180,10 +180,10 @@ export class EtaContainerTable extends Container {
   }
 
   atualizarAtributos(elemento: Elemento): void {
-    if (elemento.tipo === 'Omissis' || elemento.existeNaNormaAlterada === undefined) {
-      this.domNode.removeAttribute('existenanormaalterada');
-    } else {
+    if (podeAdicionarAtributoDeExistencia(elemento)) {
       this.domNode.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada);
+    } else {
+      this.domNode.removeAttribute('existenanormaalterada');
     }
     this.blotRotulo.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
@@ -262,3 +262,11 @@ export class EtaContainerTable extends Container {
     return classe;
   }
 }
+
+const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean => {
+  if (elemento.existeNaNormaAlterada === undefined || elemento.tipo === 'Omissis') {
+    return false;
+  } else {
+    return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;
+  }
+};
