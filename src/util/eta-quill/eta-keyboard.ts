@@ -101,8 +101,10 @@ export class EtaKeyboard extends Keyboard {
         this.onTeclaArrowRight(ev);
       } else if (ev.key === 'ArrowLeft') {
         this.onTeclaArrowLeft(ev);
-      } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
-        this.onTeclaArrowDownOuUp(ev);
+      } else if (ev.key === 'ArrowDown') {
+        this.onTeclaArrowDown(ev);
+      } else if (ev.key === 'ArrowUp') {
+        this.onTeclaArrowUp(ev);
       } else if (ev.key === 'Enter') {
         this.onTeclaEnter(ev);
       } else if (ev.key === 'Escape') {
@@ -190,7 +192,35 @@ export class EtaKeyboard extends Keyboard {
     }
   }
 
-  private onTeclaArrowDownOuUp(ev: KeyboardEvent): void {
+  private onTeclaArrowUp(ev: KeyboardEvent): void {
+    const range: RangeStatic = this.quill.getSelection(true);
+    const [blotCursor, offset] = this.quill.getLine(range.index);
+
+    if (offset === 0) {
+      if (blotCursor.linha.prev) {
+        const linhaAnt: EtaContainerTable = blotCursor.linha.prev;
+        const index: number = this.quill.getIndex(linhaAnt.blotConteudo) + linhaAnt.blotConteudo.tamanho;
+        this.quill.setIndex(index, Quill.sources.USER);
+      }
+      cancelarPropagacaoDoEvento(ev);
+    }
+
+    if (this.quill.isProcessandoMudancaLinha) {
+      cancelarPropagacaoDoEvento(ev);
+    }
+  }
+
+  private onTeclaArrowDown(ev: KeyboardEvent): void {
+    const range: RangeStatic = this.quill.getSelection(true);
+    const [blotCursor, offset] = this.quill.getLine(range.index);
+
+    if (offset === blotCursor.tamanho) {
+      if (blotCursor.linha.next) {
+        this.quill.setIndex(this.quill.getIndex(blotCursor.linha.next.blotConteudo), Quill.sources.USER);
+      }
+      cancelarPropagacaoDoEvento(ev);
+    }
+
     if (this.quill.isProcessandoMudancaLinha) {
       cancelarPropagacaoDoEvento(ev);
     }
