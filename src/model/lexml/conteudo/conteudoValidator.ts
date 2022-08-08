@@ -257,13 +257,12 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   }
 
   if (
-    (isDispositivoAlteracao(dispositivo) &&
-      !isAgrupador(dispositivo) &&
-      dispositivo.texto &&
-      dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-      isArtigo(dispositivo) &&
-      !hasFilhos((dispositivo as Artigo).caput!)) ||
-    (!isArtigo(dispositivo) && !hasFilhos(dispositivo) && hasIndicativoDesdobramento(dispositivo))
+    isDispositivoAlteracao(dispositivo) &&
+    !isAgrupador(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    hasIndicativoDesdobramento(dispositivo) &&
+    ((isArtigo(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!)) || !hasFilhos(dispositivo))
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
