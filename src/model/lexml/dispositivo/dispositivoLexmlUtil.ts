@@ -26,7 +26,7 @@ const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
     );
     novo.texto = filho.texto ?? '';
     novo.situacao = filho.situacao;
-    novo.mensagens = validaDispositivo(filho);
+    novo.mensagens = validaDispositivo(novo);
     filho.filhos ? converteFilhos(filho, novo) : undefined;
     index === atual.filhos.length - 1 ? destino.renumeraFilhos() : undefined;
   });
