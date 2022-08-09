@@ -90,6 +90,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
     !isPenultimoMesmoTipo(dispositivo) &&
@@ -112,6 +113,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !/^[...]{3,}/.test(dispositivo.texto) &&
     !/^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))
   ) {
@@ -160,6 +162,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !isUnicoMesmoTipo(dispositivo) &&
     isPenultimoMesmoTipo(dispositivo) &&
     !hasFilhos(dispositivo) &&
@@ -176,6 +180,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isDispositivoAlteracao(dispositivo) &&
     (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !hasFilhos(dispositivo) &&
     !dispositivo.hasAlteracao() &&
     !isUnicoMesmoTipo(dispositivo) &&
