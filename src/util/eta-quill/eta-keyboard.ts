@@ -55,7 +55,7 @@ export class EtaKeyboard extends Keyboard {
       } else if (this.verificaSelecaoComLink()) {
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (this.quill.linhaAtual.tipo === 'Omissis') {
+      } else if (this.quill.linhaAtual.tipo === 'Omissis' && !['ArrowUp', 'ArrowDown'].includes(ev.key)) {
         cancelarPropagacaoDoEvento(ev);
         return;
       } else if (this.quill.cursorDeTextoEstaSobreOmissis() && !['Delete', 'Backspace'].includes(ev.key) && (this.isTeclaQueAlteraTexto(ev) || ev.key === 'Enter')) {
@@ -196,7 +196,7 @@ export class EtaKeyboard extends Keyboard {
     const range: RangeStatic = this.quill.getSelection(true);
     const [blotCursor, offset] = this.quill.getLine(range.index);
 
-    if (offset === 0) {
+    if (offset === 0 || this.quill.cursorDeTextoEstaSobreOmissis()) {
       if (blotCursor.linha.prev) {
         const linhaAnt: EtaContainerTable = blotCursor.linha.prev;
         const index: number = this.quill.getIndex(linhaAnt.blotConteudo) + linhaAnt.blotConteudo.tamanho;
@@ -214,7 +214,7 @@ export class EtaKeyboard extends Keyboard {
     const range: RangeStatic = this.quill.getSelection(true);
     const [blotCursor, offset] = this.quill.getLine(range.index);
 
-    if (offset === blotCursor.tamanho) {
+    if (offset === blotCursor.tamanho || this.quill.cursorDeTextoEstaSobreOmissis()) {
       if (blotCursor.linha.next) {
         this.quill.setIndex(this.quill.getIndex(blotCursor.linha.next.blotConteudo), Quill.sources.USER);
       }
