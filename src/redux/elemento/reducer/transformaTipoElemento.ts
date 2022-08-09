@@ -1,4 +1,4 @@
-import { isDispositivoAlteracao, getDispositivoCabecaAlteracao, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, getDispositivoCabecaAlteracao, getUltimoFilho, isDispositivoNovoNaNormaAlterada } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoTransformacaoPermitida, normalizaNomeAcaoTransformacao } from '../../../model/lexml/acao/acaoUtil';
@@ -8,7 +8,8 @@ import { getDispositivoAnterior, isParagrafoUnico } from '../../../model/lexml/h
 import { State, StateType } from '../../state';
 import { buildEventoTransformacaooElemento } from '../evento/eventosUtil';
 import { getElementosDoDispositivo } from '../util/reducerUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 
 export const transformaTipoElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -24,6 +25,11 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   }
 
   const dispositivoAnteriorAtual = getDispositivoAnterior(atual);
+
+  if (dispositivoAnteriorAtual && isDispositivoNovoNaNormaAlterada(dispositivoAnteriorAtual) && !isDispositivoNovoNaNormaAlterada(atual)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Dispositivo existente não pode ser transformado em filho de dispositivo novo' });
+  }
+
   const ultimoFilhoDispositivoAnteriorAtual = cabecaAlteracao && dispositivoAnteriorAtual && getUltimoFilho(dispositivoAnteriorAtual);
 
   action.subType = normalizaNomeAcaoTransformacao(atual, action.subType);
