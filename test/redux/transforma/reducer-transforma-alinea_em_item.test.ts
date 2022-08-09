@@ -55,10 +55,12 @@ describe('Testando a transformação de alínea em item', () => {
       });
       it('Deveria apresentar o item recém criado e seus filhos no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-        expect(validados.elementos!.length).equal(3);
-        expect(validados.elementos![0].rotulo).equal('2.');
+        expect(validados.elementos!.length).equal(5);
+        expect(validados.elementos![0].rotulo).equal('2 -');
         expect(validados.elementos![1].rotulo).equal('1 -');
-        expect(validados.elementos![2].rotulo).equal('2 -');
+        expect(validados.elementos![2].rotulo).equal('2.');
+        expect(validados.elementos![3].rotulo).equal('1.');
+        expect(validados.elementos![4].rotulo).equal('a)');
       });
     });
     describe('Testando Undo/Redo', () => {
@@ -127,10 +129,11 @@ describe('Testando a transformação de alínea em item', () => {
           });
           it('Deveria apresentar o item recém criado e seus filhos no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-            expect(validados.elementos!.length).equal(3);
-            expect(validados.elementos![0].rotulo).equal('2.');
+            expect(validados.elementos!.length).equal(4);
+            expect(validados.elementos![0].rotulo).equal('2 -');
             expect(validados.elementos![1].rotulo).equal('1 -');
-            expect(validados.elementos![2].rotulo).equal('2 -');
+            expect(validados.elementos![2].rotulo).equal('2.');
+            expect(validados.elementos![3].rotulo).equal('1.');
           });
         });
       });

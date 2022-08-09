@@ -37,8 +37,8 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
       expect(state.articulacao.artigos.length).to.equal(3);
     });
     describe('Testando os eventos resultantes da ação de inclusão do artigo', () => {
-      it('Deveria apresentar 3 eventos', () => {
-        expect(state.ui.events.length).to.equal(3);
+      it('Deveria apresentar 4 eventos', () => {
+        expect(state.ui.events.length).to.equal(4);
       });
       it('Deveria apresentar 8 elementos incluídos', () => {
         const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -63,8 +63,8 @@ describe('Testando o impacto do uso de tab no elemento selecionado', () => {
         expect(state.articulacao.artigos.length).to.equal(4);
       });
       describe('Testando os eventos resultantes da ação de inclusão do artigo', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar 4 eventos', () => {
+          expect(state.ui.events.length).to.equal(4);
         });
         it('Deveria apresentar 8 elementos incluídos', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

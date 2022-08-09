@@ -60,14 +60,20 @@ describe('Testando a transformação de artigo em parágrafo', () => {
       });
       it('Deveria apresentar os elementos transformados no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-        expect(validados.elementos!.length).equal(7);
-        expect(validados.elementos![0].rotulo).equal('a)');
-        expect(validados.elementos![1].rotulo).equal('b)');
-        expect(validados.elementos![2].rotulo).equal('c)');
-        expect(validados.elementos![3].rotulo).equal('1.');
+        expect(validados.elementos!.length).equal(13);
+        expect(validados.elementos![0].rotulo).equal('V –');
+        expect(validados.elementos![1].rotulo).equal('IV –');
+        expect(validados.elementos![2].rotulo).equal('III –');
+        expect(validados.elementos![3].rotulo).equal('II –');
         expect(validados.elementos![4].rotulo).equal('2.');
-        expect(validados.elementos![5].rotulo).equal('IV –');
-        expect(validados.elementos![6].rotulo).equal('V –');
+        expect(validados.elementos![5].rotulo).equal('1.');
+        expect(validados.elementos![6].rotulo).equal('c)');
+        expect(validados.elementos![7].rotulo).equal('b)');
+        expect(validados.elementos![8].rotulo).equal('a)');
+        expect(validados.elementos![9].rotulo).equal('I –');
+        expect(validados.elementos![10].rotulo).equal('§ 2º');
+        expect(validados.elementos![11].rotulo).equal('§ 1º');
+        expect(validados.elementos![12].rotulo).equal('Art. 3º');
       });
     });
     describe('Testando Undo/Redo', () => {
@@ -210,7 +216,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
         });
         it('Deveria apresentar o elemento transformado no array de elementos no evento de ElementoValidado', () => {
           const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-          expect(validados.elementos!.length).equal(1);
+          expect(validados.elementos!.length).equal(2);
         });
       });
       describe('Testando Undo/Redo', () => {

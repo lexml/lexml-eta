@@ -37,7 +37,7 @@ describe('Testando a transformação de parágrafo em artigo', () => {
     });
     describe('Testando os eventos resultantes da ação', () => {
       it('Deveria apresentar 4 eventos', () => {
-        expect(state.ui.events.length).to.equal(3);
+        expect(state.ui.events.length).to.equal(4);
       });
       it('Deveria apresentar o artigo incluído com seus incisos, já transformados em incisos de caput', () => {
         const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -161,8 +161,8 @@ describe('Testando a transformação de parágrafo em artigo', () => {
       expect(state.articulacao.artigos[0].filhos[0].rotulo).to.equal('Parágrafo único.');
     });
     describe('Testando os eventos resultantes da ação', () => {
-      it('Deveria apresentar 3 eventos', () => {
-        expect(state.ui.events.length).to.equal(3);
+      it('Deveria apresentar 4 eventos', () => {
+        expect(state.ui.events.length).to.equal(4);
       });
       it('Deveria apresentar o artigo incluído e já renumerado', () => {
         const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

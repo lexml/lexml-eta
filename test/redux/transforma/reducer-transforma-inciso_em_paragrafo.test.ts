@@ -53,10 +53,10 @@ describe('Testando a transformação de inciso em parágrafo', () => {
       });
       it('Deveria apresentar o artigo e seu parágrafo único no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-        expect(validados.elementos!.length).equal(2);
-
-        expect(validados.elementos![0].rotulo).equal('Art. 1º');
-        expect(validados.elementos![1].rotulo).equal('Parágrafo único.');
+        const art = validados.elementos!.find(e => e.rotulo === 'Art. 1º');
+        const par = validados.elementos!.find(e => e.rotulo === 'Parágrafo único.');
+        expect(art!.rotulo).equal('Art. 1º');
+        expect(par!.rotulo).equal('Parágrafo único.');
       });
     });
 
@@ -117,9 +117,10 @@ describe('Testando a transformação de inciso em parágrafo', () => {
           });
           it('Deveria apresentar o parágrafo único no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-            expect(validados.elementos!.length).equal(2);
-            expect(validados.elementos![0].rotulo).equal('Art. 1º');
-            expect(validados.elementos![1].rotulo).equal('Parágrafo único.');
+            const art = validados.elementos!.find(e => e.rotulo === 'Art. 1º');
+            const par = validados.elementos!.find(e => e.rotulo === 'Parágrafo único.');
+            expect(art!.rotulo).equal('Art. 1º');
+            expect(par!.rotulo).equal('Parágrafo único.');
           });
         });
       });
@@ -158,9 +159,9 @@ describe('Testando a transformação de inciso em parágrafo', () => {
       });
       it('Deveria apresentar o parágrafo criado no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-        expect(validados.elementos!.length).equal(1);
-        expect(validados.elementos![0].rotulo).equal('§ 1º');
-        expect(validados.elementos![0].mensagens![0].descricao).equal('Parágrafo deveria iniciar com letra maiúscula');
+        const par = validados.elementos!.find(e => e.rotulo === '§ 1º');
+        expect(par!.rotulo).equal('§ 1º');
+        expect(par!.mensagens![0].descricao).equal('Parágrafo deveria iniciar com letra maiúscula');
       });
     });
   });

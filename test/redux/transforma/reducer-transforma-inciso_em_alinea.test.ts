@@ -30,8 +30,8 @@ describe('Testando a transformação de inciso em alínea', () => {
       expect(state.articulacao.artigos[1].caput.filhos.length).to.equal(1);
     });
     describe('Testando os eventos resultantes da ação', () => {
-      it('Deveria apresentar 2 eventos', () => {
-        expect(state.ui.events.length).to.equal(2);
+      it('Deveria apresentar 3 eventos', () => {
+        expect(state.ui.events.length).to.equal(3);
       });
       it('Deveria apresentar o antigo inciso II como alínea do primeiro inciso', () => {
         const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -136,19 +136,21 @@ describe('Testando a transformação de inciso em alínea', () => {
       });
       it('Deveria apresentar o inciso para onde foram copiados os elementos e a alínea recém criada e seus filhos no array de elementos no evento de ElementoValidado', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-        expect(validados.elementos!.length).equal(6);
-        expect(validados.elementos![0].rotulo).equal('I –');
-        expect(validados.elementos![0].mensagens![0].descricao).equal('Inciso deveria terminar com dois pontos');
-        expect(validados.elementos![1].rotulo).equal('1.');
-        expect(validados.elementos![1].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
-        expect(validados.elementos![2].rotulo).equal('1 -');
-        expect(validados.elementos![2].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
-        expect(validados.elementos![3].rotulo).equal('2.');
-        expect(validados.elementos![3].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
-        expect(validados.elementos![4].rotulo).equal('1 -');
-        expect(validados.elementos![4].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
-        expect(validados.elementos![5].rotulo).equal('2 -');
-        expect(validados.elementos![5].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+        expect(validados.elementos!.length).equal(7);
+        expect(validados.elementos![0].rotulo).equal('2 -');
+        expect(validados.elementos![0].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+        expect(validados.elementos![1].rotulo).equal('1 -');
+        expect(validados.elementos![1].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+        expect(validados.elementos![2].rotulo).equal('2.');
+        expect(validados.elementos![2].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
+        expect(validados.elementos![3].rotulo).equal('1 -');
+        expect(validados.elementos![3].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+        expect(validados.elementos![4].rotulo).equal('1.');
+        expect(validados.elementos![4].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
+        expect(validados.elementos![5].rotulo).equal('a)');
+        expect(validados.elementos![5].mensagens?.length).to.equal(0);
+        expect(validados.elementos![6].rotulo).equal('I –');
+        expect(validados.elementos![6].mensagens![0].descricao).equal('Inciso deveria terminar com dois pontos');
       });
     });
     describe('Testando Undo/Redo', () => {
@@ -229,18 +231,18 @@ describe('Testando a transformação de inciso em alínea', () => {
           it('Deveria apresentar o inciso além da alínea recém criada e seus filhos no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
             expect(validados.elementos!.length).equal(6);
-            expect(validados.elementos![0].rotulo).equal('I –');
-            expect(validados.elementos![0].mensagens![0].descricao).equal('Inciso deveria terminar com dois pontos');
-            expect(validados.elementos![1].rotulo).equal('1.');
-            expect(validados.elementos![1].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
-            expect(validados.elementos![2].rotulo).equal('1 -');
-            expect(validados.elementos![2].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
-            expect(validados.elementos![3].rotulo).equal('2.');
-            expect(validados.elementos![3].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
-            expect(validados.elementos![4].rotulo).equal('1 -');
-            expect(validados.elementos![4].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
-            expect(validados.elementos![5].rotulo).equal('2 -');
-            expect(validados.elementos![5].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+            expect(validados.elementos![0].rotulo).equal('2 -');
+            expect(validados.elementos![0].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+            expect(validados.elementos![1].rotulo).equal('1 -');
+            expect(validados.elementos![1].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+            expect(validados.elementos![2].rotulo).equal('2.');
+            expect(validados.elementos![2].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
+            expect(validados.elementos![3].rotulo).equal('1 -');
+            expect(validados.elementos![3].mensagens![0].descricao).equal('Não foi possível validar a natureza deste dispositivo com base na legislação vigente');
+            expect(validados.elementos![4].rotulo).equal('1.');
+            expect(validados.elementos![4].mensagens![0].descricao).equal('Segundo a Legislação vigente, Item não poderia possuir filhos');
+            expect(validados.elementos![5].rotulo).equal('I –');
+            expect(validados.elementos![5].mensagens![0].descricao).equal('Inciso deveria terminar com dois pontos');
           });
         });
       });
