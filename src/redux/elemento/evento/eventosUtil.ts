@@ -93,10 +93,7 @@ export const buildEventoTransformacaooElemento = (
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
   eventos.add(StateType.ElementoRemovido, elementosRemovidos);
   eventos.add(StateType.ElementoRenumerado, elementosRenumerados);
-  eventos.add(
-    StateType.ElementoValidado,
-    elementosValidados.filter(e => e.mensagens!.length > 0)
-  );
+  eventos.add(StateType.ElementoValidado, elementosValidados);
 
   return eventos;
 };

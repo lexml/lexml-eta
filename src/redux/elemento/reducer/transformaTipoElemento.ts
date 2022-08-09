@@ -1,4 +1,10 @@
-import { isDispositivoAlteracao, getDispositivoCabecaAlteracao, getUltimoFilho, isDispositivoNovoNaNormaAlterada } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  isDispositivoAlteracao,
+  getDispositivoCabecaAlteracao,
+  getUltimoFilho,
+  isDispositivoNovoNaNormaAlterada,
+  getDispositivoAndFilhosAsLista,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoTransformacaoPermitida, normalizaNomeAcaoTransformacao } from '../../../model/lexml/acao/acaoUtil';
@@ -64,9 +70,12 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   const parent = validados.filter(v => v.uuid === paiNovo.uuid).length > 0 ? atual.pai : paiNovo;
 
-  parent!.mensagens = validaDispositivo(parent!);
-
-  validados.unshift(createElemento(parent!));
+  if (parent) {
+    getDispositivoAndFilhosAsLista(parent).forEach(d => {
+      d.mensagens = validaDispositivo(d);
+      validados.unshift(createElemento(d));
+    });
+  }
 
   const referencia = dispositivoAnterior ?? novo.pai!;
   const eventos = buildEventoTransformacaooElemento(
