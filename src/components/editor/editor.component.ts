@@ -914,7 +914,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         id: 'alerta-global-correlacao',
         tipo: 'info',
         mensagem:
-          'Cada emenda somente pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
+          'Cada emenda pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
         podeFechar: true,
       };
       rootStore.dispatch(adicionarAlerta(alerta));
