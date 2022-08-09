@@ -63,7 +63,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
      */
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo>Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo> Texto”</p>');
   });
 
   it('modificacaoParagrafo', () => {
