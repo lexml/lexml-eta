@@ -29,7 +29,9 @@ describe('Testando o assistente de alteração', () => {
     alteracoes = state.articulacao.artigos[1].alteracoes;
   });
   it('Deveria apresentar o seguinte texto no artigo de alteração', () => {
-    expect(state.articulacao.artigos[1].texto).to.equal('A Lei nº 7.560, de 19/12/1986, passa a vigorar com as seguintes alterações:');
+    expect(state.articulacao.artigos[1].texto).to.equal(
+      'A <a href="urn:lex:br:federal:lei:1986-12-19;7560">Lei nº 7.560, de 19 de Dezembro de 1986</a>, passa a vigorar com as seguintes alterações:'
+    );
   });
   it('Deveria criar um novo artigo cabeça de alteração', () => {
     expect(isDispositivoCabecaAlteracao(state.articulacao.artigos[1].alteracoes.artigos[0])).to.be.true;
