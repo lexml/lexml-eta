@@ -58,8 +58,8 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
       it('Deveria possuir 5 artigos após o undo', () => {
         expect(state.articulacao.artigos.length).to.equal(5);
       });
-      it('Deveria apresentar 2 eventos: inclusão e renumeração, nessa ordem', () => {
-        expect(state.ui.events.length).to.equal(2);
+      it('Deveria apresentar 3 eventos: inclusão, renumeração e situação modificada, nessa ordem', () => {
+        expect(state.ui.events.length).to.equal(3);
       });
       it('Deveria apresentar 14 elementos incluídos já que o artigo possui 13 filhos', () => {
         expect(state.ui.events[0].elementos.length).equal(14);
