@@ -48,7 +48,7 @@ export class EtaKeyboard extends Keyboard {
       }
 
       if (this.quill.cursorDeTextoEstaSobreLink() && this.quill.cursorDeTextoEstaSobreLink(-1) && !['Delete', 'Backspace'].includes(ev.key)) {
-        if ((!ev.ctrlKey && ev.key.length === 1) || (ev.ctrlKey && 'xvXV'.includes(ev.key)) || (ev.altKey && '0123456789'.includes(ev.key))) {
+        if ((!ev.ctrlKey && ev.key.length === 1) || (ev.ctrlKey && 'xvXV'.includes(ev.key)) || (ev.altKey && '0123456789'.includes(ev.key)) || ev.key === 'Enter') {
           cancelarPropagacaoDoEvento(ev);
           return;
         }
@@ -227,7 +227,7 @@ export class EtaKeyboard extends Keyboard {
   }
 
   private onTeclaEnter(ev: KeyboardEvent): void {
-    if (this.verificarOperacaoTecladoPermitida()) {
+    if (this.verificarOperacaoTecladoPermitida() && !this.quill.cursorDeTextoEstaSobreLink(-1)) {
       const range: RangeStatic = this.quill.getSelection(true);
       this.quill.setSelection(range.index, 0, Quill.sources.SILENT);
       this.adicionaElementoTeclaEnter.notify(range);
