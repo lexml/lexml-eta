@@ -227,7 +227,7 @@ export class EtaKeyboard extends Keyboard {
   }
 
   private onTeclaEnter(ev: KeyboardEvent): void {
-    if (this.verificarOperacaoTecladoPermitida()) {
+    if (this.verificarOperacaoTecladoPermitida() && !this.quill.cursorDeTextoEstaSobreLink(-1)) {
       const range: RangeStatic = this.quill.getSelection(true);
       this.quill.setSelection(range.index, 0, Quill.sources.SILENT);
       this.adicionaElementoTeclaEnter.notify(range);
