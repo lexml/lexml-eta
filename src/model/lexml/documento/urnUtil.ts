@@ -109,7 +109,7 @@ export const getNomeExtensoComDataExtenso = (urn: string): string => {
 
 export const buildHtmlLink = (urn: string): string => {
   const nomeExtenso = getNomeExtensoComDataExtenso(urn);
-  return `<a href="${urn}"> ${nomeExtenso} </a>`;
+  return `<a href="${urn}">${nomeExtenso}</a>`;
 };
 
 const getDataExtenso = (data: Date) => {
