@@ -91,6 +91,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isOmissis(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
     !isPenultimoMesmoTipo(dispositivo) &&
@@ -132,6 +133,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     !isOmissis(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
@@ -181,6 +184,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !hasFilhos(dispositivo) &&
     !dispositivo.hasAlteracao() &&
     !isUnicoMesmoTipo(dispositivo) &&
@@ -198,6 +202,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isDispositivoAlteracao(dispositivo) &&
     isArtigo(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     dispositivo.hasAlteracao() &&
     !hasIndicativoDesdobramento(dispositivo) &&
     !hasIndicativoInicioAlteracao(dispositivo.texto)
@@ -211,6 +217,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isDispositivoAlteracao(dispositivo) &&
     isArtigo(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !dispositivo.hasAlteracao() &&
     (!hasFilhos(dispositivo) || !hasFilhos((dispositivo as Artigo).caput!)) &&
     hasIndicativoDesdobramento(dispositivo)
@@ -236,6 +244,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !isArtigo(dispositivo) &&
     hasFilhos(dispositivo) &&
     !hasIndicativoDesdobramento(dispositivo)
@@ -251,6 +260,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     isArtigo(dispositivo) &&
     hasFilhos((dispositivo as Artigo).caput!) &&
     !hasIndicativoDesdobramento(dispositivo)
@@ -266,6 +276,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     hasIndicativoDesdobramento(dispositivo) &&
     ((isArtigo(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!)) || !hasFilhos(dispositivo))
   ) {
@@ -280,6 +291,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isParagrafo(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !hasFilhos(dispositivo) &&
     !isUnicoMesmoTipo(dispositivo) &&
     !isUltimoMesmoTipo(dispositivo) &&
@@ -307,6 +319,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (
     isDispositivoAlteracao(dispositivo) &&
     dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
@@ -327,6 +341,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoAlteracao(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     !hasIndicativoDesdobramento(dispositivo)
