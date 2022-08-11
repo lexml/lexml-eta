@@ -188,7 +188,7 @@ const buildContent = (content: any): string => {
     } else {
       let elementTexto = element;
       elementTexto = elementTexto.replace(/"(?=\w|$)/g, '&#8220;');
-      elementTexto = elementTexto.replace(/(?<=[\w,.?!)]|^)"/g, '&#8221;');
+      elementTexto = elementTexto.replace(/(?=[\w,.?!\-")]|^)"/g, '&#8221;');
       texto += elementTexto;
     }
   });
