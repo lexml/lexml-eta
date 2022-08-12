@@ -525,7 +525,8 @@ export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): 
 
 export const validaOrdemDispositivo = (anterior: Dispositivo, atual: Dispositivo): boolean => {
   if ((anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) || anterior.numero!.indexOf('-') === atual.numero!.indexOf('-')) {
-    return +anterior.numero!.charAt(anterior.numero!.length - 1) + 1 === +atual.numero!.charAt(anterior.numero!.length - 1);
+    // return +anterior.numero!.charAt(anterior.numero!.length - 1) + 1 === +atual.numero!.charAt(anterior.numero!.length - 1);
+    return +anterior.numero! + 1 === +atual.numero!;
   }
   const partesA = anterior.numero!.split('-');
   const partesB = atual.numero!.split('-');
