@@ -731,7 +731,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linha.remove();
       }
     });
-    const linhaCursor: EtaContainerTable = this.quill.getLine(this.quill.getSelection(true).index)[0].linha;
+
+    const node = this.quill.getLine(this.quill.getSelection(true).index)[0] ?? this.quill.getLine(this.quill.getSelection(true).index + 1)[0];
+    const linhaCursor: EtaContainerTable = node.linha;
+    // const linhaCursor: EtaContainerTable = this.quill.getLine(this.quill.getSelection(true).index)[0].linha;
+
     const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
 
     this.quill.setSelection(index, 0, Quill.sources.SILENT);

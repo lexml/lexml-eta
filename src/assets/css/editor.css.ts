@@ -376,9 +376,13 @@ export const editorStyles = html`
       color: red;
     }
 
-    .texto--suprimido {
+    .dispositivo--suprimido .texto__dispositivo {
       text-decoration: line-through;
     }
+
+    /* .texto--suprimido {
+      text-decoration: line-through;
+    } */
 
     .container__elemento--ativo {
       border: 3px solid #24d421;
@@ -433,13 +437,18 @@ export const editorStyles = html`
       height: 0px;
     }
 
-    [fecha-aspas]::after {
+    /* [fecha-aspas]::after {
       content: '” (' attr(nota-alteracao) ')';
       font-weight: bold;
     }
 
     [abre-aspas]::before {
       content: '“';
+      font-weight: bold;
+    } */
+
+    .nota-alteracao,
+    .abre-aspas {
       font-weight: bold;
     }
   </style>

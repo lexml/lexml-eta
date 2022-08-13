@@ -1,3 +1,4 @@
+import { EtaBlotFechaAspasENotaAlteracao } from './eta-blot-fecha-aspas-nota-alteracao';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
@@ -40,11 +41,16 @@ export class EtaContainerTable extends Container {
   [key: string]: any;
 
   get blotRotulo(): EtaBlotRotulo {
-    return this.children.head?.children?.head.children.head;
+    const node = this.children.head?.children?.head.children.head;
+    return node instanceof EtaBlotRotulo ? node : node.next;
   }
 
   get blotConteudo(): EtaBlotConteudo {
     return this.blotRotulo?.next;
+  }
+
+  get blotFechaAspasENotaAlteracao(): EtaBlotFechaAspasENotaAlteracao {
+    return this.blotRotulo?.next.next;
   }
 
   get containerDireito(): EtaContainerTdDireito {
@@ -157,10 +163,17 @@ export class EtaContainerTable extends Container {
     this.domNode.innerHTML = html;
   }
 
+  private resetClasses(): void {
+    this.domNode.classList.remove('dispositivo--adicionado');
+    this.domNode.classList.remove('dispositivo--modificado');
+    this.domNode.classList.remove('dispositivo--suprimido');
+  }
+
   // TODO Rever a forma atual de se atribuir estilos
   setEstilo(elemento: Elemento): void {
     let classeCSS = '';
-    let classeCSSAdicional = '';
+
+    this.resetClasses();
 
     switch (elemento.descricaoSituacao) {
       case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
@@ -171,12 +184,15 @@ export class EtaContainerTable extends Container {
         break;
       case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
         classeCSS = 'dispositivo--suprimido';
-        classeCSSAdicional = 'texto--suprimido';
         break;
     }
 
+    if (classeCSS) {
+      this.domNode.classList.add(classeCSS);
+    }
+
     this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(elemento)} ${classeCSS}`);
-    this.blotConteudo.domNode.setAttribute('class', `${EtaBlotConteudo.getClasseCSS(elemento)} ${classeCSS} ${classeCSSAdicional}`);
+    // this.blotConteudo.domNode.setAttribute('class', `${EtaBlotConteudo.getClasseCSS(elemento)} ${classeCSS} ${classeCSSAdicional}`);
   }
 
   atualizarAtributos(elemento: Elemento): void {
@@ -187,6 +203,7 @@ export class EtaContainerTable extends Container {
     }
     this.blotRotulo.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
+    this.blotFechaAspasENotaAlteracao.atualizarAtributos(elemento);
   }
 
   atualizarElemento(elemento: Elemento): void {
