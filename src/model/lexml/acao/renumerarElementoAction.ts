@@ -6,7 +6,7 @@ export const RENUMERAR_ELEMENTO = 'RENUMERAR_ELEMENTO';
 export class RenumerarElemento implements ElementoAction {
   descricao: string;
   tipo?: string;
-  hotkey = '(Ctrl+R)';
+  hotkey = '(Ctrl+Alt+R)';
 
   constructor() {
     this.descricao = 'Numerar e criar rótulo';
