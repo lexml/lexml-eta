@@ -1,5 +1,6 @@
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
-import { EtaBlotFechaAspasENotaAlteracao } from './eta-blot-fecha-aspas-nota-alteracao';
+import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
+import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { Elemento } from '../../model/elemento';
 import { Mensagem } from '../../model/lexml/util/mensagem';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
@@ -24,7 +25,8 @@ export class EtaQuillUtil {
     new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
-    new EtaBlotFechaAspasENotaAlteracao(elemento).insertInto(etaTdTexto);
+    new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
+    new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
     etaTdTexto.insertInto(etaTrContainer);

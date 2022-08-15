@@ -4,6 +4,7 @@ import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isInciso
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
+import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { InformarDadosAssistenteAction } from '../acao/informarDadosAssistenteAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
@@ -34,6 +35,7 @@ import {
   isDispositivoCabecaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
+  podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
@@ -139,6 +141,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
         (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
+      }
+
+      if (podeEditarNotaAlteracao(dispositivo)) {
+        acoes.push(atualizarNotaAlteracaoAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

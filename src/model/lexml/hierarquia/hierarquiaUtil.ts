@@ -588,3 +588,13 @@ export const podeRenumerarFilhosAutomaticamente = (dispositivo: Dispositivo): bo
   const d = dispositivo.tipo === 'Caput' ? dispositivo.pai! : dispositivo;
   return !isDispositivoAlteracao(d) || (isDispositivoNovoNaNormaAlterada(d) ?? false);
 };
+
+export const podeEditarNotaAlteracao = (dispositivo: Dispositivo): boolean => {
+  const isUltAlteracao = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
+  if (!isUltAlteracao) {
+    return false;
+  } else {
+    const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+    return cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+  }
+};

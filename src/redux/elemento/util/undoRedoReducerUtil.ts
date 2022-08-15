@@ -173,6 +173,7 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
 
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
             (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = e.existeNaNormaAlterada;
+            dispositivo.notaAlteracao = e.notaAlteracao;
           }
 
           dispositivo.mensagens = validaDispositivo(dispositivo);

@@ -60,11 +60,12 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
   const pai = dispositivo.pai!;
   const fechaAspas = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
   let notaAlteracao: string | undefined;
+  let podeEditarNotaAlteracao: boolean | undefined;
 
   if (fechaAspas) {
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-    // TODO: confirmar se deve ter 'NR' como valor default
-    notaAlteracao = cabecaAlteracao?.notaAlteracao || 'NR';
+    notaAlteracao = cabecaAlteracao.notaAlteracao ?? 'NR'; // TODO: Deve vir do dispositivo;
+    podeEditarNotaAlteracao = cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
   }
 
   return {
@@ -97,6 +98,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     notaAlteracao,
     dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
     tipoOmissis: dispositivo.tipo === 'Omissis' ? tipoOmissis(pai) : undefined,
+    podeEditarNotaAlteracao,
   };
 };
 

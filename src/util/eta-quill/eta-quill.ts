@@ -1,3 +1,4 @@
+import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
 import { Observable } from '../observable';
 import { EtaBlot } from './eta-blot';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
@@ -19,6 +20,8 @@ import { EtaQuillBuffer } from './eta-quill-buffer';
 import { negrito } from '../../../assets/icons/icons';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { EtaBlotConteudoOmissis } from './eta-blot-conteudo-omissis';
+import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
+import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 
 export interface TextoSelecionado {
   conteudo: string;
@@ -114,6 +117,9 @@ export class EtaQuill extends Quill {
     EtaQuill.register('modules/clipboard', EtaClipboard, true);
     EtaQuill.register('modules/keyboard', EtaKeyboard, true);
     EtaQuill.register(EtaBlotConteudoOmissis, true);
+    EtaQuill.register(EtaBlotAbreAspas, true);
+    EtaQuill.register(EtaBlotFechaAspas, true);
+    EtaQuill.register(EtaBlotNotaAlteracao, true);
     EtaQuill.register(EtaBlotConteudo, true);
     EtaQuill.register(EtaBlotEspaco, true);
     EtaQuill.register(EtaBlotMensagem, true);
@@ -186,7 +192,11 @@ export class EtaQuill extends Quill {
   setIndex(index: number, source: Sources = Quill.sources.USER): void {
     const range: RangeStatic = this.getSelection(true) ?? { index: 0, length: 0 };
     if (index !== range.index || range.length !== 0) {
-      this.setSelection(index, 0, source);
+      try {
+        this.setSelection(index, 0, source);
+      } catch (error) {
+        this.setSelection(index - 1, 0, source);
+      }
     }
   }
 
@@ -277,16 +287,23 @@ export class EtaQuill extends Quill {
     }
 
     if (range) {
+      if (range.index === oldRange?.index) {
+        return false;
+      }
+
       const blotCursor: EtaBlot = this.getLine(range.index)[0];
       const linhaCursor: EtaContainerTable = blotCursor.linha;
 
-      if (
-        blotCursor.tagName === EtaBlotRotulo.tagName ||
-        blotCursor.tagName === EtaBlotEspaco.tagName ||
-        blotCursor.tagName === EtaBlotMenu.tagName ||
-        blotCursor.tagName === EtaBlotMensagens.tagName
-      ) {
-        this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
+      if (blotCursor instanceof EtaBlotFechaAspas || blotCursor instanceof EtaBlotNotaAlteracao || blotCursor instanceof EtaBlotMensagem) {
+        this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
+      } else if (blotCursor instanceof EtaBlotRotulo || blotCursor instanceof EtaBlotEspaco || blotCursor instanceof EtaBlotMenu || blotCursor instanceof EtaBlotAbreAspas) {
+        const movendoParaFrente = oldRange && range.index > oldRange.index;
+        if (movendoParaFrente) {
+          this.setSelection(this.getIndex(this.linhaAtual.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
+          return false;
+        } else {
+          this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
+        }
       }
 
       if (oldRange) {

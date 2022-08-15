@@ -33,4 +33,5 @@ export class Elemento extends Referencia {
   notaAlteracao?: string;
   dispositivoAlteracao?: boolean;
   tipoOmissis?: string;
+  podeEditarNotaAlteracao?: boolean;
 }

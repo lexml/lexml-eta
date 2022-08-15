@@ -1,14 +1,14 @@
 import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
-export class EtaBlotAbreAspas extends EtaBlot {
-  static blotName = 'abre-aspas';
+export class EtaBlotFechaAspas extends EtaBlot {
+  static blotName = 'fecha-aspas';
   static tagName = 'span';
-  static className = 'abre-aspas';
+  static className = 'fecha-aspas';
 
   private elemento: Elemento;
   constructor(elemento: Elemento) {
-    super(EtaBlotAbreAspas.create(elemento));
+    super(EtaBlotFechaAspas.create(elemento));
     this.elemento = elemento;
   }
 
@@ -16,9 +16,9 @@ export class EtaBlotAbreAspas extends EtaBlot {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
-    node.setAttribute('class', EtaBlotAbreAspas.className);
+    node.setAttribute('class', EtaBlotFechaAspas.className);
 
-    node.innerHTML = EtaBlotAbreAspas.montarHTML(elemento);
+    node.innerHTML = EtaBlotFechaAspas.montarHTML(elemento);
 
     return node;
   }
@@ -29,10 +29,10 @@ export class EtaBlotAbreAspas extends EtaBlot {
 
   public atualizarAtributos(elemento: Elemento): void {
     this.elemento = elemento;
-    this.domNode.innerHTML = EtaBlotAbreAspas.montarHTML(elemento);
+    this.domNode.innerHTML = EtaBlotFechaAspas.montarHTML(elemento);
   }
 
   private static montarHTML(elemento: Elemento): string {
-    return elemento.abreAspas ? '“' : '';
+    return elemento.fechaAspas ? '” ' : ' ';
   }
 }

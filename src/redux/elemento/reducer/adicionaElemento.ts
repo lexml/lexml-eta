@@ -119,10 +119,10 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo = createByInferencia(atual, action);
   }
 
-  /*   if (isDispositivoCabecaAlteracao(novo)) {
-    novo.cabecaAlteracao = isDispositivoCabecaAlteracao(novo);
+  if (isDispositivoCabecaAlteracao(novo)) {
+    // novo.cabecaAlteracao = isDispositivoCabecaAlteracao(novo);
     novo.notaAlteracao = 'NR';
-  } */
+  }
 
   if (
     atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||

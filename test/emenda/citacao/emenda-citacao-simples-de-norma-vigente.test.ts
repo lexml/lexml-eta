@@ -133,7 +133,7 @@ describe('Citação em comando de emenda com apenas um dispositivo de norma vige
     const d = TesteCmdEmdUtil.incluiArtigo(state, 'art1_cpt_alt1_art1', false);
     TesteCmdEmdUtil.numeraECriaRotulo(d, '1-A', false);
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-A.</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-A.</Rotulo> Texto” (NR)</p>');
   });
 
   it('diversasModificacoes', () => {

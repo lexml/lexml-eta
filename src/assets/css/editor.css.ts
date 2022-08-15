@@ -448,8 +448,14 @@ export const editorStyles = html`
     } */
 
     .nota-alteracao,
-    .abre-aspas {
+    .abre-aspas,
+    .fecha-aspas {
       font-weight: bold;
+    }
+
+    .nota-alteracao-editavel {
+      text-decoration: underline;
+      cursor: pointer;
     }
   </style>
 `;

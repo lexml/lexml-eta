@@ -1,3 +1,4 @@
+import { atualizarNotaAlteracaoAction } from './atualizarNotaAlteracaoAction';
 import { Referencia } from '../../elemento';
 import {
   adicionarAlinea,
@@ -73,6 +74,7 @@ acoesMenu.push(informarNormaAction);
 acoesMenu.push(InformarDadosAssistenteAction);
 acoesMenu.push(considerarElementoExistenteNaNorma);
 acoesMenu.push(considerarElementoNovoNaNorma);
+acoesMenu.push(atualizarNotaAlteracaoAction);
 acoesMenu.push(moverElementoAbaixoAction);
 acoesMenu.push(moverElementoAcimaAction);
 acoesMenu.push(renumerarElementoAction);

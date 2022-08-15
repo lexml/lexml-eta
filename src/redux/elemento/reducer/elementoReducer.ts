@@ -1,3 +1,5 @@
+import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
+import { ATUALIZAR_NOTA_ALTERACAO } from './../../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { ADICIONAR_ALERTA } from '../../../model/alerta/acao/adicionarAlerta';
 import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
 import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
@@ -64,6 +66,8 @@ export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
     case INFORMAR_EXISTENCIA_NA_NORMA:
       return informaExistenciaDoElementoNaNorma(state, action);
+    case ATUALIZAR_NOTA_ALTERACAO:
+      return atualizaNotaAlteracao(state, action);
     case APLICAR_ALTERACOES_EMENDA:
       return aplicaAlteracoesEmenda(state, action);
     case ASSISTENTE_ALTERACAO:

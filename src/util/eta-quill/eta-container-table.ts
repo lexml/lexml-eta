@@ -1,4 +1,5 @@
-import { EtaBlotFechaAspasENotaAlteracao } from './eta-blot-fecha-aspas-nota-alteracao';
+import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
+import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
@@ -49,8 +50,12 @@ export class EtaContainerTable extends Container {
     return this.blotRotulo?.next;
   }
 
-  get blotFechaAspasENotaAlteracao(): EtaBlotFechaAspasENotaAlteracao {
+  get blotFechaAspas(): EtaBlotFechaAspas {
     return this.blotRotulo?.next.next;
+  }
+
+  get blotNotaAlteracao(): EtaBlotNotaAlteracao {
+    return this.blotRotulo?.next.next.next;
   }
 
   get containerDireito(): EtaContainerTdDireito {
@@ -203,10 +208,13 @@ export class EtaContainerTable extends Container {
     }
     this.blotRotulo.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
-    this.blotFechaAspasENotaAlteracao.atualizarAtributos(elemento);
+    this.blotFechaAspas?.atualizarAtributos(elemento);
+    this.blotNotaAlteracao?.atualizarAtributos(elemento);
   }
 
   atualizarElemento(elemento: Elemento): void {
+    this.elemento = elemento;
+
     this._lexmlId = elemento.lexmlId ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
@@ -221,8 +229,10 @@ export class EtaContainerTable extends Container {
     this.atualizarAtributos(elemento);
   }
 
+  elemento: Elemento;
   constructor(elemento: Elemento) {
     super(EtaContainerTable.create(elemento));
+    this.elemento = elemento;
     this._lexmlId = elemento.lexmlId ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;

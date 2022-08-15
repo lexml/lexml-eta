@@ -1,3 +1,4 @@
+import { isDispositivoCabecaAlteracao } from './../hierarquia/hierarquiaUtil';
 /* eslint-disable indent */
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isArtigo, isCaput, isParagrafo } from '../../dispositivo/tipo';
@@ -88,6 +89,9 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
   novo.createRotulo(novo);
   novo.situacao = atual.situacao;
+  if (isDispositivoCabecaAlteracao(novo)) {
+    novo.notaAlteracao = 'NR';
+  }
   novo.mensagens = validaDispositivo(novo);
   paiAtual?.removeFilho(atual);
   paiAtual?.renumeraFilhos();

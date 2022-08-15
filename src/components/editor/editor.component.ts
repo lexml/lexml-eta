@@ -1,3 +1,5 @@
+import { atualizarNotaAlteracaoAction } from './../../model/lexml/acao/atualizarNotaAlteracaoAction';
+import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
@@ -266,6 +268,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+  }
+
+  private editarNotaAlteracao(elemento: Elemento): void {
+    editarNotaAlteracaoDialog(elemento, this.quill, rootStore);
   }
 
   private async renumerarElemento(): Promise<any> {
@@ -557,7 +563,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elemento = event.elementos![0];
     const linha = this.quill.getLinha(elemento.uuid!)!;
     const index = this.quill.getIndex(linha.blotConteudo);
-    this.quill.setIndex(index, Quill.sources.SILENT);
+    try {
+      this.quill.setIndex(index, Quill.sources.SILENT);
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
     this.quill.atualizarLinhaCorrente(linha);
     this.elementoSelecionado(linha.uuid);
     if (event.moverParaFimLinha) {
@@ -574,6 +583,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     } else
  */ if (itemMenu === renumerarElementoAction) {
       this.renumerarElemento();
+    } else if (itemMenu === atualizarNotaAlteracaoAction) {
+      this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
@@ -844,6 +855,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('rotulo', (event: any) => {
       event.stopImmediatePropagation();
       this.renumerarElemento();
+    });
+
+    editorHtml.addEventListener('nota-alteracao', (event: any) => {
+      event.stopImmediatePropagation();
+      this.editarNotaAlteracao(event.detail.elemento);
     });
 
     editorHtml.addEventListener('mensagem', (event: any) => {
