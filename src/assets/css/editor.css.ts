@@ -452,5 +452,11 @@ export const editorStyles = html`
       text-decoration: underline;
       cursor: pointer;
     }
+
+    .abre-aspas br,
+    .fecha-aspas br,
+    .nota-alteracao br {
+      content: '';
+    }
   </style>
 `;
