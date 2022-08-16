@@ -72,8 +72,6 @@ export class EtaKeyboard extends Keyboard {
             this.onTeclaHome(ev);
           } else if (ev.key === 'End') {
             this.onTeclaEnd(ev);
-          } else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
-            this.onHotKeyMover(ev);
           } else if (ev.key.toLowerCase() === 'a' && !ev.shiftKey) {
             this.onTeclaCtrlA(ev);
           } else if (ev.key.toLowerCase() === 'd') {
@@ -91,11 +89,28 @@ export class EtaKeyboard extends Keyboard {
         if (ev.altKey || ev.metaKey) {
           if (['a', 'l', 'n', 'o', 'p', 't'].includes(ev.key.toLowerCase())) {
             this.onHotKeyTransformacaoTipo(ev);
-          } else if (ev.key.toLowerCase() === 'r') {
+          } else if (['r', '®'].includes(ev.key.toLowerCase())) {
             this.onHotKeyRenumeraDispositivo(ev);
-          } else if (ev.key.toLowerCase() === 'x') {
+          } else if (['x', '≈'].includes(ev.key.toLowerCase())) {
             this.onHotKeyToggleExistencia(ev);
           }
+          // Trata caracteres especiais da tecla Alt mo MacOS/Chrome
+          // para os atalhos a, l, n, o, p, t
+          if (['229', '172', '68', '248', '960', '8224'].includes(ev.key.charCodeAt(0).toString())) {
+            if (ev.key.charCodeAt(0).toString() === '960') {
+              // Cria um evento para manipular a tecla pressionada
+              const keyDownFake = new KeyboardEvent('keydown', {
+                key: 'p',
+              });
+              this.onHotKeyTransformacaoTipo(keyDownFake);
+            } else {
+              this.onHotKeyTransformacaoTipo(ev);
+            }
+          }
+        }
+      } else if (ev.altKey) {
+        if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+          this.onHotKeyMover(ev);
         }
       } else if (ev.key === 'ArrowRight') {
         this.onTeclaArrowRight(ev);

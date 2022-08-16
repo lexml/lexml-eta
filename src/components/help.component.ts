@@ -58,8 +58,8 @@ export class HelpComponent extends LitElement {
           <div><b>ctrl-a</b>&nbsp;-&nbsp;Seleciona todos os dispositivos da articulação</div>
           <div><b>ctrl-home</b>&nbsp;-&nbsp;Vai para o primeiro dispositivo</div>
           <div><b>ctrl-end</b>&nbsp;-&nbsp;Vai para o último dispositivo</div>
-          <div><b>ctrl-&uarr;</b>&nbsp;-&nbsp;Move o dispositivo acima</div>
-          <div><b>ctrl-&darr;</b>&nbsp;-&nbsp;Move o dispositivo abaixo</div>
+          <div><b>alt-&uarr;</b>&nbsp;-&nbsp;Move o dispositivo acima</div>
+          <div><b>alt-&darr;</b>&nbsp;-&nbsp;Move o dispositivo abaixo</div>
           <div><b>ctrl-f;</b>&nbsp;-&nbsp;Localizar texto</div>
           <hr></hr>
           <div><b>enter</b>&nbsp;-&nbsp;Finaliza a edição do dispositivo atual e cria um novo</div>
