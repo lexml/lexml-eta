@@ -159,7 +159,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </svg>
           </button>
 
-          <button @click=${this.onClickDispositivoAtual} class="lx-eta-ql-button lx-eta-btn-disp-atual" title="Localizar dispositivo atual">D</button>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <lexml-eta-help></lexml-eta-help>
         </div>
@@ -185,11 +184,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private onClickRedo(): void {
     this.quill.redo();
-  }
-
-  private onClickDispositivoAtual(): void {
-    this.quill.setSelection(this.quill.getIndex(this.quill.linhaAtual.blotConteudo), 0, Quill.sources.SILENT);
-    this.quill.focus();
   }
 
   private artigoOndeCouber(): void {
