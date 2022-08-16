@@ -97,14 +97,33 @@ export class EtaKeyboard extends Keyboard {
           // Trata caracteres especiais da tecla Alt mo MacOS/Chrome
           // para os atalhos a, l, n, o, p, t
           if (['229', '172', '68', '248', '960', '8224'].includes(ev.key.charCodeAt(0).toString())) {
-            if (ev.key.charCodeAt(0).toString() === '960') {
+            let keyFake = '';
+            switch (ev.key.charCodeAt(0).toString()) {
+              case '229':
+                keyFake = 'a';
+                break;
+              case '172':
+                keyFake = 'l';
+                break;
+              case '68':
+                keyFake = 'n';
+                break;
+              case '248':
+                keyFake = 'o';
+                break;
+              case '960':
+                keyFake = 'p';
+                break;
+              case '8224':
+                keyFake = 't';
+                break;
+            }
+            if (keyFake) {
               // Cria um evento para manipular a tecla pressionada
               const keyDownFake = new KeyboardEvent('keydown', {
-                key: 'p',
+                key: keyFake,
               });
               this.onHotKeyTransformacaoTipo(keyDownFake);
-            } else {
-              this.onHotKeyTransformacaoTipo(ev);
             }
           }
         }
