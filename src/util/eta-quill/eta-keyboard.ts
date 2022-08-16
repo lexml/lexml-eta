@@ -66,7 +66,7 @@ export class EtaKeyboard extends Keyboard {
         return;
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
-          if (ev.key === 'Delete') {
+          if (['Delete', 'Backspace'].includes(ev.key)) {
             cancelarPropagacaoDoEvento(ev);
           } else if (ev.key === 'Home') {
             this.onTeclaHome(ev);
