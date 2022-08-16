@@ -126,11 +126,6 @@ export const editorStyles = html`
       background-color: #e1e1e1;
     }
 
-    .lx-eta-btn-disp-atual {
-      margin-left: 10px !important;
-      text-decoration: underline;
-    }
-
     .lx-eta-btn-desfazer {
       margin-left: 10px !important;
     }
