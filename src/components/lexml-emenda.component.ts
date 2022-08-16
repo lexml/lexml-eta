@@ -4,7 +4,6 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
 
-// import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
@@ -17,12 +16,16 @@ import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda, ColegiadoApreciador } f
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { getSigla, getNumero, getAno } from './../../src/model/lexml/documento/urnUtil';
 
+import { LexmlEtaComponent } from './lexml-eta.component';
+import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
+
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
   @property({ type: Object }) projetoNorma = {};
   @property({ type: Boolean }) existeObserverEmenda = false;
   @property({ type: Number }) totalAlertas = 0;
+  @property({ type: Boolean }) exibirAjuda = true;
 
   @state()
   autoria = new Autoria();
@@ -30,13 +33,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   parlamentares: Parlamentar[] = [];
 
   @query('lexml-eta')
-  _lexmlEta;
+  _lexmlEta!: LexmlEtaComponent;
   @query('lexml-emenda-justificativa')
   _lexmlJustificativa;
   @query('lexml-autoria')
   _lexmlAutoria;
   @query('lexml-data')
   _lexmlData;
+
+  @query('lexml-emenda-comando')
+  _lexmlEmendaComando!: ComandoEmendaComponent;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
@@ -81,7 +87,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   getEmenda(): Emenda {
     const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
 
-    emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda();
+    emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
     emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
@@ -158,7 +164,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   // recupera redimensionamento da caixa do componente e reajusta altura
-  private observarAltura() {
+  private observarAltura(): void {
     const emendaObserver = new ResizeObserver(entries => {
       for (const entry of entries) {
         if (entry.contentBoxSize) {
@@ -170,6 +176,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emendaObserver.observe(this);
   }
 
+  private onChange(evt: CustomEvent): void {
+    console.log('EVENTO', evt.detail.origemEvento || '*', evt.detail);
+
+    if (this.modo.startsWith('emenda')) {
+      const comandoEmenda = this._lexmlEta.getComandoEmenda();
+      this._lexmlEmendaComando.emenda = comandoEmenda;
+    }
+  }
+
   render(): TemplateResult {
     return html`
       <style>
@@ -177,10 +192,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           --height: 100%;
           --overflow: visible;
           --min-height: 300px;
-        }
-        lexml-emenda {
-        }
-        lexml-eta {
         }
         sl-tab-panel {
           --padding: 0px;
@@ -193,6 +204,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
+        lexml-emenda-comando {
+          font-family: var(--eta-font-serif);
+          display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
+          height: calc(100vh - 104px);
+        }
+        lexml-eta {
+          font-family: var(--eta-font-serif);
+          text-align: left;
+        }
         lexml-emenda-justificativa #editor-justificativa {
           height: calc(var(--height) - 44px);
           overflow: var(--overflow);
@@ -202,30 +222,50 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           height: 16px;
           margin-top: -4px;
         }
+        .wrapper {
+          display: grid;
+          grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
+        }
       </style>
-      <sl-tab-group>
-        <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
-        <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
-        <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
-        <sl-tab slot="nav" panel="avisos">
-          Avisos
-          <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
-        </sl-tab>
-        <sl-tab-panel name="lexml-eta">
-          <lexml-eta id="lexmlEta" modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
-        </sl-tab-panel>
-        <sl-tab-panel name="justificativa">
-          <lexml-emenda-justificativa></lexml-emenda-justificativa>
-        </sl-tab-panel>
-        <sl-tab-panel name="autoria" class="overflow-hidden">
-          <lexml-data></lexml-data>
-          <hr />
-          <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
-        </sl-tab-panel>
-        <sl-tab-panel name="avisos" class="overflow-hidden">
-          <lexml-eta-alertas></lexml-eta-alertas>
-        </sl-tab-panel>
-      </sl-tab-group>
+      <div class="wrapper">
+        <div class="lado-esquerdo">
+          <sl-tab-group>
+            <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
+            <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
+            <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
+            <sl-tab slot="nav" panel="avisos">
+              Avisos
+              <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
+            </sl-tab>
+            <sl-tab-panel name="lexml-eta">
+              <lexml-eta id="lexmlEta" @onchange=${this.onChange} modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
+            </sl-tab-panel>
+            <sl-tab-panel name="justificativa">
+              <lexml-emenda-justificativa></lexml-emenda-justificativa>
+            </sl-tab-panel>
+            <sl-tab-panel name="autoria" class="overflow-hidden">
+              <lexml-data></lexml-data>
+              <hr />
+              <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
+            </sl-tab-panel>
+            <sl-tab-panel name="avisos" class="overflow-hidden">
+              <lexml-eta-alertas></lexml-eta-alertas>
+            </sl-tab-panel>
+          </sl-tab-group>
+        </div>
+        <div class="lado-direito">
+          <sl-tab-group>
+            <sl-tab slot="nav" panel="comando">Comando</sl-tab>
+            <sl-tab slot="nav" panel="ajuda" style=${this.exibirAjuda ? '' : 'display:none;'}>Ajuda</sl-tab>
+            <sl-tab-panel name="comando">
+              <lexml-emenda-comando></lexml-emenda-comando>
+            </sl-tab-panel>
+            <sl-tab-panel name="ajuda">
+              <div></div>
+            </sl-tab-panel>
+          </sl-tab-group>
+        </div>
+      </div>
     `;
   }
 }

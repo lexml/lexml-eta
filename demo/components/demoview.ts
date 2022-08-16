@@ -131,15 +131,6 @@ export class DemoView extends LitElement {
     }
   }
 
-  onChange(e: CustomEvent): void {
-    console.log('EVENTO', e.detail.origemEvento || '*', e.detail);
-
-    if (this.modo.startsWith('emenda')) {
-      const comandoEmenda = this.getElement('lexml-eta').getComandoEmenda();
-      this.elLexmlEmendaComando.emenda = comandoEmenda;
-    }
-  }
-
   salvar(): void {
     const projetoNorma = this.projetoNorma;
     const emenda = this.elLexmlEmenda.getEmenda();
@@ -260,23 +251,6 @@ export class DemoView extends LitElement {
           height: calc(100vh - 100px);
         }
 
-        /*
-        Apesar do problema de performance mencionado em https://lit.dev/docs/components/styles/#styles-in-the-template
-        as expressões abaixo foram mantidas por se tratar de um código para teste.
-        */
-        .wrapper {
-          display: grid;
-          grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
-        }
-        lexml-emenda-comando {
-          font-family: var(--eta-font-serif);
-          display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
-          height: calc(100vh - 104px);
-        }
-        lexml-eta {
-          font-family: var(--eta-font-serif);
-          text-align: left;
-        }
         .nome-proposicao {
           font-family: var(--sl-font-sans);
           font-weight: bold;
@@ -306,18 +280,11 @@ export class DemoView extends LitElement {
             <option value="mpv_905_2019" selected>MP 905, de 2019</option>
             <option value="mpv_930_2020">MP 930, de 2020</option>
             <option value="mpv_1089_2021">MP 1089, de 2021</option>
-            <<<<<<< HEAD
             <option value="mpv_1100_2022">MP 1100, de 2022</option>
             <option value="codcivil_completo">Código Civil Completo</option>
             <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
-            =======
-            <!-- <option value="codcivil_completo">Código Civil Completo</option> -->
-            <!-- <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option> -->
-            <!-- <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option> -->
-            <!-- <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option> -->
-            >>>>>>> e965c816563fda8c5ba7206200c9dfc7d77d24c8
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>
@@ -328,10 +295,7 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <div class="wrapper">
-        <lexml-emenda @onchange=${this.onChange} modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-emenda>
-        <lexml-emenda-comando></lexml-emenda-comando>
-      </div>
+      <lexml-emenda modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-emenda>
     `;
   }
 }
