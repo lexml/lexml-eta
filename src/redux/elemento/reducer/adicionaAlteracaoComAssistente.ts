@@ -37,6 +37,8 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   }
 
   if (action.norma) {
+    novo.alteracoes!.base = action.norma;
+
     const genero = getTipo(action.norma)?.genero;
 
     if (action.norma && validaUrn(action.norma)) {
