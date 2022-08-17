@@ -180,7 +180,7 @@ const buildContentDispositivo = (el: any): string => {
   return texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>');
 };
 
-const buildContent = (content: any): string => {
+export const buildContent = (content: any): string => {
   let texto = '';
   content?.forEach((element: any) => {
     if (element.value) {

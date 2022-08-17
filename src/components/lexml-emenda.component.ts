@@ -1,3 +1,4 @@
+import { buildContent } from './../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 
@@ -78,7 +79,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       sigla: getSigla(urn),
       numero: getNumero(urn),
       ano: getAno(urn),
-      ementa: projetoNorma.value.projetoNorma.norma.parteInicial.ementa.content[0],
+      ementa: buildContent(projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.ementa.content),
       identificacaoTexto: 'Texto da MPV',
     };
     return emenda;
