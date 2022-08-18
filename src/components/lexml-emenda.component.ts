@@ -262,7 +262,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>
             <sl-tab-panel name="ajuda">
-              <div></div>
+              <lexml-ajuda></lexml-ajuda>
             </sl-tab-panel>
           </sl-tab-group>
         </div>
