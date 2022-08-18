@@ -55,7 +55,7 @@ export class EtaKeyboard extends Keyboard {
       } else if (this.verificaSelecaoComLink()) {
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (this.quill.linhaAtual.tipo === 'Omissis' && !['ArrowUp', 'ArrowDown', 'Control'].includes(ev.key) && !(ev.altKey || ev.ctrlKey)) {
+      } else if (this.quill.linhaAtual.tipo === 'Omissis' && !['ArrowUp', 'ArrowDown'].includes(ev.key) && !(ev.altKey || ev.ctrlKey)) {
         cancelarPropagacaoDoEvento(ev);
         return;
       } else if (
