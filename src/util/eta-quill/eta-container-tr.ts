@@ -6,6 +6,10 @@ export class EtaContainerTr extends Container {
   static tagName = 'DIV';
   static className = 'container__linha';
 
+  get instanceBlotName(): string {
+    return EtaContainerTr.blotName;
+  }
+
   static create(editavel: boolean, alinhamentoMenu: AlinhamentoMenu): any {
     const node: HTMLElement = super.create();
 

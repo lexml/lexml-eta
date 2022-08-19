@@ -6,6 +6,10 @@ export class EtaBlotMensagem extends EtaBlot {
   static tagName = 'div';
   static className = 'mensagem';
 
+  get instanceBlotName(): string {
+    return EtaBlotMensagem.blotName;
+  }
+
   static create(mensagem: Mensagem): any {
     const node: HTMLElement = super.create();
     let classe = '';

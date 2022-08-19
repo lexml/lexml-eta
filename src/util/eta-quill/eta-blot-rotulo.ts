@@ -8,6 +8,10 @@ export class EtaBlotRotulo extends EtaBlot {
 
   static formatoStyle = 'STYLE';
 
+  get instanceBlotName(): string {
+    return EtaBlotRotulo.blotName;
+  }
+
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 

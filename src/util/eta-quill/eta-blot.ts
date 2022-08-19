@@ -6,6 +6,10 @@ export class EtaBlot extends Block {
   [key: string]: any;
   static blotName = 'EtaBlot';
 
+  get instanceBlotName(): string {
+    return EtaBlot.blotName;
+  }
+
   get linha(): EtaContainerTable {
     return this.parent.parent.parent;
   }

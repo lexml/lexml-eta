@@ -5,6 +5,10 @@ export class EtaBlotEspaco extends EtaBlot {
   static tagName = 'ESPACO';
   static className = 'espaco';
 
+  get instanceBlotName(): string {
+    return EtaBlotEspaco.blotName;
+  }
+
   static create(): any {
     const node: HTMLElement = super.create();
 

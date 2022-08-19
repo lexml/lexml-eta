@@ -6,6 +6,10 @@ export class EtaBlotMenuBotao extends EtaBlot {
   static tagName = 'sl-button';
   static className = 'lx-eta-dropbtn';
 
+  get instanceBlotName(): string {
+    return EtaBlotMenuBotao.blotName;
+  }
+
   static create(): any {
     const node: SlButton = super.create();
 

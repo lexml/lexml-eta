@@ -5,6 +5,10 @@ export class EtaBlotConteudoOmissis extends Inline {
   static tagName = 'span';
   static className = 'texto__omissis';
 
+  get instanceBlotName(): string {
+    return EtaBlotConteudoOmissis.blotName;
+  }
+
   static formats(): boolean {
     return true;
   }

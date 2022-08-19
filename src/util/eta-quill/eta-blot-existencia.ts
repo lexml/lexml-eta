@@ -7,6 +7,10 @@ export class EtaBlotExistencia extends EtaBlot {
   static tagName = 'span';
   static className = 'blot-existencia';
 
+  get instanceBlotName(): string {
+    return EtaBlotExistencia.blotName;
+  }
+
   constructor(elemento: Elemento) {
     super(EtaBlotExistencia.create(elemento));
   }

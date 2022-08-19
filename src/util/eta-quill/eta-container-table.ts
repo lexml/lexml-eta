@@ -19,6 +19,10 @@ export class EtaContainerTable extends Container {
   static tagName = 'DIV';
   static className = 'container__elemento';
 
+  get instanceBlotName(): string {
+    return EtaContainerTable.blotName;
+  }
+
   static criarId(uuid?: number): string {
     return `lxEtaId${uuid ?? 0}`;
   }
@@ -52,7 +56,7 @@ export class EtaContainerTable extends Container {
     if (!blotRef) {
       return;
     }
-    return blotRef.constructor.name === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
+    return blotRef.instanceBlotName === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
   }
 
   get blotRotulo(): EtaBlotRotulo {

@@ -6,6 +6,10 @@ export class EtaBlotTipoOmissis extends EtaBlot {
   static tagName = 'span';
   static className = 'blot-tipo-omissis';
 
+  get instanceBlotName(): string {
+    return EtaBlotTipoOmissis.blotName;
+  }
+
   constructor(elemento: Elemento) {
     super(EtaBlotTipoOmissis.create(elemento));
   }

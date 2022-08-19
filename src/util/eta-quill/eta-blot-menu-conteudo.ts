@@ -7,6 +7,10 @@ export class EtaBlotMenuConteudo extends EtaBlot {
   static tagName = 'sl-menu';
   static className = 'lx-eta-dropdown-content';
 
+  get instanceBlotName(): string {
+    return EtaBlotMenuConteudo.blotName;
+  }
+
   static create(alinhamentoMenu: AlinhamentoMenu): any {
     const node: SlMenu = super.create();
 

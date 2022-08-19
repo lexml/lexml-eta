@@ -12,6 +12,10 @@ export class EtaBlotAbreAspas extends EtaBlot {
     this.elemento = elemento;
   }
 
+  get instanceBlotName(): string {
+    return EtaBlotAbreAspas.blotName;
+  }
+
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 

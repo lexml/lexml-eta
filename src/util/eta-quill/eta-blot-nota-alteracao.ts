@@ -6,6 +6,10 @@ export class EtaBlotNotaAlteracao extends EtaBlot {
   static tagName = 'span';
   static className = 'nota-alteracao';
 
+  get instanceBlotName(): string {
+    return EtaBlotNotaAlteracao.blotName;
+  }
+
   constructor(elemento: Elemento) {
     super(EtaBlotNotaAlteracao.create(elemento));
   }

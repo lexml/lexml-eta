@@ -8,6 +8,10 @@ export class EtaContainerTdEsquerdo extends Container {
   static className = 'container__texto';
   static classLevel = 'level';
 
+  get instanceBlotName(): string {
+    return EtaContainerTdEsquerdo.blotName;
+  }
+
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 

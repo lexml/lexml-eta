@@ -8,6 +8,10 @@ export class EtaBlotConteudo extends EtaBlot {
   static tagName = 'P';
   static className = 'texto__dispositivo';
 
+  get instanceBlotName(): string {
+    return EtaBlotConteudo.blotName;
+  }
+
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
     const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();

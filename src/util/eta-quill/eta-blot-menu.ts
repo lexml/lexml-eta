@@ -12,6 +12,10 @@ export class EtaBlotMenu extends EtaBlot {
   static tagName = 'sl-dropdown';
   static className = 'lx-eta-dropdown';
 
+  get instanceBlotName(): string {
+    return EtaBlotMenu.blotName;
+  }
+
   static create(): any {
     const node: SlDropdown = super.create();
 

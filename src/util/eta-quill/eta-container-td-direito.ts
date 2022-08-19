@@ -9,6 +9,10 @@ export class EtaContainerTdDireito extends Container {
 
   alinhamentoMenu: AlinhamentoMenu;
 
+  get instanceBlotName(): string {
+    return EtaContainerTdDireito.blotName;
+  }
+
   static create(): any {
     const node: HTMLElement = super.create();
 

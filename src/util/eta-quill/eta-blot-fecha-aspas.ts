@@ -6,6 +6,10 @@ export class EtaBlotFechaAspas extends EtaBlot {
   static tagName = 'span';
   static className = 'fecha-aspas';
 
+  get instanceBlotName(): string {
+    return EtaBlotFechaAspas.blotName;
+  }
+
   private elemento: Elemento;
   constructor(elemento: Elemento) {
     super(EtaBlotFechaAspas.create(elemento));

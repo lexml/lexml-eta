@@ -4,6 +4,10 @@ export class EtaBlotMensagens extends EtaBlot {
   static blotName = 'mensagens';
   static tagName = 'MENSAGENS';
 
+  get instanceBlotName(): string {
+    return EtaBlotMensagens.blotName;
+  }
+
   static create(): any {
     const node: HTMLElement = super.create();
 
