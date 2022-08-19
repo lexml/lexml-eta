@@ -15,7 +15,7 @@ import { EtaBlot } from './eta-blot';
 const Container = Quill.import('blots/container');
 
 export class EtaContainerTable extends Container {
-  static blotName = 'containerTable';
+  static blotName = 'EtaContainerTable';
   static tagName = 'DIV';
   static className = 'container__elemento';
 
@@ -45,14 +45,14 @@ export class EtaContainerTable extends Container {
   [key: string]: any;
 
   private findBlot(blotName: string): EtaBlot | undefined {
-    return this.findBlotRef(this.blotRotulo, blotName);
+    return this.findBlotRef(this.blotRotulo.next, blotName);
   }
 
   private findBlotRef(blotRef: EtaBlot, blotName: string): EtaBlot | undefined {
     if (!blotRef) {
       return;
     }
-    return blotRef.next.constructor.name === blotName ? blotRef.next : this.findBlotRef(blotRef.next, blotName);
+    return blotRef.constructor.name === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
   }
 
   get blotRotulo(): EtaBlotRotulo {
@@ -61,19 +61,19 @@ export class EtaContainerTable extends Container {
   }
 
   get blotExistencia(): EtaBlotExistencia {
-    return this.findBlot('EtaBlotExistencia') as EtaBlotExistencia;
+    return this.findBlot(EtaBlotExistencia.blotName) as EtaBlotExistencia;
   }
 
   get blotConteudo(): EtaBlotConteudo {
-    return this.findBlot('EtaBlotConteudo') as EtaBlotConteudo;
+    return this.findBlot(EtaBlotConteudo.blotName) as EtaBlotConteudo;
   }
 
   get blotFechaAspas(): EtaBlotFechaAspas {
-    return this.findBlot('EtaBlotFechaAspas') as EtaBlotFechaAspas;
+    return this.findBlot(EtaBlotFechaAspas.blotName) as EtaBlotFechaAspas;
   }
 
   get blotNotaAlteracao(): EtaBlotNotaAlteracao {
-    return this.findBlot('EtaBlotNotaAlteracao') as EtaBlotNotaAlteracao;
+    return this.findBlot(EtaBlotNotaAlteracao.blotName) as EtaBlotNotaAlteracao;
   }
 
   get containerDireito(): EtaContainerTdDireito {

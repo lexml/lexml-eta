@@ -1,7 +1,7 @@
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotEspaco extends EtaBlot {
-  static blotName = 'espaco';
+  static blotName = 'EtaBlotEspaco';
   static tagName = 'ESPACO';
   static className = 'espaco';
 

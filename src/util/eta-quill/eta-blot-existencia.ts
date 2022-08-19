@@ -3,7 +3,7 @@ import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elemento
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotExistencia extends EtaBlot {
-  static blotName = 'existencia';
+  static blotName = 'EtaBlotExistencia';
   static tagName = 'span';
   static className = 'blot-existencia';
 

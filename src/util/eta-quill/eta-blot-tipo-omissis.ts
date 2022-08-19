@@ -2,7 +2,7 @@ import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotTipoOmissis extends EtaBlot {
-  static blotName = 'tipo-omissis';
+  static blotName = 'EtaBlotTipoOmissis';
   static tagName = 'span';
   static className = 'blot-tipo-omissis';
 

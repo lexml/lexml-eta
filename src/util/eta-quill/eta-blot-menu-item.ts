@@ -5,7 +5,7 @@ import { informarNormaAction } from '../../model/lexml/acao/informarNormaAction'
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotMenuItem extends EtaBlot {
-  static blotName = 'blotMenuItem';
+  static blotName = 'EtaBlotMenuItem';
   static tagName = 'sl-menu-item';
   static className = 'lx-eta-dropdown-content-item';
 

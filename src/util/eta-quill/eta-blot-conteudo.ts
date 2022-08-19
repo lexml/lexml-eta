@@ -4,7 +4,7 @@ import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 export class EtaBlotConteudo extends EtaBlot {
-  static blotName = 'texto';
+  static blotName = 'EtaBlotConteudo';
   static tagName = 'P';
   static className = 'texto__dispositivo';
 

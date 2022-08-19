@@ -2,7 +2,7 @@ import { Mensagem, TipoMensagem } from '../../model/lexml/util/mensagem';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotMensagem extends EtaBlot {
-  static blotName = 'mensagem';
+  static blotName = 'EtaBlotMensagem';
   static tagName = 'div';
   static className = 'mensagem';
 

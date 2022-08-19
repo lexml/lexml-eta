@@ -2,7 +2,7 @@ import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotNotaAlteracao extends EtaBlot {
-  static blotName = 'nota-alteracao';
+  static blotName = 'EtaBlotNotaAlteracao';
   static tagName = 'span';
   static className = 'nota-alteracao';
 

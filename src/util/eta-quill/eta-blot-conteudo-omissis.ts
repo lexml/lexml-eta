@@ -1,7 +1,7 @@
 const Inline = Quill.import('blots/inline');
 
 export class EtaBlotConteudoOmissis extends Inline {
-  static blotName = 'omissis';
+  static blotName = 'EtaBlotConteudoOmissis';
   static tagName = 'span';
   static className = 'texto__omissis';
 

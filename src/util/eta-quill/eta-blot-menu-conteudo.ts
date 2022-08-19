@@ -3,7 +3,7 @@ import { EtaBlot } from './eta-blot';
 import { SlMenu } from '@shoelace-style/shoelace';
 
 export class EtaBlotMenuConteudo extends EtaBlot {
-  static blotName = 'blotMenuConteudo';
+  static blotName = 'EtaBlotMenuConteudo';
   static tagName = 'sl-menu';
   static className = 'lx-eta-dropdown-content';
 

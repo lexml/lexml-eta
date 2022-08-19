@@ -3,7 +3,7 @@ import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotRotulo extends EtaBlot {
-  static blotName = 'rotulo';
+  static blotName = 'EtaBlotRotulo';
   static tagName = 'LABEL';
 
   static formatoStyle = 'STYLE';

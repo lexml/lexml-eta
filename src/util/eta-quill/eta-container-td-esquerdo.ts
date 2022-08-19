@@ -3,7 +3,7 @@ import { Elemento } from '../../model/elemento';
 const Container = Quill.import('blots/container');
 
 export class EtaContainerTdEsquerdo extends Container {
-  static blotName = 'containerTdEsquerdo';
+  static blotName = 'EtaContainerTdEsquerdo';
   static tagName = 'DIV';
   static className = 'container__texto';
   static classLevel = 'level';

@@ -2,7 +2,7 @@ import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotFechaAspas extends EtaBlot {
-  static blotName = 'fecha-aspas';
+  static blotName = 'EtaBlotFechaAspas';
   static tagName = 'span';
   static className = 'fecha-aspas';
 

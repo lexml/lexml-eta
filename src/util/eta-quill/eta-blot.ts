@@ -4,6 +4,7 @@ const Block = Quill.import('blots/block');
 
 export class EtaBlot extends Block {
   [key: string]: any;
+  static blotName = 'EtaBlot';
 
   get linha(): EtaContainerTable {
     return this.parent.parent.parent;

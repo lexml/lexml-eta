@@ -2,7 +2,7 @@ import { EtaBlot } from './eta-blot';
 import { SlButton } from '@shoelace-style/shoelace';
 
 export class EtaBlotMenuBotao extends EtaBlot {
-  static blotName = 'blotMenuBotao';
+  static blotName = 'EtaBlotMenuBotao';
   static tagName = 'sl-button';
   static className = 'lx-eta-dropbtn';
 

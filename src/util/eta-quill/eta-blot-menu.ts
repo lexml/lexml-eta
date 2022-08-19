@@ -8,7 +8,7 @@ export enum AlinhamentoMenu {
 
 export class EtaBlotMenu extends EtaBlot {
   // Site https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_dropdown_right
-  static blotName = 'blotMenu';
+  static blotName = 'EtaBlotMenu';
   static tagName = 'sl-dropdown';
   static className = 'lx-eta-dropdown';
 
