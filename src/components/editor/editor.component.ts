@@ -106,6 +106,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.forEach((i: Subscription) => i.cancel());
     this.removeEventListener('ontextchange', (event: any) => console.log(event));
     this.removeEventListener('rotulo', (event: any) => console.log(event));
+    this.removeEventListener('nota-alteracao', (event: any) => console.log(event));
+    this.removeEventListener('toggle-existencia', (event: any) => console.log(event));
     this.destroiQuill();
     super.disconnectedCallback();
   }
@@ -383,8 +385,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha.descricaoSituacao,
       linha.existeNaNormaAlterada
     );
-    const action = linha.existeNaNormaAlterada ? considerarElementoNovoNaNorma : considerarElementoExistenteNaNorma;
+    this.toggleExistenciaElemento(elemento);
+  }
 
+  private toggleExistenciaElemento(elemento: Elemento): void {
+    const action = elemento.existeNaNormaAlterada ? considerarElementoNovoNaNorma : considerarElementoExistenteNaNorma;
     rootStore.dispatch(action.execute(elemento));
   }
 
@@ -854,6 +859,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('nota-alteracao', (event: any) => {
       event.stopImmediatePropagation();
       this.editarNotaAlteracao(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('toggle-existencia', (event: any) => {
+      event.stopImmediatePropagation();
+      this.toggleExistenciaElemento(event.detail.elemento);
     });
 
     editorHtml.addEventListener('mensagem', (event: any) => {

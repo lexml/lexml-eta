@@ -267,7 +267,8 @@ export const editorStyles = html`
       box-shadow: 0px -1px 0px green inset;
     }
 
-    [existenanormaalterada] label:after {
+    [existenanormaalterada] label:after,
+    .existencia {
       font-family: var(--sl-font-sans);
       position: relative;
       left: 5px;
@@ -282,13 +283,22 @@ export const editorStyles = html`
       font-size: 12px;
     }
 
-    [existenanormaalterada='true'] label:after {
+    .existencia {
+      margin-left: -10px;
+      margin-right: 15px;
+    }
+
+    .existencia:hover {
+      cursor: pointer;
+    }
+
+    /* [existenanormaalterada='true'] label:after {
       content: 'Existente';
     }
 
     [existenanormaalterada='false'] label:after {
       content: 'Novo';
-    }
+    } */
 
     .texto__rotulo {
       color: black;
@@ -304,12 +314,14 @@ export const editorStyles = html`
       margin-right: 10px;
     }
 
-    .texto__rotulo--omissis {
+    .texto__rotulo--omissis,
+    .tipo-omissis {
       font-family: var(--sl-font-sans);
       box-shadow: none;
     }
 
-    .texto__rotulo--omissis:before {
+    .texto__rotulo--omissis:before,
+    .tipo-omissis {
       position: relative;
       left: 0;
       top: -1px;
@@ -327,7 +339,7 @@ export const editorStyles = html`
       display: inline;
     }
 
-    .container__texto[tipo-omissis='inciso-caput'] .texto__rotulo--omissis:before {
+    /* .container__texto[tipo-omissis='inciso-caput'] .texto__rotulo--omissis:before {
       content: ' Incisos omitidos ';
     }
 
@@ -345,7 +357,7 @@ export const editorStyles = html`
 
     .container__texto[tipo-omissis='item'] .texto__rotulo--omissis:before {
       content: ' Itens omitidos ';
-    }
+    } */
 
     .Omissis {
       word-break: break-all;
@@ -455,7 +467,9 @@ export const editorStyles = html`
 
     .abre-aspas br,
     .fecha-aspas br,
-    .nota-alteracao br {
+    .nota-alteracao br,
+    .blot-existencia br,
+    .blot-tipo-omissis br {
       content: '';
     }
   </style>

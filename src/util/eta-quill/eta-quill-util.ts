@@ -1,3 +1,5 @@
+import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
+import { EtaBlotExistencia } from './eta-blot-existencia';
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
 import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
@@ -24,6 +26,8 @@ export class EtaQuillUtil {
 
     new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
+    new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
+    new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
     new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
     new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);

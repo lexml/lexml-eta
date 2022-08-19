@@ -1,3 +1,5 @@
+import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
+import { EtaBlotExistencia } from './eta-blot-existencia';
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
 import { Observable } from '../observable';
 import { EtaBlot } from './eta-blot';
@@ -120,6 +122,8 @@ export class EtaQuill extends Quill {
     EtaQuill.register(EtaBlotAbreAspas, true);
     EtaQuill.register(EtaBlotFechaAspas, true);
     EtaQuill.register(EtaBlotNotaAlteracao, true);
+    EtaQuill.register(EtaBlotExistencia, true);
+    EtaQuill.register(EtaBlotTipoOmissis, true);
     EtaQuill.register(EtaBlotConteudo, true);
     EtaQuill.register(EtaBlotEspaco, true);
     EtaQuill.register(EtaBlotMensagem, true);
@@ -294,9 +298,11 @@ export class EtaQuill extends Quill {
       const blotCursor: EtaBlot = this.getLine(range.index)[0];
       const linhaCursor: EtaContainerTable = blotCursor.linha;
 
-      if (blotCursor instanceof EtaBlotFechaAspas || blotCursor instanceof EtaBlotNotaAlteracao || blotCursor instanceof EtaBlotMensagem) {
+      if (blotCursor instanceof EtaBlotExistencia || blotCursor instanceof EtaBlotRotulo || blotCursor instanceof EtaBlotEspaco) {
+        this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
+      } else if (blotCursor instanceof EtaBlotFechaAspas || blotCursor instanceof EtaBlotNotaAlteracao || blotCursor instanceof EtaBlotMensagem) {
         this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
-      } else if (blotCursor instanceof EtaBlotRotulo || blotCursor instanceof EtaBlotEspaco || blotCursor instanceof EtaBlotMenu || blotCursor instanceof EtaBlotAbreAspas) {
+      } else if (blotCursor instanceof EtaBlotMenu || blotCursor instanceof EtaBlotAbreAspas) {
         const movendoParaFrente = oldRange && range.index > oldRange.index;
         if (movendoParaFrente) {
           this.setSelection(this.getIndex(this.linhaAtual.blotFechaAspas) - 1, 0, Quill.sources.SILENT);

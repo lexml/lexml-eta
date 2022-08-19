@@ -289,3 +289,11 @@ export const tipoOmissis = (pai: Dispositivo | undefined): string => {
       return '';
   }
 };
+
+export const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean => {
+  if (elemento.existeNaNormaAlterada === undefined || elemento.tipo === 'Omissis') {
+    return false;
+  } else {
+    return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;
+  }
+};
