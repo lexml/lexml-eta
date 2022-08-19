@@ -39,7 +39,6 @@ export class ComandoEmendaComponent extends LitElement {
         }
         .lexml-emenda-comando {
           display: block;
-          border: var(--lexml-emenda-comando-border);
           height: var(--lexml-emenda-comando-height);
           overflow: var(--lexml-emenda-comando-overflow);
           overflow-y: scroll;

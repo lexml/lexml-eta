@@ -117,12 +117,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    // cria resizeObserver apenas se altura for ajustada
-    if (this?.ajustarAltura()) {
-      if (this.existeObserverEmenda !== true) {
-        this.observarAltura();
-      }
-    }
+    this.ajustarAltura();
     const tabAvisos = document.querySelector('#sl-tab-4');
     tabAvisos?.addEventListener('focus', (event: any) => {
       event.stopImmediatePropagation();
@@ -131,6 +126,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         badge.pulse = false;
       }
     });
+    if (this.modo.startsWith('emenda')) {
+      document.querySelector('sl-split-panel')?.removeAttribute('disabled');
+    } else {
+      document.querySelector('sl-split-panel')?.setAttribute('disabled', 'true');
+    }
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -164,19 +164,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return false;
   }
 
-  // recupera redimensionamento da caixa do componente e reajusta altura
-  private observarAltura(): void {
-    const emendaObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        if (entry.contentBoxSize) {
-          this.ajustarAltura(entry.contentBoxSize[0].blockSize);
-        }
-      }
-    });
-    this.existeObserverEmenda = true;
-    emendaObserver.observe(this);
-  }
-
   private onChange(evt: CustomEvent): void {
     console.log('EVENTO', evt.detail.origemEvento || '*', evt.detail);
 
@@ -208,7 +195,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         lexml-emenda-comando {
           font-family: var(--eta-font-serif);
           display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
-          height: calc(100vh - 104px);
+          height: 100%;
         }
         lexml-eta {
           font-family: var(--eta-font-serif);
@@ -223,13 +210,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           height: 16px;
           margin-top: -4px;
         }
-        .wrapper {
-          display: grid;
-          grid-template-columns: ${this.modo.startsWith('emenda') ? '2fr 1fr' : '1fr 0'};
+        sl-split-panel {
+          --divider-width: ${this.modo.startsWith('emenda') ? '15px' : '0px'};
         }
       </style>
-      <div class="wrapper">
-        <div class="lado-esquerdo">
+
+      <sl-split-panel position="${this.modo.startsWith('emenda') ? '68' : '100'}">
+        <sl-icon slot="handle" name="grip-vertical"></sl-icon>
+        <div slot="start">
           <sl-tab-group>
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
@@ -254,19 +242,19 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab-panel>
           </sl-tab-group>
         </div>
-        <div class="lado-direito">
+        <div slot="end">
           <sl-tab-group>
             <sl-tab slot="nav" panel="comando">Comando</sl-tab>
             <sl-tab slot="nav" panel="ajuda" style=${this.exibirAjuda ? '' : 'display:none;'}>Ajuda</sl-tab>
-            <sl-tab-panel name="comando">
+            <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>
-            <sl-tab-panel name="ajuda">
+            <sl-tab-panel name="ajuda" class="overflow-hidden">
               <lexml-ajuda></lexml-ajuda>
             </sl-tab-panel>
           </sl-tab-group>
         </div>
-      </div>
+      </sl-split-panel>
     `;
   }
 }
