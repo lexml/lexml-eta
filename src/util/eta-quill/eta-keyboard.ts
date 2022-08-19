@@ -55,10 +55,12 @@ export class EtaKeyboard extends Keyboard {
       } else if (this.verificaSelecaoComLink()) {
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (this.quill.linhaAtual.tipo === 'Omissis' && !['ArrowUp', 'ArrowDown'].includes(ev.key)) {
-        cancelarPropagacaoDoEvento(ev);
-        return;
-      } else if (this.quill.cursorDeTextoEstaSobreOmissis() && !['Delete', 'Backspace'].includes(ev.key) && (this.isTeclaQueAlteraTexto(ev) || ev.key === 'Enter')) {
+      } else if (
+        this.quill.cursorDeTextoEstaSobreOmissis() &&
+        !['Delete', 'Backspace'].includes(ev.key) &&
+        (this.isTeclaQueAlteraTexto(ev) || ev.key === 'Enter' || ev.altKey) &&
+        !ev.ctrlKey
+      ) {
         if (ev.key === 'Enter') {
           this.enterEmOmissis();
         }
