@@ -1,3 +1,4 @@
+import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
@@ -173,7 +174,10 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
 
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
             (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = e.existeNaNormaAlterada;
-            dispositivo.notaAlteracao = e.notaAlteracao;
+            if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
+              const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+              cabecaAlteracao.notaAlteracao = e.notaAlteracao;
+            }
           }
 
           dispositivo.mensagens = validaDispositivo(dispositivo);
