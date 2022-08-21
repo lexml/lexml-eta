@@ -1,3 +1,4 @@
+import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotExistencia } from './eta-blot-existencia';
 import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
@@ -84,7 +85,7 @@ export class EtaContainerTable extends Container {
     return this.children.head.children.tail;
   }
 
-  get blotContainerDireito(): EtaContainerTdDireito {
+  get blotInsideContainerDireito(): EtaBlot {
     return this.containerDireito.children.head;
   }
 
@@ -285,8 +286,8 @@ export class EtaContainerTable extends Container {
   }
 
   limparContainerDireito(): void {
-    if (this.blotContainerDireito.tagName !== EtaBlotEspaco.tagName) {
-      this.blotContainerDireito.remove();
+    if (this.blotInsideContainerDireito instanceof EtaBlotMenu) {
+      this.blotInsideContainerDireito.remove();
       new EtaBlotEspaco().insertInto(this.containerDireito);
     }
   }

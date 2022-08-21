@@ -169,7 +169,7 @@ export class DemoView extends LitElement {
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
           this.elLexmlEmendaComando.style.display = 'block';
-          this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
+          // this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
           this.elLexmlEmenda.style.display = 'block';
         }
       };

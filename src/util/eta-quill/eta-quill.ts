@@ -298,18 +298,17 @@ export class EtaQuill extends Quill {
       const blotCursor: EtaBlot = this.getLine(range.index)[0];
       const linhaCursor: EtaContainerTable = blotCursor.linha;
 
-      if (blotCursor instanceof EtaBlotExistencia || blotCursor instanceof EtaBlotRotulo || blotCursor instanceof EtaBlotEspaco) {
-        this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
-      } else if (blotCursor instanceof EtaBlotFechaAspas || blotCursor instanceof EtaBlotNotaAlteracao || blotCursor instanceof EtaBlotMensagem) {
-        this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
-      } else if (blotCursor instanceof EtaBlotMenu || blotCursor instanceof EtaBlotAbreAspas) {
+      if (blotCursor instanceof EtaBlotMenu || blotCursor instanceof EtaBlotAbreAspas) {
         const movendoParaFrente = oldRange && range.index > oldRange.index;
         if (movendoParaFrente) {
           this.setSelection(this.getIndex(this.linhaAtual.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
-          return false;
         } else {
           this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
         }
+      } else if (blotCursor instanceof EtaBlotExistencia || blotCursor instanceof EtaBlotRotulo || blotCursor instanceof EtaBlotEspaco) {
+        this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
+      } else if (blotCursor instanceof EtaBlotFechaAspas || blotCursor instanceof EtaBlotNotaAlteracao || blotCursor instanceof EtaBlotMensagem) {
+        this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
       }
 
       if (oldRange) {
@@ -323,8 +322,11 @@ export class EtaQuill extends Quill {
           }
         }
       }
-      this.desmarcarLinhas();
-      this.marcarLinhaAtual(linhaCursor);
+
+      if (blotCursor.linha.id !== linhaCursor.id) {
+        this.desmarcarLinhas();
+        this.marcarLinhaAtual(linhaCursor);
+      }
       return true;
     }
     return false;

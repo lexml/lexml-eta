@@ -561,13 +561,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
     const elemento = event.elementos![0];
     const linha = this.quill.getLinha(elemento.uuid!)!;
+    this.quill.atualizarLinhaCorrente(linha);
+    this.elementoSelecionado(linha.uuid);
     const index = this.quill.getIndex(linha.blotConteudo);
     try {
       this.quill.setIndex(index, Quill.sources.SILENT);
       // eslint-disable-next-line no-empty
     } catch (error) {}
-    this.quill.atualizarLinhaCorrente(linha);
-    this.elementoSelecionado(linha.uuid);
     if (event.moverParaFimLinha) {
       setTimeout(() => {
         const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
@@ -802,7 +802,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       });
       blotMenuConteudo.insertInto(blotMenu);
 
-      this.quill.linhaAtual.blotContainerDireito.remove();
+      this.quill.linhaAtual.blotInsideContainerDireito?.remove();
       blotMenu.insertInto(this.quill.linhaAtual.containerDireito);
     }
   }
