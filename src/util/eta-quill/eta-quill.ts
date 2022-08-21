@@ -323,10 +323,8 @@ export class EtaQuill extends Quill {
         }
       }
 
-      if (blotCursor.linha.id !== linhaCursor.id) {
-        this.desmarcarLinhas();
-        this.marcarLinhaAtual(linhaCursor);
-      }
+      this.desmarcarLinhas();
+      this.marcarLinhaAtual(linhaCursor);
       return true;
     }
     return false;
