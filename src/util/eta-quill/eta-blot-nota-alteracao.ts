@@ -3,7 +3,7 @@ import { EtaBlot } from './eta-blot';
 
 export class EtaBlotNotaAlteracao extends EtaBlot {
   static blotName = 'EtaBlotNotaAlteracao';
-  static tagName = 'span';
+  static tagName = 'nota-alteracao';
   static className = 'nota-alteracao';
 
   get instanceBlotName(): string {

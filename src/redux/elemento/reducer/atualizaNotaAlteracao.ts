@@ -38,6 +38,10 @@ export const atualizaNotaAlteracao = (state: any, action: any): State => {
     stateType: StateType.ElementoModificado,
     elementos: [original, alterado],
   });
+  eventos.push({
+    stateType: StateType.ElementoValidado,
+    elementos: [alterado],
+  });
 
   return {
     articulacao: state.articulacao,

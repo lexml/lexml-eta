@@ -291,23 +291,19 @@ export class EtaQuill extends Quill {
     }
 
     if (range) {
-      if (range.index === oldRange?.index) {
-        return false;
-      }
-
       const blotCursor: EtaBlot = this.getLine(range.index)[0];
       const linhaCursor: EtaContainerTable = blotCursor.linha;
 
-      if (blotCursor instanceof EtaBlotMenu || blotCursor instanceof EtaBlotAbreAspas) {
-        const movendoParaFrente = oldRange && range.index > oldRange.index;
-        if (movendoParaFrente) {
-          this.setSelection(this.getIndex(this.linhaAtual.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
-        } else {
-          this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
-        }
-      } else if (blotCursor instanceof EtaBlotExistencia || blotCursor instanceof EtaBlotRotulo || blotCursor instanceof EtaBlotEspaco) {
+      if (
+        blotCursor.tagName === EtaBlotRotulo.tagName ||
+        blotCursor.tagName === EtaBlotEspaco.tagName ||
+        blotCursor.tagName === EtaBlotMenu.tagName ||
+        blotCursor.tagName === EtaBlotMensagens.tagName ||
+        blotCursor.tagName === EtaBlotAbreAspas.tagName ||
+        blotCursor.tagName === EtaBlotTipoOmissis.tagName
+      ) {
         this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
-      } else if (blotCursor instanceof EtaBlotFechaAspas || blotCursor instanceof EtaBlotNotaAlteracao || blotCursor instanceof EtaBlotMensagem) {
+      } else if (blotCursor.tagName === EtaBlotFechaAspas.tagName || blotCursor.tagName === EtaBlotNotaAlteracao.tagName) {
         this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
       }
 

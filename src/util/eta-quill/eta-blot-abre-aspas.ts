@@ -3,7 +3,7 @@ import { EtaBlot } from './eta-blot';
 
 export class EtaBlotAbreAspas extends EtaBlot {
   static blotName = 'EtaBlotAbreAspas';
-  static tagName = 'span';
+  static tagName = 'abre-aspas';
   static className = 'abre-aspas';
 
   private elemento: Elemento;

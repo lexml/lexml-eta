@@ -3,7 +3,7 @@ import { EtaBlot } from './eta-blot';
 
 export class EtaBlotTipoOmissis extends EtaBlot {
   static blotName = 'EtaBlotTipoOmissis';
-  static tagName = 'span';
+  static tagName = 'blot-tipo-omissis';
   static className = 'blot-tipo-omissis';
 
   get instanceBlotName(): string {

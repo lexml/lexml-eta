@@ -742,14 +742,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     });
 
-    const node = this.quill.getLine(this.quill.getSelection(true).index)[0] ?? this.quill.getLine(this.quill.getSelection(true).index + 1)[0];
-    const linhaCursor: EtaContainerTable = node.linha;
-    // const linhaCursor: EtaContainerTable = this.quill.getLine(this.quill.getSelection(true).index)[0].linha;
+    const range = this.quill.getSelection();
+    if (range) {
+      const linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
 
-    const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
+      const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
 
-    this.quill.setSelection(index, 0, Quill.sources.SILENT);
-    this.quill.marcarLinhaAtual(linhaCursor);
+      this.quill.setSelection(index, 0, Quill.sources.SILENT);
+      this.quill.marcarLinhaAtual(linhaCursor);
+    }
   }
 
   private renumerarQuill(event: StateEvent): void {
