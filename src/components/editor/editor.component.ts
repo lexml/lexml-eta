@@ -1,8 +1,9 @@
+import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.modal.component';
 import { atualizarNotaAlteracaoAction } from './../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { editorStyles } from '../../assets/css/editor.css';
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
@@ -56,9 +57,16 @@ import { LexmlEtaComponent } from '../lexml-eta.component';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
+import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
+  @query('lexml-ajuda-modal')
+  private ajudaModal!: AjudaModalComponent;
+
+  @query('lexml-emenda-comando-modal')
+  private comandoEmendaModal!: ComandoEmendaModalComponent;
+
   private _quill?: EtaQuill;
   private get quill(): EtaQuill {
     return this._quill as EtaQuill;
@@ -163,6 +171,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <lexml-eta-help></lexml-eta-help>
+          <div class="mobile-buttons">
+            <button class="mobile-buttons" @click=${this.showComandoEmendaModal}>Comando</button>
+            <button class="mobile-buttons" @click=${this.showAjudaModal}>Ajuda</button>
+          </div>
+          <div class="mobile-buttons">
+          </div>
         </div>
         <div id="lx-eta-editor"></div>
       </div>
@@ -170,7 +184,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         <div id="toast-msg"></div>
       </elix-toast>
       <div id="lx-eta-buffer"><p></p></div>
+      <lexml-ajuda-modal></lexml-ajuda-modal>
+      <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
     `;
+  }
+
+  private showAjudaModal(): void {
+    this.ajudaModal.show();
+  }
+
+  private showComandoEmendaModal(): void {
+    this.comandoEmendaModal.show();
   }
 
   private formatacaoAlterada(): void {

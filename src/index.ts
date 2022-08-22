@@ -36,3 +36,5 @@ export { DataComponent } from './components/data/data.component';
 export { LexmlEmendaComponent } from './components/lexml-emenda.component';
 export { AlertasComponent } from './components/alertas/alertas.component';
 export { AjudaComponent } from './components/ajuda/ajuda.component';
+export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
+export { ComandoEmendaModalComponent } from './components/comandoEmenda/comandoEmenda.modal.component';

@@ -19,6 +19,7 @@ import { getSigla, getNumero, getAno } from './../../src/model/lexml/documento/u
 
 import { LexmlEtaComponent } from './lexml-eta.component';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
+import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -44,6 +45,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-emenda-comando')
   _lexmlEmendaComando!: ComandoEmendaComponent;
+
+  @query('lexml-emenda-comando-modal')
+  _lexmlEmendaComandoModal!: ComandoEmendaModalComponent;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
@@ -116,6 +120,32 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
+  splitPanelPosition = 68;
+  isMobileSize = false;
+
+  myObserver = new ResizeObserver(entries => {
+    entries.forEach(() => {
+      if (this.modo.startsWith('emenda')) {
+        if (window.innerWidth <= 768 && !this.isMobileSize) {
+          this.splitPanelPosition = <any>document.querySelector('sl-split-panel')!.position;
+          (<any>document.querySelector('sl-split-panel')!).position = 100;
+          <any>document.querySelector('sl-split-panel')!.setAttribute('disabled', 'true');
+          this.isMobileSize = true;
+        } else if (window.innerWidth > 768 && this.isMobileSize) {
+          (<any>document.querySelector('sl-split-panel')!).position = this.splitPanelPosition;
+          document.querySelector('sl-split-panel')!.removeAttribute('disabled');
+          this.isMobileSize = false;
+        }
+      } else if (this.modo === 'edicao') {
+        (<any>document.querySelector('sl-split-panel')!).position = 100;
+      }
+    });
+  });
+
+  protected firstUpdated(): void {
+    this.myObserver.observe(document.body);
+  }
+
   updated(): void {
     this.ajustarAltura();
     const tabAvisos = document.querySelector('#sl-tab-4');
@@ -128,8 +158,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     });
     if (this.modo.startsWith('emenda')) {
       document.querySelector('sl-split-panel')?.removeAttribute('disabled');
+      document.querySelector('sl-split-panel')!.position = this.splitPanelPosition;
     } else {
       document.querySelector('sl-split-panel')?.setAttribute('disabled', 'true');
+      document.querySelector('sl-split-panel')!.position = 100;
     }
   }
 
@@ -170,6 +202,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (this.modo.startsWith('emenda')) {
       const comandoEmenda = this._lexmlEta.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
+      this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     }
   }
 
@@ -215,7 +248,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       </style>
 
-      <sl-split-panel position="${this.modo.startsWith('emenda') ? '68' : '100'}">
+      <sl-split-panel position=${this.splitPanelPosition}>
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group>

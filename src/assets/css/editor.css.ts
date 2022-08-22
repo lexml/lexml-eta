@@ -472,5 +472,22 @@ export const editorStyles = html`
     .blot-tipo-omissis br {
       content: '';
     }
+
+    .mobile-buttons {
+      float: right;
+      /* margin-right: 30px; */
+      width: auto !important;
+      display: none;
+    }
+
+    .mobile-buttons {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-buttons {
+        display: block !important;
+      }
+    }
   </style>
 `;
