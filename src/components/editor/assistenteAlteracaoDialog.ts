@@ -59,7 +59,8 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     const [ano, mes, dia] = (data as HTMLInputElement)?.value.split('-');
     const dataFormatada = [dia, mes, ano].join('/');
 
-    const urn = buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, dataFormatada);
+    const urn =
+      (data as HTMLInputElement)?.value.length > 0 ? buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, dataFormatada) : undefined;
 
     let ref;
     if (d && d.length > 0) {
@@ -70,7 +71,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       }
     }
 
-    if (validaUrn(urn) && (ref === undefined || (d && d.length > 0))) {
+    if ((!urn || validaUrn(urn)) && (ref === undefined || (d && d.length > 0))) {
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();
