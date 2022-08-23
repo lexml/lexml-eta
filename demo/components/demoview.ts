@@ -187,7 +187,7 @@ export class DemoView extends LitElement {
   private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
     const aux = mapProjetosNormas[`${sigla.toLowerCase()}_${numero}_${ano}`];
     if (aux) {
-      return Promise.resolve(aux);
+      return Promise.resolve({ ...aux });
     }
     const res = await fetch(`https://emendas-api.herokuapp.com/proposicao/texto-lexml/json?sigla=${sigla}&numero=${numero}&ano=${ano}`);
     return await res.json();
