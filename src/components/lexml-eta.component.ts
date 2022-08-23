@@ -117,7 +117,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(this.dispositivosEmenda?.dispositivosAdicionados as Dispositivo[])) {
         const alerta = {
           id: 'alerta-global-renumeracao',
-          tipo: 'danger',
+          tipo: 'warning',
           mensagem:
             'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
           podeFechar: true,
