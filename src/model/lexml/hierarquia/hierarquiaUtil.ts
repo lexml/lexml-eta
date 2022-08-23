@@ -367,7 +367,7 @@ export const isOriginal = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
 };
 
-export const isOriginalAlteradoModificadoOuSuprimido = (dispositivo: Dispositivo): boolean => {
+export const isModificadoOuSuprimido = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
 };
 

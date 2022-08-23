@@ -14,8 +14,8 @@ import {
   getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
   isDispositivoAlteracao,
+  isModificadoOuSuprimido,
   isOriginal,
-  isOriginalAlteradoModificadoOuSuprimido,
 } from '../hierarquia/hierarquiaUtil';
 
 const I = 1,
@@ -308,7 +308,7 @@ export const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
   const tipo = d.tipo;
 
   do {
-    if ((isOriginal(d) || isOriginalAlteradoModificadoOuSuprimido(d)) && d.tipo === tipo) {
+    if ((isOriginal(d) || isModificadoOuSuprimido(d)) && d.tipo === tipo) {
       i++;
     }
     d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
@@ -320,7 +320,7 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
   let i = 0;
   const tipo = d.tipo;
 
-  while (d !== undefined && !isOriginal(d) && !isOriginalAlteradoModificadoOuSuprimido(d) && d.tipo === tipo) {
+  while (d !== undefined && !isOriginal(d) && !isModificadoOuSuprimido(d) && d.tipo === tipo) {
     i++;
     d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
   }
@@ -329,17 +329,6 @@ export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number =
 
 export const calculaNumeracao = (d: Dispositivo): string => {
   return getNumeracao(d);
-  /*   const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(d);
-  const dispositivoPosterior = getDispositivoPosteriorMesmoTipo(d);
-
-  if (dispositivoAnterior && isOriginal(dispositivoAnterior) && dispositivoPosterior && isOriginal(dispositivoPosterior)) {
-    return dispositivoAnterior.numero + '-1';
-  }
-
-  const a = getNumeracao(d);
-  const b = calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d));
-  a !== b ? console.log(`${a} e ${b}`) : undefined;
-  return calculaSeqOrdem(d).getNumeracao(isDispositivoEmenda(d)); */
 };
 
 const mapValidacaoNumeracao = {
@@ -411,8 +400,8 @@ const getNumeracao = (d: Dispositivo): string => {
   const dispositivosAnteriores = isArtigo(d) ? getDispositivosAnteriores(d) : getDispositivosAnterioresMesmoTipo(d);
   const dispositivoPosteriores = isArtigo(d) ? getDispositivosPosteriores(d) : getDispositivosPosterioresMesmoTipo(d);
 
-  const dispositivoOriginalAnterior = dispositivosAnteriores && dispositivosAnteriores.filter(f => isOriginal(f)).reverse()[0];
-  const dispositivoOriginalPosterior = dispositivoPosteriores && dispositivoPosteriores.filter(f => isOriginal(f))[0];
+  const dispositivoOriginalAnterior = dispositivosAnteriores && dispositivosAnteriores.filter(f => isOriginal(f) || isModificadoOuSuprimido(f)).reverse()[0];
+  const dispositivoOriginalPosterior = dispositivoPosteriores && dispositivoPosteriores.filter(f => isOriginal(f) || isModificadoOuSuprimido(f))[0];
 
   const dispositivoAnteriorAdicionado = dispositivosAnteriores?.filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).reverse()[0];
 

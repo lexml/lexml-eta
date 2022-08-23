@@ -7,6 +7,7 @@ import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../mode
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import {
+  getProximoArtigoAnterior,
   hasFilhos,
   irmaosMesmoTipo,
   isArtigoUnico,
@@ -110,12 +111,29 @@ export const adicionaElemento = (state: any, action: any): State => {
   let novo;
 
   if (action.posicao) {
-    const p = atual.tipo === action.novo.tipo ? atual.pai! : atual;
-    novo = action.posicao === 'antes' ? criaDispositivo(p, action.novo.tipo, undefined, calculaPosicao(atual, action.posicao)) : criaDispositivo(p, action.novo.tipo, atual);
+    if (atual.tipo === action.novo.tipo) {
+      novo =
+        action.posicao === 'antes'
+          ? criaDispositivo(atual.pai!, action.novo.tipo, undefined, calculaPosicao(atual, action.posicao))
+          : criaDispositivo(atual.pai!, action.novo.tipo, atual); // depois
+    } else if (isAgrupador(atual) && action.novo.tipo === TipoDispositivo.artigo.tipo) {
+      if (action.posicao === 'antes') {
+        const anterior = getProximoArtigoAnterior(atual.pai!, atual);
+        novo = criaDispositivo(atual.pai!, action.novo.tipo, anterior);
+      } else {
+        // depois
+        novo = criaDispositivo(atual, action.novo.tipo, undefined, 0);
+      }
+    }
   } else if (atual.hasAlteracao()) {
     novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
   } else {
     novo = createByInferencia(atual, action);
+  }
+
+  if (isDispositivoCabecaAlteracao(novo)) {
+    // novo.cabecaAlteracao = isDispositivoCabecaAlteracao(novo);
+    novo.notaAlteracao = 'NR';
   }
 
   if (isDispositivoCabecaAlteracao(novo)) {
