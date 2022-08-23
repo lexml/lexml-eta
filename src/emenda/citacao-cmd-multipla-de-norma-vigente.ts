@@ -60,7 +60,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo!)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca, true));
     sb.append(node.toString());
 
-    if (arvoreDispositivos.size > 0) {
+    if (arvoreDispositivos.size > 0 && cabeca.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       this.ultimoProcessado = cabeca;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
