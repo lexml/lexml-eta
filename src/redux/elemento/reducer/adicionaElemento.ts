@@ -109,10 +109,9 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   let novo;
 
-  if (action.posicao && action.posicao === 'antes') {
-    novo = criaDispositivo(atual.pai!, atual.tipo, undefined, calculaPosicao(atual, action.posicao));
-  } else if (action.posicao && action.posicao === 'depois') {
-    novo = criaDispositivo(atual.pai!, atual.tipo, atual);
+  if (action.posicao) {
+    const p = atual.tipo === action.novo.tipo ? atual.pai! : atual;
+    novo = action.posicao === 'antes' ? criaDispositivo(p, action.novo.tipo, undefined, calculaPosicao(atual, action.posicao)) : criaDispositivo(p, action.novo.tipo, atual);
   } else if (atual.hasAlteracao()) {
     novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
   } else {
@@ -120,7 +119,6 @@ export const adicionaElemento = (state: any, action: any): State => {
   }
 
   if (isDispositivoCabecaAlteracao(novo)) {
-    // novo.cabecaAlteracao = isDispositivoCabecaAlteracao(novo);
     novo.notaAlteracao = 'NR';
   }
 
