@@ -41,10 +41,10 @@ export class ComandoEmendaComponent extends LitElement {
           display: block;
           height: var(--lexml-emenda-comando-height);
           overflow: var(--lexml-emenda-comando-overflow);
-          overflow-y: scroll;
-          padding: 0 10px;
-          margin: 0px 5px;
+          overflow-y: auto;
+          padding: 0px 10px;
           font-size: 14px;
+          text-align: justify;
         }
         .lexml-emenda-comando:focus {
           outline: 0;
@@ -53,16 +53,9 @@ export class ComandoEmendaComponent extends LitElement {
           box-shadow: none;
         }
 
-        .lexml-emenda-tituloComando {
-          margin: 3px 10px;
-          text-align: center;
-          font-weight: bold;
-        }
-
         .lexml-emenda-cabecalhoComando {
           display: block;
           margin-top: 1em;
-          text-align: justify;
           text-indent: 3em;
         }
 
@@ -106,8 +99,6 @@ export class ComandoEmendaComponent extends LitElement {
       </style>
 
       <div class="lexml-emenda-comando">
-        <p class="lexml-emenda-tituloComando">Comando de emenda</p>
-
         ${cabecalhoComum ? unsafeHTML(`<p class="lexml-emenda-cabecalhoComando">${cabecalhoComum}</p>`) : ''}
         ${comandos?.map(comando => {
           return unsafeHTML(
