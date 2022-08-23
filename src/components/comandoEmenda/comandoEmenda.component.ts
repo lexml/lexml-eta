@@ -82,8 +82,9 @@ export class ComandoEmendaComponent extends LitElement {
           text-indent: 2em;
         }
         .mensagem {
-          font-size: 1em;
+          font-size: 0.8em;
           font-weight: normal;
+          text-align: left;
           border: 1px solid;
           padding: 4px 10px;
           margin: 10px 0;
