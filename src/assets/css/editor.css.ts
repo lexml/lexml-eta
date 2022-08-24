@@ -306,10 +306,6 @@ export const editorStyles = html`
       font-size: 1rem;
     }
 
-    .texto__rotulo--agrupador {
-      display: block;
-    }
-
     .texto__rotulo--padrao {
       margin-right: 10px;
     }
@@ -337,6 +333,10 @@ export const editorStyles = html`
     }
     .texto__dispositivo {
       display: inline;
+    }
+
+    .agrupador .blot-tipo-omissis {
+      display: block;
     }
 
     /* .container__texto[tipo-omissis='inciso-caput'] .texto__rotulo--omissis:before {
