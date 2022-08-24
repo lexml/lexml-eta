@@ -28,11 +28,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) existeObserverEmenda = false;
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
+  @property({ type: Array }) parlamentares: Parlamentar[] = [];
 
   @state()
   autoria = new Autoria();
-  @state()
-  parlamentares: Parlamentar[] = [];
 
   @query('lexml-eta')
   _lexmlEta!: LexmlEtaComponent;
