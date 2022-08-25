@@ -48,6 +48,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @query('lexml-emenda-comando-modal')
   _lexmlEmendaComandoModal!: ComandoEmendaModalComponent;
 
+  @query('sl-split-panel')
+  private slSplitPanel!: any;
+
   async getParlamentares(): Promise<Parlamentar[]> {
     const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
     return _parlamentares.map(p => ({
@@ -119,27 +122,33 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  splitPanelPosition = 68;
-  isMobileSize = false;
+  private MOBILE_WIDTH = 768;
+  private splitPanelPosition = 68;
+  private sizeMode = '';
 
   myObserver = new ResizeObserver(entries => {
-    entries.forEach(() => {
-      if (this.modo.startsWith('emenda')) {
-        if (window.innerWidth <= 768 && !this.isMobileSize) {
-          this.splitPanelPosition = <any>document.querySelector('sl-split-panel')!.position;
-          (<any>document.querySelector('sl-split-panel')!).position = 100;
-          <any>document.querySelector('sl-split-panel')!.setAttribute('disabled', 'true');
-          this.isMobileSize = true;
-        } else if (window.innerWidth > 768 && this.isMobileSize) {
-          (<any>document.querySelector('sl-split-panel')!).position = this.splitPanelPosition;
-          document.querySelector('sl-split-panel')!.removeAttribute('disabled');
-          this.isMobileSize = false;
-        }
-      } else if (this.modo === 'edicao') {
-        (<any>document.querySelector('sl-split-panel')!).position = 100;
-      }
-    });
+    entries.forEach(() => this.updateLayoutSplitPanel());
   });
+
+  private updateLayoutSplitPanel(forceUpdate = false): void {
+    if (this.modo.startsWith('emenda')) {
+      if (this.sizeMode === 'desktop') {
+        this.splitPanelPosition = this.slSplitPanel.position;
+      }
+
+      if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
+        this.sizeMode = 'mobile';
+        this.slSplitPanel.position = 100;
+        this.slSplitPanel.setAttribute('disabled', 'true');
+      } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
+        this.sizeMode = 'desktop';
+        this.slSplitPanel.position = this.splitPanelPosition;
+        document.querySelector('sl-split-panel')!.removeAttribute('disabled');
+      }
+    } else if (this.modo === 'edicao') {
+      this.slSplitPanel.position = 100;
+    }
+  }
 
   protected firstUpdated(): void {
     this.myObserver.observe(document.body);
@@ -206,6 +215,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   render(): TemplateResult {
+    setTimeout(() => this.updateLayoutSplitPanel(true), 0);
+
     return html`
       <style>
         :root {
@@ -247,7 +258,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       </style>
 
-      <sl-split-panel position=${this.splitPanelPosition}>
+      <sl-split-panel>
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group>
