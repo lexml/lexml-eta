@@ -13,7 +13,7 @@ import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 // eslint-disable-next-line import/no-duplicates
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 
-import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda, ColegiadoApreciador } from '../model/emenda/emenda';
+import { Autoria, Parlamentar, Emenda, ModoEdicaoEmenda, ColegiadoApreciador, ComandoEmenda } from '../model/emenda/emenda';
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { getSigla, getNumero, getAno } from './../../src/model/lexml/documento/urnUtil';
 
@@ -24,11 +24,29 @@ import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) modo = '';
-  @property({ type: Object }) projetoNorma = {};
   @property({ type: Boolean }) existeObserverEmenda = false;
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
+
+  private _projetoNorma = {};
+
+  @property({ type: Object })
+  get projetoNorma(): any {
+    return this._projetoNorma;
+  }
+
+  set projetoNorma(value: any) {
+    const oldValue = this._projetoNorma;
+    this._projetoNorma = value;
+
+    if (this._lexmlEmendaComando) {
+      this._lexmlEmendaComando.emenda = [];
+    }
+    this._lexmlEmendaComandoModal?.atualizarComandoEmenda(new ComandoEmenda());
+
+    this.requestUpdate('projetoNorma', oldValue);
+  }
 
   @state()
   autoria = new Autoria();
@@ -143,7 +161,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
         this.sizeMode = 'desktop';
         this.slSplitPanel.position = this.splitPanelPosition;
-        document.querySelector('sl-split-panel')!.removeAttribute('disabled');
+        this.slSplitPanel.removeAttribute('disabled');
       }
     } else if (this.modo === 'edicao') {
       this.slSplitPanel.position = 100;
@@ -165,11 +183,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     });
     if (this.modo.startsWith('emenda')) {
-      document.querySelector('sl-split-panel')?.removeAttribute('disabled');
-      document.querySelector('sl-split-panel')!.position = this.splitPanelPosition;
+      this.slSplitPanel.removeAttribute('disabled');
+      this.slSplitPanel.position = this.splitPanelPosition;
     } else {
-      document.querySelector('sl-split-panel')?.setAttribute('disabled', 'true');
-      document.querySelector('sl-split-panel')!.position = 100;
+      this.slSplitPanel.setAttribute('disabled', 'true');
+      this.slSplitPanel.position = 100;
     }
   }
 
