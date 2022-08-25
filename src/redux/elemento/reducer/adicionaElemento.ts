@@ -119,9 +119,8 @@ export const adicionaElemento = (state: any, action: any): State => {
     } else if (isAgrupador(atual) && action.novo.tipo === TipoDispositivo.artigo.tipo) {
       if (action.posicao === 'antes') {
         const anterior = getProximoArtigoAnterior(atual.pai!, atual);
-        novo = criaDispositivo(atual.pai!, action.novo.tipo, anterior);
+        novo = criaDispositivo(atual.pai!, action.novo.tipo, anterior, !anterior ? 0 : undefined);
       } else {
-        // depois
         novo = criaDispositivo(atual, action.novo.tipo, undefined, 0);
       }
     }

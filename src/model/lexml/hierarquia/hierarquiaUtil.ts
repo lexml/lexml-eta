@@ -130,6 +130,15 @@ export const getArtigoDoProjeto = (dispositivo: Dispositivo): Dispositivo => {
   return getArtigoDoProjeto(dispositivo.pai!);
 };
 
+export const getArtigosAnterioresIndependenteAgrupador = (dispositivo: Dispositivo): Dispositivo[] => {
+  const pos = getArticulacao(dispositivo).indexOfArtigo(dispositivo);
+
+  if (pos < 1) {
+    return [];
+  }
+  return getArticulacao(dispositivo).artigos.filter((artigo, index) => index < pos);
+};
+
 export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Dispositivo): Dispositivo[] => {
   const pos = getArticulacao(dispositivo).indexOfArtigo(dispositivo);
 
