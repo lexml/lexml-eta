@@ -4,13 +4,12 @@ import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
 import {
+  getArtigosAnterioresIndependenteAgrupador,
   getArtigosPosterioresIndependenteAgrupador,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
-  getDispositivosAnteriores,
   getDispositivosAnterioresMesmoTipo,
-  getDispositivosPosteriores,
   getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
   isDispositivoAlteracao,
@@ -397,8 +396,8 @@ export const getNumeroAbaixo = (numero: string): string => {
 };
 
 const getNumeracao = (d: Dispositivo): string => {
-  const dispositivosAnteriores = isArtigo(d) ? getDispositivosAnteriores(d) : getDispositivosAnterioresMesmoTipo(d);
-  const dispositivoPosteriores = isArtigo(d) ? getDispositivosPosteriores(d) : getDispositivosPosterioresMesmoTipo(d);
+  const dispositivosAnteriores = isArtigo(d) ? getArtigosAnterioresIndependenteAgrupador(d) : getDispositivosAnterioresMesmoTipo(d);
+  const dispositivoPosteriores = isArtigo(d) ? getArtigosPosterioresIndependenteAgrupador(d) : getDispositivosPosterioresMesmoTipo(d);
 
   const dispositivoOriginalAnterior = dispositivosAnteriores && dispositivosAnteriores.filter(f => isOriginal(f) || isModificadoOuSuprimido(f)).reverse()[0];
   const dispositivoOriginalPosterior = dispositivoPosteriores && dispositivoPosteriores.filter(f => isOriginal(f) || isModificadoOuSuprimido(f))[0];
