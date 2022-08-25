@@ -58,11 +58,15 @@ import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeraca
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
+import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
+
+  @query('lexml-atalhos-modal')
+  private atalhosModal!: AtalhosModalComponent;
 
   @query('lexml-emenda-comando-modal')
   private comandoEmendaModal!: ComandoEmendaModalComponent;
@@ -170,10 +174,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           </button>
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
-          <lexml-eta-help></lexml-eta-help>
           <div class="mobile-buttons">
             <button class="mobile-buttons" @click=${this.showComandoEmendaModal}>Comando</button>
-            <button class="mobile-buttons" @click=${this.showAjudaModal}>Ajuda</button>
+            <button class="mobile-buttons" @click=${this.showAjudaModal}>Dicas</button>
+            <button class="mobile-buttons" @click=${this.showAtalhosModal}>Atalhos</button>
           </div>
           <div class="mobile-buttons">
           </div>
@@ -186,11 +190,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <div id="lx-eta-buffer"><p></p></div>
       <lexml-ajuda-modal></lexml-ajuda-modal>
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
+      <lexml-atalhos-modal></lexml-atalhos-modal>
     `;
   }
 
   private showAjudaModal(): void {
     this.ajudaModal.show();
+  }
+
+  private showAtalhosModal(): void {
+    this.atalhosModal.show();
   }
 
   private showComandoEmendaModal(): void {

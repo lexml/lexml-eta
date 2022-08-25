@@ -1,38 +1,9 @@
 import { LitElement, html, TemplateResult, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-@customElement('lexml-eta-help')
-export class HelpComponent extends LitElement {
+@customElement('lexml-eta-atalhos')
+export class AtalhosComponent extends LitElement {
   static styles = css`
-    :host {
-      position: relative;
-      display: inline-block;
-    }
-
-    .lx-eta-helpbtn {
-      background-color: #ffffff;
-      color: black;
-      width: 26px;
-      height: 22px;
-      font-size: 1.1em;
-      font-weight: bold;
-      vertical-align: middle;
-      border: none;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .lx-eta-help-content {
-      display: none;
-      position: absolute;
-      right: 0;
-      background-color: #f9f9f9;
-      box-shadow: 0px 4px 4px 4px rgba(0, 0, 0, 0.25);
-      z-index: 1;
-      width: calc(100vw - 30px);
-      max-width: 400px;
-    }
-
     .lx-eta-help-content div {
       color: black;
       padding: 2px 5px;
@@ -44,15 +15,14 @@ export class HelpComponent extends LitElement {
       text-align: left;
     }
 
-    .lx-eta-help:hover .lx-eta-help-content {
+    /* .lx-eta-help:hover .lx-eta-help-content {
       display: block;
-    }
+    } */
   `;
 
   render(): TemplateResult {
     return html`
       <div class="lx-eta-help">
-        <button class="lx-eta-helpbtn">&quest;</button>
         <div class="lx-eta-help-content">
           <div><b>ctrl-shift-a</b>&nbsp;-&nbsp;Seleciona o texto do dispositivo atual</div>
           <div><b>ctrl-a</b>&nbsp;-&nbsp;Seleciona todos os dispositivos da articulação</div>
@@ -80,5 +50,11 @@ export class HelpComponent extends LitElement {
         </div>
       </div>
     `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'lexml-eta-atalhos': AtalhosComponent;
   }
 }

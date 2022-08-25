@@ -435,9 +435,6 @@ export const editorStyles = html`
       text-decoration: underline;
       cursor: pointer;
     }
-    lexml-eta-help {
-      float: right;
-    }
 
     #lx-eta-buffer {
       display: none;

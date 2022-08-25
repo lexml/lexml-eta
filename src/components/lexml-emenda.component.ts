@@ -306,12 +306,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <div slot="end">
           <sl-tab-group>
             <sl-tab slot="nav" panel="comando">Comando</sl-tab>
-            <sl-tab slot="nav" panel="ajuda" style=${this.exibirAjuda ? '' : 'display:none;'}>Ajuda</sl-tab>
+            <sl-tab slot="nav" panel="dicas">Dicas</sl-tab>
+            <sl-tab slot="nav" panel="atalhos">Atalhos</sl-tab>
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>
-            <sl-tab-panel name="ajuda" class="overflow-hidden">
+            <sl-tab-panel name="dicas" class="overflow-hidden">
               <lexml-ajuda></lexml-ajuda>
+            </sl-tab-panel>
+            <sl-tab-panel name="atalhos" class="overflow-hidden">
+              <lexml-eta-atalhos></lexml-eta-atalhos>
             </sl-tab-panel>
           </sl-tab-group>
         </div>

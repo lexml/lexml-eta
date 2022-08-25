@@ -1,8 +1,8 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
 
-@customElement('lexml-ajuda-modal')
-export class AjudaModalComponent extends LitElement {
+@customElement('lexml-atalhos-modal')
+export class AtalhosModalComponent extends LitElement {
   @query('sl-dialog')
   private slDialog!: any;
 
@@ -12,8 +12,8 @@ export class AjudaModalComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <sl-dialog label="Dicas">
-        <lexml-ajuda></lexml-ajuda>
+      <sl-dialog label="Atalhos">
+        <lexml-eta-atalhos></lexml-eta-atalhos>
         <sl-button slot="footer" variant="primary" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>
       </sl-dialog>
     `;
@@ -22,6 +22,6 @@ export class AjudaModalComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-ajuda-modal': AjudaModalComponent;
+    'lexml-atalhos-modal': AtalhosModalComponent;
   }
 }
