@@ -274,6 +274,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-split-panel {
           --divider-width: ${this.modo.startsWith('emenda') ? '15px' : '0px'};
         }
+        @media (max-width: 768px) {
+          sl-split-panel {
+            --divider-width: 0px;
+          }
+        }
       </style>
 
       <sl-split-panel>
