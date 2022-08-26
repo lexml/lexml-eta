@@ -4,9 +4,14 @@ import { customElement } from 'lit/decorators.js';
 @customElement('lexml-eta-atalhos')
 export class AtalhosComponent extends LitElement {
   static styles = css`
+    :host {
+      display: block;
+      padding: 10px;
+      font-family: var(--sl-font-sans);
+    }
     .lx-eta-help-content div {
       color: black;
-      padding: 2px 5px;
+      padding: 2px 0px;
       text-decoration: none;
       display: block;
       white-space: wrap;
