@@ -175,11 +175,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
-            <button class="mobile-buttons" @click=${this.showComandoEmendaModal}>Comando</button>
-            <button class="mobile-buttons" @click=${this.showAjudaModal}>Dicas</button>
-            <button class="mobile-buttons" @click=${this.showAtalhosModal}>Atalhos</button>
-          </div>
-          <div class="mobile-buttons">
+            <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
+              <sl-icon name="code"></sl-icon>
+              <span>Comando</span>
+            </button>
+            <button class="mobile-button" title="Dicas" @click=${this.showAjudaModal}>
+              <sl-icon name="lightbulb"></sl-icon>
+              <span>Dicas</span>
+            </button>
+            <button class="mobile-button" title="Atalhos" @click=${this.showAtalhosModal}>
+              <sl-icon name="keyboard"></sl-icon>
+              <span>Atalhos</span>
+            </button>
           </div>
         </div>
         <div id="lx-eta-editor"></div>

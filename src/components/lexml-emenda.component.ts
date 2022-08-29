@@ -274,6 +274,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-split-panel {
           --divider-width: ${this.modo.startsWith('emenda') ? '15px' : '0px'};
         }
+        sl-tab sl-icon {
+          margin-right: 5px;
+          font-size: 18px;
+        }
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
@@ -310,9 +314,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         </div>
         <div slot="end">
           <sl-tab-group>
-            <sl-tab slot="nav" panel="comando">Comando</sl-tab>
-            <sl-tab slot="nav" panel="dicas">Dicas</sl-tab>
-            <sl-tab slot="nav" panel="atalhos">Atalhos</sl-tab>
+            <sl-tab slot="nav" panel="comando">
+              <sl-icon name="code"></sl-icon>
+              Comando
+            </sl-tab>
+            <sl-tab slot="nav" panel="dicas">
+              <sl-icon name="lightbulb"></sl-icon>
+              Dicas
+            </sl-tab>
+            <sl-tab slot="nav" panel="atalhos">
+              <sl-icon name="keyboard"></sl-icon>
+              Atalhos
+            </sl-tab>
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>

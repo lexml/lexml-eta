@@ -474,16 +474,31 @@ export const editorStyles = html`
       float: right;
       /* margin-right: 30px; */
       width: auto !important;
-      display: none;
+      display: none !important;
     }
 
-    .mobile-buttons {
-      display: none !important;
+    .mobile-button {
+      margin-right: 2px;
+      width: auto !important;
+    }
+
+    .mobile-button sl-icon {
+      font-size: 18px;
+    }
+
+    .mobile-button span {
+      vertical-align: 4px;
     }
 
     @media (max-width: 768px) {
       .mobile-buttons {
-        display: block !important;
+        display: inline-block !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .mobile-button span {
+        display: none;
       }
     }
   </style>
