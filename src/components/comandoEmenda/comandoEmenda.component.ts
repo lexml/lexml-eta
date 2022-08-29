@@ -44,6 +44,7 @@ export class ComandoEmendaComponent extends LitElement {
           overflow-y: auto;
           padding: 0px 10px;
           font-size: var(--sl-font-size-normal);
+          font-family: 'Times New Roman', Times, serif;
           text-align: justify;
         }
         .lexml-emenda-comando:focus {
