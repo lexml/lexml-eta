@@ -24,6 +24,11 @@ export class ComandoEmendaModalComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
+      <style>
+        :host {
+          font-family: var(--sl-font-sans);
+        }
+      </style>
       <sl-dialog label="Comando">
         <lexml-emenda-comando id="comando-emenda-modal" .emenda=${this.comandoEmenda}></lexml-emenda-comando>
         <sl-button slot="footer" variant="primary" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>

@@ -12,6 +12,11 @@ export class AtalhosModalComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
+      <style>
+        :host {
+          font-family: var(--sl-font-sans);
+        }
+      </style>
       <sl-dialog label="Atalhos">
         <lexml-eta-atalhos></lexml-eta-atalhos>
         <sl-button slot="footer" variant="primary" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>

@@ -12,6 +12,11 @@ export class AjudaModalComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
+      <style>
+        :host {
+          font-family: var(--sl-font-sans);
+        }
+      </style>
       <sl-dialog label="Dicas">
         <lexml-ajuda></lexml-ajuda>
         <sl-button slot="footer" variant="primary" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>
