@@ -708,7 +708,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
         linha.blotConteudo.html = '';
         const index = this.quill.getIndex(linha.blotConteudo);
-        this.quill.insertText(index, TEXTO_OMISSIS, { omissis: true });
+        this.quill.insertText(index, TEXTO_OMISSIS, { EtaBlotConteudoOmissis: true });
       }
     });
   }
@@ -1029,7 +1029,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptionsStatic {
     return {
-      formats: ['bold', 'italic', 'link', 'script', 'omissis'],
+      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
