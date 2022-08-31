@@ -13,21 +13,11 @@ export const editarNotaAlteracaoDialog = (elemento: Elemento, quill: any, store:
   });
 
   const content = document.createRange().createContextualFragment(`
-  <fieldset>
-    <legend>Selecione o tipo de nota de alteração:</legend>
-    <div>
-      <input type="radio" id="nota-nr" name="nota" value="NR">
-      <label for="nota-nr">Nova redação '(NR)'</label>
-    </div>
-    <div>
-      <input type="radio" id="nota-ac" name="nota" value="AC">
-      <label for="nota-ac">Acréscimo '(AC)'</label>
-    </div>
-    <div>
-      <input type="radio" id="nota-vazia" name="nota" value="">
-      <label for="nota-vazia">Sem nota de alteração</label>
-    </div>
-  </fieldset>
+  <sl-radio-group fieldset="true" label="Selecione o tipo de nota de alteração:" name="nota" value="NR">
+    <sl-radio class="nota" id="nota-nr" value="nota-nr">Nova redação '(NR)'</sl-radio>
+    <sl-radio class="nota" id="nota-ac" value="nota-ac">Acréscimo '(AC)'</sl-radio>
+    <sl-radio class="nota" id="nota-vazia" value="nota-vazia">Sem nota de alteração</sl-radio>
+  </sl-radio-group>
   <sl-button slot="footer" variant="default">Cancelar</sl-button>
   <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
@@ -45,10 +35,14 @@ export const editarNotaAlteracaoDialog = (elemento: Elemento, quill: any, store:
   const ok = botoes[1];
 
   ok.onclick = (): void => {
-    const newValue = (document.querySelector('input[name="nota"]:checked') as HTMLInputElement)?.value;
-    if (elemento.notaAlteracao !== newValue) {
-      // store.dispatch(action.execute(elemento));
-      store.dispatch(atualizarNotaAlteracaoAction.execute(elemento, newValue));
+    for (const opcao of Object.keys(opcoes)) {
+      if (opcoes[opcao].checked) {
+        // se valor é novo
+        if (elemento.notaAlteracao !== opcao) {
+          store.dispatch(atualizarNotaAlteracaoAction.execute(elemento, opcao));
+        }
+        break;
+      }
     }
     dialogElem?.hide();
     dialogElem?.remove();
@@ -63,5 +57,5 @@ export const editarNotaAlteracaoDialog = (elemento: Elemento, quill: any, store:
   quill.blur();
   dialogElem.appendChild(content);
   dialogElem.show();
-  opcoes[elemento.notaAlteracao || 'VZ'].focus();
+  // opcoes[elemento.notaAlteracao || 'VZ'].focus();
 };
