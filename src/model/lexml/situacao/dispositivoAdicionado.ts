@@ -1,3 +1,4 @@
+import { AgruparElemento } from './../acao/agruparElementoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
@@ -14,6 +15,7 @@ export class DispositivoAdicionado extends DispositivoNovo {
     const acoesSemDuplicidade = [...new Set(acoes)];
 
     return acoesSemDuplicidade
+      .filter((a: ElementoAction) => !(a instanceof AgruparElemento))
       .filter(a => a !== undefined)
       .filter((acao: ElementoAction): boolean => acao.descricao !== 'Adicionar' && acao.descricao !== 'Atualizar dispositivo')
       .filter((a: ElementoAction) => !a.descricao?.startsWith('Mover') || hasApenasDispositivosIrmaosAdicionados(dispositivo))
