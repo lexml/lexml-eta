@@ -81,7 +81,7 @@ export class CmdEmdDispNormaVigente {
     const terminouComAdicao = comandos[comandos.length - 1] instanceof CmdEmdAdicaoANormaVigente;
     if (terminouComAdicao) {
       // , na forma proposta pelo art. 6º do Projeto
-      if (textoTodos !== '') {
+      if (textoTodos !== '' && !sb.toString().includes(textoTodos)) {
         sb.append(textoTodos);
       } else {
         sb.append(',');
