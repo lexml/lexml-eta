@@ -36,24 +36,35 @@ export class CmdEmdDispNormaVigente {
     const comandos = new Array<CmdEmdCombinavel>();
 
     const dispositivosSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
-    if (dispositivosSuprimidos.length) {
-      comandos.push(new CmdEmdSupressaoDeNormaVigente(dispositivosSuprimidos, this.alteracao, urnNormaAlterada, generoNormaAlterada));
-    }
 
     // Consideramos modificados os dispositivos já existentes na proposição e os que foram
     // adicionados pela emenda, mas que já existiam na norma vigente.
     const dispositivosModificados = dispositivos.filter(d => CmdEmdUtil.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_MODIFICADO);
-    if (dispositivosModificados.length) {
-      comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada));
-      // imprimirPrefixoESufixo = true;
-    }
 
     // Consideramos adicionados os dispositivos adicionados pela emenda e que não existiam na
     // norma vigente
     const dispositivosAdicionados = dispositivos.filter(d => CmdEmdUtil.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
+
+    const dispositivosReferenciados = dispositivosSuprimidos.concat(dispositivosModificados).concat(dispositivosAdicionados);
+    const qtdDispositivos = dispositivosReferenciados.length;
+    const temDispositivoMasculino = dispositivosReferenciados.reduce((tem, d) => tem || d.tipoGenero === 'masculino', false);
+    let textoTodos = '';
+    if (qtdDispositivos === 2) {
+      textoTodos = temDispositivoMasculino ? ', ambos' : ', ambas';
+    } else if (qtdDispositivos > 2) {
+      textoTodos = temDispositivoMasculino ? ', todos' : ', todas';
+    }
+
+    if (dispositivosSuprimidos.length) {
+      comandos.push(new CmdEmdSupressaoDeNormaVigente(dispositivosSuprimidos, this.alteracao, urnNormaAlterada, generoNormaAlterada, textoTodos));
+    }
+
+    if (dispositivosModificados.length) {
+      comandos.push(new CmdEmdModificacaoDeNormaVigente(dispositivosModificados, generoNormaAlterada, textoTodos));
+    }
+
     if (dispositivosAdicionados.length) {
-      comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada));
-      // imprimirPrefixoESufixo = true;
+      comandos.push(new CmdEmdAdicaoANormaVigente(dispositivosAdicionados, generoNormaAlterada, textoTodos));
     }
 
     comandos.sort(CmdEmdCombinavel.compare);
@@ -70,7 +81,12 @@ export class CmdEmdDispNormaVigente {
     const terminouComAdicao = comandos[comandos.length - 1] instanceof CmdEmdAdicaoANormaVigente;
     if (terminouComAdicao) {
       // , na forma proposta pelo art. 6º do Projeto
-      sb.append(', na forma proposta ');
+      if (textoTodos !== '') {
+        sb.append(textoTodos);
+      } else {
+        sb.append(',');
+      }
+      sb.append(' na forma proposta ');
     } else {
       // , como propost(o/a)(s)
       sb.append(', como ');

@@ -6,7 +6,7 @@ import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
-  constructor(protected dispositivos: Dispositivo[], private generoNormaAlterada: Genero) {
+  constructor(protected dispositivos: Dispositivo[], private generoNormaAlterada: Genero, private textoTodos: string) {
     super(dispositivos);
   }
 
@@ -32,6 +32,9 @@ export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     if (isUltimo) {
+      if (this.textoTodos !== '') {
+        sb.append(this.textoTodos);
+      }
       sb.append(' ');
       sb.append(this.generoNormaAlterada.pronomePossessivoSingular);
       sb.append(' ');

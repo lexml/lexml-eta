@@ -7,7 +7,13 @@ import { CmdEmdUtil } from './comando-emenda-util';
 import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
-  constructor(protected dispositivos: Dispositivo[], private alteracao: Dispositivo, private urnNormaAlterada: string, private generoNormaAlterada: Genero) {
+  constructor(
+    protected dispositivos: Dispositivo[],
+    private alteracao: Dispositivo,
+    private urnNormaAlterada: string,
+    private generoNormaAlterada: Genero,
+    private textoTodos: string
+  ) {
     super(dispositivos);
   }
 
@@ -34,6 +40,9 @@ export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     if (isUltimo) {
+      if (this.textoTodos !== '') {
+        sb.append(this.textoTodos);
+      }
       sb.append(' ');
       sb.append(this.generoNormaAlterada.pronomePossessivoSingular);
       sb.append(' ');
