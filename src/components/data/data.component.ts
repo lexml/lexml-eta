@@ -25,8 +25,25 @@ export class DataComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
+      <style>
+        sl-radio-group::part(base) {
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          width: 100%;
+        }
+        sl-radio-group > sl-radio {
+          display: inline-flex;
+        }
+        sl-input::part(form-control) {
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          align-items: center;
+        }
+      </style>
       <div class="lexml-data">
-        <h3>Data</h3>
+        <!-- <h3>Data</h3>
         <div class="control">
           <label class="radio">
             <input type="radio" id="opt-nao-informar" name="data" ?checked=${!this.data} @input=${(): void => (this.data = undefined)} />
@@ -37,7 +54,15 @@ export class DataComponent extends LitElement {
             Data
             <input type="date" id="input-data" value=${this.data || this.getCurrentDate()} @input=${this.setDate} />
           </label>
-        </div>
+        </div> -->
+        <sl-radio-group label="Data" fieldset>
+          <sl-radio value="1" id="opt-nao-informar" name="data" id="opt-nao-informar" name="data" ?checked=${!this.data} @input=${(): void => (this.data = undefined)}
+            >Não informar</sl-radio
+          >
+          <sl-radio value="2" id="opt-data" ?checked=${!!this.data} @input=${this.setDate}>
+            <sl-input id="input-data" label="Data" type="date" clearable value=${this.data || this.getCurrentDate()} @input=${this.setDate}></sl-input>
+          </sl-radio>
+        </sl-radio-group>
       </div>
     `;
   }
