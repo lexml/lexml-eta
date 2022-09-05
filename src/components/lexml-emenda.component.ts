@@ -131,6 +131,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlData.data = emenda.data;
   }
 
+  resetaEmenda(): void {
+    const emenda = new Emenda();
+    this.setEmenda(emenda);
+    this._lexmlEmendaComando.emenda = {};
+  }
+
   constructor() {
     super();
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));

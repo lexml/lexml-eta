@@ -2,7 +2,7 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import '../../src';
 import { LexmlEmendaComponent } from '../../src/components/lexml-emenda.component';
-import { Emenda, RefProposicaoEmendada } from '../../src/model/emenda/emenda';
+import { RefProposicaoEmendada } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
@@ -62,12 +62,6 @@ export class DemoView extends LitElement {
     return document.querySelector(selector);
   }
 
-  private resetaEmenda(): void {
-    const emenda = new Emenda();
-    this.elLexmlEmenda.setEmenda(emenda);
-    this.elLexmlEmendaComando.emenda = {};
-  }
-
   private atualizarProposicaoCorrente(projetoNorma: any): void {
     const { sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(projetoNorma?.value?.metadado?.identificacao?.urn);
     this.proposicaoCorrente.sigla = sigla;
@@ -103,7 +97,7 @@ export class DemoView extends LitElement {
     this.elLexmlEmenda.style.display = 'none';
     this.elLexmlEmendaComando.style.display = 'none';
     this.projetoNorma = {};
-    this.resetaEmenda();
+    this.elLexmlEmenda.resetaEmenda();
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
     this.proposicaoCorrente.ano = '';
@@ -123,7 +117,7 @@ export class DemoView extends LitElement {
     if (this.elDocumento && elmAcao) {
       setTimeout(() => {
         this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
-        this.resetaEmenda();
+        this.elLexmlEmenda.resetaEmenda();
         this.modo = elmAcao.value;
         this.atualizarProposicaoCorrente(this.projetoNorma);
         this.elLexmlEmenda.style.display = 'block';
@@ -156,7 +150,7 @@ export class DemoView extends LitElement {
   selecionaArquivo(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput && fileInput.files) {
-      this.resetaEmenda();
+      this.elLexmlEmenda.resetaEmenda();
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
       fReader.onloadend = async (e): Promise<void> => {
