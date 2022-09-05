@@ -100,9 +100,13 @@ export class AutoriaComponent extends LitElement {
         <h3>Autoria</h3>
         ${this._getTipoAutoriaTemplate()}
         <div class="autoria-list">${this._getParlamentaresTemplate()}</div>
-        <button id="btnNovoParlamentar" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
+        <!-- <button id="btnNovoParlamentar" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
           Incluir ${this._autoria.parlamentares.length ? 'outro' : ''} parlamentar
-        </button>
+        </button> -->
+        <sl-button id="btnNovoParlamentar" variant="primary" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
+          Incluir ${this._autoria.parlamentares.length ? 'outro' : ''} parlamentar
+        </sl-button>
+
         ${this._getAssinaturasAdicionaisTemplate()}
 
         <div class="assinaturas-adicionais">
@@ -166,7 +170,7 @@ export class AutoriaComponent extends LitElement {
 
         <div class="autoria-grid--col2">
           <label for="tex-cargo" class="autoria-label">Cargo</label>
-          <input
+          <!-- <input
             type="text"
             id="tex-cargo"
             placeholder="ex: Presidente da Comissão ..., Líder do ..."
@@ -175,7 +179,18 @@ export class AutoriaComponent extends LitElement {
             .value=${this._autoria.parlamentares[index].cargo ?? ''}
             @input=${(ev: Event): void => this._atualizarCargo(ev, index)}
             @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
-          />
+          /> -->
+          <sl-input
+            type="text"
+            id="tex-cargo"
+            placeholder="ex: Presidente da Comissão ..., Líder do ..."
+            class="autoria-input"
+            aria-label="Cargo"
+            size="small"
+            .value=${this._autoria.parlamentares[index].cargo ?? ''}
+            @input=${(ev: Event): void => this._atualizarCargo(ev, index)}
+            @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
+          ></sl-input>
         </div>
 
         <div class="autoria-grid--col3">
@@ -200,30 +215,45 @@ export class AutoriaComponent extends LitElement {
 
   private _getAssinaturasAdicionaisTemplate(): TemplateResult {
     return html`
-      <div>
-        <div class="assinaturas-adicionais">
-          <label for="num-assinaturas-adicionais-senadores" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Senadores</label>
-          <input
-            type="text"
-            id="num-assinaturas-adicionais-senadores"
-            class="autoria-input"
-            aria-label="Assinaturas Adicionais Senadores"
-            .value=${this._autoria.quantidadeAssinaturasAdicionaisSenadores.toString()}
-            @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
-          />
-        </div>
-
-        <div class="assinaturas-adicionais">
-          <label for="num-assinaturas-adicionais-deputados" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Deputados Federais</label>
-          <input
-            type="text"
-            id="num-assinaturas-adicionais-deputados"
-            class="autoria-input"
-            aria-label="Assinaturas Adicionais deputados"
-            .value=${this._autoria.quantidadeAssinaturasAdicionaisDeputados.toString()}
-            @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
-          />
-        </div>
+      <div class="assinaturas-adicionais">
+        <!-- <label for="num-assinaturas-adicionais-senadores" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Senadores</label> -->
+        <!-- <input
+          type="text"
+          id="num-assinaturas-adicionais-senadores"
+          class="autoria-input"
+          aria-label="Assinaturas Adicionais Senadores"
+          .value=${this._autoria.quantidadeAssinaturasAdicionaisSenadores.toString()}
+          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
+        /> -->
+        <sl-input
+          label="Quantidade de assinaturas adicionais de Senadores"
+          type="number"
+          id="num-assinaturas-adicionais-senadores"
+          class="autoria-input"
+          aria-label="Assinaturas Adicionais Senadores"
+          size="small"
+          .value=${this._autoria.quantidadeAssinaturasAdicionaisSenadores.toString()}
+          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
+        ></sl-input>
+        <!-- <label for="num-assinaturas-adicionais-deputados" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Deputados Federais</label> -->
+        <!-- <input
+          type="text"
+          id="num-assinaturas-adicionais-deputados"
+          class="autoria-input"
+          aria-label="Assinaturas Adicionais deputados"
+          .value=${this._autoria.quantidadeAssinaturasAdicionaisDeputados.toString()}
+          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
+        /> -->
+        <sl-input
+          label="Quantidade de assinaturas adicionais de Deputados Federais"
+          type="number"
+          id="num-assinaturas-adicionais-deputados"
+          class="autoria-input"
+          aria-label="Assinaturas Adicionais deputados"
+          size="small"
+          .value=${this._autoria.quantidadeAssinaturasAdicionaisDeputados.toString()}
+          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
+        ></sl-input>
       </div>
     `;
   }

@@ -14,7 +14,8 @@ export const autoriaCss = css`
     /* height: 100%; */
     /* padding: 0 10px; */
     /* margin: 0px 5px; */
-    font-size: 1em;
+    font-size: var(--sl-font-size-small);
+    font-family: var(--sl-font-sans);
     max-width: 700px;
   }
 
@@ -78,7 +79,7 @@ export const autoriaCss = css`
   }
 
   .autoria-input {
-    width: 180px;
+    width: 100%;
     padding: 1px 2px;
     margin: 0px;
   }
@@ -137,6 +138,11 @@ export const autoriaCss = css`
 
   .assinaturas-adicionais {
     padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    vertical-align: center;
+    gap: 10px;
   }
 
   .assinaturas-adicionais div {
@@ -145,6 +151,7 @@ export const autoriaCss = css`
 
   .assinaturas-adicionais .autoria-input {
     display: block;
+    max-width: 400px;
   }
 
   @media (max-width: 576px) {

@@ -65,7 +65,10 @@ export class LexmlAutocomplete extends LitElement {
           }
         }
       </style>
-      <slot id="dropdown-input"><input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /></slot>
+      <slot id="dropdown-input">
+        <!-- <input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /> -->
+        <sl-input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" size="small" .value=${this.value || ''}></sl-input>
+      </slot>
       <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>
         ${this._suggestions.map(item => html`<li @click=${(): void => this.autocomplete(item)}>${item}</li>`)}
       </ul>
