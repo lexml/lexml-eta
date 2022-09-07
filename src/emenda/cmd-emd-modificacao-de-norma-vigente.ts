@@ -29,6 +29,7 @@ export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
     dispositivosWriter.setArtigoAntesDispositivo(ArtigoAntesDispositivo.DEFINIDO_COM_PREPOSICAO_A);
+    dispositivosWriter.comandoModificacao = true;
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     if (isUltimo) {

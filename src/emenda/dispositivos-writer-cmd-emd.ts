@@ -1,10 +1,10 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero } from '../model/dispositivo/genero';
-import { isAgrupador, isArtigo, isOmissis, isParagrafo } from '../model/dispositivo/tipo';
+import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isOmissis, isParagrafo } from '../model/dispositivo/tipo';
 import { isDispositivoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
 import { StringBuilder } from '../util/string-util';
-import { generoMasculino } from './../model/dispositivo/genero';
+import { generoMasculino, generoFeminino } from './../model/dispositivo/genero';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isArticulacao } from './../model/dispositivo/tipo';
 import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
@@ -21,6 +21,8 @@ export enum ArtigoAntesDispositivo {
 export class DispositivosWriterCmdEmd {
   private artigoAntesDispositivo = ArtigoAntesDispositivo.NENHUM;
 
+  public comandoModificacao = false;
+
   getTexto(sequencias: SequenciaRangeDispositivos[]): string {
     const sb = new StringBuilder();
 
@@ -36,15 +38,22 @@ export class DispositivosWriterCmdEmd {
         }
       }
 
+      const primeiroDispSeq = sequencia.getPrimeiroDispositivo();
+      const referenciarDenominacao = this.comandoModificacao && isAgrupadorNaoArticulacao(primeiroDispSeq);
+
       if (sequencia.informarCaputDoDispositivo) {
         sb.append(this.getReferenciaCaputDoDispositivo(sequencia));
       } else {
         // Artigo antes do dispositivo
-        sb.append(this.getTextoArtigoAntesSequencia(sequencia));
+        sb.append(this.getTextoArtigoAntesSequencia(sequencia, referenciarDenominacao));
       }
 
-      // Rótulo do tipo do dispositivo
-      sb.append(this.getRotuloTipoDispositivo(sequencia));
+      // Rótulo do tipo do dispositivo ou denominação
+      if (referenciarDenominacao) {
+        sb.append('denominação d' + primeiroDispSeq.artigoDefinido);
+      } else {
+        sb.append(this.getRotuloTipoDispositivo(sequencia));
+      }
 
       sb.append(' ');
 
@@ -84,11 +93,11 @@ export class DispositivosWriterCmdEmd {
     return sb.toString();
   }
 
-  private getTextoArtigoAntesSequencia(sequencia: SequenciaRangeDispositivos): string {
-    const disp = sequencia.getPrimeiroDispositivo();
+  private getTextoArtigoAntesSequencia(sequencia: SequenciaRangeDispositivos, referenciarDenominacao = false): string {
+    const genero = referenciarDenominacao ? generoFeminino : sequencia.getPrimeiroDispositivo();
     const plural = CmdEmdUtil.isSequenciaPlural(sequencia);
 
-    return this.getTextoArtigoAntesDispositivo(this.artigoAntesDispositivo, disp, plural);
+    return this.getTextoArtigoAntesDispositivo(this.artigoAntesDispositivo, genero, plural);
   }
 
   private getTextoArtigoAntesDispositivo(tipo: ArtigoAntesDispositivo, genero: Genero, plural: boolean): string {
