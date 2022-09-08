@@ -2,7 +2,7 @@ import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { StringBuilder } from './../util/string-util';
 import { CmdEmdUtil } from './comando-emenda-util';
-import { isCaput } from './../model/dispositivo/tipo';
+import { isCaput, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { TagNode } from '../util/tag-node';
 
@@ -27,7 +27,7 @@ export class CitacaoComandoSimples {
   }
 
   private necessitaOmissis(d: Dispositivo): boolean {
-    return this.temFilhoNaoSuprimido(d) && !isDispositivoAlteracao(d);
+    return this.temFilhoNaoSuprimido(d) && !isDispositivoAlteracao(d) && !isAgrupadorNaoArticulacao(d);
   }
 
   private temFilhoNaoSuprimido(d: Dispositivo): boolean {

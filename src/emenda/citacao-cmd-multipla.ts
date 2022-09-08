@@ -1,3 +1,4 @@
+import { isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArtigo, isCaput } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
@@ -23,22 +24,22 @@ export class CitacaoComandoMultipla {
 
     const sb = new StringBuilder();
 
-    const artigo = [...arvoreDispositivos.keys()][0];
-    arvoreDispositivos = arvoreDispositivos.get(artigo);
+    const cabeca = [...arvoreDispositivos.keys()][0];
+    arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
     // eslint-disable-next-line prettier/prettier
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(artigo.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(artigo));
+    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
 
     sb.append(node.toString());
 
     if (arvoreDispositivos.size) {
-      this.ultimoProcessado = artigo;
+      this.ultimoProcessado = cabeca;
       // this.emAlteracao = false;
       // this.abrirAspasSimples = false;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
 
-    this.writeOmissisFinal(sb, artigo);
+    this.writeOmissisFinal(sb, cabeca);
 
     return sb.toString().replace(/(<\/p>(?:<\/Alteracao>)?)$/, '”$1');
   }
@@ -118,13 +119,13 @@ export class CitacaoComandoMultipla {
     }
   }
 
-  private writeOmissisFinal(sb: StringBuilder, artigo: Dispositivo): void {
-    if (artigo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+  private writeOmissisFinal(sb: StringBuilder, cabeca: Dispositivo): void {
+    if (cabeca.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || isAgrupadorNaoArticulacao(cabeca)) {
       return;
     }
 
     // Busca último nó à direita
-    let d = artigo as Dispositivo;
+    let d = cabeca as Dispositivo;
     while (d.filhos.length) {
       d = d.filhos[d.filhos.length - 1];
     }
