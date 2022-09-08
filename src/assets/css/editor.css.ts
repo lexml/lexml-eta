@@ -231,6 +231,7 @@ export const editorStyles = html`
       overflow: hidden;
       flex-grow: 1;
       width: 0;
+      white-space: nowrap;
     }
 
     .container__menu {
