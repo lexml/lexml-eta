@@ -3,7 +3,7 @@ import { isArtigo } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { Articulacao } from './../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
-import { isAgrupador } from './../model/dispositivo/tipo';
+import { isAgrupador, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { getArtigoDoProjeto, isArticulacaoAlteracao, isDescendenteDeSuprimido, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultipla } from './citacao-cmd-multipla';
 import { CitacaoComandoSimples } from './citacao-cmd-simples';
@@ -34,7 +34,9 @@ export class CitacaoComandoDispPrj {
   }
 
   private getDispositivosParaCitacao(): Dispositivo[] {
-    const dispositivosEmenda = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
+    const dispositivosEmenda = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao).filter(
+      d => !(isAgrupadorNaoArticulacao(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO)
+    );
     dispositivosEmenda.sort(DispositivoComparator.compare);
 
     const ret = new Array<Dispositivo>();
