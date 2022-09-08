@@ -132,6 +132,10 @@ export class CmdEmdUtil {
       return false;
     }
 
+    if (isAgrupadorNaoArticulacao(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      return false;
+    }
+
     return (
       (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !CmdEmdUtil.isTextoOmitido(d)) ||
       d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO

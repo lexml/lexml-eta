@@ -1,7 +1,7 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { StringBuilder } from '../util/string-util';
-import { isArtigo, isOmissis } from './../model/dispositivo/tipo';
+import { isArtigo, isOmissis, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { getArtigo, percorreHierarquiaDispositivos } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultiplaAlteracaoNormaVigente } from './citacao-cmd-multipla-de-norma-vigente';
 import { CitacaoComandoSimples } from './citacao-cmd-simples';
@@ -43,28 +43,28 @@ export class CitacaoComandoDeNormaVigente {
   }
 
   private getCitacoesMultiplas(sb: StringBuilder, dispositivos: Dispositivo[]): void {
-    let dispositivosDoArtigo = new Array<Dispositivo>();
-    let artigo, artigoAtual;
+    let dispositivosDaCabeca = new Array<Dispositivo>();
+    let cabeca, cabecaAtual;
 
     for (const d of dispositivos) {
-      artigo = isArtigo(d) ? d : getArtigo(d);
+      cabeca = isArtigo(d) || isAgrupadorNaoArticulacao(d) ? d : getArtigo(d);
 
-      if (artigo !== artigoAtual) {
-        if (dispositivosDoArtigo.length) {
-          this.getCitacaoMultipla(sb, dispositivosDoArtigo);
+      if (cabeca !== cabecaAtual) {
+        if (dispositivosDaCabeca.length) {
+          this.getCitacaoMultipla(sb, dispositivosDaCabeca);
         }
 
-        dispositivosDoArtigo = [artigo];
-        artigoAtual = artigo;
+        dispositivosDaCabeca = [cabeca];
+        cabecaAtual = cabeca;
       }
 
-      if (!dispositivosDoArtigo.includes(d)) {
-        dispositivosDoArtigo.push(d);
+      if (!dispositivosDaCabeca.includes(d)) {
+        dispositivosDaCabeca.push(d);
       }
     }
 
-    if (dispositivosDoArtigo.length) {
-      this.getCitacaoMultipla(sb, dispositivosDoArtigo);
+    if (dispositivosDaCabeca.length) {
+      this.getCitacaoMultipla(sb, dispositivosDaCabeca);
     }
   }
 

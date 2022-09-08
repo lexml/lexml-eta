@@ -20,8 +20,9 @@ export enum ArtigoAntesDispositivo {
 
 export enum TipoReferenciaAgrupador {
   APENAS_ROTULO,
-  DENOMINACAO_DO_AGRUPADOR,
-  TODO_AGRUPADOR,
+  DENOMINACAO_DO_AGRUPADOR, // 'a denominação do/a'
+  TODO_AGRUPADOR, // 'todo/a o/a'
+  O_AGRUPADOR, // 'o agrupador '
 }
 
 export class DispositivosWriterCmdEmd {
@@ -47,17 +48,21 @@ export class DispositivosWriterCmdEmd {
       const primeiroDispSeq = sequencia.getPrimeiroDispositivo();
       const referenciarDenominacao = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.DENOMINACAO_DO_AGRUPADOR && isAgrupadorNaoArticulacao(primeiroDispSeq);
       const referenciarTodoAgrupador = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.TODO_AGRUPADOR && isAgrupadorNaoArticulacao(primeiroDispSeq);
+      const referenciarOAgrupador =
+        this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.O_AGRUPADOR && isAgrupadorNaoArticulacao(primeiroDispSeq) && !!primeiroDispSeq.filhos.length;
 
       if (sequencia.informarCaputDoDispositivo) {
         sb.append(this.getReferenciaCaputDoDispositivo(sequencia));
       } else {
         // Artigo antes do dispositivo
-        sb.append(this.getTextoArtigoAntesSequencia(sequencia, referenciarDenominacao, referenciarTodoAgrupador));
+        sb.append(this.getTextoArtigoAntesSequencia(sequencia, referenciarDenominacao, referenciarTodoAgrupador, referenciarOAgrupador));
       }
 
       // Rótulo do tipo do dispositivo ou denominação
       if (referenciarDenominacao) {
         sb.append('denominação d' + primeiroDispSeq.artigoDefinido);
+      } else if (referenciarOAgrupador) {
+        sb.append('agrupador');
       } else {
         sb.append(this.getRotuloTipoDispositivo(sequencia));
       }
@@ -100,9 +105,14 @@ export class DispositivosWriterCmdEmd {
     return sb.toString();
   }
 
-  private getTextoArtigoAntesSequencia(sequencia: SequenciaRangeDispositivos, referenciarDenominacao = false, referenciarTodoAgrupador = false): string {
+  private getTextoArtigoAntesSequencia(
+    sequencia: SequenciaRangeDispositivos,
+    referenciarDenominacao = false,
+    referenciarTodoAgrupador = false,
+    referenciarOAgrupador = false
+  ): string {
     const primeiro = sequencia.getPrimeiroDispositivo();
-    const genero = referenciarDenominacao ? generoFeminino : primeiro;
+    const genero = referenciarDenominacao ? generoFeminino : referenciarOAgrupador ? generoMasculino : primeiro;
     const plural = CmdEmdUtil.isSequenciaPlural(sequencia);
 
     const textoTodo = referenciarTodoAgrupador ? (primeiro.tipoGenero === 'feminino' ? 'toda ' : 'todo ') : '';

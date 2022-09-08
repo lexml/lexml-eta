@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArtigo, isCaput } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { TagNode } from '../util/tag-node';
-import { isOmissis } from './../model/dispositivo/tipo';
+import { isOmissis, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 
@@ -13,7 +13,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
   private adjacentesOmissis: Dispositivo[] = []; // Dispositivos da lista que são adjacentes às omissis modificadas
 
   public getTexto(dispositivos: Dispositivo[]): string {
-    dispositivos = dispositivos.filter(d => d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
+    dispositivos = dispositivos.filter(d => d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || isAgrupadorNaoArticulacao(d.pai!));
     this.adjacentesOmissis = this.buscaDispositivosAdjacentesAsOmissis(dispositivos);
     dispositivos.push(...this.adjacentesOmissis);
     dispositivos.sort(DispositivoComparator.compare);

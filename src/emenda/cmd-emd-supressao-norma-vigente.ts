@@ -4,7 +4,7 @@ import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdUtil } from './comando-emenda-util';
-import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
+import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd, TipoReferenciaAgrupador } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
   constructor(
@@ -37,6 +37,7 @@ export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
     dispositivosWriter.artigoAntesDispositivo = ArtigoAntesDispositivo.DEFINIDO;
+    dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.O_AGRUPADOR;
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     if (isUltimo) {
