@@ -101,10 +101,13 @@ export class DispositivosWriterCmdEmd {
   }
 
   private getTextoArtigoAntesSequencia(sequencia: SequenciaRangeDispositivos, referenciarDenominacao = false, referenciarTodoAgrupador = false): string {
-    const genero = referenciarDenominacao ? generoFeminino : sequencia.getPrimeiroDispositivo();
+    const primeiro = sequencia.getPrimeiroDispositivo();
+    const genero = referenciarDenominacao ? generoFeminino : primeiro;
     const plural = CmdEmdUtil.isSequenciaPlural(sequencia);
 
-    return (referenciarTodoAgrupador ? 'todo ' : '') + this.getTextoArtigoAntesDispositivo(this.artigoAntesDispositivo, genero, plural);
+    const textoTodo = referenciarTodoAgrupador ? (primeiro.tipoGenero === 'feminino' ? 'toda ' : 'todo ') : '';
+
+    return textoTodo + this.getTextoArtigoAntesDispositivo(this.artigoAntesDispositivo, genero, plural);
   }
 
   private getTextoArtigoAntesDispositivo(tipo: ArtigoAntesDispositivo, genero: Genero, plural: boolean): string {
