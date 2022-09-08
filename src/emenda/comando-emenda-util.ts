@@ -38,18 +38,18 @@ export class CmdEmdUtil {
   }
 
   private static getDispositivoAfetado(d: Dispositivo): Dispositivo {
-    if (isAgrupador(d) || isArtigo(d)) {
+    let pai = d.pai!;
+
+    if (isDispositivoRaiz(pai)) {
       return d;
     }
-
-    const pai = d.pai!;
 
     // Verifica alteração integral de caput
     if (isCaput(pai) && pai.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       if (pai.filhos.find(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL)) {
         return d;
       }
-      return pai.pai!;
+      pai = pai.pai!;
     }
 
     // Se o pai for uma alteração integral
@@ -100,6 +100,10 @@ export class CmdEmdUtil {
     const descricaoSituacao = this.getDescricaoSituacaoParaComandoEmenda(d);
 
     if (descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+      return false;
+    }
+
+    if (isDispositivoAlteracao(d) && isAgrupadorNaoArticulacao(d) && descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       return false;
     }
 

@@ -3,7 +3,7 @@ import { Genero, NomeComGenero } from '../model/dispositivo/genero';
 import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
-import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
+import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd, TipoReferenciaAgrupador } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
   constructor(protected dispositivos: Dispositivo[], private generoNormaAlterada: Genero, private textoTodos: string) {
@@ -28,8 +28,8 @@ export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
 
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
-    dispositivosWriter.setArtigoAntesDispositivo(ArtigoAntesDispositivo.DEFINIDO_COM_PREPOSICAO_A);
-    dispositivosWriter.comandoModificacao = true;
+    dispositivosWriter.artigoAntesDispositivo = ArtigoAntesDispositivo.DEFINIDO_COM_PREPOSICAO_A;
+    dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.DENOMINACAO_DO_AGRUPADOR;
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     if (isUltimo) {

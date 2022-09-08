@@ -36,7 +36,7 @@ export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
 
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
-    dispositivosWriter.setArtigoAntesDispositivo(ArtigoAntesDispositivo.DEFINIDO);
+    dispositivosWriter.artigoAntesDispositivo = ArtigoAntesDispositivo.DEFINIDO;
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     if (isUltimo) {

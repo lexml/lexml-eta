@@ -18,10 +18,16 @@ export enum ArtigoAntesDispositivo {
   DEFINIDO_COM_PREPOSICAO_A,
 }
 
-export class DispositivosWriterCmdEmd {
-  private artigoAntesDispositivo = ArtigoAntesDispositivo.NENHUM;
+export enum TipoReferenciaAgrupador {
+  APENAS_ROTULO,
+  DENOMINACAO_DO_AGRUPADOR,
+  TODO_AGRUPADOR,
+}
 
-  public comandoModificacao = false;
+export class DispositivosWriterCmdEmd {
+  public artigoAntesDispositivo = ArtigoAntesDispositivo.NENHUM;
+
+  public tipoReferenciaAgrupador = TipoReferenciaAgrupador.APENAS_ROTULO;
 
   getTexto(sequencias: SequenciaRangeDispositivos[]): string {
     const sb = new StringBuilder();
@@ -39,13 +45,14 @@ export class DispositivosWriterCmdEmd {
       }
 
       const primeiroDispSeq = sequencia.getPrimeiroDispositivo();
-      const referenciarDenominacao = this.comandoModificacao && isAgrupadorNaoArticulacao(primeiroDispSeq);
+      const referenciarDenominacao = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.DENOMINACAO_DO_AGRUPADOR && isAgrupadorNaoArticulacao(primeiroDispSeq);
+      const referenciarTodoAgrupador = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.TODO_AGRUPADOR && isAgrupadorNaoArticulacao(primeiroDispSeq);
 
       if (sequencia.informarCaputDoDispositivo) {
         sb.append(this.getReferenciaCaputDoDispositivo(sequencia));
       } else {
         // Artigo antes do dispositivo
-        sb.append(this.getTextoArtigoAntesSequencia(sequencia, referenciarDenominacao));
+        sb.append(this.getTextoArtigoAntesSequencia(sequencia, referenciarDenominacao, referenciarTodoAgrupador));
       }
 
       // Rótulo do tipo do dispositivo ou denominação
@@ -93,11 +100,11 @@ export class DispositivosWriterCmdEmd {
     return sb.toString();
   }
 
-  private getTextoArtigoAntesSequencia(sequencia: SequenciaRangeDispositivos, referenciarDenominacao = false): string {
+  private getTextoArtigoAntesSequencia(sequencia: SequenciaRangeDispositivos, referenciarDenominacao = false, referenciarTodoAgrupador = false): string {
     const genero = referenciarDenominacao ? generoFeminino : sequencia.getPrimeiroDispositivo();
     const plural = CmdEmdUtil.isSequenciaPlural(sequencia);
 
-    return this.getTextoArtigoAntesDispositivo(this.artigoAntesDispositivo, genero, plural);
+    return (referenciarTodoAgrupador ? 'todo ' : '') + this.getTextoArtigoAntesDispositivo(this.artigoAntesDispositivo, genero, plural);
   }
 
   private getTextoArtigoAntesDispositivo(tipo: ArtigoAntesDispositivo, genero: Genero, plural: boolean): string {
@@ -231,9 +238,5 @@ export class DispositivosWriterCmdEmd {
     }
 
     return sb.toString();
-  }
-
-  setArtigoAntesDispositivo(artigoAntesDispositivo: ArtigoAntesDispositivo): void {
-    this.artigoAntesDispositivo = artigoAntesDispositivo;
   }
 }

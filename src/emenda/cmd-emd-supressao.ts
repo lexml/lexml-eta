@@ -4,7 +4,7 @@ import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdUtil } from './comando-emenda-util';
-import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
+import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd, TipoReferenciaAgrupador } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdSupressao extends CmdEmdCombinavel {
   constructor(protected dispositivos: Dispositivo[]) {
@@ -40,7 +40,8 @@ export class CmdEmdSupressao extends CmdEmdCombinavel {
 
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
-    dispositivosWriter.setArtigoAntesDispositivo(ArtigoAntesDispositivo.DEFINIDO);
+    dispositivosWriter.artigoAntesDispositivo = ArtigoAntesDispositivo.DEFINIDO;
+    dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.TODO_AGRUPADOR;
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     // Sufixo
