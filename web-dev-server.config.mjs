@@ -25,12 +25,11 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
 
   // TODO Não está funcionando na rede do SF por não estar utilizando o proxy da rede no acesso à url externa
   middleware: [
-    proxy('/api/parlamentares', {
-      // https://emendas-api.herokuapp.com/parlamentares
-      target: 'https://emendas-api.herokuapp.com/',
-      rewrite: path => path.replace(/.*/, '/parlamentares'),
+    proxy('/api/', {
+      target: 'https://www6ghml.senado.leg.br/',
+      rewrite: path => path.replace(/^\/api/, '/editor-emendas/api'),
       logs: true,
-      changeOrigin: true,
+      changeOrigin: true
     }),
   ],
 
