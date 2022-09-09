@@ -96,8 +96,7 @@ export class AutoriaComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <div class="lexml-autoria">
-        <h3>Autoria</h3>
+      <sl-radio-group label="Autoria" fieldset class="lexml-autoria">
         ${this._getTipoAutoriaTemplate()}
         <div class="autoria-list">${this._getParlamentaresTemplate()}</div>
         <!-- <button id="btnNovoParlamentar" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
@@ -115,7 +114,7 @@ export class AutoriaComponent extends LitElement {
             Imprimir partido e UF para os signatários
           </label>
         </div>
-      </div>
+      </sl-radio-group>
     `;
   }
 
