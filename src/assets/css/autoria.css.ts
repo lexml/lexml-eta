@@ -1,10 +1,9 @@
 import { css } from 'lit';
 export const autoriaCss = css`
-  fieldset {
-    border: 0;
-    padding: 5px 0 20px 0;
+  sl-radio-group::part(base) {
+    background-color: #fff;
+    box-shadow: var(--sl-shadow-x-large);
   }
-
   legend {
     font-weight: normal;
   }

@@ -30,7 +30,8 @@ export class DataComponent extends LitElement {
           display: flex;
           flex-direction: row;
           gap: 10px;
-          width: 100%;
+          background-color: #fff;
+          box-shadow: var(--sl-shadow-x-large);
         }
         sl-radio-group > sl-radio {
           display: inline-flex;

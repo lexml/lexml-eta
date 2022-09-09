@@ -260,6 +260,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           overflow: var(--overflow);
           /* overflow-y: auto; */
         }
+        sl-tab-panel[name='autoria'] {
+          padding: 10px;
+        }
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
@@ -314,7 +317,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <lexml-data></lexml-data>
-              <hr />
+              <br />
               <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
