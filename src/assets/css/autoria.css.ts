@@ -1,7 +1,7 @@
 import { css } from 'lit';
 export const autoriaCss = css`
   sl-radio-group::part(base) {
-    background-color: #fff;
+    background-color: var(--sl-color-gray-100);
     box-shadow: var(--sl-shadow-x-large);
   }
   legend {
