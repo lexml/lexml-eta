@@ -710,6 +710,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         const index = this.quill.getIndex(linha.blotConteudo);
         this.quill.insertText(index, TEXTO_OMISSIS, { EtaBlotConteudoOmissis: true });
       }
+      if (elemento.conteudo?.texto !== linha?.blotConteudo.html) {
+        const texto = normalizaSeForOmissis(elemento.conteudo?.texto ?? '');
+        if (texto.indexOf(TEXTO_OMISSIS) >= 0) {
+          linha?.domNode.classList.add('container_elemento--omissis');
+        }
+      }
     });
   }
 
@@ -743,14 +749,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           if (!nivelAlerado) {
             linha.format(EtaContainerTable.blotName, elemento);
           }
-        }
-
-        if (elemento.conteudo?.texto !== linha.blotConteudo.html) {
-          const texto = normalizaSeForOmissis(elemento.conteudo?.texto ?? '');
-          if (texto.indexOf(TEXTO_OMISSIS) >= 0) {
-            linha.domNode.classList.add('container_elemento--omissis');
-          }
-          linha.blotConteudo.html = texto;
         }
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
