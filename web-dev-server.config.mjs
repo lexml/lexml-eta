@@ -3,6 +3,9 @@
 /** Use Hot Module replacement by adding --hmr to the start command */
 const hmr = process.argv.includes('--hmr');
 
+import proxy from 'koa-proxies';
+//import httpsProxyAgent from 'https-proxy-agent';
+
 export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   nodeResolve: true,
   open: '/demo',
@@ -19,6 +22,17 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   // nodeResolve: {
   //   exportConditions: ['browser', 'development']
   // },
+
+  // TODO Não está funcionando na rede do SF por não estar utilizando o proxy da rede no acesso à url externa
+  middleware: [
+    proxy('/api/parlamentares', {
+      // https://emendas-api.herokuapp.com/parlamentares
+      target: 'https://emendas-api.herokuapp.com/',
+      rewrite: path => path.replace(/.*/, '/parlamentares'),
+      logs: true,
+      changeOrigin: true,
+    }),
+  ],
 
   plugins: [
     /** Use Hot Module Replacement by uncommenting. Requires @open-wc/dev-server-hmr plugin */
