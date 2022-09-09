@@ -73,7 +73,7 @@ export const autoriaCss = css`
   }
 
   .autoria-buttons {
-    width: 120px;
+    width: 124px;
     text-align: right;
   }
 

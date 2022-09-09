@@ -194,7 +194,7 @@ export class AutoriaComponent extends LitElement {
 
         <div class="autoria-grid--col3">
           <div class="autoria-buttons">
-            <button class="autoria-button" id="paraBaixo" aria-label="Para baixo" title="Para baixo" @click=${(): void => this._moverParlamentar(index, 1)}>
+            <!-- <button class="autoria-button" id="paraBaixo" aria-label="Para baixo" title="Para baixo" @click=${(): void => this._moverParlamentar(index, 1)}>
               <i class="autoria-icon icon-down"></i>
               <span class="sr-only">Para baixo</span>
             </button>
@@ -205,7 +205,16 @@ export class AutoriaComponent extends LitElement {
             <button class="autoria-button" id="paraBaixo" aria-label="Excluir" title="Excluir" @click=${(): void => this._excluirParlamentar(index)}>
               <i class="autoria-icon icon-delete"></i>
               <span class="sr-only">Exluir</span>
-            </button>
+            </button> -->
+            <sl-button id="paraBaixo" size="small" aria-label="Para baixo" title="Para baixo" @click=${(): void => this._moverParlamentar(index, 1)}>
+              <sl-icon name="arrow-down"></sl-icon>
+            </sl-button>
+            <sl-button id="paraCima" size="small" aria-label="Para cima" title="Para cima" @click=${(): void => this._moverParlamentar(index, -1)}>
+              <sl-icon name="arrow-up"></sl-icon>
+            </sl-button>
+            <sl-button id="excluir" size="small" aria-label="Excluir" title="Excluir" @click=${(): void => this._excluirParlamentar(index)}>
+              <sl-icon name="trash"></sl-icon>
+            </sl-button>
           </div>
         </div>
       </div>
