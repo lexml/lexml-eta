@@ -37,12 +37,6 @@ export const autoriaCss = css`
     grid-template-columns: 3fr 2fr 250px;
   }
 
-  .autoria-list {
-    max-height: 185px;
-    overflow: hidden;
-    overflow-y: auto;
-  }
-
   .autoria-grid {
     display: flex;
     flex-direction: row;
@@ -171,9 +165,6 @@ export const autoriaCss = css`
       flex-direction: column;
     }
 
-    .autoria-list {
-      max-height: 410px;
-    }
     .autoria-labels {
       display: none;
     }
