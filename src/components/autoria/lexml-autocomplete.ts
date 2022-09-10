@@ -52,16 +52,16 @@ export class LexmlAutocomplete extends LitElement {
         }
 
         .lexml-autocomplete-input {
-          width: 180px;
+          width: 100%;
         }
 
         @media (max-width: 576px) {
           .lexml-autocomplete-label {
-            width: calc(100% - 10px);
+            width: calc(100% - 2px);
             display: block;
           }
           .lexml-autocomplete-input {
-            width: calc(100% - 10px);
+            width: calc(100% - 2px);
           }
         }
       </style>

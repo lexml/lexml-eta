@@ -32,6 +32,16 @@ export class DataComponent extends LitElement {
           gap: 10px;
           background-color: var(--sl-color-gray-100);
           box-shadow: var(--sl-shadow-x-large);
+          flex-wrap: wrap;
+          padding: 20px 20px;
+        }
+        sl-radio-group::part(label) {
+          background-color: var(--sl-color-gray-200);
+          font-weight: bold;
+          border-radius: 5px;
+          border: 1px solid var(--sl-color-gray-300);
+          padding: 2px 5px;
+          box-shadow: var(--sl-shadow-small);
         }
         sl-radio-group > sl-radio {
           display: inline-flex;
@@ -41,6 +51,7 @@ export class DataComponent extends LitElement {
           flex-direction: row;
           gap: 10px;
           align-items: center;
+          flex-wrap: wrap;
         }
       </style>
       <div class="lexml-data">

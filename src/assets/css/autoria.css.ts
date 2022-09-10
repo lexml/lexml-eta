@@ -3,7 +3,17 @@ export const autoriaCss = css`
   sl-radio-group::part(base) {
     background-color: var(--sl-color-gray-100);
     box-shadow: var(--sl-shadow-x-large);
+    padding: 20px 20px;
   }
+  sl-radio-group::part(label) {
+    background-color: var(--sl-color-gray-200);
+    font-weight: bold;
+    border-radius: 5px;
+    border: 1px solid var(--sl-color-gray-300);
+    padding: 2px 5px;
+    box-shadow: var(--sl-shadow-small);
+  }
+
   legend {
     font-weight: normal;
   }
@@ -39,6 +49,7 @@ export const autoriaCss = css`
     align-items: flex-start;
     width: 100%;
     padding: 0 0 4px 0;
+    flex-wrap: wrap;
   }
 
   .autoria-grid--col1 {
@@ -79,7 +90,6 @@ export const autoriaCss = css`
 
   .autoria-input {
     width: 100%;
-    padding: 1px 2px;
     margin: 0px;
   }
 
@@ -176,7 +186,7 @@ export const autoriaCss = css`
     }
 
     .autoria-input {
-      width: calc(100% - 10px);
+      width: calc(100% - 2px);
     }
 
     [class^='autoria-grid--'] {
