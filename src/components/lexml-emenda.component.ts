@@ -70,9 +70,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private slSplitPanel!: any;
 
   async getParlamentares(): Promise<Parlamentar[]> {
-    const _parlamentares = await (await fetch('https://emendas-api.herokuapp.com/parlamentares')).json();
-    // const _response = await fetch('api/parlamentares');
-    // const _parlamentares = await _response.json();
+    const _response = await fetch('api/parlamentares');
+    const _parlamentares = await _response.json();
     return _parlamentares.map(p => ({
       identificacao: p.id,
       nome: p.nome,
