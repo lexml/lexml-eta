@@ -31,11 +31,10 @@ export const formataNumero = (numero: string): string => {
 export const getData = (urn: string): string => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
 
-  const dataInformada = partes[2]?.substring(0, partes[2].indexOf(';'));
-
-  if (/\d{4}$/.test(dataInformada)) {
-    return dataInformada;
+  if (/\d{4}$/.test(partes[2])) {
+    return partes[2];
   }
+
   const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
   return d ? d.join('/') : '';
 };

@@ -1,5 +1,5 @@
-import { Elemento } from '../../../model/elemento';
 import { isCaput } from '../../../model/dispositivo/tipo';
+import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -166,13 +166,13 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
       situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
     }
 
-    if (!ehCaput && !isOmissis(novo) && !isArticulacao(novo)) {
+    if (!isCaput(novo) && !isOmissis(novo) && !isArticulacao(novo)) {
+      novo.createNumeroFromRotulo(da.rotulo!);
       if (da.abreAspas) {
         novo.rotulo = da.rotulo;
         novo.cabecaAlteracao = true;
       } else {
         novo.rotulo = da.rotulo;
-        novo.createNumeroFromRotulo(da.rotulo!);
       }
     }
 

@@ -28,8 +28,12 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         .trim();
     }
 
-    private isNumeracaoValidaParaRotulo(numero: string): boolean {
+    private isNumeracaoComComplementoAlfabetico(numero: string): boolean {
       return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+    }
+
+    private isNumeracaoComComplementoNumerico(numero: string): boolean {
+      return /^\d{1,}([-]?[1-9]+)?$/.test(numero);
     }
 
     createNumeroFromRotulo(rotulo: string): void {
@@ -37,8 +41,10 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       this.informouArtigoUnico = /.*[uú]nico/i.test(rotulo);
       this.numero = this.informouArtigoUnico
         ? '1'
-        : this.isNumeracaoValidaParaRotulo(temp)
+        : this.isNumeracaoComComplementoAlfabetico(temp)
         ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero)
+        : this.isNumeracaoComComplementoNumerico(temp)
+        ? temp
         : undefined;
     }
 
