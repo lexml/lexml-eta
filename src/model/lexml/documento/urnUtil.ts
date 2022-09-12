@@ -31,7 +31,11 @@ export const formataNumero = (numero: string): string => {
 export const getData = (urn: string): string => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
 
-  if (/\d{4}$/.test(partes[2])) {
+  if (partes.length < 3) {
+    return '';
+  }
+
+  if (partes[2] === 'LEXML_URN_ID' || /\d{4}$/.test(partes[2])) {
     return partes[2];
   }
 
