@@ -1,8 +1,8 @@
-import { isDispositivoNovoNaNormaAlterada } from './../hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isParagrafo } from '../../dispositivo/tipo';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
+import { isDispositivoNovoNaNormaAlterada } from './../hierarquia/hierarquiaUtil';
 import { converteLetrasComplementoParaNumero, converteNumeroArabicoParaLetra, isNumeracaoValida, trataNumeroAndComplemento } from './numeracaoUtil';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
@@ -25,8 +25,12 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
         .trim();
     }
 
-    private isNumeracaoValidaParaRotulo(numero: string): boolean {
+    private isNumeracaoComComplementoAlfabetico(numero: string): boolean {
       return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+    }
+
+    private isNumeracaoComComplementoNumerico(numero: string): boolean {
+      return /^\d{1,}([-]?[1-9]+)?$/.test(numero);
     }
 
     createNumeroFromRotulo(rotulo: string): void {
@@ -34,8 +38,10 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       this.informouParagrafoUnico = /.*[uú]nico/i.test(rotulo);
       this.numero = this.informouParagrafoUnico
         ? '1'
-        : this.isNumeracaoValidaParaRotulo(temp)
+        : this.isNumeracaoComComplementoAlfabetico(temp)
         ? trataNumeroAndComplemento(temp, undefined, converteLetrasComplementoParaNumero)
+        : this.isNumeracaoComComplementoNumerico(temp)
+        ? temp
         : undefined;
     }
 
