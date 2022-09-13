@@ -1,7 +1,7 @@
+import { cancelarPropagacaoDoEvento } from '../event-util';
+import { Observable } from '../observable';
 import { CaracteresNaoValidos } from './eta-keyboard';
 import { EtaQuill } from './eta-quill';
-import { Observable } from '../observable';
-import { cancelarPropagacaoDoEvento } from '../event-util';
 
 const Clipboard = Quill.import('modules/clipboard');
 
@@ -29,6 +29,8 @@ export class EtaClipboard extends Clipboard {
       }
       const text = ev.clipboardData?.getData('text/plain');
       if (text) {
+        const range = this.quill.getSelection();
+        this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
         this.onChange.notify('clipboard');
       }
     });
