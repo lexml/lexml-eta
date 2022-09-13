@@ -57,14 +57,30 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo!)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca, true));
-    sb.append(node.toString());
+    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo!));
+    if (isAgrupadorNaoArticulacao(cabeca)) {
+      node.addAtributo('class', 'agrupador');
+      if (cabeca.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+        node.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+        sb.append(node.toString());
+      } else {
+        sb.append(node.toString());
+        const nodeDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+        sb.append(nodeDenominacao.toString());
+      }
+    } else {
+      node.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca, true));
+      sb.append(node.toString());
+    }
 
     if (arvoreDispositivos.size > 0 && cabeca.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       this.ultimoProcessado = cabeca;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
-    this.writeOmissisFinal(sb, cabeca);
+
+    if (!isAgrupadorNaoArticulacao(cabeca)) {
+      this.writeOmissisFinal(sb, cabeca);
+    }
   }
 
   private writeDispositivoTo(sb: StringBuilder, arvoreDispositivos: Map<Dispositivo, any>): void {

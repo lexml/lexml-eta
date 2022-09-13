@@ -27,10 +27,16 @@ export class CitacaoComandoMultipla {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    // eslint-disable-next-line prettier/prettier
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
-
-    sb.append(node.toString());
+    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo));
+    if (isAgrupadorNaoArticulacao(cabeca)) {
+      node.addAtributo('class', 'agrupador');
+      sb.append(node.toString());
+      const nodeDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+      sb.append(nodeDenominacao.toString());
+    } else {
+      node.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+      sb.append(node.toString());
+    }
 
     if (arvoreDispositivos.size) {
       this.ultimoProcessado = cabeca;
