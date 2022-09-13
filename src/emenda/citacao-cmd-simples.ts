@@ -12,15 +12,23 @@ export class CitacaoComandoSimples {
 
     const rotulo = isCaput(d) ? d.pai!.rotulo : d.rotulo;
     const tagRotulo = new TagNode('Rotulo').add(rotulo?.trim());
-    const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente));
 
-    if (this.necessitaOmissis(d)) {
-      const tagOmissis = new TagNode('p').add(new TagNode('Omissis')).add('”');
-      sb.append(tagDispositivo.toString());
-      sb.append(tagOmissis.toString());
+    if (isAgrupadorNaoArticulacao(d)) {
+      const tagLinhaRotulo = new TagNode('p').addAtributo('class', 'agrupador').add('“').add(tagRotulo);
+      const tagLinhaDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente)).add('”');
+      sb.append(tagLinhaRotulo.toString());
+      sb.append(tagLinhaDenominacao.toString());
     } else {
-      tagDispositivo.add('”');
-      sb.append(tagDispositivo.toString());
+      const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente));
+
+      if (this.necessitaOmissis(d)) {
+        const tagOmissis = new TagNode('p').add(new TagNode('Omissis')).add('”');
+        sb.append(tagDispositivo.toString());
+        sb.append(tagOmissis.toString());
+      } else {
+        tagDispositivo.add('”');
+        sb.append(tagDispositivo.toString());
+      }
     }
 
     return sb.toString();

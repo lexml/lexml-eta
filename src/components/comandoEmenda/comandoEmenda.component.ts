@@ -75,6 +75,10 @@ export class ComandoEmendaComponent extends LitElement {
           margin: 0;
         }
 
+        .lexml-emenda-citacaoComando p.agrupador {
+          text-align: center;
+        }
+
         .lexml-emenda-citacaoComando div.alteracao {
           margin-left: 4em;
         }
