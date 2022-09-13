@@ -35,7 +35,7 @@ export const getData = (urn: string): string => {
     return '';
   }
 
-  if (partes[2] === 'LEXML_URN_ID' || /\d{4}$/.test(partes[2])) {
+  if (partes[2] === 'LEXML_URN_ID' || /^\d{4}$/.test(partes[2])) {
     return partes[2];
   }
 
