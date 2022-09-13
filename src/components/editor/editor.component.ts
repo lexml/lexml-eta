@@ -1,6 +1,3 @@
-import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.modal.component';
-import { atualizarNotaAlteracaoAction } from './../../model/lexml/acao/atualizarNotaAlteracaoAction';
-import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
@@ -53,12 +50,15 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
-import { LexmlEtaComponent } from '../lexml-eta.component';
-import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
-import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
-import { informarNormaDialog } from './informarNormaDialog';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
+import { LexmlEtaComponent } from '../lexml-eta.component';
+import { atualizarNotaAlteracaoAction } from './../../model/lexml/acao/atualizarNotaAlteracaoAction';
+import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
+import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.modal.component';
+import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
+import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
+import { informarNormaDialog } from './informarNormaDialog';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -749,6 +749,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           if (!nivelAlerado) {
             linha.format(EtaContainerTable.blotName, elemento);
           }
+        }
+
+        if (event.stateType === StateType.ElementoRestaurado) {
+          linha.blotConteudo.html = elemento.conteudo?.texto ?? '';
         }
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
