@@ -751,9 +751,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           }
         }
 
-        if (event.stateType === StateType.ElementoRestaurado) {
-          linha.blotConteudo.html = elemento.conteudo?.texto ?? '';
-        }
+        //  if (event.stateType === StateType.ElementoRestaurado) {
+        linha.blotConteudo.html = elemento.conteudo?.texto ?? '';
+        //  }
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;

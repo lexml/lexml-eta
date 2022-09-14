@@ -48,7 +48,7 @@ export const adicionarIncisoDepois = new AdicionarElemento(TipoDispositivo.incis
 
 export const adicionarItem = new AdicionarElemento(TipoDispositivo.item);
 export const adicionarItemAntes = new AdicionarElemento(TipoDispositivo.item, 'antes');
-export const adicionarItemDepois = new AdicionarElemento(TipoDispositivo.item, 'antes');
+export const adicionarItemDepois = new AdicionarElemento(TipoDispositivo.item, 'depois');
 
 export const omissis = new AdicionarElemento(TipoDispositivo.omissis);
 
