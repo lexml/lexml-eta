@@ -9,6 +9,7 @@ import {
   isDispositivoAlteracao,
   isPenultimoMesmoTipo,
   isUltimaAlteracao,
+  isUltimaEnumeracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
@@ -107,6 +108,24 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
+  if (
+    isDispositivoDeArtigo(dispositivo) &&
+    !isParagrafo(dispositivo) &&
+    !isOmissis(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
+    !hasFilhos(dispositivo) &&
+    !isUltimaEnumeracao(dispositivo) &&
+    dispositivo.INDICADOR_SEQUENCIA !== undefined &&
+    getLastCharacter(dispositivo.texto) !== dispositivo.INDICADOR_SEQUENCIA[0]
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula, pois há outros dispositivos de artigo posteriores`,
+    });
+  }
+
   //
   // validações comuns a Artigo e Parágrafo
   //
@@ -153,6 +172,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
+    isUltimaEnumeracao(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
     mensagens.push({
@@ -174,7 +194,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com uma das seguintes possibilidades: ${dispositivo.INDICADOR_SEQUENCIA!.join('     ')}`,
+      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula}`,
     });
   }
 
@@ -316,6 +336,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
       descricao: `Não foi informada nenhuma alteração`,
     });
   }
+
   if (
     isDispositivoAlteracao(dispositivo) &&
     dispositivo.texto &&
@@ -325,11 +346,11 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
     dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 &&
-    isUnicoMesmoTipo(dispositivo) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
-    !isUltimaAlteracao(dispositivo)
+    !isUltimaAlteracao(dispositivo) &&
+    isUltimaEnumeracao(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,

@@ -1,6 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isCaput, isOmissis } from './../../dispositivo/tipo';
@@ -325,6 +325,39 @@ export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {
   const lista = getDispositivoAndFilhosAsLista(atual);
 
   return lista.length > 0 && lista[lista.length - 1] === dispositivo;
+};
+
+const buscaDispositivoDeArtigoPosterior = (pai: Dispositivo, index: number): Dispositivo | undefined => {
+  if (pai === undefined || isArtigo(pai)) {
+    return undefined;
+  }
+
+  for (let i = index + 1; i < pai.filhos.length; i++) {
+    const d = pai.filhos[i];
+    if (isDispositivoDeArtigo(d)) {
+      return d;
+    }
+  }
+
+  return buscaDispositivoDeArtigoPosterior(pai.pai!, pai.pai!.indexOf(pai!));
+};
+
+export const isUltimaEnumeracao = (dispositivo: Dispositivo): boolean => {
+  if (getDispositivoPosterior(dispositivo)) {
+    return false;
+  }
+
+  if (isParagrafo(dispositivo) || !isDispositivoDeArtigo(dispositivo)) {
+    return false;
+  }
+
+  const proximoDispositivoDeArtigo = buscaDispositivoDeArtigoPosterior(dispositivo.pai!, dispositivo.pai!.indexOf(dispositivo));
+
+  if (!proximoDispositivoDeArtigo || isParagrafo(proximoDispositivoDeArtigo)) {
+    return true;
+  }
+
+  return false;
 };
 
 export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): boolean => {
