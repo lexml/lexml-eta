@@ -138,6 +138,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const emenda = new Emenda();
     this.setEmenda(emenda);
     this._lexmlEmendaComando.emenda = {};
+    this.autoria = emenda.autoria;
+    this._lexmlJustificativa.setContent(emenda.justificativa);
+    this._lexmlData.data = new Date().toISOString().replace(/T.+$/, '');
   }
 
   constructor() {
