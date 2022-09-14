@@ -1,4 +1,3 @@
-import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
@@ -15,6 +14,7 @@ import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
+import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
@@ -160,8 +160,12 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
       if (dispositivo) {
         if ((isRedo && anterior === dispositivo.uuid) || anterior !== dispositivo.uuid) {
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-            dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
-            dispositivo.situacao = new DispositivoOriginal();
+            if (dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
+              dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
+              dispositivo.situacao = new DispositivoOriginal();
+            } else {
+              dispositivo.texto = e.conteudo?.texto ?? '';
+            }
           } else {
             if (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
               dispositivo.situacao = new DispositivoModificado(createElemento(dispositivo));
