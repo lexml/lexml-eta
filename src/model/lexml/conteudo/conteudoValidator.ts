@@ -17,7 +17,6 @@ import { Mensagem, TipoMensagem } from '../util/mensagem';
 import {
   hasIndicativoContinuacaoSequencia,
   hasIndicativoDesdobramento,
-  // hasIndicativoFimAlteracao,
   hasIndicativoFinalSequencia,
   hasIndicativoInicioAlteracao,
   TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO,
@@ -169,7 +168,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     dispositivo.texto &&
-    (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&
@@ -194,7 +192,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula}`,
+      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula`,
     });
   }
 
