@@ -1,7 +1,7 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { buildHtmlLink, getNomeExtensoComDataExtenso } from '../../../model/lexml/documento/urnUtil';
+import { buildHtmlLink, formataNumero, getDataPorExtenso, getNomeExtensoComDataExtenso, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -28,6 +28,11 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
     dispositivo.texto = textoDispositivo.replace(regex, normaLink);
   } else if (dispositivo.texto.includes(normaExtenso)) {
     dispositivo.texto = textoDispositivo.replace(normaExtenso, normaLink);
+  } else if (urnNova && validaUrn(urnNova) && (dispositivo.texto === undefined || dispositivo.texto?.trim() === '')) {
+    const genero = getTipo(urnNova)?.genero;
+
+    const textoUrn = `${getTipo(urnNova).descricao} nº ${formataNumero(getNumero(urnNova))}, de ${getDataPorExtenso(urnNova)}`;
+    dispositivo.texto = `${genero && genero === 'M' ? 'O' : 'A'} <a href="${urnNova}">${textoUrn}</a>, passa a vigorar com as seguintes alterações:`;
   } else {
     const index = parseInt(localStorage.indexCursor);
     dispositivo.texto = [textoDispositivo.slice(0, index), normaLink, textoDispositivo.slice(index)].join(' ');

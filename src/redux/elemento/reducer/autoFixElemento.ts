@@ -10,6 +10,7 @@ import { AutoFix } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildPast } from '../util/stateReducerUtil';
+import { solicitaNorma } from './solicitaNorma';
 
 const hasFix = (dispositivo: Dispositivo): boolean => {
   return (dispositivo.mensagens?.filter(m => m.fix) ?? []).length > 0;
@@ -26,6 +27,9 @@ export const autoFixElemento = (state: any, action: any): State => {
   const eventos = new Eventos();
 
   switch (action.mensagem?.descricao) {
+    case AutoFix.INFORMAR_NORMA: {
+      return solicitaNorma(state, action);
+    }
     case AutoFix.OMISSIS_ANTES: {
       const anterior = getDispositivoAnterior(atual);
 

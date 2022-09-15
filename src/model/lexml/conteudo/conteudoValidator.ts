@@ -13,7 +13,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
-import { Mensagem, TipoMensagem } from '../util/mensagem';
+import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
   hasIndicativoContinuacaoSequencia,
   hasIndicativoDesdobramento,
@@ -250,7 +250,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (!isDispositivoAlteracao(dispositivo) && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !dispositivo.alteracoes?.base) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `É necessário informar a norma a ser alterada`,
+      descricao: AutoFix.INFORMAR_NORMA,
+      fix: true,
     });
   }
 
