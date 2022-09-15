@@ -64,16 +64,16 @@ export const adicionaElemento = (state: any, action: any): State => {
       return state;
     }
     if (
-      (action.posicao === undefined || action.posicao === 'depois') &&
+      action.posicao === undefined &&
       isDispositivoAlteracao(atual) &&
       hasFilhos(atual) &&
       isOriginal(atual.filhos[0]) &&
-      !isOmissis(atual.filhos[0])
+      !isOmissis(atual.filhos[0]) &&
+      !isParagrafo(atual.filhos[0]) &&
+      atual.filhos[0].numero === '1'
     ) {
-      if (!isParagrafo(atual.filhos[0]) && atual.filhos[0].numero === '1') {
-        state.ui.events = [];
-        return state;
-      }
+      state.ui.events = [];
+      return state;
     }
   }
 
