@@ -704,16 +704,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
-      if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
-        linha.blotConteudo.html = '';
-        const index = this.quill.getIndex(linha.blotConteudo);
-        this.quill.insertText(index, TEXTO_OMISSIS, { EtaBlotConteudoOmissis: true });
-      }
-      if (elemento.conteudo?.texto !== linha?.blotConteudo.html) {
-        const texto = normalizaSeForOmissis(elemento.conteudo?.texto ?? '');
-        if (texto.indexOf(TEXTO_OMISSIS) >= 0) {
-          linha?.domNode.classList.add('container_elemento--omissis');
+      if (elemento.dispositivoAlteracao) {
+        linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+        if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
+          linha.blotConteudo.html = '';
+          const index = this.quill.getIndex(linha.blotConteudo);
+          this.quill.insertText(index, TEXTO_OMISSIS, { EtaBlotConteudoOmissis: true });
+        }
+        if (elemento.conteudo?.texto !== linha?.blotConteudo.html) {
+          const texto = normalizaSeForOmissis(elemento.conteudo?.texto ?? '');
+          if (texto.indexOf(TEXTO_OMISSIS) >= 0) {
+            linha?.domNode.classList.add('container_elemento--omissis');
+          }
         }
       }
     });
