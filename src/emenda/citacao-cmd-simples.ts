@@ -15,11 +15,11 @@ export class CitacaoComandoSimples {
 
     if (isAgrupadorNaoArticulacao(d)) {
       const tagLinhaRotulo = new TagNode('p').addAtributo('class', 'agrupador').add('“').add(tagRotulo);
-      const tagLinhaDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente)).add('”');
+      const tagLinhaDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(d, alteracaoNormaVigente).trim()).add('”');
       sb.append(tagLinhaRotulo.toString());
       sb.append(tagLinhaDenominacao.toString());
     } else {
-      const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente));
+      const tagDispositivo = new TagNode('p').add('“').add(tagRotulo).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(d, alteracaoNormaVigente));
 
       if (this.necessitaOmissis(d)) {
         const tagOmissis = new TagNode('p').add(new TagNode('Omissis')).add('”');
