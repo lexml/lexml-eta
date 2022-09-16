@@ -1,4 +1,4 @@
-import { LitElement, html, css, TemplateResult } from 'lit';
+import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 
 @customElement('lexml-data')
@@ -17,8 +17,8 @@ export class DataComponent extends LitElement {
   @query('#input-data')
   inputData!: HTMLInputElement;
 
-  @query('#opt-data')
-  optData!: HTMLInputElement;
+  // @query('#opt-data')
+  // optData!: HTMLInputElement;
 
   @property({ type: String })
   data?: string;
@@ -55,24 +55,10 @@ export class DataComponent extends LitElement {
         }
       </style>
       <div class="lexml-data">
-        <!-- <h3>Data</h3>
-        <div class="control">
-          <label class="radio">
-            <input type="radio" id="opt-nao-informar" name="data" ?checked=${!this.data} @input=${(): void => (this.data = undefined)} />
-            Não informar
-          </label>
-          <label class="radio">
-            <input type="radio" id="opt-data" name="data" ?checked=${!!this.data} @input=${this.setDate} />
-            Data
-            <input type="date" id="input-data" value=${this.data || this.getCurrentDate()} @input=${this.setDate} />
-          </label>
-        </div> -->
         <sl-radio-group label="Data" fieldset>
-          <sl-radio value="1" id="opt-nao-informar" name="data" id="opt-nao-informar" name="data" ?checked=${!this.data} @input=${(): void => (this.data = undefined)}
-            >Não informar</sl-radio
-          >
-          <sl-radio value="2" id="opt-data" ?checked=${!!this.data} @input=${this.setDate}>
-            <sl-input id="input-data" label="Data" type="date" clearable value=${this.data || this.getCurrentDate()} @input=${this.setDate}></sl-input>
+          <sl-radio name="data" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
+          <sl-radio name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
+            <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} clearable value=${this.data || this.getCurrentDate()} @input=${this.setDate}></sl-input>
           </sl-radio>
         </sl-radio-group>
       </div>
@@ -83,10 +69,13 @@ export class DataComponent extends LitElement {
     return new Date().toLocaleDateString().split('/').reverse().join('-');
   }
 
+  private resetDate(): void {
+    this.data = '';
+  }
+
   private setDate(): void {
     if (this.inputData) {
       this.data = this.inputData.value;
-      this.optData.checked = true;
     }
   }
 }
