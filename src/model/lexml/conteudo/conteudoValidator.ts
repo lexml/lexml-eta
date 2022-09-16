@@ -358,7 +358,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   }
 
   if (
-    isDispositivoAlteracao(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
@@ -372,7 +371,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
-  return mensagens;
+  return [...new Set(mensagens)];
 };
 
 export const validaTexto = (dispositivo: Dispositivo): Mensagem[] => {
