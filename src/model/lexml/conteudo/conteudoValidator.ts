@@ -117,11 +117,11 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasFilhos(dispositivo) &&
     !isUltimaEnumeracao(dispositivo) &&
     dispositivo.INDICADOR_SEQUENCIA !== undefined &&
-    getLastCharacter(dispositivo.texto) !== dispositivo.INDICADOR_SEQUENCIA[0]
+    !hasIndicativoContinuacaoSequencia(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula, pois há outros dispositivos de artigo posteriores`,
+      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula`,
     });
   }
 
