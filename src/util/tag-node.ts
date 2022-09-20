@@ -33,9 +33,9 @@ export class TagNode {
     this.atributos.append(' ');
     this.atributos.append(atributo);
     if (valor) {
-      this.atributos.append("='");
+      this.atributos.append('="');
       this.atributos.append(valor);
-      this.atributos.append("'");
+      this.atributos.append('"');
     }
     return this;
   }
