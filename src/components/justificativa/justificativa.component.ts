@@ -1,9 +1,13 @@
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { html, TemplateResult, LitElement, PropertyValues } from 'lit';
 import { negrito, sublinhado } from '../../../assets/icons/icons';
+import { Observable } from '../../util/observable';
 @customElement('lexml-emenda-justificativa')
 export class JustificativaEmendaComponent extends LitElement {
   @property({ type: String }) texto = '';
+
+  onChange: Observable<string> = new Observable<string>();
+  private timerOnChange?: any;
 
   quill?: Quill;
   container;
@@ -19,6 +23,11 @@ export class JustificativaEmendaComponent extends LitElement {
   ];
 
   icons = Quill.import('ui/icons');
+
+  private agendarEmissaoEventoOnChange(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = setTimeout(() => this.onChange.notify('justificativa'), 2000);
+  }
 
   update(changedProperties: PropertyValues): void {
     super.update(changedProperties);
@@ -145,6 +154,7 @@ export class JustificativaEmendaComponent extends LitElement {
           .replace(/ql-align-center/g, 'align-center')
           .replace(/ql-align-right/g, 'align-right')
       : '';
+    this.agendarEmissaoEventoOnChange();
   };
 
   undo = (): any => {

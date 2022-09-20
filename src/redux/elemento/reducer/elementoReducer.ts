@@ -1,5 +1,3 @@
-import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
-import { ATUALIZAR_NOTA_ALTERACAO } from './../../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { ADICIONAR_ALERTA } from '../../../model/alerta/acao/adicionarAlerta';
 import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
 import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
@@ -30,14 +28,16 @@ import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformar
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulacaoAction';
 import { VALIDAR_ELEMENTO } from '../../../model/lexml/acao/validarElementoAction';
+import { ATUALIZAR_NOTA_ALTERACAO } from './../../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerElementoSemTextoAction';
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente';
 import { adicionaElemento } from './adicionaElemento';
-import { adicionarAlerta } from './adicionarAlerta';
+import { adicionarAlerta as adicionaAlerta } from './adicionarAlerta';
 import { agrupaElemento } from './agrupaElemento';
 import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
 import { atualizaElemento } from './atualizaElemento';
+import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { autoFixElemento } from './autoFixElemento';
@@ -47,9 +47,9 @@ import { modificaTipoElementoWithTab } from './modificaTipoElementoWithTab';
 import { moveElementoAbaixo } from './moveElementoAbaixo';
 import { moveElementoAcima } from './moveElementoAcima';
 import { redo } from './redo';
+import { removeAlerta } from './removeAlerta';
 import { removeElemento } from './removeElemento';
 import { removeElementoSemTexto } from './removeElementoSemTexto';
-import { removerAlerta } from './removerAlerta';
 import { renumeraElemento } from './renumeraElemento';
 import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
@@ -122,9 +122,9 @@ export const elementoReducer = (state = {}, action: any): any => {
     case VALIDAR_ARTICULACAO:
       return validaArticulacao(state);
     case ADICIONAR_ALERTA:
-      return adicionarAlerta(state, action);
+      return adicionaAlerta(state, action);
     case REMOVER_ALERTA:
-      return removerAlerta(state, action);
+      return removeAlerta(state, action);
     case LIMPAR_ALERTAS:
       return limparAlertas(state);
     default:

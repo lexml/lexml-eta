@@ -1,6 +1,6 @@
 import { State, StateType } from '../../state';
 
-export const removerAlerta = (state: any, action: any): State => {
+export const removeAlerta = (state: any, action: any): State => {
   const alertas = state.ui?.alertas?.filter(({ id }) => id !== action.id);
 
   return {
