@@ -1,7 +1,7 @@
-import { isArtigo } from './../model/dispositivo/tipo';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero, NomeComGenero } from '../model/dispositivo/genero';
-import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
+import { StringBuilder } from '../util/string-util';
+import { isArtigo } from './../model/dispositivo/tipo';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
@@ -44,6 +44,6 @@ export class CmdEmdAdicaoANormaVigente extends CmdEmdCombinavel {
       sb.append(' ');
     }
 
-    return removeEspacosDuplicados(sb.toString());
+    return sb.toString();
   }
 }

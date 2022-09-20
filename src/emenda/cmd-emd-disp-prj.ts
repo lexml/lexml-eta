@@ -61,6 +61,6 @@ export class CmdEmdDispPrj {
       i++;
     });
 
-    return texto;
+    return CmdEmdUtil.normalizaCabecalhoComandoEmenda(texto);
   }
 }

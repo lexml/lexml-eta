@@ -1,9 +1,9 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
-import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
+import { StringBuilder } from '../util/string-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
-import { DispositivosWriterCmdEmd, ArtigoAntesDispositivo, TipoReferenciaAgrupador } from './dispositivos-writer-cmd-emd';
+import { ArtigoAntesDispositivo, DispositivosWriterCmdEmd, TipoReferenciaAgrupador } from './dispositivos-writer-cmd-emd';
 
 export class CmdEmdModificacao extends CmdEmdCombinavel {
   constructor(protected dispositivos: Dispositivo[]) {
@@ -41,6 +41,6 @@ export class CmdEmdModificacao extends CmdEmdCombinavel {
       sb.append(isPrimeiro ? ' a seguinte redação:' : ', nos termos a seguir:');
     }
 
-    return removeEspacosDuplicados(sb.toString());
+    return sb.toString();
   }
 }

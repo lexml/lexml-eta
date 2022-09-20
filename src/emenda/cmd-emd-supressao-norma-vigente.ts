@@ -1,6 +1,6 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero, NomeComGenero } from '../model/dispositivo/genero';
-import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
+import { StringBuilder } from '../util/string-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdUtil } from './comando-emenda-util';
@@ -49,7 +49,7 @@ export class CmdEmdSupressaoDeNormaVigente extends CmdEmdCombinavel {
       sb.append(' ');
     }
 
-    return removeEspacosDuplicados(sb.toString());
+    return sb.toString();
   }
 
   private escreveDispositivoAlterado(sb: StringBuilder, d: Dispositivo): void {

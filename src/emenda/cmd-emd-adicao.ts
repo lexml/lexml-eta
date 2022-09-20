@@ -1,15 +1,15 @@
-import { isAgrupador } from './../model/dispositivo/tipo';
-import { removeEspacosDuplicados, StringBuilder } from './../util/string-util';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
-import { CmdEmdUtil } from './comando-emenda-util';
-import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
-import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
-import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
-import { isArtigo } from '../model/dispositivo/tipo';
-import { RangeDispositivos } from './range-dispositivos';
-import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { NomeComGenero } from '../model/dispositivo/genero';
+import { isArtigo } from '../model/dispositivo/tipo';
 import { isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { isAgrupador } from './../model/dispositivo/tipo';
+import { StringBuilder } from './../util/string-util';
+import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
+import { CmdEmdCombinavel } from './cmd-emd-combinavel';
+import { CmdEmdUtil } from './comando-emenda-util';
+import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
+import { RangeDispositivos } from './range-dispositivos';
+import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export class CmdEmdAdicao extends CmdEmdCombinavel {
   constructor(protected dispositivos: Dispositivo[]) {
@@ -60,7 +60,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
       sb.append(isPrimeiro ? ', com a seguinte redação:' : ', nos termos a seguir:');
     }
 
-    return removeEspacosDuplicados(sb.toString());
+    return sb.toString();
   }
 
   private trataLocalizacaoArtigoEmAgrupador(sequencias: SequenciaRangeDispositivos[]): SequenciaRangeDispositivos[] {

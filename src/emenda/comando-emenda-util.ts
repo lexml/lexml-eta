@@ -1,7 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { getDispositivoPosterior, isUltimaAlteracao, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
-import { StringBuilder } from '../util/string-util';
+import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
 import { irmaosMesmoTipo, isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
@@ -503,5 +503,9 @@ export class CmdEmdUtil {
       }
     }
     return false;
+  }
+
+  static normalizaCabecalhoComandoEmenda(texto: string): string {
+    return removeEspacosDuplicados(texto.replace(/caput/g, '<i>caput</i>'));
   }
 }

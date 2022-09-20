@@ -4,7 +4,7 @@ import { generoFeminino, NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isOmissis } from '../model/dispositivo/tipo';
 import { getGeneroUrnNorma, getNomeExtensoComDataExtenso } from '../model/lexml/documento/urnUtil';
-import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
+import { StringBuilder } from '../util/string-util';
 import { CmdEmdAdicaoANormaVigente } from './cmd-emd-adicao-a-norma-vigente';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdModificacaoDeNormaVigente } from './cmd-emd-modificacao-de-norma-vigente';
@@ -105,7 +105,7 @@ export class CmdEmdDispNormaVigente {
       sb.append('.');
     }
 
-    return removeEspacosDuplicados(sb.toString());
+    return CmdEmdUtil.normalizaCabecalhoComandoEmenda(sb.toString());
   }
 
   private temCitacao(dispositivosModificados: Dispositivo[], dispositivosAdicionados: Dispositivo[]): boolean {
