@@ -17,6 +17,8 @@ import { Autoria, ColegiadoApreciador, ComandoEmenda, Emenda, Epigrafe, ModoEdic
 import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
 
+import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
@@ -200,6 +202,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         badge.pulse = false;
       }
     });
+    this._lexmlJustificativa.onChange.subscribe(this.onChange.bind(this));
+
     if (this.modo.startsWith('emenda')) {
       this.slSplitPanel.removeAttribute('disabled');
       this.slSplitPanel.position = this.splitPanelPosition;
@@ -240,13 +244,23 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return false;
   }
 
-  private onChange(evt: CustomEvent): void {
-    console.log('EVENTO', evt.detail.origemEvento || '*', evt.detail);
-
+  private onChange(): void {
     if (this.modo.startsWith('emenda')) {
       const comandoEmenda = this._lexmlEta.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
+
+      if (comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
+        const alerta = {
+          id: 'alerta-global-justificativa',
+          tipo: 'error',
+          mensagem: 'A Emenda não possui uma justificativa',
+          podeFechar: false,
+        };
+        rootStore.dispatch(adicionarAlerta(alerta));
+      } else {
+        rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
+      }
     }
   }
 
