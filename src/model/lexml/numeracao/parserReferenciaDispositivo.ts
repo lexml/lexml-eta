@@ -155,6 +155,7 @@ const normaliza = (p: string[]): string[] => {
 export const identificaReferencias = (texto: string): ReferenciaDispositivo[] | undefined => {
   let p = texto
     .replace(',', '')
+    .replace('º', '')
     .replace(/\s+d[ao]+\s+/gi, ' ')
     .replace(/\s*caput\s*/, ' ')
     .split(' ')

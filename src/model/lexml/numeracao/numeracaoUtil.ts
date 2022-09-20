@@ -160,7 +160,7 @@ export const converteNumeroArabicoParaRomano = (numero: string): string => {
 };
 
 export const trataNumeroAndComplemento = (numero: string, funcNumero?: any, funcComplemento?: any): string => {
-  const num = numero.search(/-/) === -1 ? numero : numero.substring(0, numero.search(/-/));
+  const num = numero.search(/-/) === -1 ? numero.replace('º', '') : numero.substring(0, numero.search(/-/)).replace('º', '');
   const resto = numero.search(/-/) === -1 ? '' : numero.substring(numero.search(/-/));
 
   const converted = num === '0' ? '0' : funcNumero ? funcNumero(num) : num;
@@ -331,8 +331,8 @@ export const calculaNumeracao = (d: Dispositivo): string => {
 };
 
 const mapValidacaoNumeracao = {
-  Artigo: (numero: string): boolean => isNumero(numero) || /^(artigo )?[uúÚ]nico$/i.test(numero),
-  Paragrafo: (numero: string): boolean => isNumero(numero) || /^(par[aáÁ]grafo )?[uúÚ]nico$/i.test(numero),
+  Artigo: (numero: string): boolean => isNumero(numero.replace('º', '')) || /^(artigo )?[uúÚ]nico$/i.test(numero),
+  Paragrafo: (numero: string): boolean => isNumero(numero.replace('º', '')) || /^(par[aáÁ]grafo )?[uúÚ]nico$/i.test(numero),
   Inciso: isRomano,
   Alinea: isLetra,
   Item: isNumero,
