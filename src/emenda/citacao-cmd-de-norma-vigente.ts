@@ -1,10 +1,9 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { StringBuilder } from '../util/string-util';
-import { isArtigo, isOmissis, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
+import { isAgrupadorNaoArticulacao, isArtigo, isOmissis } from './../model/dispositivo/tipo';
 import { getArtigo, percorreHierarquiaDispositivos } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultiplaAlteracaoNormaVigente } from './citacao-cmd-multipla-de-norma-vigente';
-import { CitacaoComandoSimples } from './citacao-cmd-simples';
 import { DispositivoComparator } from './dispositivo-comparator';
 
 export class CitacaoComandoDeNormaVigente {
@@ -26,20 +25,10 @@ export class CitacaoComandoDeNormaVigente {
     const qtdSemCitacaoObrigatoria = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || isOmissis(d)).length;
 
     if (qtdDispositivos - qtdSemCitacaoObrigatoria > 0) {
-      const disp = dispositivos[0];
-      if (dispositivos.length === 1 && !isArtigo(disp)) {
-        this.getCitacaoSimples(sb, disp);
-      } else {
-        this.getCitacoesMultiplas(sb, dispositivos);
-      }
+      this.getCitacoesMultiplas(sb, dispositivos);
     }
 
     return sb.toString();
-  }
-
-  private getCitacaoSimples(sb: StringBuilder, dispositivo: Dispositivo): void {
-    const cit = new CitacaoComandoSimples();
-    sb.append(cit.getTexto(dispositivo, true));
   }
 
   private getCitacoesMultiplas(sb: StringBuilder, dispositivos: Dispositivo[]): void {

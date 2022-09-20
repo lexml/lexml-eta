@@ -6,7 +6,6 @@ import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { getArtigoDoProjeto, isArticulacaoAlteracao, isDescendenteDeSuprimido, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultipla } from './citacao-cmd-multipla';
-import { CitacaoComandoSimples } from './citacao-cmd-simples';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 
@@ -22,12 +21,7 @@ export class CitacaoComandoDispPrj {
     const qtdSuprimidos = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO).length;
 
     if (qtdDispositivos - qtdSuprimidos > 0) {
-      const disp = dispositivos[0];
-      if (dispositivos.length === 1 && !isArtigo(disp)) {
-        sb.append(new CitacaoComandoSimples().getTexto(disp));
-      } else {
-        this.getCitacoesMultiplas(sb, dispositivos);
-      }
+      this.getCitacoesMultiplas(sb, dispositivos);
     }
 
     return sb.toString();
