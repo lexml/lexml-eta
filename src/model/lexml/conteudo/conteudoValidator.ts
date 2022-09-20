@@ -1,4 +1,4 @@
-import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getLastCharacter, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
+import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
@@ -7,7 +7,6 @@ import {
   hasFilhoGenerico,
   hasFilhos,
   isDispositivoAlteracao,
-  isPenultimoMesmoTipo,
   isUltimaAlteracao,
   isUltimaEnumeracao,
   isUltimoMesmoTipo,
@@ -92,28 +91,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    !isUnicoMesmoTipo(dispositivo) &&
-    !isUltimoMesmoTipo(dispositivo) &&
-    !isPenultimoMesmoTipo(dispositivo) &&
-    !hasFilhos(dispositivo) &&
-    dispositivo.INDICADOR_SEQUENCIA !== undefined &&
-    getLastCharacter(dispositivo.texto) !== dispositivo.INDICADOR_SEQUENCIA[0]
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}. ${
-        hasIndicativoContinuacaoSequencia(dispositivo) ? 'A variação informada só é permitida para o penúltimo elemento' : ''
-      }`,
-    });
-  }
-
-  if (
-    isDispositivoDeArtigo(dispositivo) &&
-    !isParagrafo(dispositivo) &&
-    !isOmissis(dispositivo) &&
-    dispositivo.texto &&
-    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !/^[.]+$/.test(dispositivo.texto) &&
     !hasFilhos(dispositivo) &&
     !isUltimaEnumeracao(dispositivo) &&
     dispositivo.INDICADOR_SEQUENCIA !== undefined &&
@@ -176,23 +153,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}`,
-    });
-  }
-  if (
-    !isDispositivoAlteracao(dispositivo) &&
-    isDispositivoDeArtigo(dispositivo) &&
-    !isParagrafo(dispositivo) &&
-    dispositivo.texto &&
-    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !/^[.]+$/.test(dispositivo.texto) &&
-    !isUnicoMesmoTipo(dispositivo) &&
-    isPenultimoMesmoTipo(dispositivo) &&
-    !hasFilhos(dispositivo) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula`,
     });
   }
 
