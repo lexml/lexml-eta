@@ -70,16 +70,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private slSplitPanel!: any;
 
   async getParlamentares(): Promise<Parlamentar[]> {
-    const _response = await fetch('api/parlamentares');
-    const _parlamentares = await _response.json();
-    return _parlamentares.map(p => ({
-      identificacao: p.id,
-      nome: p.nome,
-      sexo: p.sexo,
-      siglaPartido: p.siglaPartido,
-      siglaUF: p.siglaUF,
-      siglaCasaLegislativa: p.siglaCasa,
-    }));
+    try {
+      const _response = await fetch('api/parlamentares');
+      const _parlamentares = await _response.json();
+      return _parlamentares.map(p => ({
+        identificacao: p.id,
+        nome: p.nome,
+        sexo: p.sexo,
+        siglaPartido: p.siglaPartido,
+        siglaUF: p.siglaUF,
+        siglaCasaLegislativa: p.siglaCasa,
+      }));
+    } catch (err) {
+      console.log(err);
+      window.alert('Erro inesperado ao carregar lista de parlamentares');
+    }
+    return Promise.resolve([]);
   }
 
   private montarColegiadoApreciador(numero: string, ano: string): ColegiadoApreciador {
