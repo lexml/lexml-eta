@@ -501,6 +501,9 @@ export const editorStyles = html`
       .mobile-button span {
         display: none;
       }
+      .mobile-button:last-child {
+        display: none !important;
+      }
     }
   </style>
 `;
