@@ -30,6 +30,10 @@ export class LexmlAutocomplete extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
+        .suggest-container {
+          position: relative;
+        }
+
         ul {
           position: absolute;
           display: block;
@@ -69,9 +73,11 @@ export class LexmlAutocomplete extends LitElement {
         <!-- <input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /> -->
         <sl-input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" size="small" .value=${this.value || ''}></sl-input>
       </slot>
-      <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>
-        ${this._suggestions.map(item => html`<li @click=${(): void => this.autocomplete(item)}>${item}</li>`)}
-      </ul>
+      <div class="suggest-container">
+        <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>
+          ${this._suggestions.map(item => html`<li @click=${(): void => this.autocomplete(item)}>${item}</li>`)}
+        </ul>
+      </div>
     `;
   }
 
