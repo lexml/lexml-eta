@@ -43,8 +43,9 @@ export class DataComponent extends LitElement {
           padding: 2px 5px;
           box-shadow: var(--sl-shadow-small);
         }
-        sl-radio-group > sl-radio {
+        sl-radio-group > sl-radio:first-child {
           display: inline-flex;
+          padding: 0 20px 0 0;
         }
         sl-input::part(form-control) {
           display: flex;
@@ -53,12 +54,20 @@ export class DataComponent extends LitElement {
           align-items: center;
           flex-wrap: wrap;
         }
+        sl-input::part(base) {
+          max-width: 190px;
+        }
+        @media (max-width: 480px) {
+          sl-input::part(base) {
+            max-width: 150px;
+          }
+        }
       </style>
       <div class="lexml-data">
         <sl-radio-group label="Data" fieldset>
           <sl-radio name="data" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
           <sl-radio name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
-            <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} clearable value=${this.data || this.getCurrentDate()} @input=${this.setDate}></sl-input>
+            <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} value=${this.data || this.getCurrentDate()} @input=${this.setDate}></sl-input>
           </sl-radio>
         </sl-radio-group>
       </div>
