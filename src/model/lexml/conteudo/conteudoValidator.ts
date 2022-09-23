@@ -7,6 +7,7 @@ import {
   hasFilhoGenerico,
   hasFilhos,
   isDispositivoAlteracao,
+  isDispositivoCabecaAlteracao,
   isUltimaAlteracao,
   isUltimaEnumeracao,
   isUltimoMesmoTipo,
@@ -164,7 +165,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
     !hasFilhos(dispositivo) &&
-    !dispositivo.hasAlteracao() &&
+    !dispositivo.alteracoes &&
     !isUnicoMesmoTipo(dispositivo) &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasCitacaoAoFinalFrase(dispositivo.texto)
@@ -197,13 +198,30 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    !dispositivo.hasAlteracao() &&
+    !dispositivo.alteracoes &&
     (!hasFilhos(dispositivo) || !hasFilhos((dispositivo as Artigo).caput!)) &&
+    !isDispositivoCabecaAlteracao(dispositivo) &&
     hasIndicativoDesdobramento(dispositivo)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}`,
+    });
+  }
+
+  if (
+    isArtigo(dispositivo) &&
+    dispositivo.texto &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
+    (!hasFilhos(dispositivo) || !hasFilhos((dispositivo as Artigo).caput!)) &&
+    dispositivo.alteracoes &&
+    !dispositivo.hasAlteracao() &&
+    hasIndicativoDesdobramento(dispositivo)
+  ) {
+    mensagens.push({
+      tipo: TipoMensagem.ERROR,
+      descricao: `${dispositivo.descricao} deveria informar alterações propostas`,
     });
   }
 
@@ -314,20 +332,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}`,
-    });
-  }
-
-  if (
-    dispositivo.texto &&
-    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !/^[.]+$/.test(dispositivo.texto) &&
-    !hasIndicativoContinuacaoSequencia(dispositivo) &&
-    !hasIndicativoFinalSequencia(dispositivo) &&
-    !hasIndicativoDesdobramento(dispositivo)
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Texto do dispositivo não termina com pontuação`,
     });
   }
 
