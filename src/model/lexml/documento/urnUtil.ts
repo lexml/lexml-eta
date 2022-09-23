@@ -39,6 +39,10 @@ export const getData = (urn: string): string => {
     return partes[2];
   }
 
+  if (/^\d{4}$/.test(partes[2])) {
+    return partes[2];
+  }
+
   const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
   return d ? d.join('/') : '';
 };
@@ -50,7 +54,7 @@ export const getDataPorExtenso = (urn: string): string => {
 
   const dataInformada = partes[2]?.substring(0, partes[2].indexOf(';'));
 
-  if (/\d{4}$/.test(dataInformada)) {
+  if (/^\d{4}$/.test(dataInformada) || /\d{4}$/.test(dataInformada)) {
     return dataInformada;
   }
   const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
@@ -62,7 +66,7 @@ export const getDataPorExtenso = (urn: string): string => {
   return '';
 };
 
-export const getAno = (urn: string): string => getData(urn).split('/').slice(-1)[0];
+export const getAno = (urn: string): string => (/^\d{4}$/.test(getData(urn)) ? getData(urn) : getData(urn).split('/').slice(-1)[0]);
 
 const retiraFragmento = (urn: string): string => {
   const i = urn.indexOf('!');
@@ -79,7 +83,7 @@ export const converteDataFormatoBrasileiroParaUrn = (data: string): string => {
 };
 
 export const buildUrn = (autoridade: string, tipo: string, numero: string, data: string): string => {
-  const dataPadrao = converteDataFormatoBrasileiroParaUrn(data) ?? data;
+  const dataPadrao = /\d{4}[-]/.test(data) || /^\d{4}$/.test(data) ? data : converteDataFormatoBrasileiroParaUrn(data);
   return `urn:lex:br:${autoridade}:${tipo}:${dataPadrao};${numero}`;
 };
 
@@ -87,8 +91,7 @@ export const validaUrn = (urn: string): boolean => {
   const autoridade = getAutoridade(urn)?.urn;
   const tipo = getTipo(urn)?.urn;
   const numero = /^\d{1,5}$/.test(getNumero(urn));
-  const data = !/\d{4}$/.test(getData(urn)) ? converteDataFormatoBrasileiroParaUrn(getData(urn)) : getData(urn);
-
+  const data = /\d{4}[-]/.test(getData(urn)) || /^\d{4}$/.test(getData(urn)) ? getData(urn) : converteDataFormatoBrasileiroParaUrn(getData(urn));
   return urn?.startsWith('urn:lex:br:') && autoridade && tipo && numero && data;
 };
 
