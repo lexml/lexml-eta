@@ -154,6 +154,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   constructor() {
     super();
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
+    this._lexmlJustificativa && this._lexmlJustificativa.onChange.subscribe(this.onChange.bind(this));
   }
 
   createRenderRoot(): LitElement {
@@ -202,7 +203,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         badge.pulse = false;
       }
     });
-    this._lexmlJustificativa.onChange.subscribe(this.onChange.bind(this));
 
     if (this.modo.startsWith('emenda')) {
       this.slSplitPanel.removeAttribute('disabled');
@@ -211,6 +211,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.slSplitPanel.setAttribute('disabled', 'true');
       this.slSplitPanel.position = 100;
     }
+  }
+
+  disconnectedCallback(): void {
+    this._lexmlJustificativa.onChange.cancel();
   }
 
   private pesquisarAlturaParentElement(elemento): number {
