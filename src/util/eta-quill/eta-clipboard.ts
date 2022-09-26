@@ -29,8 +29,8 @@ export class EtaClipboard extends Clipboard {
       }
       const text = ev.clipboardData?.getData('text/plain');
       if (text) {
-        const range = this.quill.getSelection();
-        this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
+        /*         const range = this.quill.getSelection();
+        this.quill.clipboard.dangerouslyPasteHTML(range.index, text); */
         this.onChange.notify('clipboard');
       }
     });
@@ -57,24 +57,30 @@ export class EtaClipboard extends Clipboard {
     e.preventDefault();
     const range = this.quill.getSelection();
     const html = e?.clipboardData?.getData('text/html');
-    const parser = new DOMParser().parseFromString(html!, 'text/html');
-    let text = '';
-    const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB'];
-    const walkDOM = (node, func) => {
-      func(node);
-      node = node.firstChild;
-      while (node) {
-        walkDOM(node, func);
-        node = node.nextSibling;
-      }
-    };
-    walkDOM(parser, function (node) {
-      if (allowedTags.includes(node.tagName)) {
-        text += node.outerHTML;
-      } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
-        text += node.nodeValue;
-      }
-    });
-    this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
+
+    if (html && html.length > 0) {
+      const parser = new DOMParser().parseFromString(html!, 'text/html');
+
+      let text = '';
+      const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB'];
+      const walkDOM = (node, func) => {
+        func(node);
+        node = node.firstChild;
+        while (node) {
+          walkDOM(node, func);
+          node = node.nextSibling;
+        }
+      };
+      walkDOM(parser, function (node) {
+        if (allowedTags.includes(node.tagName)) {
+          text += node.outerHTML;
+        } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
+          text += node.nodeValue;
+        }
+      });
+      this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
+    } else if (e.clipboardData?.getData('text/plain')) {
+      this.quill.clipboard.dangerouslyPasteHTML(range.index, e.clipboardData?.getData('text/plain'));
+    }
   }
 }
