@@ -1,17 +1,17 @@
-import { EtaBlotMenu } from './eta-blot-menu';
-import { EtaBlotExistencia } from './eta-blot-existencia';
-import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
-import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
-import { EtaBlotConteudo } from './eta-blot-conteudo';
-import { EtaBlotEspaco } from './eta-blot-espaco';
-import { EtaBlotRotulo } from './eta-blot-rotulo';
-import { EtaContainerTdDireito } from './eta-container-td-direito';
+import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
-import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elementoUtil';
 import { EtaBlot } from './eta-blot';
+import { EtaBlotConteudo } from './eta-blot-conteudo';
+import { EtaBlotEspaco } from './eta-blot-espaco';
+import { EtaBlotExistencia } from './eta-blot-existencia';
+import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
+import { EtaBlotMenu } from './eta-blot-menu';
+import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
+import { EtaBlotRotulo } from './eta-blot-rotulo';
+import { EtaContainerTdDireito } from './eta-container-td-direito';
 
 const Container = Quill.import('blots/container');
 
@@ -50,6 +50,9 @@ export class EtaContainerTable extends Container {
   [key: string]: any;
 
   private findBlot(blotName: string): EtaBlot | undefined {
+    if (!this.blotRotulo) {
+      return undefined;
+    }
     return this.findBlotRef(this.blotRotulo.next, blotName);
   }
 
@@ -60,9 +63,9 @@ export class EtaContainerTable extends Container {
     return blotRef.instanceBlotName === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
   }
 
-  get blotRotulo(): EtaBlotRotulo {
+  get blotRotulo(): EtaBlotRotulo | undefined {
     const node = this.children.head?.children?.head.children.head;
-    return node instanceof EtaBlotRotulo ? node : node.next;
+    return node instanceof EtaBlotRotulo ? node : node?.next;
   }
 
   get blotExistencia(): EtaBlotExistencia {
@@ -219,7 +222,7 @@ export class EtaContainerTable extends Container {
       this.domNode.classList.add(classeCSS);
     }
 
-    this.blotRotulo.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(elemento)} ${classeCSS}`);
+    this.blotRotulo?.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(elemento)} ${classeCSS}`);
     // this.blotConteudo.domNode.setAttribute('class', `${EtaBlotConteudo.getClasseCSS(elemento)} ${classeCSS} ${classeCSSAdicional}`);
   }
 
@@ -229,7 +232,7 @@ export class EtaContainerTable extends Container {
     } else {
       this.domNode.removeAttribute('existenanormaalterada');
     }
-    this.blotRotulo.atualizarAtributos(elemento);
+    this.blotRotulo?.atualizarAtributos(elemento);
     this.blotExistencia.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
     this.blotFechaAspas?.atualizarAtributos(elemento);

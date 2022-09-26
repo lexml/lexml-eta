@@ -1,17 +1,22 @@
-import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
-import { EtaBlotExistencia } from './eta-blot-existencia';
-import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
+import { negrito } from '../../../assets/icons/icons';
+import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { Observable } from '../observable';
 import { EtaBlot } from './eta-blot';
+import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
+import { EtaBlotConteudoOmissis } from './eta-blot-conteudo-omissis';
 import { EtaBlotEspaco } from './eta-blot-espaco';
+import { EtaBlotExistencia } from './eta-blot-existencia';
+import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 import { EtaBlotMensagem } from './eta-blot-mensagem';
 import { EtaBlotMensagens } from './eta-blot-mensagens';
 import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotMenuBotao } from './eta-blot-menu-botao';
 import { EtaBlotMenuConteudo } from './eta-blot-menu-conteudo';
 import { EtaBlotMenuItem } from './eta-blot-menu-item';
+import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
+import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaClipboard } from './eta-clipboard';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
@@ -19,11 +24,6 @@ import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { EtaKeyboard } from './eta-keyboard';
 import { EtaQuillBuffer } from './eta-quill-buffer';
-import { negrito } from '../../../assets/icons/icons';
-import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
-import { EtaBlotConteudoOmissis } from './eta-blot-conteudo-omissis';
-import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
-import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 
 export interface TextoSelecionado {
   conteudo: string;
@@ -344,7 +344,7 @@ export class EtaQuill extends Quill {
   private onTextChange: TextChangeHandler = (): void => {
     if (this._linhaAtual) {
       setTimeout(() => {
-        this.acertarAspas();
+        this.linhaAtual.blotConteudo && this.acertarAspas();
       }, 0);
     }
   };

@@ -353,7 +353,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     `);
 
     const input = <SlInput>content.querySelector('sl-input');
-    input.value = `${rotuloParaEdicao(linha.blotRotulo.rotulo)}`;
+    input.value = `${rotuloParaEdicao(linha.blotRotulo!.rotulo)}`;
 
     const botoes = content.querySelectorAll('sl-button');
     const cancelar = botoes[0];
@@ -441,7 +441,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElemento(): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo.rotulo}?`;
+    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo?.rotulo}?`;
 
     this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
       const choice: any = event.detail.closeResult;
@@ -734,9 +734,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.editavel = elemento.editavel;
         }
 
-        if (elemento.rotulo !== linha.blotRotulo.html) {
+        if (elemento.rotulo !== linha.blotRotulo?.html) {
           linha.numero = elemento.numero ?? '';
-          linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
+          linha.blotRotulo?.format(EtaBlotRotulo.blotName, elemento.rotulo);
         }
 
         if (elemento.nivel !== linha.nivel) {
@@ -747,7 +747,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         if (elemento.agrupador !== linha.agrupador) {
           linha.agrupador = elemento.agrupador;
-          linha.blotRotulo.format(EtaBlotRotulo.formatoStyle, elemento);
+          linha.blotRotulo?.format(EtaBlotRotulo.formatoStyle, elemento);
           if (!nivelAlerado) {
             linha.format(EtaContainerTable.blotName, elemento);
           }
@@ -804,7 +804,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.map((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        linha.blotRotulo.format(EtaBlotRotulo.blotName, elemento.rotulo);
+        linha.blotRotulo?.format(EtaBlotRotulo.blotName, elemento.rotulo);
       }
     });
   }
@@ -1016,6 +1016,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       elementos.forEach((elemento: Elemento) => {
         const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
         etaContainerTable.insertInto(this.quill.scroll);
+        etaContainerTable.setEstilo(elemento);
+
         elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
       });
       this.quill.limparHistory();
