@@ -111,16 +111,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this._timerLoadEmenda = window.setTimeout(() => {
         rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!));
       }, 1000);
-      /*       if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(this.dispositivosEmenda?.dispositivosAdicionados as Dispositivo[])) {
-        const alerta = {
-          id: 'alerta-global-renumeracao',
-          tipo: 'warning',
-          mensagem:
-            'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
-          podeFechar: true,
-        };
-        rootStore.dispatch(adicionarAlerta(alerta));
-      } */
     }
   }
 
