@@ -90,7 +90,10 @@ export class CmdEmdDispNormaVigente {
     } else {
       // , como propost(o/a)(s)
       sb.append(', como ');
-      this.escreveProposto(sb, dispositivos);
+      this.escreveProposto(
+        sb,
+        dispositivos.filter(d => !CmdEmdUtil.isTextoOmitido(d))
+      );
     }
     // pelo art. 6º do Projeto
     sb.append(' ');
