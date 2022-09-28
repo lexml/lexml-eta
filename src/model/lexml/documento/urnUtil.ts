@@ -35,14 +35,20 @@ export const getData = (urn: string): string => {
     return '';
   }
 
-  if (partes[2] === 'LEXML_URN_ID' || /^\d{4}$/.test(partes[2])) {
-    return partes[2];
+  // Sem identificação (nem data nem número)
+  // Ex: federal:lei:LEXML_URN_ID
+  if (partes[2] === 'LEXML_URN_ID') {
+    return '';
   }
 
-  if (/^\d{4}$/.test(partes[2])) {
-    return partes[2];
+  // Apenas ano
+  // Ex: federal:lei:2020;123
+  if (/^\d{4};$/.test(partes[2])) {
+    return partes[2].split(';')[0];
   }
 
+  // Data completa
+  // Ex: federal:lei:2020-10-22;123
   const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
   return d ? d.join('/') : '';
 };
@@ -108,9 +114,9 @@ export const getNomeExtensoComDataExtenso = (urn: string): string => {
   const numero = getNumero(u);
   const tipo = getTipo(u)?.descricao;
   const dataString = getData(u);
-  const [dia, mes, ano] = dataString.split('/').map(p => parseInt(p));
-  const dataExtenso = dataString.length > 7 ? getDataExtenso(new Date(ano, mes - 1, dia)) : undefined;
-  return (tipo ? tipo : '') + (numero ? ' nº ' + parseInt(numero).toLocaleString('pt-BR') : '') + (dataExtenso ? ', de ' + dataExtenso : '');
+  const [diaOuApenasAno, mes, ano] = dataString.split('/').map(p => parseInt(p));
+  const dataExtenso = dataString.includes('/') ? getDataExtenso(new Date(ano, mes - 1, diaOuApenasAno)) : diaOuApenasAno;
+  return (tipo ? tipo : '') + (numero ? ' nº ' + parseInt(numero).toLocaleString('pt-BR') : '') + ', de ' + dataExtenso;
 };
 
 export const buildHtmlLink = (urn: string): string => {
