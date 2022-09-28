@@ -120,15 +120,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   getEmenda(): Emenda {
     const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
+    const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
     emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
     emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data;
-    emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.numero, emenda.proposicao.ano);
+    emenda.colegiadoApreciador = this.montarColegiadoApreciador(numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
-    emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${emenda.proposicao.numero}/${emenda.proposicao.ano}`;
-    emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${emenda.proposicao.numero}/${emenda.proposicao.ano})`;
+    emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
+    emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
 
     return emenda;
