@@ -78,8 +78,8 @@ export class CmdEmdDispNormaVigente {
 
     // da/à Lei nº 11.340, de 7 de agosto de 2006
     this.escreveLei(sb, urnNormaAlterada);
-    const terminouComAdicao = comandos[comandos.length - 1] instanceof CmdEmdAdicaoANormaVigente;
-    if (terminouComAdicao) {
+    const temDispositivoNovo = dispositivos.reduce((tem, d) => tem || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO, false);
+    if (temDispositivoNovo) {
       // , na forma proposta pelo art. 6º do Projeto
       if (textoTodos !== '' && !sb.toString().includes(textoTodos)) {
         sb.append(textoTodos);
