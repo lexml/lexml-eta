@@ -63,7 +63,7 @@ export class DispositivosWriterCmdEmd {
         sb.append('denominação d' + primeiroDispSeq.artigoDefinido);
       } else if (referenciarOAgrupador) {
         sb.append('agrupador');
-      } else {
+      } else if (!referenciarTodoAgrupador) {
         sb.append(this.getRotuloTipoDispositivo(sequencia));
       }
 
