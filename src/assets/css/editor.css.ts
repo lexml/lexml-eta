@@ -230,7 +230,7 @@ export const editorStyles = html`
       -webkit-box-orient: vertical;
       overflow: hidden;
       flex-grow: 1;
-      width: 0;
+      width: 50px;
       white-space: nowrap;
     }
 
