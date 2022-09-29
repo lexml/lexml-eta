@@ -249,7 +249,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(evt: CustomEvent): void {
-    if (evt.detail.origemEvento?.includes('Autor') && this.modo.startsWith('emenda')) {
+    if (!evt.detail.origemEvento?.includes('Autor') && this.modo.startsWith('emenda')) {
       const comandoEmenda = this._lexmlEta.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
