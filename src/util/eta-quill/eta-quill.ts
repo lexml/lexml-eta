@@ -300,7 +300,8 @@ export class EtaQuill extends Quill {
         blotCursor.tagName === EtaBlotMenu.tagName ||
         blotCursor.tagName === EtaBlotMensagens.tagName ||
         blotCursor.tagName === EtaBlotAbreAspas.tagName ||
-        blotCursor.tagName === EtaBlotTipoOmissis.tagName
+        blotCursor.tagName === EtaBlotTipoOmissis.tagName ||
+        blotCursor.tagName === EtaBlotExistencia.tagName
       ) {
         this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
       } else if (blotCursor.tagName === EtaBlotFechaAspas.tagName || blotCursor.tagName === EtaBlotNotaAlteracao.tagName) {
