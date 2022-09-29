@@ -15,7 +15,8 @@ export class EtaContainerTdEsquerdo extends Container {
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 
-    node.setAttribute('contenteditable', 'false');
+    // node.setAttribute('contenteditable', 'false');
+    node.setAttribute('contenteditable', elemento.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTdEsquerdo.className + ' container__texto--nivel' + elemento.nivel);
 
     const fator = Number(getComputedStyle(document.documentElement).getPropertyValue('--elemento-padding-factor'));
