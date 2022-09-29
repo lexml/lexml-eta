@@ -129,7 +129,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   setEmenda(emenda: Emenda): void {
     this.modo = emenda.modoEdicao;
     this._lexmlEta.dispositivosEmenda = emenda.componentes[0].dispositivos;
-    this.autoria = emenda.autoria;
+    this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
   }
@@ -138,7 +138,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const emenda = new Emenda();
     this.setEmenda(emenda);
     this._lexmlEmendaComando.emenda = {};
-    this.autoria = emenda.autoria;
+    this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = new Date().toISOString().replace(/T.+$/, '');
   }
@@ -237,7 +237,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private onChange(evt: CustomEvent): void {
     console.log('EVENTO', evt.detail.origemEvento || '*', evt.detail);
 
-    if (this.modo.startsWith('emenda')) {
+    if (evt.detail.origemEvento?.includes('Autor') && this.modo.startsWith('emenda')) {
       const comandoEmenda = this._lexmlEta.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
@@ -320,7 +320,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <lexml-data></lexml-data>
               <br />
-              <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
+              <lexml-autoria @onchange=${this.onChange} .parlamentares=${this.parlamentares}></lexml-autoria>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>

@@ -283,6 +283,7 @@ export class AutoriaComponent extends LitElement {
   @executarAposValidacao()
   private _moverParlamentar(index: number, deslocamento: number): void {
     this._autoria.parlamentares = moverParlamentar(this._autoria.parlamentares, index, deslocamento);
+    this.emitirEventoOnChange('moverAutor');
     this.requestUpdate();
   }
 
@@ -293,6 +294,7 @@ export class AutoriaComponent extends LitElement {
       this._autoria.parlamentares = [{ ...parlamentarVazio }];
     }
     this._podeIncluirParlamentar = this._isAllAutoresOk();
+    this.emitirEventoOnChange('excluirAutor');
     this.requestUpdate();
   }
 
@@ -337,6 +339,7 @@ export class AutoriaComponent extends LitElement {
     );
   }
 
+  private timerEmitirEventoOnChange = 0;
   private _atualizarParlamentar(ev: CustomEvent, index: number): void {
     const parlamentarAutocomplete = this.parlamentares.find(p => p.nome === ev.detail.value);
     if (parlamentarAutocomplete) {
@@ -349,6 +352,9 @@ export class AutoriaComponent extends LitElement {
     this._podeIncluirParlamentar = !!parlamentarAutocomplete && this._isAllAutoresOk();
     (ev.target as HTMLElement).focus();
     this._lastIndexAutoCompleted = index;
+
+    clearInterval(this.timerEmitirEventoOnChange);
+    this.timerEmitirEventoOnChange = window.setTimeout(() => this.emitirEventoOnChange('atualizarAutor'), 500);
     this.requestUpdate();
   }
 
@@ -406,6 +412,18 @@ export class AutoriaComponent extends LitElement {
 
   private _handleClickAutoComplete(): void {
     window.setTimeout(() => (this._lastIndexAutoCompleted = -1), 0);
+  }
+
+  private emitirEventoOnChange(origemEvento: string): void {
+    this.dispatchEvent(
+      new CustomEvent('onchange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          origemEvento,
+        },
+      })
+    );
   }
 }
 
