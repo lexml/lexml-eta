@@ -4,7 +4,7 @@ import { EtaBlot } from './eta-blot';
 
 export class EtaBlotExistencia extends EtaBlot {
   static blotName = 'EtaBlotExistencia';
-  static tagName = 'span';
+  static tagName = 'blot-existencia';
   static className = 'blot-existencia';
 
   get instanceBlotName(): string {
