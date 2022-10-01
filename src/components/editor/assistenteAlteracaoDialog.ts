@@ -41,7 +41,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     }
 
     #dataNorma::part(form-control-input){
-      max-width: 180px;
+      max-width: 160px;
     }
     #anoNorma::part(form-control-input){
       max-width: 90px;
