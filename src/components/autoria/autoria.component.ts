@@ -201,7 +201,14 @@ export class AutoriaComponent extends LitElement {
             >
               <sl-icon name="arrow-up"></sl-icon>
             </sl-button>
-            <sl-button id="excluir" size="small" aria-label="Excluir" title="Excluir" @click=${(): void => this._excluirParlamentar(index)}>
+            <sl-button
+              id="excluir"
+              size="small"
+              aria-label="Excluir"
+              title="Excluir"
+              @click=${(): void => this._excluirParlamentar(index)}
+              .disabled=${this._autoria.parlamentares.length === 1 ? true : false}
+            >
               <sl-icon name="trash"></sl-icon>
             </sl-button>
           </div>
