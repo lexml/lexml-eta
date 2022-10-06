@@ -181,13 +181,34 @@ export class AutoriaComponent extends LitElement {
 
         <div class="autoria-grid--col3">
           <div class="autoria-buttons">
-            <sl-button id="paraBaixo" size="small" aria-label="Para baixo" title="Para baixo" @click=${(): void => this._moverParlamentar(index, 1)}>
+            <sl-button
+              id="paraBaixo"
+              size="small"
+              aria-label="Para baixo"
+              title="Para baixo"
+              @click=${(): void => this._moverParlamentar(index, 1)}
+              .disabled=${index === this._autoria.parlamentares.length - 1 ? true : false}
+            >
               <sl-icon name="arrow-down"></sl-icon>
             </sl-button>
-            <sl-button id="paraCima" size="small" aria-label="Para cima" title="Para cima" @click=${(): void => this._moverParlamentar(index, -1)}>
+            <sl-button
+              id="paraCima"
+              size="small"
+              aria-label="Para cima"
+              title="Para cima"
+              @click=${(): void => this._moverParlamentar(index, -1)}
+              .disabled=${index === 0 ? true : false}
+            >
               <sl-icon name="arrow-up"></sl-icon>
             </sl-button>
-            <sl-button id="excluir" size="small" aria-label="Excluir" title="Excluir" @click=${(): void => this._excluirParlamentar(index)}>
+            <sl-button
+              id="excluir"
+              size="small"
+              aria-label="Excluir"
+              title="Excluir"
+              @click=${(): void => this._excluirParlamentar(index)}
+              .disabled=${this._autoria.parlamentares.length === 1 ? true : false}
+            >
               <sl-icon name="trash"></sl-icon>
             </sl-button>
           </div>
