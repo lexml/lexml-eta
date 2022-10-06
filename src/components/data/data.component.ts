@@ -79,13 +79,39 @@ export class DataComponent extends LitElement {
   }
 
   private resetDate(): void {
+    const original = this.data;
     this.data = '';
+    if (original !== this.data) {
+      this.agendarEmissaoEventoOnChange();
+    }
   }
 
   private setDate(): void {
     if (this.inputData) {
+      const original = this.data;
       this.data = this.inputData.value;
+      if (original !== this.data) {
+        this.agendarEmissaoEventoOnChange();
+      }
     }
+  }
+
+  private timerOnChange = 0;
+  private agendarEmissaoEventoOnChange(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = window.setTimeout(() => this.emitirEventoOnChange(), 1000);
+  }
+
+  private emitirEventoOnChange(): void {
+    this.dispatchEvent(
+      new CustomEvent('onchange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          origemEvento: 'data',
+        },
+      })
+    );
   }
 }
 
