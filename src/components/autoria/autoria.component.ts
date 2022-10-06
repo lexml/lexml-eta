@@ -261,7 +261,7 @@ export class AutoriaComponent extends LitElement {
   @executarAposValidacao()
   private _moverParlamentar(index: number, deslocamento: number): void {
     this._autoria.parlamentares = moverParlamentar(this._autoria.parlamentares, index, deslocamento);
-    this.emitirEventoOnChange('moverAutor');
+    this.agendarEmissaoEventoOnChange('moverAutor');
     this.requestUpdate();
   }
 
@@ -272,7 +272,7 @@ export class AutoriaComponent extends LitElement {
       this._autoria.parlamentares = [{ ...parlamentarVazio }];
     }
     this._podeIncluirParlamentar = this._isAllAutoresOk();
-    this.emitirEventoOnChange('excluirAutor');
+    this.agendarEmissaoEventoOnChange('excluirAutor');
     this.requestUpdate();
   }
 
@@ -292,6 +292,8 @@ export class AutoriaComponent extends LitElement {
     //     e é preciso dar tempo do @autocomplete ser executado e preencher o input com o nome selecionado antes da validação
     this._timerValidacao = window.setTimeout(
       () => {
+        const auxValorPodeIncluirOriginal = this._podeIncluirParlamentar;
+
         const elLexmlAutocomplete = this._autocompletes[index];
         const cargoAtual = this._autoria.parlamentares[index].cargo;
         const nomeAtual = elLexmlAutocomplete.value ?? '';
@@ -312,6 +314,10 @@ export class AutoriaComponent extends LitElement {
         this._podeIncluirParlamentar = parlamentarEhValido && this._isAllAutoresOk();
 
         this._isProcessandoValidacao = false;
+
+        if (auxValorPodeIncluirOriginal !== this._podeIncluirParlamentar) {
+          this.agendarEmissaoEventoOnChange('atualizarAutor');
+        }
       },
       ev.type === 'blur' ? 200 : 0
     );
@@ -331,13 +337,17 @@ export class AutoriaComponent extends LitElement {
     (ev.target as HTMLElement).focus();
     this._lastIndexAutoCompleted = index;
 
-    clearInterval(this.timerEmitirEventoOnChange);
-    this.timerEmitirEventoOnChange = window.setTimeout(() => this.emitirEventoOnChange('atualizarAutor'), 500);
+    this.agendarEmissaoEventoOnChange('atualizarAutor');
     this.requestUpdate();
   }
 
   private _atualizarCargo(ev: Event, index: number): void {
-    this._autoria.parlamentares[index].cargo = (ev.target as HTMLInputElement).value;
+    const cargoAtual = this._autoria.parlamentares[index].cargo;
+    const newValue = (ev.target as HTMLInputElement).value;
+    this._autoria.parlamentares[index].cargo = newValue;
+    if (cargoAtual !== newValue) {
+      this.agendarEmissaoEventoOnChange('atualizarAutor');
+    }
   }
 
   private _atualizarQtdAssinaturasAdicionaisSenadores(ev: Event): void {
@@ -390,6 +400,11 @@ export class AutoriaComponent extends LitElement {
 
   private _handleClickAutoComplete(): void {
     window.setTimeout(() => (this._lastIndexAutoCompleted = -1), 0);
+  }
+
+  private agendarEmissaoEventoOnChange(origemEvento: string): void {
+    clearInterval(this.timerEmitirEventoOnChange);
+    this.timerEmitirEventoOnChange = window.setTimeout(() => this.emitirEventoOnChange(origemEvento), 500);
   }
 
   private emitirEventoOnChange(origemEvento: string): void {
