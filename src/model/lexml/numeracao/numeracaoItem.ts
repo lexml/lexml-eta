@@ -17,7 +17,7 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
     }
 
     private isNumeracaoValidaParaRotulo(numero: string): boolean {
-      return /^\d{1,}([-]?[a-zA-Z]+)?$/.test(numero);
+      return /^\d{1,}(([-]?[a-zA-Z]+){0,2})$/.test(numero);
     }
 
     createNumeroFromRotulo(rotulo: string): void {

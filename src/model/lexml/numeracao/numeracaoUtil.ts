@@ -50,7 +50,7 @@ export const isNumero = (numero: string): boolean => {
 };
 
 export const isNumeracaoValida = (numero: string): boolean => {
-  return /^\d{1,}([-]?[\d]+)?$/.test(numero);
+  return /^\d{1,}(([-]?[1-9]+){0,2})$/.test(numero);
 };
 
 export const isLetra = (letra: string): boolean => {
