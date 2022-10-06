@@ -26,7 +26,18 @@ export class JustificativaEmendaComponent extends LitElement {
 
   private agendarEmissaoEventoOnChange(): void {
     clearTimeout(this.timerOnChange);
-    this.timerOnChange = setTimeout(() => this.onChange.notify('justificativa'), 2000);
+    this.timerOnChange = setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent('onchange', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            origemEvento: 'justificativa',
+          },
+        })
+      );
+      this.onChange.notify('justificativa');
+    }, 2000);
   }
 
   update(changedProperties: PropertyValues): void {
