@@ -17,11 +17,21 @@ export class DataComponent extends LitElement {
   @query('#input-data')
   inputData!: HTMLInputElement;
 
+  @query('#no-date')
+  optionNaoInformarData!: any;
+
   // @query('#opt-data')
   // optData!: HTMLInputElement;
 
   @property({ type: String })
-  data?: string;
+  data = '';
+
+  updated(): void {
+    this.inputData.value = this.data || this.inputData.value || new Date().toISOString().replace(/T.+$/, '');
+    if (!this.data && !this.optionNaoInformarData.checked) {
+      this.optionNaoInformarData.checked = true;
+    }
+  }
 
   render(): TemplateResult {
     return html`
@@ -65,9 +75,9 @@ export class DataComponent extends LitElement {
       </style>
       <div class="lexml-data">
         <sl-radio-group label="Data" fieldset>
-          <sl-radio name="data" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
+          <sl-radio name="data" id="no-date" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
           <sl-radio name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
-            <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} value=${this.data || this.getCurrentDate()} @input=${this.setDate}></sl-input>
+            <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} @input=${this.setDate}></sl-input>
           </sl-radio>
         </sl-radio-group>
       </div>
