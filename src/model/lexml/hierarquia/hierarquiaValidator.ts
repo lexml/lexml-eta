@@ -11,6 +11,7 @@ import {
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   getUltimoFilho,
   isDispositivoAlteracao,
+  isDispositivosSequenciaisMesmoPai,
   isOriginal,
 } from './hierarquiaUtil';
 
@@ -119,7 +120,8 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
     isOmissis(dispositivo) &&
     dispositivo.pai &&
     getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined &&
-    isOmissis(getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo)!)
+    isOmissis(getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo)!) &&
+    isDispositivosSequenciaisMesmoPai(dispositivo, getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo)!)
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,

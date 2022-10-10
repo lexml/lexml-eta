@@ -49,7 +49,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     eventos.add(StateType.ElementoModificado, []);
 
     action.alteracoesEmenda.dispositivosModificados.forEach(dispositivo => {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.id);
+      const d = buscaDispositivoById(state.articulacao, dispositivo.tipo === 'Caput' ? idSemCpt(dispositivo.id) : dispositivo.id);
 
       if (d) {
         d.situacao = new DispositivoModificado(createElemento(d));

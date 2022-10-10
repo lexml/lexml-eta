@@ -338,9 +338,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     });
 
+    const getMsgPlaceholder = (tipo: string): string => {
+      const tp = tipo.toLowerCase();
+      const descricao = TipoDispositivo[tp].descricao?.toLowerCase();
+      if (!tp) {
+        return '';
+      } else if (['artigo', 'paragrafo', 'item'].includes(tp)) {
+        return 'Digite o número do ' + descricao + '. Ex: 5, 6-A' + (tp === 'paragrafo' ? ', único' : '');
+      } else if (tp === 'alinea') {
+        return 'Digite a letra da ' + descricao + '. Ex: b, c-A';
+      } else {
+        const genero = ['parte', 'secao', 'subsecao'].includes(tp) ? 'a' : 'o';
+        return `Digite o número romano d${genero} ${descricao}. Ex: II, III-A'`;
+      }
+    };
+
     const content = document.createRange().createContextualFragment(`
       <div class="input-validation-required">
-        <sl-input type="text" placeholder="" label="Numeração do dispositivo:" clearable></sl-input>
+        <sl-input type="text" placeholder="${getMsgPlaceholder(elemento.tipo ?? '')}" label="Numeração do dispositivo:" clearable></sl-input>
         <br/>
       </div>
       <br/>

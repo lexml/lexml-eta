@@ -26,7 +26,18 @@ export class JustificativaEmendaComponent extends LitElement {
 
   private agendarEmissaoEventoOnChange(): void {
     clearTimeout(this.timerOnChange);
-    this.timerOnChange = setTimeout(() => this.onChange.notify('justificativa'), 1000);
+    this.timerOnChange = setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent('onchange', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            origemEvento: 'justificativa',
+          },
+        })
+      );
+      this.onChange.notify('justificativa');
+    }, 1000);
   }
 
   update(changedProperties: PropertyValues): void {
@@ -147,13 +158,14 @@ export class JustificativaEmendaComponent extends LitElement {
   };
 
   updateTexto = (): void => {
-    this.texto = this.quill?.root.innerHTML
+    const texto = this.quill?.root.innerHTML
       ? this.quill?.root.innerHTML
           .replace(/ql-indent/g, 'indent')
           .replace(/ql-align-justify/g, 'align-justify')
           .replace(/ql-align-center/g, 'align-center')
           .replace(/ql-align-right/g, 'align-right')
       : '';
+    this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
   };
 

@@ -565,34 +565,57 @@ export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): 
   return verificaNaoPrecisaInformarSituacaoNormaVigente(parent);
 };
 
+// export const validaOrdemDispositivo = (anterior: Dispositivo, atual: Dispositivo): boolean => {
+//   if (anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) {
+//     return +anterior.numero! + 1 === +atual.numero!;
+//   }
+//   const partesA = anterior.numero!.split('-');
+//   const partesB = atual.numero!.split('-');
+
+//   const [numA, ...remainingA] = partesA!;
+//   const [numB, ...remainingB] = partesB!;
+
+//   if (+numA + 1 === +numB) {
+//     return true;
+//   }
+
+//   for (let i = 0; i < 3; i++) {
+//     const rA = i >= remainingA?.length ? 0 : remainingA[i];
+//     for (let j = 0; i < 3; i++) {
+//       const rB = j >= remainingB?.length ? 0 : remainingB[j];
+//       if (+rA === +rB) {
+//         continue;
+//       }
+//       if (+rA + 1 === +rB) {
+//         return true;
+//       }
+//       return false;
+//     }
+//   }
+//   return true;
+// };
+
 export const validaOrdemDispositivo = (anterior: Dispositivo, atual: Dispositivo): boolean => {
-  if ((anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) || anterior.numero!.indexOf('-') === atual.numero!.indexOf('-')) {
+  if (anterior.numero!.indexOf('-') === -1 && atual.numero!.indexOf('-') === -1) {
     return +anterior.numero! + 1 === +atual.numero!;
   }
+
   const partesA = anterior.numero!.split('-');
   const partesB = atual.numero!.split('-');
 
-  const [numA, ...remainingA] = partesA!;
-  const [numB, ...remainingB] = partesB!;
-
-  if (+numA + 1 === +numB) {
-    return true;
-  }
-
-  for (let i = 0; i < 3; i++) {
-    const rA = i >= remainingA?.length ? 0 : remainingA[i];
-    for (let j = 0; i < 3; i++) {
-      const rB = j >= remainingB?.length ? 0 : remainingB[j];
-      if (+rA === +rB) {
-        continue;
-      }
-      if (+rA + 1 === +rB) {
-        return true;
-      }
-      return false;
+  if (partesB.length > partesA.length) {
+    // dispositivo atual possui mais um nível de sufixo de encaixe
+    const numB = partesB.pop();
+    return partesA.join('-') === partesB.join('-') && numB === '1';
+  } else {
+    if (partesA.length > partesB.length) {
+      // dispositivo atual possui menos um nível de sufixo de encaixe
+      partesA.pop();
     }
+    const numA = partesA.pop()!;
+    const numB = partesB.pop()!;
+    return partesA.join('-') === partesB.join('-') && +numA + 1 === +numB;
   }
-  return true;
 };
 
 export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
@@ -639,4 +662,14 @@ export const podeEditarNotaAlteracao = (dispositivo: Dispositivo): boolean => {
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
     return cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
   }
+};
+
+export const isDispositivosSequenciais = (dispositivo1: Dispositivo, dispositivo2: Dispositivo): boolean => {
+  const pos1 = dispositivo1.pai!.indexOf(dispositivo1);
+  const pos2 = dispositivo2.pai!.indexOf(dispositivo2);
+  return pos1 + 1 === pos2;
+};
+
+export const isDispositivosSequenciaisMesmoPai = (dispositivo1: Dispositivo, dispositivo2: Dispositivo): boolean => {
+  return dispositivo1.pai === dispositivo2.pai && isDispositivosSequenciais(dispositivo1, dispositivo2);
 };

@@ -26,11 +26,11 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
     }
 
     private isNumeracaoComComplementoAlfabetico(numero: string): boolean {
-      return /^\d{1,}[º]?([-]?[a-zA-Z]+)?$/.test(numero);
+      return /^\d{1,}[º]?(([-]?[a-zA-Z]+){0,2})$/.test(numero);
     }
 
     private isNumeracaoComComplementoNumerico(numero: string): boolean {
-      return /^\d{1,}[º]?([-]?[1-9]+)?$/.test(numero);
+      return /^\d{1,}[º]?(([-]?[1-9]+){0,2})$/.test(numero);
     }
 
     createNumeroFromRotulo(rotulo: string): void {

@@ -11,6 +11,7 @@ import { MPV_1100_2022 } from '../doc/mpv_1100_2022';
 import { MPV_885_2019 } from '../doc/mpv_885_2019';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_930_2020 } from '../doc/mpv_930_2020';
+import { MPV_1078_2021 } from '../doc/mpv_1078_2021';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
@@ -20,6 +21,7 @@ const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
   mpv_905_2019: MPV_905_2019,
   mpv_930_2020: MPV_930_2020,
+  mpv_1078_2021: MPV_1078_2021,
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
   codcivil_completo: COD_CIVIL_COMPLETO,
@@ -273,6 +275,7 @@ export class DemoView extends LitElement {
             <option value="mpv_885_2019">MP 885, de 2019</option>
             <option value="mpv_905_2019" selected>MP 905, de 2019</option>
             <option value="mpv_930_2020">MP 930, de 2020</option>
+            <option value="mpv_1078_2021">MP 1078, de 2021</option>
             <option value="mpv_1089_2021">MP 1089, de 2021</option>
             <option value="mpv_1100_2022">MP 1100, de 2022</option>
             <option value="codcivil_completo">Código Civil Completo</option>

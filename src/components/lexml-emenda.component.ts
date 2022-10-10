@@ -112,14 +112,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.modoEdicao = modoEdicao;
     const urn = getUrn(this.projetoNorma);
     emenda.componentes[0].urn = urn;
-    emenda.proposicao = {
-      urn,
-      sigla: getSigla(urn),
-      numero: getNumero(urn),
-      ano: getAno(urn),
-      ementa: buildContent(projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.ementa.content),
-      identificacaoTexto: 'Texto da MPV',
-    };
+    if (urn) {
+      emenda.proposicao = {
+        urn,
+        sigla: getSigla(urn),
+        numero: getNumero(urn),
+        ano: getAno(urn),
+        ementa: buildContent(projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.ementa.content),
+        identificacaoTexto: 'Texto da MPV',
+      };
+    }
     return emenda;
   }
 
@@ -142,7 +144,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   setEmenda(emenda: Emenda): void {
     this.modo = emenda.modoEdicao;
     this._lexmlEta.dispositivosEmenda = emenda.componentes[0].dispositivos;
-    this.autoria = emenda.autoria;
+    this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
   }
@@ -154,6 +156,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.autoria = emenda.autoria;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = new Date().toISOString().replace(/T.+$/, '');
+  }
+
+  constructor() {
+    super();
+    this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
+    this._lexmlJustificativa && this._lexmlJustificativa.onChange.subscribe(this.onChange.bind(this));
   }
 
   createRenderRoot(): LitElement {
@@ -255,7 +263,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return false;
   }
 
-  private onChange(): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private onChange(evt: CustomEvent): void {
     if (this.modo.startsWith('emenda')) {
       const comandoEmenda = this._lexmlEta.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
@@ -356,7 +365,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <lexml-data></lexml-data>
               <br />
-              <lexml-autoria .parlamentares=${this.parlamentares} .autoria=${this.autoria}></lexml-autoria>
+              <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>

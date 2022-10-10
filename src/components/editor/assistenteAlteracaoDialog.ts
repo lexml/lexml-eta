@@ -6,7 +6,7 @@ import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserR
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
-  dialogElem.label = 'Assistente de Alteração de Norma';
+  dialogElem.label = 'Assistente de alteração de norma';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
       event.preventDefault();
@@ -14,7 +14,48 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   });
 
   const content = document.createRange().createContextualFragment(`
-  <style></style>
+  <style>
+    .ajuda {
+      font-size: var(--sl-font-size-small);
+      font-weight: normal;
+    }
+
+    sl-radio-group::part(base) {
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      grid-gap: 0px;
+      flex-wrap: wrap;
+    }
+
+    sl-radio::part(base) {
+      display: flex;
+      flex-direction: row;
+    }
+
+    sl-radio-group sl-input::part(form-control) {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #dataNorma::part(form-control-input){
+      max-width: 160px;
+    }
+    #anoNorma::part(form-control-input){
+      max-width: 90px;
+    }
+
+    @media (max-width: 520px) {
+      sl-radio-group::part(base) {
+        display: flex;
+        grid-template-columns: column;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
   <div class="input-validation-required">
     <sl-select name="tipoNorma" id="tipoNorma" label="Tipo da norma" clearable>
       <sl-menu-item value="decreto">Decreto</sl-menu-item>
@@ -27,18 +68,30 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     <br/>
     <sl-input name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)" label="Número" clearable></sl-input>
     <br/>
-    
-    <sl-radio-group fieldset>
-      <sl-radio name="informarData" id="informarDataCompleta" value="informarDataCompleta" checked="true">Data</sl-radio>
-      <sl-input type="date" name="dataNorma" id="dataNorma" clearable/></sl-input>
-      
-      <sl-radio name="informarData" id="informarApenasAno" value="informarApenasAno">Ano</sl-radio>
-      <sl-input name="anoNorma" id="anoNorma"></sl-input>
+
+    <sl-radio-group label="Data" fieldset>
+
+      <sl-radio name="informarData" id="informarDataCompleta" value="informarDataCompleta" checked="true">
+        <sl-input label="Dia" type="date" name="dataNorma" id="dataNorma" size="small" clearable></sl-input>
+      </sl-radio>
+
+      <sl-radio name="informarData" id="informarApenasAno" value="informarApenasAno">
+        <sl-input label="Ano" type="number" name="anoNorma" id="anoNorma" size="small"></sl-input>
+      </sl-radio>
 
     </sl-radio-group>
     <p>
-    <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" help-text="Pode ser utilizado 'parágrafo', 'par' ou § para referenciar parágrafo" label="Dispositivo da norma" clearable></sl-input>
+    <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="Dispositivo da norma" clearable></sl-input>
     </p>
+    <p class="ajuda" style="margin-block-end: 0;">
+      Terminar sempre com o artigo, por exemplo:
+    </p>
+    <ul class="ajuda" style="margin-block-start: .3em; margin-block-end: 0;">
+      <li>item 9 da alínea b do inciso V do parágrafo 4º do artigo 12-B</li>
+      <li>ali c, inc X, par 6, art 1</li>
+      <li>§ 8 art 32</li>
+      <li>parágrafo único do art 7º</li>
+    </ul>
   </div>
   <br/>
   <sl-alert variant="warning" closable class="alert-closable">
@@ -71,11 +124,18 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     anoNorma!['disabled'] = true;
     anoNorma!['value'] = '';
     dataNorma!['disabled'] = false;
+    (dataNorma as SlInput).focus();
   };
   informarApenasAno!['onclick'] = (): void => {
     anoNorma!['disabled'] = false;
     dataNorma!['disabled'] = true;
     dataNorma!['value'] = '';
+    (anoNorma as SlInput).focus();
+  };
+  anoNorma!['onkeydown'] = (event: KeyboardEvent): void => {
+    if (anoNorma!['value'].length > 3 && event.key !== 'Backspace') {
+      event.preventDefault();
+    }
   };
 
   ok.onclick = (): void => {

@@ -60,6 +60,7 @@ export class EtaBlotConteudo extends EtaBlot {
   }
 
   public atualizarAtributos(elemento: Elemento): void {
+    this.htmlAnt = this.html;
     if (elemento.notaAlteracao) {
       this.domNode.setAttribute('nota-alteracao', elemento.notaAlteracao || '');
     } else {
