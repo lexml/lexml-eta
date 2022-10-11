@@ -19,6 +19,42 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       font-size: var(--sl-font-size-small);
       font-weight: normal;
     }
+
+    sl-radio-group::part(base) {
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      grid-gap: 0px;
+      flex-wrap: wrap;
+    }
+
+    sl-radio::part(base) {
+      display: flex;
+      flex-direction: row;
+    }
+
+    sl-radio-group sl-input::part(form-control) {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #dataNorma::part(form-control-input){
+      max-width: 160px;
+    }
+    #anoNorma::part(form-control-input){
+      max-width: 90px;
+    }
+
+    @media (max-width: 520px) {
+      sl-radio-group::part(base) {
+        display: flex;
+        grid-template-columns: column;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+    }
   </style>
   <div class="input-validation-required">
     <sl-select name="tipoNorma" id="tipoNorma" label="Tipo da norma" clearable>
@@ -33,12 +69,15 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     <sl-input name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)" label="Número" clearable></sl-input>
     <br/>
 
-    <sl-radio-group fieldset>
-      <sl-radio name="informarData" id="informarDataCompleta" value="informarDataCompleta" checked="true">Data</sl-radio>
-      <sl-input type="date" name="dataNorma" id="dataNorma" clearable/></sl-input>
+    <sl-radio-group label="Data" fieldset>
 
-      <sl-radio name="informarData" id="informarApenasAno" value="informarApenasAno">Ano</sl-radio>
-      <sl-input name="anoNorma" id="anoNorma"></sl-input>
+      <sl-radio name="informarData" id="informarDataCompleta" value="informarDataCompleta" checked="true">
+        <sl-input label="Dia" type="date" name="dataNorma" id="dataNorma" size="small" clearable></sl-input>
+      </sl-radio>
+
+      <sl-radio name="informarData" id="informarApenasAno" value="informarApenasAno">
+        <sl-input label="Ano" type="number" name="anoNorma" id="anoNorma" size="small"></sl-input>
+      </sl-radio>
 
     </sl-radio-group>
     <p>
@@ -85,11 +124,18 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     anoNorma!['disabled'] = true;
     anoNorma!['value'] = '';
     dataNorma!['disabled'] = false;
+    (dataNorma as SlInput).focus();
   };
   informarApenasAno!['onclick'] = (): void => {
     anoNorma!['disabled'] = false;
     dataNorma!['disabled'] = true;
     dataNorma!['value'] = '';
+    (anoNorma as SlInput).focus();
+  };
+  anoNorma!['onkeydown'] = (event: KeyboardEvent): void => {
+    if (anoNorma!['value'].length > 3 && event.key !== 'Backspace') {
+      event.preventDefault();
+    }
   };
 
   ok.onclick = (): void => {

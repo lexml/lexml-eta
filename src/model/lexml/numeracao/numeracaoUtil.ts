@@ -50,7 +50,7 @@ export const isNumero = (numero: string): boolean => {
 };
 
 export const isNumeracaoValida = (numero: string): boolean => {
-  return /^\d{1,}([-]?[\d]+)?$/.test(numero);
+  return /^\d{1,}(([-]?[1-9]+){0,2})$/.test(numero);
 };
 
 export const isLetra = (letra: string): boolean => {
@@ -341,10 +341,12 @@ const mapValidacaoNumeracao = {
 export const isNumeracaoValidaPorTipo = (numero: string, tipo: string): boolean => {
   const partes = numero.split('-');
   const partePrincipal = partes[0];
-  const parteSufixo = partes.slice(1, partes.length).join('-');
+  const parteSufixo = '-' + partes.slice(1, partes.length).join('-');
   const fnValidacao = mapValidacaoNumeracao[tipo] || isRomano;
   const resultPartePrincipal = fnValidacao(partePrincipal) && partePrincipal !== '0';
-  return partes.length === 1 ? resultPartePrincipal : resultPartePrincipal && isLetra(parteSufixo);
+
+  const regexSufixoEncaixeComAteDuasLetrasEAteDoisNiveis = /^(-[a-z]{1,2}){1,2}$/i;
+  return partes.length === 1 ? resultPartePrincipal : resultPartePrincipal && regexSufixoEncaixeComAteDuasLetrasEAteDoisNiveis.test(parteSufixo);
 };
 
 class SeqOrdem {

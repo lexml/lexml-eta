@@ -127,7 +127,8 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
     !isOmissis(getDispositivoAnterior(dispositivo)!) &&
-    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo)
+    !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo) &&
+    dispositivo.numero !== getDispositivoAnteriorMesmoTipo(dispositivo)?.numero
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,

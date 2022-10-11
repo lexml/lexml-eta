@@ -49,8 +49,6 @@ export function converteIndicadorParaTexto(indicadores: string[]): string {
 }
 
 export function escapeRegex(str: string): string {
-  // return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-
   return str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
@@ -68,6 +66,10 @@ export function join(list: string[]): string {
 
 export function removeEspacosDuplicados(str: string): string {
   return str.replace(/\s{2,}/g, ' ');
+}
+
+export function removeAllHtmlTags(texto: string): string {
+  return texto.replace(/<.*>.*?/gi, '');
 }
 
 export class StringBuilder {

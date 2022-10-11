@@ -6,7 +6,7 @@ export const MOVER_ELEMENTO_ABAIXO = 'Mover para baixo';
 export class MoverElementoAbaixo implements ElementoAction {
   descricao: string;
   tipo?: string;
-  hotkey = '(Ctrl+⇣)';
+  hotkey = '(Alt+⇣)';
 
   constructor() {
     this.descricao = 'Mover para baixo';

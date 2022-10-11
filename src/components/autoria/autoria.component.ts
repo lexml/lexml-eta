@@ -99,11 +99,8 @@ export class AutoriaComponent extends LitElement {
       <sl-radio-group label="Autoria" fieldset class="lexml-autoria">
         ${this._getTipoAutoriaTemplate()}
         <div class="autoria-list">${this._getParlamentaresTemplate()}</div>
-        <!-- <button id="btnNovoParlamentar" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
-          Incluir ${this._autoria.parlamentares.length ? 'outro' : ''} parlamentar
-        </button> -->
         <sl-button id="btnNovoParlamentar" variant="primary" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
-          Incluir ${this._autoria.parlamentares.length ? 'outro' : ''} parlamentar
+          Incluir ${this._autoria?.parlamentares.length ? 'outro' : ''} parlamentar
         </sl-button>
 
         ${this._getAssinaturasAdicionaisTemplate()}
@@ -169,16 +166,6 @@ export class AutoriaComponent extends LitElement {
 
         <div class="autoria-grid--col2">
           <label for="tex-cargo" class="autoria-label">Cargo</label>
-          <!-- <input
-            type="text"
-            id="tex-cargo"
-            placeholder="ex: Presidente da Comissão ..., Líder do ..."
-            class="autoria-input"
-            aria-label="Cargo"
-            .value=${this._autoria.parlamentares[index].cargo ?? ''}
-            @input=${(ev: Event): void => this._atualizarCargo(ev, index)}
-            @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
-          /> -->
           <sl-input
             type="text"
             id="tex-cargo"
@@ -194,25 +181,34 @@ export class AutoriaComponent extends LitElement {
 
         <div class="autoria-grid--col3">
           <div class="autoria-buttons">
-            <!-- <button class="autoria-button" id="paraBaixo" aria-label="Para baixo" title="Para baixo" @click=${(): void => this._moverParlamentar(index, 1)}>
-              <i class="autoria-icon icon-down"></i>
-              <span class="sr-only">Para baixo</span>
-            </button>
-            <button class="autoria-button" id="paraBaixo" aria-label="Para cima" title="Para cima" @click=${(): void => this._moverParlamentar(index, -1)}>
-              <i class="autoria-icon icon-up"></i>
-              <span class="sr-only">Para cima</span>
-            </button>
-            <button class="autoria-button" id="paraBaixo" aria-label="Excluir" title="Excluir" @click=${(): void => this._excluirParlamentar(index)}>
-              <i class="autoria-icon icon-delete"></i>
-              <span class="sr-only">Exluir</span>
-            </button> -->
-            <sl-button id="paraBaixo" size="small" aria-label="Para baixo" title="Para baixo" @click=${(): void => this._moverParlamentar(index, 1)}>
+            <sl-button
+              id="paraBaixo"
+              size="small"
+              aria-label="Para baixo"
+              title="Para baixo"
+              @click=${(): void => this._moverParlamentar(index, 1)}
+              .disabled=${index === this._autoria.parlamentares.length - 1 ? true : false}
+            >
               <sl-icon name="arrow-down"></sl-icon>
             </sl-button>
-            <sl-button id="paraCima" size="small" aria-label="Para cima" title="Para cima" @click=${(): void => this._moverParlamentar(index, -1)}>
+            <sl-button
+              id="paraCima"
+              size="small"
+              aria-label="Para cima"
+              title="Para cima"
+              @click=${(): void => this._moverParlamentar(index, -1)}
+              .disabled=${index === 0 ? true : false}
+            >
               <sl-icon name="arrow-up"></sl-icon>
             </sl-button>
-            <sl-button id="excluir" size="small" aria-label="Excluir" title="Excluir" @click=${(): void => this._excluirParlamentar(index)}>
+            <sl-button
+              id="excluir"
+              size="small"
+              aria-label="Excluir"
+              title="Excluir"
+              @click=${(): void => this._excluirParlamentar(index)}
+              .disabled=${this._autoria.parlamentares.length === 1 ? true : false}
+            >
               <sl-icon name="trash"></sl-icon>
             </sl-button>
           </div>
@@ -224,15 +220,6 @@ export class AutoriaComponent extends LitElement {
   private _getAssinaturasAdicionaisTemplate(): TemplateResult {
     return html`
       <div class="assinaturas-adicionais">
-        <!-- <label for="num-assinaturas-adicionais-senadores" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Senadores</label> -->
-        <!-- <input
-          type="text"
-          id="num-assinaturas-adicionais-senadores"
-          class="autoria-input"
-          aria-label="Assinaturas Adicionais Senadores"
-          .value=${this._autoria.quantidadeAssinaturasAdicionaisSenadores.toString()}
-          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
-        /> -->
         <sl-input
           label="Quantidade de assinaturas adicionais de Senadores"
           type="number"
@@ -240,18 +227,9 @@ export class AutoriaComponent extends LitElement {
           class="autoria-input"
           aria-label="Assinaturas Adicionais Senadores"
           size="small"
-          .value=${this._autoria.quantidadeAssinaturasAdicionaisSenadores.toString()}
+          .value=${this._autoria?.quantidadeAssinaturasAdicionaisSenadores.toString() ?? '0'}
           @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
         ></sl-input>
-        <!-- <label for="num-assinaturas-adicionais-deputados" class="assinaturas-adicionais-label">Quantidade de assinaturas adicionais de Deputados Federais</label> -->
-        <!-- <input
-          type="text"
-          id="num-assinaturas-adicionais-deputados"
-          class="autoria-input"
-          aria-label="Assinaturas Adicionais deputados"
-          .value=${this._autoria.quantidadeAssinaturasAdicionaisDeputados.toString()}
-          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
-        /> -->
         <sl-input
           label="Quantidade de assinaturas adicionais de Deputados Federais"
           type="number"
@@ -259,7 +237,7 @@ export class AutoriaComponent extends LitElement {
           class="autoria-input"
           aria-label="Assinaturas Adicionais deputados"
           size="small"
-          .value=${this._autoria.quantidadeAssinaturasAdicionaisDeputados.toString()}
+          .value=${this._autoria?.quantidadeAssinaturasAdicionaisDeputados.toString() ?? '0'}
           @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
         ></sl-input>
       </div>
@@ -283,6 +261,7 @@ export class AutoriaComponent extends LitElement {
   @executarAposValidacao()
   private _moverParlamentar(index: number, deslocamento: number): void {
     this._autoria.parlamentares = moverParlamentar(this._autoria.parlamentares, index, deslocamento);
+    this.agendarEmissaoEventoOnChange('moverAutor');
     this.requestUpdate();
   }
 
@@ -293,6 +272,7 @@ export class AutoriaComponent extends LitElement {
       this._autoria.parlamentares = [{ ...parlamentarVazio }];
     }
     this._podeIncluirParlamentar = this._isAllAutoresOk();
+    this.agendarEmissaoEventoOnChange('excluirAutor');
     this.requestUpdate();
   }
 
@@ -312,6 +292,8 @@ export class AutoriaComponent extends LitElement {
     //     e é preciso dar tempo do @autocomplete ser executado e preencher o input com o nome selecionado antes da validação
     this._timerValidacao = window.setTimeout(
       () => {
+        const auxValorPodeIncluirOriginal = this._podeIncluirParlamentar;
+
         const elLexmlAutocomplete = this._autocompletes[index];
         const cargoAtual = this._autoria.parlamentares[index].cargo;
         const nomeAtual = elLexmlAutocomplete.value ?? '';
@@ -332,11 +314,16 @@ export class AutoriaComponent extends LitElement {
         this._podeIncluirParlamentar = parlamentarEhValido && this._isAllAutoresOk();
 
         this._isProcessandoValidacao = false;
+
+        if (auxValorPodeIncluirOriginal !== this._podeIncluirParlamentar) {
+          this.agendarEmissaoEventoOnChange('atualizarAutor');
+        }
       },
       ev.type === 'blur' ? 200 : 0
     );
   }
 
+  private timerEmitirEventoOnChange = 0;
   private _atualizarParlamentar(ev: CustomEvent, index: number): void {
     const parlamentarAutocomplete = this.parlamentares.find(p => p.nome === ev.detail.value);
     if (parlamentarAutocomplete) {
@@ -349,11 +336,18 @@ export class AutoriaComponent extends LitElement {
     this._podeIncluirParlamentar = !!parlamentarAutocomplete && this._isAllAutoresOk();
     (ev.target as HTMLElement).focus();
     this._lastIndexAutoCompleted = index;
+
+    this.agendarEmissaoEventoOnChange('atualizarAutor');
     this.requestUpdate();
   }
 
   private _atualizarCargo(ev: Event, index: number): void {
-    this._autoria.parlamentares[index].cargo = (ev.target as HTMLInputElement).value;
+    const cargoAtual = this._autoria.parlamentares[index].cargo;
+    const newValue = (ev.target as HTMLInputElement).value;
+    this._autoria.parlamentares[index].cargo = newValue;
+    if (cargoAtual !== newValue) {
+      this.agendarEmissaoEventoOnChange('atualizarAutor');
+    }
   }
 
   private _atualizarQtdAssinaturasAdicionaisSenadores(ev: Event): void {
@@ -406,6 +400,23 @@ export class AutoriaComponent extends LitElement {
 
   private _handleClickAutoComplete(): void {
     window.setTimeout(() => (this._lastIndexAutoCompleted = -1), 0);
+  }
+
+  private agendarEmissaoEventoOnChange(origemEvento: string): void {
+    clearInterval(this.timerEmitirEventoOnChange);
+    this.timerEmitirEventoOnChange = window.setTimeout(() => this.emitirEventoOnChange(origemEvento), 500);
+  }
+
+  private emitirEventoOnChange(origemEvento: string): void {
+    this.dispatchEvent(
+      new CustomEvent('onchange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          origemEvento,
+        },
+      })
+    );
   }
 }
 

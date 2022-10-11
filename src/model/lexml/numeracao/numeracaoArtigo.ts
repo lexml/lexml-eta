@@ -29,11 +29,11 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     private isNumeracaoComComplementoAlfabetico(numero: string): boolean {
-      return /^\d{1,}[º]?([-]?[a-zA-Z]+)?$/.test(numero);
+      return /^\d{1,}[º]?(([-]?[a-zA-Z]+){0,2})$/.test(numero);
     }
 
     private isNumeracaoComComplementoNumerico(numero: string): boolean {
-      return /^\d{1,}[º]?([-]?[1-9]+)?$/.test(numero);
+      return /^\d{1,}[º]?(([-]?[1-9]+){0,2})$/.test(numero);
     }
 
     createNumeroFromRotulo(rotulo: string): void {
@@ -73,7 +73,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
     private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo, paraComandoEmenda = false): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
-      const ordinal = parseInt(num ?? '1', 10) < 10;
+      const ordinal = +(num ?? '1') > 0 && parseInt(num ?? '1', 10) < 10;
       return (
         (ordinal ? num + this.SUFIXO : num) +
         (remaining.length > 0
