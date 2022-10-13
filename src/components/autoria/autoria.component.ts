@@ -313,6 +313,10 @@ export class AutoriaComponent extends LitElement {
         this._autoria.parlamentares[index] = { ...parlamentar };
         this._podeIncluirParlamentar = parlamentarEhValido && this._isAllAutoresOk();
 
+        if (isBlur && !parlamentarEhValido) {
+          elLexmlAutocomplete.value = '';
+        }
+
         this._isProcessandoValidacao = false;
 
         if (auxValorPodeIncluirOriginal !== this._podeIncluirParlamentar) {
