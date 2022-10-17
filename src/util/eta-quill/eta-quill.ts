@@ -171,7 +171,7 @@ export class EtaQuill extends Quill {
   }
 
   getPrimeiraLinha(): EtaContainerTable {
-    return this.scroll.children.head;
+    return this.scroll.children.head.next;
   }
 
   getUltimaLinha(): EtaContainerTable {
