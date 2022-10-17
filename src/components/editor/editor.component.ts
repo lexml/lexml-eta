@@ -356,7 +356,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const content = document.createRange().createContextualFragment(`
       <div class="input-validation-required">
-        <sl-input type="text" placeholder="${getMsgPlaceholder(elemento.tipo ?? '')}" label="Numeração do dispositivo:" clearable></sl-input>
+        <sl-input type="text" help-text="${getMsgPlaceholder(elemento.tipo ?? '')}" label="Numeração do dispositivo:" clearable></sl-input>
         <br/>
       </div>
       <br/>
