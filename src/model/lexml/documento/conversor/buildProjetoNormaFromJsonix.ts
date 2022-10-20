@@ -53,7 +53,7 @@ const getParteInicial = (documento: any): ParteInicial => {
   };
 };
 
-const getTextoArticulado = (norma: any): TextoArticulado => {
+export const getTextoArticulado = (norma: any): TextoArticulado => {
   return {
     articulacao: buildArticulacao(norma.articulacao),
   };
