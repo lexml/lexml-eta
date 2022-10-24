@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isArtigo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isAgrupadorGenerico, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -36,6 +36,10 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
 
   if (resultado.articulacao.filhos?.length > 1 && irmaosMesmoTipo(resultado.articulacao.filhos[0]).length !== resultado.articulacao.filhos.length) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Ainda não é possível importar dispositivos de diferentes tipos na mesma hierarquia' });
+  }
+
+  if (resultado.articulacao.filhos?.filter(filho => isAgrupadorGenerico(filho)).length > 0) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não foi possível identificar os dispositivos no texto' });
   }
 
   if (resultado.articulacao.filhos?.filter(filho => isAgrupador(filho)).length > 0) {

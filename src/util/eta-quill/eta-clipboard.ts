@@ -47,11 +47,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       return super.convert();
     }
 
-    this.container.innerHTML = this.container.innerHTML.replace(CaracteresNaoValidos, '');
-    this.container.innerHTML = this.container.innerHTML.replace(/(<p\s*)/gi, ' <p');
-    this.container.innerHTML = this.container.innerHTML.replace(/(<br\s*\/>)/gi, ' ');
-    this.container.innerHTML = this.container.innerHTML.replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '');
-    this.container.innerHTML = this.container.innerHTML.replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
+    this.container.innerHTML = this.normalizaTexto(this.container.innerHTML);
 
     const delta: DeltaStatic = super.convert();
     this.container.innerHTML = '';
@@ -62,19 +58,6 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     e.preventDefault();
     const range = this.quill.getSelection();
     const html = e?.clipboardData?.getData('text/html');
-
-    if ((html !== undefined && this.hasRotulo(html)) || this.hasRotulo(e.clipboardData!.getData('text/plain'))) {
-      const linha = this.quill.linhaAtual;
-      const elemento: Elemento = new Elemento();
-      elemento.uuid = linha.uuid;
-      elemento.tipo = linha.tipo;
-
-      this.fetchDispositivos(html && html.length > 0 ? html : e.clipboardData!.getData('text/plain'))
-        .then(response => response.json())
-        .then(response => rootStore.dispatch(adicionarElementoFromClipboardAction.execute(elemento, response)))
-        .catch(err => console.error(err));
-      return;
-    }
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
       this.hasRotulo(html);
@@ -97,10 +80,30 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
           text += node.nodeValue;
         }
       });
+      if (text !== undefined && this.hasRotulo(text)) {
+        this.adicionaDispositivos(this.normalizaTexto(text));
+        return;
+      }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
     } else if (e.clipboardData?.getData('text/plain')) {
+      const texto = e.clipboardData!.getData('text/plain');
+      if (texto.trim() !== '' && this.hasRotulo(texto)) {
+        this.adicionaDispositivos(texto);
+        return;
+      }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, e.clipboardData?.getData('text/plain'));
     }
+  }
+
+  private normalizaTexto(texto: string): string {
+    return texto
+      .replace(CaracteresNaoValidos, '')
+      .replace(/(<p\s*)/gi, ' <p')
+      .replace(/(<br\s*\/>)/gi, ' ')
+      .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+      .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
+      .replace(/^["“']/g, '')
+      .trim();
   }
 
   private hasRotulo(texto: string): boolean {
@@ -113,13 +116,21 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     return false;
   }
 
-  private fetchDispositivos(texto: string): Promise<any> {
+  private adicionaDispositivos(texto: string): Promise<any> {
+    const linha = this.quill.linhaAtual;
+    const elemento: Elemento = new Elemento();
+    elemento.uuid = linha.uuid;
+    elemento.tipo = linha.tipo;
+
     const options = {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: texto,
     };
 
-    return fetch('https://www6ghml.senado.leg.br/editor-emendas/api/parser/jsonix', options);
+    return fetch('https://www6ghml.senado.leg.br/editor-emendas/api/parser/jsonix', options)
+      .then(response => response.json())
+      .then(response => rootStore.dispatch(adicionarElementoFromClipboardAction.execute(elemento, response)))
+      .catch(err => console.error(err));
   }
 }

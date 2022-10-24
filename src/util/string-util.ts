@@ -69,7 +69,7 @@ export function removeEspacosDuplicados(str: string): string {
 }
 
 export function removeAllHtmlTags(texto: string): string {
-  return texto.replace(/<.*>.*?/gi, '');
+  return texto.replace(/(<([^>]+)>)/gi, '');
 }
 
 export class StringBuilder {
