@@ -5,7 +5,7 @@ import { rootStore } from '../../redux/store';
 import { cancelarPropagacaoDoEvento } from '../event-util';
 import { Observable } from '../observable';
 import { removeAllHtmlTags } from '../string-util';
-import { CaracteresNaoValidos } from './eta-keyboard';
+// import { CaracteresNaoValidos } from './eta-keyboard';
 import { EtaQuill } from './eta-quill';
 
 const Clipboard = Quill.import('modules/clipboard');
@@ -63,7 +63,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       const parser = new DOMParser().parseFromString(html!, 'text/html');
 
       let text = '';
-      const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB'];
+      const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
       const walkDOM = (node, func) => {
         func(node);
         node = node.firstChild;
@@ -80,6 +80,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
         }
       });
       if (text !== undefined && this.hasRotulo(text)) {
+        text = text.replace(/<p/g, '\n<p').replace(/&nbsp;/g, ' ');
         this.adicionaDispositivos(
           this.normalizaTexto(text)
             .replace(/;[/s]?[e][/s]?$/, '; ')
@@ -102,8 +103,13 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
   }
 
   private normalizaTexto(texto: string): string {
+    // return texto
+    //   .replace(CaracteresNaoValidos, '')
+    //   .replace(/(<p\s*)/gi, ' <p')
+    //   .replace(/(<br\s*\/>)/gi, ' ')
+    //   .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+    //   .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
     return texto
-      .replace(CaracteresNaoValidos, '')
       .replace(/(<p\s*)/gi, ' <p')
       .replace(/(<br\s*\/>)/gi, ' ')
       .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
