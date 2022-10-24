@@ -80,7 +80,14 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
         }
       });
       if (text !== undefined && this.hasRotulo(text)) {
-        this.adicionaDispositivos(this.normalizaTexto(text));
+        this.adicionaDispositivos(
+          this.normalizaTexto(text)
+            .replace(/;[/s]?[e][/s]?$/, '; ')
+            .replace('-', ' - ')
+            .replace('—', ' — ')
+            .replace(';', '; ')
+            .replace(/^["“']/g, '')
+        );
         return;
       }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
@@ -100,10 +107,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/(<p\s*)/gi, ' <p')
       .replace(/(<br\s*\/>)/gi, ' ')
       .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
-      .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
-      .replace(';', '; ')
-      .replace(/^["“']/g, '')
-      .trim();
+      .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
   }
 
   private hasRotulo(texto: string): boolean {
