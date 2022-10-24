@@ -38,8 +38,20 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Ainda não é possível importar dispositivos de diferentes tipos na mesma hierarquia' });
   }
 
+  if (
+    isArtigo(atual) &&
+    atual.alteracoes &&
+    resultado.articulacao.filhos?.filter(filho => isAgrupadorGenerico(filho)).length === 0 &&
+    resultado.articulacao.filhos[0].tipo !== atual.tipo
+  ) {
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: `Não é permitido colar ${resultado.articulacao.filhos[0].tipo} em artigo que propõe alterações`,
+    });
+  }
+
   if (resultado.articulacao.filhos?.filter(filho => isAgrupadorGenerico(filho)).length > 0) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não foi possível identificar os dispositivos no texto' });
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não foi possível identificar os dispositivos no texto.' });
   }
 
   if (resultado.articulacao.filhos?.filter(filho => isAgrupador(filho)).length > 0) {
@@ -58,7 +70,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
   resultado.articulacao.filhos.forEach((filho, index) => {
     criaAtributosComuns(filho, state);
 
-    if (filho.tipo === atual.tipo && isArtigo(atual) && atual.alteracoes) {
+    if (isArtigo(atual) && atual.alteracoes) {
       filho.pai = atual.alteracoes;
       filho.cabecaAlteracao = true;
       filho.notaAlteracao = 'NR';

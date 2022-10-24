@@ -60,7 +60,6 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     const html = e?.clipboardData?.getData('text/html');
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
-      this.hasRotulo(html);
       const parser = new DOMParser().parseFromString(html!, 'text/html');
 
       let text = '';
@@ -102,6 +101,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/(<br\s*\/>)/gi, ' ')
       .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
       .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
+      .replace(';', '; ')
       .replace(/^["“']/g, '')
       .trim();
   }
