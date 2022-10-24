@@ -1,6 +1,6 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isAgrupadorGenerico, isArtigo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isAgrupadorGenerico, isArtigo, isInciso } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -84,7 +84,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
       }
       atual.pai?.addFilhoOnPosition(filho, atual.pai!.indexOf(atual) + 1);
     } else {
-      filho.pai = atual;
+      filho.pai = isInciso(filho) && isArtigo(atual) ? (atual as Artigo).caput : atual;
       atual.addFilho(filho);
     }
     filho.filhos && atualizaAtributosDosFilhos(filho, state);
