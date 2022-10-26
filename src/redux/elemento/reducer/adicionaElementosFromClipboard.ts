@@ -4,7 +4,7 @@ import { isAgrupador, isAgrupadorGenerico, isArtigo, isInciso } from '../../../m
 import { Elemento } from '../../../model/elemento';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { buildDispositivoFromJsonix } from '../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
-import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -31,10 +31,6 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
 
   if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && resultado.articulacao.filhos && isColandoFilhos(resultado.articulacao.filhos, atual)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível colar filhos em dispositivo suprimido' });
-  }
-
-  if (resultado.articulacao.filhos?.length > 1 && irmaosMesmoTipo(resultado.articulacao.filhos[0]).length !== resultado.articulacao.filhos.length) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Ainda não é possível importar dispositivos de diferentes tipos na mesma hierarquia' });
   }
 
   if (
