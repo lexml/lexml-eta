@@ -5,7 +5,7 @@ import { rootStore } from '../../redux/store';
 import { cancelarPropagacaoDoEvento } from '../event-util';
 import { Observable } from '../observable';
 import { removeAllHtmlTags } from '../string-util';
-// import { CaracteresNaoValidos } from './eta-keyboard';
+import { CaracteresNaoValidos } from './eta-keyboard';
 import { EtaQuill } from './eta-quill';
 
 const Clipboard = Quill.import('modules/clipboard');
@@ -34,8 +34,6 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       }
       const text = ev.clipboardData?.getData('text/plain');
       if (text) {
-        /*         const range = this.quill.getSelection();
-        this.quill.clipboard.dangerouslyPasteHTML(range.index, text); */
         this.onChange.notify('clipboard');
       }
     });
@@ -47,7 +45,12 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       return super.convert();
     }
 
-    this.container.innerHTML = this.normalizaTexto(this.container.innerHTML);
+    this.container.innerHTML = this.container.innerHTML
+      .replace(CaracteresNaoValidos, '')
+      .replace(/(<p\s*)/gi, ' <p')
+      .replace(/(<br\s*\/>)/gi, ' ')
+      .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+      .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
 
     const delta: DeltaStatic = super.convert();
     this.container.innerHTML = '';
@@ -82,12 +85,15 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       if (text !== undefined && this.hasRotulo(text)) {
         text = text.replace(/<p/g, '\n<p').replace(/&nbsp;/g, ' ');
         this.adicionaDispositivos(
-          this.normalizaTexto(text)
+          text
+            .replace(/(<p\s*)/gi, ' <p')
+            .replace(/(<br\s*\/>)/gi, ' ')
+            .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+            .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
             .replace(/;[/s]?[e][/s]?$/, '; ')
-            .replace('-', ' - ')
-            .replace('—', ' — ')
             .replace(';', '; ')
             .replace(/^["“']/g, '')
+            .normalize('NFKD')
         );
         return;
       }
@@ -102,22 +108,11 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     }
   }
 
-  private normalizaTexto(texto: string): string {
-    // return texto
-    //   .replace(CaracteresNaoValidos, '')
-    //   .replace(/(<p\s*)/gi, ' <p')
-    //   .replace(/(<br\s*\/>)/gi, ' ')
-    //   .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
-    //   .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
-    return texto
-      .replace(/(<p\s*)/gi, ' <p')
-      .replace(/(<br\s*\/>)/gi, ' ')
-      .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
-      .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
-  }
-
   private hasRotulo(texto: string): boolean {
-    const t = removeAllHtmlTags(texto)?.replace(/["“']/g, '').trim();
+    const t = removeAllHtmlTags(texto)
+      ?.replace(/&nbsp;/g, ' ')
+      .replace(/["“']/g, '')
+      .trim();
 
     if (t && t.length > 0 && /^(art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s[-–]{1}|[az]{1,2}\)).*/i.test(t)) {
       return true;
