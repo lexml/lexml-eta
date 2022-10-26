@@ -83,7 +83,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
     }
     criaAtributosComuns(filho, state);
 
-    filho.filhos && atualizaAtributosDosFilhos(filho, state);
+    filho.filhos && criaFilhos(filho, state);
     elementosAdicionados.push(...getElementos(filho));
   });
 
@@ -106,12 +106,10 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
   };
 };
 
-const atualizaAtributosDosFilhos = (atual: Dispositivo, state: any): void => {
+const criaFilhos = (atual: Dispositivo, state: any): void => {
   atual.filhos.forEach(filho => {
-    filho.pai = atual;
-    atual.addFilho(filho);
     criaAtributosComuns(filho, state);
-    filho.filhos && atualizaAtributosDosFilhos(filho, state);
+    filho.filhos && criaFilhos(filho, state);
   });
 };
 
