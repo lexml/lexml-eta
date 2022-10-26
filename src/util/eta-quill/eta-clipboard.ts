@@ -60,9 +60,20 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
   onPaste(e: ClipboardEvent): void {
     e.preventDefault();
     const range = this.quill.getSelection();
-    const html = e?.clipboardData?.getData('text/html');
+    let html = e?.clipboardData?.getData('text/html');
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
+      html = html
+        .replace(/<p/g, '\n<p')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/(<p\s*)/gi, ' <p')
+        .replace(/(<br\s*\/>)/gi, ' ')
+        .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+        .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
+        .replace(/;[/s]?[e][/s]?$/, '; ')
+        .replace(';', '; ')
+        .replace(/^["“']/g, '')
+        .normalize('NFKD');
       const parser = new DOMParser().parseFromString(html!, 'text/html');
 
       let text = '';
@@ -83,18 +94,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
         }
       });
       if (text !== undefined && this.hasRotulo(text)) {
-        text = text.replace(/<p/g, '\n<p').replace(/&nbsp;/g, ' ');
-        this.adicionaDispositivos(
-          text
-            .replace(/(<p\s*)/gi, ' <p')
-            .replace(/(<br\s*\/>)/gi, ' ')
-            .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
-            .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
-            .replace(/;[/s]?[e][/s]?$/, '; ')
-            .replace(';', '; ')
-            .replace(/^["“']/g, '')
-            .normalize('NFKD')
-        );
+        this.adicionaDispositivos(text);
         return;
       }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
