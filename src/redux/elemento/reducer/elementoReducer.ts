@@ -1,3 +1,4 @@
+import { ADICIONAR_AGRUPADOR_ARTIGO } from './../../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { ADICIONAR_ALERTA } from '../../../model/alerta/acao/adicionarAlerta';
 import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
 import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
@@ -66,6 +67,8 @@ import { validaElemento } from './validaElemento';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
+    case ADICIONAR_AGRUPADOR_ARTIGO:
+      return agrupaElemento(state, action);
     case INFORMAR_EXISTENCIA_NA_NORMA:
       return informaExistenciaDoElementoNaNorma(state, action);
     case ATUALIZAR_NOTA_ALTERACAO:

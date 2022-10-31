@@ -1,3 +1,4 @@
+import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elementoUtil';
@@ -74,6 +75,10 @@ export class EtaContainerTable extends Container {
 
   get blotConteudo(): EtaBlotConteudo {
     return this.findBlot(EtaBlotConteudo.blotName) as EtaBlotConteudo;
+  }
+
+  get blotAbreAspas(): EtaBlotAbreAspas {
+    return this.children.head.children.head.children.head;
   }
 
   get blotFechaAspas(): EtaBlotFechaAspas {
@@ -232,6 +237,7 @@ export class EtaContainerTable extends Container {
     } else {
       this.domNode.removeAttribute('existenanormaalterada');
     }
+    this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);
     this.blotExistencia.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);

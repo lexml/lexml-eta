@@ -1,3 +1,4 @@
+import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
@@ -146,6 +147,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
       }
+
+      acoes.push(adicionarAgrupadorArtigoAntesAction);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

@@ -1,3 +1,5 @@
+import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
+import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
@@ -308,6 +310,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private editarNotaAlteracao(elemento: Elemento): void {
     editarNotaAlteracaoDialog(elemento, this.quill, rootStore);
+  }
+
+  private adicionarAgrupadorArtigo(elemento: Elemento): void {
+    adicionarAgrupadorArtigoDialog(elemento, this.quill, rootStore);
   }
 
   private async renumerarElemento(): Promise<any> {
@@ -640,6 +646,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     } else if (itemMenu === atualizarNotaAlteracaoAction) {
       this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
+    } else if (itemMenu instanceof AdicionarAgrupadorArtigo) {
+      this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);

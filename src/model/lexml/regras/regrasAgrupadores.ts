@@ -1,3 +1,4 @@
+// import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
@@ -48,6 +49,8 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
+
+      // acoes.push(adicionarAgrupadorArtigoAction);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

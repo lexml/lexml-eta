@@ -1,3 +1,4 @@
+import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './adicionarAgrupadorArtigoAction';
 import { atualizarNotaAlteracaoAction } from './atualizarNotaAlteracaoAction';
 import { Referencia } from '../../elemento';
 import {
@@ -130,6 +131,9 @@ acoesMenu.push(adicionarItemAntes);
 acoesMenu.push(adicionarItemDepois);
 acoesMenu.push(adicionarParagrafoAntes);
 acoesMenu.push(adicionarParagrafoDepois);
+
+acoesMenu.push(adicionarAgrupadorArtigoAction);
+acoesMenu.push(adicionarAgrupadorArtigoAntesAction);
 
 export const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);
