@@ -27,7 +27,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   }
 
   if (!isAcaoTransformacaoPermitida(atual, action)) {
-    return state;
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível transformar o dispositivo' });
   }
 
   const dispositivoAnteriorAtual = getDispositivoAnterior(atual);

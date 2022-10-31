@@ -30,7 +30,7 @@ export class AtalhosComponent extends LitElement {
       <div class="lx-eta-help">
         <div class="lx-eta-help-content">
           <div><b>Ctrl+Shift+A</b>&nbsp;-&nbsp;Seleciona o texto do dispositivo atual</div>
-          <div><b>Ctrl+A</b>&nbsp;-&nbsp;Seleciona todos os dispositivos da articulação</div>
+          <!-- <div><b>Ctrl+A</b>&nbsp;-&nbsp;Seleciona todos os dispositivos da articulação</div> -->
           <div><b>Ctrl+Home</b>&nbsp;-&nbsp;Vai para o primeiro dispositivo</div>
           <div><b>Ctrl+End</b>&nbsp;-&nbsp;Vai para o último dispositivo</div>
           <div><b>Alt+&uarr;</b>&nbsp;-&nbsp;Move o dispositivo acima</div>

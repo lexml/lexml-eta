@@ -325,6 +325,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
 
     if (!podeRenumerar(rootStore.getState().elementoReducer.articulacao, elemento)) {
+      this.alertar('Nessa situação, não é possível renumerar o dispositivo');
       return;
     }
 
