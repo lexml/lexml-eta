@@ -227,8 +227,7 @@ export class EtaContainerTable extends Container {
       this.domNode.classList.add(classeCSS);
     }
 
-    this.blotRotulo?.domNode.setAttribute('class', `${EtaBlotRotulo.getClasseCSS(elemento)} ${classeCSS}`);
-    // this.blotConteudo.domNode.setAttribute('class', `${EtaBlotConteudo.getClasseCSS(elemento)} ${classeCSS} ${classeCSSAdicional}`);
+    this.blotRotulo!.setEstilo(elemento);
   }
 
   atualizarAtributos(elemento: Elemento): void {
