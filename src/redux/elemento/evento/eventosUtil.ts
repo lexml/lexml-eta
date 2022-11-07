@@ -150,13 +150,15 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
   const referencia = isArticulacao(dispositivoAnterior) ? pai : getUltimoFilho(dispositivoAnterior);
 
+  let posNoPaiNovo = pai.filhos.length;
   const dispositivos = atual.filhos.map(d => {
     d.pai = pai;
     paiOriginal!.removeFilho(d);
 
     resetUuidTodaArvore(d);
     if (agrupadoresAnteriorMesmoTipo?.length > 0) {
-      pai!.addFilho(d);
+      // pai!.addFilho(d);
+      pai!.addFilhoOnPosition(d, posNoPaiNovo++);
     } else {
       pai!.addFilhoOnPosition(d, pos++);
     }
