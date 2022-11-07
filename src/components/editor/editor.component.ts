@@ -626,7 +626,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private marcarLinha(event: StateEvent): void {
     this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
     const elemento = event.elementos![0];
-    const linha = this.quill.getLinha(elemento.uuid!)!;
+    const linha = (this.quill.getLinhaByLexmlId(elemento.lexmlId ?? '') || this.quill.getLinha(elemento.uuid!))!;
     this.quill.atualizarLinhaCorrente(linha);
     this.elementoSelecionado(linha.uuid);
     const index = this.quill.getIndex(linha.blotConteudo);
