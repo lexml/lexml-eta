@@ -368,8 +368,13 @@ export const editorStyles = html`
       -ms-hyphens: auto;
       hyphens: auto;
     }
+
     .dispositivo--adicionado br {
       content: '';
+    }
+
+    .agrupador br {
+      content: normal;
     }
 
     .dispositivo--adicionado {
