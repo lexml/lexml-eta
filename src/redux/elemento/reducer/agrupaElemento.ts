@@ -16,6 +16,7 @@ import {
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
@@ -76,6 +77,10 @@ export const agrupaElemento = (state: any, action: any): State => {
     novo = criaDispositivo(atual.pai!, action.novo.tipo, undefined, atual.pai!.indexOf(atual));
     ref = dispositivoAnterior ?? atual.pai!;
   }
+
+  novo.situacao = new DispositivoAdicionado();
+  (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+
   novo.texto = action.novo.conteudo?.texto;
   const dispositivos = atual.pai!.filhos.filter((f: Dispositivo, index: number) => index >= pos && f.tipo !== action.novo.tipo);
   copiaDispositivosParaOutroPai(novo, dispositivos);
@@ -99,8 +104,8 @@ export const agrupaElemento = (state: any, action: any): State => {
   eventos.setReferencia(createElemento(ajustaReferencia(ref!.pai && isArticulacao(ref!) && isArticulacaoAlteracao(ref as Articulacao) ? ref!.pai : ref!, novo)));
   eventos.add(StateType.ElementoIncluido, getElementos(novo));
   eventos.add(StateType.ElementoRemovido, removidos);
-
   eventos.add(StateType.ElementoRenumerado, renumerados);
+  eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
 
   return {
     articulacao: state.articulacao,

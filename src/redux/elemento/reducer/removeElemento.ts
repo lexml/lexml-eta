@@ -1,3 +1,6 @@
+import { createElemento } from './../../../model/elemento/elementoUtil';
+import { StateType } from './../../state';
+import { getDispositivoPosterior, getDispositivoAnterior } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
@@ -27,7 +30,16 @@ export const removeElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir o único dispositivo disponível.' });
   }
 
+  const primeiroFilhoDoAgrupador = isAgrupador(dispositivo) ? dispositivo.filhos[0] || getDispositivoPosterior(dispositivo) || getDispositivoAnterior(dispositivo) : undefined;
+
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state.articulacao, dispositivo);
+
+  if (primeiroFilhoDoAgrupador) {
+    events.push({
+      stateType: StateType.ElementoMarcado,
+      elementos: [createElemento(primeiroFilhoDoAgrupador)],
+    });
+  }
 
   return {
     articulacao: state.articulacao,
