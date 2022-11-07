@@ -18,6 +18,7 @@ export class EtaKeyboard extends Keyboard {
   moveElemento: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
   onChange: Observable<string> = new Observable<string>();
   toggleExistencia: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
+  adicionaAgrupador: Observable<KeyboardEvent> = new Observable<KeyboardEvent>();
 
   private altGraphPressionado = false;
 
@@ -106,6 +107,8 @@ export class EtaKeyboard extends Keyboard {
             this.onHotKeyRenumeraDispositivo(ev);
           } else if (['x', '≈'].includes(ev.key.toLowerCase())) {
             this.onHotKeyToggleExistencia(ev);
+          } else if (['g'].includes(ev.key.toLowerCase())) {
+            this.onHotKeyAdicionaAgrupador(ev);
           }
           // Trata caracteres especiais da tecla Alt mo MacOS/Chrome
           // para os atalhos a, l, n, o, p, t
@@ -406,6 +409,11 @@ export class EtaKeyboard extends Keyboard {
 
   private onHotKeyToggleExistencia(ev: KeyboardEvent): void {
     this.toggleExistencia.notify(ev);
+    cancelarPropagacaoDoEvento(ev);
+  }
+
+  private onHotKeyAdicionaAgrupador(ev: KeyboardEvent): void {
+    this.adicionaAgrupador.notify(ev);
     cancelarPropagacaoDoEvento(ev);
   }
 

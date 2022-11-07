@@ -124,6 +124,7 @@ declare interface KeyboardStatic {
   onScript: any;
   onChange: any;
   toggleExistencia: any;
+  adicionaAgrupador: any;
 }
 
 declare interface ClipboardStatic {

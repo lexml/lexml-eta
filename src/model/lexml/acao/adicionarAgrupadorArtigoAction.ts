@@ -6,6 +6,7 @@ export const ADICIONAR_AGRUPADOR_ARTIGO = 'ADICIONAR_AGRUPADOR_ARTIGO';
 export class AdicionarAgrupadorArtigo implements ElementoAction {
   descricao: string;
   posicao?: string;
+  hotkey = '(Ctrl+Alt+G)';
 
   constructor(posicao?: string) {
     this.descricao = 'Adicionar agrupador de artigo' + (posicao ? ' ' + posicao : '');

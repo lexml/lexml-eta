@@ -1,7 +1,10 @@
-import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { Elemento } from '../../model/elemento';
+import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 
 export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, store: any): void => {
+  const tipoPai = elemento.hierarquia?.pai?.tipo;
+  const defaultValue = elemento.agrupador ? elemento.tipo : tipoPai === 'Articulacao' ? 'Capitulo' : tipoPai;
+
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Adicionar agrupador de artigo';
@@ -19,7 +22,7 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
     }
   </style>
   <div class="agrupadores">
-    <sl-select name="tipoAgrupador" id="tipoAgrupador" label="Agrupador" clearable>
+    <sl-select name="tipoAgrupador" id="tipoAgrupador" label="Agrupador" clearable value="${defaultValue}">
       <sl-menu-item value="Parte">Parte</sl-menu-item>
       <sl-menu-item value="Livro">Livro</sl-menu-item>
       <sl-menu-item value="Titulo">Título</sl-menu-item>
@@ -43,7 +46,6 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   ok.onclick = (): void => {
     const tipo = (tipoAgrupador as any).value;
     if (tipo) {
-      console.log(11111, 'tipo agrupador', tipo);
       store.dispatch(action.execute(elemento, tipo));
     }
     dialogElem?.hide();

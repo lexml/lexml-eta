@@ -312,10 +312,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editarNotaAlteracaoDialog(elemento, this.quill, rootStore);
   }
 
-  private adicionarAgrupadorArtigo(elemento: Elemento): void {
-    adicionarAgrupadorArtigoDialog(elemento, this.quill, rootStore);
-  }
-
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const atual = linha.blotConteudo.html;
@@ -448,6 +444,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha.existeNaNormaAlterada
     );
     this.toggleExistenciaElemento(elemento);
+  }
+
+  private adicionaAgrupador(): void {
+    this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
+  }
+
+  private adicionarAgrupadorArtigo(elemento: Elemento): void {
+    adicionarAgrupadorArtigoDialog(elemento, this.quill, rootStore);
   }
 
   private toggleExistenciaElemento(elemento: Elemento): void {
@@ -682,9 +686,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
-      this.quill.linhaAtual.descricaoSituacao = elemento.descricaoSituacao;
-      this.quill.linhaAtual.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-      this.quill.linhaAtual.setEstilo(elemento!);
+      novaLinha.descricaoSituacao = elemento.descricaoSituacao;
+      novaLinha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+      novaLinha.setEstilo(elemento!);
     }
   }
 
@@ -913,6 +917,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.renumeraElemento.subscribe(this.renumerarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.toggleExistencia.subscribe(this.toggleExistencia.bind(this)));
+    this.inscricoes.push(this.quill.keyboard.adicionaAgrupador.subscribe(this.adicionaAgrupador.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 
