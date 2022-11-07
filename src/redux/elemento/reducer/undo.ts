@@ -48,10 +48,17 @@ export const undo = (state: any): State => {
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
 
-  const elementosParaMarcar = getEvento(eventos, StateType.ElementoMarcado)?.elementos;
-  if (elementosParaMarcar) {
-    events.add(StateType.ElementoMarcado, [elementosParaMarcar[1], elementosParaMarcar[0]]);
-    events.add(StateType.ElementoSelecionado, [elementosParaMarcar[1]]);
+  const incluidos = events.get(StateType.ElementoIncluido);
+  const primeiroElementoIncluidoEhAgrupador = !incluidos.elementos || !incluidos.elementos.length ? false : incluidos.elementos[0].agrupador;
+  if (primeiroElementoIncluidoEhAgrupador) {
+    events.add(StateType.ElementoMarcado, [incluidos.elementos![0]]);
+    events.add(StateType.ElementoSelecionado, [incluidos.elementos![0]]);
+  } else {
+    const elementosParaMarcar = getEvento(eventos, StateType.ElementoMarcado)?.elementos;
+    if (elementosParaMarcar) {
+      events.add(StateType.ElementoMarcado, [elementosParaMarcar[1], elementosParaMarcar[0]]);
+      events.add(StateType.ElementoSelecionado, [elementosParaMarcar[1]]);
+    }
   }
 
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
