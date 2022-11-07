@@ -67,6 +67,9 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   if (elemento.descricaoSituacao === 'Dispositivo Adicionado') {
     (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   }
+  if (isArtigo(novo)) {
+    (novo as Artigo).caput!.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
+  }
   return novo;
 };
 
