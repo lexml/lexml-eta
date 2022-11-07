@@ -26,8 +26,9 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     private normalizaNumeracao(numero: string): string {
-      const num = /[CDILMVX]+(-[a-zA-Z]+)*/.exec(numero);
-      return num ? num[0] : addSpaceRegex(numero).trim().replace(/-$/, '').trim();
+      const numeracao = numero.split(' ')[1] ?? numero;
+      const num = /[CDILMVX]+(-[a-zA-Z]+)*/.exec(numeracao);
+      return num ? num[0] : addSpaceRegex(numeracao).trim().replace(/-$/, '').trim();
     }
 
     createNumeroFromRotulo(rotulo: string): void {

@@ -174,6 +174,11 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     .map(d => createElemento(d))
     .flat();
 
+  const renumeradosPaiOriginal =
+    paiOriginal?.filhos
+      .filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO)
+      .map(d => createElemento(d)) || [];
+
   if (irmaoAnterior && irmaosMesmoTipo(irmaoAnterior).length === 1) {
     renumerados.unshift(createElemento(irmaoAnterior));
   }
@@ -183,7 +188,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   eventos.add(StateType.ElementoIncluido, incluidos);
   eventos.add(StateType.ElementoRemovido, removidos);
 
-  eventos.add(StateType.ElementoRenumerado, renumerados);
+  eventos.add(StateType.ElementoRenumerado, [...renumerados, ...renumeradosPaiOriginal]);
   return eventos.build();
 };
 
