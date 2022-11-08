@@ -281,7 +281,7 @@ export class DemoView extends LitElement {
             <option value="codcivil_completo">Código Civil Completo</option>
             <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
-            <option value="plc_artigos_agrupados">PLC Artigos Agrupados</option>
+            <option value="plc_artigos_agrupados">PLC artigos agrupados</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>

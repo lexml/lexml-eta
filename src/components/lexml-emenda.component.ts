@@ -258,7 +258,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         const alerta = {
           id: 'alerta-global-justificativa',
           tipo: 'error',
-          mensagem: 'A Emenda não possui uma justificativa',
+          mensagem: 'A emenda não possui uma justificativa',
           podeFechar: false,
         };
         rootStore.dispatch(adicionarAlerta(alerta));

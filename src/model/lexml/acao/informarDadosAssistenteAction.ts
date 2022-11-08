@@ -7,7 +7,7 @@ export class InformarDadosAssistente implements ElementoAction {
   tipo?: string;
 
   constructor() {
-    this.descricao = 'Adicionar Artigo para alterar outra norma';
+    this.descricao = 'Adicionar artigo para alterar outra norma';
   }
 
   execute(atual: Referencia): any {
