@@ -16,35 +16,31 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   });
 
   const content = document.createRange().createContextualFragment(`
-  <style>
-    .agrupadores {
-      min-height: 300px;
-    }
-  </style>
   <div class="agrupadores">
-    <sl-select name="tipoAgrupador" id="tipoAgrupador" label="Agrupador" clearable value="${defaultValue}">
-      <sl-menu-item value="Parte">Parte</sl-menu-item>
-      <sl-menu-item value="Livro">Livro</sl-menu-item>
-      <sl-menu-item value="Titulo">Título</sl-menu-item>
-      <sl-menu-item value="Capitulo">Capítulo</sl-menu-item>
-      <sl-menu-item value="Secao"">Seção</sl-menu-item>
-      <sl-menu-item value="Subsecao"">Subseção</sl-menu-item>
-    </sl-select>
+    <sl-radio-group fieldset label="">
+      <sl-radio class="opcao-agrupador" id="Parte" value="Parte">Parte</sl-radio>
+      <sl-radio class="opcao-agrupador" id="Livro" value="Livro">Livro</sl-radio>
+      <sl-radio class="opcao-agrupador" id="Titulo" value="Titulo">Título</sl-radio>
+      <sl-radio class="opcao-agrupador" id="Capitulo" value="Capitulo">Capítulo</sl-radio>
+      <sl-radio class="opcao-agrupador" id="Secao" value="Secao">Seção</sl-radio>
+      <sl-radio class="opcao-agrupador" id="Subsecao" value="Subsecao">Subseção</sl-radio>
+    </sl-radio-group>
   </div>
   <sl-button slot="footer" variant="default">Cancelar</sl-button>
   <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
 
+  const opcoes = Array.from(content.querySelectorAll('.opcao-agrupador'));
+  (opcoes.find(el => (el as any).value === defaultValue) as any).checked = true;
+
   const botoes = content.querySelectorAll('sl-button');
   const cancelar = botoes[0];
   const ok = botoes[1];
 
-  const tipoAgrupador = content.querySelector('#tipoAgrupador');
-
   const action = elemento.tipo === 'Artigo' ? adicionarAgrupadorArtigoAction : adicionarAgrupadorArtigoAntesAction;
 
   ok.onclick = (): void => {
-    const tipo = (tipoAgrupador as any).value;
+    const tipo = (document.querySelector('sl-radio.opcao-agrupador[aria-checked="true"]') as any).value;
     if (tipo) {
       store.dispatch(action.execute(elemento, tipo));
     }
