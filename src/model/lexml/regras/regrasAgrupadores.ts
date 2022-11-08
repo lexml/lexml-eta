@@ -2,6 +2,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { adicionarAgrupadorArtigoAction } from '../acao/adicionarAgrupadorArtigoAction';
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../acao/adicionarElementoAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
@@ -50,7 +51,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         acoes.push(renumerarElementoAction);
       }
 
-      // acoes.push(adicionarAgrupadorArtigoAction);
+      acoes.push(adicionarAgrupadorArtigoAction);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
