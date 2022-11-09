@@ -38,7 +38,7 @@ const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined
 export const adicionaElemento = (state: any, action: any): State => {
   let textoModificado = false;
 
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  let atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
     state.ui.events = [];
@@ -77,7 +77,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     }
   }
 
-  const ref =
+  let ref =
     atual.pai!.indexOf(atual) === 0
       ? !action.posicao && atual.hasAlteracao()
         ? atual
@@ -119,6 +119,10 @@ export const adicionaElemento = (state: any, action: any): State => {
     } else if (isAgrupador(atual) && action.novo.tipo === TipoDispositivo.artigo.tipo) {
       if (action.posicao === 'antes') {
         const anterior = getProximoArtigoAnterior(atual.pai!, atual);
+        if (anterior) {
+          atual = anterior;
+          ref = anterior;
+        }
         novo = criaDispositivo(atual.pai!, action.novo.tipo, anterior, !anterior ? 0 : undefined);
       } else {
         novo = criaDispositivo(atual, action.novo.tipo, undefined, 0);

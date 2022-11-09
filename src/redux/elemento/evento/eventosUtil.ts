@@ -1,3 +1,4 @@
+import { hasFilhos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isCaput } from '../../../model/dispositivo/tipo';
@@ -148,7 +149,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const pai = agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
   const dispositivoAnterior =
     agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
-  const referencia = isArticulacao(dispositivoAnterior) ? pai : getUltimoFilho(dispositivoAnterior);
+  const referencia = isArticulacao(dispositivoAnterior) || (hasFilhos(pai) && pai.filhos[0].id === atual.id) ? pai : getUltimoFilho(dispositivoAnterior);
 
   let posNoPaiNovo = pai.filhos.length;
   const dispositivos = atual.filhos.map(d => {

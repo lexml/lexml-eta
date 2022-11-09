@@ -1,3 +1,4 @@
+import { isAgrupador } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArticulacao } from '../../../model/dispositivo/tipo';
@@ -23,7 +24,7 @@ import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupad
 import { buildPast } from '../util/stateReducerUtil';
 
 export const agrupaElemento = (state: any, action: any): State => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  let atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
@@ -51,6 +52,10 @@ export const agrupaElemento = (state: any, action: any): State => {
         alertas: state.ui?.alertas,
       },
     };
+  }
+
+  if (isAgrupador(atual) && (atual.tipo === action.novo.tipo || atual.tiposPermitidosFilhos?.includes(action.novo.tipo))) {
+    atual = atual.filhos[0]!;
   }
 
   const dispositivoAnterior = getDispositivoAnterior(atual);
@@ -89,7 +94,7 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   const renumerados = [...buildListaElementosRenumerados(novo)].concat(
     novo.filhos
-      .filter((f: Dispositivo, index: number) => index >= pos && f.tipo !== atual.tipo)
+      .filter((f: Dispositivo, index: number) => index >= pos && f.tipo !== atual!.tipo)
       .map((d: Dispositivo) => getElementos(d))
       .flat()
   );

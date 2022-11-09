@@ -189,13 +189,6 @@ export class EtaQuill extends Quill {
     }
   }
 
-  getLinhaByLexmlId(lexmlId: string, linha: EtaContainerTable = this.getPrimeiraLinha()): EtaContainerTable | undefined {
-    if (linha.lexmlId === lexmlId) {
-      return linha;
-    }
-    return linha.next ? this.getLinhaByLexmlId(lexmlId, linha.next) : undefined;
-  }
-
   getLinhaPorId(uuid: number): EtaContainerTable {
     return Quill.find(this.getHtmlElement(EtaContainerTable.criarId(uuid)), false);
   }
