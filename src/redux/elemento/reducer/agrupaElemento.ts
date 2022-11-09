@@ -3,7 +3,6 @@ import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArticulacao } from '../../../model/dispositivo/tipo';
 import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
-import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
   getAgrupadorAcimaByTipo,
@@ -20,7 +19,7 @@ import {
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual, textoFoiModificado } from '../util/reducerUtil';
+import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
 export const agrupaElemento = (state: any, action: any): State => {
@@ -65,9 +64,9 @@ export const agrupaElemento = (state: any, action: any): State => {
     .map(d => getElementos(d))
     .flat();
 
-  if (textoFoiModificado(atual, action)) {
-    atual.texto = !isDispositivoAlteracao(atual) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
-  }
+  // if (textoFoiModificado(atual, action)) {
+  //   atual.texto = !isDispositivoAlteracao(atual) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
+  // }
 
   let novo;
   let ref: any = undefined;
