@@ -21,6 +21,7 @@ import '@shoelace-style/shoelace/dist/components/select/select';
 import '@shoelace-style/shoelace/dist/components/button/button';
 import '@shoelace-style/shoelace/dist/components/split-panel/split-panel';
 import '@shoelace-style/shoelace/dist/components/radio/radio';
+import '@shoelace-style/shoelace/dist/components/details/details';
 // ---------------------------------------------------
 
 export { ArticulacaoComponent } from './components/articulacao.component';
