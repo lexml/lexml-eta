@@ -86,6 +86,7 @@ export class DispositivoEmendaModificado extends DispositivoEmenda {
 export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
   idPai?: string;
   idIrmaoAnterior?: string;
+  idPosicaoAgrupador?: string;
   urnNormaAlterada?: string;
   existeNaNormaAlterada?: boolean;
   filhos?: Array<DispositivoEmendaAdicionado>;

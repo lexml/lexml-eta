@@ -52,6 +52,14 @@ export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {
   }
 };
 
+export const getFilhosEstiloLexML = (d: Dispositivo): Dispositivo[] => {
+  if (isArtigo(d)) {
+    const artigo = d as Artigo;
+    return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f) || (isOmissis(f) && !isCaput(f.pai!)))];
+  }
+  return [...d.filhos];
+};
+
 export const irmaosMesmoTipo = (dispositivo: Dispositivo): Dispositivo[] => {
   return isArtigo(dispositivo)
     ? getArticulacao(dispositivo).artigos.filter(f => f.tipo === dispositivo.tipo)
@@ -243,6 +251,24 @@ export const getDispositivoAnteriorMesmoTipoInclusiveOmissis = (dispositivo: Dis
 
   const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && (f.tipo === dispositivo.tipo || f.tipo === omissis.tipo));
   return irmaos.pop();
+};
+
+// Retorna dispositivo imediatamente anterior na sequência de leitura.
+export const getDispositivoAnteriorDireto = (d: Dispositivo): Dispositivo => {
+  const pai = d.pai as Dispositivo;
+  const irmaos = getFilhosEstiloLexML(pai);
+  const i = irmaos.indexOf(d);
+  if (i > 0) {
+    d = irmaos[i - 1];
+  } else {
+    return pai;
+  }
+  let filhos = getFilhosEstiloLexML(d);
+  while (filhos.length) {
+    d = filhos[filhos.length - 1];
+    filhos = getFilhosEstiloLexML(d);
+  }
+  return d;
 };
 
 export const getDispositivoPosterior = (dispositivo: Dispositivo): Dispositivo | undefined => {

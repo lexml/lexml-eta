@@ -1,6 +1,12 @@
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
-import { getDispositivoPosterior, isUltimaAlteracao, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAnteriorDireto,
+  getDispositivoPosterior,
+  getFilhosEstiloLexML,
+  isUltimaAlteracao,
+  percorreHierarquiaDispositivos,
+} from '../model/lexml/hierarquia/hierarquiaUtil';
 import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
@@ -323,29 +329,14 @@ export class CmdEmdUtil {
     return true;
   }
 
+  // TODO Alterar referências a este método para função na hierarquiaUtil e excluir o método
   static getFilhosEstiloLexML(d: Dispositivo): Dispositivo[] {
-    if (isArtigo(d)) {
-      const artigo = d as Artigo;
-      return [artigo.caput as Dispositivo, ...artigo.filhos.filter(f => isParagrafo(f) || (isOmissis(f) && !isCaput(f.pai!)))];
-    }
-    return [...d.filhos];
+    return getFilhosEstiloLexML(d);
   }
 
+  // TODO Alterar referências a este método para função na hierarquiaUtil e excluir o método
   static getDispositivoAnteriorDireto(d: Dispositivo): Dispositivo {
-    const pai = d.pai as Dispositivo;
-    const irmaos = this.getFilhosEstiloLexML(pai);
-    const i = irmaos.indexOf(d);
-    if (i > 0) {
-      d = irmaos[i - 1];
-    } else {
-      return pai;
-    }
-    let filhos = this.getFilhosEstiloLexML(d);
-    while (filhos.length) {
-      d = filhos[filhos.length - 1];
-      filhos = this.getFilhosEstiloLexML(d);
-    }
-    return d;
+    return getDispositivoAnteriorDireto(d);
   }
 
   static getDispositivoPosteriorDireto(d: Dispositivo): Dispositivo | undefined {

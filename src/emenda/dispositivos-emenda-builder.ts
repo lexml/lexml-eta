@@ -1,4 +1,11 @@
-import { isDispositivoCabecaAlteracao, isUltimaAlteracao, getDispositivoCabecaAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
+import {
+  isDispositivoCabecaAlteracao,
+  isUltimaAlteracao,
+  getDispositivoCabecaAlteracao,
+  getDispositivoAnteriorDireto,
+  getArtigo,
+} from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
@@ -57,14 +64,8 @@ export class DispositivosEmendaBuilder {
       }
     }
 
-    const dispositivosAdicionados = dispositivos.filter(
-      d =>
-        d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-        !(
-          d.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
-          (isCaput(d.pai!) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) ||
-          (d.isDispositivoAlteracao && isArtigo(d) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
-        )
+    const dispositivosAdicionados = this.separaAgrupadores(
+      dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !this.isDispositivoFilhoDeAdicionado(d))
     );
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
@@ -72,6 +73,28 @@ export class DispositivosEmendaBuilder {
         dispositivosEmenda.dispositivosAdicionados.push(da);
       }
     }
+  }
+
+  private separaAgrupadores(disps: Dispositivo[]): Dispositivo[] {
+    const fSeparacao = (d: Dispositivo): Dispositivo[] => {
+      if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        return [];
+      }
+      if (isAgrupadorNaoArticulacao(d)) {
+        return [d, ...d.filhos.flatMap(f => fSeparacao(f))];
+      }
+      return [d];
+    };
+
+    return disps.flatMap(d => fSeparacao(d));
+  }
+
+  private isDispositivoFilhoDeAdicionado(d: Dispositivo): boolean {
+    return !!(
+      d.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
+      (isCaput(d.pai!) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) ||
+      (d.isDispositivoAlteracao && isArtigo(d) && d.pai!.pai!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
+    );
   }
 
   private criaDispositivoEmendaAdicionado(d: Dispositivo, posicionar = true): DispositivoEmendaAdicionado {
@@ -94,6 +117,8 @@ export class DispositivosEmendaBuilder {
     if (posicionar) {
       if (isCaput(d) || isArticulacaoAlteracao(d)) {
         da.idPai = d.pai?.id;
+      } else if (isAgrupadorNaoArticulacao(d)) {
+        da.idPosicaoAgrupador = this.calculaPosicaoAgrupador(d);
       } else {
         const irmaos = CmdEmdUtil.getFilhosEstiloLexML(d.pai!);
         if (d !== irmaos[0]) {
@@ -114,23 +139,36 @@ export class DispositivosEmendaBuilder {
       this.preencheAtributosAlteracao(d, da);
     }
 
-    // Adiciona filhos
-    const filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
-    // TODO - As alterações deveriam estar listadas nos getFilhosEstiloLexML (tem que rever todo o código que usa esse método)
-    if (isCaput(d) && d.pai!.alteracoes) {
-      filhos.push(d.pai!.alteracoes);
-    }
-    if (filhos.length) {
-      da.filhos = [];
-      filhos.forEach(f => {
-        // Pode ocorrer do filho nao ser um dispositivo adicionado no caso de filho de agrupador de artigo.
-        if (isCaput(f) || isArticulacaoAlteracao(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-          da.filhos!.push(this.criaDispositivoEmendaAdicionado(f, false));
-        }
-      });
+    if (!isAgrupadorNaoArticulacao(d)) {
+      // Adiciona filhos
+      const filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
+      // TODO - As alterações deveriam estar listadas nos getFilhosEstiloLexML (tem que rever todo o código que usa esse método)
+      if (isCaput(d) && d.pai!.alteracoes) {
+        filhos.push(d.pai!.alteracoes);
+      }
+      if (filhos.length) {
+        da.filhos = [];
+        filhos.forEach(f => {
+          // Pode ocorrer do filho nao ser um dispositivo adicionado no caso de filho de agrupador de artigo.
+          if (isCaput(f) || isArticulacaoAlteracao(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+            da.filhos!.push(this.criaDispositivoEmendaAdicionado(f, false));
+          }
+        });
+      }
     }
 
     return da;
+  }
+
+  private calculaPosicaoAgrupador(d: Dispositivo): string | undefined {
+    const dPos = getDispositivoAnteriorDireto(d);
+    if (!dPos || isDispositivoRaiz(dPos)) {
+      return undefined;
+    }
+    if (isAgrupadorNaoArticulacao(dPos) || isArtigo(dPos)) {
+      return dPos.id;
+    }
+    return getArtigo(dPos).id;
   }
 
   private getTipoDispositivoParaEmenda(d: Dispositivo): string {
