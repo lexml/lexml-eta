@@ -63,6 +63,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
 
   const dispositivosAdicionados: Dispositivo[] = [];
 
+  let posInsercao = atual.pai!.indexOf(atual) + 1;
   resultado.articulacao.filhos.forEach((filho, index) => {
     if (isArtigo(atual) && atual.alteracoes) {
       filho.pai = atual.alteracoes;
@@ -76,7 +77,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
       if (isDispositivoCabecaAlteracao(filho)) {
         filho.notaAlteracao = 'NR';
       }
-      atual.pai?.addFilhoOnPosition(filho, atual.pai!.indexOf(atual) + 1);
+      atual.pai?.addFilhoOnPosition(filho, posInsercao++);
     } else {
       const parent = isInciso(filho) && isArtigo(atual) ? (atual as Artigo).caput : atual;
       filho.pai = parent;
@@ -91,13 +92,11 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(atual));
 
-  eventos.add(
-    StateType.ElementoIncluido,
-    dispositivosAdicionados.map(d => createElemento(d))
-  );
+  const elementosAdicionados = dispositivosAdicionados.map(d => createElemento(d));
+  eventos.add(StateType.ElementoIncluido, elementosAdicionados);
 
   const mapCabecaAlteracao = new Map();
-  const elementosSituacaoAtualizada: Elemento[] = criaListaElementosAfinsValidados(atual, false)
+  const elementosSituacaoAtualizada: Elemento[] = [...criaListaElementosAfinsValidados(atual, false), ...elementosAdicionados]
     .map(e => getDispositivoFromElemento(state.articulacao, e)!)
     .map(d => {
       if (isDispositivoAlteracao(d)) {
