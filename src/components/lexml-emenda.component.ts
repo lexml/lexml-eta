@@ -1,6 +1,6 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { buildContent } from './../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
@@ -14,8 +14,7 @@ import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { Autoria, ColegiadoApreciador, ComandoEmenda, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
+import { getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
@@ -334,7 +333,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-eta id="lexmlEta" @onchange=${this.onChange} modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa">
-              <lexml-emenda-justificativa></lexml-emenda-justificativa>
+              <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <lexml-data></lexml-data>
