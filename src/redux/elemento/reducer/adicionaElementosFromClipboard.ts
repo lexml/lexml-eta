@@ -91,6 +91,10 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
   eventos.setReferencia(createElemento(atual));
   eventos.add(StateType.ElementoIncluido, elementosAdicionados);
   eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(atual, false));
+  const elementosSituacaoAtualizada: Elemento[] = [...eventos.get(StateType.ElementoIncluido).elementos!, ...eventos.get(StateType.ElementoValidado).elementos!]
+    .map(e => getDispositivoFromElemento(state.articulacao, e))
+    .map(d => createElemento(d!));
+  eventos.add(StateType.SituacaoElementoModificada, [createElemento(atual), ...elementosSituacaoAtualizada]);
 
   return {
     articulacao: state.articulacao,
