@@ -37,8 +37,6 @@ export const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
 export const copiaDispositivosParaOutroPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   return dispositivos.map(d => {
     const paiAtual = d.pai;
-
-    resetUuidTodaArvore(d);
     const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
     paiAtual?.removeFilho(d);
     d.pai = pai;

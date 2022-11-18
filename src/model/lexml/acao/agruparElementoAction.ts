@@ -14,12 +14,13 @@ export class AgruparElemento implements ElementoAction {
     this.tipo = tipo.tipo;
   }
 
-  execute(atual: Referencia): any {
+  execute(atual: Referencia, uuid: string): any {
     return {
       type: AGRUPAR_ELEMENTO,
       atual,
       novo: {
         tipo: this.tipo,
+        uuid: +uuid,
       },
     };
   }

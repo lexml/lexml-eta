@@ -248,3 +248,25 @@ export const processaSituacoesAlteradas = (state: State, eventos: StateEvent[]):
     });
   return elementos;
 };
+
+export const isUndoRedoInclusaoExclusaoAgrupador = (eventos: StateEvent[]): boolean => {
+  const tiposAgrupadorArtigo = ['Livro', 'Parte', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+  return (
+    eventos.length > 0 &&
+    [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventos[0].stateType) &&
+    eventos[0].elementos!.length > 0 &&
+    tiposAgrupadorArtigo.includes(eventos[0].elementos![0].tipo!)
+  );
+};
+
+export const ajustarAtributosAgrupadorIncluidoPorUndoRedo = (articulacao: Articulacao, eventosFonte: StateEvent[], eventosResultantes: StateEvent[]): void => {
+  const refFonteAgrupadorIncluido = eventosFonte[0].elementos![0];
+  const agrupadorIncluido = eventosResultantes[0].elementos![0];
+  const dispositivo = getDispositivoFromElemento(articulacao, agrupadorIncluido)!;
+  dispositivo.texto = refFonteAgrupadorIncluido.conteudo!.texto ?? '';
+  dispositivo.numero = refFonteAgrupadorIncluido.numero;
+  dispositivo.id = refFonteAgrupadorIncluido.lexmlId;
+  dispositivo.rotulo = refFonteAgrupadorIncluido.rotulo;
+  eventosResultantes[0].elementos!.length = 0;
+  eventosResultantes[0].elementos!.push(createElemento(dispositivo));
+};

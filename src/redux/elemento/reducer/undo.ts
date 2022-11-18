@@ -1,4 +1,6 @@
-import { processaSituacoesAlteradas } from './../util/undoRedoReducerUtil';
+import { agrupaElemento } from './agrupaElemento';
+import { removeElemento } from './removeElemento';
+import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador, processaSituacoesAlteradas } from './../util/undoRedoReducerUtil';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -14,18 +16,39 @@ export const undo = (state: any): State => {
   }
 
   const eventos = state.past.pop();
+  const future = buildFuture(state, eventos);
 
   const retorno: State = {
     articulacao: state.articulacao,
     modo: state.modo,
     past: state.past,
     present: [],
-    future: buildFuture(state, eventos),
+    future,
     ui: {
       events: [],
       alertas: state.ui?.alertas,
     },
   };
+
+  if (isUndoRedoInclusaoExclusaoAgrupador(eventos)) {
+    let tempState: State;
+    tempState = { ...retorno };
+    tempState.past = [];
+    tempState.present = [];
+    tempState.future = [];
+
+    if (eventos[0].stateType === StateType.ElementoIncluido) {
+      tempState = removeElemento(tempState, { atual: eventos[0].elementos[0] });
+    } else {
+      const ref = eventos.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
+      tempState = agrupaElemento(tempState, { atual: ref, novo: { tipo: eventos[0].elementos[0].tipo, uuid: eventos[0].elementos[0].uuid } });
+      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventos, tempState.ui!.events);
+    }
+
+    retorno.present = tempState.ui!.events;
+    retorno.ui!.events = tempState.ui!.events;
+    return retorno;
+  }
 
   const events = new Eventos();
 
@@ -38,12 +61,7 @@ export const undo = (state: any): State => {
 
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) => {
-      events.eventos.push({
-        stateType: StateType.ElementoModificado,
-        elementos: processarModificados(state, ev),
-      });
-    });
+    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev) }));
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
@@ -62,10 +80,7 @@ export const undo = (state: any): State => {
   }
 
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
-  events.eventos.push({
-    stateType: StateType.SituacaoElementoModificada,
-    elementos: processaSituacoesAlteradas(state, eventos),
-  });
+  events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: processaSituacoesAlteradas(state, eventos) });
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

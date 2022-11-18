@@ -1,3 +1,5 @@
+import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
+import { agrupaElemento } from './agrupaElemento';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
@@ -11,9 +13,14 @@ import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
-import { isArticulacao, isOmissis } from './../../../model/dispositivo/tipo';
+import { isArticulacao, isOmissis, isAgrupador } from './../../../model/dispositivo/tipo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import { getDispositivoAnteriorMesmoTipo, isArticulacaoAlteracao, percorreHierarquiaDispositivos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAnteriorMesmoTipo,
+  isArticulacaoAlteracao,
+  percorreHierarquiaDispositivos,
+  getDispositivoAndFilhosAsLista,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -77,7 +84,46 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
-  return alteracoesEmenda.dispositivosAdicionados.map(da => criaEventoElementosIncluidos(state, da));
+  const tiposAgrupadorArtigo = ['Livro', 'Parte', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+  const eventos: StateEvent[] = [];
+
+  for (const da of alteracoesEmenda.dispositivosAdicionados) {
+    if (tiposAgrupadorArtigo.includes(da.tipo)) {
+      eventos.push(...criaEventosParaDispositivoAgrupador(state, da));
+    } else {
+      eventos.push(criaEventoElementosIncluidos(state, da));
+    }
+  }
+
+  return eventos;
+};
+
+const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaAdicionado): StateEvent[] => {
+  const articulacao = state.articulacao;
+  const ref = buscaDispositivoById(state.articulacao, dea.idPosicaoAgrupador!);
+
+  if (ref) {
+    const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
+    const pos = dispositivos.findIndex(d => d.id === ref.id);
+    const ref2 = dispositivos.find((d, index) => index > pos && (d.tipo === ref.tipo || d.tipo === dea.tipo || d.tiposPermitidosPai?.includes(dea.tipo!)));
+    const atual = createElemento(ref2!);
+
+    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo } });
+    const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
+
+    const elementosIncluidos = events.find(e => e.stateType === StateType.ElementoIncluido)!.elementos!;
+    const novoAgrupador = elementosIncluidos[0];
+
+    const novo = getDispositivoFromElemento(articulacao, novoAgrupador)!;
+    ajustaAtributosDispositivoAdicionado(novo, dea);
+
+    elementosIncluidos.length = 0;
+    elementosIncluidos.push(createElemento(novo));
+
+    return events;
+  }
+
+  return [];
 };
 
 const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmendaAdicionado): StateEvent => {
@@ -97,7 +143,11 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
       const pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
-      evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai!, novo));
+      if (dispositivo.idPai && isAgrupador(pai!)) {
+        evento.referencia = createElemento(pai!);
+      } else {
+        evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai!, novo));
+      }
     }
 
     percorreHierarquiaDispositivos(novo, d => {
@@ -159,32 +209,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
   }
 
   if (novo) {
-    novo.id = da.id;
-    const situacao = new DispositivoAdicionado();
-    novo.situacao = situacao;
-    if (da.existeNaNormaAlterada !== undefined) {
-      situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
-    }
-
-    if (!isCaput(novo) && !isOmissis(novo) && !isArticulacao(novo)) {
-      novo.createNumeroFromRotulo(da.rotulo!);
-      if (da.abreAspas) {
-        novo.rotulo = da.rotulo;
-        novo.cabecaAlteracao = true;
-      } else {
-        novo.rotulo = da.rotulo;
-      }
-    }
-
-    if (!isArticulacao(novo)) {
-      if (da.fechaAspas) {
-        novo.texto = da.texto + '';
-        const cabecaAlteracao = getDispositivoCabecaAlteracao(novo);
-        cabecaAlteracao.notaAlteracao = da.notaAlteracao;
-      } else {
-        novo.texto = da.texto!;
-      }
-    }
+    ajustaAtributosDispositivoAdicionado(novo, da);
   }
 
   if (novo && da.filhos) {
@@ -199,6 +224,32 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
   }
 
   return novo;
+};
+
+const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: DispositivoEmendaAdicionado): void => {
+  dispositivo.texto = da.texto ?? '';
+  dispositivo.id = da.id;
+  const situacao = new DispositivoAdicionado();
+  dispositivo.situacao = situacao;
+  if (da.existeNaNormaAlterada !== undefined) {
+    situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
+  }
+
+  if (!isCaput(dispositivo) && !isOmissis(dispositivo) && !isArticulacao(dispositivo)) {
+    dispositivo.createNumeroFromRotulo(da.rotulo!);
+    dispositivo.rotulo = da.rotulo;
+    if (da.abreAspas) {
+      dispositivo.cabecaAlteracao = true;
+    }
+  }
+
+  if (!isArticulacao(dispositivo)) {
+    dispositivo.texto = da.texto ?? '';
+    if (da.fechaAspas) {
+      const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+      cabecaAlteracao.notaAlteracao = da.notaAlteracao;
+    }
+  }
 };
 
 const idSemCpt = (id: string): string => id.replace(/(_cpt)$/, '');

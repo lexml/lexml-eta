@@ -35,10 +35,8 @@ export const removeElemento = (state: any, action: any): State => {
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state.articulacao, dispositivo);
 
   if (primeiroFilhoDoAgrupador) {
-    events.push({
-      stateType: StateType.ElementoMarcado,
-      elementos: [createElemento(primeiroFilhoDoAgrupador)],
-    });
+    events.push({ stateType: StateType.ElementoMarcado, elementos: [createElemento(primeiroFilhoDoAgrupador)] });
+    events.push({ stateType: StateType.ElementoReferenciado, elementos: [createElemento(primeiroFilhoDoAgrupador)] });
   }
 
   return {

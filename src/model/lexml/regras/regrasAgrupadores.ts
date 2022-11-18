@@ -1,3 +1,4 @@
+import { DescricaoSituacao } from './../../dispositivo/situacao';
 // import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
@@ -27,7 +28,12 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       acoes.push(adicionarArtigoAntes);
       acoes.push(adicionarArtigoDepois);
 
-      if (getDispositivosAnterioresMesmoTipo(dispositivo).length === 0 && getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 && hasAgrupador(dispositivo)) {
+      if (
+        getDispositivosAnterioresMesmoTipo(dispositivo).length === 0 &&
+        getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 &&
+        hasAgrupador(dispositivo) &&
+        dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+      ) {
         //
       } else {
         acoes.push(removerElementoAction);

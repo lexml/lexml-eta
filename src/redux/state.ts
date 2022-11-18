@@ -20,6 +20,7 @@ export enum StateType {
   ElementoMarcado = 'ElementoMarcado',
   SituacaoElementoModificada = 'SituacaoElementoModificada',
   AtualizacaoAlertas = 'AtualizacaoAlertas',
+  ElementoReferenciado = 'ElementoReferenciado',
 }
 export interface StateEvent {
   stateType: StateType;

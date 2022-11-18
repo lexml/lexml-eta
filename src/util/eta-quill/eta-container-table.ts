@@ -253,7 +253,7 @@ export class EtaContainerTable extends Container {
     this._numero = elemento.numero ?? '';
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
-    this._hierarquia = elemento.hierarquia?.pai?.uuidAlteracao ? elemento.hierarquia : undefined;
+    this._hierarquia = elemento.hierarquia;
     this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
 
@@ -271,7 +271,7 @@ export class EtaContainerTable extends Container {
     this._numero = elemento.numero ?? '';
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
-    this._hierarquia = elemento.hierarquia?.pai?.uuidAlteracao ? elemento.hierarquia : undefined;
+    this._hierarquia = elemento.hierarquia;
     this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   }

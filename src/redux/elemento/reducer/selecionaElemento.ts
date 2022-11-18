@@ -1,3 +1,4 @@
+// import { isArtigo, isAgrupador } from './../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { State, StateType } from '../../state';
@@ -9,6 +10,11 @@ export const selecionaElemento = (state: any, action: any): State => {
     state.ui.events = [];
     return state;
   }
+
+  // if (isArtigo(atual) || isAgrupador(atual)) {
+  //   console.log(11111, `Dispositivo ${atual.id?.toUpperCase()} (uuid: ${atual.uuid}) filho de ${(atual.pai?.id ?? atual.pai?.tipo)?.toUpperCase()} (uuid: ${atual.pai?.uuid})`);
+  // }
+
   atual.mensagens = validaDispositivo(atual);
   const elemento = createElemento(atual, true);
 

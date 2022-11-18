@@ -20,7 +20,7 @@ import {
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { StateEvent, StateType } from '../../state';
-import { ajustaReferencia, getElementosDoDispositivo, resetUuidTodaArvore } from '../util/reducerUtil';
+import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {
@@ -143,7 +143,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   let pos = atual.pai!.indexOf(atual);
   const agrupadoresAnteriorMesmoTipo = atual.pai!.filhos.filter((d, i) => i < pos && isAgrupador(d));
   const paiOriginal = atual.pai;
-  const removidos = [...getElementos(atual)];
+  const removido = createElemento(atual);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
   const pai = agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
@@ -151,26 +151,35 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
   const referencia = isArticulacao(dispositivoAnterior) || (hasFilhos(pai) && pai.filhos[0].id === atual.id) ? pai : getUltimoFilho(dispositivoAnterior);
 
+  const transferidosParaOutroPai: Elemento[] = [];
   let posNoPaiNovo = pai.filhos.length;
-  const dispositivos = atual.filhos.map(d => {
-    d.pai = pai;
-    paiOriginal!.removeFilho(d);
-
-    resetUuidTodaArvore(d);
-    if (agrupadoresAnteriorMesmoTipo?.length > 0) {
-      // pai!.addFilho(d);
-      pai!.addFilhoOnPosition(d, posNoPaiNovo++);
+  atual.filhos.forEach(d => {
+    let novoPai: Dispositivo;
+    if (pai.tiposPermitidosFilhos?.includes(d.tipo)) {
+      novoPai = pai;
+    } else if (dispositivoAnterior.tiposPermitidosFilhos?.includes(d.tipo)) {
+      novoPai = dispositivoAnterior;
     } else {
-      pai!.addFilhoOnPosition(d, pos++);
+      novoPai = getPaiQuePodeReceberFilhoDoTipo(atual.pai!, d.tipo);
     }
+
+    d.pai = novoPai;
+    atual.removeFilho(d);
+
+    if (agrupadoresAnteriorMesmoTipo?.length > 0) {
+      // TODO: revisar valor de "posNoPaiNovo" e "pos" (novoPai pode variar, como fica a posição???)
+      novoPai!.addFilhoOnPosition(d, posNoPaiNovo++);
+    } else {
+      novoPai!.addFilhoOnPosition(d, pos++);
+    }
+
+    transferidosParaOutroPai.push(createElemento(d));
     return d;
   });
 
   atual.pai!.removeFilho(atual);
   pai?.renumeraFilhos();
   paiOriginal!.renumeraFilhos();
-
-  const incluidos = dispositivos.map(d => getElementos(d)).flat();
 
   const renumerados = pai!.filhos
     .filter((f, index) => index >= pos && (isAgrupador(f) || isDispositivoCabecaAlteracao(f)))
@@ -188,11 +197,15 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
 
   const eventos = new Eventos();
   eventos.setReferencia(isArticulacao(referencia) && isArticulacaoAlteracao(referencia as Articulacao) ? createElemento(referencia.pai!) : createElemento(referencia));
-  eventos.add(StateType.ElementoIncluido, incluidos);
-  eventos.add(StateType.ElementoRemovido, removidos);
 
+  eventos.add(StateType.ElementoRemovido, [removido]);
+  eventos.add(StateType.SituacaoElementoModificada, transferidosParaOutroPai);
   eventos.add(StateType.ElementoRenumerado, [...renumerados, ...renumeradosPaiOriginal]);
   return eventos.build();
+};
+
+export const getPaiQuePodeReceberFilhoDoTipo = (pai: Dispositivo, tipoFilho: string): Dispositivo => {
+  return pai.tiposPermitidosFilhos?.includes(tipoFilho) ? pai : getPaiQuePodeReceberFilhoDoTipo(pai.pai!, tipoFilho);
 };
 
 const restaura = (d: Dispositivo): void => {
@@ -314,6 +327,12 @@ export const createEventos = (): StateEvent[] => {
     },
     {
       stateType: StateType.SituacaoElementoModificada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.ElementoReferenciado,
       referencia: undefined,
       pai: undefined,
       elementos: [],
