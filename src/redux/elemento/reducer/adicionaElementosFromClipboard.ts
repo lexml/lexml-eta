@@ -1,3 +1,4 @@
+import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { isParagrafo } from './../../../model/dispositivo/tipo';
 import { getDispositivoCabecaAlteracao, getDispositivoAndFilhosAsLista, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
@@ -110,7 +111,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(referencia ?? atual));
 
-  const elementosAdicionados = dispositivosAdicionados.map(d => createElemento(d));
+  const elementosAdicionados = dispositivosAdicionados.map(d => createElementoValidado(d));
   eventos.add(StateType.ElementoIncluido, elementosAdicionados);
 
   const mapCabecaAlteracao = new Map();
@@ -121,7 +122,7 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
         const ca = getDispositivoCabecaAlteracao(d);
         if (!mapCabecaAlteracao.has(ca.id)) {
           mapCabecaAlteracao.set(ca.id, '');
-          return getElementos(ca);
+          return getElementos(ca, true);
         } else {
           return [];
         }
@@ -129,7 +130,9 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
         return createElemento(d);
       }
     })
-    .flat();
+    .flat()
+    .map(e => getDispositivoFromElemento(state.articulacao, e)!)
+    .map(d => createElementoValidado(d));
   eventos.add(StateType.SituacaoElementoModificada, elementosSituacaoAtualizada);
 
   return {
