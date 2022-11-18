@@ -1,10 +1,13 @@
+import { createElementoValidado } from './../../../model/elemento/elementoUtil';
+import { isParagrafo } from './../../../model/dispositivo/tipo';
+import { getDispositivoCabecaAlteracao, getDispositivoAndFilhosAsLista, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorGenerico, isArtigo, isInciso } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { buildDispositivoFromJsonix } from '../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
-import { isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -60,7 +63,9 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
     });
   }
 
-  const elementosAdicionados: Elemento[] = [];
+  const dispositivosAdicionados: Dispositivo[] = [];
+  let referencia: Dispositivo | undefined = undefined;
+  let posInsercao = -1;
 
   resultado.articulacao.filhos.forEach((filho, index) => {
     if (isArtigo(atual) && atual.alteracoes) {
@@ -70,27 +75,65 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
 
       atual.alteracoes.addFilhoOnPosition(filho, index);
     } else if (filho.tipo === atual.tipo) {
+      if (!referencia) {
+        referencia = getUltimoFilho(atual);
+      }
+      if (posInsercao === -1) {
+        posInsercao = atual.pai!.indexOf(atual) + 1;
+      }
+
       filho.pai = atual.pai;
       filho.cabecaAlteracao = atual.cabecaAlteracao;
       if (isDispositivoCabecaAlteracao(filho)) {
         filho.notaAlteracao = 'NR';
       }
-      atual.pai?.addFilhoOnPosition(filho, atual.pai!.indexOf(atual) + 1);
+      atual.pai?.addFilhoOnPosition(filho, posInsercao++);
     } else {
       const parent = isInciso(filho) && isArtigo(atual) ? (atual as Artigo).caput : atual;
       filho.pai = parent;
-      parent!.addFilho(filho);
+      if (posInsercao === -1) {
+        if (isArtigo(atual)) {
+          posInsercao = isParagrafo(filho) ? atual.filhos.filter(isInciso).length : 0;
+          referencia = isParagrafo(filho) ? atual.filhos[atual.filhos.findIndex(isParagrafo) - 1] : referencia;
+        } else {
+          posInsercao = 0;
+        }
+      }
+      // parent!.addFilho(filho);
+      parent!.addFilhoOnPosition(filho, posInsercao++);
     }
     criaAtributosComuns(filho, state);
 
     filho.filhos && criaFilhos(filho, state);
-    elementosAdicionados.push(...getElementos(filho));
+    dispositivosAdicionados.push(...getDispositivoAndFilhosAsLista(filho));
   });
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(atual));
+  eventos.setReferencia(createElemento(referencia ?? atual));
+
+  const elementosAdicionados = dispositivosAdicionados.map(d => createElementoValidado(d));
   eventos.add(StateType.ElementoIncluido, elementosAdicionados);
-  eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(atual, false));
+
+  const mapCabecaAlteracao = new Map();
+  const elementosSituacaoAtualizada: Elemento[] = [...criaListaElementosAfinsValidados(atual, false), ...elementosAdicionados]
+    .map(e => getDispositivoFromElemento(state.articulacao, e)!)
+    .map(d => {
+      if (isDispositivoAlteracao(d)) {
+        const ca = getDispositivoCabecaAlteracao(d);
+        if (!mapCabecaAlteracao.has(ca.id)) {
+          mapCabecaAlteracao.set(ca.id, '');
+          return getElementos(ca, true);
+        } else {
+          return [];
+        }
+      } else {
+        return createElemento(d);
+      }
+    })
+    .flat()
+    .map(e => getDispositivoFromElemento(state.articulacao, e)!)
+    .map(d => createElementoValidado(d));
+  eventos.add(StateType.SituacaoElementoModificada, elementosSituacaoAtualizada);
 
   return {
     articulacao: state.articulacao,

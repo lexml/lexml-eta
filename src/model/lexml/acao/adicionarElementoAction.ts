@@ -11,7 +11,7 @@ export class AdicionarElemento implements ElementoAction {
   isDispositivoAlteracao = false;
   posicao?: string;
   constructor(tipo?: Tipo, posicao?: string) {
-    this.descricao = `Adicionar ${tipo?.descricao ?? ''} ${posicao ?? ''}`;
+    this.descricao = `Adicionar ${tipo?.descricao?.toLowerCase() ?? ''} ${posicao ?? ''}`;
     this.tipo = tipo?.tipo;
     this.posicao = posicao;
   }
