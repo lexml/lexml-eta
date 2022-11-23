@@ -22,7 +22,7 @@ describe('Cabeçalho de comando de emenda com diferentes operações sobre dispo
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação ao caput do art. 2º; e suprima-se o inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação ao <i>caput</i> do art. 2º; e suprima-se o inciso VII do <i>caput</i> do art. 2º, ambos da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -31,7 +31,7 @@ describe('Cabeçalho de comando de emenda com diferentes operações sobre dispo
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprima-se o inciso VII do caput do art. 2º; e dê-se nova redação ao caput do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Suprima-se o inciso VII do <i>caput</i> do art. 2º; e dê-se nova redação ao <i>caput</i> do art. 5º, ambos da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -44,7 +44,7 @@ describe('Cabeçalho de comando de emenda com diferentes operações sobre dispo
     (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação ao caput do art. 2º; suprima-se o inciso VII do caput do art. 2º; e acrescente-se § 3º-A ao art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação ao <i>caput</i> do art. 2º; suprima-se o inciso VII do <i>caput</i> do art. 2º; e acrescente-se § 3º-A ao art. 5º, todos da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -62,7 +62,7 @@ describe('Cabeçalho de comando de emenda com diferentes operações sobre dispo
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescentem-se arts. 1º-A e 1º-B; dê-se nova redação ao caput do art. 2º; e suprimam-se os incisos I e II do § 1º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Acrescentem-se arts. 1º-A e 1º-B; dê-se nova redação ao <i>caput</i> do art. 2º; e suprimam-se os incisos I e II do § 1º do art. 5º, todos da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 });

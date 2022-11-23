@@ -98,7 +98,7 @@ export class TesteCmdEmdUtil {
   static incluiArtigo(state: State, idArtigoRef: string, antes: boolean): Artigo {
     const artigoRef = buscaDispositivoById(state.articulacao!, idArtigoRef);
     expect(artigoRef, `Dispositivo ${idArtigoRef} não encontrado!`).not.to.be.undefined;
-    const action = antes ? adicionarArtigoAntes.execute(artigoRef!, '', TipoDispositivo.artigo) : adicionarArtigoDepois.execute(artigoRef!, '', TipoDispositivo.artigo);
+    const action = antes ? adicionarArtigoAntes.execute(artigoRef!, '') : adicionarArtigoDepois.execute(artigoRef!, '');
     state = adicionaElemento(state, action);
     const d = antes ? getDispositivoAnteriorMesmoTipo(artigoRef!) : getDispositivoPosteriorMesmoTipo(artigoRef!);
     expect(d, `Falha na inserção do artigo ${antes ? 'antes do' : 'após'} ${idArtigoRef}`).to.not.be.undefined;

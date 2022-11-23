@@ -26,26 +26,32 @@ describe('Citação em comando de emenda com apenas um dispositivo de norma vige
   it('acrescimoParagrafo', () => {
     const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art1_cpt_alt1_art5_par2', true, '1-A', true);
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>§ 1º-A.</Rotulo>Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 5º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 1º-A.</Rotulo> Texto</p><p><Omissis/>” (NR)</p>');
   });
 
   it('acrescimoInciso', () => {
-    const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art1_cpt_alt1_art5_par1_inc2', false, 'III', true);
+    const d = TesteCmdEmdUtil.incluiIncisoAlteracao(state, 'art1_cpt_alt1_art5_par1_inc2', false, 'III', true);
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>III –</Rotulo>Texto”</p>');
+    expect(cit).to.equal(
+      '<p>“<Rotulo>Art. 5º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 1º</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>III –</Rotulo> Texto</p><p><Omissis/>” (NR)</p>'
+    );
   });
 
   it('acrescimoAlinea', () => {
-    const d = TesteCmdEmdUtil.incluiParagrafoAlteracao(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false, 'b-A', true);
+    const d = TesteCmdEmdUtil.incluiAlineaAlteracao(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false, 'b-A', true);
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>b-A)</Rotulo>Texto”</p>');
+    expect(cit).to.equal(
+      '<p>“<Rotulo>Art. 63-C.</Rotulo> <Omissis/></p><p><Rotulo>I –</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>b-A)</Rotulo> Texto</p><p><Omissis/>” (NR)</p>'
+    );
   });
 
   it('acrescimoItem', () => {
     const d = TesteCmdEmdUtil.incluiItem(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false);
     TesteCmdEmdUtil.numeraECriaRotulo(d, '1');
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
+    expect(cit).to.equal(
+      '<p>“<Rotulo>Art. 63-C.</Rotulo> <Omissis/></p><p><Rotulo>I –</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>b)</Rotulo><Omissis/></p><p><Rotulo>1.</Rotulo> Texto</p><p><Omissis/>” (NR)</p>'
+    );
   });
 
   // --------------------------------------------------------------------------------
@@ -66,26 +72,32 @@ describe('Citação em comando de emenda com apenas um dispositivo de norma vige
   it('modificacaoParagrafo', () => {
     const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1');
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>§ 1º</Rotulo>Texto”</p>');
+    expect(cit).to.equal('<p>“<Rotulo>Art. 5º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 1º</Rotulo> Texto</p><p><Omissis/>” (NR)</p>');
   });
 
   it('modificacaoInciso', () => {
     const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>II –</Rotulo>Texto”</p>');
+    expect(cit).to.equal(
+      '<p>“<Rotulo>Art. 5º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 1º</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>II –</Rotulo> Texto</p><p><Omissis/>” (NR)</p>'
+    );
   });
 
   it('modificacaoAlinea', () => {
     const d = TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2');
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>b)</Rotulo>Texto”</p>');
+    expect(cit).to.equal(
+      '<p>“<Rotulo>Art. 63-C.</Rotulo> <Omissis/></p><p><Rotulo>I –</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>b)</Rotulo> Texto</p><p><Omissis/>” (NR)</p>'
+    );
   });
 
   it('modificacaoItem', () => {
     const d = TesteCmdEmdUtil.incluiItem(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2', false);
     TesteCmdEmdUtil.numeraECriaRotulo(d, '1', false);
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
-    expect(cit).to.equal('<p>“<Rotulo>1.</Rotulo>Texto”</p>');
+    expect(cit).to.equal(
+      '<p>“<Rotulo>Art. 63-C.</Rotulo> <Omissis/></p><p><Rotulo>I –</Rotulo><Omissis/></p><p><Omissis/></p><p><Rotulo>b)</Rotulo><Omissis/></p><p><Rotulo>1.</Rotulo> Texto</p><p><Omissis/>” (NR)</p>'
+    );
   });
 
   // --------------------------------------------------------------------------------

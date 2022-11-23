@@ -95,6 +95,6 @@ describe('Cabeçalho de comando de emenda com supressão de dispositivos de arti
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_par1u');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se o inciso IX do caput do art. 2º, o art. 3º, o parágrafo único do art. 8º e o art. 9º do Projeto.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprimam-se o inciso IX do <i>caput</i> do art. 2º, o art. 3º, o parágrafo único do art. 8º e o art. 9º do Projeto.');
   });
 });

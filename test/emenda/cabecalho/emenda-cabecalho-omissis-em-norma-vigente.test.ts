@@ -25,7 +25,7 @@ describe('Cabeçalho de comando de emenda com manipulação de omissis em altera
   //   expect(itemComandoEmenda.cabecalho).to.equal(
   //     'Altere-se o art. 6º do Projeto' +
   //       ' para acrescentar linha pontilhada (omissis)' +
-  //       ' após o inciso III do caput do art. 1º' +
+  //       ' após o inciso III do <i>caput</i> do art. 1º' +
   //       ' da Lei nº 11.340, de 7 de agosto de 2006.'
   //   );
   // });
@@ -43,7 +43,7 @@ describe('Cabeçalho de comando de emenda com manipulação de omissis em altera
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_omi1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprima-se a linha pontilhada (omissis) após o inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposta pelo art. 1º da Medida Provisória.'
+      'Suprima-se a linha pontilhada (omissis) após o inciso VII do <i>caput</i> do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposta pelo art. 1º da Medida Provisória.'
     );
   });
 
@@ -51,7 +51,7 @@ describe('Cabeçalho de comando de emenda com manipulação de omissis em altera
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_omi1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprima-se a linha pontilhada (omissis) antes do inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposta pelo art. 1º da Medida Provisória.'
+      'Suprima-se a linha pontilhada (omissis) antes do inciso VII do <i>caput</i> do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposta pelo art. 1º da Medida Provisória.'
     );
   });
 });

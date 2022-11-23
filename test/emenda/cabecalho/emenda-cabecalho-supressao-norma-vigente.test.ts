@@ -26,7 +26,7 @@ describe('Cabeçalho de comando de emenda com supressão dispositivos em altera�
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprima-se o inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória.'
+      'Suprima-se o inciso VII do <i>caput</i> do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória.'
     );
   });
 
@@ -35,7 +35,7 @@ describe('Cabeçalho de comando de emenda com supressão dispositivos em altera�
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprimam-se os incisos I e II do § 1º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória.'
+      'Suprimam-se os incisos I e II do § 1º do art. 5º, ambos da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória.'
     );
   });
 
@@ -45,7 +45,7 @@ describe('Cabeçalho de comando de emenda com supressão dispositivos em altera�
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali3');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprimam-se as alíneas “a” a “c” do inciso I do caput do art. 63-C da Lei nº 11.343, de 23 de agosto de 2006, como propostas pelo art. 2º da Medida Provisória.'
+      'Suprimam-se as alíneas “a” a “c” do inciso I do <i>caput</i> do art. 63-C, todas da Lei nº 11.343, de 23 de agosto de 2006, como propostas pelo art. 2º da Medida Provisória.'
     );
   });
 
@@ -54,7 +54,7 @@ describe('Cabeçalho de comando de emenda com supressão dispositivos em altera�
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1_cpt_alt1_art5_par1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Suprimam-se o inciso VII do caput do art. 2º e o § 1º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória.'
+      'Suprimam-se o inciso VII do <i>caput</i> do art. 2º e o § 1º do art. 5º, ambos da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória.'
     );
   });
 });
