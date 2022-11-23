@@ -6,18 +6,18 @@ export const EXEMPLO_PARAGRAFOS = {
         Rotulo: 'Art. 1º',
         Caput: {
           '@id': 'art1_cpt',
-          p: 'Texto do caput do Artigo 1 que possui DOIS parágrafos.',
+          p: 'Texto do caput do artigo 1 que possui DOIS parágrafos.',
         },
         Paragrafo: [
           {
             '@id': 'art1_par1',
             Rotulo: '§ 1º',
-            p: 'Texto do parágrafo 1 do Artigo 1 que não possui incisos.',
+            p: 'Texto do parágrafo 1 do artigo 1 que não possui incisos.',
           },
           {
             '@id': 'art1_par2',
             Rotulo: '§ 2º',
-            p: 'Texto do parágrafo 2 do Artigo 1 que não possui incisos.',
+            p: 'Texto do parágrafo 2 do artigo 1 que não possui incisos.',
           },
         ],
       },
@@ -26,7 +26,7 @@ export const EXEMPLO_PARAGRAFOS = {
         Rotulo: 'Art. 2º',
         Caput: {
           '@id': 'art2_cpt',
-          p: 'Texto do caput do Artigo 2 que possui DOIS incisos e um parágrafo único:',
+          p: 'Texto do caput do artigo 2 que possui DOIS incisos e um parágrafo único:',
           Inciso: [
             {
               '@id': 'art2_cpt_inc1',
