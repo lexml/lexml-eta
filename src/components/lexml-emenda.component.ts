@@ -60,6 +60,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlAutoria;
   @query('lexml-data')
   _lexmlData;
+  @query('lexml-opcoes-impressao')
+  _lexmlOpcoesImpressao;
 
   @query('lexml-emenda-comando')
   _lexmlEmendaComando!: ComandoEmendaComponent;
@@ -130,6 +132,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
+    emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
+    console.log('opcoesImpressao', emenda.opcoesImpressao);
     emenda.colegiadoApreciador = this.montarColegiadoApreciador(numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
@@ -282,7 +286,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         sl-tab-panel::part(base) {
           height: var(--height);
-          overflow: var(--overflow);
+          /* overflow: var(--overflow); */
           /* overflow-y: auto; */
         }
         sl-tab-panel[name='autoria'] {
@@ -329,7 +333,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group>
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
-            <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
+            <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -344,6 +348,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-data></lexml-data>
               <br />
               <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
+              <lexml-opcoes-impressao></lexml-opcoes-impressao>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>
