@@ -6,9 +6,6 @@ export class DataComponent extends LitElement {
   static styles = css`
     .lexml-data {
       display: block;
-      /* height: 100%; */
-      /* padding: 5px 10px; */
-      /* margin: 0px 5px; */
       font-size: 1em;
       max-width: 700px;
     }
@@ -39,6 +36,7 @@ export class DataComponent extends LitElement {
         sl-radio-group::part(base) {
           display: flex;
           flex-direction: row;
+          align-items: center;
           gap: 10px;
           background-color: var(--sl-color-gray-100);
           box-shadow: var(--sl-shadow-x-large);
@@ -75,10 +73,10 @@ export class DataComponent extends LitElement {
       </style>
       <div class="lexml-data">
         <sl-radio-group label="Data" fieldset>
-          <sl-radio name="data" id="no-date" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
           <sl-radio name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
             <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} @input=${this.setDate}></sl-input>
           </sl-radio>
+          <sl-radio name="data" id="no-date" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
         </sl-radio-group>
       </div>
     `;
