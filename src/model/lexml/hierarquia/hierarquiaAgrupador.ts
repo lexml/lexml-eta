@@ -4,7 +4,14 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior, isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao } from './hierarquiaUtil';
+import {
+  getArticulacao,
+  getDispositivoAnterior,
+  getProximoArtigoAnterior,
+  isAntesDoPrimeiroDispositivoOriginal,
+  isDispositivoAlteracao,
+  podeRenumerarFilhosAutomaticamente,
+} from './hierarquiaUtil';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -54,6 +61,9 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
     }
 
     renumeraFilhos(): void {
+      if (!podeRenumerarFilhosAutomaticamente(this as any)) {
+        return;
+      }
       this.filhos
         .filter(
           f =>

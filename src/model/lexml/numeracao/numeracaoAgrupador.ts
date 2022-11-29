@@ -1,4 +1,4 @@
-import { TipoDispositivo } from './../tipo/tipoDispositivo';
+// import { TipoDispositivo } from './../tipo/tipoDispositivo';
 import { addSpaceRegex, StringBuilder } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
@@ -53,7 +53,13 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     createRotulo(dispositivo: Dispositivo): void {
-      const prefixo = dispositivo.descricao === undefined ? dispositivo.name ?? '' : dispositivo.descricao.toLocaleUpperCase();
+      // const prefixo = dispositivo.descricao === undefined ? dispositivo.name ?? '' : dispositivo.descricao.toLocaleUpperCase();
+      const prefixo =
+        dispositivo.descricao === undefined
+          ? dispositivo.name ?? ''
+          : ['Secao', 'Subsecao'].includes(dispositivo.tipo)
+          ? dispositivo.descricao
+          : dispositivo.descricao.toLocaleUpperCase();
 
       if (
         this.numero === undefined ||
@@ -61,7 +67,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
           (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
           dispositivo.pai?.tipo === 'Articulacao')
       ) {
-        this.rotulo = TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toUpperCase() ?? dispositivo.tipo;
+        this.rotulo = prefixo; //TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toUpperCase() ?? dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = prefixo + ' ' + this.numero;
       } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
