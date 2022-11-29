@@ -24,9 +24,7 @@ export class OpcoesImpressao extends LitElement {
   static styles = css`
     .lexml-opcoes-impressao {
       display: block;
-      /* height: 100%; */
-      /* padding: 5px 10px; */
-      margin: 20px 5px;
+      margin: 20px 0 80px 0;
       font-size: 1em;
       max-width: 700px;
     }
