@@ -1,3 +1,5 @@
+import { getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { getPaiQuePodeReceberFilhoDoTipo } from './../evento/eventosUtil';
 import { isAgrupador, isArtigo } from './../../../model/dispositivo/tipo';
@@ -18,6 +20,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
+import { buildId } from '../../../model/lexml/util/idUtil';
 
 export const agrupaElemento = (state: any, action: any): State => {
   let atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -26,15 +29,33 @@ export const agrupaElemento = (state: any, action: any): State => {
     return state;
   }
 
+  const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+
   if (isDispositivoCabecaAlteracao(atual)) {
     const pos = atual.pai!.indexOf(atual);
     const novo = criaDispositivoCabecaAlteracao(action.novo.tipo, atual.pai! as Alteracoes, undefined, pos);
+    novo.id = buildId(novo);
     novo.addFilho(atual);
     atual.pai = novo;
     const eventos = new Eventos();
-    eventos.setReferencia(createElemento(pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1]));
+    let ref = pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1];
+    ref = ref.tipo === 'Artigo' ? getUltimoFilho(ref) : ref;
+
+    novo.pai!.renumeraFilhos();
+    novo.renumeraFilhos();
+
+    const renumerados = [
+      ...novo.pai!.filhos.filter(fnFilterAgrupadorAdicionado).map(d => createElemento(d)),
+      ...novo.filhos.filter(fnFilterAgrupadorAdicionado).map(d => createElemento(d)),
+    ];
+
+    // eventos.setReferencia(createElemento(pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1]));
+    eventos.setReferencia(createElemento(ref));
     eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
-    eventos.add(StateType.ElementoRenumerado, [createElemento(atual)]);
+    eventos.add(StateType.ElementoRenumerado, renumerados);
+    eventos.add(StateType.SituacaoElementoModificada, getElementos(novo));
+    eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
+    eventos.add(StateType.ElementoReferenciado, [action.atual]);
     return {
       articulacao: state.articulacao,
       modo: state.modo,
@@ -90,6 +111,8 @@ export const agrupaElemento = (state: any, action: any): State => {
       dispositivos.push(...atual.pai!.pai!.filhos.filter((f: Dispositivo, index: number) => index > pos2! && f.tiposPermitidosPai?.includes(action.novo.tipo)));
     }
   }
+  novo.createRotulo(novo);
+  novo.id = buildId(novo);
 
   copiaDispositivosParaOutroPai(novo, dispositivos);
   novo.pai!.renumeraFilhos();
@@ -98,7 +121,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   // const renumerados = buildListaElementosRenumerados(novo);
   const renumerados = [...buildListaElementosRenumerados(novo)].concat(
     novo.filhos
-      .filter((f: Dispositivo) => !isArtigo(f) && f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
+      .filter(fnFilterAgrupadorAdicionado)
       .map((d: Dispositivo) => createElemento(d))
       .flat()
   );
