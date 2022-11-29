@@ -105,7 +105,12 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
   if (ref) {
     const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
     const pos = dispositivos.findIndex(d => d.id === ref.id);
-    const ref2 = dispositivos.find((d, index) => index > pos && (d.tipo === ref.tipo || d.tipo === dea.tipo || d.tiposPermitidosPai?.includes(dea.tipo!)));
+    // const ref2 = dispositivos.find((d, index) => index > pos && (d.tipo === ref.tipo || d.tipo === dea.tipo || d.tiposPermitidosPai?.includes(dea.tipo!)));
+    const ref2 = dispositivos.find(
+      (d, index) =>
+        index > pos &&
+        (d.tipo === ref.tipo || d.tipo === dea.tipo || (d.tipo !== 'Omissis' && d.tiposPermitidosPai?.includes(dea.tipo)) || (d.tipo === 'Omissis' && d.pai === ref.pai))
+    );
     const atual = createElemento(ref2!);
 
     const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo } });
