@@ -45,7 +45,7 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
       store.dispatch(action.execute(elemento, tipo));
     }
     dialogElem?.hide();
-    dialogElem?.remove();
+    document.body.removeChild(dialogElem);
   };
 
   cancelar.onclick = (): void => {
