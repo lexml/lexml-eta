@@ -90,7 +90,9 @@ export const agrupaElemento = (state: any, action: any): State => {
     //   ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
     //   novo = criaDispositivo(ref!.pai!, action.novo.tipo, ref);
   } else {
-    novo = criaDispositivo(getPaiQuePodeReceberFilhoDoTipo(atual.pai!, action.novo.tipo), action.novo.tipo, undefined, atual.pai!.indexOf(atual));
+    const paiQuePodeReceberFilho = getPaiQuePodeReceberFilhoDoTipo(atual.pai!, action.novo.tipo);
+    const posNovoAgrupador = atual.pai === paiQuePodeReceberFilho ? atual.pai!.indexOf(atual) : calculaPosNovoAgrupador(atual, paiQuePodeReceberFilho);
+    novo = criaDispositivo(paiQuePodeReceberFilho, action.novo.tipo, undefined, posNovoAgrupador);
     ref = dispositivoAnterior ?? atual.pai!;
   }
 
@@ -153,4 +155,8 @@ export const agrupaElemento = (state: any, action: any): State => {
       alertas: state.ui?.alertas,
     },
   };
+};
+
+const calculaPosNovoAgrupador = (atual: Dispositivo, paiQuePodeReceberFilho: Dispositivo): number => {
+  return atual.pai === paiQuePodeReceberFilho ? atual.pai!.indexOf(atual) + 1 : calculaPosNovoAgrupador(atual.pai!, paiQuePodeReceberFilho);
 };
