@@ -1,6 +1,6 @@
 import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArtigo } from '../../dispositivo/tipo';
+import { isArtigo } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
 import {
@@ -411,13 +411,7 @@ const getNumeracao = (d: Dispositivo): string => {
   }
 
   if (!dispositivoOriginalAnterior && dispositivoOriginalPosterior) {
-    return dispositivoAnteriorAdicionado
-      ? dispositivoAnteriorAdicionado.numero! === '0'
-        ? getNumeroAbaixo('0')
-        : getProximoNumero(dispositivoAnteriorAdicionado.numero!)
-      : isAgrupador(d)
-      ? '1'
-      : '0';
+    return dispositivoAnteriorAdicionado ? (dispositivoAnteriorAdicionado.numero! === '0' ? getNumeroAbaixo('0') : getProximoNumero(dispositivoAnteriorAdicionado.numero!)) : '0';
   }
 
   if (dispositivoOriginalAnterior && !dispositivoOriginalPosterior) {
