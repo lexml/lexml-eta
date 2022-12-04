@@ -41,10 +41,11 @@ export const copiaDispositivosParaOutroPai = (pai: Dispositivo, dispositivos: Di
     const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
     paiAtual?.removeFilho(d);
     d.pai = pai;
-    pai.addFilho(d, anterior);
 
     if (isArtigo(d)) {
       getArticulacao(d).addArtigoOnPosition(d, posicaoAtualArtigo);
+    } else {
+      pai.addFilho(d, anterior);
     }
     return d;
   });
