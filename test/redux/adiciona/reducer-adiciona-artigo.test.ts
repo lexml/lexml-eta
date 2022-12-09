@@ -334,7 +334,7 @@ describe('Testando a inclusão de artigos', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
         expect(validados.elementos!.length).equal(1);
         expect(validados.elementos![0].rotulo).equal('Art. 4º');
-        expect(validados.elementos![0].mensagens![0].descricao).equal('Artigo deveria terminar com dois pontos');
+        expect(validados.elementos![0].mensagens![0].descricao).equal('Artigo deveria terminar com dois pontos.');
       });
     });
   });

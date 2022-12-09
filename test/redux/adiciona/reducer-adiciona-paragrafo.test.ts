@@ -69,7 +69,7 @@ describe('Testando adicionar parágrafos', () => {
       });
       it('Deveria manter inalterado o inciso I', () => {
         expect(state.articulacao.artigos[0].filhos[0].rotulo).to.equal('§ 1º');
-        expect(state.articulacao.artigos[0].filhos[0].texto).to.equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+        expect(state.articulacao.artigos[0].filhos[0].texto).to.equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
       });
       it('Deveria posicionar o parágrafo recém criado após o antigo parágrafo único', () => {
         expect(state.articulacao.artigos[0].filhos[1].rotulo).to.equal('§ 2º');
@@ -137,7 +137,7 @@ describe('Testando adicionar parágrafos', () => {
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid, conteudo: { texto: '' } },
           novo: {
             tipo: TipoDispositivo.paragrafo.tipo,
-            conteudo: { texto: 'Texto do parágrafo 1 do Artigo 1 que não possui incisos.' },
+            conteudo: { texto: 'Texto do parágrafo 1 do artigo 1 que não possui incisos.' },
           },
         });
       });
@@ -147,7 +147,7 @@ describe('Testando adicionar parágrafos', () => {
       });
       it('Deveria posicionar o parágrafo recém criado após o primeiro parágrafo', () => {
         expect(state.articulacao.artigos[0].filhos[1].numero).to.equal('2');
-        expect(state.articulacao.artigos[0].filhos[1].texto).to.equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+        expect(state.articulacao.artigos[0].filhos[1].texto).to.equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
       });
       describe('Testando os eventos resultantes da ação de inclusão do inciso', () => {
         it('Deveria apresentar 4 eventos', () => {
@@ -158,13 +158,13 @@ describe('Testando adicionar parágrafos', () => {
           expect(incluido.elementos!.length).equal(1);
 
           expect(incluido.elementos![0].rotulo).to.equal('§ 2º');
-          expect(incluido.elementos![0].conteudo?.texto).to.equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+          expect(incluido.elementos![0].conteudo?.texto).to.equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
         });
         it('Deveria apresentar o antigo parágrafo no array de elementos no evento de ElementoModificado, com ambas versões do texto', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoModificado);
           expect(renumerados.elementos!.length).equal(2);
           expect(renumerados.elementos![0].rotulo).equal('§ 1º');
-          expect(renumerados.elementos![0].conteudo?.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+          expect(renumerados.elementos![0].conteudo?.texto).equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
           expect(renumerados.elementos![1].rotulo).equal('§ 1º');
           expect(renumerados.elementos![1].conteudo?.texto).equal('');
         });
@@ -178,7 +178,7 @@ describe('Testando adicionar parágrafos', () => {
           expect(validados.elementos!.length).equal(1);
           expect(validados.elementos![0].rotulo).equal('§ 1º');
           expect(validados.elementos![0].mensagens?.length).equal(1);
-          expect(validados.elementos![0].mensagens![0].descricao).equal('Não foi informado um texto para o Parágrafo');
+          expect(validados.elementos![0].mensagens![0].descricao).equal('Não foi informado um texto para o parágrafo.');
         });
       });
     });
@@ -217,7 +217,7 @@ describe('Testando adicionar parágrafos', () => {
           const renumerados = getEvento(state.ui.events, StateType.ElementoModificado);
           expect(renumerados.elementos!.length).equal(2);
           expect(renumerados.elementos![0].rotulo).equal('§ 1º');
-          expect(renumerados.elementos![0].conteudo?.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+          expect(renumerados.elementos![0].conteudo?.texto).equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
           expect(renumerados.elementos![1].rotulo).equal('§ 1º');
           expect(renumerados.elementos![1].conteudo?.texto).equal('Texto do parágrafo 1 ');
         });
@@ -231,7 +231,7 @@ describe('Testando adicionar parágrafos', () => {
           expect(validados.elementos!.length).equal(1);
           expect(validados.elementos![0].rotulo).equal('§ 1º');
           expect(validados.elementos![0].mensagens?.length).equal(1);
-          expect(validados.elementos![0].mensagens![0].descricao).equal('Parágrafo deveria terminar com ponto');
+          expect(validados.elementos![0].mensagens![0].descricao).equal('Parágrafo deveria terminar com ponto.');
         });
       });
     });
@@ -292,7 +292,7 @@ describe('Testando adicionar parágrafos', () => {
         it('Deveria apresentar o antigo parágrafo único no array de elementos no evento de ElementoValidado', () => {
           const validados = getEvento(state.ui.events, StateType.ElementoValidado);
           expect(validados.elementos!.length).equal(1);
-          expect(validados.elementos![0].mensagens![0].descricao).equal('Parágrafo deveria terminar com ponto');
+          expect(validados.elementos![0].mensagens![0].descricao).equal('Parágrafo deveria terminar com ponto.');
         });
       });
     });
