@@ -89,6 +89,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
+  atualizaListaParlamentares(): void {
+    this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
+  }
   private montarColegiadoApreciador(numero: string, ano: string): ColegiadoApreciador {
     return {
       siglaCasaLegislativa: 'CN',
@@ -152,7 +155,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   constructor() {
     super();
-    this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
   }
 
   createRenderRoot(): LitElement {
@@ -189,6 +191,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   protected firstUpdated(): void {
     this.myObserver.observe(document.body);
+    this.atualizaListaParlamentares();
   }
 
   updated(): void {
@@ -209,6 +212,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.slSplitPanel.setAttribute('disabled', 'true');
       this.slSplitPanel.position = 100;
     }
+
+    this.parlamentares.length === 0 && this.atualizaListaParlamentares();
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -252,7 +257,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         const alerta = {
           id: 'alerta-global-justificativa',
           tipo: 'error',
-          mensagem: 'A Emenda não possui uma justificativa',
+          mensagem: 'A emenda não possui uma justificativa',
           podeFechar: false,
         };
         rootStore.dispatch(adicionarAlerta(alerta));

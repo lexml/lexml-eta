@@ -3,6 +3,7 @@ import { LIMPAR_ALERTAS } from '../../../model/alerta/acao/limparAlertas';
 import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
 import { ASSISTENTE_ALTERACAO } from '../../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
+import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
 import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
@@ -33,6 +34,7 @@ import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerE
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente';
 import { adicionaElemento } from './adicionaElemento';
+import { adicionaElementosFromClipboard } from './adicionaElementosFromClipboard';
 import { adicionarAlerta as adicionaAlerta } from './adicionarAlerta';
 import { agrupaElemento } from './agrupaElemento';
 import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
@@ -82,6 +84,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return autoFixElemento(state, action);
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
+    case ADICIONAR_ELEMENTOS_FROM_CLIPBOARD:
+      return adicionaElementosFromClipboard(state, action);
     case AGRUPAR_ELEMENTO:
       return agrupaElemento(state, action);
     case TRANSFORMAR_TIPO_ELEMENTO:

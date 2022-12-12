@@ -29,13 +29,13 @@ describe('Testando undo de artigo atualizado', () => {
           tipo: TipoDispositivo.artigo.tipo,
           uuid: artigo.uuid,
           conteudo: {
-            texto: 'Texto de Artigo modificado.',
+            texto: 'Texto de artigo modificado.',
           },
         },
       });
     });
     it('Deveria apresentar o novo conteúdo de texto', () => {
-      expect(state.articulacao.artigos[0].texto).equal('Texto de Artigo modificado.');
+      expect(state.articulacao.artigos[0].texto).equal('Texto de artigo modificado.');
     });
     it('Deveria possuir um historico com uma entrada', () => {
       expect(state.past?.length).to.equal(1);
@@ -61,7 +61,7 @@ describe('Testando undo de artigo atualizado', () => {
         expect(state.ui.events[0].elementos.length).equal(1);
       });
       it('Deveria apresentar o artigo 1 no evento de ElementoModificado', () => {
-        expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do caput do Artigo 1.');
+        expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do caput do artigo 1.');
       });
       describe('Testando os eventos resultantes do redo da atualização', () => {
         beforeEach(function () {
@@ -83,9 +83,9 @@ describe('Testando undo de artigo atualizado', () => {
         it('Deveria apresentar 1 elemento atualizado mas com ambas versões do texto', () => {
           expect(state.ui.events[0].elementos.length).equal(2);
           expect(state.ui.events[0].elementos[0].rotulo).equal('Art. 1º');
-          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do caput do Artigo 1.');
+          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do caput do artigo 1.');
           expect(state.ui.events[0].elementos[1].rotulo).equal('Art. 1º');
-          expect(state.ui.events[0].elementos[1].conteudo.texto).equal('Texto de Artigo modificado.');
+          expect(state.ui.events[0].elementos[1].conteudo.texto).equal('Texto de artigo modificado.');
         });
       });
     });

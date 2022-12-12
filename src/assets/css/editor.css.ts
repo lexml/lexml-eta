@@ -471,6 +471,16 @@ export const editorStyles = html`
       content: '';
     }
 
+    @-moz-document url-prefix() {
+      .abre-aspas br,
+      .fecha-aspas br,
+      .nota-alteracao br,
+      .blot-existencia br,
+      .blot-tipo-omissis br {
+        display: none;
+      }
+    }
+
     .mobile-buttons {
       float: right;
       /* margin-right: 30px; */

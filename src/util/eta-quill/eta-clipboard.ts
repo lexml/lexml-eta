@@ -1,11 +1,16 @@
+import { connect } from 'pwa-helpers';
+import { Elemento } from '../../model/elemento';
+import { adicionarElementoFromClipboardAction } from '../../model/lexml/acao/AdicionarElementosFromClipboardAction';
+import { rootStore } from '../../redux/store';
 import { cancelarPropagacaoDoEvento } from '../event-util';
 import { Observable } from '../observable';
+import { removeAllHtmlTags } from '../string-util';
 import { CaracteresNaoValidos } from './eta-keyboard';
 import { EtaQuill } from './eta-quill';
 
 const Clipboard = Quill.import('modules/clipboard');
 
-export class EtaClipboard extends Clipboard {
+export class EtaClipboard extends connect(rootStore)(Clipboard) {
   onChange: Observable<string> = new Observable<string>();
 
   constructor(quill: EtaQuill, options: any) {
@@ -29,8 +34,6 @@ export class EtaClipboard extends Clipboard {
       }
       const text = ev.clipboardData?.getData('text/plain');
       if (text) {
-        /*         const range = this.quill.getSelection();
-        this.quill.clipboard.dangerouslyPasteHTML(range.index, text); */
         this.onChange.notify('clipboard');
       }
     });
@@ -42,11 +45,12 @@ export class EtaClipboard extends Clipboard {
       return super.convert();
     }
 
-    this.container.innerHTML = this.container.innerHTML.replace(CaracteresNaoValidos, '');
-    this.container.innerHTML = this.container.innerHTML.replace(/(<p\s*)/gi, ' <p');
-    this.container.innerHTML = this.container.innerHTML.replace(/(<br\s*\/>)/gi, ' ');
-    this.container.innerHTML = this.container.innerHTML.replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '');
-    this.container.innerHTML = this.container.innerHTML.replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
+    this.container.innerHTML = this.container.innerHTML
+      .replace(CaracteresNaoValidos, '')
+      .replace(/(<p\s*)/gi, ' <p')
+      .replace(/(<br\s*\/>)/gi, ' ')
+      .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+      .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
 
     const delta: DeltaStatic = super.convert();
     this.container.innerHTML = '';
@@ -56,13 +60,24 @@ export class EtaClipboard extends Clipboard {
   onPaste(e: ClipboardEvent): void {
     e.preventDefault();
     const range = this.quill.getSelection();
-    const html = e?.clipboardData?.getData('text/html');
+    let html = e?.clipboardData?.getData('text/html');
 
-    if (html && html.length > 0) {
+    if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
+      html = html
+        .replace(/<p/g, '\n<p')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/(<p\s*)/gi, ' <p')
+        .replace(/(<br\s*\/>)/gi, ' ')
+        .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+        .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
+        .replace(/;[/s]?[e][/s]?$/, '; ')
+        .replace(';', '; ')
+        .replace(/^["“']/g, '')
+        .normalize('NFKD');
       const parser = new DOMParser().parseFromString(html!, 'text/html');
 
       let text = '';
-      const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB'];
+      const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
       const walkDOM = (node, func) => {
         func(node);
         node = node.firstChild;
@@ -78,9 +93,49 @@ export class EtaClipboard extends Clipboard {
           text += node.nodeValue;
         }
       });
+      if (text !== undefined && this.hasRotulo(text)) {
+        this.adicionaDispositivos(text);
+        return;
+      }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
     } else if (e.clipboardData?.getData('text/plain')) {
+      const texto = e.clipboardData!.getData('text/plain');
+      if (texto.trim() !== '' && this.hasRotulo(texto)) {
+        this.adicionaDispositivos(texto);
+        return;
+      }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, e.clipboardData?.getData('text/plain'));
     }
+  }
+
+  private hasRotulo(texto: string): boolean {
+    const t = removeAllHtmlTags(texto)
+      ?.replace(/&nbsp;/g, ' ')
+      .replace(/["“']/g, '')
+      .trim();
+
+    if (t && t.length > 0 && /^(art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s[-–]{1}|[az]{1,2}\)).*/i.test(t)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private adicionaDispositivos(texto: string): Promise<any> {
+    const linha = this.quill.linhaAtual;
+    const elemento: Elemento = new Elemento();
+    elemento.uuid = linha.uuid;
+    elemento.tipo = linha.tipo;
+
+    const options = {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: texto,
+    };
+
+    return fetch('https://www6ghml.senado.leg.br/editor-emendas/api/parser/jsonix', options)
+      .then(response => response.json())
+      .then(response => rootStore.dispatch(adicionarElementoFromClipboardAction.execute(elemento, response)))
+      .catch(err => console.error(err));
   }
 }
