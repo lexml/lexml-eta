@@ -1,6 +1,6 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { buildContent } from './../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../redux/store';
@@ -14,8 +14,7 @@ import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 
 import { Autoria, ColegiadoApreciador, ComandoEmenda, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
+import { getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
@@ -61,6 +60,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlAutoria;
   @query('lexml-data')
   _lexmlData;
+  @query('lexml-opcoes-impressao')
+  _lexmlOpcoesImpressao;
 
   @query('lexml-emenda-comando')
   _lexmlEmendaComando!: ComandoEmendaComponent;
@@ -131,6 +132,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
+    emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
+    console.log('opcoesImpressao', emenda.opcoesImpressao);
     emenda.colegiadoApreciador = this.montarColegiadoApreciador(numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
@@ -283,7 +286,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         sl-tab-panel::part(base) {
           height: var(--height);
-          overflow: var(--overflow);
+          /* overflow: var(--overflow); */
           /* overflow-y: auto; */
         }
         sl-tab-panel[name='autoria'] {
@@ -330,7 +333,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group>
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
-            <sl-tab slot="nav" panel="autoria">Data e Autoria</sl-tab>
+            <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -339,12 +342,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-eta id="lexmlEta" @onchange=${this.onChange} modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa">
-              <lexml-emenda-justificativa></lexml-emenda-justificativa>
+              <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <lexml-data></lexml-data>
               <br />
               <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
+              <lexml-opcoes-impressao></lexml-opcoes-impressao>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>

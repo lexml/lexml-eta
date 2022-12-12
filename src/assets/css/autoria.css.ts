@@ -20,9 +20,6 @@ export const autoriaCss = css`
 
   .lexml-autoria {
     display: block;
-    /* height: 100%; */
-    /* padding: 0 10px; */
-    /* margin: 0px 5px; */
     font-size: var(--sl-font-size-small);
     font-family: var(--sl-font-sans);
     max-width: 700px;

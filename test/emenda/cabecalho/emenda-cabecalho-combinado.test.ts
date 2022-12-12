@@ -32,14 +32,14 @@ describe('Cabeçalho de comando de emenda com adição, modificação e supress�
     TesteCmdEmdUtil.incluiArtigo(state, 'art4', false);
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; acrescente-se art. 4º-1; e dê-se nova redação ao caput do art. 9º do Projeto, nos termos a seguir:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; acrescente-se art. 4º-1; e dê-se nova redação ao <i>caput</i> do art. 9º do Projeto, nos termos a seguir:');
   });
 
   it('supressaoModificacao', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; e dê-se nova redação ao caput do art. 9º do Projeto, nos termos a seguir:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se o art. 1º; e dê-se nova redação ao <i>caput</i> do art. 9º do Projeto, nos termos a seguir:');
   });
 
   it('supressaoModificacaoAdicao', () => {
@@ -52,7 +52,7 @@ describe('Cabeçalho de comando de emenda com adição, modificação e supress�
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
       'Suprimam-se o art. 1º e o § 2º do art. 9º;' +
-        ' dê-se nova redação ao caput do art. 9º e ao § 5º do art. 9º;' +
+        ' dê-se nova redação ao <i>caput</i> do art. 9º e ao § 5º do art. 9º;' +
         ' e acrescentem-se § 3º-1 ao art. 9º e art. 10 ao Projeto,' +
         ' nos termos a seguir:'
     );
@@ -104,8 +104,8 @@ describe('Cabeçalho de comando de emenda com adição, modificação e supress�
     TesteCmdEmdUtil.incluiArtigo(state, 'art9', false);
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação ao caput do art. 2º e ao art. 4º;' +
-        ' suprimam-se o inciso I do caput do art. 8º e o § 7º do art. 9º;' +
+      'Dê-se nova redação ao <i>caput</i> do art. 2º e ao art. 4º;' +
+        ' suprimam-se o inciso I do <i>caput</i> do art. 8º e o § 7º do art. 9º;' +
         ' e acrescentem-se § 2º ao art. 8º e art. 10 ao Projeto,' +
         ' nos termos a seguir:'
     );
@@ -137,6 +137,8 @@ describe('Cabeçalho de comando de emenda com adição, modificação e supress�
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_inc2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se nova redação ao caput do art. 2º; e suprima-se o inciso II do caput do art. 2º do Projeto, nos termos a seguir:');
+    expect(itemComandoEmenda.cabecalho).to.equal(
+      'Dê-se nova redação ao <i>caput</i> do art. 2º; e suprima-se o inciso II do <i>caput</i> do art. 2º do Projeto, nos termos a seguir:'
+    );
   });
 });

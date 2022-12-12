@@ -74,8 +74,8 @@ describe('Testando a transformação de item em alínea', () => {
         expect(state.articulacao.artigos[1].caput.filhos[0].filhos[1].rotulo).to.equal('b)');
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar 4 eventos', () => {
+          expect(state.ui.events.length).to.equal(4);
         });
         it('Deveria apresentar o item original no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -129,11 +129,11 @@ describe('Testando a transformação de item em alínea', () => {
           it('Deveria apresentar a alínea no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
             const ali = validados.elementos!.find(e => e.rotulo === 'b)');
-            expect(validados.elementos!.length).equal(2);
+            expect(validados.elementos!.length).equal(3);
             expect(ali!.rotulo).to.equal('b)');
             expect(ali!.conteudo?.texto).to.equal('texto do item 1 da alinea 1 do inciso 1 do caput do artigo 2.');
             expect(ali!.mensagens?.length).equal(1);
-            expect(ali!.mensagens![0].descricao).equal('Alínea deveria terminar com uma das seguintes possibilidades: ;     ; e     ; ou');
+            expect(ali!.mensagens![0].descricao).equal('Alínea deveria terminar com ponto e vírgula.');
           });
         });
       });

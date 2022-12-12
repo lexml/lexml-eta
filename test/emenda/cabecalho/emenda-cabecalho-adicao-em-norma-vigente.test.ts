@@ -58,7 +58,7 @@ describe('Cabeçalho de comando de emenda com adição de dispositivos em altera
     (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescente-se inciso VIII ao caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Acrescente-se inciso VIII ao <i>caput</i> do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -69,7 +69,7 @@ describe('Cabeçalho de comando de emenda com adição de dispositivos em altera
     (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = false;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Acrescente-se alínea “a-A” ao inciso I do caput do art. 63-C da Lei nº 11.343, de 23 de agosto de 2006, na forma proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
+      'Acrescente-se alínea “a-A” ao inciso I do <i>caput</i> do art. 63-C da Lei nº 11.343, de 23 de agosto de 2006, na forma proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
     );
   });
 });

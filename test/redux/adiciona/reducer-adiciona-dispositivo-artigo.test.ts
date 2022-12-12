@@ -262,9 +262,9 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
           expect(validados.elementos!.length).equal(1);
           expect(validados.elementos![0].rotulo).equal('I –');
           expect(validados.elementos![0].mensagens![0].descricao).equal(
-            'Inciso deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio'
+            'Inciso deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.'
           );
-          expect(validados.elementos![0].mensagens![1].descricao).equal('Inciso deveria terminar com ponto e vírgula. ');
+          expect(validados.elementos![0].mensagens![1].descricao).equal('Inciso deveria terminar com ponto e vírgula.');
         });
       });
       describe('Testando UNDO', () => {
@@ -344,9 +344,9 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
             expect(validados.elementos!.length).equal(1);
             expect(validados.elementos![0].rotulo).equal('I –');
             expect(validados.elementos![0].mensagens![0].descricao).equal(
-              'Inciso deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio'
+              'Inciso deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.'
             );
-            expect(validados.elementos![0].mensagens![1].descricao).equal('Inciso deveria terminar com ponto e vírgula. ');
+            expect(validados.elementos![0].mensagens![1].descricao).equal('Inciso deveria terminar com ponto e vírgula.');
           });
         });
       });

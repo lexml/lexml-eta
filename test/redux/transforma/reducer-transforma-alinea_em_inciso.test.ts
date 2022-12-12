@@ -77,7 +77,7 @@ describe('Testando a transformação de alínea em inciso', () => {
       });
       describe('Testando os eventos resultantes da ação', () => {
         it('Deveria apresentar 4 eventos: inclusão, remoção, renumeração e validação, nessa ordem', () => {
-          expect(state.ui.events.length).to.equal(3);
+          expect(state.ui.events.length).to.equal(4);
         });
         it('Deveria apresentar a alínea anterior e seus itens', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -118,7 +118,7 @@ describe('Testando a transformação de alínea em inciso', () => {
         });
         describe('Testando os eventos resultantes da ação', () => {
           it('Deveria apresentar 4 eventos: inclusão, remoção, renumeração e validação, nessa ordem', () => {
-            expect(state.ui.events.length).to.equal(3);
+            expect(state.ui.events.length).to.equal(4);
           });
           it('Deveria apresentar a alínea incluída como inciso e seus itens como alinea', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

@@ -39,7 +39,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
     TesteCmdEmdUtil.modificaDispositivo(state, 'art3_cpt_alt1_art4_par1u');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação ao caput do parágrafo único do art. 4º da Lei nº 8.745, de 9 de dezembro de 1993, como proposto pelo art. 3º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação ao <i>caput</i> do parágrafo único do art. 4º da Lei nº 8.745, de 9 de dezembro de 1993, como proposto pelo art. 3º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -47,7 +47,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art2_cpt_inc7');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação ao inciso VII do caput do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação ao inciso VII do <i>caput</i> do art. 2º da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -55,7 +55,7 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_alt1_art63-3_cpt_inc1_ali2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação à alínea “b” do inciso I do caput do art. 63-C da Lei nº 11.343, de 23 de agosto de 2006, como proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação à alínea “b” do inciso I do <i>caput</i> do art. 63-C da Lei nº 11.343, de 23 de agosto de 2006, como proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
     );
   });
 
@@ -67,18 +67,18 @@ describe('Cabeçalho de comando de emenda com modficiação de dispositivos em a
     (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação ao art. 1º-A da Lei nº 7.560, de 19 de dezembro de 1986, como proposto pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação ao art. 1º-A da Lei nº 7.560, de 19 de dezembro de 1986, na forma proposta pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 
-  // TODO - Tratar bloco de alteração em inciso (outros dispositivos que não caput de artigo)
+  // TODO - Tratar bloco de alteração em inciso (outros dispositivos que não <i>caput</i> de artigo)
 
   it('modificacaoDoisIncisosSeguidos', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1_inc1');
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1_cpt_alt1_art5_par1_inc2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação aos incisos I e II do § 1º do art. 5º da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
+      'Dê-se nova redação aos incisos I e II do § 1º do art. 5º, ambos da Lei nº 7.560, de 19 de dezembro de 1986, como propostos pelo art. 1º da Medida Provisória, nos termos a seguir:'
     );
   });
 });

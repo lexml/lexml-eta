@@ -161,7 +161,7 @@ describe('Testando a transformação de inciso em parágrafo', () => {
         const validados = getEvento(state.ui.events, StateType.ElementoValidado);
         const par = validados.elementos!.find(e => e.rotulo === '§ 1º');
         expect(par!.rotulo).equal('§ 1º');
-        expect(par!.mensagens![0].descricao).equal('Parágrafo deveria iniciar com letra maiúscula');
+        expect(par!.mensagens![0].descricao).equal('Parágrafo deveria iniciar com letra maiúscula.');
       });
     });
   });

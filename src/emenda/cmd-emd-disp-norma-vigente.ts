@@ -1,3 +1,4 @@
+import { hasFilhos } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { generoFeminino, NomeComGenero } from '../model/dispositivo/genero';
@@ -92,7 +93,7 @@ export class CmdEmdDispNormaVigente {
       sb.append(', como ');
       this.escreveProposto(
         sb,
-        dispositivos.filter(d => !CmdEmdUtil.isTextoOmitido(d))
+        dispositivos.filter(d => !CmdEmdUtil.isTextoOmitido(d) || hasFilhos(d))
       );
     }
     // pelo art. 6º do Projeto

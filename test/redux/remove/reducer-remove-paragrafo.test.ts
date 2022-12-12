@@ -28,7 +28,7 @@ describe('Testando a exclusão de parágrafos', () => {
         expect(state.articulacao.artigos[0].filhos[0].rotulo).to.equal('Parágrafo único.');
       });
       it('Deveria possuir como paragrafo único o antigo parágrafo 2', () => {
-        expect(state.articulacao.artigos[0].filhos[0].texto).to.equal('Texto do parágrafo 2 do Artigo 1 que não possui incisos.');
+        expect(state.articulacao.artigos[0].filhos[0].texto).to.equal('Texto do parágrafo 2 do artigo 1 que não possui incisos.');
       });
       describe('Testando os eventos resultantes da ação de exclusão do paragrafo', () => {
         it('Deveria apresentar 2 eventos', () => {
@@ -38,10 +38,10 @@ describe('Testando a exclusão de parágrafos', () => {
           expect(state.ui.events[0].elementos.length).equal(1);
         });
         it('Deveria apresentar o parágrafo 1 no evento de ElementoRemoved', () => {
-          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
         });
         it('Deveria apresentar 1 elemento renumerado, o antigo parágrafo 2', () => {
-          expect(state.ui.events[1].elementos[0].conteudo.texto).equal('Texto do parágrafo 2 do Artigo 1 que não possui incisos.');
+          expect(state.ui.events[1].elementos[0].conteudo.texto).equal('Texto do parágrafo 2 do artigo 1 que não possui incisos.');
         });
       });
     });
@@ -59,7 +59,7 @@ describe('Testando a exclusão de parágrafos', () => {
         expect(state.articulacao.artigos[0].filhos[0].rotulo).to.equal('Parágrafo único.');
       });
       it('Deveria possuir como paragrafo único o antigo parágrafo 1', () => {
-        expect(state.articulacao.artigos[0].filhos[0].texto).to.equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+        expect(state.articulacao.artigos[0].filhos[0].texto).to.equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
       });
       describe('Testando os eventos resultantes da ação de exclusão do paragrafo', () => {
         it('Deveria apresentar 3 eventos: exclusão, renumeração e validação, nessa ordem', () => {
@@ -69,10 +69,10 @@ describe('Testando a exclusão de parágrafos', () => {
           expect(state.ui.events[0].elementos.length).equal(1);
         });
         it('Deveria apresentar o parágrafo 2 no evento de ElementoRemoved', () => {
-          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do parágrafo 2 do Artigo 1 que não possui incisos.');
+          expect(state.ui.events[0].elementos[0].conteudo.texto).equal('Texto do parágrafo 2 do artigo 1 que não possui incisos.');
         });
         it('Deveria apresentar 1 elemento renumerado, o antigo parágrafo 1', () => {
-          expect(state.ui.events[1].elementos[0].conteudo.texto).equal('Texto do parágrafo 1 do Artigo 1 que não possui incisos.');
+          expect(state.ui.events[1].elementos[0].conteudo.texto).equal('Texto do parágrafo 1 do artigo 1 que não possui incisos.');
         });
         it('Deveria apresentar 1 elemento renumerado, o antigo parágrafo 2', () => {
           expect(state.ui.events[1].elementos[0].rotulo).equal('Parágrafo único.');

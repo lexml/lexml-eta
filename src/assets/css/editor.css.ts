@@ -193,6 +193,7 @@ export const editorStyles = html`
 
     .container__texto {
       flex: 1;
+      white-space: pre-wrap;
     }
 
     .container_elemento--omissis .container__texto {

@@ -88,7 +88,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
   it('acrescimoIncisoAoCaput', () => {
     TesteCmdEmdUtil.incluiInciso(state, 'art1', false, 'art1_cpt_inc1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se inciso I ao caput do art. 1º do Projeto, com a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se inciso I ao <i>caput</i> do art. 1º do Projeto, com a seguinte redação:');
   });
 
   it('acrescimoDoisIncisosConsecutivos', () => {

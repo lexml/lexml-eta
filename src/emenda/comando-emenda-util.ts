@@ -44,7 +44,7 @@ export class CmdEmdUtil {
   }
 
   private static getDispositivoAfetado(d: Dispositivo): Dispositivo {
-    let pai = d.pai!;
+    const pai = d.pai!;
 
     if (isDispositivoRaiz(pai)) {
       return d;
@@ -55,7 +55,8 @@ export class CmdEmdUtil {
       if (pai.filhos.find(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL)) {
         return d;
       }
-      pai = pai.pai!;
+      //pai = pai.pai!;
+      return pai.pai!;
     }
 
     // Se o pai for uma alteração integral

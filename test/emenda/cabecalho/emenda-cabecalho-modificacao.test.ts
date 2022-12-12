@@ -32,33 +32,33 @@ describe('Cabeçalho de comando de emenda com modificação de dispositivos', ()
   it('modificacaoCaputSemIncisosEmArtigoComParagrafos', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao caput do art. 8º do Projeto a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao <i>caput</i> do art. 8º do Projeto a seguinte redação:');
   });
 
   it('modificacaoCaputComIncisosNaoModificadosEmArtigoSemParagrafos', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao caput do art. 2º do Projeto a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao <i>caput</i> do art. 2º do Projeto a seguinte redação:');
   });
 
   it('modificacaoCaputComIncisosNaoModificadosEmArtigoComParagrafosModificados', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8');
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_par1u');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao caput do art. 8º e ao parágrafo único do art. 8º do Projeto a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao <i>caput</i> do art. 8º e ao parágrafo único do art. 8º do Projeto a seguinte redação:');
   });
 
   it('modificacaoCaputComIncisosNaoModificadosEmArtigoComParagrafosNaoModificados', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao caput do art. 8º do Projeto a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao <i>caput</i> do art. 8º do Projeto a seguinte redação:');
   });
 
   it('modificacaoCaputComIncisosModificadosEmArtigoComParagrafosNaoModificados', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8');
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_cpt_inc1'); // Não aparece no comando por ser único
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao caput do art. 8º do Projeto a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao <i>caput</i> do art. 8º do Projeto a seguinte redação:');
   });
 
   it('modificacaoCaputComIncisosModificadosEmArtigoComParagrafosModificados', () => {
@@ -72,9 +72,9 @@ describe('Cabeçalho de comando de emenda com modificação de dispositivos', ()
 
   it('modificacaoDoisCaputUmSemIncisosOutroComIncisos', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1'); // art. 1º
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art2'); // caput do art. 2º
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art2'); // <i>caput</i> do art. 2º
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao art. 1º e ao caput do art. 2º do Projeto a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao art. 1º e ao <i>caput</i> do art. 2º do Projeto a seguinte redação:');
   });
 
   // -----------------------------------------------------
@@ -131,7 +131,7 @@ describe('Cabeçalho de comando de emenda com modificação de dispositivos', ()
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1');
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao inciso I do caput do art. 8º e aos incisos I e II do § 6º do art. 9º do Projeto' + ' a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se ao inciso I do <i>caput</i> do art. 8º e aos incisos I e II do § 6º do art. 9º do Projeto' + ' a seguinte redação:');
   });
 
   it('modificacaoIntegralInciso', () => {
@@ -187,7 +187,7 @@ describe('Cabeçalho de comando de emenda com modificação de dispositivos', ()
 
   it('modificacaoArtigoCaputParagrafoIncisoAlineaItem', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1'); // art. 1º
-    TesteCmdEmdUtil.modificaDispositivo(state, 'art2'); // caput do art. 2º
+    TesteCmdEmdUtil.modificaDispositivo(state, 'art2'); // <i>caput</i> do art. 2º
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_par1u'); // parágrafo único do art. 8º
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc2'); // inciso II do § 6º do art. 9º
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali2'); // alínea “b” do inciso I do § 6º do art. 9º
@@ -195,7 +195,7 @@ describe('Cabeçalho de comando de emenda com modificação de dispositivos', ()
     // do art. 9º
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se ao art. 1º, ao caput do art. 2º, ao parágrafo único do art. 8º,' +
+      'Dê-se ao art. 1º, ao <i>caput</i> do art. 2º, ao parágrafo único do art. 8º,' +
         ' ao item 1 da alínea “a” do inciso I do § 6º do art. 9º,' +
         ' à alínea “b” do inciso I do § 6º do art. 9º' +
         ' e ao inciso II do § 6º do art. 9º do Projeto a seguinte redação:'

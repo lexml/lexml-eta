@@ -5,7 +5,7 @@ import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorGenerico, isArtigo, isInciso } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
+import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { buildDispositivoFromJsonix } from '../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { isDispositivoAlteracao, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
@@ -122,16 +122,15 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
         const ca = getDispositivoCabecaAlteracao(d);
         if (!mapCabecaAlteracao.has(ca.id)) {
           mapCabecaAlteracao.set(ca.id, '');
-          return getElementos(ca, true);
+          return getDispositivoAndFilhosAsLista(ca);
         } else {
           return [];
         }
       } else {
-        return createElemento(d);
+        return d;
       }
     })
     .flat()
-    .map(e => getDispositivoFromElemento(state.articulacao, e)!)
     .map(d => createElementoValidado(d));
   eventos.add(StateType.SituacaoElementoModificada, elementosSituacaoAtualizada);
 
