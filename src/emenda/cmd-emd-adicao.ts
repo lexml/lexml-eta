@@ -2,12 +2,12 @@ import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { isArtigo } from '../model/dispositivo/tipo';
 import { isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
-import { isAgrupador } from './../model/dispositivo/tipo';
+import { isAgrupador, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { StringBuilder } from './../util/string-util';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdUtil } from './comando-emenda-util';
-import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
+import { DispositivosWriterCmdEmd, TipoReferenciaAgrupador } from './dispositivos-writer-cmd-emd';
 import { RangeDispositivos } from './range-dispositivos';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
@@ -33,7 +33,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
 
     const agrupador = new AgrupadorDispositivosCmdEmd();
     let sequencias = agrupador.getSequencias(this.dispositivos);
-    sequencias = this.trataLocalizacaoArtigoEmAgrupador(sequencias);
+    sequencias = this.trataLocalizacaoEmAgrupador(sequencias);
 
     // Prefixo
     const plural = CmdEmdUtil.isSequenciasPlural(sequencias);
@@ -46,12 +46,14 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
 
     // Dispositivos
     const dispositivosWriter = new DispositivosWriterCmdEmd();
+    dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.ADICAO;
     sb.append(dispositivosWriter.getTexto(sequencias));
 
     // Sufixo
     if (isUltimo) {
       const ultimaSequencia = sequencias[sequencias.length - 1];
-      if (!isArtigo(ultimaSequencia.getPrimeiroDispositivo()) || ultimaSequencia.localizarArtigoEmAgrupador) {
+      const primeiroDosUltimos = ultimaSequencia.getPrimeiroDispositivo();
+      if (!(isArtigo(primeiroDosUltimos) || isAgrupadorNaoArticulacao(primeiroDosUltimos)) || ultimaSequencia.localizarEmAgrupador) {
         sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
       } else {
         sb.append(refGenericaProjeto.genero.artigoDefinidoPrecedidoPreposicaoASingular);
@@ -63,12 +65,13 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     return sb.toString();
   }
 
-  private trataLocalizacaoArtigoEmAgrupador(sequencias: SequenciaRangeDispositivos[]): SequenciaRangeDispositivos[] {
+  private trataLocalizacaoEmAgrupador(sequencias: SequenciaRangeDispositivos[]): SequenciaRangeDispositivos[] {
     const ret = new Array<SequenciaRangeDispositivos>();
 
     for (const sequencia of sequencias) {
-      if (isArtigo(sequencia.getPrimeiroDispositivo())) {
-        ret.push(...this.trataLocalizacaoArtigoAgrupadorSequencia(sequencia));
+      const primeiro = sequencia.getPrimeiroDispositivo();
+      if (isArtigo(primeiro) || isAgrupadorNaoArticulacao(primeiro)) {
+        ret.push(...this.trataLocalizacaoEmAgrupadorSequencia(sequencia));
       } else {
         ret.push(sequencia);
       }
@@ -77,19 +80,21 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     return ret;
   }
 
-  private trataLocalizacaoArtigoAgrupadorSequencia(sequencia: SequenciaRangeDispositivos): SequenciaRangeDispositivos[] {
+  private trataLocalizacaoEmAgrupadorSequencia(sequencia: SequenciaRangeDispositivos): SequenciaRangeDispositivos[] {
+    const sequenciaDeAgrupadores = isAgrupadorNaoArticulacao(sequencia.getPrimeiroDispositivo());
+
     const sequencias = new Array<SequenciaRangeDispositivos>();
 
-    // Junta todos os artigos dos ranges da sequencia em uma única lista
-    const artigos = new Array<Dispositivo>();
+    // Junta todos os artigos/agrupadores dos ranges da sequencia em uma única lista
+    const dispositivos = new Array<Dispositivo>();
     for (const range of sequencia.getRanges()) {
-      artigos.push(...range.getDispositivos());
+      dispositivos.push(...range.getDispositivos());
     }
 
     // Verifica a necessidade de reagrupar
     let reagrupar = false;
-    for (const art of artigos) {
-      if (this.isInclusaoArtigoProximoAgrupador(art)) {
+    for (const disp of dispositivos) {
+      if (sequenciaDeAgrupadores || this.isInclusaoDeArtigoProximoAAgrupador(disp)) {
         reagrupar = true;
         break;
       }
@@ -103,31 +108,31 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
 
     // Vamos reagrupá-los em ranges dentro do mesmo pai
     let s = new SequenciaRangeDispositivos(); // Nova sequência
-    s.localizarArtigoEmAgrupador = true;
+    s.localizarEmAgrupador = true;
     sequencias.push(s);
 
     let r = new RangeDispositivos(); // Novo range
     s.add(r);
 
     let artAnterior: Dispositivo | undefined = undefined;
-    for (const art of artigos) {
+    for (const disp of dispositivos) {
       if (!r.isVazio()) {
-        if (art.pai !== (artAnterior as Dispositivo).pai) {
+        if (disp.pai !== (artAnterior as Dispositivo).pai) {
           s = new SequenciaRangeDispositivos();
-          s.localizarArtigoEmAgrupador = true;
+          s.localizarEmAgrupador = true;
           sequencias.push(s);
 
           r = new RangeDispositivos();
           s.add(r);
-        } else if (CmdEmdUtil.getDispositivoIrmaoPosterior(artAnterior as Dispositivo) !== art) {
+        } else if (CmdEmdUtil.getDispositivoIrmaoPosterior(artAnterior as Dispositivo) !== disp) {
           r = new RangeDispositivos();
           s.add(r);
         }
       }
 
-      r.add(art);
+      r.add(disp);
 
-      artAnterior = art;
+      artAnterior = disp;
     }
 
     // Quebra ranges com 2 dispositivos em duas
@@ -138,11 +143,11 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     return sequencias;
   }
 
-  private isInclusaoArtigoProximoAgrupador(artigo: Dispositivo): boolean {
-    return this.isInclusaoArtigoInicioAgrupador(artigo) || this.isInclusaoArtigoAntesAgrupador(artigo);
+  private isInclusaoDeArtigoProximoAAgrupador(artigo: Dispositivo): boolean {
+    return this.isInclusaoNoInicioDeAgrupador(artigo) || this.isInclusaoImediatamenteAntesDeAgrupador(artigo);
   }
 
-  private isInclusaoArtigoInicioAgrupador(artigo: Dispositivo): boolean {
+  private isInclusaoNoInicioDeAgrupador(artigo: Dispositivo): boolean {
     // Dentro de agrupador de artigo
     const pai = artigo.pai as Dispositivo;
     if (isDispositivoRaiz(pai) || !isAgrupador(pai)) {
@@ -153,7 +158,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     return pai.filhos.indexOf(artigo) === 0;
   }
 
-  private isInclusaoArtigoAntesAgrupador(disp: Dispositivo): boolean {
+  private isInclusaoImediatamenteAntesDeAgrupador(disp: Dispositivo): boolean {
     // TODO Testar também último artigo do projeto seguido de agrupador
 
     // Verifica se o próximo artigo está no mesmo agrupador

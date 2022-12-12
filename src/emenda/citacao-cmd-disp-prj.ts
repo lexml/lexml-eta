@@ -66,7 +66,7 @@ export class CitacaoComandoDispPrj {
 
       if (dispRef !== dispRefAtual) {
         if (listaDispRef.length) {
-          this.getCitacaoMultipla(sb, listaDispRef);
+          sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef));
         }
 
         listaDispRef = [];
@@ -81,11 +81,7 @@ export class CitacaoComandoDispPrj {
     });
 
     if (listaDispRef.length) {
-      this.getCitacaoMultipla(sb, listaDispRef);
+      sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef));
     }
-  }
-
-  getCitacaoMultipla(sb: StringBuilder, dispositivos: Dispositivo[]): void {
-    sb.append(new CitacaoComandoMultipla().getTexto(dispositivos));
   }
 }

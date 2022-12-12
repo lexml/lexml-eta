@@ -3,11 +3,9 @@ import { addSpaceRegex, StringBuilder } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isArticulacao } from '../../dispositivo/tipo';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
-import { isDispositivoRaiz } from './../hierarquia/hierarquiaUtil';
 import {
   converteLetrasComplementoParaNumero,
   converteNumeroArabicoParaRomano,
@@ -97,13 +95,6 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       const sb = new StringBuilder();
 
       sb.append(this.setMaiusculaPrimeiraLetraDaDescricao(this.rotulo!));
-
-      const pai = this.pai as Dispositivo;
-      if (!!pai && !isDispositivoRaiz(pai) && !isArticulacao(pai)) {
-        sb.append(pai.pronomePossessivoSingular);
-        sb.append(' ');
-        sb.append(pai.getNumeracaoParaComandoEmenda(pai));
-      }
 
       return sb.toString();
     }

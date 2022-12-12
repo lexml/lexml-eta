@@ -5,7 +5,7 @@ import { RangeDispositivos } from './range-dispositivos';
 
 export class SequenciaRangeDispositivos {
   private ranges = new Array<RangeDispositivos>();
-  localizarArtigoEmAgrupador = false;
+  localizarEmAgrupador = false;
   informarCaputDoDispositivo = false;
 
   isVazio(): boolean {
