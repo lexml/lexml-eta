@@ -291,9 +291,13 @@ export const tipoOmissis = (pai: Dispositivo | undefined): string => {
 };
 
 export const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean => {
+  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
   if (elemento.existeNaNormaAlterada === undefined || elemento.tipo === 'Omissis') {
     return false;
   } else {
-    return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;
+    return (
+      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && tiposAgrupadorArtigo.includes(elemento.hierarquia?.pai?.tipo ?? '')) ||
+      (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true)
+    );
   }
 };

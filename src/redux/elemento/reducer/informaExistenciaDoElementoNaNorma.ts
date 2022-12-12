@@ -10,6 +10,7 @@ import { State, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
+import { isAgrupador, isArtigo } from '../../../model/dispositivo/tipo';
 
 export const informaExistenciaDoElementoNaNorma = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -41,7 +42,7 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
   const eventos: StateEvent[] = [];
 
   if (mudouIndicacaoDeExistenteParaNovo) {
-    const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
+    const dispositivos = getDispositivoAndFilhosAsLista(dispositivo).filter(d => !isAgrupador(dispositivo) || isAgrupador(d));
 
     dispositivos.forEach(d => {
       const original = createElemento(d);
@@ -105,7 +106,7 @@ const validaAlteracaoNovoParaExistente = (dispositivo: Dispositivo): Mensagem | 
 };
 
 const validaAlteracaoExistenteParaNovo = (dispositivo: Dispositivo): Mensagem | undefined => {
-  const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
+  const dispositivos = getDispositivoAndFilhosAsLista(dispositivo).filter(d => !isAgrupador(dispositivo) || !isArtigo(d));
   if (existeDispositivoSemNumero(dispositivos.slice(1))) {
     return {
       tipo: TipoMensagem.INFO,
@@ -130,15 +131,15 @@ const validaAlteracaoExistenteParaNovo = (dispositivo: Dispositivo): Mensagem | 
 
 const isDispositivoPossuiPaiNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean => {
   const existe = (dispositivo.pai?.situacao as DispositivoAdicionado).existeNaNormaAlterada;
-  return !isDispositivoCabecaAlteracao(dispositivo) && !(existe ?? true);
+  return !isArtigo(dispositivo) && !isDispositivoCabecaAlteracao(dispositivo) && !(existe ?? true);
 };
 
 const existeDispositivoSemNumero = (dispositivos: Dispositivo[]): boolean => {
-  return dispositivos.some(d => d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')));
+  return dispositivos.some(d => d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')) || d.numero === undefined);
 };
 
 const existeOmissis = (dispositivos: Dispositivo[]): boolean => {
-  return dispositivos.some(d => d.tipo === 'Omissis' || d.texto.includes(TEXTO_OMISSIS));
+  return dispositivos.some(d => d.tipo === 'Omissis' || d.texto?.includes(TEXTO_OMISSIS));
 };
 
 const existeNecessidadeDeOmissis = (dispositivos: Dispositivo[]): boolean => {

@@ -15,6 +15,8 @@ import {
   isDispositivoAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
+import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -58,6 +60,10 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(adicionarAgrupadorArtigoAction);
+
+      if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

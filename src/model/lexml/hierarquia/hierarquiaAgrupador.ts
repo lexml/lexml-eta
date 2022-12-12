@@ -71,6 +71,7 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
             f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO ||
             f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
         )
+        .filter(f => !isArtigo(f))
         .forEach(filho => {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);

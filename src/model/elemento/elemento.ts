@@ -34,4 +34,5 @@ export class Elemento extends Referencia {
   dispositivoAlteracao?: boolean;
   tipoOmissis?: string;
   podeEditarNotaAlteracao?: boolean;
+  manterNoMesmoGrupoDeAspas?: boolean;
 }

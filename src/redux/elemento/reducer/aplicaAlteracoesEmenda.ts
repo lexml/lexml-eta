@@ -84,7 +84,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
-  const tiposAgrupadorArtigo = ['Livro', 'Parte', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
   const eventos: StateEvent[] = [];
 
   for (const da of alteracoesEmenda.dispositivosAdicionados) {
@@ -105,7 +105,6 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
   if (ref) {
     const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
     const pos = dispositivos.findIndex(d => d.id === ref.id);
-    // const ref2 = dispositivos.find((d, index) => index > pos && (d.tipo === ref.tipo || d.tipo === dea.tipo || d.tiposPermitidosPai?.includes(dea.tipo!)));
     const ref2 = dispositivos.find(
       (d, index) =>
         index > pos &&
@@ -113,13 +112,15 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
     );
     const atual = createElemento(ref2!);
 
-    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo } });
+    const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas; // dea.abreAspas && !dea.fechaAspas;
+    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: 'antes', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
     const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
 
     const elementosIncluidos = events.find(e => e.stateType === StateType.ElementoIncluido)!.elementos!;
     const novoAgrupador = elementosIncluidos[0];
 
     const novo = getDispositivoFromElemento(articulacao, novoAgrupador)!;
+
     ajustaAtributosDispositivoAdicionado(novo, dea);
 
     elementosIncluidos.length = 0;

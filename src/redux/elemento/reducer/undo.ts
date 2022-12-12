@@ -41,7 +41,11 @@ export const undo = (state: any): State => {
       tempState = removeElemento(tempState, { atual: eventos[0].elementos[0] });
     } else {
       const ref = eventos.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
-      tempState = agrupaElemento(tempState, { atual: ref, novo: { tipo: eventos[0].elementos[0].tipo, uuid: eventos[0].elementos[0].uuid } });
+      const elementoASerIncluido = eventos[0].elementos[0];
+      tempState = agrupaElemento(tempState, {
+        atual: ref,
+        novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
+      });
       ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventos, tempState.ui!.events);
     }
 
