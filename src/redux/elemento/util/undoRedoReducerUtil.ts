@@ -250,7 +250,7 @@ export const processaSituacoesAlteradas = (state: State, eventos: StateEvent[]):
 };
 
 export const isUndoRedoInclusaoExclusaoAgrupador = (eventos: StateEvent[]): boolean => {
-  const tiposAgrupadorArtigo = ['Livro', 'Parte', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
   return (
     eventos.length > 0 &&
     [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventos[0].stateType) &&

@@ -1,132 +1,122 @@
-import { getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { retornaEstadoAtualComMensagem } from './../util/stateReducerUtil';
+import {
+  getUltimoFilho,
+  isDispositivoAlteracao,
+  // isUltimaAlteracao,
+  getDispositivoAndFilhosAsLista,
+  getDispositivoCabecaAlteracao,
+  getArticulacao,
+  podeRenumerarFilhosAutomaticamente,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { getPaiQuePodeReceberFilhoDoTipo } from './../evento/eventosUtil';
 import { isAgrupador, isArtigo } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
-import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArticulacao } from '../../../model/dispositivo/tipo';
-import { buildListaElementosRenumerados, createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import {
-  getDispositivoAnterior,
-  getDispositivoAnteriorMesmoTipo,
-  irmaosMesmoTipo,
-  isArticulacaoAlteracao,
-  isDispositivoCabecaAlteracao,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia, copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual } from '../util/reducerUtil';
+import { copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { buildId } from '../../../model/lexml/util/idUtil';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 
 export const agrupaElemento = (state: any, action: any): State => {
-  let atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   if (atual === undefined) {
     return state;
   }
 
-  const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-
-  if (isDispositivoCabecaAlteracao(atual)) {
-    const pos = atual.pai!.indexOf(atual);
-    const novo = criaDispositivoCabecaAlteracao(action.novo.tipo, atual.pai! as Alteracoes, undefined, pos);
-    novo.id = buildId(novo);
-    novo.addFilho(atual);
-    atual.pai = novo;
-    const eventos = new Eventos();
-    let ref = pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1];
-    ref = ref.tipo === 'Artigo' ? getUltimoFilho(ref) : ref;
-
-    novo.pai!.renumeraFilhos();
-    novo.renumeraFilhos();
-
-    const renumerados = [
-      ...novo.pai!.filhos.filter(fnFilterAgrupadorAdicionado).map(d => createElemento(d)),
-      ...novo.filhos.filter(fnFilterAgrupadorAdicionado).map(d => createElemento(d)),
-    ];
-
-    // eventos.setReferencia(createElemento(pos === 0 ? novo.pai!.pai! : novo.pai!.filhos[pos - 1]));
-    eventos.setReferencia(createElemento(ref));
-    eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
-    eventos.add(StateType.ElementoRenumerado, renumerados);
-    eventos.add(StateType.SituacaoElementoModificada, getElementos(novo));
-    eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
-    eventos.add(StateType.ElementoReferenciado, [action.atual]);
-    return {
-      articulacao: state.articulacao,
-      modo: state.modo,
-      past: buildPast(state, eventos.build()),
-      present: eventos.build(),
-      future: [],
-      ui: {
-        events: eventos.build(),
-        alertas: state.ui?.alertas,
-      },
-    };
+  if (!isArtigo(atual) && !isAgrupador(atual)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  // Novo agrupador, por default, é inserido acima do elemento selecionado
-  // Porém, se o dispositivo atualmente selecionado for um agrupador e o novo agrupador a ser criado for de tipo que seja filho do atual,
-  // então deve ser criado abaixo do dispositivo selecionado.
-  // Para criar o novo agrupador abaixo do dispositivo selecionado a "referência atual" é alterada.
-  if (isAgrupador(atual) && (atual.tipo === action.novo.tipo || atual.tiposPermitidosFilhos?.includes(action.novo.tipo))) {
-    atual = atual.filhos[0]!;
+  if (isArtigo(atual) && action.novo.posicao !== 'antes') {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  const dispositivoAnterior = getDispositivoAnterior(atual);
-  const pos = atual.pai!.indexOf(atual);
+  // const posicaoDoNovoAgrupador: string = isArtigo(atual) ? 'antes' : action.novo.posicao;
+  // const manterNovoNoMesmoGrupoDeAspas: boolean =
+  //   isDispositivoAlteracao(atual) && !isDispositivoCabecaAlteracao(atual) && !isUltimoArtigoOuAgrupadorDaAlteracao(atual) ? true : action.novo.manterNoMesmoGrupoDeAspas;
+
+  const posicaoDoNovoAgrupador: string = action.novo.posicao;
+  const manterNovoNoMesmoGrupoDeAspas: boolean = action.novo.manterNoMesmoGrupoDeAspas;
+
+  const cabecaAlteracao = isDispositivoAlteracao(atual) ? getDispositivoCabecaAlteracao(atual) : undefined;
+  const dispositivosAlteracao = cabecaAlteracao ? getDispositivoAndFilhosAsLista(cabecaAlteracao) : [];
+  const dispositivosArticulacao = getDispositivoAndFilhosAsLista(state.articulacao);
+
+  if (isDispositivoAlteracao(atual)) {
+    if (isDispositivoCabecaAlteracao(atual) && manterNovoNoMesmoGrupoDeAspas && posicaoDoNovoAgrupador === 'antes' && !atual.tiposPermitidosPai?.includes(action.novo.tipo)) {
+      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    }
+
+    if (!isDispositivoCabecaAlteracao(atual) && manterNovoNoMesmoGrupoDeAspas && !dispositivosAlteracao.some(d => d.tiposPermitidosFilhos?.includes(action.novo.tipo))) {
+      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    }
+
+    if (isArtigo(atual) && !isDispositivoCabecaAlteracao(atual) && !manterNovoNoMesmoGrupoDeAspas) {
+      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    }
+
+    if (!manterNovoNoMesmoGrupoDeAspas) {
+      return criarNovaCabecaDeAlteracao(state, atual, posicaoDoNovoAgrupador, action.novo.tipo, false, { rotulo: action.novo.rotulo, uuid: action.novo.uuid });
+    }
+
+    if (isDispositivoCabecaAlteracao(atual) && posicaoDoNovoAgrupador === 'antes') {
+      return criarNovaCabecaDeAlteracao(state, atual, posicaoDoNovoAgrupador, action.novo.tipo, true, { rotulo: action.novo.rotulo, uuid: action.novo.uuid });
+    }
+  }
 
   let novo: Dispositivo;
-  let ref: any = undefined;
+  const ref = dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
 
   if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
-    ref = getDispositivoAnteriorMesmoTipo(novo);
-    // } else if ((!isDispositivoAlteracao(atual) && hasAgrupadoresAcimaByTipo(atual, action.novo.tipo)) || hasAgrupadoresAnterioresByTipo(atual, action.novo.tipo)) {
-    //   ref = getAgrupadoresAcimaByTipo(atual, action.novo.tipo) ?? getAgrupadorAcimaByTipo(atual, action.novo.tipo);
-    //   novo = criaDispositivo(ref!.pai!, action.novo.tipo, ref);
   } else {
-    const paiQuePodeReceberFilho = getPaiQuePodeReceberFilhoDoTipo(atual.pai!, action.novo.tipo);
-    const posNovoAgrupador = atual.pai === paiQuePodeReceberFilho ? atual.pai!.indexOf(atual) : calculaPosNovoAgrupador(atual, paiQuePodeReceberFilho);
-    novo = criaDispositivo(paiQuePodeReceberFilho, action.novo.tipo, undefined, posNovoAgrupador);
-    ref = dispositivoAnterior ?? atual.pai!;
+    const paiQuePodeReceberNovoAgrupador = getPaiQuePodeReceberFilhoDoTipo(ref, action.novo.tipo, dispositivosAlteracao)!;
+    if (!paiQuePodeReceberNovoAgrupador) {
+      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    }
+
+    const posNovoAgrupador =
+      atual.pai === paiQuePodeReceberNovoAgrupador
+        ? atual.pai!.indexOf(atual) + (posicaoDoNovoAgrupador === 'antes' ? 0 : 1)
+        : calculaPosNovoAgrupador(atual, paiQuePodeReceberNovoAgrupador, dispositivosArticulacao, dispositivosAlteracao);
+    novo = criaDispositivo(paiQuePodeReceberNovoAgrupador, action.novo.tipo, undefined, posNovoAgrupador);
   }
 
-  // Para quando o agrupador é criado por ação de undo ou redo
-  if (action.novo.uuid) {
-    novo.uuid = action.novo.uuid;
-  }
+  // Reutiliza "uuid" quando o agrupador é criado por ação de undo ou redo
+  novo.uuid = action.novo.uuid ?? novo.uuid;
 
   novo.situacao = new DispositivoAdicionado();
   (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
-
-  novo.texto = action.novo.conteudo?.texto;
-  const dispositivos = atual.pai!.filhos.filter((f: Dispositivo, index: number) => index >= pos && f.tiposPermitidosPai?.includes(action.novo.tipo));
-
-  if (atual.pai!.tiposPermitidosPai?.includes(novo.tipo)) {
-    const pos2 = atual.pai?.pai?.indexOf(atual.pai!);
-    if (!isNaN(Number(pos2))) {
-      dispositivos.push(...atual.pai!.pai!.filhos.filter((f: Dispositivo, index: number) => index > pos2! && f.tiposPermitidosPai?.includes(action.novo.tipo)));
-    }
-  }
+  novo.texto = action.novo.texto;
   novo.createRotulo(novo);
+  novo.rotulo = action.novo.rotulo ?? novo.rotulo;
   novo.id = buildId(novo);
 
-  copiaDispositivosParaOutroPai(novo, dispositivos);
-  novo.pai!.renumeraFilhos();
-  novo.renumeraFilhos();
+  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+  }
 
-  // const renumerados = buildListaElementosRenumerados(novo);
-  const renumerados = [...buildListaElementosRenumerados(novo)].concat(
-    novo.filhos
-      .filter(fnFilterAgrupadorAdicionado)
-      .map((d: Dispositivo) => createElemento(d))
-      .flat()
-  );
+  const dispositivos = getDispositivosASeremCopiadosParaOutroPai(atual, novo, posicaoDoNovoAgrupador, dispositivosAlteracao);
+  copiaDispositivosParaOutroPai(novo, dispositivos);
+
+  novo.pai!.renumeraFilhos();
+  novo.pai!.filhos.forEach(f => f.renumeraFilhos());
+  // novo.renumeraFilhos();
+
+  const dispositivosAux = getDispositivoAndFilhosAsLista(novo.pai!);
+
+  dispositivosAux.filter(d => isAgrupador(d) && !(d.tipo === 'Articulacao' && d.pai === undefined)).forEach(d => (d.id = buildId(d)));
+
+  const renumerados = dispositivosAux.filter(fnFilterAgrupadorAdicionado).map((d: Dispositivo) => createElemento(d));
 
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(novo);
 
@@ -135,14 +125,22 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(ref!.pai && isArticulacao(ref!) && isArticulacaoAlteracao(ref as Articulacao) ? ref!.pai : ref!, novo)));
+  eventos.setReferencia(createElemento(ref));
 
   const transferidosParaOutroPai = novo.filhos.map((d: Dispositivo) => createElemento(d));
-  eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
-  eventos.add(StateType.SituacaoElementoModificada, [action.atual, ...transferidosParaOutroPai]);
+
+  // eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
+  const elementoIncluido = createElemento(novo);
+  elementoIncluido.manterNoMesmoGrupoDeAspas = manterNovoNoMesmoGrupoDeAspas;
+  eventos.add(StateType.ElementoIncluido, [elementoIncluido]);
+
+  eventos.add(StateType.SituacaoElementoModificada, [createElemento(atual), ...transferidosParaOutroPai]);
   eventos.add(StateType.ElementoRenumerado, renumerados);
   eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
-  eventos.add(StateType.ElementoReferenciado, [action.atual]);
+
+  const dArticulacao = getDispositivoAndFilhosAsLista(state.articulacao);
+  const dReferenciado = dArticulacao[dArticulacao.indexOf(novo) + 1];
+  eventos.add(StateType.ElementoReferenciado, dReferenciado ? [createElemento(dReferenciado)] : []);
 
   return {
     articulacao: state.articulacao,
@@ -157,6 +155,99 @@ export const agrupaElemento = (state: any, action: any): State => {
   };
 };
 
-const calculaPosNovoAgrupador = (atual: Dispositivo, paiQuePodeReceberFilho: Dispositivo): number => {
-  return atual.pai === paiQuePodeReceberFilho ? atual.pai!.indexOf(atual) + 1 : calculaPosNovoAgrupador(atual.pai!, paiQuePodeReceberFilho);
+const calculaPosNovoAgrupador = (
+  dispositivo: Dispositivo,
+  paiQuePodeReceberFilho: Dispositivo,
+  dispositivosArticulacao: Dispositivo[],
+  dispositivosAlteracao: Dispositivo[]
+): number | undefined => {
+  const ds = dispositivosArticulacao.filter(d => isDispositivoValidoNoConjunto(d, dispositivosAlteracao) && (d === dispositivo || paiQuePodeReceberFilho.filhos.includes(d)));
+  return ds.indexOf(dispositivo);
+};
+
+// const isUltimoArtigoOuAgrupadorDaAlteracao = (dispositivo: Dispositivo): boolean => {
+//   return isUltimaAlteracao(dispositivo) || isUltimaAlteracao(getUltimoFilho(dispositivo));
+// };
+
+const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+
+const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: string, tipo: string, manterNovoNoMesmoGrupoDeAspas = false, dadosComplementares: any = {}): State => {
+  const cabecaAlteracao = getDispositivoCabecaAlteracao(atual);
+  const pos = cabecaAlteracao.pai!.indexOf(cabecaAlteracao) + (posicao === 'antes' ? 0 : 1);
+  const novo = criaDispositivoCabecaAlteracao(tipo, cabecaAlteracao.pai! as Alteracoes, undefined, pos);
+  novo.rotulo = dadosComplementares.rotulo ?? novo.rotulo;
+  novo.uuid = dadosComplementares.uuid ?? novo.uuid;
+  novo.texto = dadosComplementares.texto ?? novo.texto;
+  novo.id = buildId(novo);
+  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+  }
+
+  const ref = pos === 0 ? novo.pai!.pai! : getUltimoFilho(novo.pai!.filhos[pos - 1]);
+
+  const eventos = new Eventos();
+
+  if (manterNovoNoMesmoGrupoDeAspas) {
+    atual.cabecaAlteracao = false;
+    copiaDispositivosParaOutroPai(novo, [atual]);
+
+    novo.pai!.renumeraFilhos();
+    novo.renumeraFilhos();
+
+    const renumerados = [
+      ...novo.pai!.filhos.filter(fnFilterAgrupadorAdicionado).map(d => createElemento(d)),
+      ...novo.filhos.filter(fnFilterAgrupadorAdicionado).map(d => createElemento(d)),
+    ];
+
+    eventos.add(StateType.ElementoRenumerado, renumerados);
+  }
+
+  eventos.setReferencia(createElemento(ref));
+
+  // eventos.add(StateType.ElementoIncluido, [createElemento(novo)]);
+  const elementoIncluido = createElemento(novo);
+  elementoIncluido.manterNoMesmoGrupoDeAspas = manterNovoNoMesmoGrupoDeAspas;
+  eventos.add(StateType.ElementoIncluido, [elementoIncluido]);
+
+  eventos.add(StateType.SituacaoElementoModificada, getElementos(novo));
+  eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
+
+  const dArticulacao = getDispositivoAndFilhosAsLista(state.articulacao);
+  const dReferenciado = dArticulacao[dArticulacao.indexOf(novo) + 1];
+  eventos.add(StateType.ElementoReferenciado, dReferenciado ? [createElemento(dReferenciado)] : []);
+
+  return {
+    articulacao: state.articulacao,
+    modo: state.modo,
+    past: buildPast(state, eventos.build()),
+    present: eventos.build(),
+    future: [],
+    ui: {
+      events: eventos.build(),
+      alertas: state.ui?.alertas,
+    },
+  };
+};
+
+const isDispositivoValidoNoConjunto = (d: Dispositivo, dispositivosAlteracao: Dispositivo[]): boolean => dispositivosAlteracao.length === 0 || dispositivosAlteracao.includes(d);
+
+const getDispositivosASeremCopiadosParaOutroPai = (atual: Dispositivo, novo: Dispositivo, posicaoDoNovoAgrupador: string, dispositivosAlteracao: Dispositivo[]): Dispositivo[] => {
+  const dArticulacao = getDispositivoAndFilhosAsLista(getArticulacao(atual));
+  const pais = getPais(atual, novo.tipo);
+  if (isAgrupador(atual) && posicaoDoNovoAgrupador === 'depois') {
+    pais.push(atual);
+  }
+  const indexAtual = dArticulacao.indexOf(atual) + (posicaoDoNovoAgrupador === 'antes' ? 0 : 1);
+  const podeCopiar = (d: Dispositivo, index: number): boolean =>
+    index >= indexAtual && d !== novo && !!novo.tiposPermitidosFilhos?.includes(d.tipo) && pais.includes(d.pai!) && isDispositivoValidoNoConjunto(d, dispositivosAlteracao);
+  return dArticulacao.filter(podeCopiar);
+};
+
+const getPais = (dispositivo: Dispositivo, tipo: string, result: Dispositivo[] = []): Dispositivo[] => {
+  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao', 'Artigo'];
+  if (dispositivo && tiposAgrupadorArtigo.indexOf(dispositivo.tipo) >= tiposAgrupadorArtigo.indexOf(tipo)) {
+    result.push(dispositivo.pai!);
+    return getPais(dispositivo.pai!, tipo, result);
+  }
+  return result;
 };

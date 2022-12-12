@@ -66,7 +66,7 @@ export interface ElementoAction {
   descricao?: string;
   tipo?: string;
   hotkey?: string;
-  execute(atual: Referencia, conteudo?: string, novo?: Referencia): any;
+  execute(atual: Referencia, conteudo?: string, novo?: Referencia, ...outros: any): any;
 }
 
 export const acoesMenu: ElementoAction[] = [];

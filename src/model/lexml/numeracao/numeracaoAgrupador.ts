@@ -71,11 +71,16 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       } else if (dispositivo.isDispositivoAlteracao && isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo = this.informouAgrupadorUnico
           ? this.getNomeAgrupadorUnico(dispositivo)
-          : prefixo + ' ' + trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra);
+          : prefixo +
+            ' ' +
+            trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined);
       } else {
-        irmaosMesmoTipo(dispositivo).length === 1
+        irmaosMesmoTipo(dispositivo).length === 1 && !(dispositivo.pai?.situacao as DispositivoAdicionado).existeNaNormaAlterada
           ? (this.rotulo = this.getNomeAgrupadorUnico(dispositivo))
-          : (this.rotulo = prefixo + ' ' + trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, converteNumerosComplementoParaLetra));
+          : (this.rotulo =
+              prefixo +
+              ' ' +
+              trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined));
       }
     }
 

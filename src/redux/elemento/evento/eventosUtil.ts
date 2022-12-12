@@ -146,9 +146,10 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const removido = createElemento(atual);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
-  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
-  const dispositivoAnterior =
-    agrupadoresAnteriorMesmoTipo?.length > 0 && !isDispositivoAlteracao(atual) ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
+  const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
+
+  const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
+
   const referencia = isArticulacao(dispositivoAnterior) || (hasFilhos(pai) && pai.filhos[0].id === atual.id) ? pai : getUltimoFilho(dispositivoAnterior);
 
   const transferidosParaOutroPai: Elemento[] = [];
@@ -160,7 +161,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     } else if (dispositivoAnterior.tiposPermitidosFilhos?.includes(d.tipo)) {
       novoPai = dispositivoAnterior;
     } else {
-      novoPai = getPaiQuePodeReceberFilhoDoTipo(atual.pai!, d.tipo);
+      novoPai = getPaiQuePodeReceberFilhoDoTipo(atual.pai!, d.tipo, [])!;
     }
 
     d.pai = novoPai;
@@ -204,8 +205,12 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   return eventos.build();
 };
 
-export const getPaiQuePodeReceberFilhoDoTipo = (pai: Dispositivo, tipoFilho: string): Dispositivo => {
-  return pai.tiposPermitidosFilhos?.includes(tipoFilho) ? pai : getPaiQuePodeReceberFilhoDoTipo(pai.pai!, tipoFilho);
+export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFilho: string, dispositivosPermitidos: Dispositivo[]): Dispositivo | undefined => {
+  return dispositivo.tiposPermitidosFilhos?.includes(tipoFilho)
+    ? dispositivosPermitidos.length === 0 || dispositivosPermitidos.includes(dispositivo)
+      ? dispositivo
+      : undefined
+    : getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, tipoFilho, dispositivosPermitidos);
 };
 
 const restaura = (d: Dispositivo): void => {

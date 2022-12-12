@@ -13,12 +13,14 @@ export class AdicionarAgrupadorArtigo implements ElementoAction {
     this.posicao = posicao;
   }
 
-  execute(atual: Referencia, tipo: string): any {
+  execute(atual: Referencia, tipo: string, refAux: any, posicao: string, manterNoMesmoGrupoDeAspas: boolean): any {
     return {
       type: ADICIONAR_AGRUPADOR_ARTIGO,
       atual,
       novo: {
         tipo,
+        posicao,
+        manterNoMesmoGrupoDeAspas,
       },
     };
   }
