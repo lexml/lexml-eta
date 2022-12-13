@@ -34,18 +34,19 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     createNumeroFromRotulo(rotulo: string): void {
-      if (!rotulo) {
+      if (!rotulo || ['parte', 'livro', 'título', 'capítulo', 'seção', 'subseção'].some(s => s === rotulo.toLowerCase())) {
         return;
       }
       this.informouAgrupadorUnico = /.*[uú]nic[ao]/i.test(rotulo);
       if (this.informouAgrupadorUnico) {
         this.numero = '1';
       } else {
-        const temp = trataNumeroAndComplemento(
-          this.normalizaNumeracao(rotulo!),
-          isNumeracaoZero(rotulo) ? null : converteNumeroRomanoParaArabico,
-          converteLetrasComplementoParaNumero
-        );
+        const numAux = this.normalizaNumeracao(rotulo!);
+        if (!numAux) {
+          this.numero = undefined;
+          return;
+        }
+        const temp = trataNumeroAndComplemento(numAux, isNumeracaoZero(rotulo) ? null : converteNumeroRomanoParaArabico, converteLetrasComplementoParaNumero);
         this.numero = isNumeracaoValida(temp) ? temp : undefined;
       }
     }
