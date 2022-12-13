@@ -291,13 +291,16 @@ export const tipoOmissis = (pai: Dispositivo | undefined): string => {
 };
 
 export const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean => {
-  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
-  if (elemento.existeNaNormaAlterada === undefined || elemento.tipo === 'Omissis') {
+  if (
+    !elemento.dispositivoAlteracao ||
+    elemento.existeNaNormaAlterada === undefined ||
+    elemento.tipo === 'Omissis' ||
+    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+  ) {
     return false;
+  } else if (elemento.tipo === 'Artigo') {
+    return true;
   } else {
-    return (
-      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && tiposAgrupadorArtigo.includes(elemento.hierarquia?.pai?.tipo ?? '')) ||
-      (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true)
-    );
+    return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;
   }
 };
