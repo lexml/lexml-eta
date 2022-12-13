@@ -39,7 +39,7 @@ describe('DispositivoGenerico: inicialização', () => {
 
   it('quando inicializado corretamente, o dispositivoGenerico NÃO poderá gerar um novo rótulo', () => {
     dispositivoGenerico.createRotulo(dispositivoGenerico);
-    expect(dispositivoGenerico.rotulo).equals('DispositivoAgrupadorGenerico');
+    expect(dispositivoGenerico.rotulo).equals('DispositivoGenerico');
   });
 
   it('quando inicializado corretamente, o dispositivoGenerico NÃO pode renumerar ou gerar rótulos para seus filhos', () => {
