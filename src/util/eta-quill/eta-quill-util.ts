@@ -26,8 +26,8 @@ export class EtaQuillUtil {
 
     new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
-    new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
     new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
+    new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
     new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
     new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
