@@ -96,7 +96,8 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
     }
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
-      const pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
+      let pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
+      pai = isArticulacaoAlteracao(pai!) ? buscaDispositivoById(state.articulacao, pai!.pai!.id!) : pai;
       evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai!, novo));
     }
 
