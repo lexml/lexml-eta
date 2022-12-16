@@ -14,7 +14,7 @@ export class Emenda {
   comandoEmenda = new ComandoEmenda();
   justificativa = '';
   local = '';
-  data?: string; // formato “YYYY-MM-DD”
+  data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
 }
