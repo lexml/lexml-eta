@@ -1,3 +1,4 @@
+import { TipoDispositivo } from './../tipo/tipoDispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
@@ -79,10 +80,11 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
       descricao: 'O dispositivo não contém rótulo',
     });
   }
+
   if (
     dispositivo !== null &&
     !isDispositivoGenerico(dispositivo) &&
-    dispositivo.rotulo?.endsWith(dispositivo.tipo) &&
+    (dispositivo.rotulo?.endsWith(dispositivo.tipo) || dispositivo.rotulo?.toLowerCase() === TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toLowerCase()) &&
     !(
       dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
       getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
