@@ -41,4 +41,4 @@ export { AjudaComponent } from './components/ajuda/ajuda.component';
 export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
 export { ComandoEmendaModalComponent } from './components/comandoEmenda/comandoEmenda.modal.component';
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
-export { OpcoesImpressao } from './components/opcoesImpressao/opcoesImpressao.component';
+export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';

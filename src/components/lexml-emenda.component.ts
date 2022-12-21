@@ -147,6 +147,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.modo = emenda.modoEdicao;
     this._lexmlEta.dispositivosEmenda = emenda.componentes[0].dispositivos;
     this._lexmlAutoria.autoria = emenda.autoria;
+    this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
   }
