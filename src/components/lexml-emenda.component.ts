@@ -133,7 +133,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
-    console.log('opcoesImpressao', emenda.opcoesImpressao);
     emenda.colegiadoApreciador = this.montarColegiadoApreciador(numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;

@@ -59,9 +59,11 @@ import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.mo
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
+
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
 
@@ -75,6 +77,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private get quill(): EtaQuill {
     return this._quill as EtaQuill;
   }
+
+  private eventosOnChange: StateType[] = [];
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
@@ -609,7 +613,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const eventosFiltrados = events?.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
 
     if (eventosFiltrados?.length) {
-      this.agendarEmissaoEventoOnChange('stateEvents');
+      // TODO: Implementar lógica do atributo eventosFiltrados, sem repetir os itens
+      this.eventosOnChange.push(...eventosFiltrados);
+
+      this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
   }
 
@@ -944,9 +951,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  private agendarEmissaoEventoOnChange(origemEvento: string): void {
+  private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
     clearTimeout(this.timerOnChange);
-    this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento), 1000);
+    this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento, statesType), 1000);
   }
 
   private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
@@ -963,28 +970,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private alertaGlobalVerificaRenumeracao(linhaAtual: EtaContainerTable): void {
-    const elemento: Elemento = this.criarElemento(
-      linhaAtual.uuid,
-      linhaAtual.lexmlId,
-      linhaAtual.tipo,
-      linhaAtual.blotConteudo?.html ?? '',
-      linhaAtual.numero,
-      linhaAtual.hierarquia
-    );
-    const dispositivo = getDispositivoFromElemento(rootStore.getState().elementoReducer.articulacao, elemento);
-    if (dispositivo) {
-      if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal([dispositivo])) {
+  private alertaGlobalVerificaRenumeracao(): void {
+    const idAlerta = 'alerta-global-renumeracao';
+    const dispositivos = CmdEmdUtil.getDispositivosAdicionados(rootStore.getState().elementoReducer.articulacao);
+
+    if (dispositivos.length && CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(dispositivos)) {
         const alerta = {
-          id: 'alerta-global-renumeracao',
+          id: idAlerta,
           tipo: 'warning',
           mensagem:
             'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
           podeFechar: true,
         };
+
         rootStore.dispatch(adicionarAlerta(alerta));
+
+      }else {
+        rootStore.dispatch(removerAlerta(idAlerta));
       }
-    }
   }
 
   private alertaGlobalVerificaCorrelacao(): void {
@@ -1008,7 +1011,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private emitirEventoOnChange(origemEvento: string): void {
+  private emitirEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
     this.atualizarTextoElemento(this.quill.linhaAtual);
 
     this.dispatchEvent(
@@ -1020,10 +1023,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
-    if (this.quill.linhaAtual.descricaoSituacao === 'Dispositivo Adicionado') {
-      this.alertaGlobalVerificaRenumeracao(this.quill.linhaAtual);
+
+    if (this.eventosOnChange?.length && (this.eventosOnChange.includes(StateType.ElementoIncluido) || this.eventosOnChange.includes(StateType.ElementoRemovido))) {
+      this.alertaGlobalVerificaRenumeracao();
     }
+
     this.alertaGlobalVerificaCorrelacao();
+    this.eventosOnChange = [];
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
