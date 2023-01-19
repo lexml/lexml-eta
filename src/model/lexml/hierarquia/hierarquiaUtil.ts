@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
-import { isCaput, isOmissis } from './../../dispositivo/tipo';
+import { isAgrupadorNaoArticulacao, isCaput, isOmissis } from './../../dispositivo/tipo';
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
 
 export function getArticulacao(dispositivo: Dispositivo): Articulacao {
@@ -672,4 +672,27 @@ export const isDispositivosSequenciais = (dispositivo1: Dispositivo, dispositivo
 
 export const isDispositivosSequenciaisMesmoPai = (dispositivo1: Dispositivo, dispositivo2: Dispositivo): boolean => {
   return dispositivo1.pai === dispositivo2.pai && isDispositivosSequenciais(dispositivo1, dispositivo2);
+};
+
+// Retorna o primeiro agrupador de artigo (não articulação) que segue um agrupador de artigo na sequência de leitura
+export const getProximoAgrupadorAposAgrupador = (d: Dispositivo): Dispositivo | undefined => {
+  if (!isAgrupadorNaoArticulacao(d)) {
+    return undefined;
+  }
+  const proximoIrmao = getDispositivoPosteriorMesmoTipo(d);
+  if (proximoIrmao) {
+    return proximoIrmao;
+  }
+  return getProximoAgrupadorAposAgrupador(d.pai!);
+};
+
+// Retorna o primeiro agrupador de artigo (não articulação) que segue um artigo na sequência de leitura
+export const getProximoAgrupadorAposArtigo = (art: Artigo): Dispositivo | undefined => {
+  const pai = art.pai!;
+
+  if (isDispositivoRaiz(pai)) {
+    return pai.filhos.find(f => isAgrupadorNaoArticulacao(f));
+  }
+
+  return getProximoAgrupadorAposAgrupador(pai);
 };
