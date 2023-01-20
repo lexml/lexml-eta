@@ -675,24 +675,27 @@ export const isDispositivosSequenciaisMesmoPai = (dispositivo1: Dispositivo, dis
 };
 
 // Retorna o primeiro agrupador de artigo (não articulação) que segue um agrupador de artigo na sequência de leitura
-export const getProximoAgrupadorAposAgrupador = (d: Dispositivo): Dispositivo | undefined => {
-  if (!isAgrupadorNaoArticulacao(d)) {
+export const getProximoAgrupadorAposAgrupador = (d: Dispositivo, ignorarFilhos = false): Dispositivo | undefined => {
+  if (!isAgrupador(d)) {
     return undefined;
   }
-  const proximoIrmao = getDispositivoPosteriorMesmoTipo(d);
-  if (proximoIrmao) {
-    return proximoIrmao;
+  if (!ignorarFilhos) {
+    const filhoAgrupador = d.filhos.find(f => isAgrupadorNaoArticulacao(f));
+    if (filhoAgrupador) {
+      return filhoAgrupador;
+    }
   }
-  return getProximoAgrupadorAposAgrupador(d.pai!);
+  if (d.pai) {
+    const proximoIrmao = getDispositivoPosteriorMesmoTipo(d);
+    if (proximoIrmao) {
+      return proximoIrmao;
+    }
+    return getProximoAgrupadorAposAgrupador(d.pai!, true);
+  }
+  return undefined;
 };
 
 // Retorna o primeiro agrupador de artigo (não articulação) que segue um artigo na sequência de leitura
 export const getProximoAgrupadorAposArtigo = (art: Artigo): Dispositivo | undefined => {
-  const pai = art.pai!;
-
-  if (isDispositivoRaiz(pai)) {
-    return pai.filhos.find(f => isAgrupadorNaoArticulacao(f));
-  }
-
-  return getProximoAgrupadorAposAgrupador(pai);
+  return getProximoAgrupadorAposAgrupador(art.pai!);
 };
