@@ -370,12 +370,9 @@ export const editorStyles = html`
       hyphens: auto;
     }
 
-    .dispositivo--adicionado br {
-      content: '';
-    }
-
-    .agrupador br {
-      content: normal;
+    .agrupador .existencia {
+      margin-left: 0;
+      margin-right: 15px;
     }
 
     .dispositivo--adicionado {
@@ -473,7 +470,9 @@ export const editorStyles = html`
     .fecha-aspas br,
     .nota-alteracao br,
     .blot-existencia br,
-    .blot-tipo-omissis br {
+    .blot-tipo-omissis br,
+    .dispositivo--adicionado br,
+    .agrupador br {
       content: '';
     }
 
@@ -482,7 +481,9 @@ export const editorStyles = html`
       .fecha-aspas br,
       .nota-alteracao br,
       .blot-existencia br,
-      .blot-tipo-omissis br {
+      .blot-tipo-omissis br,
+      .dispositivo--adicionado br,
+      .agrupador br {
         display: none;
       }
     }
