@@ -1,3 +1,4 @@
+import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
@@ -88,7 +89,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
     elementos: [],
   };
 
-  const novo = criaArvoreDispositivos(state.articulacao, dispositivo);
+  const novo = criaArvoreDispositivos(state.articulacao, dispositivo, state.modo);
 
   if (novo) {
     if (novo.rotulo) {
@@ -118,7 +119,7 @@ const referenciaAjustada = (referencia: Dispositivo, dispositivo: Dispositivo): 
   return ref.id !== dispositivo.id ? ref : dispositivo.pai!.filhos[dispositivo.pai!.filhos.length - 2];
 };
 
-const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaAdicionado): Dispositivo | undefined => {
+const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaAdicionado, modo: ClassificacaoDocumento): Dispositivo | undefined => {
   let novo: Dispositivo | undefined;
 
   const ehCaput = da.tipo === 'Caput';
@@ -162,6 +163,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
   if (novo) {
     novo.id = da.id;
     const situacao = new DispositivoAdicionado();
+    situacao.tipoEmenda = modo;
     novo.situacao = situacao;
     if (da.existeNaNormaAlterada !== undefined) {
       situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
@@ -195,7 +197,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
       } else {
         f.idIrmaoAnterior = da.filhos![i - 1].id;
       }
-      criaArvoreDispositivos(articulacao, f);
+      criaArvoreDispositivos(articulacao, f, modo);
     });
   }
 

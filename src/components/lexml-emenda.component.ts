@@ -1,53 +1,33 @@
-import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, property, query, state } from 'lit/decorators.js';
-import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-
-import { connect } from 'pwa-helpers';
-import { rootStore } from '../redux/store';
-
+import '@shoelace-style/shoelace/dist/components/badge/badge';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
-// eslint-disable-next-line import/no-duplicates
-import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
-// eslint-disable-next-line import/no-duplicates
-import '@shoelace-style/shoelace/dist/components/badge/badge';
 
-import { Autoria, ColegiadoApreciador, ComandoEmenda, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import { connect } from 'pwa-helpers';
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
+import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
+import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
+import { rootStore } from '../redux/store';
+import { ClassificacaoDocumento } from './../model/documento/classificacao';
+import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: String }) modo = '';
   @property({ type: Boolean }) existeObserverEmenda = false;
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
 
-  private _projetoNorma = {};
-
-  @property({ type: Object })
-  get projetoNorma(): any {
-    return this._projetoNorma;
-  }
-
-  set projetoNorma(value: any) {
-    const oldValue = this._projetoNorma;
-    this._projetoNorma = value;
-
-    if (this._lexmlEmendaComando) {
-      this._lexmlEmendaComando.emenda = [];
-    }
-    this._lexmlEmendaComandoModal?.atualizarComandoEmenda(new ComandoEmenda());
-
-    this.requestUpdate('projetoNorma', oldValue);
-  }
+  private modo: any = ClassificacaoDocumento.EMENDA;
+  private projetoNorma = {};
 
   @state()
   autoria = new Autoria();
@@ -62,6 +42,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlData;
   @query('lexml-opcoes-impressao')
   _lexmlOpcoesImpressao;
+  @query('#tabs-esquerda')
+  _tabsEsquerda;
 
   @query('lexml-emenda-comando')
   _lexmlEmendaComando!: ComandoEmendaComponent;
@@ -94,6 +76,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   atualizaListaParlamentares(): void {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
   }
+
   private montarColegiadoApreciador(numero: string, ano: string): ColegiadoApreciador {
     return {
       siglaCasaLegislativa: 'CN',
@@ -142,19 +125,32 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return emenda;
   }
 
-  setEmenda(emenda: Emenda): void {
-    this.modo = emenda.modoEdicao;
-    this._lexmlEta.dispositivosEmenda = emenda.componentes[0].dispositivos;
+  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda): void {
+    this._lexmlEmendaComando.emenda = [];
+    this.modo = modo;
+    this.projetoNorma = projetoNorma;
+    this._lexmlEta.setProjetoNorma(modo, projetoNorma, !!emenda);
+    if (emenda) {
+      this.setEmenda(emenda);
+    } else {
+      this.resetaEmenda(modo as ModoEdicaoEmenda);
+    }
+    setTimeout(this.handleResize, 0);
+  }
+
+  private setEmenda(emenda: Emenda): void {
+    this._lexmlEta.setDispositivosEmenda(emenda.componentes[0].dispositivos);
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlData.data = emenda.data;
   }
 
-  resetaEmenda(): void {
+  private resetaEmenda(modoEdicao = ModoEdicaoEmenda.EMENDA): void {
     const emenda = new Emenda();
-    this.setEmenda(emenda);
+    emenda.modoEdicao = modoEdicao;
     this._lexmlEmendaComando.emenda = {};
+    this.setEmenda(emenda);
   }
 
   constructor() {
@@ -168,10 +164,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private MOBILE_WIDTH = 768;
   private splitPanelPosition = 68;
   private sizeMode = '';
-
-  myObserver = new ResizeObserver(entries => {
-    entries.forEach(() => this.updateLayoutSplitPanel());
-  });
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
     if (this.modo.startsWith('emenda')) {
@@ -193,22 +185,41 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  // Documentação de tratamento de eventos no Lit
+  // https://lit.dev/docs/components/events/
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener('resize', this.handleResize);
+  }
+
+  disconnectedCallback(): void {
+    window.removeEventListener('resize', this.handleResize);
+    super.disconnectedCallback();
+  }
+
+  handleResize = (): void => {
+    this.updateLayoutSplitPanel();
+    this.ajustarAltura();
+  };
+
   protected firstUpdated(): void {
-    this.myObserver.observe(document.body);
     this.atualizaListaParlamentares();
+
+    this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
+      const tabName = event.detail.name;
+      if (tabName === 'avisos') {
+        const badge = (event.target as Element).querySelector('sl-badge');
+        if (badge) {
+          badge.pulse = false;
+        }
+      } else if (tabName === 'autoria') {
+        this.parlamentares.length === 0 && this.atualizaListaParlamentares();
+      }
+    });
   }
 
   updated(): void {
-    this.ajustarAltura();
-    const tabAvisos = document.querySelector('#sl-tab-4');
-    tabAvisos?.addEventListener('focus', (event: any) => {
-      event.stopImmediatePropagation();
-      const badge = (event.target as Element).querySelector('sl-badge') as SlBadge;
-      if (badge) {
-        badge.pulse = false;
-      }
-    });
-
     if (this.modo.startsWith('emenda')) {
       this.slSplitPanel.removeAttribute('disabled');
       this.slSplitPanel.position = this.splitPanelPosition;
@@ -216,8 +227,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.slSplitPanel.setAttribute('disabled', 'true');
       this.slSplitPanel.position = 100;
     }
-
-    this.parlamentares.length === 0 && this.atualizaListaParlamentares();
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -226,8 +235,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       return 0;
     } else {
       const minHeight = getComputedStyle(this).getPropertyValue('--min-height').replace('px', '');
-      if (elemento.scrollHeight >= minHeight) {
-        return elemento.scrollHeight;
+      if (elemento.clientHeight >= minHeight) {
+        return elemento.clientHeight;
       } else {
         return this.pesquisarAlturaParentElement(elemento.parentElement);
       }
@@ -238,7 +247,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     let alturaElemento = altura !== undefined ? altura : this.pesquisarAlturaParentElement(this);
     const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
     // altura dos tabs
-    const alturaLexmlEtaTabs = lexmlEtaTabs?.scrollHeight;
+    const alturaLexmlEtaTabs = lexmlEtaTabs?.clientHeight;
     if (alturaLexmlEtaTabs) {
       alturaElemento = alturaElemento - alturaLexmlEtaTabs - 2;
       if (alturaElemento > 0) {
@@ -272,8 +281,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   render(): TemplateResult {
-    setTimeout(() => this.updateLayoutSplitPanel(true), 0);
-
     return html`
       <style>
         :root {
@@ -330,7 +337,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       <sl-split-panel>
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
-          <sl-tab-group>
+          <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
             <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
@@ -338,10 +345,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
-            <sl-tab-panel name="lexml-eta">
-              <lexml-eta id="lexmlEta" @onchange=${this.onChange} modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-eta>
+            <sl-tab-panel name="lexml-eta" class="overflow-hidden">
+              <lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>
             </sl-tab-panel>
-            <sl-tab-panel name="justificativa">
+            <sl-tab-panel name="justificativa" class="overflow-hidden">
               <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
