@@ -22,14 +22,20 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
 
   const content = document.createRange().createContextualFragment(`
   <style>
-    #chkManterNoMesmoGrupoDeAspas:disabled,
-    #chkManterNoMesmoGrupoDeAspas:disabled+label {
-      color: gray;
+
+    #chkManterNoMesmoGrupoDeAspas {
+      margin: 10px;
+    }
+    #chkManterNoMesmoGrupoDeAspas[disabled] {
       display: none;
     }
+    #rdgPosicao {
+      margin-top: 20px;
+    }
+
   </style>
   <div class="agrupadores">
-    <sl-radio-group fieldset label="" id="rdgTipoAgrupador">
+    <sl-radio-group fieldset label="Tipo de agrupador" id="rdgTipoAgrupador">
       <sl-radio class="tipo-agrupador" id="Parte" value="Parte">Parte</sl-radio>
       <sl-radio class="tipo-agrupador" id="Livro" value="Livro">Livro</sl-radio>
       <sl-radio class="tipo-agrupador" id="Titulo" value="Titulo">Título</sl-radio>
@@ -39,14 +45,13 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
     </sl-radio-group>
   </div>
   <div style="display: ${elemento.tipo === 'Artigo' ? 'none' : 'block'};">
-    <sl-radio-group fieldset label="" id="rdgPosicao">
+    <sl-radio-group fieldset label="Posicionamento" id="rdgPosicao">
       <sl-radio class="posicao-agrupador" id="posicao-antes" value="antes">Antes</sl-radio>
       <sl-radio class="posicao-agrupador" id="posicao-depois" value="depois" checked>Depois</sl-radio>
     </sl-radio-group>
   </div>
   <div>
-    <input type="checkbox" id="chkManterNoMesmoGrupoDeAspas">
-    <label id="lblManterNoMesmoGrupoDeAspas" for="elManterNoMesmoGrupoDeAspas">Manter no mesmo grupo de aspas</label>
+    <sl-checkbox id="chkManterNoMesmoGrupoDeAspas">Manter no mesmo grupo de aspas</sl-checkbox>
   </div>
   <sl-button slot="footer" variant="default">Cancelar</sl-button>
   <sl-button slot="footer" variant="primary">Ok</sl-button>
