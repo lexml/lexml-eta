@@ -21,6 +21,7 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
     }
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
+      filho.pai = this as unknown as Dispositivo;
       this.filhos.splice(posicao, 0, filho);
     }
 

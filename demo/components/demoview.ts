@@ -99,7 +99,7 @@ export class DemoView extends LitElement {
     this.elLexmlEmenda.style.display = 'none';
     this.elLexmlEmendaComando.style.display = 'none';
     this.projetoNorma = {};
-    this.elLexmlEmenda.resetaEmenda();
+    this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
     this.proposicaoCorrente.ano = '';
@@ -117,10 +117,10 @@ export class DemoView extends LitElement {
     this.getElement('#fileUpload').value = null;
 
     if (this.elDocumento && elmAcao) {
+      this.modo = elmAcao.value;
       setTimeout(() => {
         this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
-        this.elLexmlEmenda.resetaEmenda();
-        this.modo = elmAcao.value;
+        this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
         this.atualizarProposicaoCorrente(this.projetoNorma);
         this.elLexmlEmenda.style.display = 'block';
       }, 0);
@@ -152,15 +152,15 @@ export class DemoView extends LitElement {
   selecionaArquivo(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput && fileInput.files) {
-      this.elLexmlEmenda.resetaEmenda();
       const fReader = new FileReader();
       fReader.readAsText(fileInput.files[0]);
       fReader.onloadend = async (e): Promise<void> => {
         if (e.target?.result) {
           const result = JSON.parse(e.target.result as string);
           const emenda = 'emenda' in result ? result.emenda : result;
+          this.modo = emenda.modoEdicao;
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
-          this.elLexmlEmenda.setEmenda(emenda);
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda);
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
@@ -292,7 +292,7 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-emenda modo=${this.modo} .projetoNorma=${this.projetoNorma}></lexml-emenda>
+      <lexml-emenda modo=${this.modo}></lexml-emenda>
     `;
   }
 }

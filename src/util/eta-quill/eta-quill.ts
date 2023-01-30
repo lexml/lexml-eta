@@ -409,14 +409,19 @@ export class EtaQuill extends Quill {
 
   cursorDeTextoEstaSobreLink(deslocamento = 0): boolean {
     const range: RangeStatic = this.getSelection(true);
-    const ops = this.getContents(range.index + deslocamento, 1).ops;
-    return !ops ? false : ops[0].attributes?.link;
-    // return !!this.getContents(range.index + deslocamento, 1).ops[0].attributes?.link;
+    if (range) {
+      const ops = this.getContents(range.index + deslocamento, 1).ops;
+      return !ops ? false : ops[0].attributes?.link;
+    }
+    return false;
   }
 
   cursorDeTextoEstaSobreOmissis(): boolean {
     const range: RangeStatic = this.getSelection(true);
-    const textBlot = this.getLeaf(range.index);
-    return textBlot[0].text === TEXTO_OMISSIS;
+    if (range) {
+      const textBlot = this.getLeaf(range.index);
+      return textBlot[0].text === TEXTO_OMISSIS;
+    }
+    return false;
   }
 }

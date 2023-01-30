@@ -27,6 +27,16 @@ export class CmdEmdUtil {
     return ret;
   }
 
+  static getDispositivosAdicionados(articulacao: Articulacao): Dispositivo[] {
+    const ret: Dispositivo[] = [];
+    percorreHierarquiaDispositivos(articulacao, d => {
+      if (d.pai && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        ret.push(d);
+      }
+    });
+    return ret;
+  }
+
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {
     const dispositivos = new Array<Dispositivo>();
 

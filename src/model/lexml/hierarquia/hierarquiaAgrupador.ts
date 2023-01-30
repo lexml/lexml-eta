@@ -29,6 +29,7 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
     }
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
+      filho.pai = this as unknown as Dispositivo;
       this.filhos.splice(posicao, 0, filho);
       if (isArtigo(filho)) {
         const anterior = getDispositivoAnterior(filho) ?? getProximoArtigoAnterior(filho.pai!.pai!, filho.pai!);

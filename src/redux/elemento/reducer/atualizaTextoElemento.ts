@@ -1,20 +1,26 @@
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
+import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
-const houveAlteracaoNoTextoAposAcao = (texto: string, action: any): boolean => {
-  return action.atual?.conteudo?.texto !== texto;
+const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): boolean => {
+  const textoAtual = action.atual?.conteudo?.texto;
+  const textoOriginal = dispositivo.situacao.dispositivoOriginal?.conteudo?.texto;
+  return textoAtual !== dispositivo.texto && textoAtual !== textoOriginal;
 };
 
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const textoAtual = action.atual?.conteudo?.texto;
+  const dispositivoOriginalNovamente = dispositivo && dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto === textoAtual;
 
   if (dispositivo === undefined || dispositivo.texto === action.atual.conteudo.texto) {
     state.ui.events = [];
@@ -23,9 +29,11 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
 
   const original = createElemento(dispositivo);
 
-  dispositivo.texto = !isDispositivoAlteracao(dispositivo) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
+  dispositivo.texto = !isDispositivoAlteracao(dispositivo) ? textoAtual : normalizaSeForOmissis(textoAtual ?? '');
 
-  if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+  if (dispositivoOriginalNovamente) {
+    dispositivo.situacao = new DispositivoOriginal();
+  } else if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
     dispositivo.situacao = new DispositivoModificado(original);
   }
 
@@ -34,7 +42,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
 
-  if (houveAlteracaoNoTextoAposAcao(dispositivo.texto, action)) {
+  if (houveAlteracaoNoTextoAposAcao(dispositivo, action)) {
     eventosUi.add(StateType.ElementoModificado, [elemento]);
   }
   eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);

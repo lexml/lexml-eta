@@ -1,4 +1,5 @@
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
+import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
@@ -39,6 +40,7 @@ import {
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
+import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { Regras } from './regras';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -54,10 +56,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(removerElementoAction);
 
-      if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
+      if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) || getProximoAgrupadorAposArtigo(dispositivo)) {
         acoes.push(moverElementoAbaixoAction);
       }
-      if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
+      if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) || isAgrupadorNaoArticulacao(dispositivo.pai!)) {
         acoes.push(moverElementoAcimaAction);
       }
 

@@ -1,5 +1,6 @@
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { agrupaElemento } from './agrupaElemento';
+import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
@@ -121,7 +122,7 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
 
     const novo = getDispositivoFromElemento(articulacao, novoAgrupador)!;
 
-    ajustaAtributosDispositivoAdicionado(novo, dea);
+    ajustaAtributosDispositivoAdicionado(novo, dea, ClassificacaoDocumento.EMENDA);
 
     elementosIncluidos.length = 0;
     elementosIncluidos.push(createElemento(novo));
@@ -140,7 +141,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
     elementos: [],
   };
 
-  const novo = criaArvoreDispositivos(state.articulacao, dispositivo);
+  const novo = criaArvoreDispositivos(state.articulacao, dispositivo, state.modo);
 
   if (novo) {
     if (novo.rotulo) {
@@ -174,7 +175,7 @@ const referenciaAjustada = (referencia: Dispositivo, dispositivo: Dispositivo): 
   return ref.id !== dispositivo.id ? ref : dispositivo.pai!.filhos[dispositivo.pai!.filhos.length - 2];
 };
 
-const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaAdicionado): Dispositivo | undefined => {
+const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaAdicionado, modo: ClassificacaoDocumento): Dispositivo | undefined => {
   let novo: Dispositivo | undefined;
 
   const ehCaput = da.tipo === 'Caput';
@@ -216,7 +217,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
   }
 
   if (novo) {
-    ajustaAtributosDispositivoAdicionado(novo, da);
+    ajustaAtributosDispositivoAdicionado(novo, da, modo);
   }
 
   if (novo && da.filhos) {
@@ -226,17 +227,18 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
       } else {
         f.idIrmaoAnterior = da.filhos![i - 1].id;
       }
-      criaArvoreDispositivos(articulacao, f);
+      criaArvoreDispositivos(articulacao, f, modo);
     });
   }
 
   return novo;
 };
 
-const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: DispositivoEmendaAdicionado): void => {
+const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: DispositivoEmendaAdicionado, modo: ClassificacaoDocumento): void => {
   dispositivo.texto = da.texto ?? '';
   dispositivo.id = da.id;
   const situacao = new DispositivoAdicionado();
+  situacao.tipoEmenda = modo;
   dispositivo.situacao = situacao;
   if (da.existeNaNormaAlterada !== undefined) {
     situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;

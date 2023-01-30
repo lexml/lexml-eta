@@ -33,6 +33,7 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
       if (isInciso(filho)) {
         this.caput!.addFilhoOnPosition(filho, posicao);
       } else {
+        filho.pai = this as unknown as Dispositivo;
         this.paragrafos.splice(posicao - this.getIncisosCaput().length, 0, filho);
       }
     }
