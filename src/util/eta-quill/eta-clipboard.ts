@@ -10,6 +10,8 @@ import { EtaQuill } from './eta-quill';
 
 const Clipboard = Quill.import('modules/clipboard');
 
+const isOfficeFormat = (content: any): boolean => content && content.includes && content.includes(':office:');
+
 export class EtaClipboard extends connect(rootStore)(Clipboard) {
   onChange: Observable<string> = new Observable<string>();
 
@@ -61,6 +63,10 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     e.preventDefault();
     const range = this.quill.getSelection();
     let html = e?.clipboardData?.getData('text/html');
+
+    if (isOfficeFormat(html)) {
+      html = e?.clipboardData?.getData('text/plain');
+    }
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
       html = html
