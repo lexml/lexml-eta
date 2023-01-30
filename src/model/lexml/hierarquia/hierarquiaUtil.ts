@@ -695,7 +695,33 @@ export const getProximoAgrupadorAposAgrupador = (d: Dispositivo, ignorarFilhos =
   return undefined;
 };
 
-// Retorna o primeiro agrupador de artigo (não articulação) que segue um artigo na sequência de leitura
+// Retorna o primeiro agrupador de artigo (não articulação) que segue um artigo na sequência contrária de leitura
 export const getProximoAgrupadorAposArtigo = (art: Artigo): Dispositivo | undefined => {
   return getProximoAgrupadorAposAgrupador(art.pai!);
+};
+
+export const getAnteriorAgrupadorAntesAgrupador = (d: Dispositivo, ignorarFilhos = false): Dispositivo | undefined => {
+  if (!isAgrupador(d)) {
+    return undefined;
+  }
+  if (!ignorarFilhos) {
+    const filhoAgrupador = d.filhos.reverse().find(f => isAgrupadorNaoArticulacao(f));
+    if (filhoAgrupador) {
+      return filhoAgrupador;
+    }
+  }
+  if (d.pai) {
+    const anteriorIrmao = getDispositivoAnteriorMesmoTipo(d);
+    if (anteriorIrmao) {
+      return anteriorIrmao;
+    }
+    return getAnteriorAgrupadorAntesAgrupador(d.pai!, true);
+  }
+  return undefined;
+};
+
+
+// Retorna o primeiro agrupador de artigo (não articulação) que segue um artigo na sequência contrária de leitura
+export const getAnteriorAgrupadorAntesArtigo = (art: Artigo): Dispositivo | undefined => {
+  return getAnteriorAgrupadorAntesAgrupador(art.pai!);
 };
