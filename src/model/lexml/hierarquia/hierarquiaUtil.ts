@@ -148,6 +148,22 @@ export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Disposit
   return getArticulacao(dispositivo).artigos.filter((artigo, index) => index > pos);
 };
 
+// Retorna o dispositivo imediatamente anterior na sequência de leitura.
+// Considera caput. Não considera incisos de caput como filhos de artigo.
+export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo): Dispositivo | undefined => {
+  if (!disp.pai) {
+    return undefined;
+  }
+  // Ignora incisos de caput quando disp é parágrafo ou omissis no nível de parágrafo
+  const irmaos = isArtigo(disp.pai) ? disp.pai.filhos.filter(d => d.pai === disp.pai) : disp.pai.filhos;
+  const pos = irmaos.indexOf(disp);
+  if (pos) {
+    // Busca dispositivo mais à direita na árvore do irmão anterior
+    return getUltimoFilho(irmaos[pos - 1]);
+  }
+  return disp.pai;
+};
+
 export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositivo): Dispositivo | undefined => {
   if (pai?.filhos) {
     for (let i = pai?.indexOf(referencia) - 1; i >= 0; i--) {
@@ -719,7 +735,6 @@ export const getAnteriorAgrupadorAntesAgrupador = (d: Dispositivo, ignorarFilhos
   }
   return undefined;
 };
-
 
 // Retorna o primeiro agrupador de artigo (não articulação) que segue um artigo na sequência contrária de leitura
 export const getAnteriorAgrupadorAntesArtigo = (art: Artigo): Dispositivo | undefined => {

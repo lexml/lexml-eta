@@ -1,3 +1,4 @@
+import { isArtigo } from './../../../model/dispositivo/tipo';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
@@ -7,7 +8,6 @@ import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../mode
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import {
-  getProximoArtigoAnterior,
   hasFilhos,
   irmaosMesmoTipo,
   isArtigoUnico,
@@ -25,7 +25,7 @@ import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, getDispositivoAnteriorNaSequenciaDeLeitura, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined => {
   const posicaoAtual = atual.pai!.indexOf(atual);
@@ -77,7 +77,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     }
   }
 
-  const ref =
+  let ref =
     atual.pai!.indexOf(atual) === 0
       ? !action.posicao && atual.hasAlteracao()
         ? atual
@@ -118,8 +118,12 @@ export const adicionaElemento = (state: any, action: any): State => {
           : criaDispositivo(atual.pai!, action.novo.tipo, atual); // depois
     } else if (isAgrupador(atual) && action.novo.tipo === TipoDispositivo.artigo.tipo) {
       if (action.posicao === 'antes') {
-        const anterior = getProximoArtigoAnterior(atual.pai!, atual);
-        novo = criaDispositivo(atual.pai!, action.novo.tipo, anterior, !anterior ? 0 : undefined);
+        const anterior = getDispositivoAnteriorNaSequenciaDeLeitura(atual);
+        ref = anterior;
+        const paiDoNovo = !anterior ? atual.pai! : isAgrupador(anterior!) ? anterior : isArtigo(anterior) ? anterior.pai! : getArtigo(anterior).pai!;
+        const posicao = anterior && isAgrupador(anterior) ? 0 : undefined;
+        const referencia = !anterior || isAgrupador(anterior) ? undefined : isArtigo(anterior) ? anterior : getArtigo(anterior);
+        novo = criaDispositivo(paiDoNovo, action.novo.tipo, referencia, posicao);
       } else {
         novo = criaDispositivo(atual, action.novo.tipo, undefined, 0);
       }
