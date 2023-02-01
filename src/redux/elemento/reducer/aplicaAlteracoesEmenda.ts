@@ -1,7 +1,7 @@
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { agrupaElemento } from './agrupaElemento';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
-import { isCaput } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -147,6 +147,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
     if (novo.rotulo) {
       novo.createNumeroFromRotulo(novo.rotulo);
     }
+
     if (!evento.referencia) {
       const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
       let pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;

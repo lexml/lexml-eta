@@ -162,14 +162,18 @@ export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo): D
   if (!disp.pai) {
     return undefined;
   }
-  // Ignora incisos de caput quando disp é parágrafo ou omissis no nível de parágrafo
-  const irmaos = isArtigo(disp.pai) ? disp.pai.filhos.filter(d => d.pai === disp.pai) : disp.pai.filhos;
+  const irmaos = isArtigo(disp.pai) ? getFilhosArtigoEstiloLexML(disp.pai as Artigo) : disp.pai.filhos;
   const pos = irmaos.indexOf(disp);
   if (pos) {
     // Busca dispositivo mais à direita na árvore do irmão anterior
     return getUltimoFilho(irmaos[pos - 1]);
   }
   return disp.pai;
+};
+
+export const getFilhosArtigoEstiloLexML = (art: Artigo): Dispositivo[] => {
+  // Adiciona o caput e remove os incisos do caput
+  return [art.caput!, ...art.filhos.filter(d => d.pai === art)];
 };
 
 export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositivo): Dispositivo | undefined => {
