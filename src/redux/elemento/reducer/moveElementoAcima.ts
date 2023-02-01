@@ -1,17 +1,14 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   buildListaDispositivos,
-  getAnteriorAgrupadorAntesArtigo,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
-  getUltimoFilho,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -30,19 +27,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-
-  const anteriorDispositivo = getDispositivoAnteriorMesmoTipoInclusiveOmissis(atual);
-  let anteriorAgrupador: Dispositivo | undefined = undefined;
-
-  if(isArtigo(atual)) {
-    const anteriorIrmao = getDispositivoAnterior(atual);
-    if(!anteriorIrmao || !isArtigo(anteriorIrmao)) {
-      anteriorAgrupador = getAnteriorAgrupadorAntesArtigo(atual);
-    }
-
-  }
-  const anteriorArtigoAgrupador = anteriorAgrupador?.filhos?.length ? anteriorAgrupador.filhos[anteriorAgrupador.filhos.length - 1] : undefined;
-  const anterior = anteriorDispositivo ? anteriorDispositivo : anteriorArtigoAgrupador;
+  const anterior = getDispositivoAnteriorMesmoTipoInclusiveOmissis(atual);
 
   if (anterior === undefined) {
     return state;
@@ -51,35 +36,32 @@ export const moveElementoAcima = (state: any, action: any): State => {
   const removidos = [...getElementos(anterior), ...getElementos(atual)];
   const renumerados = listaDispositivosRenumerados(atual);
 
-
-  const pai = anteriorArtigoAgrupador ? anterior.pai! : atual.pai!;
-  const pos = anteriorArtigoAgrupador ? pai.indexOf(anterior) : pai.indexOf(atual);
+  const pai = atual.pai!;
+  const pos = pai.indexOf(anterior);
 
   resetUuidTodaArvore(anterior);
   resetUuidTodaArvore(atual);
 
-  if(anteriorArtigoAgrupador) {
-    atual.pai!.removeFilho(atual);
-    pai.addFilhoOnPosition(atual, pos + 1);
-  } else {
-    pai.removeFilho(atual);
-    pai.addFilhoOnPosition(atual, pos - 1);
-  }
+  pai.removeFilho(anterior);
+  pai.removeFilho(atual);
 
+  pai.addFilhoOnPosition(atual, pos);
+  pai.addFilhoOnPosition(anterior, pos + 1);
+
+  atual.pai = pai;
+  anterior.pai = pai;
 
   pai.renumeraFilhos();
 
-  const anteriorAtual = anteriorAgrupador ?  getDispositivoAnterior(anterior) : getDispositivoAnterior(atual);
   const referencia =
-    pos === 0 ? (isCaput(atual.pai!) || (isDispositivoAlteracao(atual) && isArtigo(atual)) ? pai.pai! : pai) : (anteriorAtual ? anteriorAtual : atual.pai);
-
+    pos === 0 ? (atual.pai?.tipo === TipoDispositivo.caput.tipo || (isDispositivoAlteracao(atual) && atual.tipo === 'Artigo') ? pai.pai! : pai) : getDispositivoAnterior(atual);
 
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));
   eventos.add(
     StateType.ElementoIncluido,
-    buildListaDispositivos(anteriorArtigoAgrupador ? anterior : atual, [])
-      .concat(buildListaDispositivos(anteriorArtigoAgrupador ? atual : anterior, []))
+    buildListaDispositivos(atual, [])
+      .concat(buildListaDispositivos(anterior, []))
       .map(v => {
         v.mensagens = validaDispositivo(v);
         return createElemento(v);
