@@ -70,11 +70,10 @@ export const moveElementoAcima = (state: any, action: any): State => {
   pai.renumeraFilhos();
 
   const anteriorAtual = anteriorAgrupador ?  getDispositivoAnterior(anterior) : getDispositivoAnterior(atual);
-  const referencia =
-    pos === 0 ? (isCaput(atual.pai!) || (isDispositivoAlteracao(atual) && isArtigo(atual)) ? pai.pai! : pai) : (anteriorAtual ? anteriorAtual : atual.pai);
-
+  const referencia = pos <= 1 ? (isCaput(atual.pai!) || ((isDispositivoAlteracao(atual) ) && isArtigo(atual)) ? pai.pai! : pai) : (anteriorAtual ? anteriorAtual  : atual.pai);
 
   const eventos = new Eventos();
+  eventos.add(StateType.ElementoRemovido, removidos);
   eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));
   eventos.add(
     StateType.ElementoIncluido,
@@ -85,7 +84,6 @@ export const moveElementoAcima = (state: any, action: any): State => {
         return createElemento(v);
       })
   );
-  eventos.add(StateType.ElementoRemovido, removidos);
   eventos.add(
     StateType.ElementoRenumerado,
     renumerados.map(r => createElemento(r))
@@ -96,7 +94,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   // Segundo elemento será usado para marcar o elemento em caso de "undo"
   eventos.add(StateType.ElementoMarcado, [createElemento(atual), action.atual]);
   eventos.add(StateType.ElementoSelecionado, [createElemento(atual)]);
-
+  console.log(eventos)
   return {
     articulacao: state.articulacao,
     modo: state.modo,
