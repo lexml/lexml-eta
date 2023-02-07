@@ -1,6 +1,6 @@
 import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { OpcoesImpressao } from '../../model/emenda/emenda'
+import { OpcoesImpressao } from '../../model/emenda/emenda';
 
 @customElement('lexml-opcoes-impressao')
 export class OpcoesImpressaoComponent extends LitElement {
@@ -12,7 +12,6 @@ export class OpcoesImpressaoComponent extends LitElement {
 
   @query('#chk-reduzir-espaco')
   reduzirEspacoEntreLinhas!: HTMLInputElement;
-
 
   private _opcoesImpressao!: OpcoesImpressao;
   @property({ type: Object })
@@ -68,9 +67,27 @@ export class OpcoesImpressaoComponent extends LitElement {
       </style>
 
       <sl-radio-group label="Opções de impressão" fieldset class="lexml-opcoes-impressao">
-        <sl-checkbox id="chk-imprimir-brasao" ?checked=${this._opcoesImpressao?.imprimirBrasao} @input=${(ev: Event): void => this._atualizarImprimirBrasao(ev)}>Imprimir brasão</sl-checkbox>
-        <sl-input type="text" id="input-cabecalho" name="textoCabecalho" label="Texto do cabeçalho" value=${this._opcoesImpressao?.textoCabecalho} @input=${(ev: Event): void => this._atualizarTextoCabecalho(ev)}></sl-input>
-        <sl-checkbox id="chk-reduzir-espaco" ?checked=${this._opcoesImpressao?.reduzirEspacoEntreLinhas} @input=${(ev: Event): void => this._atualizarReduzirEspacoEntreLinhas(ev)}>Reduzir espaço entre linhas</sl-checkbox>
+        <div>
+          <input type="checkbox" id="chk-imprimir-brasao" ?checked=${this._opcoesImpressao?.imprimirBrasao} @input=${(ev: Event): void => this._atualizarImprimirBrasao(ev)} />
+          <label for="chk-imprimir-brasao">Imprimir brasão</label>
+        </div>
+        <sl-input
+          type="text"
+          id="input-cabecalho"
+          name="textoCabecalho"
+          label="Texto do cabeçalho"
+          value=${this._opcoesImpressao?.textoCabecalho}
+          @input=${(ev: Event): void => this._atualizarTextoCabecalho(ev)}
+        ></sl-input>
+        <div>
+          <input
+            type="checkbox"
+            id="chk-reduzir-espaco"
+            ?checked=${this._opcoesImpressao?.reduzirEspacoEntreLinhas}
+            @input=${(ev: Event): void => this._atualizarReduzirEspacoEntreLinhas(ev)}
+          />
+          <label for="chk-reduzir-espaco">Reduzir espaço entre linhas</label>
+        </div>
       </sl-radio-group>
     `;
   }
@@ -98,7 +115,7 @@ export class OpcoesImpressaoComponent extends LitElement {
         bubbles: true,
         composed: true,
         detail: {
-          origemEvento
+          origemEvento,
         },
       })
     );

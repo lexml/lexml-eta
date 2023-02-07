@@ -296,9 +296,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           /* overflow: var(--overflow); */
           /* overflow-y: auto; */
         }
-        sl-tab-panel[name='autoria'] {
-          padding: 10px;
-        }
+
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
@@ -327,6 +325,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin-right: 5px;
           font-size: 18px;
         }
+        .tab-autoria__container {
+          padding: 10px;
+        }
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
@@ -352,10 +353,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
-              <lexml-data></lexml-data>
-              <br />
-              <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
-              <lexml-opcoes-impressao></lexml-opcoes-impressao>
+              <div class="tab-autoria__container">
+                <lexml-data></lexml-data>
+                <br />
+                <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
+                <lexml-opcoes-impressao></lexml-opcoes-impressao>
+              </div>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>
