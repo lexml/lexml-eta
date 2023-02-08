@@ -65,6 +65,11 @@ export const quillSnowStyles = html`
       padding: 0;
       counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
     }
+    .ql-editor p {
+      line-height: 1.42;
+      font-size: 16px;
+      color: #646260;
+    }
     .ql-editor ol,
     .ql-editor ul {
       padding-left: 1.5em;
