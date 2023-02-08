@@ -249,11 +249,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     // altura dos tabs
     const alturaLexmlEtaTabs = lexmlEtaTabs?.clientHeight;
     if (alturaLexmlEtaTabs) {
-      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 2;
+      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 12;
       if (alturaElemento > 0) {
         this?.style.setProperty('--height', alturaElemento + 'px');
         this?.style.setProperty('--overflow', 'hidden');
-        // console.log('H ajustada: ' + alturaElemento);
+        console.log('H ajustada: ' + alturaElemento);
         return true;
       }
     }
