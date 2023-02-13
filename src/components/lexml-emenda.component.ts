@@ -249,11 +249,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     // altura dos tabs
     const alturaLexmlEtaTabs = lexmlEtaTabs?.clientHeight;
     if (alturaLexmlEtaTabs) {
-      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 2;
+      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 12;
       if (alturaElemento > 0) {
         this?.style.setProperty('--height', alturaElemento + 'px');
         this?.style.setProperty('--overflow', 'hidden');
-        // console.log('H ajustada: ' + alturaElemento);
+        console.log('H ajustada: ' + alturaElemento);
         return true;
       }
     }
@@ -296,9 +296,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           /* overflow: var(--overflow); */
           /* overflow-y: auto; */
         }
-        .data-autoria-impressao--content {
-          padding: 10px;
-        }
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
@@ -327,6 +324,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin-right: 5px;
           font-size: 18px;
         }
+        .tab-autoria__container {
+          padding: 10px;
+        }
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
@@ -352,7 +352,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
-              <div class="data-autoria-impressao--content">
+              <div class="tab-autoria__container">
                 <lexml-data></lexml-data>
                 <br />
                 <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
