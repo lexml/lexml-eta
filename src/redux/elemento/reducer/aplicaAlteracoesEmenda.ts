@@ -134,7 +134,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
         // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
         // Nesse caso, "d" já é o "Artigo" que será "pai" do novo dispositivo
         // Em outras palavras: quando o idIrmaoAnterior é de "caput" a função "buscaDispositivoById" traz o artigo
-        novo = criaDispositivo(d, da.tipo);
+        novo = criaDispositivo(d, da.tipo, undefined, 0);
       }
     }
   } else if (da.idPai) {
