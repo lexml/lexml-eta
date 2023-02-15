@@ -15,12 +15,15 @@ import {
   isDispositivoCabecaAlteracao,
   isOriginal,
   verificaNaoPrecisaInformarSituacaoNormaVigente,
+  getDispositivoCabecaAlteracao,
+  isUltimaAlteracao,
+  getTiposAgrupadoresQuePodemSerInseridosAntes,
+  getTiposAgrupadoresQuePodemSerInseridosDepois,
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
 import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
-import { getDispositivoCabecaAlteracao, isUltimaAlteracao } from './../lexml/hierarquia/hierarquiaUtil';
 import { Elemento, Referencia } from './elemento';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -99,6 +102,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
     tipoOmissis: dispositivo.tipo === 'Omissis' ? tipoOmissis(pai) : undefined,
     podeEditarNotaAlteracao,
+    tiposAgrupadoresQuePodemSerInseridosAntes: getTiposAgrupadoresQuePodemSerInseridosAntes(dispositivo),
+    tiposAgrupadoresQuePodemSerInseridosDepois: getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo),
   };
 };
 

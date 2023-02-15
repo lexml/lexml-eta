@@ -1,11 +1,11 @@
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { agrupaElemento } from './agrupaElemento';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
-import { isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isOmissis, isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { buscaDispositivoById, getDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoCabecaAlteracao, getTiposAgrupadorArtigoOrdenados } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
@@ -14,7 +14,6 @@ import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
-import { isArticulacao, isOmissis, isAgrupador } from './../../../model/dispositivo/tipo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
 import {
   getDispositivoAnteriorMesmoTipo,
@@ -85,7 +84,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
-  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+  const tiposAgrupadorArtigo = getTiposAgrupadorArtigoOrdenados();
   const eventos: StateEvent[] = [];
 
   for (const da of alteracoesEmenda.dispositivosAdicionados) {

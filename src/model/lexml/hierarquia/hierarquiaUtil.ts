@@ -770,3 +770,80 @@ export const getAnteriorAgrupadorAntesAgrupador = (d: Dispositivo, ignorarFilhos
 export const getAnteriorAgrupadorAntesArtigo = (art: Artigo): Dispositivo | undefined => {
   return getAnteriorAgrupadorAntesAgrupador(art.pai!);
 };
+
+export const getTiposAgrupadorArtigoOrdenados = (): string[] => ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+
+const tiposAgrupadorArtigoPermitidosNaArticulacao = ['Parte', 'Livro', 'Titulo', 'Capitulo'];
+
+export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispositivo): string[] => {
+  const result: (string | undefined)[] = [];
+  if (!isAgrupador(dispositivo) && !isArtigo(dispositivo)) {
+    return [];
+  }
+
+  const primeiroAgrupador = getPrimeiroAgrupadorNaArticulacao(dispositivo);
+
+  if (!primeiroAgrupador) {
+    return [...tiposAgrupadorArtigoPermitidosNaArticulacao];
+  }
+
+  const tiposAgrupadorArtigoOrdenados = getTiposAgrupadorArtigoOrdenados();
+  const agrupadorRef = isAgrupador(dispositivo) ? dispositivo : dispositivo.pai!;
+  const agrupadorDepois = getPrimeiroAgrupadorDepois(dispositivo);
+  const tipos = getRangeTiposAgrupador(primeiroAgrupador.tipo, getTipoAgrupadorNivelAbaixo(agrupadorRef.tipo));
+
+  result.push(agrupadorRef.tipo);
+  result.push(getTipoAgrupadorNivelAbaixo(agrupadorRef.tipo));
+
+  result.push(agrupadorDepois?.tipo);
+  if (getIndexTipoAgrupador(agrupadorDepois?.tipo ?? '') > getIndexTipoAgrupador(primeiroAgrupador.tipo)) {
+    result.push(getTipoAgrupadorNivelAcima(agrupadorDepois!.tipo));
+  }
+
+  // Se existir agrupadorDepois, mantém apenas os tipos de nível igual ou inferior ao tipo imediatamento acima do agrupadorDepois
+  result.push(...tipos.filter(t => !agrupadorDepois || getIndexTipoAgrupador(t) >= getIndexTipoAgrupador(agrupadorDepois.tipo) - 1));
+
+  return [...new Set(result)].filter(t => t && tiposAgrupadorArtigoOrdenados.includes(t)) as string[];
+};
+
+export const getTiposAgrupadoresQuePodemSerInseridosAntes = (dispositivo: Dispositivo): string[] => {
+  const result: (string | undefined)[] = [];
+
+  if (!isAgrupador(dispositivo)) {
+    return getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo);
+  }
+
+  result.push(dispositivo.tipo);
+  result.push(getTipoAgrupadorNivelAcima(dispositivo.tipo));
+
+  return [...new Set(result)] as string[];
+};
+
+const getRangeTiposAgrupador = (tipoInicial = '', tipoFinal = ''): string[] => {
+  return getTiposAgrupadorArtigoOrdenados().slice(getIndexTipoAgrupador(tipoInicial), getIndexTipoAgrupador(tipoFinal) + 1);
+};
+
+const getIndexTipoAgrupador = (tipo: string): number => {
+  return getTiposAgrupadorArtigoOrdenados().indexOf(tipo);
+};
+
+const getTipoAgrupadorNivelAcima = (tipoAgrupador: string): string | undefined => {
+  const tiposAgrupadorArtigoOrdenados = getTiposAgrupadorArtigoOrdenados();
+  return tiposAgrupadorArtigoOrdenados[tiposAgrupadorArtigoOrdenados.indexOf(tipoAgrupador) - 1];
+};
+
+const getTipoAgrupadorNivelAbaixo = (tipoAgrupador: string): string | undefined => {
+  const tiposAgrupadorArtigoOrdenados = getTiposAgrupadorArtigoOrdenados();
+  const index = tiposAgrupadorArtigoOrdenados.indexOf(tipoAgrupador);
+  return index === -1 ? undefined : tiposAgrupadorArtigoOrdenados[index + 1];
+};
+
+const getPrimeiroAgrupadorDepois = (d: Dispositivo): Dispositivo | undefined => {
+  const dispositivos = getDispositivoAndFilhosAsLista(getArticulacao(d));
+  const indexRef = dispositivos.indexOf(d);
+  return dispositivos.filter((d, index) => index > indexRef && isAgrupador(d))[0];
+};
+
+const getPrimeiroAgrupadorNaArticulacao = (d: Dispositivo): Dispositivo | undefined => {
+  return getArticulacao(d).filhos.filter(isAgrupador)[0];
+};

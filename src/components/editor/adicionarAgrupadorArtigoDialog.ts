@@ -2,7 +2,6 @@ import { Elemento } from '../../model/elemento';
 import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 
 export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, store: any): void => {
-  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
   Array.from(document.querySelectorAll('#slDialogAdicionarAgrupadorArtigo')).forEach(el => document.body.removeChild(el));
 
   const tipoPai = elemento.hierarquia?.pai?.tipo;
@@ -58,7 +57,19 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   `);
 
   const opcoes = Array.from(content.querySelectorAll('.tipo-agrupador'));
-  (opcoes.find(el => (el as any).value === defaultValue) as any).checked = true;
+
+  const tiposPermitidos = [...elemento.tiposAgrupadoresQuePodemSerInseridosAntes!];
+  if (elemento.tipo !== 'Artigo') {
+    tiposPermitidos.push(...elemento.tiposAgrupadoresQuePodemSerInseridosDepois!);
+  }
+
+  const defaultAux = tiposPermitidos.length === 1 ? tiposPermitidos[0] : defaultValue;
+  (opcoes.find(el => (el as any).value === defaultAux) as any).checked = true;
+
+  opcoes.forEach(el => {
+    (el as any).disabled = !tiposPermitidos.includes((el as any).value);
+    (el as any).checked = (el as any).disabled ? false : (el as any).checked;
+  });
 
   const botoes = content.querySelectorAll('sl-button');
   const cancelar = botoes[0];
@@ -105,12 +116,24 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   };
 
   (content.querySelector('#rdgTipoAgrupador')! as any).onclick = (evt: any): void => {
-    if (elemento.tipo === 'Artigo') {
+    if (elemento.tipo === 'Artigo' || !tiposPermitidos.includes(evt.target.value)) {
       return;
     }
 
-    optPosicaoDepois.checked = tiposAgrupadorArtigo.indexOf(evt.target.value) >= tiposAgrupadorArtigo.indexOf(elemento.tipo!);
-    optPosicaoAntes.checked = !optPosicaoDepois.checked;
+    optPosicaoAntes.disabled = !elemento.tiposAgrupadoresQuePodemSerInseridosAntes!.includes(evt.target.value);
+    optPosicaoDepois.disabled = !elemento.tiposAgrupadoresQuePodemSerInseridosDepois!.includes(evt.target.value);
+
+    if (!optPosicaoAntes.disabled && !optPosicaoDepois.disabled) {
+      optPosicaoAntes.checked = false;
+      optPosicaoDepois.checked = true;
+    } else {
+      optPosicaoAntes.checked = !optPosicaoAntes.disabled;
+      optPosicaoDepois.checked = !optPosicaoDepois.disabled;
+    }
+
+    // optPosicaoDepois.checked = tiposAgrupadorArtigo.indexOf(evt.target.value) >= tiposAgrupadorArtigo.indexOf(elemento.tipo!);
+    // optPosicaoAntes.checked = !optPosicaoDepois.checked;
+
     validarStatusChkManterNoMesmoGrupoDeAspas();
   };
 

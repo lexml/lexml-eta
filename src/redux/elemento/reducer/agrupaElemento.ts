@@ -7,6 +7,8 @@ import {
   getDispositivoCabecaAlteracao,
   getArticulacao,
   podeRenumerarFilhosAutomaticamente,
+  getTiposAgrupadoresQuePodemSerInseridosAntes,
+  getTiposAgrupadoresQuePodemSerInseridosDepois,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
@@ -37,6 +39,14 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   if (isArtigo(atual) && action.novo.posicao !== 'antes') {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+  }
+
+  if (action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+  }
+
+  if (action.novo.posicao === 'depois' && !getTiposAgrupadoresQuePodemSerInseridosDepois(atual).includes(action.novo.tipo)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 

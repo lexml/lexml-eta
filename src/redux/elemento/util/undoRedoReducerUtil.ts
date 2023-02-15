@@ -5,7 +5,13 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import { findDispositivoByUuid, getDispositivoAnterior, getUltimoFilho, isArticulacaoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  findDispositivoByUuid,
+  getDispositivoAnterior,
+  getTiposAgrupadorArtigoOrdenados,
+  getUltimoFilho,
+  isArticulacaoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
@@ -250,7 +256,7 @@ export const processaSituacoesAlteradas = (state: State, eventos: StateEvent[]):
 };
 
 export const isUndoRedoInclusaoExclusaoAgrupador = (eventos: StateEvent[]): boolean => {
-  const tiposAgrupadorArtigo = ['Parte', 'Livro', 'Titulo', 'Capitulo', 'Secao', 'Subsecao'];
+  const tiposAgrupadorArtigo = getTiposAgrupadorArtigoOrdenados();
   return (
     eventos.length > 0 &&
     [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventos[0].stateType) &&

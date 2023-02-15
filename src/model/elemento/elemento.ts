@@ -35,4 +35,6 @@ export class Elemento extends Referencia {
   tipoOmissis?: string;
   podeEditarNotaAlteracao?: boolean;
   manterNoMesmoGrupoDeAspas?: boolean;
+  tiposAgrupadoresQuePodemSerInseridosAntes?: string[];
+  tiposAgrupadoresQuePodemSerInseridosDepois?: string[];
 }
