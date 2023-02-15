@@ -66,7 +66,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       it('Deveria apresentar o como removido', () => {
         const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
         expect(removidos.elementos!.length).equal(1);
-        expect(removidos.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+        expect(removidos.elementos![0].rotulo).equal('Capítulo único');
       });
     });
   });
@@ -104,7 +104,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       // it('Deveria apresentar o antigo capítulo II como renumerado', () => {
       //   const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
       //   expect(renumerados.elementos!.length).equal(1);
-      //   expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+      //   expect(renumerados.elementos![0].rotulo).equal('Capítulo único');
       // });
     });
   });
@@ -131,7 +131,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       expect(state.articulacao.filhos[1].filhos[0].rotulo).equal('Art. 2º');
       expect(state.articulacao.filhos[1].filhos[1].rotulo).equal('Art. 3º');
       expect(state.articulacao.filhos[1].filhos[2].rotulo).equal('Art. 4º');
-      expect(state.articulacao.filhos[1].filhos[3].rotulo).equal('SEÇÃO ÚNICA');
+      expect(state.articulacao.filhos[1].filhos[3].rotulo).equal('Seção única');
     });
     describe('Testando eventos', () => {
       it('Deveria apresentar 5 eventos', () => {
@@ -145,8 +145,8 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       // it('Deveria apresentar o antigo capítulo II como renumerado', () => {
       //   const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
       //   expect(renumerados.elementos!.length).equal(2);
-      //   expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
-      //   expect(renumerados.elementos![1].rotulo).equal('SEÇÃO ÚNICA');
+      //   expect(renumerados.elementos![0].rotulo).equal('Capítulo único');
+      //   expect(renumerados.elementos![1].rotulo).equal('Seção única');
       // });
     });
   });
@@ -172,7 +172,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
     it('Deveria apresentar os artigos 1 e o CAPÍTULO como filhos da articulação', () => {
       expect(state.articulacao.filhos.length).equals(2);
       expect(state.articulacao.filhos[0].rotulo).equal('Art. 1º');
-      expect(state.articulacao.filhos[1].rotulo).equal('CAPÍTULO ÚNICO');
+      expect(state.articulacao.filhos[1].rotulo).equal('Capítulo único');
     });
     it('Deveria apresentar as seções como filhos do Capítulo I', () => {
       expect(state.articulacao.filhos[1].filhos[0].rotulo).equal('Seção I');
@@ -190,7 +190,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       // it('Deveria apresentar como renumerados', () => {
       //   const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
       //   expect(renumerados.elementos!.length).equal(1);
-      //   expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+      //   expect(renumerados.elementos![0].rotulo).equal('Capítulo único');
       // });
     });
   });
@@ -217,7 +217,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       expect(state.articulacao.filhos.length).equals(2);
     });
     it('Deveria apresentar um capítulo e as seções como filhos do Capítulo I', () => {
-      expect(state.articulacao.filhos[1].rotulo).equal('CAPÍTULO ÚNICO');
+      expect(state.articulacao.filhos[1].rotulo).equal('Capítulo único');
       expect(state.articulacao.filhos[1].filhos[0].rotulo).equal('Art. 2º');
       expect(state.articulacao.filhos[1].filhos[1].rotulo).equal('Seção I');
       expect(state.articulacao.filhos[1].filhos[2].rotulo).equal('Seção II');
@@ -234,7 +234,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       // it('Deveria apresentar a seção em renumerados', () => {
       //   const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
       //   expect(renumerados.elementos!.length).equal(2);
-      //   expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+      //   expect(renumerados.elementos![0].rotulo).equal('Capítulo único');
       //   expect(renumerados.elementos![1].rotulo).equal('Seção II');
       // });
     });
@@ -249,9 +249,9 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
       it('Deveria apresentar dois capítulos', () => {
         expect(state.articulacao.filhos[1].rotulo).equal('CAPÍTULO I');
         expect(state.articulacao.filhos[1].filhos[0].rotulo).equal('Art. 2º');
-        expect(state.articulacao.filhos[1].filhos[1].rotulo).equal('SEÇÃO ÚNICA'); // TODO
+        expect(state.articulacao.filhos[1].filhos[1].rotulo).equal('Seção única'); // TODO
         expect(state.articulacao.filhos[2].rotulo).equal('CAPÍTULO II');
-        expect(state.articulacao.filhos[2].filhos[0].rotulo).equal('SEÇÃO ÚNICA'); // TODO
+        expect(state.articulacao.filhos[2].filhos[0].rotulo).equal('Seção única'); // TODO
       });
       describe('Testando eventos', () => {
         it('Deveria apresentar 5 eventos', () => {
@@ -280,7 +280,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
           expect(state.articulacao.filhos.length).equals(2);
         });
         it('Deveria apresentar um capítulo e as seções como filhos do Capítulo I', () => {
-          expect(state.articulacao.filhos[1].rotulo).equal('CAPÍTULO ÚNICO');
+          expect(state.articulacao.filhos[1].rotulo).equal('Capítulo único');
           expect(state.articulacao.filhos[1].filhos[0].rotulo).equal('Art. 2º');
           expect(state.articulacao.filhos[1].filhos[1].rotulo).equal('Seção I');
           expect(state.articulacao.filhos[1].filhos[2].rotulo).equal('Seção II');
@@ -297,7 +297,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
           // it('Deveria apresentar a seção em renumerados', () => {
           //   const renumerados = getEvento(state.ui.events, StateType.ElementoRenumerado);
           //   expect(renumerados.elementos!.length).equal(2);
-          //   expect(renumerados.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+          //   expect(renumerados.elementos![0].rotulo).equal('Capítulo único');
           //   expect(renumerados.elementos![1].rotulo).equal('Seção II');
           // });
         });

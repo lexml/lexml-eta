@@ -1,3 +1,4 @@
+import { TipoMensagem } from './../../../src/model/lexml/util/mensagem';
 import { selecionaElemento } from './../../../src/redux/elemento/reducer/selecionaElemento';
 import { ADICIONAR_AGRUPADOR_ARTIGO } from './../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { agrupaElemento } from './../../../src/redux/elemento/reducer/agrupaElemento';
@@ -90,48 +91,42 @@ describe('Testando a inclusão de agrupador de dispositivo da MPV', () => {
     });
   });
 
-  describe('Testando a inclusão de agrupador "Parte" ANTES do "Capítulo I"', () => {
+  describe('Testando a inclusão de agrupador "Parte" ANTES do "Capítulo I" (cenário não permitido)', () => {
     beforeEach(function () {
       const cap1 = createElemento(state.articulacao!.filhos[0]);
       state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: cap1, novo: { tipo: 'Parte', posicao: 'antes' } });
       agrupadorCriado = state.articulacao!.filhos[0]!;
       // eventos = getEventosQuePossuemElementos(state.ui!.events);
     });
-    it('Deveria possuir 1 filho na articulação', () => {
-      expect(state.articulacao?.filhos.length).to.equal(1);
-      expect(agrupadorCriado.tipo).to.equal('Parte');
-      expect(agrupadorCriado.pai?.tipo).to.equal('Articulacao');
-    });
-    it('Deveria possuir 7 filhos do tipo "Capitulo" no agrupador "Parte"', () => {
-      expect(agrupadorCriado.filhos.length).to.equal(7);
-      expect(agrupadorCriado.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(7);
-      expect(agrupadorCriado.filhos.filter(f => f.tipo === 'Capitulo' && f.pai === agrupadorCriado).length).to.equal(7);
+    it('Deveria possuir 7 filhos na articulação', () => {
+      expect(state.articulacao?.filhos.length).to.equal(7);
+      expect(state.ui!.message!.tipo).to.equal(TipoMensagem.ERROR);
+      expect(state.ui!.message!.descricao).to.equal('Operação não permitida.');
     });
   });
 
-  describe('Testando a inclusão de agrupador "Parte" DEPOIS do "Capítulo I"', () => {
+  describe('Testando a inclusão de agrupador "Secao" DEPOIS do "Capítulo I"', () => {
     beforeEach(function () {
       const cap1 = createElemento(state.articulacao!.filhos[0]);
-      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: cap1, novo: { tipo: 'Parte', posicao: 'depois' } });
-      agrupadorCriado = state.articulacao!.filhos[1]!;
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: cap1, novo: { tipo: 'Secao', posicao: 'depois' } });
+      agrupadorCriado = state.articulacao!.filhos[0].filhos[0]!;
       // eventos = getEventosQuePossuemElementos(state.ui!.events);
     });
-    it('Deveria possuir 2 filhos na articulação', () => {
-      expect(state.articulacao?.filhos.length).to.equal(2);
-      expect(agrupadorCriado.tipo).to.equal('Parte');
-      expect(agrupadorCriado.pai?.tipo).to.equal('Articulacao');
+    it('Deveria possuir 7 filhos na articulação', () => {
+      expect(state.articulacao?.filhos.length).to.equal(7);
+    });
+    it('Deveria apresentar o agrupador criado como primeiro filho do Capítulo 1', () => {
+      expect(agrupadorCriado.tipo).to.equal('Secao');
+      expect(agrupadorCriado.pai?.tipo).to.equal('Capitulo');
 
-      expect(state.articulacao?.filhos[0].tipo).to.equal('Capitulo');
-      expect(state.articulacao?.filhos[1]).to.equal(agrupadorCriado);
+      expect(state.articulacao?.filhos[0].filhos[0].tipo).to.equal('Secao');
+      expect(state.articulacao?.filhos[0].filhos[0]).to.equal(agrupadorCriado);
+      expect(state.articulacao?.filhos[0].indexOf(agrupadorCriado)).to.equal(0);
     });
-    it('Deveria apresentar o agrupador criado no index 1 da articulação', () => {
-      expect(state.articulacao?.filhos.indexOf(agrupadorCriado)).to.equal(1);
-    });
-    it('Deveria possuir 24 filhos no agrupador "Parte"', () => {
-      expect(agrupadorCriado.filhos.length).to.equal(24);
+    it('Deveria possuir 18 filhos no agrupador "Secao"', () => {
+      expect(agrupadorCriado.filhos.length).to.equal(18);
       expect(agrupadorCriado.filhos.filter(f => f.tipo === 'Artigo').length).to.equal(18);
-      expect(agrupadorCriado.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(6);
-      expect(agrupadorCriado.filhos.filter(f => f.tipo === 'Capitulo' && f.pai === agrupadorCriado).length).to.equal(6);
+      expect(agrupadorCriado.pai!.filhos.length).to.equal(1);
     });
   });
 
@@ -154,13 +149,13 @@ describe('Testando a inclusão de agrupador de dispositivo da MPV', () => {
                 ...
         */
         let atual = createElemento(state.articulacao!.filhos[0]); // Cap
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
+
+        atual = createElemento(state.articulacao!.filhos[0]); // Tit
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Livro', posicao: 'antes' } });
+
+        atual = createElemento(state.articulacao!.filhos[0]); // Livro
         state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Parte', posicao: 'antes' } });
-
-        atual = createElemento(state.articulacao!.filhos[0]); // Parte
-        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Livro', posicao: 'depois' } });
-
-        atual = createElemento(state.articulacao!.filhos[0].filhos[0]); // Livro
-        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'depois' } });
 
         atual = createElemento(state.articulacao!.artigos[5]); // Cria seção antes do Art. 6º
         state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Secao', posicao: 'antes' } });

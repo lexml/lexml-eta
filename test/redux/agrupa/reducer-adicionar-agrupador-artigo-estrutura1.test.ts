@@ -41,14 +41,15 @@ describe('Testando a inclusão de agrupadores', () => {
                 Capitulo II
                 ...
         */
+
         let atual = createElemento(state.articulacao!.filhos[0]); // Cap
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
+
+        atual = createElemento(state.articulacao!.filhos[0]); // Tit
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Livro', posicao: 'antes' } });
+
+        atual = createElemento(state.articulacao!.filhos[0]); // Livro
         state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Parte', posicao: 'antes' } });
-
-        atual = createElemento(state.articulacao!.filhos[0]); // Parte
-        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Livro', posicao: 'depois' } });
-
-        atual = createElemento(state.articulacao!.filhos[0].filhos[0]); // Livro
-        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'depois' } });
 
         atual = createElemento(state.articulacao!.artigos[5]); // Cria seção antes do Art. 6º
         state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Secao', posicao: 'antes' } });

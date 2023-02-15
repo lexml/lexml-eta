@@ -36,7 +36,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
     });
     it('Deveria apresentar o capítulo sob o novo título', () => {
       expect(state.articulacao.filhos[1].filhos.length).equals(1);
-      expect(state.articulacao.filhos[1].rotulo).equal('TÍTULO ÚNICO');
+      expect(state.articulacao.filhos[1].rotulo).equal('Título único');
     });
     describe('Testando eventos', () => {
       it('Deveria apresentar 5 eventos', () => {
@@ -44,10 +44,10 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
       });
       it('Deveria apresentar o titulo como incluído', () => {
         expect(eventos[0].elementos!.length).equal(1);
-        expect(eventos[0].elementos![0].rotulo).equal('TÍTULO ÚNICO');
+        expect(eventos[0].elementos![0].rotulo).equal('Título único');
       });
       it('1 Deveria apresentar o TÍTULO incluído após o artigo 1', () => {
-        expect(eventos[0].elementos![0].rotulo).equal('TÍTULO ÚNICO');
+        expect(eventos[0].elementos![0].rotulo).equal('Título único');
         expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
       });
     });
@@ -60,7 +60,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         expect(state.articulacao.filhos.length).equals(2);
       });
       it('Deveria apresentar o capítulo sem título', () => {
-        expect(state.articulacao.filhos[1].rotulo).equal('CAPÍTULO ÚNICO');
+        expect(state.articulacao.filhos[1].rotulo).equal('Capítulo único');
         expect(state.articulacao.filhos[1].pai).equals(state.articulacao);
       });
       it('Deveria apresentar os artigos de 2 a 5 sob o capítulo agora sem título', () => {
@@ -73,7 +73,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         it('Deveria apresentar o título como removido', () => {
           const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
           expect(removidos.elementos!.length).equal(1);
-          expect(removidos.elementos![0].rotulo).equal('TÍTULO ÚNICO');
+          expect(removidos.elementos![0].rotulo).equal('Título único');
         });
       });
       describe('Testando redo da inclusão do título de capítulo', () => {
@@ -86,7 +86,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         });
         it('Deveria apresentar o o capítulo sob o novo título', () => {
           expect(state.articulacao.filhos[1].filhos.length).equals(1);
-          expect(state.articulacao.filhos[1].rotulo).equal('TÍTULO ÚNICO');
+          expect(state.articulacao.filhos[1].rotulo).equal('Título único');
         });
         describe('Testando eventos', () => {
           it('Deveria apresentar 5 eventos', () => {
@@ -94,10 +94,10 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
           });
           it('Deveria apresentar o titulo como incluído', () => {
             expect(eventos[0].elementos!.length).equal(1);
-            expect(eventos[0].elementos![0].rotulo).equal('TÍTULO ÚNICO');
+            expect(eventos[0].elementos![0].rotulo).equal('Título único');
           });
           it('2 Deveria apresentar o TÍTULO incluído após o artigo 1', () => {
-            expect(eventos[0].elementos![0].rotulo).equal('TÍTULO ÚNICO');
+            expect(eventos[0].elementos![0].rotulo).equal('Título único');
             expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
           });
         });
@@ -119,7 +119,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         it('Deveria apresentar o capítulo como removido', () => {
           const removidos = getEvento(state.ui.events, StateType.ElementoRemovido);
           expect(removidos.elementos!.length).equal(1);
-          expect(removidos.elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+          expect(removidos.elementos![0].rotulo).equal('Capítulo único');
         });
       });
       describe('Testando redo da inclusão do capítulo', () => {
@@ -130,7 +130,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         it('Deveria apresentar apenas o artigo 1 e o capítulo como filhos da articulação', () => {
           expect(state.articulacao.filhos.length).equals(2);
           expect(state.articulacao.filhos[0].rotulo).equals('Art. 1º');
-          expect(state.articulacao.filhos[1].rotulo).equal('CAPÍTULO ÚNICO');
+          expect(state.articulacao.filhos[1].rotulo).equal('Capítulo único');
         });
         it('Deveria apresentar os artigos 2 a 5 sob o capítulo', () => {
           expect(state.articulacao.filhos[1].filhos.length).equals(4);
@@ -142,10 +142,10 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         describe('Testando eventos', () => {
           it('Deveria apresentar o capitulo como incluído', () => {
             expect(eventos[0].elementos!.length).equal(1);
-            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+            expect(eventos[0].elementos![0].rotulo).equal('Capítulo único');
           });
           it('Deveria apresentar o capítulo incluído após o artigo 1', () => {
-            expect(eventos[0].elementos![0].rotulo).equal('CAPÍTULO ÚNICO');
+            expect(eventos[0].elementos![0].rotulo).equal('Capítulo único');
             expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
           });
         });
@@ -161,7 +161,7 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
         });
         it('Deveria apresentar o artigo e o título como filhos da articulação', () => {
           expect(state.articulacao.filhos[0].rotulo).equal('Art. 1º');
-          expect(state.articulacao.filhos[1].rotulo).equal('TÍTULO ÚNICO');
+          expect(state.articulacao.filhos[1].rotulo).equal('Título único');
         });
         it('Deveria apresentar o capítulo sob o título', () => {
           expect(state.articulacao.filhos[1].filhos.length).equals(1);
@@ -172,10 +172,10 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
           });
           it('Deveria apresentar o título como incluído', () => {
             expect(eventos[0].elementos!.length).equal(1);
-            expect(eventos[0].elementos![0].rotulo).equal('TÍTULO ÚNICO');
+            expect(eventos[0].elementos![0].rotulo).equal('Título único');
           });
           it('3 Deveria apresentar o título incluído após o artigo 1', () => {
-            expect(eventos[0].elementos![0].rotulo).equal('TÍTULO ÚNICO');
+            expect(eventos[0].elementos![0].rotulo).equal('Título único');
             expect(eventos[0].referencia!.rotulo).equal('Art. 1º');
           });
         });
