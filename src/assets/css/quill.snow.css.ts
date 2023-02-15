@@ -68,7 +68,6 @@ export const quillSnowStyles = html`
     .ql-editor p {
       line-height: 1.42;
       font-size: 18px;
-      color: #646260;
     }
     .ql-editor ol,
     .ql-editor ul {
