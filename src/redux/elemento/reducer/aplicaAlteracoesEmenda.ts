@@ -14,7 +14,7 @@ import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../uti
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { isArticulacao, isOmissis } from './../../../model/dispositivo/tipo';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import { getDispositivoAnteriorMesmoTipo, isArticulacaoAlteracao, percorreHierarquiaDispositivos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, percorreHierarquiaDispositivos, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -96,7 +96,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
       novo.createNumeroFromRotulo(novo.rotulo);
     }
     if (!evento.referencia) {
-      const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
+      const dispositivoAnterior = getDispositivoAnteriorMesmoTipoInclusiveOmissis(novo);
       let pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
       pai = isArticulacaoAlteracao(pai!) ? buscaDispositivoById(state.articulacao, pai!.pai!.id!) : pai;
       evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai!, novo));
