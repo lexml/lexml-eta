@@ -43,7 +43,7 @@ export class ComandoEmendaComponent extends LitElement {
           overflow: var(--lexml-emenda-comando-overflow);
           overflow-y: auto;
           padding: 0px 10px;
-          font-size: var(--sl-font-size-normal);
+          font-size: 18px;
           font-family: 'Times New Roman', Times, serif;
           text-align: justify;
         }

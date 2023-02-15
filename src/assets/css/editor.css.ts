@@ -233,6 +233,7 @@ export const editorStyles = html`
       flex-grow: 1;
       width: 50px;
       white-space: nowrap;
+      font-size: 16px;
     }
 
     .container__menu {
