@@ -152,6 +152,9 @@ export class DispositivosEmendaBuilder {
   }
 
   private trataTexto(str: string): string {
+    if (str.indexOf(TEXTO_OMISSIS) >= 0) {
+      return TEXTO_OMISSIS;
+    }
     return str.trim();
   }
 }
