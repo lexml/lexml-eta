@@ -43,11 +43,11 @@ export class DispositivosEmendaBuilder {
           const caput = (d as Artigo).caput!;
           dm.tipo = this.getTipoDispositivoParaEmenda(caput);
           dm.id = caput.id!;
-          dm.texto = caput.texto;
+          dm.texto = this.trataTexto(caput.texto);
         } else {
           dm.tipo = this.getTipoDispositivoParaEmenda(d);
           dm.id = d.id!;
-          dm.texto = d.texto;
+          dm.texto = this.trataTexto(d.texto);
         }
         dm.rotulo = d.rotulo;
         if (d.isDispositivoAlteracao) {
@@ -88,7 +88,7 @@ export class DispositivosEmendaBuilder {
       da.rotulo = d.rotulo;
     }
     if (!isArtigo(d) && !isArticulacaoAlteracao(d)) {
-      da.texto = d.texto;
+      da.texto = this.trataTexto(d.texto);
     }
 
     if (posicionar) {
@@ -149,5 +149,9 @@ export class DispositivosEmendaBuilder {
       const cabecaAlteracao = getDispositivoCabecaAlteracao(d);
       dm.notaAlteracao = cabecaAlteracao.notaAlteracao as any;
     }
+  }
+
+  private trataTexto(str: string): string {
+    return str.trim();
   }
 }
