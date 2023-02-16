@@ -165,7 +165,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     const situacao = new DispositivoAdicionado();
     situacao.tipoEmenda = modo;
     novo.situacao = situacao;
-    if (da.existeNaNormaAlterada !== undefined) {
+    if (novo.isDispositivoAlteracao) {
       situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
     }
 
