@@ -796,6 +796,11 @@ export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispo
   result.push(agrupadorRef.tipo);
   result.push(getTipoAgrupadorNivelAbaixo(agrupadorRef.tipo));
 
+  // Trata caso de artigos antes do primeiro agrupador
+  if (isArticulacao(agrupadorRef)) {
+    result.push(getTipoAgrupadorNivelAcima(primeiroAgrupador.tipo));
+  }
+
   result.push(agrupadorDepois?.tipo);
   if (getIndexTipoAgrupador(agrupadorDepois?.tipo ?? '') > getIndexTipoAgrupador(primeiroAgrupador.tipo)) {
     result.push(getTipoAgrupadorNivelAcima(agrupadorDepois!.tipo));
