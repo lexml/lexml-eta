@@ -1,7 +1,7 @@
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { agrupaElemento } from './agrupaElemento';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
-import { isArticulacao, isOmissis, isAgrupador, isCaput } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isOmissis, isAgrupador, isCaput, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -110,10 +110,11 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
         index > pos &&
         (d.tipo === ref.tipo || d.tipo === dea.tipo || (d.tipo !== 'Omissis' && d.tiposPermitidosPai?.includes(dea.tipo)) || (d.tipo === 'Omissis' && d.pai === ref.pai))
     );
-    const atual = createElemento(ref2!);
+    const atual = createElemento(isArtigo(ref) ? ref2! : ref);
 
     const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas; // dea.abreAspas && !dea.fechaAspas;
-    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: 'antes', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
+    // const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: 'antes', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
+    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: isArtigo(ref) ? 'antes' : 'depois', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
     const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
 
     const elementosIncluidos = events.find(e => e.stateType === StateType.ElementoIncluido)!.elementos!;

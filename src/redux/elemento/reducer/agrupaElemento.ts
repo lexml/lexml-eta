@@ -13,7 +13,7 @@ import {
 import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { getPaiQuePodeReceberFilhoDoTipo } from './../evento/eventosUtil';
-import { isAgrupador, isArtigo } from './../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -86,7 +86,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   let novo: Dispositivo;
   const ref = dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
 
-  if (isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
+  if (!isArticulacao(atual) && isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
   } else {
     const paiQuePodeReceberNovoAgrupador = getPaiQuePodeReceberFilhoDoTipo(ref, action.novo.tipo, dispositivosAlteracao)!;
