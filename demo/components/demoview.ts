@@ -185,7 +185,7 @@ export class DemoView extends LitElement {
     if (aux) {
       return Promise.resolve({ ...aux });
     }
-    const res = await fetch(`https://emendas-api.herokuapp.com/proposicao/texto-lexml/json?sigla=${sigla}&numero=${numero}&ano=${ano}`);
+    const res = await fetch(`https://www3.congressonacional.leg.br/editor-emendas/api/proposicao/texto-json?sigla=${sigla}&numero=${numero}&ano=${ano}`);
     return await res.json();
   }
 
