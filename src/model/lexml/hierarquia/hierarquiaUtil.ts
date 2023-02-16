@@ -777,6 +777,7 @@ const tiposAgrupadorArtigoPermitidosNaArticulacao = ['Parte', 'Livro', 'Titulo',
 
 export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispositivo): string[] => {
   const result: (string | undefined)[] = [];
+
   if (!isAgrupador(dispositivo) && !isArtigo(dispositivo)) {
     return [];
   }
@@ -814,7 +815,22 @@ export const getTiposAgrupadoresQuePodemSerInseridosAntes = (dispositivo: Dispos
   }
 
   result.push(dispositivo.tipo);
-  result.push(getTipoAgrupadorNivelAcima(dispositivo.tipo));
+
+  const primeiroAgrupador = getPrimeiroAgrupadorNaArticulacao(dispositivo)!;
+  const tipoAgrupadorNivelAcima = getTipoAgrupadorNivelAcima(dispositivo.tipo);
+  if (!primeiroAgrupador || dispositivo === primeiroAgrupador || getIndexTipoAgrupador(tipoAgrupadorNivelAcima ?? '') >= getIndexTipoAgrupador(primeiroAgrupador.tipo)) {
+    result.push(tipoAgrupadorNivelAcima);
+  }
+
+  const getAgrupadorAntes = (d: Dispositivo): Dispositivo | undefined => {
+    const dispositivos = getDispositivoAndFilhosAsLista(getArticulacao(d)).filter(isAgrupador);
+    return dispositivos[dispositivos.indexOf(d) - 1];
+  };
+
+  const agrupadorAntes = getAgrupadorAntes(dispositivo);
+  if (agrupadorAntes) {
+    result.push(...getTiposAgrupadoresQuePodemSerInseridosDepois(agrupadorAntes));
+  }
 
   return [...new Set(result)] as string[];
 };

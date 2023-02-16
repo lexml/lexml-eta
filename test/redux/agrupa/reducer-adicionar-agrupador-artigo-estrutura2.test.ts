@@ -30,6 +30,30 @@ describe('Testando a inclusão de agrupadores', () => {
     expect(nCap).to.equal(nFilhos);
   });
 
+  it('Testando tipos de agrupadores que podem ser inseridos antes do Capítulo 1', () => {
+    const cap = buscaDispositivoById(state.articulacao!, 'cap1')!;
+    const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(cap);
+    expect(tipos.includes('Titulo')).to.be.true;
+    expect(tipos.includes('Capitulo')).to.be.true;
+
+    expect(tipos.includes('Parte')).to.be.false;
+    expect(tipos.includes('Livro')).to.be.false;
+    expect(tipos.includes('Secao')).to.be.false;
+    expect(tipos.includes('Subsecao')).to.be.false;
+  });
+
+  it('Testando tipos de agrupadores que podem ser inseridos antes do Capítulo 2', () => {
+    const cap = buscaDispositivoById(state.articulacao!, 'cap2')!;
+    const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(cap);
+    expect(tipos.includes('Capitulo')).to.be.true;
+    expect(tipos.includes('Secao')).to.be.true;
+
+    expect(tipos.includes('Parte')).to.be.false;
+    expect(tipos.includes('Livro')).to.be.false;
+    expect(tipos.includes('Titulo')).to.be.false;
+    expect(tipos.includes('Subsecao')).to.be.false;
+  });
+
   describe('Testando a inclusão de uma estrutura de agrupadores', () => {
     describe('Testando a articulação após criação de estrutura de agrupadores', () => {
       beforeEach(function () {
@@ -241,6 +265,68 @@ describe('Testando a inclusão de agrupadores', () => {
         expect(dispositivo.filhos.length).to.equal(6);
         expect(dispositivo.filhos.every(f => f.pai === dispositivo)).to.equal(true);
         expect(dispositivo.filhos[4].id).to.equal('art5');
+      });
+
+      describe('Inserindo novo título antes do último artigo e vericando tipos de agrupadores que pode ser adicionados', () => {
+        beforeEach(function () {
+          const atual = createElemento(state.articulacao!.artigos[state.articulacao!.artigos.length - 1]);
+          state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
+        });
+
+        it('Testando tipos de agrupadores que podem ser inseridos antes do artigo 52', () => {
+          const art = state.articulacao!.artigos[state.articulacao!.artigos.length - 2];
+          const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
+          expect(tipos.includes('Livro')).to.be.true;
+          expect(tipos.includes('Titulo')).to.be.true;
+          expect(tipos.includes('Capitulo')).to.be.true;
+          expect(tipos.includes('Secao')).to.be.true;
+
+          expect(tipos.includes('Parte')).to.be.false;
+          expect(tipos.includes('Subsecao')).to.be.false;
+        });
+
+        it('Testando tipos de agrupadores que podem ser inseridos antes do artigo 53', () => {
+          const art = state.articulacao!.artigos[state.articulacao!.artigos.length - 1];
+          const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
+          expect(tipos.includes('Parte')).to.be.true;
+          expect(tipos.includes('Livro')).to.be.true;
+          expect(tipos.includes('Titulo')).to.be.true;
+          expect(tipos.includes('Capitulo')).to.be.true;
+
+          expect(tipos.includes('Secao')).to.be.false;
+          expect(tipos.includes('Subsecao')).to.be.false;
+        });
+      });
+
+      describe('Inserindo novo livro antes do último artigo e vericando tipos de agrupadores que pode ser adicionados', () => {
+        beforeEach(function () {
+          const atual = createElemento(state.articulacao!.artigos[state.articulacao!.artigos.length - 1]);
+          state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Livro', posicao: 'antes' } });
+        });
+
+        it('Testando tipos de agrupadores que podem ser inseridos antes do artigo 52', () => {
+          const art = state.articulacao!.artigos[state.articulacao!.artigos.length - 2];
+          const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
+          expect(tipos.includes('Parte')).to.be.true;
+          expect(tipos.includes('Livro')).to.be.true;
+          expect(tipos.includes('Titulo')).to.be.true;
+          expect(tipos.includes('Capitulo')).to.be.true;
+          expect(tipos.includes('Secao')).to.be.true;
+
+          expect(tipos.includes('Subsecao')).to.be.false;
+        });
+
+        it('Testando tipos de agrupadores que podem ser inseridos antes do artigo 53', () => {
+          const art = state.articulacao!.artigos[state.articulacao!.artigos.length - 1];
+          const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
+          expect(tipos.includes('Parte')).to.be.true;
+          expect(tipos.includes('Livro')).to.be.true;
+          expect(tipos.includes('Titulo')).to.be.true;
+
+          expect(tipos.includes('Capitulo')).to.be.false;
+          expect(tipos.includes('Secao')).to.be.false;
+          expect(tipos.includes('Subsecao')).to.be.false;
+        });
       });
 
       describe('Incluindo mais uma seção antes do Art. 11 e testando tipos que podem ser adicionados', () => {
