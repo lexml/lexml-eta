@@ -483,10 +483,10 @@ describe('Testando a inclusão de agrupadores', () => {
           it('>>> Testando tipos de agrupadores que podem ser inseridos depois Art. 0-1', () => {
             const art = state.articulacao!.artigos[1];
             const tipos = getTiposAgrupadoresQuePodemSerInseridosDepois(art);
+            expect(tipos.includes('Livro')).to.be.true;
             expect(tipos.includes('Titulo')).to.be.true;
 
             expect(tipos.includes('Parte')).to.be.false;
-            expect(tipos.includes('Livro')).to.be.false;
             expect(tipos.includes('Capitulo')).to.be.false;
             expect(tipos.includes('Secao')).to.be.false;
             expect(tipos.includes('Subsecao')).to.be.false;
@@ -519,10 +519,10 @@ describe('Testando a inclusão de agrupadores', () => {
           it('>>> Testando tipos de agrupadores que podem ser inseridos antes Art. 0-1', () => {
             const art = state.articulacao!.artigos[1];
             const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
+            expect(tipos.includes('Livro')).to.be.true;
             expect(tipos.includes('Titulo')).to.be.true;
 
             expect(tipos.includes('Parte')).to.be.false;
-            expect(tipos.includes('Livro')).to.be.false;
             expect(tipos.includes('Capitulo')).to.be.false;
             expect(tipos.includes('Secao')).to.be.false;
             expect(tipos.includes('Subsecao')).to.be.false;
