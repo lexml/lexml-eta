@@ -758,3 +758,8 @@ export const getAnteriorAgrupadorAntesAgrupador = (d: Dispositivo, ignorarFilhos
 export const getAnteriorAgrupadorAntesArtigo = (art: Artigo): Dispositivo | undefined => {
   return getAnteriorAgrupadorAntesAgrupador(art.pai!);
 };
+
+export const getParagrafosEOmissis = (art: Artigo): Dispositivo[] => {
+  // Os incisos e omissis de incisos de caput são filhos do caput
+  return art.filhos.filter(d => d.pai === art);
+};

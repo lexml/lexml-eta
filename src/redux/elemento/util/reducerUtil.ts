@@ -1,3 +1,4 @@
+import { getParagrafosEOmissis as getParagrafosEOmissis } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
@@ -56,8 +57,16 @@ export const isDesdobramentoAgrupadorAtual = (dispositivo: Dispositivo, tipo: st
 };
 
 export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {
-  return isArticulacao(referencia) || isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0 ? referencia : getUltimoFilho(referencia);
+  return isArticulacao(referencia) || isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0
+    ? referencia
+    : isPrimeiroParagrafo(dispositivo)
+    ? getUltimoFilho((dispositivo.pai! as Artigo).caput!)
+    : getUltimoFilho(referencia);
 };
+
+function isPrimeiroParagrafo(dispositivo: Dispositivo): boolean {
+  return isArtigo(dispositivo.pai!) && getParagrafosEOmissis(dispositivo.pai! as Artigo).indexOf(dispositivo) === 0;
+}
 
 export const naoPodeCriarFilho = (dispositivo: Dispositivo, action: any): boolean => {
   /*   if (dispositivo.pai && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO && !getProximoArtigoAnterior(dispositivo.pai!, dispositivo)) {
