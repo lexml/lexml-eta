@@ -265,6 +265,20 @@ export const getDispositivoAnteriorMesmoTipoInclusiveOmissis = (dispositivo: Dis
   return irmaos.pop();
 };
 
+// Diferencia do getDispositivoAnteriorMesmoTipoInclusiveOmissis por identificar dispositivo irmão anterior de omissis
+// [FRAGO] Provavelmente o ideal seria alterar o outro método mas não tive confiança nem tempo para verificar as implicações.
+export const getIrmaoAnteriorIndependenteDeTipo = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  const pos = dispositivo.pai!.indexOf(dispositivo);
+
+  if (pos === 0) {
+    return undefined;
+  }
+
+  // A restrição pelo mesmo pai diferencia incisos de caput (e omissis) de parágrafos (e omissis).
+  const irmaos = dispositivo.pai!.filhos.filter((f, index) => index < pos && f.pai === dispositivo.pai);
+  return irmaos.pop();
+};
+
 export const getDispositivoPosterior = (dispositivo: Dispositivo): Dispositivo | undefined => {
   if (!dispositivo.pai) {
     return undefined;

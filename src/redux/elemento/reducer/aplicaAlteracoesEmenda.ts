@@ -1,4 +1,3 @@
-import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
@@ -13,8 +12,9 @@ import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { isArticulacao, isOmissis } from './../../../model/dispositivo/tipo';
+import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import { isArticulacaoAlteracao, percorreHierarquiaDispositivos, getDispositivoAnteriorMesmoTipoInclusiveOmissis } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getIrmaoAnteriorIndependenteDeTipo, isArticulacaoAlteracao, percorreHierarquiaDispositivos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -96,7 +96,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
       novo.createNumeroFromRotulo(novo.rotulo);
     }
     if (!evento.referencia) {
-      const dispositivoAnterior = getDispositivoAnteriorMesmoTipoInclusiveOmissis(novo);
+      const dispositivoAnterior = getIrmaoAnteriorIndependenteDeTipo(novo);
       let pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
       pai = isArticulacaoAlteracao(pai!) ? buscaDispositivoById(state.articulacao, pai!.pai!.id!) : pai;
       evento.referencia = createElemento(referenciaAjustada(dispositivoAnterior || pai!, novo));
