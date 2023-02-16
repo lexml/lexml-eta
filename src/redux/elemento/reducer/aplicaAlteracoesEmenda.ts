@@ -1,7 +1,4 @@
-import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
-import { agrupaElemento } from './agrupaElemento';
-import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
-import { isArticulacao, isOmissis, isAgrupador, isCaput, isArtigo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -14,13 +11,16 @@ import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
+import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
+import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
 import {
-  getDispositivoAnteriorMesmoTipo,
+  getDispositivoAndFilhosAsLista,
   isArticulacaoAlteracao,
   percorreHierarquiaDispositivos,
-  getDispositivoAndFilhosAsLista,
+  getIrmaoAnteriorIndependenteDeTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { agrupaElemento } from './agrupaElemento';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   const retorno: State = {
@@ -149,7 +149,7 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
     }
 
     if (!evento.referencia) {
-      const dispositivoAnterior = getDispositivoAnteriorMesmoTipo(novo);
+      const dispositivoAnterior = getIrmaoAnteriorIndependenteDeTipo(novo);
       let pai = isCaput(novo!.pai!) ? novo!.pai!.pai : novo.pai;
       pai = isArticulacaoAlteracao(pai!) ? buscaDispositivoById(state.articulacao, pai!.pai!.id!) : pai;
       if (dispositivo.idPai && isAgrupador(pai!)) {
@@ -191,7 +191,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
         // Entra aqui quando dispositivo é do tipo "Paragrafo" e irmão anterior procurado é o "Caput" do artigo
         // Nesse caso, "d" já é o "Artigo" que será "pai" do novo dispositivo
         // Em outras palavras: quando o idIrmaoAnterior é de "caput" a função "buscaDispositivoById" traz o artigo
-        novo = criaDispositivo(d, da.tipo);
+        novo = criaDispositivo(d, da.tipo, undefined, 0);
       }
     }
   } else if (da.idPai) {
@@ -241,7 +241,7 @@ const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: Disp
   const situacao = new DispositivoAdicionado();
   situacao.tipoEmenda = modo;
   dispositivo.situacao = situacao;
-  if (da.existeNaNormaAlterada !== undefined) {
+  if (dispositivo.isDispositivoAlteracao) {
     situacao.existeNaNormaAlterada = !!da.existeNaNormaAlterada;
   }
 

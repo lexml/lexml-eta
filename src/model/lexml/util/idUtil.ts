@@ -1,8 +1,9 @@
+import { DescricaoSituacao } from './../../dispositivo/situacao';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
 import { getDispositivosAnterioresMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
-import { getArticulacao, isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
+import { getArticulacao, isDispositivoAlteracao, irmaosMesmoTipo } from './../hierarquia/hierarquiaUtil';
 
 export const buildHref = (dispositivo: Dispositivo): string | undefined => {
   if (isArticulacao(dispositivo)) {
@@ -15,7 +16,7 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
       (isCaput(dispositivo)
         ? ''
         : isOmissis(dispositivo)
-        ? getDispositivosAnterioresMesmoTipo(dispositivo).length + 1
+        ? calculaSequencialOmissis(dispositivo)
         : dispositivo.numero
         ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.numero === '1' && isUnicoMesmoTipo(dispositivo)
           ? '1u'
@@ -26,6 +27,22 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
 
   return undefined;
 };
+
+function calculaSequencialOmissis(dispositivo: Dispositivo): number {
+  if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    // Diferencia omissis de incisos de caput de omissis de parágrafo
+    const irmaos = irmaosMesmoTipo(dispositivo).filter(d => d.pai === dispositivo.pai);
+    // Dispositivos não adicionados primeiro.
+    irmaos.sort((d1, d2) => {
+      const s1 = d1.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? 1 : 0;
+      const s2 = d2.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? 1 : 0;
+      const order = s1 - s2;
+      return order ? order : dispositivo.pai!.indexOf(d1) - dispositivo.pai!.indexOf(d2);
+    });
+    return irmaos.indexOf(dispositivo) + 1;
+  }
+  return getDispositivosAnterioresMesmoTipo(dispositivo).length + 1;
+}
 
 const buildHierarquia = (dispositivo: Dispositivo, idArray: string[] = []): void => {
   if (isArticulacao(dispositivo) && dispositivo.pai === undefined) {
