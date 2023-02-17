@@ -177,10 +177,10 @@ const buildContentDispositivo = (el: any): string => {
       ?.map((a: any) => a.content)
       .forEach((content: any) => (texto += buildContent(content)));
   }
-  return substituirAspas(texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>'));
+  return substituiAspasRetasPorCurvas(texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>'));
 };
 
-function substituirAspas(html: string): string {
+const substituiAspasRetasPorCurvas = (html: string): string => {
   const div = document.createElement('div');
   div.innerHTML = html;
   const elements = div.getElementsByTagName('*');
@@ -192,7 +192,7 @@ function substituirAspas(html: string): string {
     }
   }
   return div.innerHTML;
-}
+};
 
 export const buildContent = (content: any): string => {
   let texto = '';
