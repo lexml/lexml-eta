@@ -796,6 +796,10 @@ export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispo
     return [];
   }
 
+  if (isDispositivoAlteracao(dispositivo)) {
+    return getTiposAgrupadorArtigoOrdenados();
+  }
+
   const primeiroAgrupador = getPrimeiroAgrupadorNaArticulacao(dispositivo);
 
   if (!primeiroAgrupador) {
@@ -831,6 +835,10 @@ export const getTiposAgrupadoresQuePodemSerInseridosAntes = (dispositivo: Dispos
 
   if (!isAgrupador(dispositivo)) {
     return getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo);
+  }
+
+  if (isDispositivoAlteracao(dispositivo)) {
+    return getTiposAgrupadorArtigoOrdenados();
   }
 
   result.push(dispositivo.tipo);
