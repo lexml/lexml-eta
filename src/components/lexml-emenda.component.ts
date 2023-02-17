@@ -253,7 +253,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       if (alturaElemento > 0) {
         this?.style.setProperty('--height', alturaElemento + 'px');
         this?.style.setProperty('--overflow', 'hidden');
-        console.log('H ajustada: ' + alturaElemento);
         return true;
       }
     }
