@@ -177,8 +177,22 @@ const buildContentDispositivo = (el: any): string => {
       ?.map((a: any) => a.content)
       .forEach((content: any) => (texto += buildContent(content)));
   }
-  return texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>');
+  return substituirAspas(texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>'));
 };
+
+function substituirAspas(html: string): string {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const elements = div.getElementsByTagName('*');
+  for (let i = 0; i < elements.length; i++) {
+    const innerHTML = elements[i].innerHTML;
+    if (innerHTML.indexOf('"') !== -1) {
+      const newInnerHTML = innerHTML.replace(/"(?=\w|$)/g, '&#8220;').replace(/(?=[\w,.?!\-")]|^)"/g, '&#8221;');
+      elements[i].innerHTML = newInnerHTML;
+    }
+  }
+  return div.innerHTML;
+}
 
 export const buildContent = (content: any): string => {
   let texto = '';
