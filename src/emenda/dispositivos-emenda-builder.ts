@@ -47,7 +47,7 @@ export class DispositivosEmendaBuilder {
         ds.tipo = this.getTipoDispositivoParaEmenda(d);
         ds.id = d.id!;
         ds.rotulo = d.rotulo;
-        addUrnNormaAlteradaSeNecessario(d, ds);
+        this.addUrnNormaAlteradaSeNecessario(d, ds);
         dispositivosEmenda.dispositivosSuprimidos.push(ds);
       }
     }
@@ -70,7 +70,7 @@ export class DispositivosEmendaBuilder {
         if (d.isDispositivoAlteracao) {
           this.preencheAtributosAlteracao(d, dm);
         }
-        addUrnNormaAlteradaSeNecessario(d, dm);
+        this.addUrnNormaAlteradaSeNecessario(d, dm);
         dispositivosEmenda.dispositivosModificados.push(dm);
       }
     }
@@ -81,7 +81,7 @@ export class DispositivosEmendaBuilder {
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
         const da = this.criaDispositivoEmendaAdicionado(d);
-        addUrnNormaAlteradaSeNecessario(d, da);
+        this.addUrnNormaAlteradaSeNecessario(d, da);
         dispositivosEmenda.dispositivosAdicionados.push(da);
       }
     }
@@ -207,13 +207,13 @@ export class DispositivosEmendaBuilder {
     }
     return str.trim();
   }
-}
 
-const addUrnNormaAlteradaSeNecessario = (d: Dispositivo, de: DispositivoEmenda): void => {
-  if (isDispositivoAlteracao(d)) {
-    const base = getArticulacao(d)?.pai?.alteracoes?.base;
-    if (base) {
-      de.urnNormaAlterada = base;
+  private addUrnNormaAlteradaSeNecessario(d: Dispositivo, de: DispositivoEmenda): void {
+    if (isDispositivoAlteracao(d)) {
+      const base = getArticulacao(d)?.pai?.alteracoes?.base;
+      if (base) {
+        de.urnNormaAlterada = base;
+      }
     }
   }
-};
+}
