@@ -75,10 +75,24 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     });
   }
 
+  // Verifica se o texto tem r$ (com letra minuscula)
+  if (dispositivo.texto && dispositivo.texto.indexOf('r$') !== -1) {
+    mensagens.push({
+      tipo: TipoMensagem.WARNING,
+      descricao: `O texto do dispositivo possui R$ (real brasileiro) com letra minúscula. Troque para maiúscula.`,
+    });
+  }
+
   //
   // validações comuns a dispositivos de artigo
   //
-  if (isDispositivoDeArtigo(dispositivo) && !isParagrafo(dispositivo) && dispositivo.texto && /^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))) {
+  if (
+    isDispositivoDeArtigo(dispositivo) &&
+    !isParagrafo(dispositivo) &&
+    dispositivo.texto &&
+    /^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto)) &&
+    dispositivo.texto.indexOf('R$') !== 0
+  ) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
       descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.`,
