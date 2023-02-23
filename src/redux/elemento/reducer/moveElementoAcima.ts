@@ -1,10 +1,11 @@
+import { ajustaReferencia } from './../util/reducerUtil';
 import {
   getDispositivoAnteriorNaSequenciaDeLeitura,
   isDispositivoRaiz,
   getIrmaoAnteriorIndependenteDeTipo,
   isArticulacaoAlteracao,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { isAgrupador } from './../../../model/dispositivo/tipo';
+import { isAgrupador, isEmenta } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
@@ -32,7 +33,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   // Dispositivo cuja posição será trocada com o atual
   const anterior = isArtigo(atual) ? getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => isArtigo(d) || isAgrupador(d)) : getIrmaoAnteriorIndependenteDeTipo(atual);
 
-  if (anterior === undefined || isDispositivoRaiz(anterior)) {
+  if (anterior === undefined || isDispositivoRaiz(anterior) || isEmenta(anterior)) {
     return state;
   }
 
@@ -80,11 +81,9 @@ export const moveElementoAcima = (state: any, action: any): State => {
 
   const referencia = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d) && !isArticulacaoAlteracao(d))!;
 
-  console.log(referencia);
-
   const eventos = new Eventos();
   eventos.add(StateType.ElementoRemovido, removidos);
-  eventos.setReferencia(createElemento(referencia));
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia, atual)));
   eventos.add(
     StateType.ElementoIncluido,
     buildListaDispositivos(atual, []).map(v => {
