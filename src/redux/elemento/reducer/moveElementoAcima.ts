@@ -1,22 +1,20 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import {
+  getDispositivoAnteriorNaSequenciaDeLeitura,
+  isDispositivoRaiz,
+  getIrmaoAnteriorIndependenteDeTipo,
+  isArticulacaoAlteracao,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isAgrupador } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import {
-  buildListaDispositivos,
-  getAnteriorAgrupadorAntesArtigo,
-  getDispositivoAnterior,
-  getDispositivoAnteriorMesmoTipoInclusiveOmissis,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  getUltimoFilho,
-  isDispositivoAlteracao,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buildListaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { ajustaReferencia, resetUuidTodaArvore } from '../util/reducerUtil';
+import { resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const moveElementoAcima = (state: any, action: any): State => {
@@ -31,55 +29,68 @@ export const moveElementoAcima = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  const anteriorDispositivo = getDispositivoAnteriorMesmoTipoInclusiveOmissis(atual);
-  let anteriorAgrupador: Dispositivo | undefined = undefined;
+  // Dispositivo cuja posição será trocada com o atual
+  const anterior = isArtigo(atual) ? getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => isArtigo(d) || isAgrupador(d)) : getIrmaoAnteriorIndependenteDeTipo(atual);
 
-  if (isArtigo(atual)) {
-    const anteriorIrmao = getDispositivoAnterior(atual);
-    if (!anteriorIrmao || !isArtigo(anteriorIrmao)) {
-      anteriorAgrupador = getAnteriorAgrupadorAntesArtigo(atual);
-    }
-  }
-  const anteriorArtigoAgrupador = anteriorAgrupador?.filhos?.length ? anteriorAgrupador.filhos[anteriorAgrupador.filhos.length - 1] : undefined;
-  const anterior = anteriorDispositivo ? anteriorDispositivo : anteriorArtigoAgrupador;
-
-  if (anterior === undefined) {
+  if (anterior === undefined || isDispositivoRaiz(anterior)) {
     return state;
   }
 
-  const removidos = [...getElementos(anterior), ...getElementos(atual)];
+  const removidos = getElementos(atual);
   const renumerados = listaDispositivosRenumerados(atual);
 
-  const pai = anteriorArtigoAgrupador ? anterior.pai! : atual.pai!;
-  const pos = anteriorArtigoAgrupador ? pai.indexOf(anterior) : pai.indexOf(atual);
-
-  resetUuidTodaArvore(anterior);
   resetUuidTodaArvore(atual);
 
-  if (anteriorArtigoAgrupador) {
-    atual.pai!.removeFilho(atual);
-    pai.addFilhoOnPosition(atual, pos + 1);
-  } else {
-    pai.removeFilho(atual);
-    pai.addFilhoOnPosition(atual, pos - 1);
+  // Partindo do caso feliz (movendo entre irmãos)
+  const paiAntigo = atual.pai!;
+  let novoPai = anterior.pai!;
+  let pos = novoPai.indexOf(anterior);
+  /*
+    Verifica casos de artigo pulando agrupador.
+
+    Agrupador
+      Agrupador
+    Agrupador
+      Art <movendo este para cima>
+    ---
+    Agrupador
+      Art
+    Agrupador
+      Art <movendo este para cima>
+  */
+  // Artigo pulando agrupador
+  if (isAgrupador(anterior)) {
+    const anteriorAoAgrupador = getDispositivoAnteriorNaSequenciaDeLeitura(anterior, d => isArtigo(d) || isAgrupador(d))!;
+    if (isAgrupador(anteriorAoAgrupador)) {
+      novoPai = anteriorAoAgrupador;
+      pos = 0;
+    } else {
+      // Artigo
+      novoPai = anteriorAoAgrupador.pai!;
+      pos = novoPai.indexOf(anteriorAoAgrupador) + 1;
+    }
   }
 
-  pai.renumeraFilhos();
+  atual.pai!.removeFilho(atual);
+  novoPai.addFilhoOnPosition(atual, pos);
+  novoPai.renumeraFilhos();
+  if (paiAntigo !== novoPai) {
+    paiAntigo.renumeraFilhos();
+  }
 
-  const anteriorAtual = anteriorAgrupador ? getDispositivoAnterior(anterior) : getDispositivoAnterior(atual);
-  const referencia = pos <= 1 ? (isCaput(atual.pai!) || (isDispositivoAlteracao(atual) && isArtigo(atual)) ? pai.pai! : pai) : anteriorAtual ? anteriorAtual : atual.pai;
+  const referencia = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d) && !isArticulacaoAlteracao(d))!;
+
+  console.log(referencia);
 
   const eventos = new Eventos();
   eventos.add(StateType.ElementoRemovido, removidos);
-  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));
+  eventos.setReferencia(createElemento(referencia));
   eventos.add(
     StateType.ElementoIncluido,
-    buildListaDispositivos(anteriorArtigoAgrupador ? anterior : atual, [])
-      .concat(buildListaDispositivos(anteriorArtigoAgrupador ? atual : anterior, []))
-      .map(v => {
-        v.mensagens = validaDispositivo(v);
-        return createElemento(v);
-      })
+    buildListaDispositivos(atual, []).map(v => {
+      v.mensagens = validaDispositivo(v);
+      return createElemento(v);
+    })
   );
   eventos.add(
     StateType.ElementoRenumerado,
@@ -91,7 +102,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   // Segundo elemento será usado para marcar o elemento em caso de "undo"
   eventos.add(StateType.ElementoMarcado, [createElemento(atual), action.atual]);
   eventos.add(StateType.ElementoSelecionado, [createElemento(atual)]);
-  // console.log(eventos);
+  console.log(eventos);
   return {
     articulacao: state.articulacao,
     modo: state.modo,

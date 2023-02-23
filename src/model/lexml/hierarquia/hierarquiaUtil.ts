@@ -158,22 +158,24 @@ export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Disposit
 
 // Retorna o dispositivo imediatamente anterior na sequência de leitura.
 // Considera caput. Não considera incisos de caput como filhos de artigo.
-export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo): Dispositivo | undefined => {
+export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo, accept?: (d: Dispositivo) => boolean): Dispositivo | undefined => {
   if (!disp.pai) {
     return undefined;
   }
+  if (isArticulacaoAlteracao(disp)) {
+    const anterior = (disp.pai! as Artigo).caput!;
+    return !accept || accept(anterior) ? anterior : getDispositivoAnteriorNaSequenciaDeLeitura(anterior, accept);
+  }
   const irmaos = isArtigo(disp.pai) ? getFilhosArtigoEstiloLexML(disp.pai as Artigo) : disp.pai.filhos;
   const pos = irmaos.indexOf(disp);
-  if (pos) {
-    // Busca dispositivo mais à direita na árvore do irmão anterior
-    return getUltimoFilho(irmaos[pos - 1]);
-  }
-  return disp.pai;
+  // Busca dispositivo mais à direita na árvore do irmão anterior ou o pai se não houver irmão anterior
+  const anterior = pos ? getUltimoFilho(irmaos[pos - 1]) : disp.pai;
+  return !accept || accept(anterior) ? anterior : getDispositivoAnteriorNaSequenciaDeLeitura(anterior, accept);
 };
 
 export const getFilhosArtigoEstiloLexML = (art: Artigo): Dispositivo[] => {
   // Adiciona o caput e remove os incisos do caput
-  return [art.caput!, ...art.filhos.filter(d => d.pai === art)];
+  return [art.caput!, ...getParagrafosEOmissis(art)];
 };
 
 export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositivo): Dispositivo | undefined => {
