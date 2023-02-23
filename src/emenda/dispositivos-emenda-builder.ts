@@ -5,17 +5,26 @@ import {
   getDispositivoCabecaAlteracao,
   getDispositivoAnteriorDireto,
   getArtigo,
+  isDispositivoAlteracao,
+  getArticulacao,
 } from './../model/lexml/hierarquia/hierarquiaUtil';
-import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isCaput, isOmissis } from '../model/dispositivo/tipo';
-import { DispositivoEmendaAdicionado, DispositivoEmendaModificado, DispositivoEmendaSuprimido, DispositivosEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
+import {
+  DispositivoEmenda,
+  DispositivoEmendaAdicionado,
+  DispositivoEmendaModificado,
+  DispositivoEmendaSuprimido,
+  DispositivosEmenda,
+  ModoEdicaoEmenda,
+} from '../model/emenda/emenda';
 import { TEXTO_OMISSIS } from '../model/lexml/conteudo/textoOmissis';
 import { isArticulacaoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../model/lexml/util/idUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
+import { Alteracoes } from '../model/dispositivo/blocoAlteracao';
 
 export class DispositivosEmendaBuilder {
   constructor(private tipoEmenda: ModoEdicaoEmenda, private urn: string, private articulacao: Articulacao) {}
@@ -38,6 +47,7 @@ export class DispositivosEmendaBuilder {
         ds.tipo = this.getTipoDispositivoParaEmenda(d);
         ds.id = d.id!;
         ds.rotulo = d.rotulo;
+        this.addUrnNormaAlteradaSeNecessario(d, ds);
         dispositivosEmenda.dispositivosSuprimidos.push(ds);
       }
     }
@@ -60,6 +70,7 @@ export class DispositivosEmendaBuilder {
         if (d.isDispositivoAlteracao) {
           this.preencheAtributosAlteracao(d, dm);
         }
+        this.addUrnNormaAlteradaSeNecessario(d, dm);
         dispositivosEmenda.dispositivosModificados.push(dm);
       }
     }
@@ -70,6 +81,7 @@ export class DispositivosEmendaBuilder {
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
         const da = this.criaDispositivoEmendaAdicionado(d);
+        this.addUrnNormaAlteradaSeNecessario(d, da);
         dispositivosEmenda.dispositivosAdicionados.push(da);
       }
     }
@@ -194,5 +206,14 @@ export class DispositivosEmendaBuilder {
       return TEXTO_OMISSIS;
     }
     return str.trim();
+  }
+
+  private addUrnNormaAlteradaSeNecessario(d: Dispositivo, de: DispositivoEmenda): void {
+    if (isDispositivoAlteracao(d)) {
+      const base = getArticulacao(d)?.pai?.alteracoes?.base;
+      if (base) {
+        de.urnNormaAlterada = base;
+      }
+    }
   }
 }

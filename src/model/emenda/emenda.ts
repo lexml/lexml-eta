@@ -71,6 +71,7 @@ export class DispositivoEmenda {
   tipo = ''; // Tipo do dispositivo
   id = ''; // ID LexML
   rotulo?: string;
+  urnNormaAlterada?: string;
 }
 
 export class DispositivoEmendaSuprimido extends DispositivoEmenda {}
@@ -87,7 +88,6 @@ export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
   idPai?: string;
   idIrmaoAnterior?: string;
   idPosicaoAgrupador?: string;
-  urnNormaAlterada?: string;
   existeNaNormaAlterada?: boolean;
   filhos?: Array<DispositivoEmendaAdicionado>;
 }
