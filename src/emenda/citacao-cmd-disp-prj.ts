@@ -1,5 +1,5 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
-import { isArtigo } from '../model/dispositivo/tipo';
+import { isArtigo, isEmenta } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { Articulacao } from './../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
@@ -62,7 +62,7 @@ export class CitacaoComandoDispPrj {
     let dispRefAtual;
 
     dispositivos.forEach(d => {
-      dispRef = (isArtigo(d) || isAgrupador(d)) && !isDispositivoAlteracao(d) ? d : getArtigoDoProjeto(d);
+      dispRef = (isArtigo(d) || isAgrupador(d) || isEmenta(d)) && !isDispositivoAlteracao(d) ? d : getArtigoDoProjeto(d);
 
       if (dispRef !== dispRefAtual) {
         if (listaDispRef.length) {

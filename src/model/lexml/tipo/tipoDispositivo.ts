@@ -209,4 +209,17 @@ export const TipoDispositivo: Record<string, Tipo> = {
     INDICADOR_FIM_SEQUENCIA: [''],
     INDICADOR_DESDOBRAMENTO: ['NA'],
   },
+  ementa: {
+    tipo: 'Ementa',
+    name: 'Ementa',
+    tagId: 'eme',
+    descricao: 'Ementa',
+    descricaoPlural: 'Ementas',
+    tiposPermitidosPai: ['Articulacao'],
+    tiposPermitidosFilhos: [],
+    tipoProvavelFilho: undefined,
+    INDICADOR_SEQUENCIA: ['NA'],
+    INDICADOR_FIM_SEQUENCIA: ['NA'],
+    INDICADOR_DESDOBRAMENTO: ['NA'],
+  },
 };

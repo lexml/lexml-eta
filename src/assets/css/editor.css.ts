@@ -396,6 +396,15 @@ export const editorStyles = html`
       text-decoration: line-through;
     } */
 
+    .ementa {
+      padding-left: 50%;
+      margin-bottom: 30px;
+    }
+
+    .texto__rotulo--ementa {
+      display: none;
+    }
+
     .container__elemento--ativo {
       border: 3px solid #24d421;
       border-radius: 4px;

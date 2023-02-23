@@ -3,7 +3,7 @@ import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArtigo, isInciso, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isEmenta, isInciso, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acao/blocoAlteracaoAction';
 import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermitido';
@@ -35,6 +35,7 @@ import { RegrasAlinea } from '../regras/regrasAlinea';
 import { RegrasArtigo } from '../regras/regrasArtigo';
 import { RegrasCaput } from '../regras/regrasCaput';
 import { RegrasDispositivoGenerico } from '../regras/regrasDispositivoGenerico';
+import { RegrasEmenta } from '../regras/regrasEmenta';
 import { RegrasInciso } from '../regras/regrasInciso';
 import { RegrasItem } from '../regras/regrasItem';
 import { RegrasOmissis } from '../regras/regrasOmissis';
@@ -94,6 +95,8 @@ const TituloLexml = SituacaoDispositivo(
 
 const OmissisLexml = SituacaoDispositivo(RegrasOmissis(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoOmissis(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
 
+const EmentaLexml = SituacaoDispositivo(RegrasEmenta(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
+
 export const criaDispositivo = (parent: Dispositivo, tipo: string, referencia?: Dispositivo, posicao?: number): Dispositivo => {
   const dispositivo = create(tipo, parent);
   posicao !== undefined && posicao >= 0 ? parent!.addFilhoOnPosition(dispositivo, posicao) : referencia ? parent!.addFilho(dispositivo, referencia) : parent!.addFilho(dispositivo);
@@ -144,6 +147,9 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
       break;
     case 'titulo':
       dispositivo = new TituloLexml(name.toLowerCase());
+      break;
+    case 'ementa':
+      dispositivo = new EmentaLexml(name.toLowerCase());
       break;
     default: {
       dispositivo = parent && isAgrupador(parent) ? new DispositivoAgrupadorGenericoLexml('agrupadorGenerico') : new DispositivoGenericoLexml('generico');
@@ -231,6 +237,10 @@ export const createFromReferencia = (referencia: Dispositivo): Dispositivo => {
     return hasFilhos(referencia) || hasIndicativoDesdobramento(referencia)
       ? criaDispositivo(referencia, referencia.tipoProvavelFilho!, referencia)
       : criaDispositivo(referencia.pai!, referencia.tipo, referencia);
+  }
+
+  if (isEmenta(referencia)) {
+    return criaDispositivo(referencia.pai!, TipoDispositivo.artigo.tipo, undefined, 0);
   }
 
   return createFromReferenciaDefault(referencia);

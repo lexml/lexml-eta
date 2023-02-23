@@ -86,3 +86,7 @@ export const isAgrupadorGenerico = (dispositivo: Dispositivo): boolean => {
 export const isDispositivoDeArtigo = (dispositivo: Dispositivo): boolean => {
   return [TipoDispositivo.paragrafo.tipo, TipoDispositivo.inciso.tipo, TipoDispositivo.alinea.tipo, TipoDispositivo.item.tipo].includes(dispositivo.tipo);
 };
+
+export const isEmenta = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.ementa.tipo;
+};

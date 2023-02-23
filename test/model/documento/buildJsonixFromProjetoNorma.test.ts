@@ -22,8 +22,8 @@ describe('Parser de medida provisória sem agrupador', () => {
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('EPIGRAFE');
   });
-  it('Deveria apresentar epigrafe', () => {
-    expect(documento?.ementa).equals('EMENTA');
+  it('Deveria apresentar ementa', () => {
+    expect(documento?.ementa?.texto).equals('EMENTA');
   });
   it('Deveria apresentar preâmbulo', () => {
     expect(documento?.preambulo).equals('PREAMBULO');

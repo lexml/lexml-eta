@@ -18,13 +18,22 @@ export const buildProjetoNormaFromJsonix = (documentoLexml: any, emendamento = f
     throw new Error('Não se trata de um documento lexml válido');
   }
 
-  return {
+  const projetoNorma: ProjetoNorma = {
     classificacao: documentoLexml.value?.projetoNorma.norma ? ClassificacaoDocumento.NORMA : ClassificacaoDocumento.PROJETO,
     tipo: getTipo(getUrn(documentoLexml)),
     ...getMetadado(documentoLexml),
     ...getParteInicial(documentoLexml),
-    ...getTextoArticulado(documentoLexml.value.projetoNorma.norma ? documentoLexml.value.projetoNorma.norma : documentoLexml.value.projetoNorma.projeto),
+    ...getTextoArticulado(documentoLexml.value.projetoNorma.norma || documentoLexml.value.projetoNorma.projeto),
   };
+
+  if (projetoNorma.articulacao) {
+    projetoNorma.articulacao.projetoNorma = projetoNorma;
+    if (projetoNorma.ementa) {
+      projetoNorma.ementa.pai = projetoNorma.articulacao;
+    }
+  }
+
+  return projetoNorma;
 };
 
 const retiraCaracteresDesnecessarios = (texto: string): any => {
@@ -48,7 +57,7 @@ const getParteInicial = (documento: any): ParteInicial => {
 
   return {
     epigrafe: retiraCaracteresDesnecessarios(epigrafe),
-    ementa: retiraCaracteresDesnecessarios(ementa),
+    ementa: buildDispositivoEmenta(retiraCaracteresDesnecessarios(ementa)),
     preambulo: retiraCaracteresDesnecessarios(preambulo),
   };
 };
@@ -57,6 +66,23 @@ export const getTextoArticulado = (norma: any): TextoArticulado => {
   return {
     articulacao: buildArticulacao(norma.articulacao),
   };
+};
+
+const buildDispositivoEmenta = (texto?: string): Dispositivo | undefined => {
+  if (!texto) {
+    return;
+  }
+
+  const dispositivo = criaDispositivo(createArticulacao(), 'Ementa');
+  dispositivo.pai = undefined;
+  dispositivo.texto = substituiAspasRetasPorCurvas(texto);
+  dispositivo.rotulo = '';
+  dispositivo.id = 'ementa';
+  if (isEmendamento) {
+    dispositivo.situacao = new DispositivoOriginal();
+  }
+
+  return dispositivo;
 };
 
 const buildArticulacao = (tree: any): Articulacao => {

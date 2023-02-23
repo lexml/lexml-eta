@@ -316,6 +316,8 @@ export class EtaContainerTable extends Container {
     let classe = elemento.tipo === 'Articulacao' ? 'container__elemento--articulacao' : 'container__elemento--padrao';
     if (elemento.agrupador) {
       classe = `${classe} agrupador`;
+    } else if (elemento.tipo === 'Ementa') {
+      classe = `${classe} ementa`;
     }
 
     return classe;

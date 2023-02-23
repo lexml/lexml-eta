@@ -1,5 +1,5 @@
 import { Conteudo } from '../dispositivo/conteudo';
-import { Articulacao } from '../dispositivo/dispositivo';
+import { Articulacao, Dispositivo } from '../dispositivo/dispositivo';
 
 export interface Classificacao {
   classificacao: string;
@@ -14,6 +14,6 @@ export interface TextoArticulado {
 
 export interface ParteInicial {
   epigrafe?: Conteudo;
-  ementa?: Conteudo;
+  ementa?: Dispositivo; // Conteudo;
   preambulo?: Conteudo;
 }

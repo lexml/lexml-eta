@@ -1,8 +1,8 @@
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { buscaDispositivoById, getDispositivoCabecaAlteracao, getTiposAgrupadorArtigoOrdenados } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoCabecaAlteracao, getTiposAgrupadorArtigoOrdenados, hasEmenta } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
@@ -14,12 +14,7 @@ import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/d
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { DispositivoEmendaAdicionado, DispositivosEmenda } from './../../../model/emenda/emenda';
-import {
-  getDispositivoAndFilhosAsLista,
-  isArticulacaoAlteracao,
-  percorreHierarquiaDispositivos,
-  getIrmaoAnteriorIndependenteDeTipo,
-} from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacaoAlteracao, percorreHierarquiaDispositivos, getIrmaoAnteriorIndependenteDeTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { agrupaElemento } from './agrupaElemento';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
@@ -100,21 +95,17 @@ const processaDispositivosAdicionados = (state: any, alteracoesEmenda: Dispositi
 
 const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaAdicionado): StateEvent[] => {
   const articulacao = state.articulacao;
-  const ref = buscaDispositivoById(state.articulacao, dea.idPosicaoAgrupador!);
+  let ref = buscaDispositivoById(state.articulacao, dea.idPosicaoAgrupador!)!;
 
   if (ref) {
-    const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
-    const pos = dispositivos.findIndex(d => d.id === ref.id);
-    const ref2 = dispositivos.find(
-      (d, index) =>
-        index > pos &&
-        (d.tipo === ref.tipo || d.tipo === dea.tipo || (d.tipo !== 'Omissis' && d.tiposPermitidosPai?.includes(dea.tipo)) || (d.tipo === 'Omissis' && d.pai === ref.pai))
-    );
-    const atual = createElemento(isArtigo(ref) ? ref2! : ref);
+    if (isArticulacao(ref) && !isArticulacaoAlteracao(ref) && hasEmenta(ref)) {
+      ref = (ref as Articulacao).projetoNorma!.ementa!;
+    }
 
-    const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas; // dea.abreAspas && !dea.fechaAspas;
-    // const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: 'antes', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
-    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: isArtigo(ref) ? 'antes' : 'depois', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
+    const atual = createElemento(ref);
+
+    const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas;
+    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: 'depois', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo } });
     const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
 
     const elementosIncluidos = events.find(e => e.stateType === StateType.ElementoIncluido)!.elementos!;

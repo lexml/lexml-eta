@@ -20,8 +20,8 @@ describe('Parser de norma default', () => {
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('');
   });
-  it('Deveria apresentar epigrafe', () => {
-    expect(documento?.ementa).equals('');
+  it('Deveria apresentar ementa "undefined"', () => {
+    expect(documento?.ementa?.texto).equals(undefined);
   });
   it('Deveria apresentar preâmbulo', () => {
     expect(documento?.preambulo).equals('');
@@ -41,8 +41,8 @@ describe('Parser de projeto default', () => {
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('');
   });
-  it('Deveria apresentar epigrafe', () => {
-    expect(documento?.ementa).equals('');
+  it('Deveria apresentar ementa "undefined"', () => {
+    expect(documento?.ementa?.texto).equals(undefined);
   });
   it('Deveria apresentar preâmbulo', () => {
     expect(documento?.preambulo).equals('');

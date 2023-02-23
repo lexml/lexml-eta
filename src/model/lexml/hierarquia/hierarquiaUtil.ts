@@ -1,6 +1,7 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isEmenta, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
+import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { omissis } from '../acao/adicionarElementoAction';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao, isCaput, isOmissis } from './../../dispositivo/tipo';
@@ -556,6 +557,10 @@ export const isDispositivoRaiz = (d: Dispositivo): boolean => {
 };
 
 export const buscaDispositivoById = (articulacao: Articulacao, id: string): Dispositivo | undefined => {
+  if (id === 'ementa') {
+    return articulacao.projetoNorma?.ementa;
+  }
+
   const idArtigo = extraiIdArtigo(id);
   let raiz: Dispositivo = articulacao;
   if (idArtigo) {
@@ -792,7 +797,7 @@ const tiposAgrupadorArtigoPermitidosNaArticulacao = ['Parte', 'Livro', 'Titulo',
 export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispositivo): string[] => {
   const result: (string | undefined)[] = [];
 
-  if (!isAgrupador(dispositivo) && !isArtigo(dispositivo)) {
+  if (!isAgrupador(dispositivo) && !isArtigo(dispositivo) && !isEmenta(dispositivo)) {
     return [];
   }
 
@@ -804,6 +809,10 @@ export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispo
 
   if (!primeiroAgrupador) {
     return [...tiposAgrupadorArtigoPermitidosNaArticulacao];
+  }
+
+  if (isEmenta(dispositivo)) {
+    return [primeiroAgrupador.tipo];
   }
 
   const tiposAgrupadorArtigoOrdenados = getTiposAgrupadorArtigoOrdenados();
@@ -832,6 +841,10 @@ export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispo
 
 export const getTiposAgrupadoresQuePodemSerInseridosAntes = (dispositivo: Dispositivo): string[] => {
   const result: (string | undefined)[] = [];
+
+  if (isEmenta(dispositivo)) {
+    return [];
+  }
 
   if (!isAgrupador(dispositivo)) {
     return getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo);
@@ -894,4 +907,14 @@ const getPrimeiroAgrupadorNaArticulacao = (d: Dispositivo): Dispositivo | undefi
 export const getParagrafosEOmissis = (art: Artigo): Dispositivo[] => {
   // Os incisos e omissis de incisos de caput são filhos do caput
   return art.filhos.filter(d => d.pai === art);
+};
+
+export const hasEmenta = (referencia: Dispositivo): boolean => {
+  return !!getArticulacao(referencia).projetoNorma?.ementa?.texto;
+};
+
+export const isEmendaArtigoOndeCouber = (referencia: Dispositivo): boolean => {
+  return getDispositivoAndFilhosAsLista(getArticulacao(referencia)).some(
+    d => (d.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER
+  );
 };
