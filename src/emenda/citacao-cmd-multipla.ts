@@ -1,4 +1,4 @@
-import { isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
+import { isAgrupadorNaoArticulacao, isEmenta } from './../model/dispositivo/tipo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArtigo, isCaput } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
@@ -27,14 +27,20 @@ export class CitacaoComandoMultipla {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo));
+    const node = new TagNode('p').add('“');
+    if (isEmenta(cabeca)) {
+      node.addAtributo('class', 'ementa');
+    } else {
+      node.add(new TagNode('Rotulo').add(cabeca.rotulo));
+    }
     if (isAgrupadorNaoArticulacao(cabeca)) {
       node.addAtributo('class', 'agrupador');
       sb.append(node.toString());
       const nodeDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
       sb.append(nodeDenominacao.toString());
     } else {
-      node.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+      const texto = CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca);
+      node.add(isEmenta(cabeca) ? texto.trim() : texto);
       sb.append(node.toString());
     }
 

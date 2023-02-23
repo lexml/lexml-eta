@@ -33,7 +33,7 @@ export class CmdEmdModificacao extends CmdEmdCombinavel {
     const dispositivosWriter = new DispositivosWriterCmdEmd();
     dispositivosWriter.artigoAntesDispositivo = ArtigoAntesDispositivo.DEFINIDO_COM_PREPOSICAO_A;
     dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.DENOMINACAO_DO_AGRUPADOR;
-    sb.append(dispositivosWriter.getTexto(sequencias));
+    sb.append(dispositivosWriter.getTexto(sequencias).trim());
 
     // Sufixo
     if (isUltimo) {

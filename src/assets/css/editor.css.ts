@@ -397,8 +397,11 @@ export const editorStyles = html`
     } */
 
     .ementa {
-      padding-left: 50%;
       margin-bottom: 30px;
+    }
+
+    .ementa .container__texto {
+      margin-left: 35%;
     }
 
     .texto__rotulo--ementa {

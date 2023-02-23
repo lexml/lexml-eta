@@ -79,7 +79,7 @@ export class DispositivosWriterCmdEmd {
       posSequencia++;
     }
 
-    return sb.toString();
+    return sb.toString().replace('ementa ', 'ementa');
   }
 
   private getReferenciaCaputDoDispositivo(sequencia: SequenciaRangeDispositivos): string {
