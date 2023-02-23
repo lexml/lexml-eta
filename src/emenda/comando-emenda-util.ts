@@ -19,6 +19,11 @@ import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 export class CmdEmdUtil {
   static getDispositivosNaoOriginais(articulacao: Articulacao): Dispositivo[] {
     const ret: Dispositivo[] = [];
+
+    if (articulacao.projetoNorma?.ementa?.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+      ret.push(articulacao.projetoNorma.ementa);
+    }
+
     percorreHierarquiaDispositivos(articulacao, d => {
       if (d.pai && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
         ret.push(d);

@@ -1,4 +1,4 @@
-import { isArtigo } from './../../../model/dispositivo/tipo';
+import { isArtigo, isEmenta } from './../../../model/dispositivo/tipo';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
@@ -110,7 +110,7 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   let novo;
 
-  if (action.posicao) {
+  if (action.posicao && !isEmenta(atual)) {
     if (atual.tipo === action.novo.tipo) {
       novo =
         action.posicao === 'antes'

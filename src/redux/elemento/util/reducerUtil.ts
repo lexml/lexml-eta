@@ -1,4 +1,4 @@
-import { getParagrafosEOmissis as getParagrafosEOmissis } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getParagrafosEOmissis, hasEmenta, isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
@@ -55,6 +55,10 @@ export const isDesdobramentoAgrupadorAtual = (dispositivo: Dispositivo, tipo: st
 };
 
 export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositivo): Dispositivo => {
+  if (isArticulacao(referencia) && !isArticulacaoAlteracao(referencia) && hasEmenta(referencia)) {
+    return (referencia as Articulacao).projetoNorma!.ementa!;
+  }
+
   return isArticulacao(referencia) || isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0
     ? referencia
     : isPrimeiroParagrafo(dispositivo)

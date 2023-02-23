@@ -1,3 +1,4 @@
+import { ProjetoNorma } from './../lexml/documento/projetoNorma';
 import { Regras } from '../lexml/regras/regras';
 import { BlocoAlteracao } from './blocoAlteracao';
 import { Conteudo } from './conteudo';
@@ -18,6 +19,7 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
 }
 
 export interface Articulacao extends Dispositivo {
+  projetoNorma?: ProjetoNorma;
   tipo: string;
   artigos: Artigo[];
   addArtigo(dispositivo: Dispositivo, referencia?: Dispositivo): void;

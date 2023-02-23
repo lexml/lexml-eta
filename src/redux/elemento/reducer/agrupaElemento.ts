@@ -13,7 +13,7 @@ import {
 import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { getPaiQuePodeReceberFilhoDoTipo } from './../evento/eventosUtil';
-import { isAgrupador, isArticulacao, isArtigo } from './../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isEmenta } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -34,13 +34,13 @@ export const agrupaElemento = (state: any, action: any): State => {
     return state;
   }
 
-  if (!isArtigo(atual) && !isAgrupador(atual)) {
+  if (!isArtigo(atual) && !isAgrupador(atual) && !isEmenta(atual)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  if (isArtigo(atual) && action.novo.posicao !== 'antes') {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
-  }
+  // if (isArtigo(atual) && action.novo.posicao !== 'antes') {
+  //   return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+  // }
 
   if (action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
@@ -84,7 +84,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   let novo: Dispositivo;
-  const ref = dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
+  const ref = isEmenta(atual) ? state.articulacao : dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
 
   if (!isArticulacao(atual) && isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
@@ -135,7 +135,8 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ref));
+  // eventos.setReferencia(createElemento(ref));
+  eventos.setReferencia(createElemento(isEmenta(atual) ? atual : ref));
 
   const transferidosParaOutroPai = novo.filhos.map((d: Dispositivo) => createElemento(d));
 

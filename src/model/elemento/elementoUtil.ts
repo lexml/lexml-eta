@@ -1,3 +1,4 @@
+import { isEmendaArtigoOndeCouber } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
@@ -19,6 +20,7 @@ import {
   isUltimaAlteracao,
   getTiposAgrupadoresQuePodemSerInseridosAntes,
   getTiposAgrupadoresQuePodemSerInseridosDepois,
+  hasEmenta,
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
 import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
@@ -144,6 +146,10 @@ export const getElementos = (dispositivo: Dispositivo, validados = false): Eleme
   const elementos: Elemento[] = [];
   elementos.push(fnCreateElemento(dispositivo, true));
 
+  if (isArticulacao(dispositivo) && !isDispositivoAlteracao(dispositivo) && hasEmenta(dispositivo) && !isEmendaArtigoOndeCouber(dispositivo)) {
+    elementos.push(fnCreateElemento((dispositivo as Articulacao).projetoNorma!.ementa!, true));
+  }
+
   if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
     if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
       (dispositivo as Artigo).alteracoes?.filhos.forEach(f => {
@@ -171,6 +177,10 @@ export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: E
 };
 
 export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial<Elemento>, ignorarElementoAlteracao = false): Dispositivo | undefined => {
+  if (referencia.tipo === 'Ementa') {
+    return art.projetoNorma?.ementa;
+  }
+
   const articulacao = getArticulacaoFromElemento(art, referencia);
 
   if (!ignorarElementoAlteracao && isElementoDispositivoAlteracao(referencia)) {

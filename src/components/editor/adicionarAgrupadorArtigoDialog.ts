@@ -64,7 +64,8 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   }
 
   const defaultAux = tiposPermitidos.length === 1 ? tiposPermitidos[0] : defaultValue;
-  (opcoes.find(el => (el as any).value === defaultAux) as any).checked = true;
+  const elTipoAgrupadorDefault = opcoes.find(el => (el as any).value === defaultAux) as any;
+  elTipoAgrupadorDefault.checked = true;
 
   opcoes.forEach(el => {
     (el as any).disabled = !tiposPermitidos.includes((el as any).value);
@@ -154,6 +155,8 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
     dialogElem?.hide();
     document.body.removeChild(dialogElem);
   };
+
+  setTimeout(() => elTipoAgrupadorDefault.click(), 0);
 
   quill.blur();
   dialogElem.appendChild(content);

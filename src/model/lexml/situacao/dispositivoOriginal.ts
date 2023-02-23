@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao, isSituacaoExclusivaDispositivoEmenda, TipoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador } from '../../dispositivo/tipo';
+import { isAgrupador, isEmenta } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { AgruparElemento } from '../acao/agruparElementoAction';
 import { InformarNorma } from '../acao/informarNormaAction';
@@ -25,6 +25,7 @@ export class DispositivoOriginal implements TipoSituacao {
       .filter((a: ElementoAction) => !(a instanceof InformarNorma));
 
     if (
+      !isEmenta(dispositivo) &&
       (!isAgrupador(dispositivo) || !isDispositivoAlteracao(dispositivo)) &&
       getDispositivoAndFilhosAsLista(dispositivo).filter(f => isSituacaoExclusivaDispositivoEmenda(f)).length === 0
     ) {
