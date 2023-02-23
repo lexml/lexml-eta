@@ -1,17 +1,11 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArtigo, isIncisoCaput } from '../../../model/dispositivo/tipo';
+import { isAgrupadorNaoArticulacao } from './../../../model/dispositivo/tipo';
+import { getIrmaoPosteriorIndependenteDeTipo, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAbaixo } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
-import {
-  buildListaDispositivos,
-  getDispositivoAnterior,
-  getDispositivoPosterior,
-  getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  getProximoAgrupadorAposArtigo,
-  isDispositivoAlteracao,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buildListaDispositivos, getProximoAgrupadorAposArtigo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -30,56 +24,45 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  //
-
-  const proximoDispositivo = getDispositivoPosteriorMesmoTipoInclusiveOmissis(atual);
-  let proximoAgrupador: Dispositivo | undefined = undefined;
-
-  if (isArtigo(atual)) {
-    const proximoIrmao = getDispositivoPosterior(atual);
-    if (!proximoIrmao || !isArtigo(proximoIrmao)) {
-      proximoAgrupador = getProximoAgrupadorAposArtigo(atual);
-    }
+  // Dispositivo cuja posição será trocada com o atual
+  let proximo = getIrmaoPosteriorIndependenteDeTipo(atual);
+  if (!proximo && isArtigo(atual)) {
+    proximo = getProximoAgrupadorAposArtigo(atual);
   }
 
-  const proximoArtigoAgrupador = proximoAgrupador?.filhos?.length ? proximoAgrupador?.filhos[0] : undefined;
-  const proximo = proximoDispositivo ? proximoDispositivo : proximoArtigoAgrupador;
-
-  if (proximo === undefined) {
+  if (!proximo) {
     return state;
   }
 
-  const removidos = [...getElementos(atual), ...getElementos(proximo)];
+  const movendoArtigoParaAgrupador = isAgrupadorNaoArticulacao(proximo);
+
+  const removidos = [...getElementos(atual)];
   const renumerados = listaDispositivosRenumerados(atual);
 
-  const pai = proximoArtigoAgrupador ? proximoAgrupador! : atual.pai!;
-  const pos = proximoArtigoAgrupador ? 0 : pai.indexOf(atual);
+  const paiAntigo = atual.pai!;
+  const novoPai = movendoArtigoParaAgrupador ? proximo : proximo.pai!;
+  const pos = movendoArtigoParaAgrupador ? 0 : novoPai.indexOf(atual) + 1;
 
   resetUuidTodaArvore(atual);
-  resetUuidTodaArvore(proximo);
 
-  if (proximoArtigoAgrupador) {
-    atual.pai!.removeFilho(atual);
-    pai.addFilhoOnPosition(atual, pos);
-  } else {
-    pai.removeFilho(atual);
-    pai.addFilhoOnPosition(atual, pos + 1);
+  atual.pai!.removeFilho(atual);
+  novoPai.addFilhoOnPosition(atual, pos);
+
+  novoPai.renumeraFilhos();
+  if (paiAntigo !== novoPai) {
+    paiAntigo.renumeraFilhos();
   }
 
-  pai.renumeraFilhos();
-
-  const referencia = pos === 0 ? (isIncisoCaput(proximo) || (isDispositivoAlteracao(atual) && isArtigo(atual)) ? pai.pai! : pai) : getDispositivoAnterior(proximo);
+  const referencia = movendoArtigoParaAgrupador ? proximo : getUltimoFilho(proximo);
 
   const eventos = new Eventos();
-  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, proximoArtigoAgrupador ? atual : proximo)));
+  eventos.setReferencia(createElemento(ajustaReferencia(referencia!, atual)));
   eventos.add(
     StateType.ElementoIncluido,
-    buildListaDispositivos(proximoArtigoAgrupador ? atual : proximo, [])
-      .concat(buildListaDispositivos(proximoArtigoAgrupador ? proximo : atual, []))
-      .map(v => {
-        v.mensagens = validaDispositivo(v);
-        return createElemento(v);
-      })
+    buildListaDispositivos(atual, []).map(v => {
+      v.mensagens = validaDispositivo(v);
+      return createElemento(v);
+    })
   );
   eventos.add(StateType.ElementoRemovido, removidos);
   eventos.add(
