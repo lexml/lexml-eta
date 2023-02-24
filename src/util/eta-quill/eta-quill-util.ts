@@ -24,13 +24,23 @@ export class EtaQuillUtil {
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
-    new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
+    if (elemento.abreAspas) {
+      new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
+    }
+
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
     new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
-    new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
-    new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
+
+    if (elemento.fechaAspas) {
+      new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
+    }
+
+    if (elemento.notaAlteracao) {
+      new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
+    }
+
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
     etaTdTexto.insertInto(etaTrContainer);
@@ -40,7 +50,6 @@ export class EtaQuillUtil {
 
     return etaTable;
   }
-
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(false, this.alinhamentoMenu);
     const etaTdMensagens: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
