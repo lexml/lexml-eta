@@ -1,3 +1,4 @@
+import { isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { isArtigo } from '../model/dispositivo/tipo';
 import { StringBuilder } from '../util/string-util';
 import { Dispositivo } from './../model/dispositivo/dispositivo';
@@ -217,6 +218,10 @@ export class RangeDispositivos {
     // Atual segue o último
     if (getDispositivoPosteriorMesmoTipo(ultimo) !== atual) {
       return false;
+    }
+
+    if (isAgrupadorNaoArticulacao(atual)) {
+      return CmdEmdUtil.verificaAgrupadoresAdicionadosEmSequencia(ultimo, atual);
     }
 
     // Ambos (último e atual) apresentam alteração integral

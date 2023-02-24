@@ -56,6 +56,13 @@ export function addSpaceRegex(str: string): string {
   return str.replace(/\s+/g, '\\s+');
 }
 
+export function primeiraLetraMaiuscula(str: string): string {
+  if (!str) {
+    return '';
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 export function join(list: string[]): string {
   let str = '';
   list.forEach(s => {

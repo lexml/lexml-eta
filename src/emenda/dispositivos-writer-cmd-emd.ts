@@ -1,13 +1,14 @@
+import { RangeDispositivos } from './range-dispositivos';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero } from '../model/dispositivo/genero';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isOmissis, isParagrafo } from '../model/dispositivo/tipo';
 import { isDispositivoAlteracao, isDispositivoRaiz } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
-import { StringBuilder } from '../util/string-util';
+import { primeiraLetraMaiuscula, StringBuilder } from '../util/string-util';
 import { generoMasculino, generoFeminino } from './../model/dispositivo/genero';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
-import { isArticulacao } from './../model/dispositivo/tipo';
-import { isArticulacaoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { isArticulacao, isCaput } from './../model/dispositivo/tipo';
+import { isArticulacaoAlteracao, getDispositivoAnteriorNaSequenciaDeLeitura, getDispositivoPosteriorNaSequenciaDeLeitura } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
 import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
@@ -31,7 +32,7 @@ export class DispositivosWriterCmdEmd {
 
   public tipoReferenciaAgrupador = TipoReferenciaAgrupador.APENAS_ROTULO;
 
-  getTexto(sequencias: SequenciaRangeDispositivos[]): string {
+  getTexto(sequencias: SequenciaRangeDispositivos[], citarPais = true): string {
     const sb = new StringBuilder();
 
     const qtdSequencias = sequencias.length;
@@ -61,12 +62,11 @@ export class DispositivosWriterCmdEmd {
 
       // Rótulo do tipo do dispositivo ou denominação
       if (referenciarDenominacao) {
-        sb.append('denominação d' + primeiroDispSeq.artigoDefinido);
+        sb.append('denominação ' + primeiroDispSeq.pronomePossessivoSingular + ' ');
       } else if (referenciarOAgrupador) {
-        sb.append('agrupador');
-      } else if (!primeiroEhAgrupador && !referenciarTodoAgrupador) {
-        sb.append(this.getRotuloTipoDispositivo(sequencia));
+        sb.append('agrupador ');
       }
+      sb.append(this.getRotuloTipoDispositivo(sequencia, primeiroEhAgrupador));
 
       sb.append(' ');
 
@@ -74,7 +74,9 @@ export class DispositivosWriterCmdEmd {
       sb.append(sequencia.getTextoListaDeDispositivos());
 
       // Pai dos dispositivos
-      sb.append(this.getRotuloPaisSequencia(sequencia));
+      if (citarPais) {
+        sb.append(this.getRotuloPaisSequencia(sequencia));
+      }
 
       posSequencia++;
     }
@@ -138,10 +140,10 @@ export class DispositivosWriterCmdEmd {
     }
   }
 
-  private getRotuloTipoDispositivo(sequencia: SequenciaRangeDispositivos): string {
+  private getRotuloTipoDispositivo(sequencia: SequenciaRangeDispositivos, iniciarComMaiuscula: boolean): string {
     const disp = sequencia.getPrimeiroDispositivo();
-
-    return DispositivosWriterCmdEmd.getRotuloTipoDispositivo(disp, CmdEmdUtil.isSequenciaPlural(sequencia));
+    const rotulo = DispositivosWriterCmdEmd.getRotuloTipoDispositivo(disp, CmdEmdUtil.isSequenciaPlural(sequencia));
+    return iniciarComMaiuscula ? primeiraLetraMaiuscula(rotulo) : rotulo;
   }
 
   static getRotuloTipoDispositivo(disp: Dispositivo, plural: boolean): string {
@@ -266,6 +268,34 @@ export class DispositivosWriterCmdEmd {
       disp = pai;
     }
 
+    return sb.toString();
+  }
+
+  static getLocalizacaoAgrupadores(ranges: RangeDispositivos[]): string {
+    const ultimoAgrupador = ranges[ranges.length - 1].getUltimo();
+    const dispositivoSeguinte = getDispositivoPosteriorNaSequenciaDeLeitura(
+      ultimoAgrupador,
+      d => d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && !isCaput(d) && !isArticulacaoAlteracao(d)
+    );
+    const sb = new StringBuilder();
+
+    if (dispositivoSeguinte) {
+      sb.append('antes ');
+      sb.append(dispositivoSeguinte.pronomePossessivoSingular);
+      sb.append(' ');
+      sb.append(dispositivoSeguinte.getNumeracaoComRotuloParaComandoEmenda(dispositivoSeguinte));
+    } else {
+      const primeiroAgrupador = ranges[0].getPrimeiro();
+      const dispositvoAnterior = getDispositivoAnteriorNaSequenciaDeLeitura(primeiroAgrupador, d => isArtigo(d) || isAgrupadorNaoArticulacao(d));
+      if (dispositvoAnterior) {
+        sb.append('após ');
+        sb.append(dispositvoAnterior.artigoDefinido);
+        sb.append(' ');
+        sb.append(dispositvoAnterior.getNumeracaoComRotuloParaComandoEmenda(dispositvoAnterior));
+      } else {
+        sb.append('!!! localização não encontrada !!!');
+      }
+    }
     return sb.toString();
   }
 }

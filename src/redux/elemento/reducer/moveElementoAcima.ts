@@ -101,7 +101,6 @@ export const moveElementoAcima = (state: any, action: any): State => {
   // Segundo elemento será usado para marcar o elemento em caso de "undo"
   eventos.add(StateType.ElementoMarcado, [createElemento(atual), action.atual]);
   eventos.add(StateType.ElementoSelecionado, [createElemento(atual)]);
-  console.log(eventos);
   return {
     articulacao: state.articulacao,
     modo: state.modo,

@@ -1,5 +1,5 @@
 // import { TipoDispositivo } from './../tipo/tipoDispositivo';
-import { addSpaceRegex, StringBuilder } from '../../../util/string-util';
+import { addSpaceRegex, primeiraLetraMaiuscula, StringBuilder } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
@@ -91,22 +91,22 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       const palavras = main.toLocaleLowerCase().split(' ');
 
       for (let i = 0; i < palavras.length; i++) {
-        palavras[i] = isRomano(palavras[i]) ? palavras[1].toUpperCase() : palavras[i].charAt(0).toUpperCase() + palavras[i].slice(1);
+        palavras[i] = isRomano(palavras[i]) ? palavras[1].toUpperCase() : primeiraLetraMaiuscula(palavras[i]);
       }
 
       return palavras.join(' ') + (remaining.length > 0 ? '-' + remaining.join('') : '');
     }
 
     getNumeracaoParaComandoEmenda(): string {
+      return this.rotulo!.trim().replace(/^.+? +/, '');
+    }
+
+    getNumeracaoComRotuloParaComandoEmenda(): string {
       const sb = new StringBuilder();
 
       sb.append(this.setMaiusculaPrimeiraLetraDaDescricao(this.rotulo!));
 
       return sb.toString();
-    }
-
-    getNumeracaoComRotuloParaComandoEmenda(): string {
-      return this.getNumeracaoParaComandoEmenda();
     }
   };
 }

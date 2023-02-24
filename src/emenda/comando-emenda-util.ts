@@ -10,7 +10,14 @@ import {
 import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
-import { irmaosMesmoTipo, isArticulacaoAlteracao, isDispositivoAlteracao, isDispositivoRaiz } from './../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  irmaosMesmoTipo,
+  isArticulacaoAlteracao,
+  isDispositivoAlteracao,
+  isDispositivoRaiz,
+  buscaNaHierarquiaDispositivos,
+  getIrmaoPosteriorIndependenteDeTipo,
+} from './../model/lexml/hierarquia/hierarquiaUtil';
 import { TagNode } from './../util/tag-node';
 import { DispositivoComparator } from './dispositivo-comparator';
 import { DispositivoEmendaUtil } from './dispositivo-emenda-util';
@@ -45,6 +52,14 @@ export class CmdEmdUtil {
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {
     const dispositivos = new Array<Dispositivo>();
 
+    // console.log('Dispositivos comando 0');
+    // console.log(dispositivosEmenda);
+
+    dispositivosEmenda = this.retiraPrimeirosFilhosAdicionadosAgrupador(dispositivosEmenda);
+
+    // console.log('Dispositivos comando 1');
+    // console.log(dispositivosEmenda);
+
     for (const d of dispositivosEmenda) {
       if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL || isDispositivoAlteracao(d) || isArticulacaoAlteracao(d)) {
         continue;
@@ -54,6 +69,9 @@ export class CmdEmdUtil {
         dispositivos.push(dispositivoAfetado);
       }
     }
+
+    // console.log('Dispositivos comando 2');
+    // console.log(dispositivos);
 
     return dispositivos;
   }
@@ -74,6 +92,11 @@ export class CmdEmdUtil {
       return pai.pai!;
     }
 
+    // O caso de artigos adicionados junto com seu agrupador já foi tratado antes. Ver uso de retiraPrimeirosFilhosAdicionadosAgrupador
+    if (isArtigo(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      return d;
+    }
+
     // Se o pai for uma alteração integral
     if (CmdEmdUtil.isAlteracaoIntegral(pai)) {
       // Chama recursivamente para o pai
@@ -81,6 +104,41 @@ export class CmdEmdUtil {
     }
 
     return d;
+  }
+
+  // Retira da lista de dispositivos os primeiros artigos e agrupadores adicionados, filhos de um agrupador adicionado.
+  // Considera que os dispositivos estejam ordenados
+  private static retiraPrimeirosFilhosAdicionadosAgrupador(dispositivos: Dispositivo[]): Dispositivo[] {
+    const primeiro = dispositivos[0];
+    if (isDispositivoAlteracao(primeiro) || primeiro.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      return dispositivos;
+    }
+    if (!dispositivos.find(d => isAgrupadorNaoArticulacao(d))) {
+      return dispositivos;
+    }
+    const ret: Dispositivo[] = [];
+    let filhosAdicionadosComAgrupador: Dispositivo[] = [];
+    dispositivos.forEach(d => {
+      if (filhosAdicionadosComAgrupador.indexOf(d) < 0) {
+        ret.push(d);
+        if (isAgrupadorNaoArticulacao(d)) {
+          filhosAdicionadosComAgrupador = this.listaFilhosAdicionadosComAgrupador(d);
+        }
+      }
+    });
+    return ret;
+  }
+
+  private static listaFilhosAdicionadosComAgrupador(d: Dispositivo): Dispositivo[] {
+    const ret: Dispositivo[] = [];
+    buscaNaHierarquiaDispositivos(d, f => {
+      if (f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || isCaput(f) || isArticulacaoAlteracao(f)) {
+        ret.push(f);
+        return false;
+      }
+      return true;
+    });
+    return ret;
   }
 
   static getDispositivoAfetadoEmAlteracao(d: Dispositivo): Dispositivo | undefined {
@@ -514,5 +572,26 @@ export class CmdEmdUtil {
 
   static normalizaCabecalhoComandoEmenda(texto: string): string {
     return removeEspacosDuplicados(texto.replace(/caput/g, '<i>caput</i>'));
+  }
+
+  /*
+  Dados dois agrupadores adicionados, verifica se são sequenciais e não existe artigo ou agrupador não adicionado entre eles.
+  */
+  static verificaAgrupadoresAdicionadosEmSequencia(a1: Dispositivo, a2: Dispositivo): boolean {
+    if (!isAgrupadorNaoArticulacao(a1) && !isAgrupadorNaoArticulacao(a2)) {
+      return false;
+    }
+    const filhoNaoAdicionado = this.getFilhoNaoAdicionadoDeAgrupadorAdicionado(a1);
+    return !filhoNaoAdicionado && getIrmaoPosteriorIndependenteDeTipo(a1) === a2;
+  }
+
+  /*
+  Dado um agrupador adicionado retorna o primeiro artigo ou agrupador em sua hierarquia que não seja adicionado.
+  Retorna undefined se todos forem adicionados.
+  */
+  static getFilhoNaoAdicionadoDeAgrupadorAdicionado(agrupador: Dispositivo): Dispositivo | undefined {
+    return buscaNaHierarquiaDispositivos(agrupador, f => {
+      return (isArtigo(f) || isAgrupadorNaoArticulacao(f)) && f.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO ? f : undefined;
+    });
   }
 }

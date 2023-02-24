@@ -29,11 +29,18 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     // Acrescentem-se § 0 ao art. 9º, alínea “a” inciso I do § 4º do art. 9º e § 8º ao art. 9º
     // do Projeto, com a seguinte redação:
 
+    // Agrupadores de artigo
+    // Acrescentem-se, antes do art. 3º da Medida Provisória, os seguintes Capítulos II e III:
+
     const sb = new StringBuilder();
 
     const agrupador = new AgrupadorDispositivosCmdEmd();
     let sequencias = agrupador.getSequencias(this.dispositivos);
     sequencias = this.trataLocalizacaoEmAgrupador(sequencias);
+
+    if (isPrimeiro && isUltimo && this.trataComandoUnicoDeAcrescimoDeAgrupadoresConsecutivos(refGenericaProjeto, sequencias, sb)) {
+      return sb.toString();
+    }
 
     // Prefixo
     const plural = CmdEmdUtil.isSequenciasPlural(sequencias);
@@ -70,7 +77,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
 
     for (const sequencia of sequencias) {
       const primeiro = sequencia.getPrimeiroDispositivo();
-      if (isArtigo(primeiro) || isAgrupadorNaoArticulacao(primeiro)) {
+      if (isArtigo(primeiro)) {
         ret.push(...this.trataLocalizacaoEmAgrupadorSequencia(sequencia));
       } else {
         ret.push(sequencia);
@@ -81,8 +88,6 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
   }
 
   private trataLocalizacaoEmAgrupadorSequencia(sequencia: SequenciaRangeDispositivos): SequenciaRangeDispositivos[] {
-    const sequenciaDeAgrupadores = isAgrupadorNaoArticulacao(sequencia.getPrimeiroDispositivo());
-
     const sequencias = new Array<SequenciaRangeDispositivos>();
 
     // Junta todos os artigos/agrupadores dos ranges da sequencia em uma única lista
@@ -94,7 +99,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     // Verifica a necessidade de reagrupar
     let reagrupar = false;
     for (const disp of dispositivos) {
-      if (sequenciaDeAgrupadores || this.isInclusaoDeArtigoProximoAAgrupador(disp)) {
+      if (this.isInclusaoDeArtigoProximoAAgrupador(disp)) {
         reagrupar = true;
         break;
       }
@@ -167,5 +172,45 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
 
     // Se existe próximo artigo com outro pai, é porque existe um agrupador entre eles
     return !!irmao && pai !== irmao.pai;
+  }
+
+  /*
+  Caso de acréscimo apenas de agrupadores consecutivos:
+
+  Acrescente-se, antes do art. 3º da Medida Provisória, o seguinte Capítulo II:
+  Acrescentem-se, antes do art. 3º da Medida Provisória, os seguintes Capítulos II e III:
+  Acrescentem-se, antes do art. 3º da Medida Provisória, os seguintes Capítulos II a IV:
+  */
+  trataComandoUnicoDeAcrescimoDeAgrupadoresConsecutivos(refGenericaProjeto: NomeComGenero, sequencias: SequenciaRangeDispositivos[], sb: StringBuilder): boolean {
+    // console.log(sequencias);
+    const sequencia = sequencias[0];
+    const dispositivo = sequencia.getPrimeiroDispositivo();
+    if (sequencias.length === 1 && isAgrupadorNaoArticulacao(dispositivo)) {
+      // Verifica apenas uma range ou duas ranges de um dispositivo sequenciais.
+      const ranges = sequencia.getRanges();
+      if (
+        ranges.length === 1 ||
+        (ranges.length === 2 &&
+          ranges[0].getDispositivos().length === 1 &&
+          ranges[1].getDispositivos().length === 1 &&
+          CmdEmdUtil.verificaAgrupadoresAdicionadosEmSequencia(ranges[0].getPrimeiro(), ranges[1].getPrimeiro()))
+      ) {
+        const plural = CmdEmdUtil.isSequenciasPlural(sequencias);
+        sb.append(plural ? 'Acrescentem-se, ' : 'Acrescente-se, ');
+        sb.append(DispositivosWriterCmdEmd.getLocalizacaoAgrupadores(ranges));
+        sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
+        sb.append(' ');
+        sb.append(refGenericaProjeto.nome);
+        sb.append(', ');
+        sb.append(dispositivo.artigoDefinido);
+        sb.append(plural ? 's seguintes ' : ' seguinte ');
+        const dispositivosWriter = new DispositivosWriterCmdEmd();
+        dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.ADICAO;
+        sb.append(dispositivosWriter.getTexto(sequencias, false));
+        sb.append(':');
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -157,7 +157,7 @@ export const getArtigosPosterioresIndependenteAgrupador = (dispositivo: Disposit
   return getArticulacao(dispositivo).artigos.filter((artigo, index) => index > pos);
 };
 
-// Retorna o dispositivo imediatamente anterior na sequência de leitura.
+// Retorna o dispositivo imediatamente anterior na sequência de leitura ou primeiro dispositivo anterior aceito por "accept" na sequência de leitura
 // Considera caput. Não considera incisos de caput como filhos de artigo.
 export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo, accept?: (d: Dispositivo) => boolean): Dispositivo | undefined => {
   if (!disp.pai) {
@@ -172,6 +172,27 @@ export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo, ac
   // Busca dispositivo mais à direita na árvore do irmão anterior ou o pai se não houver irmão anterior
   const anterior = pos ? getUltimoFilho(irmaos[pos - 1]) : disp.pai;
   return !accept || accept(anterior) ? anterior : getDispositivoAnteriorNaSequenciaDeLeitura(anterior, accept);
+};
+
+// Retorna o dispositivo imediatamente posterior na sequência de leitura ou primeiro dispositivo posterior aceito por "accept" na sequência de leitura
+// Considera caput. Não considera incisos de caput como filhos de artigo.
+export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, accept?: (d: Dispositivo) => boolean, aPartirDe?: Dispositivo): Dispositivo | undefined => {
+  if (!disp) {
+    return undefined;
+  }
+  let proximo: Dispositivo | undefined = undefined;
+  if (aPartirDe) {
+    proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe);
+  } else {
+    const filhos = isArtigo(disp) ? getFilhosArtigoEstiloLexML(disp as Artigo) : disp.filhos;
+    if (filhos.length) {
+      proximo = filhos[0];
+    }
+  }
+  if (!proximo && !isDispositivoRaiz(disp)) {
+    return getDispositivoPosteriorNaSequenciaDeLeitura(disp.pai!, accept, disp);
+  }
+  return proximo ? (!accept || accept(proximo) ? proximo : getDispositivoPosteriorNaSequenciaDeLeitura(proximo, accept)) : undefined;
 };
 
 export const getFilhosArtigoEstiloLexML = (art: Artigo): Dispositivo[] => {
