@@ -79,7 +79,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (dispositivo.texto && dispositivo.texto.indexOf('r$') !== -1) {
     mensagens.push({
       tipo: TipoMensagem.WARNING,
-      descricao: `O texto do dispositivo possui R$ (real brasileiro) com letra minúscula. Troque para maiúscula.`,
+      descricao: `O texto do dispositivo possui r$ (real brasileiro) com letra minúscula. Deveria ser R$ com letra maiúscula.`,
     });
   }
 
