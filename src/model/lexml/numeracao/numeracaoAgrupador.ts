@@ -98,6 +98,9 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     }
 
     getNumeracaoParaComandoEmenda(): string {
+      if (this.numero === undefined) {
+        return '[ainda não numerado]';
+      }
       return this.rotulo!.trim().replace(/^.+? +/, '');
     }
 

@@ -1,7 +1,7 @@
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { Genero, NomeComGenero } from '../model/dispositivo/genero';
 import { StringBuilder } from '../util/string-util';
-import { isArtigo } from './../model/dispositivo/tipo';
+import { isArtigo, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
 import { AgrupadorDispositivosCmdEmd } from './agrupador-dispositivos-cmd-emd';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { DispositivosWriterCmdEmd } from './dispositivos-writer-cmd-emd';
@@ -32,7 +32,8 @@ export class CmdEmdAdicaoANormaVigente extends CmdEmdCombinavel {
 
     if (isUltimo) {
       const ultimaSequencia = sequencias[sequencias.length - 1];
-      if (isArtigo(ultimaSequencia.getPrimeiroDispositivo())) {
+      const primeiroDaUltimaSequencia = ultimaSequencia.getPrimeiroDispositivo();
+      if (isArtigo(primeiroDaUltimaSequencia) || isAgrupadorNaoArticulacao(primeiroDaUltimaSequencia)) {
         sb.append(this.generoNormaAlterada.artigoDefinidoPrecedidoPreposicaoASingular);
       } else {
         if (this.textoTodos !== '') {
