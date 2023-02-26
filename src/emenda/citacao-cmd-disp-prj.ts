@@ -4,7 +4,13 @@ import { StringBuilder } from '../util/string-util';
 import { Articulacao } from './../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao } from './../model/dispositivo/tipo';
-import { getArtigoDoProjeto, isArticulacaoAlteracao, isDescendenteDeSuprimido, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  buscaNaHierarquiaDispositivos,
+  getArtigoDoProjeto,
+  isArticulacaoAlteracao,
+  isDescendenteDeSuprimido,
+  isDispositivoAlteracao,
+} from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultipla } from './citacao-cmd-multipla';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
@@ -61,12 +67,29 @@ export class CitacaoComandoDispPrj {
     let dispRef;
     let dispRefAtual;
 
+    let noGrupoDeAspas: Dispositivo[] = [];
+
     dispositivos.forEach(d => {
       dispRef = (isArtigo(d) || isAgrupador(d) || isEmenta(d)) && !isDispositivoAlteracao(d) ? d : getArtigoDoProjeto(d);
 
       if (dispRef !== dispRefAtual) {
         if (listaDispRef.length) {
-          sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef));
+          let abreAspas = true;
+          if (dispRefAtual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+            if (isAgrupador(dispRefAtual) && !noGrupoDeAspas.length) {
+              noGrupoDeAspas = this.getDispositivosMesmoGrupoDeAspas(dispRefAtual);
+            } else {
+              if (noGrupoDeAspas.indexOf(dispRefAtual) >= 0) {
+                abreAspas = false;
+              } else {
+                noGrupoDeAspas = [];
+              }
+            }
+          } else {
+            noGrupoDeAspas = [];
+          }
+          const fechaAspas = noGrupoDeAspas.indexOf(dispRef) < 0;
+          sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef, abreAspas, fechaAspas));
         }
 
         listaDispRef = [];
@@ -81,7 +104,23 @@ export class CitacaoComandoDispPrj {
     });
 
     if (listaDispRef.length) {
-      sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef));
+      const abreAspas = noGrupoDeAspas.indexOf(dispRefAtual) < 0;
+      sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef, abreAspas, true));
     }
+  }
+
+  getDispositivosMesmoGrupoDeAspas(agrupador: Dispositivo): Dispositivo[] {
+    const ret = new Array<Dispositivo>();
+    buscaNaHierarquiaDispositivos(agrupador, d => {
+      if (!isDispositivoAlteracao(d) && (isAgrupadorNaoArticulacao(d) || isArtigo(d))) {
+        if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+          ret.push(d);
+          return false;
+        }
+        return true;
+      }
+      return false;
+    });
+    return ret;
   }
 }

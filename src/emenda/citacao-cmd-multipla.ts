@@ -19,7 +19,7 @@ export class CitacaoComandoMultipla {
   private ultimoProcessado?: Dispositivo;
   private emAlteracao = false;
 
-  public getTexto(dispositivos: Dispositivo[]): string {
+  public getTexto(dispositivos: Dispositivo[], abreAspas = true, fechaAspas = true): string {
     let arvoreDispositivos = CmdEmdUtil.getArvoreDispositivos(dispositivos);
 
     const sb = new StringBuilder();
@@ -27,7 +27,10 @@ export class CitacaoComandoMultipla {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const node = new TagNode('p').add('“');
+    const node = new TagNode('p');
+    if (abreAspas) {
+      node.add('“');
+    }
     if (isEmenta(cabeca)) {
       node.addAtributo('class', 'ementa');
     } else {
@@ -53,7 +56,7 @@ export class CitacaoComandoMultipla {
 
     this.writeOmissisFinal(sb, cabeca);
 
-    return sb.toString().replace(/(<\/p>(?:<\/Alteracao>)?)$/, '”$1');
+    return fechaAspas ? sb.toString().replace(/(<\/p>(?:<\/Alteracao>)?)$/, '”$1') : sb.toString();
   }
 
   writeDispositivoTo(sb: StringBuilder, arvoreDispositivos: Map<Dispositivo, any>): void {
