@@ -1,3 +1,4 @@
+import { isAgrupador } from './../model/dispositivo/tipo';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { getDispositivoPosterior } from './../model/lexml/hierarquia/hierarquiaUtil';
@@ -86,7 +87,8 @@ export class AgrupadorDispositivosCmdEmd {
       CmdEmdUtil.isMesmoTipoParaComandoEmenda(dispSequencia, dispRange) &&
       CmdEmdUtil.isMesmaSituacaoParaComandoEmenda(dispSequencia, dispRange) &&
       (dispSequencia.tipo === TipoDispositivo.artigo.tipo || dispSequencia.pai === dispRange.pai) &&
-      dispSequencia.tipo !== TipoDispositivo.omissis.tipo
+      dispSequencia.tipo !== TipoDispositivo.omissis.tipo &&
+      (!isAgrupador(dispSequencia) || CmdEmdUtil.verificaAgrupadoresAdicionadosEmSequencia(sequencia.getUltimoDispositivo(), range.getPrimeiro()))
     );
   }
 

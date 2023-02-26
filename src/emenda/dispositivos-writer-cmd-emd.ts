@@ -52,6 +52,7 @@ export class DispositivosWriterCmdEmd {
       const referenciarDenominacao = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.DENOMINACAO_DO_AGRUPADOR && primeiroEhAgrupador;
       const referenciarTodoAgrupador = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.TODO_AGRUPADOR && primeiroEhAgrupador;
       const referenciarOAgrupador = this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.O_AGRUPADOR && primeiroEhAgrupador && !!primeiroDispSeq.filhos.length;
+      const posicionarAgrupadores = primeiroEhAgrupador && this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.ADICAO;
 
       if (sequencia.informarCaputDoDispositivo) {
         sb.append(this.getReferenciaCaputDoDispositivo(sequencia));
@@ -74,8 +75,13 @@ export class DispositivosWriterCmdEmd {
       sb.append(sequencia.getTextoListaDeDispositivos());
 
       // Pai dos dispositivos
-      if (citarPais) {
+      if (citarPais && !posicionarAgrupadores) {
         sb.append(this.getRotuloPaisSequencia(sequencia));
+      }
+
+      // Escreve posição do agrupador. 'antes ou depois de xxx'
+      if (posicionarAgrupadores) {
+        sb.append(DispositivosWriterCmdEmd.getLocalizacaoAgrupadores(sequencia.getRanges()));
       }
 
       posSequencia++;
@@ -185,7 +191,7 @@ export class DispositivosWriterCmdEmd {
     let pai: Dispositivo | undefined;
 
     if (isAgrupador(disp)) {
-      return DispositivosWriterCmdEmd.getRotuloPaisAgrupador(disp, this.tipoReferenciaAgrupador);
+      return DispositivosWriterCmdEmd.getRotuloPaisAgrupador(disp);
     }
 
     const sb = new StringBuilder();
@@ -257,18 +263,12 @@ export class DispositivosWriterCmdEmd {
     return sb.toString();
   }
 
-  static getRotuloPaisAgrupador(disp: Dispositivo, tipoReferenciaAgrupador: TipoReferenciaAgrupador): string {
+  static getRotuloPaisAgrupador(disp: Dispositivo): string {
     const sb = new StringBuilder();
     let pai = disp.pai;
-    let primeiro = true;
     while (pai && !isDispositivoRaiz(pai) && !isArticulacao(pai)) {
       sb.append(' ');
-      if (primeiro && tipoReferenciaAgrupador === TipoReferenciaAgrupador.ADICAO) {
-        sb.append(pai.artigoDefinidoPrecedidoPreposicaoASingular);
-      } else {
-        sb.append(pai.pronomePossessivoSingular);
-      }
-      primeiro = false;
+      sb.append(pai.pronomePossessivoSingular);
       sb.append(' ');
       sb.append(pai.getNumeracaoComRotuloParaComandoEmenda(pai));
       pai = pai.pai;
@@ -283,13 +283,14 @@ export class DispositivosWriterCmdEmd {
       d => d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && !isCaput(d) && !isArticulacaoAlteracao(d)
     );
     const sb = new StringBuilder();
+    sb.append(' ');
     if (dispositivoSeguinte) {
       sb.append('antes ');
       sb.append(dispositivoSeguinte.pronomePossessivoSingular);
       sb.append(' ');
       sb.append(dispositivoSeguinte.getNumeracaoComRotuloParaComandoEmenda(dispositivoSeguinte));
       if (isAgrupadorNaoArticulacao(dispositivoSeguinte)) {
-        sb.append(DispositivosWriterCmdEmd.getRotuloPaisAgrupador(dispositivoSeguinte, TipoReferenciaAgrupador.APENAS_ROTULO));
+        sb.append(DispositivosWriterCmdEmd.getRotuloPaisAgrupador(dispositivoSeguinte));
       }
     } else {
       const primeiroAgrupador = ranges[0].getPrimeiro();
@@ -300,7 +301,7 @@ export class DispositivosWriterCmdEmd {
         sb.append(' ');
         sb.append(dispositvoAnterior.getNumeracaoComRotuloParaComandoEmenda(dispositvoAnterior));
         if (isAgrupadorNaoArticulacao(dispositvoAnterior)) {
-          sb.append(DispositivosWriterCmdEmd.getRotuloPaisAgrupador(dispositvoAnterior, TipoReferenciaAgrupador.APENAS_ROTULO));
+          sb.append(DispositivosWriterCmdEmd.getRotuloPaisAgrupador(dispositvoAnterior));
         }
       } else {
         sb.append('!!! localização não encontrada !!!');

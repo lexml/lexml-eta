@@ -13,6 +13,7 @@ import { SequenciaRangeDispositivos } from './sequencia-range-dispositivos';
 
 export class CmdEmdAdicao extends CmdEmdCombinavel {
   constructor(protected dispositivos: Dispositivo[]) {
+    dispositivos = CmdEmdUtil.retiraPrimeirosFilhosAdicionadosAgrupador(dispositivos);
     super(dispositivos);
   }
 
@@ -38,7 +39,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     let sequencias = agrupador.getSequencias(this.dispositivos);
     sequencias = this.trataLocalizacaoEmAgrupador(sequencias);
 
-    if (isPrimeiro && isUltimo && this.trataComandoUnicoDeAcrescimoDeAgrupadoresConsecutivos(refGenericaProjeto, sequencias, sb)) {
+    if (isPrimeiro && isUltimo && this.trataComandoUnicoDeAcrescimoDeAgrupadoresConsecutivos(sb, refGenericaProjeto, sequencias)) {
       return sb.toString();
     }
 
@@ -60,7 +61,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
     if (isUltimo) {
       const ultimaSequencia = sequencias[sequencias.length - 1];
       const primeiroDosUltimos = ultimaSequencia.getPrimeiroDispositivo();
-      if (!(isArtigo(primeiroDosUltimos) || isAgrupadorNaoArticulacao(primeiroDosUltimos)) || ultimaSequencia.localizarEmAgrupador) {
+      if (!isArtigo(primeiroDosUltimos) || ultimaSequencia.localizarEmAgrupador) {
         sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
       } else {
         sb.append(refGenericaProjeto.genero.artigoDefinidoPrecedidoPreposicaoASingular);
@@ -181,7 +182,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
   Acrescentem-se, antes do art. 3º da Medida Provisória, os seguintes Capítulos II e III:
   Acrescentem-se, antes do art. 3º da Medida Provisória, os seguintes Capítulos II a IV:
   */
-  trataComandoUnicoDeAcrescimoDeAgrupadoresConsecutivos(refGenericaProjeto: NomeComGenero, sequencias: SequenciaRangeDispositivos[], sb: StringBuilder): boolean {
+  trataComandoUnicoDeAcrescimoDeAgrupadoresConsecutivos(sb: StringBuilder, refGenericaProjeto: NomeComGenero, sequencias: SequenciaRangeDispositivos[]): boolean {
     // console.log(sequencias);
     const sequencia = sequencias[0];
     const dispositivo = sequencia.getPrimeiroDispositivo();
@@ -196,7 +197,7 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
           CmdEmdUtil.verificaAgrupadoresAdicionadosEmSequencia(ranges[0].getPrimeiro(), ranges[1].getPrimeiro()))
       ) {
         const plural = CmdEmdUtil.isSequenciasPlural(sequencias);
-        sb.append(plural ? 'Acrescentem-se, ' : 'Acrescente-se, ');
+        sb.append(plural ? 'Acrescentem-se,' : 'Acrescente-se,');
         sb.append(DispositivosWriterCmdEmd.getLocalizacaoAgrupadores(ranges));
         sb.append(refGenericaProjeto.genero.pronomePossessivoSingular);
         sb.append(' ');
@@ -205,7 +206,6 @@ export class CmdEmdAdicao extends CmdEmdCombinavel {
         sb.append(dispositivo.artigoDefinido);
         sb.append(plural ? 's seguintes ' : ' seguinte ');
         const dispositivosWriter = new DispositivosWriterCmdEmd();
-        dispositivosWriter.tipoReferenciaAgrupador = TipoReferenciaAgrupador.ADICAO;
         sb.append(dispositivosWriter.getTexto(sequencias, false));
         sb.append(':');
         return true;

@@ -52,14 +52,6 @@ export class CmdEmdUtil {
   static getDispositivosComando(dispositivosEmenda: Dispositivo[]): Dispositivo[] {
     const dispositivos = new Array<Dispositivo>();
 
-    // console.log('Dispositivos comando 0');
-    // console.log(dispositivosEmenda);
-
-    dispositivosEmenda = this.retiraPrimeirosFilhosAdicionadosAgrupador(dispositivosEmenda);
-
-    // console.log('Dispositivos comando 1');
-    // console.log(dispositivosEmenda);
-
     for (const d of dispositivosEmenda) {
       if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL || isDispositivoAlteracao(d) || isArticulacaoAlteracao(d)) {
         continue;
@@ -69,9 +61,6 @@ export class CmdEmdUtil {
         dispositivos.push(dispositivoAfetado);
       }
     }
-
-    // console.log('Dispositivos comando 2');
-    // console.log(dispositivos);
 
     return dispositivos;
   }
@@ -108,7 +97,7 @@ export class CmdEmdUtil {
 
   // Retira da lista de dispositivos os primeiros artigos e agrupadores adicionados, filhos de um agrupador adicionado.
   // Considera que os dispositivos estejam ordenados
-  private static retiraPrimeirosFilhosAdicionadosAgrupador(dispositivos: Dispositivo[]): Dispositivo[] {
+  static retiraPrimeirosFilhosAdicionadosAgrupador(dispositivos: Dispositivo[]): Dispositivo[] {
     const primeiro = dispositivos[0];
     if (isDispositivoAlteracao(primeiro) || primeiro.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
       return dispositivos;
@@ -187,8 +176,12 @@ export class CmdEmdUtil {
       return false;
     }
 
-    if (descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    if (descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       return true;
+    }
+
+    if (descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      return !isAgrupadorNaoArticulacao(d);
     }
 
     if (!d.filhos.length) {
