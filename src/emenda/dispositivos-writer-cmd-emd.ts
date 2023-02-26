@@ -182,27 +182,13 @@ export class DispositivosWriterCmdEmd {
   }
 
   private getRotuloPais(disp: Dispositivo, localizarEmAgrupador: boolean): string {
-    const sb = new StringBuilder();
-
     let pai: Dispositivo | undefined;
 
     if (isAgrupador(disp)) {
-      pai = disp.pai;
-      let primeiro = true;
-      while (pai && !isDispositivoRaiz(pai) && !isArticulacao(pai)) {
-        sb.append(' ');
-        if (primeiro && this.tipoReferenciaAgrupador === TipoReferenciaAgrupador.ADICAO) {
-          sb.append(pai.artigoDefinidoPrecedidoPreposicaoASingular);
-        } else {
-          sb.append(pai.pronomePossessivoSingular);
-        }
-        primeiro = false;
-        sb.append(' ');
-        sb.append(pai.getNumeracaoComRotuloParaComandoEmenda(pai));
-        pai = pai.pai;
-      }
-      return sb.toString();
+      return DispositivosWriterCmdEmd.getRotuloPaisAgrupador(disp, this.tipoReferenciaAgrupador);
     }
+
+    const sb = new StringBuilder();
 
     while (!isDispositivoRaiz(disp)) {
       pai = disp.pai;
@@ -271,6 +257,25 @@ export class DispositivosWriterCmdEmd {
     return sb.toString();
   }
 
+  static getRotuloPaisAgrupador(disp: Dispositivo, tipoReferenciaAgrupador: TipoReferenciaAgrupador): string {
+    const sb = new StringBuilder();
+    let pai = disp.pai;
+    let primeiro = true;
+    while (pai && !isDispositivoRaiz(pai) && !isArticulacao(pai)) {
+      sb.append(' ');
+      if (primeiro && tipoReferenciaAgrupador === TipoReferenciaAgrupador.ADICAO) {
+        sb.append(pai.artigoDefinidoPrecedidoPreposicaoASingular);
+      } else {
+        sb.append(pai.pronomePossessivoSingular);
+      }
+      primeiro = false;
+      sb.append(' ');
+      sb.append(pai.getNumeracaoComRotuloParaComandoEmenda(pai));
+      pai = pai.pai;
+    }
+    return sb.toString();
+  }
+
   static getLocalizacaoAgrupadores(ranges: RangeDispositivos[]): string {
     const ultimoAgrupador = ranges[ranges.length - 1].getUltimo();
     const dispositivoSeguinte = getDispositivoPosteriorNaSequenciaDeLeitura(
@@ -278,12 +283,14 @@ export class DispositivosWriterCmdEmd {
       d => d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && !isCaput(d) && !isArticulacaoAlteracao(d)
     );
     const sb = new StringBuilder();
-
     if (dispositivoSeguinte) {
       sb.append('antes ');
       sb.append(dispositivoSeguinte.pronomePossessivoSingular);
       sb.append(' ');
       sb.append(dispositivoSeguinte.getNumeracaoComRotuloParaComandoEmenda(dispositivoSeguinte));
+      if (isAgrupadorNaoArticulacao(dispositivoSeguinte)) {
+        sb.append(DispositivosWriterCmdEmd.getRotuloPaisAgrupador(dispositivoSeguinte, TipoReferenciaAgrupador.APENAS_ROTULO));
+      }
     } else {
       const primeiroAgrupador = ranges[0].getPrimeiro();
       const dispositvoAnterior = getDispositivoAnteriorNaSequenciaDeLeitura(primeiroAgrupador, d => isArtigo(d) || isAgrupadorNaoArticulacao(d));
@@ -292,6 +299,9 @@ export class DispositivosWriterCmdEmd {
         sb.append(dispositvoAnterior.artigoDefinido);
         sb.append(' ');
         sb.append(dispositvoAnterior.getNumeracaoComRotuloParaComandoEmenda(dispositvoAnterior));
+        if (isAgrupadorNaoArticulacao(dispositvoAnterior)) {
+          sb.append(DispositivosWriterCmdEmd.getRotuloPaisAgrupador(dispositvoAnterior, TipoReferenciaAgrupador.APENAS_ROTULO));
+        }
       } else {
         sb.append('!!! localização não encontrada !!!');
       }
