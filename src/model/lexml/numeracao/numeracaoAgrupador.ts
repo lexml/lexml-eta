@@ -102,7 +102,8 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       if (this.numero === undefined) {
         return '[ainda não numerado]';
       }
-      return this.rotulo!.trim().replace(/^.+? +/, '');
+      const numeracao = this.rotulo!.trim().replace(/^.+? +/, '');
+      return numeracao.toLowerCase().startsWith('únic') ? this.setMaiusculaPrimeiraLetraDaDescricao(numeracao) : numeracao;
     }
 
     getNumeracaoComRotuloParaComandoEmenda(): string {
