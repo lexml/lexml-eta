@@ -713,7 +713,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
       if (linha) {
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
@@ -728,7 +728,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
       if (linha) {
         linha.atualizarElemento(elemento);
       }
@@ -762,7 +762,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.map((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
       if (linha) {
         let nivelAlerado = false;
 
