@@ -4,10 +4,11 @@ import {
   isDispositivoRaiz,
   getIrmaoAnteriorIndependenteDeTipo,
   isArticulacaoAlteracao,
+  irmaosMesmoTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isEmenta } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
-import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -17,6 +18,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 
 export const moveElementoAcima = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -38,7 +40,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   }
 
   const removidos = getElementos(atual);
-  const renumerados = listaDispositivosRenumerados(atual);
+  const renumerados = irmaosMesmoTipo(atual).filter(d => d !== atual && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL);
 
   resetUuidTodaArvore(atual);
 
