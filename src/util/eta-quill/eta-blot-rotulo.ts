@@ -119,7 +119,7 @@ const podeInformarNumeracao = (elemento: Elemento): boolean => {
   return !!(
     elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
     elemento.dispositivoAlteracao &&
-    (elemento.abreAspas || (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true))
+    (elemento.abreAspas || elemento.tipo === 'Artigo' || (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true))
   );
 };
 
