@@ -24,7 +24,8 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
     rotulo?: string;
     informouAgrupadorUnico = false;
     private getNomeAgrupadorUnico(dispositivo: Dispositivo): string {
-      return `${dispositivo.descricao} únic${dispositivo.artigoDefinido}`;
+      const label = `${dispositivo.descricao} Únic${dispositivo.artigoDefinido}`;
+      return !['Secao', 'Subsecao'].includes(dispositivo.tipo) ? label.toUpperCase() : label;
     }
 
     private normalizaNumeracao(numero: string): string {

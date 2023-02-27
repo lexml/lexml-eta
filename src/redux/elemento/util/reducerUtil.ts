@@ -59,7 +59,7 @@ export const ajustaReferencia = (referencia: Dispositivo, dispositivo: Dispositi
     return (referencia as Articulacao).projetoNorma!.ementa!;
   }
 
-  return isArticulacao(referencia) || isPrimeiroArtigo(dispositivo) || dispositivo.pai!.indexOf(dispositivo) === 0
+  return isArticulacao(referencia) || (isPrimeiroArtigo(dispositivo) && !isDispositivoAlteracao(dispositivo)) || dispositivo.pai!.indexOf(dispositivo) === 0
     ? referencia
     : isPrimeiroParagrafo(dispositivo)
     ? getUltimoFilho((dispositivo.pai! as Artigo).caput!)

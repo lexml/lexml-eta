@@ -1,7 +1,7 @@
-import { hasFilhos } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isArticulacao, isCaput } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -146,6 +146,8 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const removido = createElemento(atual);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
+  const agrupadorAntes = getAgrupadorAntes(atual);
+
   const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
 
   const dispositivoAnterior = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : pos > 0 ? getUltimoFilho(pai.filhos[pos - 1]) : pai;
@@ -156,7 +158,9 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   let posNoPaiNovo = pai.filhos.length;
   atual.filhos.forEach(d => {
     let novoPai: Dispositivo;
-    if (pai.tiposPermitidosFilhos?.includes(d.tipo)) {
+    if (isArtigo(d)) {
+      novoPai = agrupadorAntes ?? articulacao;
+    } else if (pai.tiposPermitidosFilhos?.includes(d.tipo)) {
       novoPai = pai;
     } else if (dispositivoAnterior.tiposPermitidosFilhos?.includes(d.tipo)) {
       novoPai = dispositivoAnterior;
