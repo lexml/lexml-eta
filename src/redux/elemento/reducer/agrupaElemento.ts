@@ -9,6 +9,8 @@ import {
   podeRenumerarFilhosAutomaticamente,
   getTiposAgrupadoresQuePodemSerInseridosAntes,
   getTiposAgrupadoresQuePodemSerInseridosDepois,
+  getPrimeiroAgrupadorNaArticulacao,
+  hasEmenta,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
@@ -28,13 +30,17 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 
 export const agrupaElemento = (state: any, action: any): State => {
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  let atual = getDispositivoFromElemento(state.articulacao, action.atual, true)!;
 
   if (atual === undefined) {
     return state;
   }
 
   if (!isArtigo(atual) && !isAgrupador(atual) && !isEmenta(atual)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+  }
+
+  if ((isArticulacao(atual) || isEmenta(atual)) && action.novo.posicao === 'antes') {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
@@ -50,9 +56,9 @@ export const agrupaElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  // const posicaoDoNovoAgrupador: string = isArtigo(atual) ? 'antes' : action.novo.posicao;
-  // const manterNovoNoMesmoGrupoDeAspas: boolean =
-  //   isDispositivoAlteracao(atual) && !isDispositivoCabecaAlteracao(atual) && !isUltimoArtigoOuAgrupadorDaAlteracao(atual) ? true : action.novo.manterNoMesmoGrupoDeAspas;
+  if (isEmenta(atual)) {
+    atual = state.articulacao;
+  }
 
   const posicaoDoNovoAgrupador: string = action.novo.posicao;
   const manterNovoNoMesmoGrupoDeAspas: boolean = action.novo.manterNoMesmoGrupoDeAspas;
@@ -84,7 +90,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   let novo: Dispositivo;
-  const ref = isEmenta(atual) ? state.articulacao : dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
+  const ref = dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
 
   if (!isArticulacao(atual) && isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
@@ -135,8 +141,13 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   const eventos = new Eventos();
-  // eventos.setReferencia(createElemento(ref));
-  eventos.setReferencia(createElemento(isEmenta(atual) ? atual : ref));
+  if (isArticulacao(ref) && hasEmenta(ref)) {
+    eventos.setReferencia(createElemento(state.articulacao.projetoNorma.ementa));
+  } else if (isArtigo(atual) && posicaoDoNovoAgrupador === 'depois') {
+    eventos.setReferencia(createElemento(getUltimoFilho(ref)));
+  } else {
+    eventos.setReferencia(createElemento(ref));
+  }
 
   const transferidosParaOutroPai = novo.filhos.map((d: Dispositivo) => createElemento(d));
 
@@ -152,6 +163,10 @@ export const agrupaElemento = (state: any, action: any): State => {
   const dArticulacao = getDispositivoAndFilhosAsLista(state.articulacao);
   const dReferenciado = dArticulacao[dArticulacao.indexOf(novo) + 1];
   eventos.add(StateType.ElementoReferenciado, dReferenciado ? [createElemento(dReferenciado)] : []);
+
+  if (novo === getPrimeiroAgrupadorNaArticulacao(novo) && hasEmenta(novo)) {
+    eventos.get(StateType.SituacaoElementoModificada).elementos!.push(createElemento(state.articulacao.projetoNorma.ementa));
+  }
 
   return {
     articulacao: state.articulacao,
