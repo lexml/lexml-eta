@@ -33,13 +33,14 @@ export class EtaQuillUtil {
     new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
 
-    if (elemento.fechaAspas) {
-      new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
-    }
-
-    if (elemento.notaAlteracao) {
-      new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
-    }
+    new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
+    new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
+    // if (elemento.fechaAspas) {
+    //   new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
+    //   if (elemento.notaAlteracao) {
+    //     new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
+    //   }
+    // }
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
