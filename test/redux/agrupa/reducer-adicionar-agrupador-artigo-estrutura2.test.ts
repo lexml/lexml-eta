@@ -14,8 +14,19 @@ import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarEleme
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
+import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
+import { isAgrupador } from '../../../src/model/dispositivo/tipo';
 
 let state: State;
+
+export const showAgrupadores = (dispositivo: Dispositivo, nivel = 0): void => {
+  if (isAgrupador(dispositivo)) {
+    console.log(' '.repeat(nivel) + dispositivo.rotulo);
+    dispositivo.filhos.forEach(f => showAgrupadores(f, nivel + 1));
+  } else if (dispositivo.pai?.indexOf(dispositivo) === 0) {
+    console.log(' '.repeat(nivel) + dispositivo.rotulo);
+  }
+};
 
 describe('Testando a inclusão de agrupadores', () => {
   beforeEach(function () {
