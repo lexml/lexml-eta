@@ -1,3 +1,4 @@
+import { isArticulacaoAlteracao, getDispositivoCabecaAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { isArtigo, isCaput } from '../model/dispositivo/tipo';
@@ -12,6 +13,8 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
 
   private adjacentesOmissis: Dispositivo[] = []; // Dispositivos da lista que são adjacentes às omissis modificadas
 
+  private fecharAspasAposOmissis = false;
+
   public getTexto(dispositivos: Dispositivo[]): string {
     dispositivos = dispositivos.filter(d => d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || isAgrupadorNaoArticulacao(d.pai!));
     this.adjacentesOmissis = this.buscaDispositivosAdjacentesAsOmissis(dispositivos);
@@ -23,10 +26,14 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     const sb = new StringBuilder();
     this.montaCitacaoComando(sb, arvoreDispositivos);
 
-    const cabeca = [...arvoreDispositivos.keys()][0];
-    const notaAlteracao = cabeca.notaAlteracao ? ' (' + cabeca.notaAlteracao + ')' : '';
-
-    return sb.toString().replace(/(<\/p>)$/, '”' + notaAlteracao + '$1');
+    const fechaAspas = this.fecharAspasAposOmissis || CmdEmdUtil.isFechaAspas(this.ultimoProcessado!);
+    if (fechaAspas) {
+      const primeiro = [...arvoreDispositivos.keys()][0];
+      const cabeca = getDispositivoCabecaAlteracao(primeiro);
+      const notaAlteracao = cabeca.notaAlteracao ? ' (' + cabeca.notaAlteracao + ')' : '';
+      return sb.toString().replace(/(<\/p>)$/, '”' + notaAlteracao + '$1');
+    }
+    return sb.toString();
   }
 
   private buscaDispositivosAdjacentesAsOmissis(dispositivos: Dispositivo[]): Dispositivo[] {
@@ -57,7 +64,11 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const node = new TagNode('p').add('“').add(new TagNode('Rotulo').add(cabeca.rotulo!));
+    const node = new TagNode('p');
+    if (isArticulacaoAlteracao(cabeca.pai!)) {
+      node.add('“');
+    }
+    node.add(new TagNode('Rotulo').add(cabeca.rotulo!));
     if (isAgrupadorNaoArticulacao(cabeca)) {
       node.addAtributo('class', 'agrupador');
       if (cabeca.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
@@ -73,8 +84,8 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
       sb.append(node.toString());
     }
 
+    this.ultimoProcessado = cabeca;
     if (arvoreDispositivos.size > 0 && cabeca.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      this.ultimoProcessado = cabeca;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
 
@@ -149,10 +160,12 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
 
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && (!this.adjacentesOmissis.includes(d) || isOmissis(d))) {
       sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+      this.fecharAspasAposOmissis = true;
     } else if (!CmdEmdUtil.isFechaAspas(d)) {
       const proximo = CmdEmdUtil.getDispositivoPosteriorDireto(d);
       if (proximo && isOmissis(proximo)) {
         sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+        this.fecharAspasAposOmissis = true;
       }
     }
   }

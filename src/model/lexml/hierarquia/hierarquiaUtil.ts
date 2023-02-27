@@ -420,9 +420,27 @@ export const isAntesDoPrimeiroDispositivoOriginal = (dispositivo: Dispositivo): 
 
 export const isUltimaAlteracao = (dispositivo: Dispositivo): boolean => {
   const atual = getDispositivoCabecaAlteracao(dispositivo);
+
   const lista = getDispositivoAndFilhosAsLista(atual);
 
-  return lista.length > 0 && lista[lista.length - 1] === dispositivo;
+  const ultimoLista = lista[lista.length - 1];
+  const dispTeste = isCaput(dispositivo) ? dispositivo.pai! : dispositivo;
+  if (ultimoLista === dispTeste) {
+    if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !isArticulacaoAlteracao(atual.pai!)) {
+      const proximo = getDispositivoPosteriorNaSequenciaDeLeitura(atual, d => {
+        return isArtigo(d) || isAgrupadorNaoArticulacao(d) || !isDispositivoAlteracao(d);
+      });
+      return !(
+        proximo &&
+        isDispositivoAlteracao(proximo) &&
+        !isArticulacaoAlteracao(proximo.pai!) &&
+        proximo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
+      );
+    }
+    return true;
+  }
+
+  return false;
 };
 
 const buscaDispositivoDeArtigoPosterior = (pai: Dispositivo, index: number): Dispositivo | undefined => {
