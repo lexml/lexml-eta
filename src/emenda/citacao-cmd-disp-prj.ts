@@ -70,25 +70,15 @@ export class CitacaoComandoDispPrj {
     let noGrupoDeAspas: Dispositivo[] = [];
 
     dispositivos.forEach(d => {
-      dispRef = (isArtigo(d) || isAgrupador(d) || isEmenta(d)) && !isDispositivoAlteracao(d) ? d : getArtigoDoProjeto(d);
+      dispRef = (isArtigo(d) || isAgrupadorNaoArticulacao(d) || isEmenta(d)) && !isDispositivoAlteracao(d) ? d : getArtigoDoProjeto(d);
 
       if (dispRef !== dispRefAtual) {
         if (listaDispRef.length) {
-          let abreAspas = true;
-          if (dispRefAtual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-            if (isAgrupador(dispRefAtual) && !noGrupoDeAspas.length) {
-              noGrupoDeAspas = this.getDispositivosMesmoGrupoDeAspas(dispRefAtual);
-            } else {
-              if (noGrupoDeAspas.indexOf(dispRefAtual) >= 0) {
-                abreAspas = false;
-              } else {
-                noGrupoDeAspas = [];
-              }
-            }
-          } else {
+          const abreAspas = dispRefAtual.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO || noGrupoDeAspas.indexOf(dispRefAtual) < 0;
+          const fechaAspas = noGrupoDeAspas.indexOf(dispRef) < 0;
+          if (fechaAspas) {
             noGrupoDeAspas = [];
           }
-          const fechaAspas = noGrupoDeAspas.indexOf(dispRef) < 0;
           sb.append(new CitacaoComandoMultipla().getTexto(listaDispRef, abreAspas, fechaAspas));
         }
 
@@ -96,6 +86,11 @@ export class CitacaoComandoDispPrj {
         listaDispRef.push(dispRef);
 
         dispRefAtual = dispRef;
+      }
+
+      // Preenche noGrupoDeAspas para agrupadores adicionados que não estão no último grupo de aspas
+      if (isAgrupador(dispRef) && dispRef.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && noGrupoDeAspas.indexOf(dispRef) < 0) {
+        noGrupoDeAspas = this.getDispositivosMesmoGrupoDeAspas(dispRef);
       }
 
       if (listaDispRef.indexOf(d) < 0) {
@@ -121,6 +116,6 @@ export class CitacaoComandoDispPrj {
       }
       return false;
     });
-    return ret;
+    return ret.slice(1);
   }
 }
