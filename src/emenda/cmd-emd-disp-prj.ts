@@ -4,7 +4,7 @@ import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { CmdEmdAdicao } from './cmd-emd-adicao';
-import { CmdEmdAdicaoArtigoOndeCouber } from './cmd-emd-adicao-artigo-onde-couber';
+import { CmdEmdAdicaoDispositivosOndeCouber } from './cmd-emd-adicao-dispositivos-onde-couber';
 import { CmdEmdCombinavel } from './cmd-emd-combinavel';
 import { CmdEmdModificacao } from './cmd-emd-modificacao';
 import { CmdEmdSupressao } from './cmd-emd-supressao';
@@ -30,7 +30,7 @@ export class CmdEmdDispPrj {
         throw new Error('Adição de artigos onde couber e outras alterações na mesma emenda.');
       }
 
-      const cmd = new CmdEmdAdicaoArtigoOndeCouber(artigosOndeCouber);
+      const cmd = new CmdEmdAdicaoDispositivosOndeCouber(artigosOndeCouber);
       return cmd.getTexto(refGenericaProjeto);
     }
 
