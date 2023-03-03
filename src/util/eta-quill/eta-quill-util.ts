@@ -51,6 +51,7 @@ export class EtaQuillUtil {
 
     return etaTable;
   }
+
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(false, this.alinhamentoMenu);
     const etaTdMensagens: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
