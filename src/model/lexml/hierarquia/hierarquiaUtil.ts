@@ -876,7 +876,7 @@ export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispo
     return getRangeTiposAgrupador(primeiroAgrupador.tipo, getTipoAgrupadorNivelAbaixo(agrupadorRef.tipo) ?? agrupadorRef.tipo);
   }
 
-  const tipos = getRangeTiposAgrupador(getTipoAgrupadorNivelAcima(agrupadorDepois.tipo), getTipoAgrupadorNivelAbaixo(agrupadorRef.tipo));
+  const tipos = getRangeTiposAgrupador(getTipoAgrupadorNivelAcima(agrupadorDepois.tipo), getTipoAgrupadorNivelAbaixo(agrupadorRef.tipo) ?? agrupadorRef.tipo);
   const indexPrimeiroAgrupador = getIndexTipoAgrupador(primeiroAgrupador.tipo);
   return tipos.filter(t => t && getIndexTipoAgrupador(t) >= indexPrimeiroAgrupador);
 };
