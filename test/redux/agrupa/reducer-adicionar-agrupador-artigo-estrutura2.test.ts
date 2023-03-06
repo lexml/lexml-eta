@@ -18,6 +18,7 @@ import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
 import { isAgrupador } from '../../../src/model/dispositivo/tipo';
 
 let state: State;
+let idsArtigos = '';
 
 export const showAgrupadores = (dispositivo: Dispositivo, nivel = 0): void => {
   if (isAgrupador(dispositivo)) {
@@ -33,6 +34,7 @@ describe('Testando a inclusão de agrupadores', () => {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
+    idsArtigos = state.articulacao!.artigos.map(a => a.id).join(',');
   });
   it('Deveria possuir articulação com 7 capítulos filhos', () => {
     const nFilhos = state.articulacao?.filhos.length;
@@ -95,6 +97,10 @@ describe('Testando a inclusão de agrupadores', () => {
 
         atual = createElemento(state.articulacao!.artigos[5]); // Cria seção antes do Art. 6º
         state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Secao', posicao: 'antes' } });
+      });
+
+      it('Deveria manter a ordem original dos artigos', () => {
+        expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
       });
 
       it('>>> Testando se novos agrupadores foram adicionados', () => {
@@ -284,6 +290,10 @@ describe('Testando a inclusão de agrupadores', () => {
           state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
         });
 
+        it('Deveria manter a ordem original dos artigos', () => {
+          expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
+        });
+
         it('Testando tipos de agrupadores que podem ser inseridos antes do artigo 52', () => {
           const art = state.articulacao!.artigos[state.articulacao!.artigos.length - 2];
           const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
@@ -315,6 +325,10 @@ describe('Testando a inclusão de agrupadores', () => {
           state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Livro', posicao: 'antes' } });
         });
 
+        it('Deveria manter a ordem original dos artigos', () => {
+          expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
+        });
+
         it('Testando tipos de agrupadores que podem ser inseridos antes do artigo 52', () => {
           const art = state.articulacao!.artigos[state.articulacao!.artigos.length - 2];
           const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
@@ -344,6 +358,10 @@ describe('Testando a inclusão de agrupadores', () => {
         beforeEach(function () {
           const atual = createElemento(state.articulacao!.artigos[10]);
           state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Secao', posicao: 'antes' } });
+        });
+
+        it('Deveria manter a ordem original dos artigos', () => {
+          expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
         });
 
         it('>>> Testando se nova seção foi adicionada', () => {
@@ -407,6 +425,14 @@ describe('Testando a inclusão de agrupadores', () => {
             state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
           });
 
+          it('Deveria manter a ordem original dos artigos', () => {
+            expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
+          });
+
+          it('Deveria manter a ordem original dos artigos', () => {
+            expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
+          });
+
           it('Testando tipos de agrupadores que podem ser inseridos antes do Art. 12', () => {
             const art = state.articulacao!.artigos[11];
             const tipos = getTiposAgrupadoresQuePodemSerInseridosAntes(art);
@@ -436,6 +462,8 @@ describe('Testando a inclusão de agrupadores', () => {
               posicao: 'antes',
             });
           }
+
+          idsArtigos = state.articulacao!.artigos.map(a => a.id).join(',');
         });
 
         it('Testando se 5 artigos foram adicionados antes da parte', () => {
@@ -489,6 +517,10 @@ describe('Testando a inclusão de agrupadores', () => {
 
             const atual = createElemento(state.articulacao!.artigos[state.articulacao!.artigos.length - 1]);
             state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Secao', posicao: 'antes' } });
+          });
+
+          it('Deveria manter a ordem original dos artigos', () => {
+            expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
           });
 
           it('>>> Testando tipos de agrupadores que podem ser inseridos depois Art. 0-1', () => {
