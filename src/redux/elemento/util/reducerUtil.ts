@@ -37,11 +37,20 @@ export const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
 
 export const copiaDispositivosParaOutroPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   return dispositivos.map(d => {
+    const posicaoAtualArtigo = isArtigo(d) ? getArticulacao(d).indexOfArtigo(d) : -1;
     const paiAtual = d.pai;
     const anterior = isArtigo(d) ? getDispositivoAnteriorMesmoTipo(d) : undefined;
     paiAtual?.removeFilho(d);
     d.pai = pai;
+
     pai.addFilho(d, anterior);
+
+    if (isArtigo(d) && !anterior) {
+      const articulacao = getArticulacao(d);
+      articulacao.removeArtigo(d);
+      articulacao.addArtigoOnPosition(d, posicaoAtualArtigo);
+    }
+
     return d;
   });
 };
