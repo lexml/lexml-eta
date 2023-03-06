@@ -1,3 +1,4 @@
+import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
@@ -223,6 +224,9 @@ const restaura = (d: Dispositivo): void => {
   d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
   d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
   d.situacao = new DispositivoOriginal();
+  if (isArtigo(d)) {
+    (d as Artigo).caput!.situacao = new DispositivoOriginal();
+  }
 };
 
 export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {

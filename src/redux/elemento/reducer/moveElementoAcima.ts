@@ -5,6 +5,7 @@ import {
   getIrmaoAnteriorIndependenteDeTipo,
   isArticulacaoAlteracao,
   irmaosMesmoTipo,
+  isDispositivoAlteracao,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isEmenta } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -33,7 +34,10 @@ export const moveElementoAcima = (state: any, action: any): State => {
   }
 
   // Dispositivo cuja posição será trocada com o atual
-  const anterior = isArtigo(atual) ? getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => isArtigo(d) || isAgrupador(d)) : getIrmaoAnteriorIndependenteDeTipo(atual);
+  const emAlteracao = isDispositivoAlteracao(atual);
+  const anterior = isArtigo(atual)
+    ? getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => (isArtigo(d) || isAgrupador(d)) && isDispositivoAlteracao(d) === emAlteracao)
+    : getIrmaoAnteriorIndependenteDeTipo(atual);
 
   if (anterior === undefined || isDispositivoRaiz(anterior) || isEmenta(anterior)) {
     return state;

@@ -50,7 +50,7 @@ export class EtaQuill extends Quill {
   }
 
   get inicioConteudoAtual(): number {
-    return this.getIndex(this.linhaAtual.blotConteudo);
+    return this.linhaAtual.blotConteudo ? this.getIndex(this.linhaAtual.blotConteudo) : 0;
   }
 
   get fimConteudoAtual(): number {
