@@ -1,3 +1,4 @@
+// Para teste de agrupadores
 export const EMENDA_002 = {
   dataUltimaModificacao: '2023-03-05T00:03:36.604Z',
   aplicacao: '',
