@@ -48,11 +48,11 @@ export const agrupaElemento = (state: any, action: any): State => {
   //   return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   // }
 
-  if (action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
+  if (!action.isAbrindoEmenda && action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 
-  if (action.novo.posicao === 'depois' && !getTiposAgrupadoresQuePodemSerInseridosDepois(atual).includes(action.novo.tipo)) {
+  if (!action.isAbrindoEmenda && action.novo.posicao === 'depois' && !getTiposAgrupadoresQuePodemSerInseridosDepois(atual).includes(action.novo.tipo)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   }
 

@@ -9,12 +9,14 @@ import { openArticulacaoAction } from '../../../src/model/lexml/acao/openArticul
 import { State } from '../../../src/redux/state';
 
 let state: State;
+let idsArtigos = '';
 
 describe('Testando a inclusão de agrupadores', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
+    idsArtigos = state.articulacao!.artigos.map(a => a.id).join(',');
   });
   it('Deveria possuir articulação com 7 capítulos filhos', () => {
     const nFilhos = state.articulacao?.filhos.length;
@@ -53,6 +55,10 @@ describe('Testando a inclusão de agrupadores', () => {
 
         atual = createElemento(state.articulacao!.artigos[5]); // Cria seção antes do Art. 6º
         state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Secao', posicao: 'antes' } });
+      });
+
+      it('Deveria manter a ordem original dos artigos', () => {
+        expect(state.articulacao!.artigos.map(a => a.id).join(',')).equal(idsArtigos);
       });
 
       it('Testando agrupador criado PARTE', () => {
