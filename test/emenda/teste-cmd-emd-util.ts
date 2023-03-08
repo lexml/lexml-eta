@@ -1,5 +1,3 @@
-import { CmdEmdUtil } from './../../src/emenda/comando-emenda-util';
-import { DispositivoAdicionado } from './../../src/model/lexml/situacao/dispositivoAdicionado';
 import { expect } from '@open-wc/testing';
 
 import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
@@ -11,7 +9,9 @@ import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaEleme
 import { suprimeElemento } from '../../src/redux/elemento/reducer/suprimeElemento';
 import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
+import { CmdEmdUtil } from './../../src/emenda/comando-emenda-util';
 import { Tipo } from './../../src/model/dispositivo/tipo';
+import { adicionarAgrupadorArtigoAction } from './../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarArtigoDepois } from './../../src/model/lexml/acao/adicionarElementoAction';
 import { atualizarTextoElementoAction } from './../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { SUPRIMIR_ELEMENTO } from './../../src/model/lexml/acao/suprimirElemento';
@@ -23,7 +23,9 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from './../../src/model/lexml/acao/transformarElementoAction';
-import { getDispositivoAnteriorMesmoTipo } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorMesmoTipo, getDispositivoPosteriorNaSequenciaDeLeitura } from './../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from './../../src/model/lexml/situacao/dispositivoAdicionado';
+import { agrupaElemento } from './../../src/redux/elemento/reducer/agrupaElemento';
 import { atualizaTextoElemento } from './../../src/redux/elemento/reducer/atualizaTextoElemento';
 
 export class TesteCmdEmdUtil {
@@ -215,6 +217,24 @@ export class TesteCmdEmdUtil {
       d.createRotulo(d); // Normaliza rótulo
     }
     (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = existeNaNorma;
+  }
+
+  static incluiAgrupador(state: State, idDispRef: string, tipo: string, antes = true, manterNoMesmoGrupoDeAspas = true): Dispositivo {
+    // Obtém dispositivo de referência a partir do id
+    const dispRef = buscaDispositivoById(state.articulacao!, idDispRef);
+    expect(dispRef, `Dispositivo ${idDispRef} não encontrado!`).not.to.be.undefined;
+    // Cria elemento (Referencia) para o dispRef
+    const elem = createElemento(dispRef!, false);
+    // Parametriza ação
+    const action = adicionarAgrupadorArtigoAction.execute(elem, tipo, undefined, antes ? 'antes' : 'depois', manterNoMesmoGrupoDeAspas);
+    // Executa ação
+    state = agrupaElemento(state, action);
+    // Busca dispositivo recém adicionado
+    const d = antes ? dispRef!.pai! : getDispositivoPosteriorNaSequenciaDeLeitura(dispRef!);
+    expect(d, `Falha na inserção do agrupador ${antes ? 'antes do' : 'após'} ${idDispRef}`).to.not.be.undefined;
+    d!.texto = '<p>TEXTO</p>';
+    this.numeraECriaRotulo(d!);
+    return d!;
   }
 
   // private boolean isAlgumTipo(final Dispositivo disp, final Class< ? extends TipoDispositivo>... tipos) {

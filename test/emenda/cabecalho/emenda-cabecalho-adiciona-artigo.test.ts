@@ -1,3 +1,4 @@
+import { TipoDispositivo } from './../../../src/model/lexml/tipo/tipoDispositivo';
 import { expect } from '@open-wc/testing';
 
 import { ComandoEmendaBuilder } from '../../../src/emenda/comando-emenda-builder';
@@ -153,5 +154,11 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos', () => {
         ' e art. 7º-1 ao Capítulo II do Título I do Projeto,' +
         ' com a seguinte redação:'
     );
+  });
+
+  it('Inclusão de capítulo', () => {
+    TesteCmdEmdUtil.incluiAgrupador(state, 'art5', TipoDispositivo.capitulo.tipo);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, antes do art. 5º do Projeto, o seguinte Capítulo I-1:');
   });
 });
