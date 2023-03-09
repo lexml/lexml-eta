@@ -238,7 +238,7 @@ export class EtaContainerTable extends Container {
     }
     this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);
-    this.blotExistencia.atualizarAtributos(elemento);
+    this.blotExistencia?.atualizarAtributos(elemento);
     this.blotConteudo.atualizarAtributos(elemento);
     this.blotFechaAspas?.atualizarAtributos(elemento);
     this.blotNotaAlteracao?.atualizarAtributos(elemento);

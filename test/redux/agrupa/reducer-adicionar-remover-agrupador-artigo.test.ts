@@ -105,7 +105,7 @@ describe('Testando a inclusão e exclusão de agrupadores', () => {
       it('Deveria retorna articulação sem alterações e mensagem de erro', () => {
         const sec = !!buscaDispositivoById(state.articulacao!, 'cap1_sec1');
         expect(sec).to.be.true;
-        expect(state.ui!.message!.descricao).to.equal('Operação não permitida');
+        expect(state.ui!.message!.descricao).to.equal('Operação não permitida (o agrupador "Subseção Única" não poder estar diretamente subordinado ao agrupador "CAPÍTULO I")');
         expect(state.ui!.message!.tipo).to.equal(TipoMensagem.ERROR);
       });
     });

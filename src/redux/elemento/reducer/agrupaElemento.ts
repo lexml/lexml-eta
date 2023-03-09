@@ -1,3 +1,4 @@
+import { TipoDispositivo } from './../../../model/lexml/tipo/tipoDispositivo';
 import { retornaEstadoAtualComMensagem } from './../util/stateReducerUtil';
 import {
   getUltimoFilho,
@@ -37,23 +38,31 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   if (!isArtigo(atual) && !isAgrupador(atual) && !isEmenta(atual)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é permitido adicionar agrupador de artigo a partir da seleção atual' });
   }
 
   if ((isArticulacao(atual) || isEmenta(atual)) && action.novo.posicao === 'antes') {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é permitido adicionar agrupador de artigo antes da ementa' });
   }
 
   // if (isArtigo(atual) && action.novo.posicao !== 'antes') {
   //   return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
   // }
 
+  const descricaoTipo = TipoDispositivo[action.novo.tipo.toLowerCase()].descricao;
+
   if (!action.isAbrindoEmenda && action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: `Não é permitido adicionar agrupador "${descricaoTipo}" antes do dispositivo selecionado [${atual.rotulo}]`,
+    });
   }
 
   if (!action.isAbrindoEmenda && action.novo.posicao === 'depois' && !getTiposAgrupadoresQuePodemSerInseridosDepois(atual).includes(action.novo.tipo)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: `Não é permitido adicionar agrupador "${descricaoTipo}" após o dispositivo selecionado [${atual.rotulo}]`,
+    });
   }
 
   if (isEmenta(atual)) {
@@ -69,15 +78,24 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   if (isDispositivoAlteracao(atual)) {
     if (isDispositivoCabecaAlteracao(atual) && manterNovoNoMesmoGrupoDeAspas && posicaoDoNovoAgrupador === 'antes' && !atual.tiposPermitidosPai?.includes(action.novo.tipo)) {
-      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.ERROR,
+        descricao: `Não é permitido adicionar agrupador "${descricaoTipo}", no mesmo grupo de aspas, antes do dispositivo selecionado [${atual.rotulo}]`,
+      });
     }
 
     if (!isDispositivoCabecaAlteracao(atual) && manterNovoNoMesmoGrupoDeAspas && !dispositivosAlteracao.some(d => d.tiposPermitidosFilhos?.includes(action.novo.tipo))) {
-      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.ERROR,
+        descricao: `Não é permitido adicionar agrupador "${descricaoTipo}", no mesmo grupo de aspas, após o dispositivo selecionado [${atual.rotulo}]`,
+      });
     }
 
     if (isArtigo(atual) && !isDispositivoCabecaAlteracao(atual) && !manterNovoNoMesmoGrupoDeAspas) {
-      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.ERROR,
+        descricao: `Não é permitido adicionar agrupador "${descricaoTipo}", na alteração de norma, a partir do atual dispositivo selecionado [${atual.rotulo}]`,
+      });
     }
 
     if (!manterNovoNoMesmoGrupoDeAspas) {
@@ -97,7 +115,10 @@ export const agrupaElemento = (state: any, action: any): State => {
   } else {
     const paiQuePodeReceberNovoAgrupador = getPaiQuePodeReceberFilhoDoTipo(ref, action.novo.tipo, dispositivosAlteracao)!;
     if (!paiQuePodeReceberNovoAgrupador) {
-      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.ERROR,
+        descricao: `Não é permitido adicionar agrupador "${descricaoTipo}" a partir do atual dispositivo selecionado [${atual.rotulo}]`,
+      });
     }
 
     const posNovoAgrupador =
