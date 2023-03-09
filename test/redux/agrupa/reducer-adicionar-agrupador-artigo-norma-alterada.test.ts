@@ -104,7 +104,7 @@ describe('Testando a inclusão de agrupador de dispositivo de norma alterada', (
       state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2alt24, novo: { tipo: 'Capitulo', posicao: 'antes', manterNoMesmoGrupoDeAspas: true } });
     });
     it('Deveria apresentar mensagem de erro ao tentar adicionar outro dispositivo de mesmo nível na alteração', () => {
-      expect(state.ui?.message?.descricao).to.equal('Operação não permitida.');
+      expect(state.ui?.message?.descricao).to.equal('Não é permitido adicionar agrupador "Capítulo", no mesmo grupo de aspas, antes do dispositivo selecionado [CAPÍTULO III]');
     });
     it('Deveria possuir 26 alterações no Art. 2º da MPV', () => {
       const art2 = state.articulacao!.artigos[1];
@@ -304,7 +304,7 @@ describe('Testando a inclusão de agrupador de dispositivo de norma alterada', (
       state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2alt24, novo: { tipo: 'Capitulo', posicao: 'depois', manterNoMesmoGrupoDeAspas: true } });
     });
     it('Deveria apresentar mensagem de erro ao tentar adicionar agrupador que não pode ser filho da seção ou da cabeça de alteração', () => {
-      expect(state.ui?.message?.descricao).to.equal('Operação não permitida.');
+      expect(state.ui?.message?.descricao).to.equal('Não é permitido adicionar agrupador "Capítulo", no mesmo grupo de aspas, após o dispositivo selecionado [Seção IV]');
     });
   });
 });
