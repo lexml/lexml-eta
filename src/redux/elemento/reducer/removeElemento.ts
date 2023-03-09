@@ -6,6 +6,7 @@ import {
   getPrimeiroAgrupadorNaArticulacao,
   hasEmenta,
   getTiposAgrupadorArtigoPermitidosNaArticulacao,
+  getDispositivoAndFilhosAsLista,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -30,10 +31,19 @@ export const removeElemento = (state: any, action: any): State => {
     if (isArticulacao(dispositivo.pai!)) {
       const tipos = getTiposAgrupadorArtigoPermitidosNaArticulacao();
       if (!dispositivo.filhos.every(f => isArtigo(f) || tipos.includes(f.tipo))) {
-        return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida' });
+        return retornaEstadoAtualComMensagem(state, {
+          tipo: TipoMensagem.ERROR,
+          descricao: `Operação não permitida (se houver seções abaixo do "${dispositivo.rotulo}", elas devem ser removidas antes)`,
+        });
       }
     } else if (dispositivo.filhos.filter(f => !isArtigo(f)).length) {
-      return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida' });
+      const dispositivos = getDispositivoAndFilhosAsLista(dispositivo.pai!).filter(isAgrupador);
+      const agrupadorAntes = dispositivos[dispositivos.indexOf(dispositivo) - 1] || {};
+      const agrupadorDepois = dispositivos[dispositivos.indexOf(dispositivo) + 1] || {};
+      return retornaEstadoAtualComMensagem(state, {
+        tipo: TipoMensagem.ERROR,
+        descricao: `Operação não permitida (o agrupador "${agrupadorDepois.rotulo}" não poder estar diretamente subordinado ao agrupador "${agrupadorAntes.rotulo}")`,
+      });
     }
   }
 

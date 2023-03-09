@@ -101,7 +101,7 @@ describe('Testando a inclusão de agrupador de dispositivo da MPV', () => {
     it('Deveria possuir 7 filhos na articulação', () => {
       expect(state.articulacao?.filhos.length).to.equal(7);
       expect(state.ui!.message!.tipo).to.equal(TipoMensagem.ERROR);
-      expect(state.ui!.message!.descricao).to.equal('Operação não permitida.');
+      expect(state.ui!.message!.descricao).to.equal('Não é permitido adicionar agrupador "Parte" antes do dispositivo selecionado [CAPÍTULO I]');
     });
   });
 
