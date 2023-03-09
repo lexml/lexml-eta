@@ -31,11 +31,4 @@ describe('Cabeçalho de comando de emenda com alteração de denominação de ag
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Título I do Projeto a seguinte redação:');
   });
-
-  // it('Altera denominação de artigo com norma alterada', () => {
-  //   TesteCmdEmdUtil.modificaDispositivo(state, 'art1');
-
-  //   const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-  //   expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Título I do Projeto a seguinte redação:');
-  // });
 });
