@@ -310,6 +310,7 @@ export const editorStyles = html`
     }
 
     .texto__rotulo--padrao {
+      display: inline-block;
       margin-right: 10px;
     }
 
@@ -333,9 +334,6 @@ export const editorStyles = html`
       border-radius: 4px;
       font-size: 12px;
       white-space: nowrap;
-    }
-    .texto__dispositivo {
-      display: inline;
     }
 
     .agrupador .blot-tipo-omissis {
@@ -479,25 +477,34 @@ export const editorStyles = html`
       cursor: pointer;
     }
 
+    .agrupador .texto__rotulo {
+      display: block;
+    }
+
+    .texto__dispositivo {
+      display: inline;
+      position: relative; /* permite atribuir posição absoluta ao child <br> */
+    }
+
     .abre-aspas br,
     .fecha-aspas br,
     .nota-alteracao br,
     .blot-existencia br,
     .blot-tipo-omissis br,
-    .dispositivo--adicionado br,
+    .dispositivo--adicionado br {
+      position: absolute; /* faz o BR não pular linha em texto__dispositivo vazio */
+      display: inline; /* faz o BR não pular linha em texto__dispositivo vazio */
+      content: ''; /* descola cursor do rótulo e remove quebra de linha quando "(NR) */
+    }
+
     .agrupador br {
-      content: '';
+      display: inherit;
+      position: relative; /* força a quebra de linha no firefox*/
     }
 
     @-moz-document url-prefix() {
-      .abre-aspas br,
-      .fecha-aspas br,
-      .nota-alteracao br,
-      .blot-existencia br,
-      .blot-tipo-omissis br,
-      .dispositivo--adicionado br,
       .agrupador br {
-        display: none;
+        position: absolute; /* força a quebra de linha no firefox*/
       }
     }
 

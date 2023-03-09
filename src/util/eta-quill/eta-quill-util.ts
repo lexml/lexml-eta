@@ -29,8 +29,15 @@ export class EtaQuillUtil {
     }
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
-    new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
-    new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
+
+    if (elemento.existeNaNormaAlterada === true) {
+      new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
+    }
+
+    if (elemento.tipo === 'Omissis') {
+      new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
+    }
+
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
 
     new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
@@ -51,6 +58,7 @@ export class EtaQuillUtil {
 
     return etaTable;
   }
+
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(false, this.alinhamentoMenu);
     const etaTdMensagens: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
