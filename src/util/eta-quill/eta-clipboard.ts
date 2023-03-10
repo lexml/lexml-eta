@@ -121,7 +121,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/["“']/g, '')
       .trim();
 
-    if (t && t.length > 0 && /^(art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s[-–]{1}|[az]{1,2}\)).*/i.test(t)) {
+    if (t && t.length > 0 && /^(art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)).*/i.test(t)) {
       return true;
     }
 
