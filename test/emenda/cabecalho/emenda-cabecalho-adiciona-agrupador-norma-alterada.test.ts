@@ -20,16 +20,12 @@ describe('Cabeçalho de comando de emenda adiciona de agrupador de artigo em nor
   it('Inclusão de agrupador capítulo em norma alterada', () => {
     TesteCmdEmdUtil.incluiAgrupador(state, 'art3', TipoDispositivo.capitulo.tipo);
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação à denominação do Capítulo [ainda não numerado] da Lei nº 11.343, de 23 de agosto de 2006, na forma proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
-    );
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, antes do art. 3º da Medida Provisória, o seguinte Capítulo Único:');
   });
 
   it('Inclusão de agrupador título em norma alterada', () => {
     TesteCmdEmdUtil.incluiAgrupador(state, 'art3', TipoDispositivo.titulo.tipo);
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal(
-      'Dê-se nova redação à denominação do Título [ainda não numerado] da Lei nº 11.343, de 23 de agosto de 2006, na forma proposta pelo art. 2º da Medida Provisória, nos termos a seguir:'
-    );
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, antes do art. 3º da Medida Provisória, o seguinte Título Único:');
   });
 });
