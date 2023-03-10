@@ -591,6 +591,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoSelecionado:
+          this.atualizarAtributos(event);
           if (events[events.length - 1] === event) {
             this.montarMenuContexto(event);
           }
