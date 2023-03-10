@@ -108,7 +108,8 @@ export const agrupaElemento = (state: any, action: any): State => {
   }
 
   let novo: Dispositivo;
-  const ref = dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
+  // const ref = dispositivosArticulacao[dispositivosArticulacao.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
+  const ref = getReferencia(atual, posicaoDoNovoAgrupador, dispositivosArticulacao);
 
   if (!isArticulacao(atual) && isDesdobramentoAgrupadorAtual(atual, action.novo.tipo)) {
     novo = criaDispositivo(atual.pai!.pai!, action.novo.tipo, undefined, atual.pai!.pai!.indexOf(atual.pai!) + 1);
@@ -165,6 +166,8 @@ export const agrupaElemento = (state: any, action: any): State => {
   if (isArticulacao(ref) && hasEmenta(ref)) {
     eventos.setReferencia(createElemento(state.articulacao.projetoNorma.ementa));
   } else if (isArtigo(atual) && posicaoDoNovoAgrupador === 'depois') {
+    eventos.setReferencia(createElemento(getUltimoFilho(ref)));
+  } else if (isArtigo(ref) && posicaoDoNovoAgrupador === 'antes') {
     eventos.setReferencia(createElemento(getUltimoFilho(ref)));
   } else {
     eventos.setReferencia(createElemento(ref));
@@ -297,4 +300,10 @@ const getPais = (dispositivo: Dispositivo, tipo: string, result: Dispositivo[] =
     return getPais(dispositivo.pai!, tipo, result);
   }
   return result;
+};
+
+const getReferencia = (atual: Dispositivo, posicaoDoNovoAgrupador: string, dispositivosArticulacao: Dispositivo[]): Dispositivo => {
+  const atuaEhDispositivoDeAlteracao = isDispositivoAlteracao(atual);
+  const dispositivos = dispositivosArticulacao.filter(d => isDispositivoAlteracao(d) === atuaEhDispositivoDeAlteracao);
+  return dispositivos[dispositivos.indexOf(atual) - (posicaoDoNovoAgrupador === 'antes' ? 1 : 0)];
 };
