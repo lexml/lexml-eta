@@ -502,6 +502,20 @@ export const editorStyles = html`
       position: relative; /* força a quebra de linha no firefox*/
     }
 
+    .agrupador[existenanormaalterada] .texto__rotulo {
+      display: inline;
+    }
+
+    .agrupador[existenanormaalterada] .texto__dispositivo {
+      display: block;
+    }
+
+    .agrupador[existenanormaalterada] br {
+      position: inherit; /* faz o BR não pular linha em texto__dispositivo vazio */
+      display: inherit; /* faz o BR não pular linha em texto__dispositivo vazio */
+      content: inherit;
+    }
+
     @-moz-document url-prefix() {
       .agrupador br {
         position: absolute; /* força a quebra de linha no firefox*/
