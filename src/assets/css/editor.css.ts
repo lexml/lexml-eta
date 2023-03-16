@@ -306,12 +306,12 @@ export const editorStyles = html`
     .texto__rotulo {
       color: black;
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 18px;
     }
 
     .texto__rotulo--padrao {
       display: inline-block;
-      margin-right: 10px;
+      padding-right: 10px;
     }
 
     .texto__rotulo--omissis,
