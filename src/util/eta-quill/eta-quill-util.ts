@@ -42,7 +42,7 @@ export class EtaQuillUtil {
 
     // new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
     // new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
-    if (elemento.fechaAspas) {
+    if (elemento.fechaAspas !== undefined && elemento.fechaAspas) {
       new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
       if (elemento.notaAlteracao) {
         new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);

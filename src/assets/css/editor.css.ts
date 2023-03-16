@@ -233,7 +233,6 @@ export const editorStyles = html`
       flex-grow: 1;
       width: 50px;
       white-space: nowrap;
-      font-size: 16px;
     }
 
     .container__menu {
@@ -270,7 +269,7 @@ export const editorStyles = html`
       box-shadow: 0px -1px 0px green inset;
     }
 
-    [existenanormaalterada] label:after,
+    /* [existenanormaalterada] label:after, */
     .existencia {
       font-family: var(--sl-font-sans);
       position: relative;
@@ -372,7 +371,7 @@ export const editorStyles = html`
 
     .agrupador .existencia {
       margin-left: 0;
-      margin-right: 15px;
+      margin-right: 0;
     }
 
     .dispositivo--adicionado {
@@ -492,30 +491,16 @@ export const editorStyles = html`
     .nota-alteracao br,
     .blot-existencia br,
     .blot-tipo-omissis br,
-    .agrupador p[fecha-aspas='true'] br,
+    .agrupador.dispositivo-alteracao p[fecha-aspas] br,
     .h-artigo br {
       display: inline; /* faz o BR não pular linha em texto__dispositivo vazio */
       content: ''; /* descola cursor do rótulo e remove quebra de linha quando "(NR) */
     }
 
-    .agrupador br {
+    /* .agrupador br {
       display: inherit;
-      position: relative; /* força a quebra de linha no firefox*/
-    }
-
-    .agrupador[existenanormaalterada] .texto__rotulo {
-      display: inline;
-    }
-
-    .agrupador[existenanormaalterada] .texto__dispositivo {
-      display: block;
-    }
-
-    .agrupador[existenanormaalterada] br {
-      position: inherit; /* faz o BR não pular linha em texto__dispositivo vazio */
-      display: inherit; /* faz o BR não pular linha em texto__dispositivo vazio */
-      content: inherit;
-    }
+      position: relative; força a quebra de linha no firefox
+    } */
 
     @-moz-document url-prefix() {
       .agrupador br {

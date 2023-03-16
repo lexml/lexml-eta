@@ -36,9 +36,6 @@ export class EtaContainerTable extends Container {
     node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
-    node.setAttribute('cellpadding', '0');
-    node.setAttribute('cellspacing', '0');
-    node.setAttribute('border', '0');
     if (podeAdicionarAtributoDeExistencia(elemento)) {
       node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
     }
@@ -321,7 +318,9 @@ export class EtaContainerTable extends Container {
     } else {
       classe = `${classe} h-artigo`;
     }
-
+    if (elemento.dispositivoAlteracao) {
+      classe = `${classe} dispositivo-alteracao`;
+    }
     return classe;
   }
 }
