@@ -69,7 +69,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
 
   if (fechaAspas) {
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-    notaAlteracao = cabecaAlteracao.notaAlteracao ?? 'NR'; // TODO: Deve vir do dispositivo;
+    notaAlteracao = cabecaAlteracao.notaAlteracao;
     podeEditarNotaAlteracao = cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
   }
 

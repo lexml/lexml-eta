@@ -70,7 +70,7 @@ export const editorStyles = html`
       /* font-family: sans-serif, 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji'; */
       font-family: var(--eta-font-serif);
-      font-size: 1rem;
+      font-size: 18px;
       line-height: 1.42;
       color: #646260;
       text-transform: none !important;
@@ -306,12 +306,13 @@ export const editorStyles = html`
     .texto__rotulo {
       color: black;
       font-weight: 600;
-      font-size: 18px;
     }
 
     .texto__rotulo--padrao {
       display: inline-block;
-      padding-right: 10px;
+      padding-right: 10px; /* Manter padding em vez de margin para evitar problema de layout ao apagar todo o texto do dispositivo.
+        Fica um sublinhado a mais, mas é melhor que a alternativa.
+      */
     }
 
     .texto__rotulo--omissis,
