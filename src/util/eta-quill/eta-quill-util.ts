@@ -30,7 +30,7 @@ export class EtaQuillUtil {
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
 
-    if (elemento.existeNaNormaAlterada === true) {
+    if (elemento.dispositivoAlteracao === true) {
       new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     }
 
@@ -40,14 +40,14 @@ export class EtaQuillUtil {
 
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
 
-    new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
-    new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
-    // if (elemento.fechaAspas) {
-    //   new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
-    //   if (elemento.notaAlteracao) {
-    //     new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
-    //   }
-    // }
+    // new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
+    // new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
+    if (elemento.fechaAspas !== undefined && elemento.fechaAspas) {
+      new EtaBlotFechaAspas(elemento).insertInto(etaTdTexto);
+      if (elemento.notaAlteracao) {
+        new EtaBlotNotaAlteracao(elemento).insertInto(etaTdTexto);
+      }
+    }
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 

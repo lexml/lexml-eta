@@ -2,7 +2,13 @@ import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/d
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { buscaDispositivoById, getDispositivoCabecaAlteracao, getTiposAgrupadorArtigoOrdenados, hasEmenta } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  buscaDispositivoById,
+  getDispositivoCabecaAlteracao,
+  getTiposAgrupadorArtigoOrdenados,
+  hasEmenta,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
@@ -93,19 +99,37 @@ const processaDispositivosAdicionados = (state: any, alteracoesEmenda: Dispositi
   return eventos;
 };
 
+const isPrimeiroDispositivoEmAlteracaoDeNorma = (ref: Dispositivo, dea: DispositivoEmendaAdicionado): boolean => {
+  return !isDispositivoAlteracao(ref) && isEmendaEmAlteracaoDeNorma(dea);
+};
+
+const isEmendaEmAlteracaoDeNorma = (dea: DispositivoEmendaAdicionado): boolean => {
+  return dea.id.split('_').some(p => p.startsWith('alt'));
+};
+
 const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaAdicionado): StateEvent[] => {
   const articulacao = state.articulacao;
   let ref = buscaDispositivoById(state.articulacao, dea.idPosicaoAgrupador!)!;
+  let posicao = 'depois';
+
+  // Solução de contorno para emendas com adição de artigo que altera norma vigente e com agrupadores adicionados na alteração.
+  if (buscaDispositivoById(state.articulacao, dea.id)) {
+    return [];
+  }
+  // ---------------------------------------------------------------------------
 
   if (ref) {
     if (isArticulacao(ref) && !isArticulacaoAlteracao(ref) && hasEmenta(ref)) {
       ref = (ref as Articulacao).projetoNorma!.ementa!;
+    } else if (isPrimeiroDispositivoEmAlteracaoDeNorma(ref, dea)) {
+      ref = ref.alteracoes!.filhos[0];
+      posicao = 'antes';
     }
 
     const atual = createElemento(ref);
 
     const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas;
-    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao: 'depois', manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo }, isAbrindoEmenda: true });
+    const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao, manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo }, isAbrindoEmenda: true });
     const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
 
     const elementosIncluidos = events.find(e => e.stateType === StateType.ElementoIncluido)!.elementos!;
