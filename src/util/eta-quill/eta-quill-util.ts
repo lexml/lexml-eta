@@ -30,7 +30,7 @@ export class EtaQuillUtil {
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
 
-    if (elemento.existeNaNormaAlterada === true) {
+    if (elemento.dispositivoAlteracao === true) {
       new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     }
 
