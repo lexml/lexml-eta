@@ -478,12 +478,13 @@ export const editorStyles = html`
       cursor: pointer;
     }
 
-    .agrupador .texto__rotulo {
-      display: block;
-    }
-
     .texto__dispositivo {
       display: inline;
+    }
+
+    .agrupador .texto__dispositivo::before {
+      content: '\\a';
+      white-space: pre;
     }
 
     .abre-aspas br,
@@ -491,6 +492,7 @@ export const editorStyles = html`
     .nota-alteracao br,
     .blot-existencia br,
     .blot-tipo-omissis br,
+    .agrupador p[fecha-aspas='true'] br,
     .h-artigo br {
       display: inline; /* faz o BR não pular linha em texto__dispositivo vazio */
       content: ''; /* descola cursor do rótulo e remove quebra de linha quando "(NR) */
