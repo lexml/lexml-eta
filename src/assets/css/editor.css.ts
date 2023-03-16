@@ -484,7 +484,6 @@ export const editorStyles = html`
 
     .texto__dispositivo {
       display: inline;
-      position: relative; /* permite atribuir posição absoluta ao child <br> */
     }
 
     .abre-aspas br,
@@ -492,8 +491,7 @@ export const editorStyles = html`
     .nota-alteracao br,
     .blot-existencia br,
     .blot-tipo-omissis br,
-    .dispositivo--adicionado br {
-      position: absolute; /* faz o BR não pular linha em texto__dispositivo vazio */
+    .h-artigo br {
       display: inline; /* faz o BR não pular linha em texto__dispositivo vazio */
       content: ''; /* descola cursor do rótulo e remove quebra de linha quando "(NR) */
     }

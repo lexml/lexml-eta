@@ -318,6 +318,8 @@ export class EtaContainerTable extends Container {
       classe = `${classe} agrupador`;
     } else if (elemento.tipo === 'Ementa') {
       classe = `${classe} ementa`;
+    } else {
+      classe = `${classe} h-artigo`;
     }
 
     return classe;
