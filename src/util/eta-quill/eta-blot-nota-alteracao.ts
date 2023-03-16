@@ -17,7 +17,7 @@ export class EtaBlotNotaAlteracao extends EtaBlot {
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 
-    node.setAttribute('contenteditable', 'true');
+    node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotNotaAlteracao.className);
     EtaBlotNotaAlteracao._atualizarAtributos(elemento, node);
 

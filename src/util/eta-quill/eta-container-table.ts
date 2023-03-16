@@ -33,7 +33,7 @@ export class EtaContainerTable extends Container {
     const node: HTMLElement = super.create();
     const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();
 
-    node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
+    node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
     node.setAttribute('cellpadding', '0');
@@ -117,7 +117,7 @@ export class EtaContainerTable extends Container {
   private _editavel: boolean;
   set editavel(editavel: boolean) {
     this._editavel = editavel;
-    this.blotConteudo.domNode.contentEditable = this._editavel;
+    // this.blotConteudo.domNode.contentEditable = this._editavel;
   }
 
   get editavel(): boolean {
@@ -318,6 +318,8 @@ export class EtaContainerTable extends Container {
       classe = `${classe} agrupador`;
     } else if (elemento.tipo === 'Ementa') {
       classe = `${classe} ementa`;
+    } else {
+      classe = `${classe} h-artigo`;
     }
 
     return classe;

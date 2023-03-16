@@ -15,7 +15,7 @@ export class EtaContainerTr extends Container {
 
     const classeAdicional = alinhamentoMenu === AlinhamentoMenu.Esquerda ? ' container__linha--reverse' : '';
 
-    node.setAttribute('contenteditable', editavel ? 'true' : 'false');
+    // node.setAttribute('contenteditable', editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTr.className + classeAdicional);
     return node;
   }

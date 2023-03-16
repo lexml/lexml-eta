@@ -210,6 +210,8 @@ export const adicionaElemento = (state: any, action: any): State => {
     );
   }
 
+  eventos.add(StateType.ElementoMarcado, [createElemento(novo), action.atual]);
+
   return {
     articulacao: state.articulacao,
     modo: state.modo,
