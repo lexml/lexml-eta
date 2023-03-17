@@ -1,3 +1,5 @@
+import { DescricaoSituacao } from './../../model/dispositivo/situacao';
+import { EtaBlotQuebraLinha } from './eta-blot-quebra-linha';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaBlotExistencia } from './eta-blot-existencia';
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
@@ -30,12 +32,16 @@ export class EtaQuillUtil {
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
 
-    if (elemento.dispositivoAlteracao === true) {
+    if (elemento.dispositivoAlteracao === true && elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
       new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     }
 
     if (elemento.tipo === 'Omissis') {
       new EtaBlotTipoOmissis(elemento).insertInto(etaTdTexto);
+    }
+
+    if (elemento.agrupador) {
+      new EtaBlotQuebraLinha().insertInto(etaTdTexto);
     }
 
     new EtaBlotConteudo(elemento).insertInto(etaTdTexto);
