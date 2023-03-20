@@ -1,3 +1,4 @@
+import { Artigo } from './../../dispositivo/dispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
@@ -44,6 +45,13 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
     parent.situacao = new DispositivoAdicionado();
     (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
     parent.id = buildId(parent);
+
+    if (isArtigo(parent)) {
+      (parent as Artigo).caput!.situacao = new DispositivoAdicionado();
+      if (modo) {
+        ((parent as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+      }
+    }
     parent.mensagens = validaDispositivo(parent);
   });
 };
@@ -51,6 +59,8 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
 const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo, modo): Dispositivo => {
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
+    dispositivo.alteracoes!.situacao = new DispositivoAdicionado();
+    (dispositivo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo;
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
   cabeca.isDispositivoAlteracao = true;
@@ -60,6 +70,11 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
   referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
   cabeca.createRotulo(cabeca);
   cabeca.id = buildId(cabeca);
+
+  if (isArtigo(cabeca)) {
+    (cabeca as Artigo).caput!.situacao = new DispositivoAdicionado();
+    ((cabeca as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+  }
 
   return cabeca;
 };
