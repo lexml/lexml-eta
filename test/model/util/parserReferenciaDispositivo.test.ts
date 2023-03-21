@@ -3,6 +3,7 @@ import { Articulacao, Artigo } from '../../../src/model/dispositivo/dispositivo'
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buildDispositivosAssistente, buildReferencia, identificaReferencias } from '../../../src/model/lexml/numeracao/parserReferenciaDispositivo';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { ReferenciaDispositivoParser } from './../../../src/model/lexml/numeracao/parserReferenciaDispositivo';
 
 let artigo: Artigo;
 let articulacao: Articulacao;
@@ -273,7 +274,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(ref![0]!.tipo).to.be.equal(TipoDispositivo.paragrafo);
       expect(ref![0]!.numero).to.be.equal('2');
       expect(ref![1]!.tipo).to.be.equal(TipoDispositivo.artigo);
-      expect(ref![1]!.numero).to.be.equal('1-A');
+      expect(ref![1]!.numero?.toUpperCase()).to.be.equal('1-A');
     });
     it('Se for informado o tipo por extenso no rótulo e o número, em minúscula, ambos são reconhecidos', () => {
       const texto = 'parágrafo 2 do artigo 1';
@@ -409,6 +410,28 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].rotulo).to.be.equal('I –');
       expect(dispositivo.filhos[0].filhos[0].tipo).to.be.equal('Alinea');
       expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('a)');
+    });
+    it('Referências inválidas', () => {
+      expect(new ReferenciaDispositivoParser('arts 5 e 6').valido).to.be.false;
+      expect(new ReferenciaDispositivoParser('parágrafo 10 e 11 do art 5º').valido).to.be.false;
+    });
+    it('Novo parser apenas artigo', () => {
+      const texto = 'artigo. 5º';
+      const parser = new ReferenciaDispositivoParser(texto);
+      expect(parser.valido).to.be.true;
+      expect(parser.referencias.length).to.be.equal(1);
+      expect(parser.referencias[0].tipo).to.be.equal(TipoDispositivo.artigo);
+      expect(parser.referencias[0].numero).to.be.equal('5');
+    });
+    it('Novo parser parágrafo', () => {
+      const texto = 'parágrafo único do artigo. 18-B';
+      const parser = new ReferenciaDispositivoParser(texto);
+      expect(parser.valido).to.be.true;
+      expect(parser.referencias.length).to.be.equal(2);
+      expect(parser.referencias[0].tipo).to.be.equal(TipoDispositivo.paragrafo);
+      expect(parser.referencias[0].numero).to.be.equal('único');
+      expect(parser.referencias[1].tipo).to.be.equal(TipoDispositivo.artigo);
+      expect(parser.referencias[1].numero).to.be.equal('18-b');
     });
   });
 });
