@@ -1,3 +1,4 @@
+import { Artigo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -26,7 +27,14 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = undefined;
   novo.pai?.renumeraFilhos();
   novo.id = buildId(novo);
+
+  (novo as Artigo).caput!.situacao = novo.situacao = new DispositivoAdicionado();
+  ((novo as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+
   createAlteracao(novo);
+
+  novo.alteracoes!.situacao = new DispositivoAdicionado();
+  (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
 
   if (action.dispositivos) {
     try {

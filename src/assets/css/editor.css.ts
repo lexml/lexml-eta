@@ -479,33 +479,22 @@ export const editorStyles = html`
 
     .texto__dispositivo {
       display: inline;
+      /* background-color: lightblue; */
     }
 
-    .agrupador .texto__dispositivo::before {
-      content: '\\a';
-      white-space: pre;
+    @-moz-document url-prefix() {
+      .agrupador .texto__dispositivo {
+        display: inline-block;
+        min-height: 1rem;
+      }
     }
 
-    .abre-aspas br,
-    .fecha-aspas br,
-    .nota-alteracao br,
     .blot-existencia br,
     .blot-tipo-omissis br,
     .agrupador.dispositivo-alteracao p[fecha-aspas] br,
     .h-artigo br {
       display: inline; /* faz o BR não pular linha em texto__dispositivo vazio */
       content: ''; /* descola cursor do rótulo e remove quebra de linha quando "(NR) */
-    }
-
-    /* .agrupador br {
-      display: inherit;
-      position: relative; força a quebra de linha no firefox
-    } */
-
-    @-moz-document url-prefix() {
-      .agrupador br {
-        position: absolute; /* força a quebra de linha no firefox*/
-      }
     }
 
     .mobile-buttons {
