@@ -123,7 +123,7 @@ const identificaTipo = (texto: string): Tipo | undefined => {
     return TipoDispositivo.paragrafo;
   }
 
-  return TipoDispositivo.generico;
+  return;
 };
 
 export const buildReferencia = (texto: string, tipoDispositivo?: Tipo): ReferenciaDispositivo => {
@@ -216,8 +216,11 @@ export class ReferenciaDispositivoParser {
 
   private regexArtigo = '(art|artigo)\\s([uú]nico|\\d+(?:-[a-z]+){0,3})';
   private regexParagrafo = '(§|par[aá]grafo|par)\\s([uú]nico|\\d+(?:-[a-z]+){0,3})';
+  private regexInciso = '(inciso|inc)\\s(X{0,3}(?:IX|IV|[XV]?I{0,3}))';
+  private regexAlinea = '(al[ií]nea|al[ií])\\s([a-z])';
+  private regexItem = '(item)\\s(\\d)';
 
-  private regex = `^(?:${this.regexParagrafo} )?${this.regexArtigo}$`;
+  private regex = `(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s)?(?:${this.regexInciso}\\s)?(?:${this.regexParagrafo}\\s)?(?:${this.regexArtigo})`;
 
   constructor(private texto) {
     this.parse();
@@ -225,15 +228,17 @@ export class ReferenciaDispositivoParser {
 
   private parse(): void {
     this.preparaTexto();
-    // console.log(this.texto);
+    console.log(this.texto);
     console.log(this.regex);
-    const execArray = new RegExp(this.regex).exec(this.texto);
+    const execArray = new RegExp(this.regex, 'gi').exec(this.texto);
+    console.log('execArray', execArray);
     if (execArray) {
       this.valido = true;
       const p = execArray.slice(1).filter(s => s !== undefined);
-      // console.log(p);
+      console.log(p);
       for (let i = 0, j = 1; i < p.length - 1, j <= p.length - 1; i += 2, j += 2) {
         const tipo = identificaTipo(p[i]);
+
         if (!tipo) {
           throw new Error(`Não pude identificar o tipo no texto informado: ${p[i]}`);
         }
