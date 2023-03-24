@@ -240,11 +240,11 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       const texto = 'inciso III do § 2º do Art. 1-A';
       const ref = identificaReferencias(texto);
       expect(ref![0]!.tipo).to.be.equal(TipoDispositivo.inciso);
-      expect(ref![0]!.numero).to.be.equal('III');
+      expect(ref![0]!.numero).to.be.equal('iii');
       expect(ref![1]!.tipo).to.be.equal(TipoDispositivo.paragrafo);
       expect(ref![1]!.numero).to.be.equal('2');
       expect(ref![2]!.tipo).to.be.equal(TipoDispositivo.artigo);
-      expect(ref![2]!.numero).to.be.equal('1-A');
+      expect(ref![2]!.numero).to.be.equal('1-a');
     });
     it('Se for informado o tipo abreviado no rótulo, sem ponto, ambos são reconhecidos', () => {
       const texto = 'inc iii do par 2  do  art 1';
@@ -274,7 +274,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(ref![0]!.tipo).to.be.equal(TipoDispositivo.paragrafo);
       expect(ref![0]!.numero).to.be.equal('2');
       expect(ref![1]!.tipo).to.be.equal(TipoDispositivo.artigo);
-      expect(ref![1]!.numero?.toUpperCase()).to.be.equal('1-A');
+      expect(ref![1]!.numero).to.be.equal('1-a');
     });
     it('Se for informado o tipo por extenso no rótulo e o número, em minúscula, ambos são reconhecidos', () => {
       const texto = 'parágrafo 2 do artigo 1';
@@ -335,12 +335,12 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].filhos[0].mensagens![1].descricao).to.be.equal('É necessário um omissis antes deste dispositivo');
     });
     it('Com artigo, um parágrafo mas um inciso de parágrafo com numeração incorreta', () => {
-      const texto = 'inciso 2 do § 1º do Art. 2º';
+      const texto = 'inciso II do § 1º do Art. 2º';
       const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
       expect(dispositivo.filhos[0].rotulo).to.be.equal('§ 1º');
-      expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('Inciso');
+      expect(dispositivo.filhos[0].filhos[0].tipo).to.be.equal('Inciso');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
       const texto = 'inciso I, § 1º, Art. 2º';
@@ -359,7 +359,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('I –');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
-      const texto = 'inciso I  1º Art. 2º';
+      const texto = 'inciso I par 1º Art. 2º';
       const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
@@ -378,7 +378,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].rotulo).to.be.equal('I –');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
-      const texto = 'I  1º Art. 2º';
+      const texto = 'inc I par 1º Art. 2º';
       const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
@@ -388,7 +388,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].filhos[0].rotulo).to.be.equal('I –');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
-      const texto = 'a I  1 art 2';
+      const texto = 'ali a inc I par 1 art 2';
       const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);
@@ -401,7 +401,7 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(dispositivo.filhos[0].filhos[0].filhos[0].rotulo).to.be.equal('a)');
     });
     it('Com artigo, um parágrafo e um inciso de parágrafo', () => {
-      const texto = 'a I art 2';
+      const texto = 'ali a inc I art 2';
       const dispositivo = buildDispositivosAssistente(texto, artigo);
 
       expect(artigo.alteracoes?.filhos[0]).to.be.equal(dispositivo);

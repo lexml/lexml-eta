@@ -216,11 +216,11 @@ export class ReferenciaDispositivoParser {
 
   private regexArtigo = '(art|artigo)\\s([uú]nico|\\d+(?:-[a-z]+){0,3})';
   private regexParagrafo = '(§|par[aá]grafo|par)\\s([uú]nico|\\d+(?:-[a-z]+){0,3})';
-  private regexInciso = '(inciso|inc)\\s(X{0,3}(?:IX|IV|[XV]?I{0,3}))';
+  private regexInciso = '(inciso|inc)\\s([uú]nico|X{0,3}(?:IX|IV|[XV]?I{0,3}))';
   private regexAlinea = '(al[ií]nea|al[ií])\\s([a-z])';
   private regexItem = '(item)\\s(\\d)';
 
-  private regex = `(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s)?(?:${this.regexInciso}\\s)?(?:${this.regexParagrafo}\\s)?(?:${this.regexArtigo})`;
+  private regex = `^(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s)?(?:${this.regexInciso}\\s)?(?:${this.regexParagrafo}\\s)?(?:${this.regexArtigo})`;
 
   constructor(private texto) {
     this.parse();
@@ -228,14 +228,13 @@ export class ReferenciaDispositivoParser {
 
   private parse(): void {
     this.preparaTexto();
-    console.log(this.texto);
-    console.log(this.regex);
+
     const execArray = new RegExp(this.regex, 'gi').exec(this.texto);
-    console.log('execArray', execArray);
+
     if (execArray) {
       this.valido = true;
       const p = execArray.slice(1).filter(s => s !== undefined);
-      console.log(p);
+
       for (let i = 0, j = 1; i < p.length - 1, j <= p.length - 1; i += 2, j += 2) {
         const tipo = identificaTipo(p[i]);
 
@@ -245,8 +244,6 @@ export class ReferenciaDispositivoParser {
         this.referencias.push({ tipo, numero: p[j] });
       }
     }
-    // console.log(this.valido);
-    // console.log(this.referencias);
   }
 
   private preparaTexto(): void {
