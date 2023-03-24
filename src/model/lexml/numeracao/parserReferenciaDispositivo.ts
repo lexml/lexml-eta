@@ -214,13 +214,14 @@ export class ReferenciaDispositivoParser {
 
   referencias: ReferenciaDispositivo[] = [];
 
-  private regexArtigo = '(art|artigo)\\s([uú]nico|\\d+(?:-[a-z]+){0,3})';
-  private regexParagrafo = '(§|par[aá]grafo|par)\\s([uú]nico|\\d+(?:-[a-z]+){0,3})';
-  private regexInciso = '(inciso|inc)\\s([uú]nico|X{0,3}(?:IX|IV|[XV]?I{0,3}))';
-  private regexAlinea = '(al[ií]nea|al[ií])\\s([a-z])';
-  private regexItem = '(item)\\s(\\d)';
+  private regexEncaixe = '(?:-[a-z]+){0,3}';
+  private regexArtigo = `(art|artigo)\\s([uú]nico|\\d+${this.regexEncaixe})`;
+  private regexParagrafo = `(§|par[aá]grafo|par)\\s([uú]nico|\\d+${this.regexEncaixe})`;
+  private regexInciso = `(inciso|inc)\\s([uú]nico|X{0,3}(?:IX|IV|[XV]?I{0,3})${this.regexEncaixe})`;
+  private regexAlinea = `(al[ií]nea|al[ií])\\s([a-z]+${this.regexEncaixe})`;
+  private regexItem = `(item)\\s(\\d+${this.regexEncaixe})`;
 
-  private regex = `^(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s)?(?:${this.regexInciso}\\s)?(?:${this.regexParagrafo}\\s)?(?:${this.regexArtigo})`;
+  private regex = `^(?:(?:(?:(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s))?(?:${this.regexInciso}\\s))?(?:${this.regexParagrafo}\\s)?)?(?:${this.regexArtigo})`;
 
   constructor(private texto) {
     this.parse();

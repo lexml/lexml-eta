@@ -414,6 +414,11 @@ describe('Parser de texto contendo referência de dispositivo', () => {
     it('Referências inválidas', () => {
       expect(new ReferenciaDispositivoParser('arts 5 e 6').valido).to.be.false;
       expect(new ReferenciaDispositivoParser('parágrafo 10 e 11 do art 5º').valido).to.be.false;
+      expect(new ReferenciaDispositivoParser('alínea a do art 5º').valido).to.be.false;
+      expect(new ReferenciaDispositivoParser('alínea a do par 12 do art 5º').valido).to.be.false;
+      expect(new ReferenciaDispositivoParser('item 4 do art 5º').valido).to.be.false;
+      expect(new ReferenciaDispositivoParser('item 3 do par 12 do art 5º').valido).to.be.false;
+      expect(new ReferenciaDispositivoParser('item 5-B, inc X, art 5º').valido).to.be.false;
     });
     it('Novo parser apenas artigo', () => {
       const texto = 'artigo. 5º';
@@ -432,6 +437,22 @@ describe('Parser de texto contendo referência de dispositivo', () => {
       expect(parser.referencias[0].numero).to.be.equal('único');
       expect(parser.referencias[1].tipo).to.be.equal(TipoDispositivo.artigo);
       expect(parser.referencias[1].numero).to.be.equal('18-b');
+    });
+    it('Novo parser item', () => {
+      const texto = 'item 12, ali cd, inc XXV, par 49, art 123';
+      const parser = new ReferenciaDispositivoParser(texto);
+      expect(parser.valido).to.be.true;
+      expect(parser.referencias.length).to.be.equal(5);
+      expect(parser.referencias[0].tipo).to.be.equal(TipoDispositivo.item);
+      expect(parser.referencias[0].numero).to.be.equal('12');
+      expect(parser.referencias[1].tipo).to.be.equal(TipoDispositivo.alinea);
+      expect(parser.referencias[1].numero).to.be.equal('cd');
+      expect(parser.referencias[2].tipo).to.be.equal(TipoDispositivo.inciso);
+      expect(parser.referencias[2].numero).to.be.equal('xxv');
+      expect(parser.referencias[3].tipo).to.be.equal(TipoDispositivo.paragrafo);
+      expect(parser.referencias[3].numero).to.be.equal('49');
+      expect(parser.referencias[4].tipo).to.be.equal(TipoDispositivo.artigo);
+      expect(parser.referencias[4].numero).to.be.equal('123');
     });
   });
 });
