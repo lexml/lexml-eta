@@ -56,7 +56,7 @@ const isOmissisCaput = (elemento: Elemento): boolean => {
   return elemento.tipo === TipoDispositivo.omissis.tipo && elemento.tipoOmissis === 'inciso-caput';
 };
 
-const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
+const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: string | undefined): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
@@ -72,6 +72,9 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   novo.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
   if (elemento.descricaoSituacao === 'Dispositivo Adicionado') {
     (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+    if (modo) {
+      (novo.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+    }
   }
   if (isArtigo(novo)) {
     (novo as Artigo).caput!.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
@@ -79,16 +82,16 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   return novo;
 };
 
-const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dispositivo[] => {
+const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo: string | undefined): Dispositivo[] => {
   const primeiroElemento = elementos.shift();
 
   const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!);
-  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
+  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!, modo);
 
   const novos: Dispositivo[] = [primeiro];
   elementos?.forEach(filho => {
     const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoPaiFromElemento(articulacao, filho);
-    const novo = redodDispositivoExcluido(filho, parent!);
+    const novo = redodDispositivoExcluido(filho, parent!, modo);
     novos.push(novo);
   });
 
@@ -101,7 +104,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
 
     const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
-    const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos);
+    const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos, state.modo);
     pai?.renumeraFilhos();
 
     if (novosEvento) {
