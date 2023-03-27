@@ -221,7 +221,7 @@ export class ReferenciaDispositivoParser {
   private regexAlinea = `(al[ií]nea|al[ií])\\s([a-z]+${this.regexEncaixe})`;
   private regexItem = `(item)\\s(\\d+${this.regexEncaixe})`;
 
-  private regex = `^(?:(?:(?:(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s))?(?:${this.regexInciso}\\s))?(?:${this.regexParagrafo}\\s)?)?(?:${this.regexArtigo})`;
+  private regex = `^(?:(?:(?:(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s))?(?:${this.regexInciso}\\s))?(?:${this.regexParagrafo}\\s)?)?(?:${this.regexArtigo})$`;
 
   constructor(private texto) {
     this.parse();
