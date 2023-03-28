@@ -98,7 +98,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   <sl-alert variant="warning" closable class="alert-closable">
     <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
     <strong>Dados inválidos.</strong><br/>
-    Revise os dados informados.
+    <span>Revise os dados informados.</span>
   </sl-alert>
   <sl-button slot="footer" variant="default">Cancelar</sl-button>
   <sl-button slot="footer" variant="primary">Ok</sl-button>
@@ -120,7 +120,13 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   const cancelar = botoes[0];
   const ok = botoes[1];
   const alerta = content.querySelector('sl-alert');
-  const alertaMessage = alerta!.querySelector('strong');
+  const alertaMensagem = alerta!.querySelector('strong');
+  const alertaComplemento = alerta!.querySelector('span');
+
+  const preencheAlerta = (mensagem = 'Dados inválidos.', complemento = 'Revise os dados informados.'): void => {
+    alertaMensagem!['innerHTML'] = mensagem;
+    alertaComplemento!['innerHTML'] = complemento;
+  };
 
   informarDataCompleta!['onclick'] = (): void => {
     anoNorma!['disabled'] = true;
@@ -145,6 +151,8 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
 
     const d = (dispositivos as HTMLInputElement)?.value;
 
+    preencheAlerta();
+
     if (dataNorma!['value']) {
       const [ano, mes, dia] = (dataNorma as HTMLInputElement)?.value.split('-');
       const dataFormatada = [dia, mes, ano].join('/');
@@ -160,20 +168,25 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
           : undefined;
     }
 
-    let ref;
-    let erroRef = false;
-    if (d && d.length > 0) {
+    let temErro = false;
+    if (!urn || !validaUrn(urn)) {
+      preencheAlerta('Dados inválidos', 'Complete a identificação da norma a ser alterada.');
+      temErro = true;
+    } else if (d && d.length > 0) {
       try {
-        ref = validaDispositivoAssistente(d);
+        validaDispositivoAssistente(d);
       } catch (err) {
         console.log('erro', err);
-        console.log(alertaMessage);
-        alertaMessage!['innerHTML'] = 'O Dispositivo da norma informado esta incorreto';
-        erroRef = true;
+        console.log(alertaMensagem);
+        preencheAlerta('Dispositivo da norma não identificado.', 'Informe apenas um dispositivo em um dos formatos acima. Depois será possível alterar outros dispositivos.');
+        temErro = true;
       }
+    } else {
+      preencheAlerta('Informe o dispositivo da norma a ser alterada.', 'Informe apenas um dispositivo em um dos formatos acima. Depois será possível alterar outros dispositivos.');
+      temErro = true;
     }
 
-    if (erroRef === false && ((urn && validaUrn(urn)) || (ref !== undefined && ref !== ''))) {
+    if (!temErro) {
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();
