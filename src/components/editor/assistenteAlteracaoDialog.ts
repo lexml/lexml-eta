@@ -5,6 +5,7 @@ import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserR
 
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
+
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Assistente de alteração de norma';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
@@ -96,7 +97,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   <br/>
   <sl-alert variant="warning" closable class="alert-closable">
     <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>Dados inválidos. </strong><br/>
+    <strong>Dados inválidos.</strong><br/>
     Revise os dados informados.
   </sl-alert>
   <sl-button slot="footer" variant="default">Cancelar</sl-button>
@@ -119,6 +120,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   const cancelar = botoes[0];
   const ok = botoes[1];
   const alerta = content.querySelector('sl-alert');
+  const alertaMessage = alerta!.querySelector('strong');
 
   informarDataCompleta!['onclick'] = (): void => {
     anoNorma!['disabled'] = true;
@@ -140,6 +142,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
 
   ok.onclick = (): void => {
     let urn;
+
     const d = (dispositivos as HTMLInputElement)?.value;
 
     if (dataNorma!['value']) {
@@ -158,15 +161,19 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     }
 
     let ref;
+    let erroRef = false;
     if (d && d.length > 0) {
       try {
         ref = validaDispositivoAssistente(d);
       } catch (err) {
         console.log('erro', err);
+        console.log(alertaMessage);
+        alertaMessage!['innerHTML'] = 'O Dispositivo da norma informado esta incorreto';
+        erroRef = true;
       }
     }
 
-    if ((urn && validaUrn(urn)) || (ref !== undefined && ref !== '')) {
+    if (erroRef === false && ((urn && validaUrn(urn)) || (ref !== undefined && ref !== ''))) {
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();
