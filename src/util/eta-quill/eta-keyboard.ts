@@ -419,6 +419,10 @@ export class EtaKeyboard extends Keyboard {
 
   private verificaSelecaoComLink(): boolean {
     const range: RangeStatic = this.quill.getSelection(true);
+    if (!range) {
+      return false;
+    }
+
     let iniciaOuTerminaComLink = false;
     const ops = this.quill.getContents(range).ops;
     if (ops[0]?.attributes?.link || ops[ops.length - 1]?.attributes?.link) {

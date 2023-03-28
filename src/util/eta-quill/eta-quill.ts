@@ -411,7 +411,7 @@ export class EtaQuill extends Quill {
     const range: RangeStatic = this.getSelection(true);
     if (range) {
       const ops = this.getContents(range.index + deslocamento, 1).ops;
-      return !ops ? false : ops[0].attributes?.link;
+      return !ops || !ops[0] ? false : ops[0].attributes?.link;
     }
     return false;
   }
