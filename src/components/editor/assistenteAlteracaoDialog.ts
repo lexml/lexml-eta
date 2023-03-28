@@ -176,8 +176,6 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       try {
         validaDispositivoAssistente(d);
       } catch (err) {
-        console.log('erro', err);
-        console.log(alertaMensagem);
         preencheAlerta('Dispositivo da norma não identificado.', 'Informe apenas um dispositivo em um dos formatos acima. Depois será possível alterar outros dispositivos.');
         temErro = true;
       }
