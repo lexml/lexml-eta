@@ -5,6 +5,7 @@ import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserR
 
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
+
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Assistente de alteração de norma';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
@@ -96,8 +97,8 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   <br/>
   <sl-alert variant="warning" closable class="alert-closable">
     <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
-    <strong>Dados inválidos. </strong><br/>
-    Revise os dados informados.
+    <strong>Dados inválidos.</strong><br/>
+    <span>Revise os dados informados.</span>
   </sl-alert>
   <sl-button slot="footer" variant="default">Cancelar</sl-button>
   <sl-button slot="footer" variant="primary">Ok</sl-button>
@@ -119,6 +120,13 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   const cancelar = botoes[0];
   const ok = botoes[1];
   const alerta = content.querySelector('sl-alert');
+  const alertaMensagem = alerta!.querySelector('strong');
+  const alertaComplemento = alerta!.querySelector('span');
+
+  const preencheAlerta = (mensagem = 'Dados inválidos.', complemento = 'Revise os dados informados.'): void => {
+    alertaMensagem!['innerHTML'] = mensagem;
+    alertaComplemento!['innerHTML'] = complemento;
+  };
 
   informarDataCompleta!['onclick'] = (): void => {
     anoNorma!['disabled'] = true;
@@ -140,7 +148,10 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
 
   ok.onclick = (): void => {
     let urn;
+
     const d = (dispositivos as HTMLInputElement)?.value;
+
+    preencheAlerta();
 
     if (dataNorma!['value']) {
       const [ano, mes, dia] = (dataNorma as HTMLInputElement)?.value.split('-');
@@ -157,16 +168,23 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
           : undefined;
     }
 
-    let ref;
-    if (d && d.length > 0) {
+    let temErro = false;
+    if (!urn || !validaUrn(urn)) {
+      preencheAlerta('Dados inválidos', 'Complete a identificação da norma a ser alterada.');
+      temErro = true;
+    } else if (d && d.length > 0) {
       try {
-        ref = validaDispositivoAssistente(d);
+        validaDispositivoAssistente(d);
       } catch (err) {
-        console.log('erro', err);
+        preencheAlerta('Dispositivo da norma não identificado.', 'Informe apenas um dispositivo em um dos formatos acima. Depois será possível alterar outros dispositivos.');
+        temErro = true;
       }
+    } else {
+      preencheAlerta('Informe o dispositivo da norma a ser alterada.', 'Informe apenas um dispositivo em um dos formatos acima. Depois será possível alterar outros dispositivos.');
+      temErro = true;
     }
 
-    if ((urn && validaUrn(urn)) || (ref !== undefined && ref !== '')) {
+    if (!temErro) {
       quill.focus();
       alerta?.hide();
       dialogElem?.hide();

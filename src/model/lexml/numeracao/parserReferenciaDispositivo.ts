@@ -7,7 +7,6 @@ import { validaDispositivo } from '../dispositivo/dispositivoValidator';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { buildId } from '../util/idUtil';
-import { isLetra, isRomano } from './numeracaoUtil';
 
 export interface ReferenciaDispositivo {
   tipo: Tipo;
@@ -124,7 +123,7 @@ const identificaTipo = (texto: string): Tipo | undefined => {
     return TipoDispositivo.paragrafo;
   }
 
-  return TipoDispositivo.generico;
+  return;
 };
 
 export const buildReferencia = (texto: string, tipoDispositivo?: Tipo): ReferenciaDispositivo => {
@@ -149,58 +148,113 @@ export const buildReferencia = (texto: string, tipoDispositivo?: Tipo): Referenc
   return { tipo, numero: undefined };
 };
 
-const normaliza = (p: string[]): string[] => {
-  for (let i = 0; i < p.length - 1; i += 2) {
-    const tipo = identificaTipo(p[i]);
+// const normaliza = (p: string[]): string[] => {
+//   for (let i = 0; i < p.length - 1; i += 2) {
+//     const tipo = identificaTipo(p[i]);
 
-    if (tipo === TipoDispositivo.generico) {
-      if (isRomano(p[i][0].trim())) {
-        p.splice(i, 0, 'inciso');
-      } else if (isLetra(p[i][0].trim())) {
-        p.splice(i, 0, 'alinea');
-      } else {
-        p.splice(i, 0, 'generico');
-      }
-      continue;
-    }
-  }
-  return p;
-};
+//     if (tipo === TipoDispositivo.generico) {
+//       if (isRomano(p[i][0].trim())) {
+//         p.splice(i, 0, 'inciso');
+//       } else if (isLetra(p[i][0].trim())) {
+//         p.splice(i, 0, 'alinea');
+//       } else {
+//         p.splice(i, 0, 'generico');
+//       }
+//       continue;
+//     }
+//   }
+//   return p;
+// };
 
 export const identificaReferencias = (texto: string): ReferenciaDispositivo[] | undefined => {
-  let p = texto
-    .replace(',', '')
-    .replace('º', '')
-    .replace(/\s+d[ao]+\s+/gi, ' ')
-    .replace(/\s*caput\s*/, ' ')
-    .split(' ')
-    .filter(e => e.length !== 0);
+  const resultParser = new ReferenciaDispositivoParser(texto);
+  if (resultParser.valido) {
+    return resultParser.referencias;
+  }
+  return undefined;
+  // let p = texto
+  //   .replace(',', '')
+  //   .replace('º', '')
+  //   .replace(/\s+d[ao]+\s+/gi, ' ')
+  //   .replace(/\s*caput\s*/, ' ')
+  //   .split(' ')
+  //   .filter(e => e.length !== 0);
 
-  p = normaliza(p);
+  // p = normaliza(p);
 
-  const resultado: ReferenciaDispositivo[] = [];
+  // const resultado: ReferenciaDispositivo[] = [];
 
-  for (let i = 0, j = 1; i < p.length - 1, j <= p.length - 1; i += 2, j += 2) {
-    const tipo = identificaTipo(p[i]);
+  // for (let i = 0, j = 1; i < p.length - 1, j <= p.length - 1; i += 2, j += 2) {
+  //   const tipo = identificaTipo(p[i]);
 
-    if (!tipo) {
-      throw new Error(`Não pude identificar o tipo no texto informado: ${p[i]}`);
-    }
-    const r = regex.get(tipo.tipo);
+  //   if (!tipo) {
+  //     throw new Error(`Não pude identificar o tipo no texto informado: ${p[i]}`);
+  //   }
+  //   const r = regex.get(tipo.tipo);
 
-    if (!r) {
-      resultado.push({ tipo, numero: p[j] });
-      continue;
-    }
+  //   if (!r) {
+  //     resultado.push({ tipo, numero: p[j] });
+  //     continue;
+  //   }
 
-    const matches = `${p[i]} ${p[j]}`.match(r);
+  //   const matches = `${p[i]} ${p[j]}`.match(r);
 
-    if (matches && matches.length === 3) {
-      resultado.push({ tipo, numero: matches[2] });
-    } else {
-      resultado.push({ tipo, numero: undefined });
+  //   if (matches && matches.length === 3) {
+  //     resultado.push({ tipo, numero: matches[2] });
+  //   } else {
+  //     resultado.push({ tipo, numero: undefined });
+  //   }
+  // }
+
+  // return resultado;
+};
+
+export class ReferenciaDispositivoParser {
+  valido = false;
+
+  referencias: ReferenciaDispositivo[] = [];
+
+  private regexEncaixe = '(?:-[a-z]+){0,3}';
+  private regexArtigo = `(art|artigo)\\s([uú]nico|\\d+${this.regexEncaixe})`;
+  private regexParagrafo = `(§|par[aá]grafo|par)\\s([uú]nico|\\d+${this.regexEncaixe})`;
+  private regexInciso = `(inciso|inc)\\s([uú]nico|X{0,3}(?:IX|IV|[XV]?I{0,3})${this.regexEncaixe})`;
+  private regexAlinea = `(al[ií]nea|al[ií])\\s([a-z]+${this.regexEncaixe})`;
+  private regexItem = `(item)\\s(\\d+${this.regexEncaixe})`;
+
+  private regex = `^(?:(?:(?:(?:${this.regexItem}\\s)?(?:${this.regexAlinea}\\s))?(?:${this.regexInciso}\\s))?(?:${this.regexParagrafo}\\s)?)?(?:${this.regexArtigo})$`;
+
+  constructor(private texto) {
+    this.parse();
+  }
+
+  private parse(): void {
+    this.preparaTexto();
+
+    const execArray = new RegExp(this.regex, 'gi').exec(this.texto);
+
+    if (execArray) {
+      this.valido = true;
+      const p = execArray.slice(1).filter(s => s !== undefined);
+
+      for (let i = 0, j = 1; i < p.length - 1, j <= p.length - 1; i += 2, j += 2) {
+        const tipo = identificaTipo(p[i]);
+
+        if (!tipo) {
+          throw new Error(`Não pude identificar o tipo no texto informado: ${p[i]}`);
+        }
+        this.referencias.push({ tipo, numero: p[j] });
+      }
     }
   }
 
-  return resultado;
-};
+  private preparaTexto(): void {
+    this.texto = this.texto
+      .toLowerCase()
+      .replace(/[º°\\.]/g, '')
+      .replace(/[,;]/g, ' ')
+      .replace(/\sd[ao]\s/g, ' ')
+      .replace(/\scaput\s/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+}
