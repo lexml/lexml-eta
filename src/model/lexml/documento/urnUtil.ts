@@ -54,7 +54,7 @@ export const getData = (urn: string): string => {
 };
 
 export const getDataPorExtenso = (urn: string): string => {
-  const mes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const mes = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
 
