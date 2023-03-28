@@ -1,5 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { isCapitulo, isLivro, isParte, isTitulo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -17,12 +18,21 @@ const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): b
   return textoAtual !== dispositivo.texto && textoAtual !== textoOriginal;
 };
 
+const isTextoMaiusculo = (dispositivo?: Dispositivo): boolean => {
+  if (dispositivo === undefined) {
+    return false;
+  }
+  return isCapitulo(dispositivo) || isParte(dispositivo) || isLivro(dispositivo) || isTitulo(dispositivo);
+};
+
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
-  const textoAtual = action.atual?.conteudo?.texto;
-  const dispositivoOriginalNovamente = dispositivo && dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto === textoAtual;
+  const textoMaiusculo = isTextoMaiusculo(dispositivo);
+  const textoDispositivo = action.atual?.conteudo?.texto;
+  const textoAtual = textoMaiusculo ? textoDispositivo?.toUpperCase() : textoDispositivo;
+  const dispositivoOriginalNovamente = dispositivo && dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto === textoDispositivo;
 
-  if (dispositivo === undefined || dispositivo.texto === action.atual.conteudo.texto) {
+  if (dispositivo === undefined || dispositivo.texto === textoDispositivo) {
     state.ui.events = [];
     return state;
   }

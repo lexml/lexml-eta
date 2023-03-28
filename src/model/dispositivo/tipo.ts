@@ -62,6 +62,22 @@ export const isOmissis = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.omissis.tipo;
 };
 
+export const isLivro = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.livro.tipo;
+};
+
+export const isTitulo = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.titulo.tipo;
+};
+
+export const isParte = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.parte.tipo;
+};
+
+export const isCapitulo = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.capitulo.tipo;
+};
+
 export const isAgrupador = (dispositivo: Dispositivo): boolean => {
   return [
     TipoDispositivo.articulacao.tipo,
