@@ -1,6 +1,4 @@
 import { connect } from 'pwa-helpers';
-import { Elemento } from '../../model/elemento';
-import { adicionarElementoFromClipboardAction } from '../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { rootStore } from '../../redux/store';
 import { cancelarPropagacaoDoEvento } from '../event-util';
 import { Observable } from '../observable';
@@ -15,6 +13,7 @@ const isXmlFormat = (content: any): boolean => content && content.includes && st
 
 export class EtaClipboard extends connect(rootStore)(Clipboard) {
   onChange: Observable<string> = new Observable<string>();
+  onPasteTextoArticulado: Observable<any> = new Observable<any>();
 
   constructor(quill: EtaQuill, options: any) {
     super(quill, options);
@@ -25,17 +24,6 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
         return;
       }
       const text = document.getSelection()?.toString();
-      if (text) {
-        this.onChange.notify('clipboard');
-      }
-    });
-
-    this.quill.root.addEventListener('paste', (ev: ClipboardEvent) => {
-      if (this.quill.cursorDeTextoEstaSobreLink()) {
-        cancelarPropagacaoDoEvento(ev);
-        return;
-      }
-      const text = ev.clipboardData?.getData('text/plain');
       if (text) {
         this.onChange.notify('clipboard');
       }
@@ -61,12 +49,20 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
   }
 
   onPaste(e: ClipboardEvent): void {
+    if (this.quill.cursorDeTextoEstaSobreLink()) {
+      cancelarPropagacaoDoEvento(e);
+      return;
+    }
+
     e.preventDefault();
+
+    const textoClipboard = e?.clipboardData?.getData('text/plain');
+
     const range = this.quill.getSelection();
     let html = e?.clipboardData?.getData('text/html');
 
     if (isXmlFormat(html)) {
-      html = e?.clipboardData?.getData('text/plain');
+      html = textoClipboard;
     }
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
@@ -85,7 +81,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
 
       let text = '';
       const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
-      const walkDOM = (node, func) => {
+      const walkDOM = (node, func): void => {
         func(node);
         node = node.firstChild;
         while (node) {
@@ -93,7 +89,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
           node = node.nextSibling;
         }
       };
-      walkDOM(parser, function (node) {
+      walkDOM(parser, function (node: any) {
         if (allowedTags.includes(node.tagName)) {
           text += node.outerHTML;
         } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
@@ -101,17 +97,22 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
         }
       });
       if (text !== undefined && this.hasRotulo(text)) {
-        this.adicionaDispositivos(text);
+        this.adicionaDispositivos(textoClipboard!, text, range);
         return;
       }
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
-    } else if (e.clipboardData?.getData('text/plain')) {
-      const texto = e.clipboardData!.getData('text/plain');
-      if (texto.trim() !== '' && this.hasRotulo(texto)) {
-        this.adicionaDispositivos(texto);
+      if (text) {
+        this.onChange.notify('clipboard');
+      }
+    } else if (textoClipboard) {
+      if (textoClipboard.trim() !== '' && this.hasRotulo(textoClipboard)) {
+        this.adicionaDispositivos(textoClipboard, textoClipboard, range);
         return;
       }
-      this.quill.clipboard.dangerouslyPasteHTML(range.index, e.clipboardData?.getData('text/plain'));
+      this.quill.clipboard.dangerouslyPasteHTML(range.index, textoClipboard);
+      if (textoClipboard) {
+        this.onChange.notify('clipboard');
+      }
     }
   }
 
@@ -121,28 +122,16 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/["“']/g, '')
       .trim();
 
-    if (t && t.length > 0 && /^(art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)).*/i.test(t)) {
+    const regexRotulo = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[cç][aã]o|subse[cç][aã]o|art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)).*/i;
+
+    if (t && t.length > 0 && regexRotulo.test(t)) {
       return true;
     }
 
     return false;
   }
 
-  private adicionaDispositivos(texto: string): Promise<any> {
-    const linha = this.quill.linhaAtual;
-    const elemento: Elemento = new Elemento();
-    elemento.uuid = linha.uuid;
-    elemento.tipo = linha.tipo;
-
-    const options = {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: texto,
-    };
-
-    return fetch('https://www6ghml.senado.leg.br/editor-emendas/api/parser/jsonix', options)
-      .then(response => response.json())
-      .then(response => rootStore.dispatch(adicionarElementoFromClipboardAction.execute(elemento, response)))
-      .catch(err => console.error(err));
+  private adicionaDispositivos(textoColadoOriginal: string, textoColadoAjustado: string, range: any): void {
+    this.onPasteTextoArticulado.notify({ textoColadoOriginal, textoColadoAjustado, range });
   }
 }

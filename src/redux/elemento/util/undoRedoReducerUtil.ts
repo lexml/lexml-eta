@@ -123,7 +123,8 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
       novosEvento.referencia = evento.referencia;
     }
 
-    return novos.map(n => createElemento(n));
+    const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
+    return novos.map(n => createElemento(n, true, procurarElementoAnterior));
   }
   return [];
 };

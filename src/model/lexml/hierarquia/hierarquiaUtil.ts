@@ -525,8 +525,20 @@ export const isOriginal = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
 };
 
+export const isAdicionado = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
+};
+
+export const isModificado = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO;
+};
+
+export const isSuprimido = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
+};
+
 export const isModificadoOuSuprimido = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
+  return isModificado(dispositivo) || isSuprimido(dispositivo);
 };
 
 export const getSomenteFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): Dispositivo[] => {

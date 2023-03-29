@@ -1,4 +1,4 @@
-import { isEmendaArtigoOndeCouber } from './../lexml/hierarquia/hierarquiaUtil';
+import { isEmendaArtigoOndeCouber, isAdicionado, getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
@@ -61,7 +61,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   };
 };
 
-export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento => {
+export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarElementoAnterior = false): Elemento => {
   const pai = dispositivo.pai!;
   const fechaAspas = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
   let notaAlteracao: string | undefined;
@@ -71,6 +71,19 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
     notaAlteracao = cabecaAlteracao.notaAlteracao;
     podeEditarNotaAlteracao = cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+  }
+
+  let elementoAnteriorNaSequenciaDeLeitura: Elemento | undefined;
+
+  if (procurarElementoAnterior) {
+    const dispositivoAnteriorNaSequenciaDeLeitura = getDispositivoAnteriorNaSequenciaDeLeitura(dispositivo);
+    if (dispositivoAnteriorNaSequenciaDeLeitura) {
+      elementoAnteriorNaSequenciaDeLeitura = createElemento(
+        isCaput(dispositivoAnteriorNaSequenciaDeLeitura) || isArticulacaoAlteracao(dispositivoAnteriorNaSequenciaDeLeitura)
+          ? dispositivoAnteriorNaSequenciaDeLeitura.pai!
+          : dispositivoAnteriorNaSequenciaDeLeitura
+      );
+    }
   }
 
   return {
@@ -92,8 +105,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
       texto: dispositivo.texto,
     },
     norma: dispositivo.alteracoes?.base,
-    existeNaNormaAlterada:
-      dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    existeNaNormaAlterada: isAdicionado(dispositivo) ? (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
@@ -106,6 +118,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true): Elemento
     podeEditarNotaAlteracao,
     tiposAgrupadoresQuePodemSerInseridosAntes: getTiposAgrupadoresQuePodemSerInseridosAntes(dispositivo),
     tiposAgrupadoresQuePodemSerInseridosDepois: getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo),
+    artigoDefinido: dispositivo.artigoDefinido,
+    elementoAnteriorNaSequenciaDeLeitura,
   };
 };
 

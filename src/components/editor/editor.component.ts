@@ -1,3 +1,6 @@
+import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
+
+import { InfoTextoColado } from './../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
@@ -12,7 +15,6 @@ import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -63,7 +65,6 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -603,6 +604,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.SituacaoElementoModificada:
+          this.atualizarQuill(event);
           this.atualizarSituacao(event);
           this.atualizarAtributos(event);
           this.atualizarMensagemQuill(event);
@@ -670,7 +672,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento, selecionarLinha?: boolean): void {
-    const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(referencia.uuid!);
+    const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia.uuid!);
 
     if (linhaRef) {
       const novaLinha: EtaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
@@ -933,6 +935,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.observableSelectionChange.subscribe(this.atualizarTextoElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(this.quill.clipboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
+    this.inscricoes.push(onChangeColarDialog.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
+    this.inscricoes.push(this.quill.clipboard.onPasteTextoArticulado.subscribe(this.onPasteTextoArticulado.bind(this)));
 
     editorHtml.addEventListener('rotulo', (event: any) => {
       event.stopImmediatePropagation();
@@ -1142,7 +1146,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const alert = Object.assign(document.createElement('sl-alert'), {
       variant: 'danger',
       closable: true,
-      duration: 3000,
+      duration: 4000,
       innerHTML: `
         <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
         ${mensagem}
@@ -1183,5 +1187,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.destroi();
     }
     this._quill = undefined;
+  }
+
+  private async onPasteTextoArticulado(payload: any): Promise<void> {
+    const linha = this.quill.linhaAtual;
+    const elemento: Elemento = new Elemento();
+    elemento.uuid = linha.uuid;
+    elemento.tipo = linha.tipo;
+
+    const infoTextoColado = await InfoTextoColado.newInstanceFromTexto(
+      payload.textoColadoOriginal,
+      payload.textoColadoAjustado,
+      rootStore.getState().elementoReducer.articulacao,
+      linha.elemento
+    );
+    colarTextoArticuladoDialog(this.quill, rootStore, infoTextoColado, payload.range);
   }
 }

@@ -133,6 +133,7 @@ declare interface ClipboardStatic {
   dangerouslyPasteHTML(html: string, source?: Sources): void;
   dangerouslyPasteHTML(index: number, html: string, source?: Sources): void;
   onChange: any;
+  onPasteTextoArticulado: any;
 }
 
 declare interface QuillOptionsStatic {

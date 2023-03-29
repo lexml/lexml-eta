@@ -37,4 +37,6 @@ export class Elemento extends Referencia {
   manterNoMesmoGrupoDeAspas?: boolean;
   tiposAgrupadoresQuePodemSerInseridosAntes?: string[];
   tiposAgrupadoresQuePodemSerInseridosDepois?: string[];
+  artigoDefinido?: string;
+  elementoAnteriorNaSequenciaDeLeitura?: Elemento;
 }

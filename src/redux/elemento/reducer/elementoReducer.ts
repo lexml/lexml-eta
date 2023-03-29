@@ -35,7 +35,6 @@ import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerE
 import { abreArticulacao } from './abreArticulacao';
 import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente';
 import { adicionaElemento } from './adicionaElemento';
-import { adicionaElementosFromClipboard } from './adicionaElementosFromClipboard';
 import { adicionarAlerta as adicionaAlerta } from './adicionarAlerta';
 import { agrupaElemento } from './agrupaElemento';
 import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
@@ -64,6 +63,7 @@ import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
+import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosNaProposicaoFromClipboard';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -88,7 +88,7 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ADICIONAR_ELEMENTO:
       return adicionaElemento(state, action);
     case ADICIONAR_ELEMENTOS_FROM_CLIPBOARD:
-      return adicionaElementosFromClipboard(state, action);
+      return adicionaElementosNaProposicaoFromClipboard(state, action);
     case AGRUPAR_ELEMENTO:
       return agrupaElemento(state, action);
     case TRANSFORMAR_TIPO_ELEMENTO:
