@@ -271,12 +271,12 @@ export const validarArticulacaoColadaAnaliseInicial = (articulacaoColada: Articu
 };
 
 const isArticulacaoInconsistente = (articulacao: Articulacao): boolean => {
-  const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
+  const dispositivos = getDispositivoAndFilhosAsLista(articulacao).slice(1);
   return dispositivos.some(d => isDispositivoInconsistente(d));
 };
 
 const isDispositivoInconsistente = (dispositivo: Dispositivo): boolean => {
-  return !isArticulacao(dispositivo) && !dispositivo.pai?.tiposPermitidosFilhos?.includes(dispositivo.tipo);
+  return !dispositivo.pai?.tiposPermitidosFilhos?.includes(dispositivo.tipo) && !isOmissis(dispositivo);
 };
 
 const getTextoInconsistencia = (dispositivos: Dispositivo[]): string => {
