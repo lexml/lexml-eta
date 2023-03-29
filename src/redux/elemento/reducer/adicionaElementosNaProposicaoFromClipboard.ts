@@ -335,7 +335,7 @@ const colarDispositivoAdicionando = (
     referencia.pai?.addFilhoOnPosition(dColado, referencia.pai!.indexOf(referencia) + (posicao === 'antes' ? 0 : 1));
   }
 
-  if (dColado.texto.match(REGEX_OMISSIS)) {
+  if (dColado.texto.match(REGEX_OMISSIS) && !isColandoEmAlteracaoDeNorma) {
     dColado.texto = '';
   }
 
