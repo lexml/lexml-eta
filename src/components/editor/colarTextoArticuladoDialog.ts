@@ -403,6 +403,9 @@ enum TipoSubstantivoEnum {
  * Retorna o nome do dispositivo no singular ou plural
  */
 const getNomeDispositivo = (tipoSubstantivo: TipoSubstantivoEnum, infoTextoColado: InfoTextoColado): string => {
+  if (infoTextoColado.infoElementos.tiposColados.includes('DispositivoAgrupadorGenerico')) {
+    return '';
+  }
   const dispositivo = infoTextoColado.infoElementos.tiposColados[0].toLowerCase();
   return tipoSubstantivo === TipoSubstantivoEnum.PLURAL ? TipoDispositivo[dispositivo].descricaoPlural!.toLowerCase() : TipoDispositivo[dispositivo].descricao!.toLowerCase();
 };

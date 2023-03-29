@@ -1,12 +1,11 @@
-import { isDispositivoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from './../../../model/elemento/elementoUtil';
-import { isArticulacao, isCaput, Tipo } from './../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isCaput, Tipo } from './../../../model/dispositivo/tipo';
 import { buildDispositivoFromJsonix } from './../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { Elemento } from './../../../model/elemento/elemento';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo, isInciso, isOmissis } from '../../../model/dispositivo/tipo';
-import { getArticulacao, getDispositivoAndFilhosAsLista, hasAgrupador, irmaosMesmoTipo, isModificadoOuSuprimido } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getArticulacao, getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo, isModificadoOuSuprimido } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { removeAllHtmlTags } from '../../../util/string-util';
@@ -68,7 +67,7 @@ export class InfoTextoColado {
   posicao: string;
   isColarSubstituindo = true;
   podeColarAntes: boolean;
-  infoDispositivos: InfoDispositivos;
+  private infoDispositivos: InfoDispositivos;
   infoElementos: InfoElementos;
   tipoColado: Tipo;
   restricoes: Restricao[];
@@ -162,7 +161,7 @@ export class InfoTextoColado {
   }
 
   private montarRestricoes = (): Restricao[] => {
-    return [...validarArticulacaoColadaAnaliseInicial(this.articulacaoColada), ...validarArticulacaoColadaAnaliseContextualizada(this)];
+    return [...validarArticulacaoColadaAnaliseInicial(this.articulacaoColada), ...validarArticulacaoColadaAnaliseContextualizada(this, this.infoDispositivos)];
   };
 
   public atualizarAtributosEAnaliseContextualizada(isColarSubstituindo: boolean, posicao: string): void {
@@ -178,7 +177,7 @@ export class InfoTextoColado {
 
     this.restricoes = this.restricoes.filter(r => tiposRestricoesAnaliseInicial.includes(r.tipo));
 
-    this.restricoes.push(...validarArticulacaoColadaAnaliseContextualizada(this));
+    this.restricoes.push(...validarArticulacaoColadaAnaliseContextualizada(this, this.infoDispositivos));
   }
 }
 
@@ -257,17 +256,23 @@ export const validarArticulacaoColadaAnaliseInicial = (articulacaoColada: Articu
   }
 
   if (isArticulacaoInconsistente(articulacaoColada)) {
+    const mensagens = [
+      'Não foi possível identificar, corretamente, os dispositivos no texto a ser colado.',
+      getTextoInconsistencia(getDispositivoAndFilhosAsLista(articulacaoColada)),
+      'Por favor, verifique se o texto está correto e tente novamente.',
+    ].filter(Boolean);
+
     result.push({
       tipo: TipoRestricaoEnum.ARTICULACAO_INCONSISTENTE,
-      mensagens: [
-        'Não foi possível identificar, corretamente, os dispositivos no texto a ser colado.',
-        getTextoInconsistencia(getDispositivoAndFilhosAsLista(articulacaoColada)),
-        'Por favor, verifique se o texto está correto e tente novamente.',
-      ],
+      mensagens,
     });
   }
 
   return result;
+};
+
+const hasAgrupador = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.filhos.filter(a => isAgrupador(a) && a.tipo !== 'DispositivoAgrupadorGenerico').length > 0;
 };
 
 const isArticulacaoInconsistente = (articulacao: Articulacao): boolean => {
@@ -281,8 +286,8 @@ const isDispositivoInconsistente = (dispositivo: Dispositivo): boolean => {
 
 const getTextoInconsistencia = (dispositivos: Dispositivo[]): string => {
   const dispositivo = dispositivos.find(d => isDispositivoInconsistente(d));
-  if (dispositivo) {
-    const pai = isCaput(dispositivo.pai!) ? dispositivo.pai!.pai : dispositivo.pai;
+  if (dispositivo && dispositivo.pai) {
+    const pai = isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai;
     const tiposPermitidos = pai?.tiposPermitidosFilhos?.map(t => TipoDispositivo[t.toLowerCase()].descricao?.toLowerCase());
     return `O dispositivo "${dispositivo.rotulo}" não pode ser colado como filho de "${pai?.rotulo}" pois o tipo do dispositivo é ${TipoDispositivo[
       dispositivo.tipo.toLowerCase()
@@ -296,11 +301,15 @@ const existeDispositivoComRotuloDuplicado = (articulacaoColada: Articulacao): bo
   return rotulos.length > new Set(rotulos).size;
 };
 
-const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTextoColado): Restricao[] => {
+const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTextoColado, infoDispositivos: InfoDispositivos): Restricao[] => {
   const result: Restricao[] = [];
 
   const { textoColadoAjustado, articulacaoColada, articulacaoProposicao, tipoColado, isColarSubstituindo, posicao } = infoTextoColado;
-  const { atual, referencia, existentes: dispositivosExistentes } = infoTextoColado.infoDispositivos;
+  const { atual, referencia, existentes: dispositivosExistentes } = infoDispositivos;
+
+  if (infoTextoColado.infoElementos.tiposColados.includes('DispositivoAgrupadorGenerico')) {
+    return result;
+  }
 
   if (!articulacaoColada.filhos.length) {
     return result;
@@ -364,7 +373,7 @@ const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTex
     });
   }
 
-  if (isColandoArtigosComFilhosSobreArtigosComAlteracoes(infoTextoColado)) {
+  if (isColandoArtigosComFilhosSobreArtigosComAlteracoes(infoTextoColado, infoDispositivos)) {
     result.push({
       tipo: TipoRestricaoEnum.ARTIGO_COM_FILHOS_SOBRE_ARTIGO_COM_ALTERACOES,
       mensagens: ['Não é permitido adicionar incisos ou parágrafos a artigo que já possua alterações de norma'],
@@ -372,7 +381,7 @@ const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTex
     });
   }
 
-  if (isColandoArtigosComAlteracoesSobreArtigosComFilhos(infoTextoColado)) {
+  if (isColandoArtigosComAlteracoesSobreArtigosComFilhos(infoTextoColado, infoDispositivos)) {
     result.push({
       tipo: TipoRestricaoEnum.ARTIGO_COM_ALTERACOES_SOBRE_ARTIGO_COM_FILHOS,
       mensagens: ['Não é permitido adicionar alterações de norma a artigo que já possua incisos ou parágrafos'],
@@ -391,16 +400,12 @@ const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTex
   return result;
 };
 
-const isColandoArtigosComFilhosSobreArtigosComAlteracoes = (infoTextoColado: InfoTextoColado): boolean => {
-  return (
-    infoTextoColado.isColarSubstituindo && hasArtigosComAlteracoes(infoTextoColado.infoDispositivos.existentes) && hasArtigosComFilhos(infoTextoColado.articulacaoColada.filhos)
-  );
+const isColandoArtigosComFilhosSobreArtigosComAlteracoes = (infoTextoColado: InfoTextoColado, infoDispositivos: InfoDispositivos): boolean => {
+  return infoTextoColado.isColarSubstituindo && hasArtigosComAlteracoes(infoDispositivos.existentes) && hasArtigosComFilhos(infoTextoColado.articulacaoColada.filhos);
 };
 
-const isColandoArtigosComAlteracoesSobreArtigosComFilhos = (infoTextoColado: InfoTextoColado): boolean => {
-  return (
-    infoTextoColado.isColarSubstituindo && hasArtigosComFilhos(infoTextoColado.infoDispositivos.existentes) && hasArtigosComAlteracoes(infoTextoColado.articulacaoColada.filhos)
-  );
+const isColandoArtigosComAlteracoesSobreArtigosComFilhos = (infoTextoColado: InfoTextoColado, infoDispositivos: InfoDispositivos): boolean => {
+  return infoTextoColado.isColarSubstituindo && hasArtigosComFilhos(infoDispositivos.existentes) && hasArtigosComAlteracoes(infoTextoColado.articulacaoColada.filhos);
 };
 
 const isColandoArtigoExistenteComMudancaDaNormaAlterada = (infoTextoColado: InfoTextoColado): boolean => {
