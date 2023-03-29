@@ -12,6 +12,7 @@ import { MPV_885_2019 } from '../doc/mpv_885_2019';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_1078_2021 } from '../doc/mpv_1078_2021';
+import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
@@ -24,6 +25,7 @@ const mapProjetosNormas = {
   mpv_1078_2021: MPV_1078_2021,
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
+  mpv_1160_2023: MPV_1160_2023,
   codcivil_completo: COD_CIVIL_COMPLETO,
   codcivil_parcial1: COD_CIVIL_PARCIAL1,
   codcivil_parcial2: COD_CIVIL_PARCIAL2,
@@ -278,6 +280,7 @@ export class DemoView extends LitElement {
             <option value="mpv_1078_2021">MP 1078, de 2021</option>
             <option value="mpv_1089_2021">MP 1089, de 2021</option>
             <option value="mpv_1100_2022">MP 1100, de 2022</option>
+            <option value="mpv_1160_2023">MP 1160, de 2022</option>
             <option value="codcivil_completo">Código Civil Completo</option>
             <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
