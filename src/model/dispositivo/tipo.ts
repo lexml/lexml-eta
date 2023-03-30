@@ -106,3 +106,10 @@ export const isDispositivoDeArtigo = (dispositivo: Dispositivo): boolean => {
 export const isEmenta = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.ementa.tipo;
 };
+
+export const isTextoMaiusculo = (dispositivo?: Dispositivo): boolean => {
+  if (dispositivo === undefined) {
+    return false;
+  }
+  return isCapitulo(dispositivo) || isParte(dispositivo) || isLivro(dispositivo) || isTitulo(dispositivo);
+};
