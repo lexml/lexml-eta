@@ -242,6 +242,11 @@ export const editorStyles = html`
       text-transform: uppercase;
     }
 
+    .elemento-tipo-secao .texto__dispositivo,
+    .elemento-tipo-subsecao .texto__dispositivo {
+      font-weight: bold;
+    }
+
     .container__menu {
       width: 30px;
       vertical-align: top;
