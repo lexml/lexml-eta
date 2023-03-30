@@ -16,6 +16,7 @@ import {
   getUltimoFilho,
   getDispositivoAnteriorNaSequenciaDeLeitura,
   isArticulacaoAlteracao,
+  isDispositivoCabecaAlteracao,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -341,7 +342,9 @@ const colarDispositivoAdicionando = (
 
   ajustaSituacaoDispositivoAdicionado(dColado, modo);
 
-  if (!isColandoEmAlteracaoDeNorma) {
+  if (isColandoEmAlteracaoDeNorma) {
+    dColado.notaAlteracao = isDispositivoCabecaAlteracao(dColado) ? 'NR' : undefined;
+  } else {
     removeOmissis(dColado);
   }
 
@@ -354,8 +357,11 @@ const colarDispositivoAdicionando = (
 
 const criaAtributosComunsAdicionado = (filho: Dispositivo, modo: ClassificacaoDocumento): void => {
   filho.situacao = new DispositivoAdicionado();
-  filho.isDispositivoAlteracao = false;
+  filho.isDispositivoAlteracao = isDispositivoAlteracao(filho);
   (filho.situacao as DispositivoAdicionado).tipoEmenda = modo;
+  if (filho.isDispositivoAlteracao && !isOmissis(filho)) {
+    (filho.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  }
 };
 
 const removeOmissis = (atual: Dispositivo): void => {
