@@ -170,6 +170,11 @@ const montaDialogo = (dialogColagem: DialogColagem): void => {
       .tiposColagem {
         font-weight: normal;
       }
+      sl-dialog::part(title) {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
     </style>
       <div class="tiposColagem">
         ${buildMessages(dialogColagem.mensagens)}
