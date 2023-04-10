@@ -60,9 +60,7 @@ describe('Testando carregamento da MPV 885/2019', () => {
     });
 
     it('Deveria possuir demais artigos com situação Dispositivo Original', () => {
-      expect(state.articulacao?.artigos.filter(a => a.id !== 'art1' && a.id !== 'art2').every(a => a.situacao.descricaoSituacao === 'Dispositivo Original')).to.equal(
-        'Dispositivo Modificado'
-      );
+      expect(state.articulacao?.artigos.filter(a => a.id !== 'art1' && a.id !== 'art2').every(a => a.situacao.descricaoSituacao === 'Dispositivo Original')).to.equal(true);
     });
   });
 

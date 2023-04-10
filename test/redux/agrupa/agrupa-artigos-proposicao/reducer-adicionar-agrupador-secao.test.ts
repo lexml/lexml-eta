@@ -50,7 +50,7 @@ describe('Testando a inclusão de agrupadores seção antes e depois a partir do
         it('Deveria possuir novos agrupadores cap1, cap1_sec1, cap1_sec0_sec1', () => {
           const cap1 = !!buscaDispositivoById(state.articulacao!, 'cap1');
           const secao1 = !!buscaDispositivoById(state.articulacao!, 'cap1_sec1');
-          const secao2 = !!buscaDispositivoById(state.articulacao!, 'sec1_sec2');
+          const secao2 = !!buscaDispositivoById(state.articulacao!, 'cap2_sec1');
 
           expect(cap1).to.be.true;
           expect(secao1).to.be.true;
