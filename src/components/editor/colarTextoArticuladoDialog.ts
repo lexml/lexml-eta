@@ -128,8 +128,13 @@ export const colarTextoArticuladoDialog = (quill: EtaQuill, rootStore: any, info
   dialogColagem.nomeDispositivoPlural = getNomeDispositivo(TipoSubstantivoEnum.PLURAL, dialogColagem.infoTextoColado);
   dialogColagem.isPrimeiroDialogoTipoColagem = isPrimeiroDialogoTipoColagem;
 
-  montaDialogoTipoColagem(dialogColagem);
-  dialogColagem.isPrimeiroDialogoTipoColagem = false;
+  if (infoTextoColado.infoElementos.novos.length > 1 || infoTextoColado.infoElementos.existentes.length > 1) {
+    executarValidacaoRestricao(dialogColagem);
+    dialogColagem.isPrimeiroDialogoTipoColagem = false;
+  } else {
+    montaDialogoTipoColagem(dialogColagem);
+    dialogColagem.isPrimeiroDialogoTipoColagem = false;
+  }
 };
 
 /**
