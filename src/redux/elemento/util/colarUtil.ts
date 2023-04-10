@@ -199,7 +199,7 @@ export class InfoTextoColado {
 // Retira a quebra de linha anterior ao texto que foi identificado como item (sem que houvesse um alínea antes)
 const ajustaFalsosItensParaParser = (texto: string, dispositivos: Dispositivo[]): string => {
   let textoAux = texto;
-  const lista = dispositivos.filter(d => isItem(d) && isCaput(d.pai!));
+  const lista = dispositivos.filter(d => isItem(d) && !isAlinea(d.pai!));
   lista.forEach(d => {
     const regex = new RegExp(`(\\n)(.*${d.numero}.*${escapeRegex(d.texto)})`, 'i');
     textoAux = textoAux.replace(regex, ' $2');
@@ -534,26 +534,32 @@ const numerarArtigosOndeCouber = (texto: string): string => {
 
 export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
   let html = htmlInicial
+    .replace(/<![^>]*>/g, '')
     .replace(/<p/g, '\n<p')
     .replace(/&nbsp;/g, ' ')
-    .replace(/(<p\s*)/gi, ' <p')
-    .replace(/(<br\s*\/>)/gi, ' ')
-    // .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+    .replace(/(<br\s*\/?>)/gi, ' ')
     .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
     .replace(/;[/s]?[e][/s]?$/, '; ')
     .replace(';', '; ')
     .replace(/^["“']/g, '')
-    .replace(/\r/g, '')
     .replace(/<\/?body[^>]*>/gi, '')
-    .normalize('NFKD');
+    .replace(/\r/g, '')
+    .replace(/\n+/g, '\n');
 
-  // const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
   const allowedTags = ['B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
 
   allowedTags.map(tag => tag.toLowerCase()).forEach(tag => (html = html.replace(new RegExp(`<${tag}[^>]*>`, 'gi'), `<${tag}>`)));
 
-  return removeAllHtmlTagsExcept(html, allowedTags)
-    .replace(/\\x3C!--(?:Start|End)Fragment-->/gi, '')
+  // Substitui tags "strong" por "b" e "em" por "i"
+  html = html.replace(/<(\/?)strong>/gi, '<$1b>').replace(/<(\/?)em(>)/gi, '<$1i>');
+
+  // Remove quebras de linha dentro de parágrafos
+  html = html.replace(/<p[^>]*>(?:.|\n)*?<\/p>/gi, s => s.replace(/\n/g, ' ')).replace(/[\t ]+/g, ' ');
+
+  html = removeAllHtmlTagsExcept(html, allowedTags)
     .replace(/<\/?p[^>]*>/g, '\n')
+    .replace(/\n+/g, '\n')
     .trim();
+
+  return html;
 };
