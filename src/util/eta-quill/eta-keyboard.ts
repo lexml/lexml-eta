@@ -28,24 +28,20 @@ export class EtaKeyboard extends Keyboard {
 
   listen(): void {
     this.quill.root.addEventListener('keyup', (ev: KeyboardEvent): void => {
-      if (ev.key === 'AltGraph') {
-        this.altGraphPressionado = false;
-      }
-
       // Trata atalhos de formatação (negrito, itálico, ...)
       if (ev.ctrlKey && !ev.altKey && !ev.shiftKey && 'biBI'.includes(ev.key)) {
         this.onHotKeyToolbar();
         return;
-      }
-
-      if (!(this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) && this.isTeclaQueAlteraTexto(ev)) {
-        this.onChange.notify('keyboard');
       }
     });
 
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       if (ev.key === 'AltGraph') {
         this.altGraphPressionado = true;
+      }
+
+      if (!(this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) && this.isTeclaQueAlteraTexto(ev)) {
+        this.onChange.notify('keyboard');
       }
 
       if (this.quill.cursorDeTextoEstaSobreLink() && this.quill.cursorDeTextoEstaSobreLink(-1) && !['Delete', 'Backspace'].includes(ev.key)) {
