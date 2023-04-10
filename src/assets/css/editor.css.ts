@@ -235,6 +235,18 @@ export const editorStyles = html`
       white-space: nowrap;
     }
 
+    .elemento-tipo-capitulo .texto__dispositivo,
+    .elemento-tipo-titulo .texto__dispositivo,
+    .elemento-tipo-livro .texto__dispositivo,
+    .elemento-tipo-parte .texto__dispositivo {
+      text-transform: uppercase;
+    }
+
+    .elemento-tipo-secao .texto__dispositivo,
+    .elemento-tipo-subsecao .texto__dispositivo {
+      font-weight: bold;
+    }
+
     .container__menu {
       width: 30px;
       vertical-align: top;
