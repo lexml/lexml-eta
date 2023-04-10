@@ -1,5 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { isTextoMaiusculo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -22,7 +23,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   const textoAtual = action.atual?.conteudo?.texto;
   const dispositivoOriginalNovamente = dispositivo && dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto === textoAtual;
 
-  if (dispositivo === undefined || dispositivo.texto === action.atual.conteudo.texto) {
+  if (dispositivo === undefined || dispositivo.texto === textoAtual) {
     state.ui.events = [];
     return state;
   }
@@ -45,6 +46,11 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   if (houveAlteracaoNoTextoAposAcao(dispositivo, action)) {
     eventosUi.add(StateType.ElementoModificado, [elemento]);
   }
+
+  if (isTextoMaiusculo(dispositivo)) {
+    dispositivo.texto = dispositivo.texto.toUpperCase();
+  }
+
   eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 

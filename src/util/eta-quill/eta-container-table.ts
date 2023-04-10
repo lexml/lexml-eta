@@ -311,6 +311,8 @@ export class EtaContainerTable extends Container {
   }
   private static getClasseCSS(elemento: Elemento): string {
     let classe = elemento.tipo === 'Articulacao' ? 'container__elemento--articulacao' : 'container__elemento--padrao';
+    classe = `${classe} elemento-tipo-${elemento.tipo?.toLowerCase()}`;
+
     if (elemento.agrupador) {
       classe = `${classe} agrupador`;
     } else if (elemento.tipo === 'Ementa') {
