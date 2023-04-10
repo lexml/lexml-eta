@@ -58,18 +58,16 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
 
     e.preventDefault();
 
+    let html = e?.clipboardData?.getData('text/html');
     const textoClipboard = e?.clipboardData?.getData('text/plain');
 
     const range = this.quill.getSelection();
-    let html = e?.clipboardData?.getData('text/html');
-
-    if (html) {
-      html = removeTagHead(removeTagScript(removeTagStyle(html)));
-    }
 
     if (isXmlFormat(html)) {
       //html = textoClipboard;
       html = '';
+    } else if (html) {
+      html = removeTagHead(removeTagScript(removeTagStyle(html)));
     }
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
