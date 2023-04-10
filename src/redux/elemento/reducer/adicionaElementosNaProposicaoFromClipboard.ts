@@ -138,6 +138,7 @@ const colarDispositivos = (
   eventos.push(...buildEventosElementoModificado(modificados));
   eventos.push(buildEventoElementoSuprimido(referencia));
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
+  adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
 
   return eventos.filter(ev => ev.elementos?.length);
 };
@@ -219,6 +220,13 @@ const buildEventoSituacaoElementoModificada = (dispositivos: Dispositivo[], isCo
   };
 };
 
+const buildEventoElementoMarcado = (dispositivos: Dispositivo[]): StateEvent => {
+  return {
+    stateType: StateType.ElementoMarcado,
+    elementos: dispositivos.map(d => createElementoValidado(d)),
+  };
+};
+
 const getParagrafosDeNumero1 = (dispositivos: Dispositivo[]): Dispositivo[] => {
   return [...new Set(dispositivos.filter(isParagrafo).map(d => d.pai!))].map(art => art.filhos.filter(f => isParagrafo(f) && f.numero === '1')).flat();
 };
@@ -255,10 +263,10 @@ const colarDispositivoSubstituindo = (
       const fOriginal = buscarDispositivoByIdTratandoParagrafoUnico(getArticulacao(dOriginal), fColado.id!);
       if (fOriginal) {
         refAux = fOriginal;
-        colarDispositivoSubstituindo(fOriginal, fColado, modo, isColandoEmAlteracaoDeNorma, colecaoInfoOmissis);
+        colarDispositivoSubstituindo(fOriginal, fColado, modo, isColandoEmAlteracaoDeNorma || isDispositivoAlteracao(fColado), colecaoInfoOmissis);
       } else {
         refAux = (omissisImediatamenteAnterior && getUltimoDispositivoDoIntervaloOmitido(omissisImediatamenteAnterior, colecaoInfoOmissis, fColado)) || refAux;
-        colarDispositivoAdicionando(refAux, fColado, isColandoEmAlteracaoDeNorma, !!omissisImediatamenteAnterior, modo, 'depois');
+        colarDispositivoAdicionando(refAux, fColado, isColandoEmAlteracaoDeNorma || isDispositivoAlteracao(fColado), !!omissisImediatamenteAnterior, modo, 'depois');
         refAux = fColado;
       }
     }
@@ -331,6 +339,9 @@ const colarDispositivoAdicionando = (
         referencia.addFilhoOnPosition(dColado, 0);
       }
     }
+  } else if (!isDispositivoAlteracao(referencia) && isDispositivoAlteracao(dColado)) {
+    dColado.pai = referencia.alteracoes;
+    referencia.alteracoes!.addFilhoOnPosition(dColado, 0);
   } else {
     dColado.pai = referencia.pai;
     referencia.pai?.addFilhoOnPosition(dColado, referencia.pai!.indexOf(referencia) + (posicao === 'antes' ? 0 : 1));

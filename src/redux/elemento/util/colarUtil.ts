@@ -1,14 +1,21 @@
 import { createElemento } from './../../../model/elemento/elementoUtil';
-import { isAgrupador, isArticulacao, isCaput, Tipo } from './../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isCaput, isItem, Tipo, isAlinea } from './../../../model/dispositivo/tipo';
 import { buildDispositivoFromJsonix } from './../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { Elemento } from './../../../model/elemento/elemento';
-import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo, isInciso, isOmissis } from '../../../model/dispositivo/tipo';
-import { getArticulacao, getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo, isModificadoOuSuprimido } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getArticulacao,
+  getDispositivoAndFilhosAsLista,
+  isDispositivoAlteracao,
+  irmaosMesmoTipo,
+  isModificadoOuSuprimido,
+  isOriginal,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { removeAllHtmlTags } from '../../../util/string-util';
+import { escapeRegex, removeAllHtmlTags } from '../../../util/string-util';
 
 export interface MensageInfoTextoColado {
   oQueEstaSendoColado: string;
@@ -134,9 +141,17 @@ export class InfoTextoColado {
     articulacaoProposicao: Articulacao,
     atual: Elemento
   ): Promise<InfoTextoColado> {
-    const textoColadoAjustadoParaParser = hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado;
-    const jsonix = await getJsonixFromTexto(textoColadoAjustadoParaParser);
-    const projetoNorma = buildDispositivoFromJsonix(jsonix);
+    let textoColadoAjustadoParaParser = removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado);
+    let jsonix = await getJsonixFromTexto(textoColadoAjustadoParaParser);
+    let projetoNorma = buildDispositivoFromJsonix(jsonix);
+
+    const dispositivos = getDispositivoAndFilhosAsLista(projetoNorma.articulacao!);
+    if (existeItemSemPaiAlinea(dispositivos)) {
+      textoColadoAjustadoParaParser = ajustaFalsosItensParaParser(textoColadoAjustadoParaParser, dispositivos);
+      jsonix = await getJsonixFromTexto(textoColadoAjustadoParaParser);
+      projetoNorma = buildDispositivoFromJsonix(jsonix);
+    }
+
     return new InfoTextoColado(articulacaoProposicao, textoColadoOriginal, textoColadoAjustado, textoColadoAjustadoParaParser, jsonix, projetoNorma.articulacao!, atual);
   }
 
@@ -181,6 +196,40 @@ export class InfoTextoColado {
   }
 }
 
+// Retira a quebra de linha anterior ao texto que foi identificado como item (sem que houvesse um alínea antes)
+const ajustaFalsosItensParaParser = (texto: string, dispositivos: Dispositivo[]): string => {
+  let textoAux = texto;
+  const lista = dispositivos.filter(d => isItem(d) && isCaput(d.pai!));
+  lista.forEach(d => {
+    const regex = new RegExp(`(\\n)(.*${d.numero}.*${escapeRegex(d.texto)})`, 'i');
+    textoAux = textoAux.replace(regex, ' $2');
+  });
+  return textoAux;
+};
+
+export const existeItemSemPaiAlinea = (dispositivos: Dispositivo[]): boolean => {
+  return dispositivos.some(d => isItem(d) && !isAlinea(d.pai!) && !isArticulacao(d.pai!));
+};
+
+export const removeAspasENRSeNecessario = (texto: string): string => {
+  const textoAux = texto.replace(/\r/g, '');
+
+  if (!comecaComAspas(textoAux)) {
+    return textoAux;
+  }
+
+  const regexMatchTextoArtigoEntreAspasOuNao = /(?<=\n|^)["“‘]?art\.(?:.|\n)+?(?:(?=\n["“‘]?art\.)|$)/gi;
+  if (!textoAux.match(regexMatchTextoArtigoEntreAspasOuNao)) {
+    return textoAux;
+  }
+
+  // Grupo 1 do regex abaixo corresponde ao texto do artigo sem aspas iniciais e finais e sem o (NR)
+  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘]?(art\.(?:.|\n)+?)(["”’]\s*\(NR\)[\s]*)?(?:(?=\n\s*["“‘]?art\.)|$)/gi;
+  return textoAux.replace(regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo, '\n$1').trim();
+};
+
+export const comecaComAspas = (texto: string): boolean => !!texto.match(/^["“‘]/);
+
 export const getJsonixFromTexto = async (texto: string): Promise<any> => {
   const options = {
     method: 'POST',
@@ -214,7 +263,7 @@ export const montarListaDispositivosExistentes = (articulacao: Articulacao, arti
   const idsColados = getDispositivoAndFilhosAsLista(articulacaoColada)
     .filter(d => d.tipo !== 'Articulacao')
     .map(d => d.id);
-  return getDispositivoAndFilhosAsLista(articulacao).filter(d => idsColados.includes(d.id));
+  return getDispositivoAndFilhosAsLista(articulacao).filter(d => isOriginal(d) && idsColados.includes(d.id));
 };
 
 export const montarListaDispositivosNovos = (articulacao: Articulacao, articulacaoColada: Articulacao, referencia?: Dispositivo): Dispositivo[] => {
@@ -281,7 +330,7 @@ const isArticulacaoInconsistente = (articulacao: Articulacao): boolean => {
 };
 
 const isDispositivoInconsistente = (dispositivo: Dispositivo): boolean => {
-  return !dispositivo.pai?.tiposPermitidosFilhos?.includes(dispositivo.tipo) && !isOmissis(dispositivo);
+  return !dispositivo.pai?.tiposPermitidosFilhos?.includes(dispositivo.tipo) && !isOmissis(dispositivo) && !isArticulacao(dispositivo.pai!);
 };
 
 const getTextoInconsistencia = (dispositivos: Dispositivo[]): string => {
@@ -409,7 +458,7 @@ const isColandoArtigosComAlteracoesSobreArtigosComFilhos = (infoTextoColado: Inf
 };
 
 const isColandoArtigoExistenteComMudancaDaNormaAlterada = (infoTextoColado: InfoTextoColado): boolean => {
-  // TODO: Implementar
+  // TODO: Implementar quando parser estiver rodando o linker
   return !infoTextoColado;
 };
 
@@ -443,7 +492,18 @@ export const ajustaIdsNaArticulacaoColada = (filhos: Dispositivo[], referencia: 
     prefixo += '_cpt';
   }
 
-  filhos.forEach(f => getDispositivoAndFilhosAsLista(f).forEach(f2 => !f2.id?.startsWith(prefixo) && (f2.id = prefixo + '_' + f2.id)));
+  filhos.forEach(f => getDispositivoAndFilhosAsLista(f).forEach(f2 => ajustaIdSeNecessario(f2, prefixo)));
+};
+
+const ajustaIdSeNecessario = (dispositivo: Dispositivo, prefixo: string): void => {
+  !dispositivo.id?.startsWith(prefixo) && ajustarId(dispositivo, prefixo);
+};
+
+const ajustarId = (dispositivo: Dispositivo, prefixo: string): void => {
+  dispositivo.id = prefixo + '_' + dispositivo.id;
+  if (isArtigo(dispositivo) && (dispositivo as Artigo).caput) {
+    (dispositivo as Artigo).caput!.id = prefixo + '_' + (dispositivo as Artigo).caput!.id;
+  }
 };
 
 export const getRegexRotuloArtigoOndeCouber = (): RegExp => /(^art\.\s+(?!\d+)[x. ]*)/gim;
@@ -472,16 +532,42 @@ const numerarArtigosOndeCouber = (texto: string): string => {
   return texto;
 };
 
-// const buscarDispositivoByIdTratandoParagrafoUnico = (articulacao: Articulacao, id: string): Dispositivo | undefined => {
-//   const d = buscaDispositivoById(articulacao, id);
-//   if (d) {
-//     return d;
-//   } else {
-//     const idSemConsiderarAlteracaoEmNorma = id.split('alt')[0];
-//     if (idSemConsiderarAlteracaoEmNorma.split('_').includes('par1')) {
-//       return buscaDispositivoById(articulacao, id.replace('_par1_', '_par1u_').replace(/par1$/, 'par1u'));
-//     } else {
-//       return;
-//     }
-//   }
-// };
+export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
+  const html = htmlInicial
+    .replace(/<p/g, '\n<p')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/(<p\s*)/gi, ' <p')
+    .replace(/(<br\s*\/>)/gi, ' ')
+    // .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
+    .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
+    .replace(/;[/s]?[e][/s]?$/, '; ')
+    .replace(';', '; ')
+    .replace(/^["“']/g, '')
+    .normalize('NFKD');
+  const parser = new DOMParser().parseFromString(html!, 'text/html');
+
+  let result = '';
+  // const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
+  const allowedTags = ['B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
+
+  const walkDOM = (node: any, func: any): void => {
+    func(node);
+    node = node.firstChild;
+    while (node) {
+      walkDOM(node, func);
+      node = node.nextSibling;
+    }
+  };
+
+  walkDOM(parser, function (node: any) {
+    if (allowedTags.includes(node.tagName)) {
+      result += node.outerHTML
+        .replace(/<p>\s*<\/p>/gi, '\n')
+        .replace(/<a>\s*<\/a>/gi, '')
+        .replace(/<span>\s*<\/span>/gi, '');
+    } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
+      result += node.nodeValue.replace(/[\n]+/g, ' ');
+    }
+  });
+  return result.trim();
+};

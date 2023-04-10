@@ -8,6 +8,7 @@ import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUti
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -76,10 +77,10 @@ export const undo = (state: any): State => {
     events.add(StateType.ElementoMarcado, [incluidos.elementos![0]]);
     events.add(StateType.ElementoSelecionado, [incluidos.elementos![0]]);
   } else {
-    const elementosParaMarcar = getEvento(eventos, StateType.ElementoMarcado)?.elementos;
+    const elementosParaMarcar = getEvento(eventos, StateType.ElementoMarcado)?.elementos?.filter(e => getDispositivoFromElemento(state.articulacao, e, true));
     if (elementosParaMarcar) {
-      events.add(StateType.ElementoMarcado, [elementosParaMarcar[1], elementosParaMarcar[0]]);
-      events.add(StateType.ElementoSelecionado, [elementosParaMarcar[1]]);
+      events.add(StateType.ElementoMarcado, [elementosParaMarcar[1], elementosParaMarcar[0]].filter(Boolean));
+      events.add(StateType.ElementoSelecionado, [elementosParaMarcar[1]].filter(Boolean));
     }
   }
 
