@@ -792,9 +792,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           }
         }
 
-        //  if (event.stateType === StateType.ElementoRestaurado) {
-        linha.blotConteudo.html = elemento.conteudo?.texto ?? '';
-        //  }
+        // Substituir o texto apenas quando precisa evita retorno do cursor para o início da linha.
+        const novoTexto = elemento.conteudo?.texto ?? '';
+        if (linha.blotConteudo.html !== novoTexto) {
+          linha.blotConteudo.html = novoTexto;
+        }
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
