@@ -240,6 +240,7 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
     da.filhos.forEach((f, i) => {
       if (i === 0) {
         f.idPai = da.id;
+        f.id = corrigeIdDispositivoSeNecessario(f.id, da.id);
       } else {
         f.idIrmaoAnterior = da.filhos![i - 1].id;
       }
@@ -248,6 +249,12 @@ const criaArvoreDispositivos = (articulacao: Articulacao, da: DispositivoEmendaA
   }
 
   return novo;
+};
+
+// O código abaixo é necessário para permitir abertura de emendas que foram salvas com o id incorreto (no caput de artigos em alteração de norma).
+// Novas emendas não terão esse problema.
+const corrigeIdDispositivoSeNecessario = (id: string, idPai: string): string => {
+  return id.startsWith(idPai) ? id : idPai.split('_').slice(0, -1).join('_') + '_' + id;
 };
 
 const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: DispositivoEmendaAdicionado, modo: ClassificacaoDocumento): void => {
