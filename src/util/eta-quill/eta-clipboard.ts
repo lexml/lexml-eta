@@ -10,9 +10,6 @@ import { ajustaHtmlParaColagem } from '../../redux/elemento/util/colarUtil';
 
 const Clipboard = Quill.import('modules/clipboard');
 
-const stringsParaVerificacaoDoFormato = [':office:', ':opendocument:'];
-const isXmlFormat = (content: any): boolean => content && content.includes && stringsParaVerificacaoDoFormato.some(s => content.includes(s));
-
 export class EtaClipboard extends connect(rootStore)(Clipboard) {
   onChange: Observable<string> = new Observable<string>();
   onPasteTextoArticulado: Observable<any> = new Observable<any>();
@@ -63,10 +60,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
 
     const range = this.quill.getSelection();
 
-    if (isXmlFormat(html)) {
-      //html = textoClipboard;
-      html = '';
-    } else if (html) {
+    if (html) {
       html = removeTagHead(removeTagScript(removeTagStyle(html)));
     }
 

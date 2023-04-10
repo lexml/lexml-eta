@@ -15,7 +15,7 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { escapeRegex, removeAllHtmlTags } from '../../../util/string-util';
+import { escapeRegex, removeAllHtmlTags, removeAllHtmlTagsExcept } from '../../../util/string-util';
 
 export interface MensageInfoTextoColado {
   oQueEstaSendoColado: string;
@@ -533,7 +533,7 @@ const numerarArtigosOndeCouber = (texto: string): string => {
 };
 
 export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
-  const html = htmlInicial
+  let html = htmlInicial
     .replace(/<p/g, '\n<p')
     .replace(/&nbsp;/g, ' ')
     .replace(/(<p\s*)/gi, ' <p')
@@ -543,31 +543,17 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .replace(/;[/s]?[e][/s]?$/, '; ')
     .replace(';', '; ')
     .replace(/^["“']/g, '')
+    .replace(/\r/g, '')
+    .replace(/<\/?body[^>]*>/gi, '')
     .normalize('NFKD');
-  const parser = new DOMParser().parseFromString(html!, 'text/html');
 
-  let result = '';
   // const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
   const allowedTags = ['B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
 
-  const walkDOM = (node: any, func: any): void => {
-    func(node);
-    node = node.firstChild;
-    while (node) {
-      walkDOM(node, func);
-      node = node.nextSibling;
-    }
-  };
+  allowedTags.map(tag => tag.toLowerCase()).forEach(tag => (html = html.replace(new RegExp(`<${tag}[^>]*>`, 'gi'), `<${tag}>`)));
 
-  walkDOM(parser, function (node: any) {
-    if (allowedTags.includes(node.tagName)) {
-      result += node.outerHTML
-        .replace(/<p>\s*<\/p>/gi, '\n')
-        .replace(/<a>\s*<\/a>/gi, '')
-        .replace(/<span>\s*<\/span>/gi, '');
-    } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
-      result += node.nodeValue.replace(/[\n]+/g, ' ');
-    }
-  });
-  return result.trim();
+  return removeAllHtmlTagsExcept(html, allowedTags)
+    .replace(/\\x3C!--(?:Start|End)Fragment-->/gi, '')
+    .replace(/<\/?p[^>]*>/g, '\n')
+    .trim();
 };
