@@ -100,3 +100,13 @@ export class StringBuilder {
 }
 
 export const REGEX_ACCENTS = /[\u0300-\u036f]/g;
+
+export const removeTagEConteudo = (texto: string, tag: string): string => {
+  return texto.replace(new RegExp(`<${tag}\\b[^<]*(?:(?!</${tag}>)<[^<]*)*</${tag}>`, 'gi'), '');
+};
+
+export const removeTagStyle = (texto: string): string => removeTagEConteudo(texto, 'style');
+
+export const removeTagScript = (texto: string): string => removeTagEConteudo(texto, 'script');
+
+export const removeTagHead = (texto: string): string => removeTagEConteudo(texto, 'head');

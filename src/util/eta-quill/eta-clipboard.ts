@@ -1,3 +1,4 @@
+import { removeTagScript, removeTagStyle, removeTagHead } from './../string-util';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../../redux/store';
 import { cancelarPropagacaoDoEvento } from '../event-util';
@@ -5,6 +6,7 @@ import { Observable } from '../observable';
 import { removeAllHtmlTags } from '../string-util';
 import { CaracteresNaoValidos } from './eta-keyboard';
 import { EtaQuill } from './eta-quill';
+import { ajustaHtmlParaColagem } from '../../redux/elemento/util/colarUtil';
 
 const Clipboard = Quill.import('modules/clipboard');
 
@@ -61,45 +63,22 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     const range = this.quill.getSelection();
     let html = e?.clipboardData?.getData('text/html');
 
+    if (html) {
+      html = removeTagHead(removeTagScript(removeTagStyle(html)));
+    }
+
     if (isXmlFormat(html)) {
       html = textoClipboard;
     }
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
-      html = html
-        .replace(/<p/g, '\n<p')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/(<p\s*)/gi, ' <p')
-        .replace(/(<br\s*\/>)/gi, ' ')
-        .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
-        .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
-        .replace(/;[/s]?[e][/s]?$/, '; ')
-        .replace(';', '; ')
-        .replace(/^["“']/g, '')
-        .normalize('NFKD');
-      const parser = new DOMParser().parseFromString(html!, 'text/html');
+      const text = ajustaHtmlParaColagem(html);
 
-      let text = '';
-      const allowedTags = ['A', 'B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
-      const walkDOM = (node, func): void => {
-        func(node);
-        node = node.firstChild;
-        while (node) {
-          walkDOM(node, func);
-          node = node.nextSibling;
-        }
-      };
-      walkDOM(parser, function (node: any) {
-        if (allowedTags.includes(node.tagName)) {
-          text += node.outerHTML;
-        } else if (node.nodeType === 3 && !allowedTags.includes(node.parentElement.tagName)) {
-          text += node.nodeValue;
-        }
-      });
       if (text !== undefined && this.hasRotulo(text)) {
         this.adicionaDispositivos(textoClipboard!, text, range);
         return;
       }
+
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
       if (text) {
         this.onChange.notify('clipboard');
@@ -122,7 +101,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/["“']/g, '')
       .trim();
 
-    const regexRotulo = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[cç][aã]o|subse[cç][aã]o|art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)).*/i;
+    const regexRotulo = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[cç][aã]o|subse[cç][aã]o|art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)|\d{1,3}[\t .]+).*/i;
 
     if (t && t.length > 0 && regexRotulo.test(t)) {
       return true;
