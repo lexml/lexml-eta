@@ -68,7 +68,8 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     }
 
     if (isXmlFormat(html)) {
-      html = textoClipboard;
+      //html = textoClipboard;
+      html = '';
     }
 
     if (html && html.length > 0 && removeAllHtmlTags(html).length > 0) {
