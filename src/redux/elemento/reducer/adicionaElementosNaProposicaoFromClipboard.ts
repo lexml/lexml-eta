@@ -111,13 +111,11 @@ const colarDispositivos = (
         modificados.push(...getDispositivoAndFilhosAsLista(d2).filter(isModificado));
         adicionados.push(...getDispositivoAndFilhosAsLista(d2).filter(isAdicionado));
         refAux = d2;
-        d2.renumeraFilhos();
       } else {
         refAux = d && isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao ? d : refAux;
         const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, posicao === 'antes' && refAux === referencia ? posicao : undefined);
         adicionados.push(...getDispositivoAndFilhosAsLista(d2));
         refAux = d2;
-        d2.pai?.renumeraFilhos(); // TODO: COLOCAR EM UM LUGAR MELHOR ?
       }
     }
   });
@@ -363,7 +361,19 @@ const colarDispositivoAdicionando = (
     throw new Error('Erro ao colar dispositivo adicionado');
   }
 
+  renumerarEAjustarIds(dColado);
   return dColado;
+};
+
+const renumerarEAjustarIds = (dispositivo: Dispositivo): void => {
+  if (isDispositivoAlteracao(dispositivo)) {
+    return;
+  }
+  const idInicial = dispositivo.id + '_';
+  dispositivo.pai?.renumeraFilhos();
+  const idRenumerado = dispositivo.id + '_';
+  const regex = new RegExp((isArtigo(dispositivo) ? '^' : '_') + idInicial);
+  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.id = d.id?.replace(regex, idRenumerado)));
 };
 
 const criaAtributosComunsAdicionado = (filho: Dispositivo, modo: ClassificacaoDocumento): void => {
