@@ -27,19 +27,20 @@ export class CitacaoComandoMultipla {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const node = new TagNode('p');
+    const ehAgrupador = isAgrupadorNaoArticulacao(cabeca);
+
+    const classes = cabeca.tipo.toLowerCase() + (ehAgrupador ? ' agrupador' : '');
+
+    const node = new TagNode('p').addAtributo('class', classes);
     if (abreAspas) {
       node.add('“');
     }
-    if (isEmenta(cabeca)) {
-      node.addAtributo('class', 'ementa');
-    } else {
+    if (!isEmenta(cabeca)) {
       node.add(new TagNode('Rotulo').add(cabeca.rotulo));
     }
     if (isAgrupadorNaoArticulacao(cabeca)) {
-      node.addAtributo('class', 'agrupador');
       sb.append(node.toString());
-      const nodeDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+      const nodeDenominacao = new TagNode('p').addAtributo('class', classes).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
       sb.append(nodeDenominacao.toString());
     } else {
       const texto = CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca);
@@ -91,13 +92,13 @@ export class CitacaoComandoMultipla {
       if (isArtigo(this.ultimoProcessado!) && !isCaput(d)) {
         // Omissis entre o caput e o dispositivo
         if (!isCaput(dispositivoAnterior)) {
-          sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+          sb.append(this.tagOmissisSemRotulo().toString());
         }
       } else if (
         this.ultimoProcessado !== dispositivoAnterior &&
         !(this.ultimoProcessado!.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && isAscendente(dispositivoAnterior, this.ultimoProcessado!))
       ) {
-        sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+        sb.append(this.tagOmissisSemRotulo().toString());
       }
 
       // -------------------------------------------
@@ -105,18 +106,17 @@ export class CitacaoComandoMultipla {
       if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(mapFilhos)) {
         const dispRotulo = isArtigo(d) ? (d as Artigo).caput! : d;
         const rotulo = this.emAlteracao ? d.rotulo?.replace('“', '') : d.rotulo;
-        let tag = new TagNode('p');
         const ehAgrupador = isAgrupadorNaoArticulacao(d);
-        if (ehAgrupador) {
-          tag.addAtributo('class', 'agrupador');
-        }
+        const classes = d.tipo.toLowerCase() + (ehAgrupador ? ' agrupador' : '');
+
+        let tag = new TagNode('p').addAtributo('class', classes);
         if (isDispositivoCabecaAlteracao(d)) {
           tag.add('‘');
         }
         tag.add(new TagNode('Rotulo').add(rotulo));
         if (ehAgrupador) {
           sb.append(tag.toString());
-          tag = new TagNode('p').addAtributo('class', 'agrupador');
+          tag = new TagNode('p').addAtributo('class', classes);
         }
         tag.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(dispRotulo));
         if (d.isDispositivoAlteracao && isUltimaAlteracao(d)) {
@@ -128,7 +128,7 @@ export class CitacaoComandoMultipla {
         }
         sb.append(tag.toString());
       } else {
-        sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+        sb.append(this.tagOmissisSemRotulo().toString());
       }
 
       this.ultimoProcessado = d;
@@ -139,6 +139,10 @@ export class CitacaoComandoMultipla {
         this.writeDispositivoTo(sb, mapFilhos);
       }
     }
+  }
+
+  private tagOmissisSemRotulo(): TagNode {
+    return new TagNode('p').addAtributo('class', 'omissis').add(new TagNode('Omissis'));
   }
 
   private writeOmissisFinal(sb: StringBuilder, cabeca: Dispositivo): void {
@@ -153,17 +157,9 @@ export class CitacaoComandoMultipla {
     }
 
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && !isDescendenteDeSuprimido(d)) {
-      sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+      sb.append(this.tagOmissisSemRotulo().toString());
     }
   }
-
-  // private precisaTagOmissaoAntes(final Dispositivo irmaoAnterior, final Dispositivo ultimoProcessado): boolean {
-  //     return irmaoAnterior != null
-  //            && (!irmaoAnterior.isSituacao(DispositivoDeEmenda.class) && irmaoAnterior != ultimoProcessado
-  //                || irmaoAnterior == ultimoProcessado && irmaoAnterior.hasFilhos()
-  //                && !irmaoAnterior.hasFilhosPropostos() || ultimoProcessado.hasFilhos()
-  //                                                          && !ultimoProcessado.hasFilhosPropostos());
-  // }
 
   private hasFilhosPropostos(map: Map<Dispositivo, any>): boolean {
     if (!map.size) {
