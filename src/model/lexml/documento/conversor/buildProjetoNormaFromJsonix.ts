@@ -134,8 +134,11 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
       if (el.name?.localPart === 'p') {
         adicionaTextoAoUltimoDispositivoCriado(el);
       } else {
-        dispositivo = buildDispositivo(pai, el, cabecasAlteracao);
-        buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao);
+        // Impede que sejam criados filhos em artigos que já possuam alterações
+        if (!pai.alteracoes) {
+          dispositivo = buildDispositivo(pai, el, cabecasAlteracao);
+          buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao);
+        }
       }
     }
   });
