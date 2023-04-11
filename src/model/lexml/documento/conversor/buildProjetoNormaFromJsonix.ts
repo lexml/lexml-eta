@@ -10,6 +10,7 @@ import { getTipo } from '../urnUtil';
 import { isArtigo } from './../../../dispositivo/tipo';
 
 export let isEmendamento = false;
+let ultimoDispositivoCriado: Dispositivo;
 
 export const buildProjetoNormaFromJsonix = (documentoLexml: any, emendamento = false): ProjetoNorma => {
   isEmendamento = emendamento;
@@ -130,8 +131,12 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
       buildAlteracao(pai, el, cabecasAlteracao);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao);
     } else {
-      dispositivo = buildDispositivo(pai, el, cabecasAlteracao);
-      buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao);
+      if (el.name?.localPart === 'p') {
+        adicionaTextoAoUltimoDispositivoCriado(el);
+      } else {
+        dispositivo = buildDispositivo(pai, el, cabecasAlteracao);
+        buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao);
+      }
     }
   });
 };
@@ -145,12 +150,20 @@ const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo
       pai.alteracoes!.situacao = new DispositivoOriginal();
     }
     el.content?.forEach((c: any) => {
-      const d = buildDispositivo(pai.alteracoes!, c, cabecasAlteracao);
-      d.isDispositivoAlteracao = true;
-      d.rotulo = c.value?.rotulo;
-      buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao);
+      if (c.name?.localPart === 'p') {
+        adicionaTextoAoUltimoDispositivoCriado(c);
+      } else {
+        const d = buildDispositivo(pai.alteracoes!, c, cabecasAlteracao);
+        d.isDispositivoAlteracao = true;
+        d.rotulo = c.value?.rotulo;
+        buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao);
+      }
     });
   }
+};
+
+const adicionaTextoAoUltimoDispositivoCriado = (el: any): void => {
+  ultimoDispositivoCriado.texto = (ultimoDispositivoCriado.texto + ' ' + retiraCaracteresDesnecessarios(buildContent(el.value?.content))).replace(/\s+/g, ' ');
 };
 
 const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[]): Dispositivo => {
@@ -186,6 +199,8 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
     }
   }
   dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+
+  ultimoDispositivoCriado = dispositivo;
   return dispositivo;
 };
 
