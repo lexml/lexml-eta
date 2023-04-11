@@ -64,19 +64,22 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     const cabeca = [...arvoreDispositivos.keys()][0];
     arvoreDispositivos = arvoreDispositivos.get(cabeca);
 
-    const node = new TagNode('p');
+    const ehAgrupador = isAgrupadorNaoArticulacao(cabeca);
+
+    const classes = cabeca.tipo.toLowerCase() + (ehAgrupador ? ' agrupador' : '');
+
+    const node = new TagNode('p').addAtributo('class', classes);
     if (isArticulacaoAlteracao(cabeca.pai!)) {
       node.add('“');
     }
     node.add(new TagNode('Rotulo').add(cabeca.rotulo!));
-    if (isAgrupadorNaoArticulacao(cabeca)) {
-      node.addAtributo('class', 'agrupador');
+    if (ehAgrupador) {
       if (cabeca.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
         node.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
         sb.append(node.toString());
       } else {
         sb.append(node.toString());
-        const nodeDenominacao = new TagNode('p').addAtributo('class', 'agrupador').add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
+        const nodeDenominacao = new TagNode('p').addAtributo('class', classes).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(cabeca));
         sb.append(nodeDenominacao.toString());
       }
     } else {
@@ -110,20 +113,26 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
       if (isArtigo(this.ultimoProcessado as Dispositivo) && !isCaput(d)) {
         // Omissis entre o caput e o dispositivo
         if (!isCaput(dispositivoAnterior) && !isOmissis(d)) {
-          sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+          sb.append(this.tagOmissisSemRotulo().toString());
         }
       } else if (this.ultimoProcessado !== dispositivoAnterior && !isOmissis(d) && dispositivoAnterior.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-        sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+        sb.append(this.tagOmissisSemRotulo().toString());
       }
 
       // -------------------------------------------
       // o dispositivo atual
       if (!isCaput(d)) {
+        const ehAgrupador = isAgrupadorNaoArticulacao(d);
+        const classes = d.tipo.toLowerCase() + (ehAgrupador ? ' agrupador' : '');
         if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-          const node = new TagNode('p').add(new TagNode('Rotulo').add(d.rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(d, true));
+          const node = new TagNode('p').addAtributo('classe', classes);
+          if (!isOmissis(d)) {
+            node.add(new TagNode('Rotulo').add(d.rotulo));
+          }
+          node.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(d, true));
           sb.append(node.toString());
         } else if (this.hasFilhosPropostos(arvoreAtual) || this.adjacentesOmissis.includes(d)) {
-          const tag = new TagNode('p');
+          const tag = new TagNode('p').addAtributo('classe', classes);
           tag.add(new TagNode('Rotulo').add(d.rotulo));
           tag.add(new TagNode('Omissis'));
           sb.append(tag.toString());
@@ -140,6 +149,10 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
         this.writeDispositivoTo(sb, arvoreAtual);
       }
     }
+  }
+
+  private tagOmissisSemRotulo(): TagNode {
+    return new TagNode('p').addAtributo('class', 'omissis').add(new TagNode('Omissis'));
   }
 
   private writeOmissisFinal(sb: StringBuilder, artigo: Dispositivo): void {
@@ -159,12 +172,12 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     }
 
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && (!this.adjacentesOmissis.includes(d) || isOmissis(d))) {
-      sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+      sb.append(this.tagOmissisSemRotulo().toString());
       this.fecharAspasAposOmissis = true;
     } else if (!CmdEmdUtil.isFechaAspas(d)) {
       const proximo = CmdEmdUtil.getDispositivoPosteriorDireto(d);
       if (proximo && isOmissis(proximo)) {
-        sb.append(new TagNode('p').add(new TagNode('Omissis')).toString());
+        sb.append(this.tagOmissisSemRotulo().toString());
         this.fecharAspasAposOmissis = true;
       }
     }

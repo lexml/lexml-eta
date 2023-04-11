@@ -85,6 +85,11 @@ export class ComandoEmendaComponent extends LitElement {
           text-align: center;
         }
 
+        .lexml-emenda-citacaoComando p.secao,
+        .lexml-emenda-citacaoComando p.subsecao {
+          font-weight: bold;
+        }
+
         .lexml-emenda-citacaoComando div.alteracao {
           margin-left: 4em;
         }
