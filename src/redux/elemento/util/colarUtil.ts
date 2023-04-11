@@ -224,7 +224,7 @@ export const removeAspasENRSeNecessario = (texto: string): string => {
   }
 
   // Grupo 1 do regex abaixo corresponde ao texto do artigo sem aspas iniciais e finais e sem o (NR)
-  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘]?(art\.(?:.|\n)+?)(["”’]\s*\(NR\)[\s]*)?(?:(?=\n\s*["“‘]?art\.)|$)/gi;
+  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘]?(art\.(?:.|\n)+?)(["”’]\s*(?:\(NR\))?[\s]*)?(?:(?=\n\s*["“‘]?art\.)|$)/gi;
   return textoAux.replace(regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo, '\n$1').trim();
 };
 
