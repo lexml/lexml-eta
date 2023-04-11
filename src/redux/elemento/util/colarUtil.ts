@@ -239,7 +239,10 @@ export const existeItemSemPaiAlinea = (dispositivos: Dispositivo[]): boolean => 
 };
 
 export const removeAspasENRSeNecessario = (texto: string): string => {
-  const textoAux = texto.replace(/\r/g, '').replace(/\n\s*\(NR\)/gi, ' (NR)');
+  const textoAux = texto
+    .replace(/\r/g, '')
+    .replace(/\n\s*\(NR\)/gi, ' (NR)')
+    .replace(/(\(NR\))\./gi, '$1');
 
   if (!comecaComAspas(textoAux)) {
     return textoAux;
