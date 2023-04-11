@@ -1,5 +1,5 @@
 import { createElemento } from './../../../model/elemento/elementoUtil';
-import { isAgrupador, isArticulacao, isCaput, isItem, Tipo, isAlinea } from './../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isCaput, isItem, Tipo, isAlinea, isAgrupadorGenerico } from './../../../model/dispositivo/tipo';
 import { buildDispositivoFromJsonix } from './../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { Elemento } from './../../../model/elemento/elemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
@@ -41,6 +41,7 @@ export interface InfoElementos {
 
 export enum TipoRestricaoEnum {
   ARTICULACAO_SEM_FILHOS,
+  AGRUPADOR_GENERICO_NA_ARTICULACAO,
   AGRUPADORES_DE_ARTIGO,
   DISPOSITIVOS_DE_TIPOS_DIFERENTES,
   DISPOSITIVOS_COM_ROTULO_DUPLICADO,
@@ -96,7 +97,8 @@ export class InfoTextoColado {
     this.isColandoArtigoSemNumeracao = hasArtigoOndeCouber(textoColadoAjustado);
     this.jsonix = jsonix;
     this.articulacaoProposicao = articulacaoProposicao;
-    this.articulacaoColada = articulacaoColada; // (await getJsonixFromTexto(textoColado)).articulacao;
+    this.articulacaoColada = articulacaoColada;
+    ajustaDispositivosAgrupadoresGenericosSeNecessario(this.articulacaoColada);
 
     this.isColarSubstituindo = isColarSubstituindo;
     this.posicao = posicao;
@@ -196,6 +198,31 @@ export class InfoTextoColado {
   }
 }
 
+// Atribui ao dispositivo anterior o texto de dispositivos agrupadores genéricos subsequentes e remove os dispositivos agrupadores genéricos da articulação
+const ajustaDispositivosAgrupadoresGenericosSeNecessario = (articulacao: Articulacao): void => {
+  if (isAgrupadorGenerico(articulacao.filhos[0])) {
+    return;
+  }
+  const dispositivos = getDispositivoAndFilhosAsLista(articulacao).slice(1);
+  concatenarTextosDeAgrupadoresGenericos(dispositivos);
+  removerAgrupadoresGenericos(dispositivos);
+};
+
+const concatenarTextosDeAgrupadoresGenericos = (dispositivos: Dispositivo[]): void => {
+  let dispAnterior = dispositivos[0];
+  dispositivos.forEach(d => {
+    if (isAgrupadorGenerico(d)) {
+      dispAnterior.texto = (dispAnterior.texto + ' ' + d.texto).replace(/\s+/, ' ').replace(/\s+$/, '');
+    } else {
+      dispAnterior = d;
+    }
+  });
+};
+
+const removerAgrupadoresGenericos = (dispositivos: Dispositivo[]): void => {
+  dispositivos.filter(isAgrupadorGenerico).forEach(d => d.pai?.removeFilho(d));
+};
+
 // Retira a quebra de linha anterior ao texto que foi identificado como item (sem que houvesse um alínea antes)
 const ajustaFalsosItensParaParser = (texto: string, dispositivos: Dispositivo[]): string => {
   let textoAux = texto;
@@ -212,7 +239,10 @@ export const existeItemSemPaiAlinea = (dispositivos: Dispositivo[]): boolean => 
 };
 
 export const removeAspasENRSeNecessario = (texto: string): string => {
-  const textoAux = texto.replace(/\r/g, '');
+  const textoAux = texto
+    .replace(/\r/g, '')
+    .replace(/\n\s*\(NR\)/gi, ' (NR)')
+    .replace(/(\(NR\))\./gi, '$1');
 
   if (!comecaComAspas(textoAux)) {
     return textoAux;
@@ -224,7 +254,7 @@ export const removeAspasENRSeNecessario = (texto: string): string => {
   }
 
   // Grupo 1 do regex abaixo corresponde ao texto do artigo sem aspas iniciais e finais e sem o (NR)
-  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘]?(art\.(?:.|\n)+?)(["”’]\s*\(NR\)[\s]*)?(?:(?=\n\s*["“‘]?art\.)|$)/gi;
+  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘]?(art\.(?:.|\n)+?)(["”’]\s*(?:\(NR\))?[\s]*)?(?:(?=\n\s*["“‘]?art\.)|$)/gi;
   return textoAux.replace(regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo, '\n$1').trim();
 };
 
@@ -280,6 +310,13 @@ export const validarArticulacaoColadaAnaliseInicial = (articulacaoColada: Articu
       mensagens: ['Não foi possível identificar dispositivos no texto informado'],
     });
     return result;
+  }
+
+  if (getDispositivoAndFilhosAsLista(articulacaoColada).some(isAgrupadorGenerico)) {
+    result.push({
+      tipo: TipoRestricaoEnum.AGRUPADOR_GENERICO_NA_ARTICULACAO,
+      mensagens: ['Não foi possível identificar, corretamente, os dispositivos no texto a ser colado.'],
+    });
   }
 
   if (hasAgrupador(articulacaoColada)) {
@@ -506,7 +543,7 @@ const ajustarId = (dispositivo: Dispositivo, prefixo: string): void => {
   }
 };
 
-export const getRegexRotuloArtigoOndeCouber = (): RegExp => /(^art\.\s+(?!\d+)[x. ]*)/gim;
+export const getRegexRotuloArtigoOndeCouber = (): RegExp => /(^art\.\s+(?!\d+)[x. ]*[º0]?)/gim;
 
 const hasArtigoOndeCouber = (texto: string): boolean => {
   const t = removeAllHtmlTags(texto)
