@@ -49,8 +49,6 @@ export class CitacaoComandoMultipla {
 
     if (arvoreDispositivos.size) {
       this.ultimoProcessado = cabeca;
-      // this.emAlteracao = false;
-      // this.abrirAspasSimples = false;
       this.writeDispositivoTo(sb, arvoreDispositivos);
     }
 
@@ -107,11 +105,20 @@ export class CitacaoComandoMultipla {
       if (d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL || this.hasFilhosPropostos(mapFilhos)) {
         const dispRotulo = isArtigo(d) ? (d as Artigo).caput! : d;
         const rotulo = this.emAlteracao ? d.rotulo?.replace('“', '') : d.rotulo;
-        const tag = new TagNode('p');
+        let tag = new TagNode('p');
+        const ehAgrupador = isAgrupadorNaoArticulacao(d);
+        if (ehAgrupador) {
+          tag.addAtributo('class', 'agrupador');
+        }
         if (isDispositivoCabecaAlteracao(d)) {
           tag.add('‘');
         }
-        tag.add(new TagNode('Rotulo').add(rotulo)).add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(dispRotulo));
+        tag.add(new TagNode('Rotulo').add(rotulo));
+        if (ehAgrupador) {
+          sb.append(tag.toString());
+          tag = new TagNode('p').addAtributo('class', 'agrupador');
+        }
+        tag.add(CmdEmdUtil.getTextoDoDispositivoOuOmissis(dispRotulo));
         if (d.isDispositivoAlteracao && isUltimaAlteracao(d)) {
           tag.add('’');
           const cabecaAlteracao = getDispositivoCabecaAlteracao(d);
