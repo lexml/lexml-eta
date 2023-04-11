@@ -98,7 +98,6 @@ export class InfoTextoColado {
     this.jsonix = jsonix;
     this.articulacaoProposicao = articulacaoProposicao;
     this.articulacaoColada = articulacaoColada;
-    ajustaDispositivosAgrupadoresGenericosSeNecessario(this.articulacaoColada);
 
     this.isColarSubstituindo = isColarSubstituindo;
     this.posicao = posicao;
@@ -197,31 +196,6 @@ export class InfoTextoColado {
     this.restricoes.push(...validarArticulacaoColadaAnaliseContextualizada(this, this.infoDispositivos));
   }
 }
-
-// Atribui ao dispositivo anterior o texto de dispositivos agrupadores genéricos subsequentes e remove os dispositivos agrupadores genéricos da articulação
-const ajustaDispositivosAgrupadoresGenericosSeNecessario = (articulacao: Articulacao): void => {
-  if (isAgrupadorGenerico(articulacao.filhos[0])) {
-    return;
-  }
-  const dispositivos = getDispositivoAndFilhosAsLista(articulacao).slice(1);
-  concatenarTextosDeAgrupadoresGenericos(dispositivos);
-  removerAgrupadoresGenericos(dispositivos);
-};
-
-const concatenarTextosDeAgrupadoresGenericos = (dispositivos: Dispositivo[]): void => {
-  let dispAnterior = dispositivos[0];
-  dispositivos.forEach(d => {
-    if (isAgrupadorGenerico(d)) {
-      dispAnterior.texto = (dispAnterior.texto + ' ' + d.texto).replace(/\s+/, ' ').replace(/\s+$/, '');
-    } else {
-      dispAnterior = d;
-    }
-  });
-};
-
-const removerAgrupadoresGenericos = (dispositivos: Dispositivo[]): void => {
-  dispositivos.filter(isAgrupadorGenerico).forEach(d => d.pai?.removeFilho(d));
-};
 
 // Retira a quebra de linha anterior ao texto que foi identificado como item (sem que houvesse um alínea antes)
 const ajustaFalsosItensParaParser = (texto: string, dispositivos: Dispositivo[]): string => {
