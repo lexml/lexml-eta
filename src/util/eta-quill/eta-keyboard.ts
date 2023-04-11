@@ -3,8 +3,9 @@ import { Observable } from '../observable';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaQuill, TextoSelecionado } from './eta-quill';
 
-export const CaracteresValidos = /([a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/i;
-export const CaracteresNaoValidos = /([^a-zA-Z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ '!@#$%&*()_\-+=`'{[^~}\]<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”])/gi;
+const strCaracteresValidos = "a-z0-9áéíóúÁÉÍÓÚãẽĩõũÃẼĨÕŨàèìòùÀÈÌÒÙäëïöüÄËÏÖÜâêîôûÂÊÎÔÛçÇýÝỹỸỳỲÿŸŶŷñÑ\\s'!@#$%&\\*\\(\\)_\\-+=`{}\\[\\]\\^~<,>.:;?/|\\ªº¹²³£¢¬§¿¡“”";
+export const CaracteresValidos = new RegExp(`[${strCaracteresValidos}]`, 'i');
+export const CaracteresNaoValidos = new RegExp(`[^${strCaracteresValidos}]`, 'gi');
 
 export const Keyboard = Quill.import('modules/keyboard');
 
@@ -36,9 +37,7 @@ export class EtaKeyboard extends Keyboard {
     });
 
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
-      if (ev.key === 'AltGraph') {
-        this.altGraphPressionado = true;
-      }
+      this.altGraphPressionado = ev.altKey && ev.location === 2;
 
       if (!(this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) && this.isTeclaQueAlteraTexto(ev)) {
         this.onChange.notify('keyboard');
@@ -165,6 +164,7 @@ export class EtaKeyboard extends Keyboard {
         this.onValidarTecla(ev);
       }
     });
+
     super.listen();
   }
 
