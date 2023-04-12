@@ -366,14 +366,14 @@ const colarDispositivoAdicionando = (
 };
 
 const renumerarEAjustarIds = (dispositivo: Dispositivo): void => {
-  if (isDispositivoAlteracao(dispositivo)) {
-    return;
-  }
-  const idInicial = dispositivo.id + '_';
   dispositivo.pai?.renumeraFilhos();
-  const idRenumerado = dispositivo.id + '_';
-  const regex = new RegExp((isArtigo(dispositivo) ? '^' : '_') + idInicial);
-  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.id = d.id?.replace(regex, idRenumerado)));
+
+  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => {
+    d.id = buildId(d);
+    if (isArtigo(d)) {
+      (d as Artigo).caput!.id = buildId((d as Artigo).caput!);
+    }
+  });
 };
 
 const criaAtributosComunsAdicionado = (filho: Dispositivo, modo: ClassificacaoDocumento): void => {
