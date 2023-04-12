@@ -202,7 +202,8 @@ const ajustaFalsosItensParaParser = (texto: string, dispositivos: Dispositivo[])
   let textoAux = texto;
   const lista = dispositivos.filter(d => isItem(d) && !isAlinea(d.pai!));
   lista.forEach(d => {
-    const regex = new RegExp(`(\\n)(.*${d.numero}.*${escapeRegex(d.texto)})`, 'i');
+    const textoItemAjustadoParaPesquisa = escapeRegex(d.texto).split(' ').join('[\\s\\n]?');
+    const regex = new RegExp(`(\\n)(.*${d.numero}.*${textoItemAjustadoParaPesquisa})`, 'i');
     textoAux = textoAux.replace(regex, ' $2');
   });
   return textoAux;
