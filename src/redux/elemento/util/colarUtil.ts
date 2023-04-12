@@ -223,17 +223,17 @@ export const removeAspasENRSeNecessario = (texto: string): string => {
     return textoAux;
   }
 
-  const regexMatchTextoArtigoEntreAspasOuNao = /(?<=\n|^)["“‘]?art(?:\.|\s|\d)(?:.|\n)+?(?:(?=\n["“‘]?art(?:\.|\s|\d))|$)/gi;
+  const regexMatchTextoArtigoEntreAspasOuNao = /(?<=\n|^)["“‘']?art(?:\.|\s|\d)(?:.|\n)+?(?:(?=\n["“‘']?art(?:\.|\s|\d))|$)/gi;
   if (!textoAux.match(regexMatchTextoArtigoEntreAspasOuNao)) {
     return textoAux;
   }
 
   // Grupo 1 do regex abaixo corresponde ao texto do artigo sem aspas iniciais e finais e sem o (NR)
-  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘]?(art(?:\.|\s|\d)(?:.|\n)+?)(["”’]\s*(?:\(NR\))?[\s]*)?(?:(?=\n\s*["“‘]?art(?:\.|\s|\d))|$)/gi;
+  const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘']?(art(?:\.|\s|\d)(?:.|\n)+?)(["”’]\s*(?:\(NR\))?[\s]*)?(?:(?=\n\s*["“‘']?art(?:\.|\s|\d))|$)/gi;
   return textoAux.replace(regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo, '\n$1').trim();
 };
 
-export const comecaComAspas = (texto: string): boolean => !!texto.match(/^["“‘]/);
+export const comecaComAspas = (texto: string): boolean => !!texto.match(/^["“‘']/);
 
 export const getJsonixFromTexto = async (texto: string): Promise<any> => {
   const options = {
@@ -518,7 +518,7 @@ const ajustarId = (dispositivo: Dispositivo, prefixo: string): void => {
   }
 };
 
-export const getRegexRotuloArtigoOndeCouber = (): RegExp => /(^art\.\s+(?!\d+)[x. ]*[º0]?)/gim;
+export const getRegexRotuloArtigoOndeCouber = (): RegExp => /^(["“‘'])?(art\.\s+(?!\d+)[x. ]*[º0]?)/gim;
 
 const hasArtigoOndeCouber = (texto: string): boolean => {
   const t = removeAllHtmlTags(texto)
@@ -532,7 +532,7 @@ const hasArtigoOndeCouber = (texto: string): boolean => {
 const numerarArtigosOndeCouber = (texto: string): string => {
   if (hasArtigoOndeCouber(texto)) {
     let contador = 5000;
-    let novoTexto = texto.replaceAll(getRegexRotuloArtigoOndeCouber(), 'ArtigoANumerar');
+    let novoTexto = texto.replaceAll(getRegexRotuloArtigoOndeCouber(), '$1ArtigoANumerar');
 
     //numera artigos
     while (novoTexto.indexOf('ArtigoANumerar') !== -1) {
