@@ -9,6 +9,7 @@ const ID_DIALOGO_TIPO_COLAGEM = 'slDialogoTipoColagem';
 const ID_DIALOGO_MODIFICAR_EXISTENTE_ADICIONAR_NOVO = 'slDialogoModificarExistenteAdicionarNovo';
 const ID_DIALOGO_MODIFICAR_DISPOSITIVOS_EXISTENTES = 'slDialogoModificarDispositivosExistentes';
 const ID_DIALOGO_ADICIONAR_APOS_ATUAL = 'slDialogoAdicionarAposAtual';
+const ID_DIALOGO_AVISO = 'slDialogoAviso';
 
 const RODAPE_CONFIRMAR = 'RODAPE_CONFIRMAR';
 const RODAPE_FECHAR = 'RODAPE_FECHAR';
@@ -16,6 +17,7 @@ const RODAPE_FECHAR = 'RODAPE_FECHAR';
 const ANTES_DE_PROSSEGUIR = 'Antes de prosseguir';
 const OPERACAO_NAO_PERMITIDA = 'Operação não permitida';
 const DISPOSITIVO_JA_EXISTE = 'Atenção, dispositivo já existe no texto';
+const IMPORTANTE = 'Importante!';
 const DANGER = 'danger';
 const INFO = 'primary';
 const SVG_DANGER = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -62,6 +64,7 @@ export class DialogColagem {
   nomeDispositivoSingular = '';
   nomeDispositivoPlural = '';
   isPrimeiroDialogoTipoColagem = true;
+  exibeDialogAviso = true;
 }
 
 const montaDialogoTipoColagem = (dialogColagem: DialogColagem): void => {
@@ -80,6 +83,7 @@ const montaDialagoNaoPermitidoPadrao = (dialogColagem: DialogColagem): void => {
   dialogColagem.labelDialog = OPERACAO_NAO_PERMITIDA;
   dialogColagem.tipoRodape = RODAPE_FECHAR;
   dialogColagem.variante = DANGER;
+  dialogColagem.exibeDialogAviso = false;
   montaDialogo(dialogColagem);
 };
 
@@ -115,6 +119,18 @@ const montaDialogoModificarExistenteAdicionarNovo = (dialogColagem: DialogColage
   montaDialogo(dialogColagem);
 };
 
+const montaDialogoAviso = (dialogColagem: DialogColagem): void => {
+  if (dialogColagem.exibeDialogAviso) {
+    dialogColagem.idDialog = ID_DIALOGO_AVISO;
+    dialogColagem.labelDialog = IMPORTANTE;
+    dialogColagem.tipoRodape = RODAPE_FECHAR;
+    dialogColagem.variante = INFO;
+    const mensagens = ['Por favor, verifique se o texto e a estrutura de dispositivos colados está de acordo com o esperado. ', 'Podem ser necessários ajustes.'];
+    dialogColagem.mensagens = mensagens;
+    montaDialogo(dialogColagem);
+  }
+};
+
 /**
  * Inicializa caixas de diálogo
  */
@@ -131,6 +147,7 @@ export const colarTextoArticuladoDialog = (quill: EtaQuill, rootStore: any, info
   if (infoTextoColado.infoElementos.novos.length > 1 || infoTextoColado.infoElementos.existentes.length > 1) {
     executarValidacaoRestricao(dialogColagem);
     dialogColagem.isPrimeiroDialogoTipoColagem = false;
+    montaDialogoAviso(dialogColagem);
   } else {
     montaDialogoTipoColagem(dialogColagem);
     dialogColagem.isPrimeiroDialogoTipoColagem = false;
@@ -147,6 +164,7 @@ const executarValidacaoRestricao = (dialogColagem: DialogColagem): void => {
     const restricao = dialogColagem.infoTextoColado.restricoes[0];
     dialogColagem.labelDialog = restricao.titulo || OPERACAO_NAO_PERMITIDA;
     restricao.isPermitidoColarAdicionando ? montaDialogoAdicionarAposAtual(dialogColagem) : montaDialagoNaoPermitidoPadrao(dialogColagem);
+    dialogColagem.exibeDialogAviso = false;
   } else if (dialogColagem.infoTextoColado.restricoes.length === 0 && dialogColagem.infoTextoColado.infoElementos.existentes.length === 0) {
     adicionaElemento(dialogColagem, false);
   } else {
@@ -300,6 +318,7 @@ const executeByIdDialog = (dialogColagem: DialogColagem, dialogElem: SlDialog): 
   }
 
   fecharDialog(dialogElem, dialogColagem);
+  montaDialogoAviso(dialogColagem);
 };
 
 const adicionaElemento = (dialogColagem: DialogColagem, colarSubstituindo: boolean): void => {
