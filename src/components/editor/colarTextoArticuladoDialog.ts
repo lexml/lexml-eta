@@ -168,6 +168,7 @@ const executarValidacaoRestricao = (dialogColagem: DialogColagem): void => {
   } else if (dialogColagem.infoTextoColado.restricoes.length === 0 && dialogColagem.infoTextoColado.infoElementos.existentes.length === 0) {
     adicionaElemento(dialogColagem, false);
   } else {
+    dialogColagem.exibeDialogAviso = false;
     montaDialogoModificarExistenteAdicionarNovo(dialogColagem);
   }
 };
