@@ -9,7 +9,9 @@ export class AutocompleteNorma extends LitElement {
   urnInicial = '';
 
   @property({ type: Function })
-  onSelect = (value: Norma): void => console.log('Norma selecionado:', value);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+  onSelect = (value: Norma): void => {};
+  //onSelect = (value: Norma): void => console.log('Norma selecionado:', value);
 
   @state()
   _selectedNorma: Norma = new Norma();
@@ -73,8 +75,9 @@ export class AutocompleteNorma extends LitElement {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _handleChange(value: string): void {
-    console.log('_handleChange', value);
+    // console.log('_handleChange', value);
     this._selectedNorma = new Norma();
     this.onSelect(this._selectedNorma);
   }
@@ -109,7 +112,7 @@ export class AutocompleteNorma extends LitElement {
           .onSelect=${value => this._handleSelect(value)}
           .onChange=${value => this._handleChange(value)}
         ></autocomplete-async>
-        <span class="ajuda">Informar a identificação da norma com tipo e número ou o apelido da norma. São aceitas abreviações como LCP e MP.</span>
+        <span class="ajuda">Informar a identificação da norma com tipo e número ou o apelido da norma. São aceitas abreviações como LCP e MPV.</span>
         <label class="lb-ementa">Ementa:</label>
         <div class="wp-ementa"><span class="sp-ementa">${(this._selectedNorma.ementa || '').slice(0, 450)}</span></div>
       </div>`;
