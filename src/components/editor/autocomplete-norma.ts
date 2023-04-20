@@ -30,8 +30,8 @@ export class AutocompleteNorma extends LitElement {
       const _normas = await _response.json();
       return _normas.map(n => new Norma(n.urn, n.nomePreferido, n.nomePorExtenso, n.nomes, n.nomesAlternativos, n.ementa));
     } catch (err) {
+      console.log('Erro inesperado ao consultar as normas');
       console.log(err);
-      window.alert('Erro inesperado ao consultar as normas');
     }
     return Promise.resolve([]);
   }
