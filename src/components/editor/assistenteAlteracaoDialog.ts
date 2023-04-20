@@ -1,7 +1,8 @@
 import { SlInput } from '@shoelace-style/shoelace';
 import { Elemento } from '../../model/elemento';
-import { buildUrn, validaUrn } from '../../model/lexml/documento/urnUtil';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
+import { Norma } from '../../model/emenda/norma';
+import './autocomplete-norma';
 
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
@@ -57,33 +58,10 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       }
     }
   </style>
-  <div class="input-validation-required">
-    <sl-select name="tipoNorma" id="tipoNorma" label="Tipo da norma" clearable>
-      <sl-menu-item value="decreto">Decreto</sl-menu-item>
-      <sl-menu-item value="decreto-lei">Decreto-Lei</sl-menu-item>
-      <sl-menu-item value="lei">Lei</sl-menu-item>
-      <sl-menu-item value="lei.complementar">Lei Complementar</sl-menu-item>
-      <sl-menu-item value="lei.delegada">Lei Delegada</sl-menu-item>
-      <sl-menu-item value="medida.provisoria">Medida Provisória</sl-menu-item>
-    </sl-select>
-    <br/>
-    <sl-input name="numeroNorma" id="numeroNorma" placeholder="8666 (número sem ponto)" label="Número" clearable></sl-input>
-    <br/>
-
-    <sl-radio-group label="Data" fieldset>
-
-      <sl-radio name="informarData" id="informarDataCompleta" value="informarDataCompleta" checked="true">
-        <sl-input label="Dia" type="date" name="dataNorma" id="dataNorma" size="small" clearable></sl-input>
-      </sl-radio>
-
-      <sl-radio name="informarData" id="informarApenasAno" value="informarApenasAno">
-        <sl-input label="Ano" type="number" name="anoNorma" id="anoNorma" size="small"></sl-input>
-      </sl-radio>
-
-    </sl-radio-group>
-    <p>
+  <autocomplete-norma id="auto-norma"></autocomplete-norma>
+  <br />
     <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="Dispositivo da norma" clearable></sl-input>
-    </p>
+    <span class="ajuda">Informar apenas um dispositivo. Depois poderão ser adicionados outros.</span>
     <p class="ajuda" style="margin-block-end: 0;">
       Terminar sempre com o artigo, por exemplo:
     </p>
@@ -104,18 +82,9 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
 
-  const informarDataCompleta = content.querySelector('#informarDataCompleta');
-  const informarApenasAno = content.querySelector('#informarApenasAno');
-
-  const tipoNorma = content.querySelector('#tipoNorma');
-  const numero = content.querySelector('#numeroNorma');
-  const dataNorma = content.querySelector('#dataNorma');
-  const anoNorma = content.querySelector('#anoNorma');
-  anoNorma!['disabled'] = true;
+  let normaAlteracao: Norma = new Norma();
+  const autocompleteNorma = content.querySelector('#auto-norma');
   const dispositivos = content.querySelector('#dispositivos');
-
-  (tipoNorma! as HTMLSelectElement).value = 'lei';
-
   const botoes = content.querySelectorAll('sl-button');
   const cancelar = botoes[0];
   const ok = botoes[1];
@@ -128,53 +97,22 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
     alertaComplemento!['innerHTML'] = complemento;
   };
 
-  informarDataCompleta!['onclick'] = (): void => {
-    anoNorma!['disabled'] = true;
-    anoNorma!['value'] = '';
-    dataNorma!['disabled'] = false;
-    (dataNorma as SlInput).focus();
-  };
-  informarApenasAno!['onclick'] = (): void => {
-    anoNorma!['disabled'] = false;
-    dataNorma!['disabled'] = true;
-    dataNorma!['value'] = '';
-    (anoNorma as SlInput).focus();
-  };
-  anoNorma!['onkeydown'] = (event: KeyboardEvent): void => {
-    if (anoNorma!['value'].length > 3 && event.key !== 'Backspace') {
-      event.preventDefault();
-    }
+  autocompleteNorma!['onSelect'] = (norma): void => {
+    normaAlteracao = norma;
   };
 
   ok.onclick = (): void => {
-    let urn;
-
-    const d = (dispositivos as HTMLInputElement)?.value;
+    let temErro = false;
+    const textoDispositivo = (dispositivos as HTMLInputElement)?.value;
 
     preencheAlerta();
 
-    if (dataNorma!['value']) {
-      const [ano, mes, dia] = (dataNorma as HTMLInputElement)?.value.split('-');
-      const dataFormatada = [dia, mes, ano].join('/');
-      urn =
-        (dataNorma as HTMLInputElement)?.value.length > 0
-          ? buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, dataFormatada)
-          : undefined;
-    }
-    if (anoNorma!['value']) {
-      urn =
-        (anoNorma as HTMLInputElement)?.value.length > 0
-          ? buildUrn('federal', (tipoNorma! as HTMLSelectElement).value, (numero as HTMLInputElement)?.value, anoNorma!['value'])
-          : undefined;
-    }
-
-    let temErro = false;
-    if (!urn || !validaUrn(urn)) {
-      preencheAlerta('Dados inválidos', 'Complete a identificação da norma a ser alterada.');
+    if (!normaAlteracao.urn) {
+      preencheAlerta('Dados inválidos', 'Identifique uma norma a ser alterada.');
       temErro = true;
-    } else if (d && d.length > 0) {
+    } else if (textoDispositivo && textoDispositivo.length > 0) {
       try {
-        validaDispositivoAssistente(d);
+        validaDispositivoAssistente(textoDispositivo);
       } catch (err) {
         preencheAlerta('Dispositivo da norma não identificado.', 'Informe apenas um dispositivo em um dos formatos acima. Depois será possível alterar outros dispositivos.');
         temErro = true;
@@ -189,8 +127,8 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       alerta?.hide();
       dialogElem?.hide();
       dialogElem?.remove();
-      elemento.norma = urn;
-      store.dispatch(action.execute(elemento, urn, d));
+      elemento.norma = normaAlteracao.urn;
+      store.dispatch(action.execute(elemento, normaAlteracao.urn, textoDispositivo));
     } else {
       alerta?.show();
     }
@@ -204,5 +142,5 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   quill.blur();
   await dialogElem.appendChild(content);
   await dialogElem.show();
-  (tipoNorma as SlInput).focus();
+  (autocompleteNorma as SlInput).focus();
 }
