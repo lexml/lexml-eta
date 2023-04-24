@@ -67,8 +67,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         siglaCasaLegislativa: p.siglaCasa,
       }));
     } catch (err) {
+      console.log('Erro inesperado ao carregar lista de parlamentares');
       console.log(err);
-      window.alert('Erro inesperado ao carregar lista de parlamentares');
     }
     return Promise.resolve([]);
   }
@@ -204,7 +204,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   };
 
   protected firstUpdated(): void {
-    this.atualizaListaParlamentares();
+    setTimeout(() => this.atualizaListaParlamentares(), 5000);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
