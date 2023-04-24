@@ -1,6 +1,7 @@
 import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { OpcoesImpressao } from '../../model/emenda/emenda';
+import { SlSelect } from '@shoelace-style/shoelace';
 
 @customElement('lexml-opcoes-impressao')
 export class OpcoesImpressaoComponent extends LitElement {
@@ -12,6 +13,9 @@ export class OpcoesImpressaoComponent extends LitElement {
 
   @query('#chk-reduzir-espaco')
   reduzirEspacoEntreLinhas!: HTMLInputElement;
+
+  @query('#select-tamanho-fonte')
+  tamanhoFonte!: SlSelect;
 
   private _opcoesImpressao!: OpcoesImpressao;
   @property({ type: Object })
@@ -34,6 +38,10 @@ export class OpcoesImpressaoComponent extends LitElement {
       max-width: 700px;
     }
   `;
+
+  protected firstUpdated(): void {
+    this.tamanhoFonte.addEventListener('sl-change', (ev: Event) => this._atualizarTamanhoFonte(ev));
+  }
 
   render(): TemplateResult {
     return html`
@@ -64,6 +72,9 @@ export class OpcoesImpressaoComponent extends LitElement {
           sl-input::part(base) {
           }
         }
+        sl-select {
+          max-width: 400px;
+        }
       </style>
 
       <sl-radio-group label="Opções de impressão" fieldset class="lexml-opcoes-impressao">
@@ -79,6 +90,13 @@ export class OpcoesImpressaoComponent extends LitElement {
           value=${this._opcoesImpressao?.textoCabecalho}
           @input=${(ev: Event): void => this._atualizarTextoCabecalho(ev)}
         ></sl-input>
+        <div>
+          <sl-select id="select-tamanho-fonte" label="Tamanho da letra" size="small" value=${this._opcoesImpressao?.tamanhoFonte}>
+            <sl-menu-item value="14">14</sl-menu-item>
+            <sl-menu-item value="16">16</sl-menu-item>
+            <sl-menu-item value="18">18</sl-menu-item>
+          </sl-select>
+        </div>
         <div>
           <input
             type="checkbox"
@@ -98,6 +116,11 @@ export class OpcoesImpressaoComponent extends LitElement {
 
   private _atualizarImprimirBrasao(ev: Event): void {
     this._opcoesImpressao.imprimirBrasao = (ev.target as HTMLInputElement).checked;
+  }
+
+  private _atualizarTamanhoFonte(ev: Event): void {
+    const valorFonte = parseInt((ev.target as SlSelect).value as string);
+    this._opcoesImpressao.tamanhoFonte = valorFonte;
   }
 
   private _atualizarReduzirEspacoEntreLinhas(ev: Event): void {
