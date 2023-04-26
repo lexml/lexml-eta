@@ -70,7 +70,8 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
     action.posicao,
     action.isColarSubstituindo,
     action.isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao,
-    state.modo
+    state.modo,
+    infoTextoColado.infoElementos.tiposColados[0]
   );
 
   return {
@@ -95,7 +96,8 @@ const colarDispositivos = (
   posicao: string,
   isColarSubstituindo: boolean,
   isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao: boolean,
-  modo: ClassificacaoDocumento
+  modo: ClassificacaoDocumento,
+  tipoColado: string
 ): StateEvent[] => {
   const isColandoEmAlteracaoDeNorma = isDispositivoAlteracao(atual);
   let refAux = referencia;
@@ -134,11 +136,22 @@ const colarDispositivos = (
   eventos.push(buildEventoElementoIncluido(adicionados, referencia));
   eventoElementoRemovido && eventos.push(eventoElementoRemovido);
   eventos.push(...buildEventosElementoModificado(modificados));
+  eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
   eventos.push(buildEventoElementoSuprimido(referencia));
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
   adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
 
   return eventos.filter(ev => ev.elementos?.length);
+};
+
+const buildEventoElementosRenumerados = (adicionados: Dispositivo[], referencia: Dispositivo, tipoColado: string): StateEvent => {
+  const refAux = referencia.tipo === tipoColado ? referencia.pai! : referencia;
+  const filhosASeremRenumerados = refAux.filhos.filter(f => isAdicionado(f) && !adicionados.includes(f));
+
+  return {
+    stateType: StateType.ElementoRenumerado,
+    elementos: filhosASeremRenumerados.map(f => createElemento(f)),
+  };
 };
 
 const isAdicionarNaPosicaoAtual = (articulacaoColada: Articulacao, atual: Dispositivo, referencia: Dispositivo): boolean => {
