@@ -45,46 +45,18 @@ describe('Testando carregamento da MPV 905/2019', () => {
         isColarSubstituindo,
         posicao: 'depois',
       });
-      // eventos = getEventosQuePossuemElementos(state.ui!.events);
     });
 
     it('Deveria possuir articulacao com 55 artigos', () => {
       expect(state.articulacao?.artigos.length).to.equal(55);
     });
 
-    // it('Deveria possuir artigos 1 e 2 com situação DispositivoModificado', () => {
-    //   const disp1 = buscaDispositivoById(state.articulacao!, 'art1')!;
-    //   const disp2 = buscaDispositivoById(state.articulacao!, 'art2')!;
-    //   expect(disp1.situacao.descricaoSituacao).to.equal('Dispositivo Modificado');
-    //   expect(disp2.situacao.descricaoSituacao).to.equal('Dispositivo Modificado');
-    // });
+    it('Deveria possuir artigo 55 com situação Dispositivo Adicionado', () => {
+      expect(state.articulacao?.artigos.filter(a => a.id === 'art55').every(a => a.situacao.descricaoSituacao === 'Dispositivo Adicionado')).to.equal(true);
+    });
 
-    // it('Deveria possuir demais artigos com situação Dispositivo Original', () => {
-    //   expect(state.articulacao?.artigos.filter(a => a.id !== 'art1' && a.id !== 'art2').every(a => a.situacao.descricaoSituacao === 'Dispositivo Original')).to.equal(true);
-    // });
+    it('Deveria possuir artigo 56 com situação Dispositivo Adicionado', () => {
+      expect(state.articulacao?.artigos.filter(a => a.id === 'art56').every(a => a.situacao.descricaoSituacao === 'Dispositivo Adicionado')).to.equal(true);
+    });
   });
-
-  // describe('Testando aplicação de dispositivos emendados', () => {
-  //   beforeEach(function () {
-  //     state = aplicaAlteracoesEmenda(state, { alteracoesEmenda: EMENDA_001.componentes[0].dispositivos });
-  //     eventos = getEventosQuePossuemElementos(state.ui!.events);
-  //   });
-
-  //   it('Testando se articulação possui apenas 1 filho (Capítulo I) ', () => {
-  //     const d = state.articulacao!.filhos[0];
-  //     expect(d.tipo).equal('Capitulo');
-  //     expect(d.id).equal('cap1');
-  //     expect(d.texto).equal('CAP 1');
-  //     expect(d.rotulo).equal('CAPÍTULO ÚNICO');
-  //     expect(d.pai).equal(state.articulacao);
-  //     expect(d.filhos.length).equal(1);
-  //     expect(d.filhos[0].id).equal('cap1_sec1');
-  //     expect(state.articulacao?.filhos.length).equal(1);
-
-  //     const incluidos = getEvento(eventos, StateType.ElementoIncluido);
-  //     expect(incluidos.elementos?.length).equal(1);
-  //     expect(incluidos.referencia?.tipo).equal('Ementa');
-  //     expect(incluidos.referencia?.lexmlId ?? '').equal('');
-  //   });
-  // });
 });

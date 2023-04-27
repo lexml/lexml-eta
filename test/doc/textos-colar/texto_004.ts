@@ -1,8 +1,5 @@
 // Texto para testes de colagem
-/*
-Art. 55º Teste.
-Art. 56º Teste.
-*/
+
 export const TEXTO_004 = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
