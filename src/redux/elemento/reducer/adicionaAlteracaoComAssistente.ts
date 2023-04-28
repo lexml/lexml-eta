@@ -1,10 +1,13 @@
-import { Artigo } from '../../../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { formataNumero, getDataPorExtenso, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
+import { getUltimoFilho, buildListaDispositivos, getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { buildDispositivosAssistente } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -55,10 +58,21 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
     }
   }
 
+  const novosDispositivos = buildListaDispositivos(novo, []);
+  novosDispositivos.forEach((d, i: number) => {
+    if (i > 0 && i < novosDispositivos.length - 1) {
+      d.texto = TEXTO_OMISSIS;
+    }
+    if (i > 1) {
+      adicionarOmissisObrigatorios(d);
+    }
+  });
+
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(atual, novo)));
   eventos.add(StateType.ElementoIncluido, getElementosDoDispositivo(novo, true));
   eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(novo, false));
+  eventos.add(StateType.ElementoMarcado, [createElemento(getUltimoFilho(novo)), createElemento(atual)]);
 
   return {
     articulacao: state.articulacao,
@@ -72,4 +86,13 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
       alertas: state.ui?.alertas,
     },
   };
+};
+
+const adicionarOmissisObrigatorios = (atual: Dispositivo): void => {
+  if (parseInt(atual.numero!) > 1) {
+    const anterior = getDispositivoAnterior(atual);
+    const novo = criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
+    novo.situacao = new DispositivoAdicionado();
+    atual.pai?.addFilhoOnPosition(novo, 0);
+  }
 };
