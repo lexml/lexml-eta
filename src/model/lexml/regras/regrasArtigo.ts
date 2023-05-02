@@ -42,6 +42,7 @@ import {
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { Regras } from './regras';
+import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -151,6 +152,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
+
+      acoes.push(adicionarTextoOmissisAction);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

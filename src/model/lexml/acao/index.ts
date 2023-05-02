@@ -61,6 +61,7 @@ import {
 } from './transformarElementoAction';
 import { validarArticulacaAction } from './validarArticulacaoAction';
 import { validarElementoAction } from './validarElementoAction';
+import { adicionarTextoOmissisAction } from './adicionarTextoOmissisAction';
 
 export interface ElementoAction {
   descricao?: string;
@@ -134,6 +135,7 @@ acoesMenu.push(adicionarParagrafoDepois);
 
 acoesMenu.push(adicionarAgrupadorArtigoAction);
 acoesMenu.push(adicionarAgrupadorArtigoAntesAction);
+acoesMenu.push(adicionarTextoOmissisAction);
 
 export const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);

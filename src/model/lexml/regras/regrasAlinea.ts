@@ -33,6 +33,7 @@ import {
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
 import { podeConverterEmOmissis } from './regrasUtil';
+import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 
 export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -88,6 +89,8 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
       }
+
+      acoes.push(adicionarTextoOmissisAction);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

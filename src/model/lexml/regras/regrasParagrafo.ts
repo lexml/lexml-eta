@@ -3,6 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAlinea, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarInciso, adicionarParagrafoAntes, adicionarParagrafoDepois } from '../acao/adicionarElementoAction';
+import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
@@ -89,6 +90,8 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
       }
+
+      acoes.push(adicionarTextoOmissisAction);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
