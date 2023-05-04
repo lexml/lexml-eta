@@ -94,7 +94,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/["“']/g, '')
       .trim();
 
-    const regexRotulo = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[cç][aã]o|subse[cç][aã]o|art\.|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)|\d{1,3}[\t .]+).*/i;
+    const regexRotulo = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[cç][aã]o|subse[cç][aã]o|art\.|art|§|par[aá]grafo [uú]nico|[IVXMDC]{1,3}\s*[-–]{1}|[az]{1,2}\)|\d{1,3}[\t .]+).*/i;
 
     if (t && t.length > 0 && regexRotulo.test(t)) {
       return true;
