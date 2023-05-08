@@ -32,7 +32,8 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
-import { podeConverterEmOmissis } from './regrasUtil';
+import { MotivosOperacaoNaoPermitida, podeConverterEmOmissis } from './regrasUtil';
+import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 
 export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -53,9 +54,13 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAbaixoAction);
+      } else {
+        verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.PROXIMO_DIFERENTE_ALINEA);
       }
       if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) !== undefined) {
         acoes.push(moverElementoAcimaAction);
+      } else {
+        verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.PROXIMO_DIFERENTE_ALINEA);
       }
 
       if (isDispositivoAlteracao(dispositivo) && !isDispositivoNovoNaNormaAlterada(dispositivo.pai!)) {

@@ -17,12 +17,13 @@ import {
 import { Regras } from './regras';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
+import { MotivosOperacaoNaoPermitida } from './regrasUtil';
+import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
     getAcoesPossiveis(dispositivo: Dispositivo): ElementoAction[] {
       const acoes: ElementoAction[] = [];
-
       if (!isAgrupador(dispositivo)) {
         return [];
       }
@@ -64,6 +65,8 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
         (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
       }
+
+      verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.AGRUPADOR);
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

@@ -42,6 +42,8 @@ import {
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { Regras } from './regras';
+import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
+import { MotivosOperacaoNaoPermitida } from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -58,9 +60,13 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       if (getDispositivoPosteriorMesmoTipoInclusiveOmissis(dispositivo) || getProximoAgrupadorAposArtigo(dispositivo)) {
         acoes.push(moverElementoAbaixoAction);
+      } else {
+        verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.PROXIMO_DIFERENTE_ARTIGO_ALTERACAO_NORMA);
       }
       if (getDispositivoAnteriorMesmoTipoInclusiveOmissis(dispositivo) || isAgrupadorNaoArticulacao(dispositivo.pai!)) {
         acoes.push(moverElementoAcimaAction);
+      } else {
+        verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.PROXIMO_DIFERENTE_ARTIGO_ALTERACAO_NORMA);
       }
 
       if (

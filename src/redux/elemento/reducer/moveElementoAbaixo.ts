@@ -2,15 +2,14 @@ import { isAgrupadorNaoArticulacao } from './../../../model/dispositivo/tipo';
 import { getIrmaoPosteriorIndependenteDeTipo, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
+import { isAcaoPermitida, montaEMostraMensagensErro } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAbaixo } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { buildListaDispositivos, getProximoAgrupadorAposArtigo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, resetUuidTodaArvore } from '../util/reducerUtil';
-import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { buildPast } from '../util/stateReducerUtil';
 
 export const moveElementoAbaixo = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -21,7 +20,7 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   }
 
   if (!isAcaoPermitida(atual, MoverElementoAbaixo)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    return montaEMostraMensagensErro(atual, state);
   }
 
   // Dispositivo cuja posição será trocada com o atual

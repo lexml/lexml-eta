@@ -10,15 +10,14 @@ import {
 import { isAgrupador, isEmenta } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
-import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
+import { isAcaoPermitida, montaEMostraMensagensErro } from '../../../model/lexml/acao/acaoUtil';
 import { MoverElementoAcima } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { buildListaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
-import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { buildPast } from '../util/stateReducerUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 
 export const moveElementoAcima = (state: any, action: any): State => {
@@ -30,7 +29,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   }
 
   if (!isAcaoPermitida(atual, MoverElementoAcima)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida.' });
+    return montaEMostraMensagensErro(atual, state);
   }
 
   // Dispositivo cuja posição será trocada com o atual
