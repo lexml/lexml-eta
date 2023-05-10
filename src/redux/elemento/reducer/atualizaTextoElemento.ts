@@ -7,7 +7,7 @@ import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoV
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
-import { State, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
@@ -51,8 +51,11 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
     dispositivo.texto = dispositivo.texto.toUpperCase();
   }
 
-  eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
-  eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
+  const uiEvents: StateEvent[] = [
+    { stateType: StateType.SituacaoElementoModificada, elementos: [elemento] },
+    { stateType: StateType.ElementoValidado, elementos: criaListaElementosAfinsValidados(dispositivo) },
+    { stateType: StateType.ElementoSelecionado, elementos: [elemento] },
+  ];
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
@@ -62,7 +65,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
     present: eventos.build(),
     future: [],
     ui: {
-      events: eventosUi.build(),
+      events: uiEvents,
       alertas: state.ui?.alertas,
     },
   };
