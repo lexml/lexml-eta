@@ -543,5 +543,9 @@ export const editorStyles = html`
         display: none !important;
       }
     }
+
+    .revisao-ativa {
+      background-color: #add8e6 !important;
+    }
   </style>
 `;

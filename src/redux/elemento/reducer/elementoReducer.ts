@@ -64,6 +64,8 @@ import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
 import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosNaProposicaoFromClipboard';
+import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
+import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -134,6 +136,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return removeAlerta(state, action);
     case LIMPAR_ALERTAS:
       return limparAlertas(state);
+    case ATIVAR_DESATIVAR_REVISAO:
+      return ativaDesativaRevisao(state);
     default:
       return state;
   }
