@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAlinea, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAlinea, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarInciso, adicionarParagrafoAntes, adicionarParagrafoDepois } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
@@ -28,6 +28,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
@@ -91,7 +92,9 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      acoes.push(adicionarTextoOmissisAction);
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

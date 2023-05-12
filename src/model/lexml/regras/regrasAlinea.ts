@@ -1,8 +1,8 @@
-import { podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
+import { isDispositivoNaNormaAlterada, podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
 import { atualizarNotaAlteracaoAction } from './../acao/atualizarNotaAlteracaoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAlinea, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAlinea, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarAlineaAntes, adicionarAlineaDepois, adicionarItem } from '../acao/adicionarElementoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -90,7 +90,9 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      acoes.push(adicionarTextoOmissisAction);
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

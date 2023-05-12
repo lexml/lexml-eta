@@ -1,8 +1,8 @@
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
-import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
+import { getProximoAgrupadorAposArtigo, isDispositivoNaNormaAlterada } from './../hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
@@ -153,7 +153,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      acoes.push(adicionarTextoOmissisAction);
+      console.log('isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)', isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo));
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

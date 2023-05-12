@@ -772,6 +772,12 @@ export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | und
   return dispositivo.pai ? buscaProximoOmissis(dispositivo.pai!) : undefined;
 };
 
+export const isDispositivoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
+  const value = (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
+  const situacoes = [DescricaoSituacao.DISPOSITIVO_ADICIONADO + ''];
+  return situacoes.includes(dispositivo.situacao?.descricaoSituacao) && value;
+};
+
 export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
   const value = (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
   if (!isDispositivoAlteracao(dispositivo) || value === undefined) {

@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isItem } from '../../dispositivo/tipo';
+import { isItem, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarItemAntes, adicionarItemDepois } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
@@ -16,6 +16,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
@@ -70,7 +71,9 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      acoes.push(adicionarTextoOmissisAction);
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
@@ -26,6 +26,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
   isUltimaAlteracao,
@@ -113,7 +114,9 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      acoes.push(adicionarTextoOmissisAction);
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }
