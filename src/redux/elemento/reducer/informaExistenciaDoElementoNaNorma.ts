@@ -3,7 +3,12 @@ import { createElemento, getElementos } from './../../../model/elemento/elemento
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { InformarExistenciaDoElementoNaNorma } from '../../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
-import { getDispositivoAndFilhosAsLista, isDispositivoCabecaAlteracao, isDispositivoNovoNaNormaAlterada } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAndFilhosAsLista,
+  getDispositivoCabecaAlteracao,
+  isDispositivoCabecaAlteracao,
+  isDispositivoNovoNaNormaAlterada,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { Mensagem, TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -114,7 +119,7 @@ const validaAlteracaoExistenteParaNovo = (dispositivo: Dispositivo): Mensagem | 
     };
   }
 
-  if (existeOmissis(dispositivos)) {
+  if (existeOmissis(dispositivo)) {
     return {
       tipo: TipoMensagem.INFO,
       descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe texto omitido na estrutura do dispositivo.',
@@ -138,7 +143,9 @@ const existeDispositivoSemNumero = (dispositivos: Dispositivo[]): boolean => {
   return dispositivos.some(d => d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')) || d.numero === undefined);
 };
 
-const existeOmissis = (dispositivos: Dispositivo[]): boolean => {
+const existeOmissis = (dispositivo: Dispositivo): boolean => {
+  const dispositivoCabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+  const dispositivos = getDispositivoAndFilhosAsLista(dispositivoCabecaAlteracao);
   return dispositivos.some(d => d.tipo === 'Omissis' || d.texto?.includes(TEXTO_OMISSIS));
 };
 
