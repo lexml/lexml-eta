@@ -488,6 +488,10 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
   return isUnicoMesmoTipo(atual) || articulacao.indexOfArtigo(atual) < articulacao.artigos.length - 1;
 };
 
+export const isTodosFilhosSuprimidos = (dispositivo: Dispositivo): boolean => {
+  return !getSomenteFilhosDispositivoAsLista([], dispositivo.filhos).some(d => !isSuprimido(d));
+};
+
 export const isArticulacaoAlteracao = (articulacao: Dispositivo): boolean => {
   return isArticulacao(articulacao) && articulacao.pai !== undefined;
 };

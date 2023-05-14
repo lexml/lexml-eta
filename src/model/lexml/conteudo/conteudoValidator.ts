@@ -8,6 +8,7 @@ import {
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
+  isTodosFilhosSuprimidos,
   isUltimaAlteracao,
   isUltimaEnumeracao,
   isUltimoMesmoTipo,
@@ -144,6 +145,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isOmissis(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !isTodosFilhosSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo)
@@ -196,6 +198,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isArtigo(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !isTodosFilhosSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     dispositivo.hasAlteracao() &&
     !hasIndicativoDesdobramento(dispositivo) &&
@@ -255,6 +258,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !isTodosFilhosSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     !isArtigo(dispositivo) &&
     hasFilhos(dispositivo) &&
@@ -271,6 +275,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !isTodosFilhosSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     isArtigo(dispositivo) &&
     hasFilhos((dispositivo as Artigo).caput!) &&
@@ -287,6 +292,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !isTodosFilhosSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     hasIndicativoDesdobramento(dispositivo) &&
     ((isArtigo(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!)) || !hasFilhos(dispositivo))
