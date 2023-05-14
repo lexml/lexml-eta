@@ -153,7 +153,6 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      console.log('isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)', isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo));
       if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }

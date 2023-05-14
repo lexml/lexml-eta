@@ -773,9 +773,7 @@ export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | und
 };
 
 export const isDispositivoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
-  const value = (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
-  const situacoes = [DescricaoSituacao.DISPOSITIVO_ADICIONADO + ''];
-  return situacoes.includes(dispositivo.situacao?.descricaoSituacao) && value;
+  return (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
 };
 
 export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {

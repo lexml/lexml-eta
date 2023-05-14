@@ -1,4 +1,6 @@
 import { Referencia } from '../../elemento';
+import { TEXTO_OMISSIS } from '../conteudo/textoOmissis';
+import { atualizarTextoElementoAction } from './atualizarTextoElementoAction';
 import { ElementoAction } from './index';
 
 export const ADICIONAR_TEXTO_OMISSIS = 'ADICIONAR_TEXTO_OMISSIS';
@@ -11,10 +13,8 @@ export class AdicionarTextoOmissisAction implements ElementoAction {
   }
 
   execute(atual: Referencia): any {
-    return {
-      type: ADICIONAR_TEXTO_OMISSIS,
-      atual,
-    };
+    atual.conteudo!.texto = TEXTO_OMISSIS;
+    return atualizarTextoElementoAction.execute(atual);
   }
 }
 
