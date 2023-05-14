@@ -64,8 +64,6 @@ import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
 import { validaElemento } from './validaElemento';
 import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosNaProposicaoFromClipboard';
-import { ADICIONAR_TEXTO_OMISSIS } from '../../../model/lexml/acao/adicionarTextoOmissisAction';
-import { AdicionarTextoOmissis } from './AdicionarTextoOmissis';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -85,8 +83,6 @@ export const elementoReducer = (state = {}, action: any): any => {
       return atualizaReferenciaElemento(state, action);
     case ATUALIZAR_TEXTO_ELEMENTO:
       return atualizaTextoElemento(state, action);
-    case ADICIONAR_TEXTO_OMISSIS:
-      return AdicionarTextoOmissis(state, action);
     case AUTO_FIX:
       return autoFixElemento(state, action);
     case ADICIONAR_ELEMENTO:

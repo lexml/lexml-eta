@@ -10,6 +10,7 @@ import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } fro
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
+import { removerTextoOmissisAction } from '../acao/removerTextoOmissisAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
   TransformarElemento,
@@ -116,6 +117,10 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
 
       if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
+      }
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+        acoes.push(removerTextoOmissisAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

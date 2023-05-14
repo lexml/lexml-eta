@@ -34,6 +34,7 @@ import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
 import { podeConverterEmOmissis } from './regrasUtil';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
+import { removerTextoOmissisAction } from '../acao/removerTextoOmissisAction';
 
 export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -92,6 +93,10 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
 
       if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
+      }
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+        acoes.push(removerTextoOmissisAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

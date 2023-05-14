@@ -43,6 +43,7 @@ import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { Regras } from './regras';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
+import { removerTextoOmissisAction } from '../acao/removerTextoOmissisAction';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -155,6 +156,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
+      }
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+        acoes.push(removerTextoOmissisAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
