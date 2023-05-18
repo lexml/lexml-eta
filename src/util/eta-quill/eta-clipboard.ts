@@ -59,7 +59,6 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     const textoClipboard = e?.clipboardData?.getData('text/plain');
 
     const range = this.quill.getSelection();
-
     if (html) {
       html = removeTagHead(removeTagScript(removeTagStyle(html)));
     }
@@ -71,7 +70,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
         this.adicionaDispositivos(textoClipboard!, text, range);
         return;
       }
-
+      this.quill.deleteText(range.index, range.length);
       this.quill.clipboard.dangerouslyPasteHTML(range.index, text);
       if (text) {
         this.onChange.notify('clipboard');
