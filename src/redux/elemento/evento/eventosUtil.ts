@@ -1,5 +1,5 @@
 import { Artigo } from './../../../model/dispositivo/dispositivo';
-import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, getAgrupadorAntes, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -257,8 +257,14 @@ export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dis
     dispositivo.alteracoes.filhos.forEach(f => getDispositivoAndFilhosAsLista(f).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d)))));
   }
   const eventos = new Eventos();
-
   eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
+
+  const artigo = getArtigo(dispositivo);
+  if (artigo) {
+    artigo.mensagens = validaDispositivo(artigo);
+    const elementoArtigo = createElemento(artigo, true);
+    eventos.add(StateType.ElementoValidado, [elementoArtigo]);
+  }
 
   return eventos.build();
 };
