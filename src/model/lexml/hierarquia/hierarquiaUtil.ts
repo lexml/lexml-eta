@@ -488,7 +488,16 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
   return isUnicoMesmoTipo(atual) || articulacao.indexOfArtigo(atual) < articulacao.artigos.length - 1;
 };
 
-export const isTodosFilhosSuprimidos = (dispositivo: Dispositivo): boolean => {
+// Verifica se todos os filhos dos tipos (inciso, alínea ou item) estão suprimidos.
+export const isTodosFilhosTipoEnumeracaoSuprimidos = (dispositivo: Dispositivo): boolean => {
+  if (isAgrupador(dispositivo)) {
+    // Não deveria ser chamado para agrupadores
+    return false;
+  }
+  if (isArtigo(dispositivo)) {
+    // Evita listar parágrafos
+    dispositivo = (dispositivo as Artigo).caput!;
+  }
   return !getSomenteFilhosDispositivoAsLista([], dispositivo.filhos).some(d => !isSuprimido(d));
 };
 
