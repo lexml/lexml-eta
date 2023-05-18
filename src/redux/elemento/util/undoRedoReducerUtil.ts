@@ -16,6 +16,7 @@ import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivo
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
+import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
@@ -280,4 +281,44 @@ export const ajustarAtributosAgrupadorIncluidoPorUndoRedo = (articulacao: Articu
   dispositivo.rotulo = refFonteAgrupadorIncluido.rotulo;
   eventosResultantes[0].elementos!.length = 0;
   eventosResultantes[0].elementos!.push(createElemento(dispositivo));
+};
+
+export const processarRestaurados = (state: State, evento: StateEvent, acao: string): StateEvent => {
+  const elementoDeReferencia = evento.elementos![acao === 'UNDO' ? 0 : 1];
+  const d = getDispositivoFromElemento(state.articulacao!, elementoDeReferencia, true)!;
+
+  const elementoAntesDeRestaurarSituacao = createElemento(d);
+  let stateType: StateType;
+
+  if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+    d.situacao = new DispositivoModificado(createElemento(d));
+    stateType = StateType.ElementoModificado;
+  } else if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+    d.situacao = new DispositivoSuprimido(createElemento(d));
+    stateType = StateType.ElementoSuprimido;
+  } else {
+    d.situacao = new DispositivoOriginal();
+    stateType = StateType.ElementoRestaurado;
+  }
+
+  d.numero = elementoDeReferencia.numero ?? '';
+  d.rotulo = elementoDeReferencia.rotulo ?? '';
+  d.texto = elementoDeReferencia.conteudo?.texto ?? '';
+
+  const elementos = stateType === StateType.ElementoSuprimido ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
+
+  return { stateType, elementos };
+};
+
+export const processarSuprimidos = (state: State, evento: StateEvent): StateEvent[] => {
+  const result: StateEvent[] = [];
+
+  evento.elementos?.forEach(e => {
+    const d = getDispositivoFromElemento(state.articulacao!, e, true)!;
+    const elementoAntesRestauracao = createElemento(d);
+    d.situacao = new DispositivoOriginal();
+    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d!)] });
+  });
+
+  return result;
 };
