@@ -1,13 +1,18 @@
 import { agrupaElemento } from './agrupaElemento';
 import { removeElemento } from './removeElemento';
-import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador, processaSituacoesAlteradas } from './../util/undoRedoReducerUtil';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
+import {
+  ajustarAtributosAgrupadorIncluidoPorUndoRedo,
+  isUndoRedoInclusaoExclusaoAgrupador,
+  processaSituacoesAlteradas,
+  processarRestaurados,
+  processarSuprimidos,
+} from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 
 export const undo = (state: any): State => {
@@ -59,10 +64,10 @@ export const undo = (state: any): State => {
 
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
-  events.add(
-    StateType.ElementoRestaurado,
-    restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoRestaurado), DispositivoOriginal)
-  );
+
+  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSuprimido).forEach((ev: StateEvent) => events.eventos.push(...processarSuprimidos(state, ev)));
+
+  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));
 
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)

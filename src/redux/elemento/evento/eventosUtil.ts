@@ -229,25 +229,23 @@ const restaura = (d: Dispositivo): void => {
   }
 };
 
-export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  const elementosRestaurados: Elemento[] = [];
+export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] => {
+  const result: StateEvent[] = [];
+
+  const addRestauracao = (d: Dispositivo): void => {
+    const elementoAntesRestauracao = createElemento(d);
+    restaura(d);
+    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d)] });
+  };
 
   if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
-    aRestaurar.forEach(d => {
-      restaura(d);
-      elementosRestaurados.push(createElemento(d));
-    });
+    aRestaurar.forEach(addRestauracao);
   } else {
-    restaura(dispositivo);
-    elementosRestaurados.push(createElemento(dispositivo));
+    addRestauracao(dispositivo);
   }
 
-  const eventos = new Eventos();
-
-  eventos.add(StateType.ElementoRestaurado, elementosRestaurados);
-
-  return eventos.build();
+  return result;
 };
 
 export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
