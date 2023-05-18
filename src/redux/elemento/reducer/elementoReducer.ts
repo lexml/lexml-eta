@@ -66,6 +66,8 @@ import { validaElemento } from './validaElemento';
 import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosNaProposicaoFromClipboard';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
+import { ADICIONA_ATUALIZA_USUARIO_REVISAO } from '../../../model/lexml/acao/usuarioRevisaoAction';
+import { adicionaAtualizaUsuarioRevisao } from './adicionaUsuarioRevisao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   switch (action.type) {
@@ -138,6 +140,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       return limparAlertas(state);
     case ATIVAR_DESATIVAR_REVISAO:
       return ativaDesativaRevisao(state);
+    case ADICIONA_ATUALIZA_USUARIO_REVISAO:
+      return adicionaAtualizaUsuarioRevisao(state, action);
     default:
       return state;
   }

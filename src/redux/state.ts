@@ -24,6 +24,7 @@ export enum StateType {
   ElementoReferenciado = 'ElementoReferenciado',
   RevisaoAtivada = 'RevisaoAtivada',
   RevisaoDesativada = 'RevisaoDesativada',
+  AdicionaAtualizaUsuarioRevisao = 'AdicionaAtualizaUsuarioRevisao',
 }
 export interface StateEvent {
   stateType: StateType;
