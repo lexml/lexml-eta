@@ -23,7 +23,7 @@ export const restauraElemento = (state: any, action: any): State => {
     return state;
   }
 
-  const events = restauraAndBuildEvents(state.articulacao, dispositivo);
+  const events = restauraAndBuildEvents(dispositivo);
 
   return {
     articulacao: state.articulacao,

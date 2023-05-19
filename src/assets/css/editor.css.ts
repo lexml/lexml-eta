@@ -547,5 +547,9 @@ export const editorStyles = html`
     .revisao-ativa {
       background-color: #add8e6 !important;
     }
+
+    [em-revisao='true'] {
+      background-color: #fff2a6 !important;
+    }
   </style>
 `;

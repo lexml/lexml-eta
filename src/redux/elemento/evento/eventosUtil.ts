@@ -101,7 +101,7 @@ export const buildEventoTransformacaooElemento = (
 };
 
 export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  const removidos = getElementos(dispositivo);
+  const removidos = getElementos(dispositivo, false, true);
   const dispositivosRenumerados = listaDispositivosRenumerados(dispositivo);
   const dispositivoAnterior = getDispositivoAnterior(dispositivo);
 
@@ -144,7 +144,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   let pos = atual.pai!.indexOf(atual);
   const agrupadoresAnteriorMesmoTipo = atual.pai!.filhos.filter((d, i) => i < pos && isAgrupador(d));
   const paiOriginal = atual.pai;
-  const removido = createElemento(atual);
+  const removido = createElemento(atual, false, true);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
   const agrupadorAntes = getAgrupadorAntes(atual);
@@ -229,25 +229,23 @@ const restaura = (d: Dispositivo): void => {
   }
 };
 
-export const restauraAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  const elementosRestaurados: Elemento[] = [];
+export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] => {
+  const result: StateEvent[] = [];
+
+  const addRestauracao = (d: Dispositivo): void => {
+    const elementoAntesRestauracao = createElemento(d);
+    restaura(d);
+    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d)] });
+  };
 
   if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
-    aRestaurar.forEach(d => {
-      restaura(d);
-      elementosRestaurados.push(createElemento(d));
-    });
+    aRestaurar.forEach(addRestauracao);
   } else {
-    restaura(dispositivo);
-    elementosRestaurados.push(createElemento(dispositivo));
+    addRestauracao(dispositivo);
   }
 
-  const eventos = new Eventos();
-
-  eventos.add(StateType.ElementoRestaurado, elementosRestaurados);
-
-  return eventos.build();
+  return result;
 };
 
 export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {

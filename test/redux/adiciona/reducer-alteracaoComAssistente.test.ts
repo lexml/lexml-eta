@@ -45,8 +45,8 @@ describe('Testando o assistente de alteração', () => {
   it('Deveria criar um novo artigo cabeça de alteração', () => {
     expect(isDispositivoCabecaAlteracao(state.articulacao.artigos[1].alteracoes.artigos[0])).to.be.true;
   });
-  it('Deveria apresentar 1 evento', () => {
-    expect(state.ui.events.length).to.equal(1);
+  it('Deveria apresentar 2 eventos', () => {
+    expect(state.ui.events.length).to.equal(2);
   });
   it('Deveria apresentar 4 elemento incluído', () => {
     const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

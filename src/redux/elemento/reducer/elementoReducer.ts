@@ -66,83 +66,142 @@ import { validaElemento } from './validaElemento';
 import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosNaProposicaoFromClipboard';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
+import { atualizaRevisao } from './atualizaRevisao';
+import { State } from '../../state';
 import { ADICIONA_ATUALIZA_USUARIO_REVISAO } from '../../../model/lexml/acao/usuarioRevisaoAction';
 import { adicionaAtualizaUsuarioRevisao } from './adicionaUsuarioRevisao';
 
 export const elementoReducer = (state = {}, action: any): any => {
+  let tempState: State;
+
+  const usuario = (state as State).usuario;
+  let actionType = action.type;
+  let emRevisao = (state as State).emRevisao;
+  const revisoes = (state as State).revisoes || [];
+  let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
+
   switch (action.type) {
     case ADICIONAR_AGRUPADOR_ARTIGO:
-      return agrupaElemento(state, action);
+      tempState = agrupaElemento(state, action);
+      break;
     case INFORMAR_EXISTENCIA_NA_NORMA:
-      return informaExistenciaDoElementoNaNorma(state, action);
+      tempState = informaExistenciaDoElementoNaNorma(state, action);
+      break;
     case ATUALIZAR_NOTA_ALTERACAO:
-      return atualizaNotaAlteracao(state, action);
+      tempState = atualizaNotaAlteracao(state, action);
+      break;
     case APLICAR_ALTERACOES_EMENDA:
-      return aplicaAlteracoesEmenda(state, action);
+      tempState = aplicaAlteracoesEmenda(state, action);
+      break;
     case ASSISTENTE_ALTERACAO:
-      return adicionaAlteracaoComAssistente(state, action);
+      tempState = adicionaAlteracaoComAssistente(state, action);
+      break;
     case ATUALIZAR_ELEMENTO:
-      return atualizaElemento(state, action);
+      tempState = atualizaElemento(state, action);
+      break;
     case ATUALIZAR_REFERENCIA_ELEMENTO:
-      return atualizaReferenciaElemento(state, action);
+      tempState = atualizaReferenciaElemento(state, action);
+      break;
     case ATUALIZAR_TEXTO_ELEMENTO:
-      return atualizaTextoElemento(state, action);
+      tempState = atualizaTextoElemento(state, action);
+      break;
     case AUTO_FIX:
-      return autoFixElemento(state, action);
+      tempState = autoFixElemento(state, action);
+      break;
     case ADICIONAR_ELEMENTO:
-      return adicionaElemento(state, action);
+      tempState = adicionaElemento(state, action);
+      break;
     case ADICIONAR_ELEMENTOS_FROM_CLIPBOARD:
-      return adicionaElementosNaProposicaoFromClipboard(state, action);
+      tempState = adicionaElementosNaProposicaoFromClipboard(state, action);
+      break;
     case AGRUPAR_ELEMENTO:
-      return agrupaElemento(state, action);
+      tempState = agrupaElemento(state, action);
+      break;
     case TRANSFORMAR_TIPO_ELEMENTO:
-      return transformaTipoElemento(state, action);
+      tempState = transformaTipoElemento(state, action);
+      break;
     case ELEMENTO_SELECIONADO:
-      return selecionaElemento(state, action);
+      tempState = selecionaElemento(state, action);
+      break;
     case INFORMAR_DADOS_ASSISTENTE:
-      return solicitaDadosAssistente(state, action);
+      tempState = solicitaDadosAssistente(state, action);
+      break;
     case INFORMAR_NORMA:
-      return solicitaNorma(state, action);
+      tempState = solicitaNorma(state, action);
+      break;
     case MOVER_ELEMENTO_ABAIXO:
-      return moveElementoAbaixo(state, action);
+      tempState = moveElementoAbaixo(state, action);
+      break;
     case MOVER_ELEMENTO_ACIMA:
-      return moveElementoAcima(state, action);
+      tempState = moveElementoAcima(state, action);
+      break;
     case RENUMERAR_ELEMENTO:
-      return renumeraElemento(state, action);
+      tempState = renumeraElemento(state, action);
+      break;
     case RESTAURAR_ELEMENTO:
-      return restauraElemento(state, action);
+      tempState = restauraElemento(state, action);
+      break;
     case SUPRIMIR_AGRUPADOR:
-      return suprimeAgrupador(state, action);
+      tempState = suprimeAgrupador(state, action);
+      break;
     case SUPRIMIR_ELEMENTO:
-      return suprimeElemento(state, action);
+      tempState = suprimeElemento(state, action);
+      break;
     case ABRIR_ARTICULACAO:
-      return abreArticulacao(state, action);
+      tempState = abreArticulacao(state, action);
+      break;
     case REDO:
-      return redo(state);
+      tempState = redo(state);
+      break;
     case REMOVER_ELEMENTO:
-      return removeElemento(state, action);
+      tempState = removeElemento(state, action);
+      break;
     case REMOVER_ELEMENTO_SEM_TEXTO:
-      return removeElementoSemTexto(state, action);
+      tempState = removeElementoSemTexto(state, action);
+      break;
     case SHIFT_TAB:
     case TAB:
-      return modificaTipoElementoWithTab(state, action);
+      tempState = modificaTipoElementoWithTab(state, action);
+      break;
     case UNDO:
-      return undo(state);
+      tempState = undo(state);
+      break;
     case VALIDAR_ELEMENTO:
-      return validaElemento(state, action);
+      tempState = validaElemento(state, action);
+      break;
     case VALIDAR_ARTICULACAO:
-      return validaArticulacao(state);
+      tempState = validaArticulacao(state);
+      break;
     case ADICIONAR_ALERTA:
-      return adicionaAlerta(state, action);
+      tempState = adicionaAlerta(state, action);
+      break;
     case REMOVER_ALERTA:
-      return removeAlerta(state, action);
+      tempState = removeAlerta(state, action);
+      break;
     case LIMPAR_ALERTAS:
-      return limparAlertas(state);
+      tempState = limparAlertas(state);
+      break;
     case ATIVAR_DESATIVAR_REVISAO:
-      return ativaDesativaRevisao(state);
+      tempState = ativaDesativaRevisao(state);
+      emRevisao = tempState.emRevisao;
+      numEventosPassadosAntesDaRevisao = tempState.past?.length || 0;
+      break;
     case ADICIONA_ATUALIZA_USUARIO_REVISAO:
-      return adicionaAtualizaUsuarioRevisao(state, action);
+      tempState = adicionaAtualizaUsuarioRevisao(state, action);
+      break;
     default:
-      return state;
+      actionType = undefined;
+      tempState = state as State;
+      break;
   }
+
+  if (actionType !== ABRIR_ARTICULACAO) {
+    tempState.revisoes = revisoes;
+  }
+  tempState.emRevisao = emRevisao;
+  tempState.usuario = usuario;
+
+  tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
+
+  return atualizaRevisao(tempState, actionType);
 };

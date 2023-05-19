@@ -66,7 +66,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   */
   // Artigo pulando agrupador
   if (isAgrupador(anterior)) {
-    const anteriorAoAgrupador = getDispositivoAnteriorNaSequenciaDeLeitura(anterior, d => isArtigo(d) || isAgrupador(d))!;
+    const anteriorAoAgrupador = getDispositivoAnteriorNaSequenciaDeLeitura(anterior, d => (isArtigo(d) || isAgrupador(d)) && isDispositivoAlteracao(d) === emAlteracao)!;
     if (isAgrupador(anteriorAoAgrupador)) {
       novoPai = anteriorAoAgrupador;
       pos = 0;

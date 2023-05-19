@@ -19,5 +19,6 @@ export const load = (articulacao: Articulacao, modo?: string): State => {
       ],
       alertas: [],
     },
+    revisoes: [],
   };
 };
