@@ -28,6 +28,12 @@ export const createUsuarioRevisaoDialog = (rootStore: any): void => {
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Usuário';
 
+  let usuarioAtual = 'anônimo';
+
+  if (rootStore.getState().elementoReducer.usuario !== undefined) {
+    usuarioAtual = rootStore.getState().elementoReducer.usuario.nome;
+  }
+
   const content = document.createRange().createContextualFragment(`
     <style>
       .rodape-confirmar {
@@ -42,6 +48,9 @@ export const createUsuarioRevisaoDialog = (rootStore: any): void => {
       .rodape-confirmar {
         float: right;
       }
+      .usuario-atual {
+        float: left;
+      }
       sl-dialog::part(title) {
         display: flex;
         align-items: center;
@@ -52,16 +61,20 @@ export const createUsuarioRevisaoDialog = (rootStore: any): void => {
         <div class="inputUsuario">
           <sl-form class="form-overview">        
             <sl-input id="usuario" label="Informe o usuário da revisão"></sl-input>
-          <sl-form class="form-overview">
+          <sl-form class="form-overview">         
+          
+        </div>
+        <div class="usuario-atual">
+          <slot >atual: <strong>${usuarioAtual}<strong></slot>
         </div>
         <br/>
       </div>
       
       <div class="rodape-confirmar" id="rodapeConfirmar">
-      <br/>
+        <br/>
         <sl-button id="btnConfirmar" slot="footer" variant="primary">Confirmar</sl-button>
-        <sl-button slot="footer" variant="default">Fechar</sl-button>
-      </div>
+        <sl-button slot="footer" variant="default">Fechar</sl-button>        
+      </div>      
   `);
 
   buildButtons(content, dialogElem, rootStore);

@@ -65,6 +65,7 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { ativarDesativarRevisaoAction } from '../../model/lexml/acao/ativarDesativarRevisaoAction';
+import { createUsuarioRevisaoDialog } from './usuarioRevisaoDialog';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -152,6 +153,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
         .checkBoxRevisao {
           padding: 3px 5px;
+          margin: 5px 5px 5px 4px;
         }
       </style>
       <div id="lx-eta-box">
@@ -185,8 +187,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </svg>
           </button>
 
-          <sl-checkbox class="checkBoxRevisao" @click=${this.ativarDesativarMarcaDeRevisao}>Revisão</sl-checkbox>
-
+          <div>
+            <input type="checkbox" id="chk-em-revisao" class="checkBoxRevisao" @input=${(): void => this.ativarDesativarMarcaDeRevisao()}/>
+            <label>Revisão<label/>
+          </div>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
             <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
@@ -1220,9 +1224,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
-    // if (rootStore.getState().elementoReducer.usuario === undefined) {
-    //   createUsuarioRevisaoDialog(rootStore);
-    // }
+    if (rootStore.getState().elementoReducer.usuario === undefined) {
+      createUsuarioRevisaoDialog(rootStore);
+    }
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
   }
 

@@ -74,7 +74,7 @@ import { adicionaAtualizaUsuarioRevisao } from './adicionaUsuarioRevisao';
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
 
-  const usuario = (state as State).usuario;
+  let usuario = (state as State).usuario;
   let actionType = action.type;
   let emRevisao = (state as State).emRevisao;
   const revisoes = (state as State).revisoes || [];
@@ -188,6 +188,7 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ADICIONA_ATUALIZA_USUARIO_REVISAO:
       tempState = adicionaAtualizaUsuarioRevisao(state, action);
+      usuario = tempState.usuario;
       break;
     default:
       actionType = undefined;
