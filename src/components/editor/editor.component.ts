@@ -65,7 +65,6 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { ativarDesativarRevisaoAction } from '../../model/lexml/acao/ativarDesativarRevisaoAction';
-import { createUsuarioRevisaoDialog } from './usuarioRevisaoDialog';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -151,6 +150,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);
         }
+        .checkBoxRevisao {
+          padding: 3px 5px;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -182,9 +184,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               <rect class="ql-fill" height="1" rx="0.5" ry="0.5" width="7" x="2" y="14"></rect>
             </svg>
           </button>
-          <button id="lx-eta-btn-revisao" type="button" class="lx-eta-ql-button" title="Marcas de revisão" @click=${this.ativarDesativarMarcaDeRevisao}>
-            Revisão
-          </button>
+
+          <sl-checkbox class="checkBoxRevisao" @click=${this.ativarDesativarMarcaDeRevisao}>Revisão</sl-checkbox>
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
@@ -1219,9 +1220,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
-    if (rootStore.getState().elementoReducer.usuario === undefined) {
-      createUsuarioRevisaoDialog(rootStore);
-    }
+    // if (rootStore.getState().elementoReducer.usuario === undefined) {
+    //   createUsuarioRevisaoDialog(rootStore);
+    // }
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
   }
 
