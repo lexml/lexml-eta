@@ -65,6 +65,7 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { ativarDesativarRevisaoAction } from '../../model/lexml/acao/ativarDesativarRevisaoAction';
+import { createUsuarioRevisaoDialog } from './usuarioRevisaoDialog';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -1217,6 +1218,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
+    if (rootStore.getState().elementoReducer.usuario === undefined) {
+      createUsuarioRevisaoDialog(rootStore);
+    }
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
   }
 
