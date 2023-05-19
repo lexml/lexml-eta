@@ -52,7 +52,8 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   }
 
   const uiEvents: StateEvent[] = [
-    { stateType: StateType.SituacaoElementoModificada, elementos: [elemento] },
+    // { stateType: StateType.SituacaoElementoModificada, elementos: [elemento] },
+    { stateType: StateType.ElementoModificado, elementos: [elemento] },
     { stateType: StateType.ElementoValidado, elementos: criaListaElementosAfinsValidados(dispositivo) },
     { stateType: StateType.ElementoSelecionado, elementos: [elemento] },
   ];

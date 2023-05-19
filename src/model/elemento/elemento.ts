@@ -1,6 +1,7 @@
 import { Conteudo } from '../dispositivo/conteudo';
 import { ElementoAction } from '../lexml/acao';
 import { Mensagem } from '../lexml/util/mensagem';
+import { Revisao } from '../revisao/revisao';
 
 export class Referencia {
   tipo?: string;
@@ -39,4 +40,5 @@ export class Elemento extends Referencia {
   tiposAgrupadoresQuePodemSerInseridosDepois?: string[];
   artigoDefinido?: string;
   elementoAnteriorNaSequenciaDeLeitura?: Elemento;
+  revisao?: Revisao;
 }

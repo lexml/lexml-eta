@@ -731,6 +731,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
           linha.setEstilo(elemento);
+          linha.atualizarAtributos(elemento);
         }
       }
     });

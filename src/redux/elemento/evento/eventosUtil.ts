@@ -101,7 +101,7 @@ export const buildEventoTransformacaooElemento = (
 };
 
 export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  const removidos = getElementos(dispositivo);
+  const removidos = getElementos(dispositivo, false, true);
   const dispositivosRenumerados = listaDispositivosRenumerados(dispositivo);
   const dispositivoAnterior = getDispositivoAnterior(dispositivo);
 
@@ -144,7 +144,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   let pos = atual.pai!.indexOf(atual);
   const agrupadoresAnteriorMesmoTipo = atual.pai!.filhos.filter((d, i) => i < pos && isAgrupador(d));
   const paiOriginal = atual.pai;
-  const removido = createElemento(atual);
+  const removido = createElemento(atual, false, true);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
   const agrupadorAntes = getAgrupadorAntes(atual);

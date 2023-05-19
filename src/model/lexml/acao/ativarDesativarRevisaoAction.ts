@@ -1,6 +1,6 @@
 import { ElementoAction } from '.';
 
-export const ATIVAR_DESATIVAR_REVISAO = 'ATIBAR_DESATIVAR_REVISAO';
+export const ATIVAR_DESATIVAR_REVISAO = 'ATIVAR_DESATIVAR_REVISAO';
 
 export class AtivarDesativarRevisao implements ElementoAction {
   descricao: string;

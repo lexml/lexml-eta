@@ -228,6 +228,12 @@ export class EtaContainerTable extends Container {
   }
 
   atualizarAtributos(elemento: Elemento): void {
+    if (elemento.revisao) {
+      this.domNode.setAttribute('em-revisao', 'true');
+    } else {
+      this.domNode.removeAttribute('em-revisao');
+    }
+
     if (podeAdicionarAtributoDeExistencia(elemento)) {
       this.domNode.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada);
     } else {
