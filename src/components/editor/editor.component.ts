@@ -491,15 +491,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private moverElemento(ev: KeyboardEvent): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
-    const textoLinha = blotConteudo.html;
+    if (linha) {
+      const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+      const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
-    if (ev.key === 'ArrowUp') {
-      rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
-    } else if (ev.key === 'ArrowDown') {
-      rootStore.dispatch(moverElementoAbaixoAction.execute(elemento));
+      if (ev.key === 'ArrowUp') {
+        rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
+      } else if (ev.key === 'ArrowDown') {
+        rootStore.dispatch(moverElementoAbaixoAction.execute(elemento));
+      }
     }
   }
 
@@ -529,9 +531,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private elementoSelecionado(uuid: number): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(uuid, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
-    rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
-    this.quill.processandoMudancaLinha = false;
+    if (linha) {
+      const elemento: Elemento = this.criarElemento(uuid, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
+      rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
+      this.quill.processandoMudancaLinha = false;
+    }
   }
 
   private undoRedoEstrutura(tipo: string): void {
@@ -645,21 +649,25 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private marcarLinha(event: StateEvent): void {
-    this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
-    const elemento = event.elementos![0];
-    const linha = this.quill.getLinha(elemento.uuid!)!;
-    this.quill.atualizarLinhaCorrente(linha);
-    this.elementoSelecionado(linha.uuid);
-    const index = this.quill.getIndex(linha.blotConteudo);
     try {
-      this.quill.setIndex(index, Quill.sources.SILENT);
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-    if (event.moverParaFimLinha) {
-      setTimeout(() => {
-        const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
-        this.quill.setSelection(posicao, 0, Quill.sources.USER);
-      }, 0);
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      const elemento = event.elementos![0];
+      const linha = this.quill.getLinha(elemento.uuid!)!;
+      this.quill.atualizarLinhaCorrente(linha);
+      this.elementoSelecionado(linha.uuid);
+      const index = this.quill.getIndex(linha.blotConteudo);
+      try {
+        this.quill.setIndex(index, Quill.sources.SILENT);
+        // eslint-disable-next-line no-empty
+      } catch (error) {}
+      if (event.moverParaFimLinha) {
+        setTimeout(() => {
+          const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
+          this.quill.setSelection(posicao, 0, Quill.sources.USER);
+        }, 0);
+      }
+    } catch (error) {
+      // linha, provavelmente, foi removida do Quill
     }
   }
 
@@ -1226,5 +1234,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (botaoRevisao) {
       botaoRevisao.classList.toggle('revisao-ativa', rootStore.getState().elementoReducer.emRevisao);
     }
+
+    this.dispatchEvent(
+      new CustomEvent('onRevisao', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          emRevisao: rootStore.getState().elementoReducer.emRevisao,
+        },
+      })
+    );
   }
 }
