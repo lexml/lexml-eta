@@ -264,6 +264,7 @@ export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dis
     eventos.add(StateType.ElementoValidado, [elementoArtigo]);
   }
 
+  eventos.add(StateType.ElementoSelecionado, [createElemento(dispositivo, true)]);
   return eventos.build();
 };
 
