@@ -1,3 +1,4 @@
+import { TEXTO_OMISSIS } from '../lexml/conteudo/textoOmissis';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { Dispositivo } from './dispositivo';
 
@@ -112,4 +113,8 @@ export const isTextoMaiusculo = (dispositivo?: Dispositivo): boolean => {
     return false;
   }
   return isCapitulo(dispositivo) || isParte(dispositivo) || isLivro(dispositivo) || isTitulo(dispositivo);
+};
+
+export const isTextoOmitido = (d: Dispositivo): boolean => {
+  return isOmissis(d) || d.texto.startsWith(TEXTO_OMISSIS) || d.texto.indexOf(TEXTO_OMISSIS) > -1;
 };
