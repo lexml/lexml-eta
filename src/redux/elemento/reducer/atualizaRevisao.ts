@@ -2,12 +2,13 @@ import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
-import { Revisao } from '../../../model/revisao/revisao';
+import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
-  if (!state.emRevisao || !actionType || actionType.includes('ALERTA')) {
+  const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
+  if (!state.emRevisao || !actionType || !numElementos) {
     return state;
   }
 
@@ -58,7 +59,7 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
     } else {
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
       eAux.descricaoSituacao = DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
-      result.push(new Revisao(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, undefined));
     }
   });
 
@@ -78,13 +79,13 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   elementos.forEach(e => {
     const revisao = findRevisao(state.revisoes, e);
     if (revisao) {
-      if (revisao.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto) {
-        revisoesParaRemover.push(revisao);
+      if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, e)) {
+        revisoesParaRemover.push(...montarListaDeRevisoesParaRemover(state, revisao));
       }
     } else {
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
-      eAux.descricaoSituacao = DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
-      result.push(new Revisao(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, undefined));
+      // eAux.descricaoSituacao = DescricaoSituacao.DISPOSITIVO_MODIFICADO;
+      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, undefined));
     }
   });
 
@@ -103,8 +104,8 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
   if (existeRevisaoParaElementos(state.revisoes, removidos)) {
     removidos.forEach((e, index) => {
       const revisao = findRevisao(state.revisoes, e)!;
-      if (revisaoDeElementoExcluidoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
-        revisoesParaRemover.push(revisao);
+      if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
+        revisoesParaRemover.push(...montarListaDeRevisoesParaRemover(state, revisao));
       } else {
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
@@ -114,7 +115,22 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
     });
   } else {
     removidos.forEach((e, index) => {
-      result.push(new Revisao(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), e, incluidos[index].uuid!, undefined));
+      // eslint-disable-next-line prettier/prettier
+      const revExclusao = new RevisaoElemento(
+        actionType,
+        StateType.ElementoRemovido,
+        '',
+        state.usuario!,
+        formatDateTime(new Date()),
+        e,
+        e.uuid!,
+        e.elementoAnteriorNaSequenciaDeLeitura?.uuid
+      );
+      const revInclusao = new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), e, incluidos[index].uuid!, undefined);
+      revExclusao.idRevisaoAssociada = revInclusao.id;
+      revInclusao.idRevisaoAssociada = revExclusao.id;
+      result.push(revExclusao);
+      result.push(revInclusao);
     });
   }
 
@@ -137,11 +153,11 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
 
   elementos.forEach(e => {
     // const revisao = revisoes?.find(r => r.uuidRevisado === e.uuid || revisaoDeElementoExcluidoComMesmoLexmlIdRotuloEConteudo(r, e));
-    const revisao = state.revisoes?.find(r => r.uuidRevisado === e.uuid);
+    const revisao = findRevisao(state.revisoes, e);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      result.push(new Revisao(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, e.uuid!, undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, e.uuid!, undefined));
     }
   });
 
@@ -163,11 +179,13 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
   }
 
   elementos.forEach(e => {
-    const revisao = state.revisoes?.find(r => r.uuidRevisado === e.uuid);
+    const revisao = findRevisao(state.revisoes, e);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      result.push(new Revisao(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, e.elementoAnteriorNaSequenciaDeLeitura?.uuid));
+      result.push(
+        new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, e.elementoAnteriorNaSequenciaDeLeitura?.uuid)
+      );
     }
   });
 
@@ -182,15 +200,16 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
   const result: Revisao[] = [];
   const revisoesParaRemover: Revisao[] = [];
 
-  const types = [StateType.ElementoModificado, StateType.ElementoSuprimido];
+  // const types = [StateType.ElementoModificado, StateType.ElementoSuprimido];
 
   eventos.forEach(se => {
     const e = se.elementos![0];
-    const revisao = state.revisoes?.find(r => r.uuidRevisado === e.uuid && types.includes(r.stateType));
+    // const revisao = state.revisoes?.find(r => r.uuidRevisado === e.uuid && types.includes(r.stateType));
+    const revisao = findRevisao(state.revisoes, e);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      result.push(new Revisao(actionType, StateType.ElementoRestaurado, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoRestaurado, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, undefined));
     }
   });
 
@@ -219,17 +238,19 @@ const removeDuplicidades = (elementos: Elemento[]): Elemento[] => {
   return result;
 };
 
-const revisaoDeElementoExcluidoComMesmoLexmlIdRotuloEConteudo = (r: Revisao, e: Elemento): boolean => {
+const revisaoDeElementoComMesmoLexmlIdRotuloEConteudo = (r: RevisaoElemento, e: Elemento): boolean => {
   return (
-    r.stateType === StateType.ElementoRemovido &&
-    r.elementoAntesRevisao?.lexmlId === e.lexmlId &&
-    r.elementoAntesRevisao?.rotulo === e.rotulo &&
-    r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto
+    // r.stateType === StateType.ElementoRemovido &&
+    r.elementoAntesRevisao?.lexmlId === e.lexmlId && r.elementoAntesRevisao?.rotulo === e.rotulo && r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto
   );
 };
 
-const findRevisao = (revisoes: Revisao[] = [], elemento: Elemento): Revisao | undefined => {
-  return revisoes?.find(r => r.uuidRevisado === elemento.uuid);
+const getRevisoesElemento = (revisoes: Revisao[] = []): RevisaoElemento[] => {
+  return revisoes.filter(r => r instanceof RevisaoElemento).map(r => r as RevisaoElemento);
+};
+
+const findRevisao = (revisoes: Revisao[] = [], elemento: Elemento): RevisaoElemento | undefined => {
+  return getRevisoesElemento(revisoes).find(r => r.uuidRevisado === elemento.uuid);
 };
 
 const isAcaoMover = (state: State): boolean => {
@@ -239,5 +260,19 @@ const isAcaoMover = (state: State): boolean => {
 };
 
 const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: Elemento[]): boolean => {
-  return elementos.every(e => revisoes.some(r => r.uuidRevisado === e.uuid));
+  const revisoesElemento = getRevisoesElemento(revisoes);
+  return elementos.every(e => revisoesElemento.some(r => r.uuidRevisado === e.uuid));
+};
+
+const findRevisaoById = (revisoes: Revisao[] = [], idRevisao: string): Revisao | undefined => {
+  return revisoes?.find(r => r.id === idRevisao);
+};
+
+const montarListaDeRevisoesParaRemover = (state: State, revisao: Revisao): Revisao[] => {
+  const result = [revisao];
+  if (revisao.idRevisaoAssociada) {
+    const revisaoAssociada = findRevisaoById(state.revisoes, revisao.idRevisaoAssociada);
+    revisaoAssociada && result.push(revisaoAssociada);
+  }
+  return result;
 };
