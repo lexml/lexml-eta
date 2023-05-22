@@ -1,5 +1,5 @@
 import { SlDialog } from '@shoelace-style/shoelace';
-import { adicionaUsuarioRevisao } from '../../model/alerta/acao/adicionaUsuarioRevisao';
+// import { atualizarUsuarioRevisao } from '../../model/alerta/acao/adicionaUsuarioRevisao';
 
 const SVG_INFO = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
 <path d="M12 0C9.62663 0 7.30655 0.703788 5.33316 2.02236C3.35977 3.34094 1.8217 5.21508 0.913451 7.4078C0.00519941
@@ -16,14 +16,14 @@ const SVG_INFO = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
 12.6235 6.12643 12.8485 6.35147C13.0736 6.57651 13.2 6.88174 13.2 7.2V13.2Z" fill="#3982C1"/>
 </svg>`;
 
-const MODAL_USUARIO_REVISAO = 'modalUsuarioRevisao';
+const MODAL_USUARIO = 'modalUsuario';
 
-export const createUsuarioRevisaoDialog = (rootStore: any): void => {
-  Array.from(document.querySelectorAll('.usuario-revisao')).forEach(el => document.body.removeChild(el));
+export const createUsuarioDialog = (rootStore: any): void => {
+  Array.from(document.querySelectorAll('.usuario')).forEach(el => document.body.removeChild(el));
 
   const dialogElem = document.createElement('sl-dialog');
-  dialogElem.classList.add('usuario-revisao');
-  dialogElem.id = 'modalUsuarioRevisao';
+  dialogElem.classList.add('usuario');
+  dialogElem.id = 'modalUsuario';
 
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Usuário';
@@ -32,10 +32,10 @@ export const createUsuarioRevisaoDialog = (rootStore: any): void => {
     <style>
       .rodape-confirmar {
         float: right;
-      }    
+      }
       .usuario {
         font-weight: normal;
-      }  
+      }
       .inputUsuario {
         width: 60%;
       }
@@ -46,17 +46,17 @@ export const createUsuarioRevisaoDialog = (rootStore: any): void => {
         display: flex;
         align-items: center;
         gap: 1rem;
-      }      
+      }
     </style>
       <div class="usuario">
         <div class="inputUsuario">
-          <sl-form class="form-overview">        
+          <sl-form class="form-overview">
             <sl-input id="usuario" label="Informe o usuário da revisão"></sl-input>
           <sl-form class="form-overview">
         </div>
         <br/>
       </div>
-      
+
       <div class="rodape-confirmar" id="rodapeConfirmar">
       <br/>
         <sl-button id="btnConfirmar" slot="footer" variant="primary">Confirmar</sl-button>
@@ -94,18 +94,18 @@ const fecharDialog = (dialogElem: SlDialog): void => {
 };
 
 const confirmar = (rootStore: any, dialogElem: SlDialog): void => {
-  if (getUsuarioRevisaoModalInformado() !== '') {
-    rootStore.dispatch(adicionaUsuarioRevisao({ nome: getUsuarioRevisaoModalInformado(), id: 'id' }));
+  if (getUsuarioModalInformado() !== '') {
+    // rootStore.dispatch(atualizarUsuarioRevisao({ nome: getUsuarioRevisaoModalInformado(), id: 'id' }));
     fecharDialog(dialogElem);
   }
 };
 
 const addIconBeforeTitle = (): void => {
-  const elDialogTitle = document.querySelector('#' + MODAL_USUARIO_REVISAO)!.shadowRoot!.querySelector('#title');
+  const elDialogTitle = document.querySelector('#' + MODAL_USUARIO)!.shadowRoot!.querySelector('#title');
   elDialogTitle?.insertAdjacentHTML('afterbegin', SVG_INFO);
 };
 
-export const getUsuarioRevisaoModalInformado = (): string => {
+export const getUsuarioModalInformado = (): string => {
   const content = document.getElementById('usuario') as any;
   const input = content!.input;
   return input.value;

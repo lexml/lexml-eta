@@ -16,8 +16,7 @@ import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
-import { createUsuarioRevisaoDialog } from '../../src/components/editor/usuarioRevisaoDialog';
-import { rootStore } from '../../src/redux/store';
+import { Usuario } from '../../src/model/revisao/usuario';
 
 const mapProjetosNormas = {
   novo: {},
@@ -51,6 +50,8 @@ export class DemoView extends LitElement {
   @state() modo = '';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
+
+  private nomeUsuario?: string;
 
   constructor() {
     super();
@@ -154,7 +155,12 @@ export class DemoView extends LitElement {
   }
 
   usuario(): void {
-    createUsuarioRevisaoDialog(rootStore);
+    // createUsuarioRevisaoDialog(rootStore);
+    const nome = prompt('Nome do usuário', this.nomeUsuario ?? '');
+    if (nome !== null) {
+      this.nomeUsuario = nome;
+      this.elLexmlEmenda.setUsuario(new Usuario(nome));
+    }
   }
 
   selecionaArquivo(event: Event): void {
