@@ -1,10 +1,10 @@
-import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
-import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso } from '../acao/adicionarElementoAction';
+import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -14,19 +14,20 @@ import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
+import { removerTextoOmissisAction } from '../acao/removerTextoOmissisAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
+  TransformarElemento,
   transformarAlineaEmIncisoCaput,
   transformarAlineaEmIncisoParagrafo,
   transformarArtigoEmParagrafo,
-  TransformarElemento,
   transformarIncisoCaputEmParagrafo,
   transformarIncisoParagrafoEmParagrafo,
 } from '../acao/transformarElementoAction';
 import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
-  getAgrupadoresAcima,
   getAgrupadorPosterior,
+  getAgrupadoresAcima,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
@@ -41,8 +42,9 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
+import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
+import { getProximoAgrupadorAposArtigo, isDispositivoNaNormaAlterada } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 import { MotivosOperacaoNaoPermitida } from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
@@ -157,6 +159,14 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+        acoes.push(removerTextoOmissisAction);
+      }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);
     }

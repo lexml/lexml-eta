@@ -1,21 +1,22 @@
-import { podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
-import { atualizarNotaAlteracaoAction } from './../acao/atualizarNotaAlteracaoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAlinea, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAlinea, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
+import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 import { adicionarAlinea, adicionarAlineaAntes, adicionarAlineaDepois, adicionarItem } from '../acao/adicionarElementoAction';
+import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
+import { removerTextoOmissisAction } from '../acao/removerTextoOmissisAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import {
+  TransformarElemento,
   transformaAlineaEmItem,
   transformarAlineaEmIncisoCaput,
   transformarAlineaEmIncisoParagrafo,
-  TransformarElemento,
   transformarEmOmissisAlinea,
 } from '../acao/transformarElementoAction';
 import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
@@ -31,9 +32,10 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
+import { atualizarNotaAlteracaoAction } from './../acao/atualizarNotaAlteracaoAction';
+import { isDispositivoNaNormaAlterada, podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import { MotivosOperacaoNaoPermitida, podeConverterEmOmissis } from './regrasUtil';
-import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 
 export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -92,6 +94,14 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
+      }
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+        acoes.push(adicionarTextoOmissisAction);
+      }
+
+      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+        acoes.push(removerTextoOmissisAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

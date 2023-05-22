@@ -9,7 +9,7 @@ export class AdicionarAgrupadorArtigo implements ElementoAction {
   hotkey = '(Ctrl+Alt+G)';
 
   constructor(posicao?: string) {
-    this.descricao = 'Adicionar agrupador de artigo' + (posicao ? ' ' + posicao : '');
+    this.descricao = 'Adicionar Título, Capítulo, Seção e outros' + (posicao ? ' ' + posicao : '');
     this.posicao = posicao;
   }
 
