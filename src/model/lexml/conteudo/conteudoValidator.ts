@@ -180,9 +180,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !dispositivo.alteracoes &&
-    !isUnicoMesmoTipo(dispositivo) &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasCitacaoAoFinalFrase(dispositivo.texto)
   ) {
