@@ -568,9 +568,14 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
   // Remove quebras de linha dentro de parágrafos
   html = html.replace(/<p[^>]*>(?:.|\n)*?<\/p>/gi, s => s.replace(/\n/g, ' ')).replace(/[\t ]+/g, ' ');
 
+  html = html.replace(/&gt;/g, '>').replace(/&lt;/g, '<');
+
   html = removeAllHtmlTagsExcept(html, allowedTags)
+    .replace(/<p[^>]*>/gi, '\n<p>') // Garante que cada parágrafo comece em uma nova linha
+    .replace(/(?<=<\/p>).*/gi, '') // Remove tudo que vem depois do fim do parágrafo, na mesma linha (remove o que não estiver dentro de um parágrafo)
     .replace(/<\/?p[^>]*>/g, '\n')
     .replace(/\n+/g, '\n')
+    .replace(/ +/g, ' ')
     .trim();
 
   return html;
