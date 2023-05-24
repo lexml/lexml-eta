@@ -548,6 +548,7 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
   let html = htmlInicial
     .replace(/<![^>]*>/g, '')
     .replace(/<p/g, '\n<p')
+    .replace(/<br\b[^>]*>/gi, '\n')
     .replace(/&nbsp;/g, ' ')
     .replace(/(<br\s*\/?>)/gi, ' ')
     .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2')
@@ -576,6 +577,7 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .replace(/<\/?p[^>]*>/g, '\n')
     .replace(/\n+/g, '\n')
     .replace(/ +/g, ' ')
+    .replace(/\n\s+/g, '\n')
     .trim();
 
   return html;
