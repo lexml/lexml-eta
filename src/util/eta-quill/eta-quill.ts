@@ -349,7 +349,7 @@ export class EtaQuill extends Quill {
   private onTextChange: TextChangeHandler = (): void => {
     if (this._linhaAtual) {
       setTimeout(() => {
-        this.linhaAtual.blotConteudo && this.acertarAspas();
+        this.linhaAtual?.blotConteudo && this.acertarAspas();
       }, 0);
     }
   };
@@ -406,7 +406,7 @@ export class EtaQuill extends Quill {
     const rect = el.getBoundingClientRect();
 
     const lxEtaBox = el.closest('#lx-eta-box');
-    const etaBoxHeight = lxEtaBox!.getBoundingClientRect().bottom;
+    const etaBoxHeight = lxEtaBox?.getBoundingClientRect().bottom || 0;
 
     return rect.top >= 0 && rect.bottom <= etaBoxHeight;
   }

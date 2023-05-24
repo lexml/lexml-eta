@@ -1,3 +1,4 @@
+import { Usuario } from './../model/revisao/usuario';
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
@@ -18,6 +19,7 @@ import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
+import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -125,7 +127,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return emenda;
   }
 
-  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda): void {
+  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, usuario?: Usuario): void {
     this._lexmlEmendaComando.emenda = [];
     this.modo = modo;
     this.projetoNorma = projetoNorma;
@@ -135,7 +137,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } else {
       this.resetaEmenda(modo as ModoEdicaoEmenda);
     }
+    this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
+  }
+
+  public setUsuario(usuario = new Usuario()): void {
+    rootStore.dispatch(atualizarUsuarioAction.execute(usuario));
   }
 
   private setEmenda(emenda: Emenda): void {

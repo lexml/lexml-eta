@@ -68,8 +68,8 @@ import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesati
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
 import { State } from '../../state';
-import { ADICIONA_ATUALIZA_USUARIO_REVISAO } from '../../../model/lexml/acao/usuarioRevisaoAction';
-import { adicionaAtualizaUsuarioRevisao } from './adicionaUsuarioRevisao';
+import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
+import { atualizaUsuario } from './atualizaUsuario';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -186,8 +186,8 @@ export const elementoReducer = (state = {}, action: any): any => {
       emRevisao = tempState.emRevisao;
       numEventosPassadosAntesDaRevisao = tempState.past?.length || 0;
       break;
-    case ADICIONA_ATUALIZA_USUARIO_REVISAO:
-      tempState = adicionaAtualizaUsuarioRevisao(state, action);
+    case ATUALIZAR_USUARIO:
+      tempState = atualizaUsuario(state, action);
       usuario = tempState.usuario;
       break;
     default:

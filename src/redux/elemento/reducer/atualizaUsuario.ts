@@ -1,6 +1,6 @@
 import { State, StateType } from '../../state';
 
-export const adicionaAtualizaUsuarioRevisao = (state: any, action: any): State => {
+export const atualizaUsuario = (state: any, action: any): State => {
   return {
     articulacao: state.articulacao,
     modo: state.modo,
@@ -8,7 +8,7 @@ export const adicionaAtualizaUsuarioRevisao = (state: any, action: any): State =
     present: state.present,
     future: state.future,
     ui: {
-      events: [{ stateType: StateType.AdicionaAtualizaUsuarioRevisao }],
+      events: [{ stateType: StateType.AtualizaUsuario }],
       message: state.ui?.mensagem,
       alertas: state.ui?.alertas,
     },

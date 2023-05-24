@@ -488,6 +488,19 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
   return isUnicoMesmoTipo(atual) || articulacao.indexOfArtigo(atual) < articulacao.artigos.length - 1;
 };
 
+// Verifica se todos os filhos dos tipos (inciso, alínea ou item) estão suprimidos.
+export const isTodosFilhosTipoEnumeracaoSuprimidos = (dispositivo: Dispositivo): boolean => {
+  if (isAgrupador(dispositivo)) {
+    // Não deveria ser chamado para agrupadores
+    return false;
+  }
+  if (isArtigo(dispositivo)) {
+    // Evita listar parágrafos
+    dispositivo = (dispositivo as Artigo).caput!;
+  }
+  return !getSomenteFilhosDispositivoAsLista([], dispositivo.filhos).some(d => !isSuprimido(d));
+};
+
 export const isArticulacaoAlteracao = (articulacao: Dispositivo): boolean => {
   return isArticulacao(articulacao) && articulacao.pai !== undefined;
 };
@@ -770,6 +783,10 @@ export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | und
   }
 
   return dispositivo.pai ? buscaProximoOmissis(dispositivo.pai!) : undefined;
+};
+
+export const isDispositivoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
+  return (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
 };
 
 export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
