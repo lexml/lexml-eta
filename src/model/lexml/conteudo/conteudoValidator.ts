@@ -163,7 +163,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isParagrafo(dispositivo) &&
     dispositivo.texto &&
     !hasFilhoGenerico(dispositivo.pai!) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     isUltimaEnumeracao(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
@@ -343,7 +343,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isOmissis(dispositivo) &&
     dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 &&
     !hasFilhoGenerico(dispositivo.pai!) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     !isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo)
