@@ -551,5 +551,10 @@ export const editorStyles = html`
     [em-revisao='true'] {
       background-color: #fff2a6 !important;
     }
+
+    [excluido='true'] {
+      text-decoration: line-through;
+      background-color: #d3d3d3 !important;
+    }
   </style>
 `;

@@ -574,6 +574,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
           this.inserirNovosElementosNoQuill(event, true);
+          this.removerMarcacoesDeExclusaoSeNecessario(events, event);
           break;
 
         case StateType.ElementoModificado:
@@ -651,6 +652,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
+  }
+
+  private removerMarcacoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
+    const elementosIncluidos = event.elementos!;
+    const ultimoElementoIncluido = elementosIncluidos[elementosIncluidos.length - 1];
+    const linha = this.quill.getLinha(ultimoElementoIncluido.uuid!)!;
+    let proximaLinha = linha.next as EtaContainerTable;
+    const linhasParaRemoverDoQuill: EtaContainerTable[] = [];
+    while (proximaLinha.isLinhaComMarcacaoDeExclusao() && this.existeReinclusaoDoElemento(elementosIncluidos, proximaLinha.elemento)) {
+      linhasParaRemoverDoQuill.push(proximaLinha);
+      proximaLinha = proximaLinha.next as EtaContainerTable;
+    }
+
+    linhasParaRemoverDoQuill.forEach(linha => linha.remove());
+  }
+
+  private existeReinclusaoDoElemento(elementosIncluidos: Elemento[], elemento: Elemento): boolean {
+    return elementosIncluidos.some(elementoIncluido => elementoIncluido.uuid === elemento.uuid);
   }
 
   private marcarLinha(event: StateEvent): void {
@@ -847,7 +866,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        linha.remove();
+        if (elemento.revisao) {
+          linha.atualizarElemento(elemento);
+        } else {
+          linha.remove();
+        }
       }
     });
 
