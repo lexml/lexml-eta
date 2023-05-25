@@ -546,6 +546,7 @@ const numerarArtigosOndeCouber = (texto: string): string => {
 
 export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
   let html = htmlInicial
+    .replace(/\xA0/g, ' ') // &nbsp; (non breaking space to space) (\xA0 = 160)
     .replace(/<![^>]*>/g, '')
     .replace(/<p/g, '\n<p')
     .replace(/<br\b[^>]*>/gi, '\n')
