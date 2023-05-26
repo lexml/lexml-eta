@@ -549,12 +549,29 @@ export const editorStyles = html`
     }
 
     [em-revisao='true'] {
-      background-color: #fff2a6 !important;
+      background-color: #fff2a6;
     }
 
     [excluido='true'] {
       text-decoration: line-through;
-      background-color: #d3d3d3 !important;
+      background-color: #d3d3d3;
     }
+
+    /* .container__revisao {
+      border: 3px solid #f98b88;
+      width: 30px;
+    } */
+
+    [em-revisao='true'] .container__revisao {
+      /* border: 3px solid #f98b88; */
+      /* width: 30px; */
+
+      background-color: #f98b88;
+      width: 30px;
+    }
+
+    /* .container__menu {
+      border: 1px solid blue;
+    } */
   </style>
 `;

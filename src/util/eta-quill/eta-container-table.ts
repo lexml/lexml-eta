@@ -63,7 +63,7 @@ export class EtaContainerTable extends Container {
   }
 
   get blotRotulo(): EtaBlotRotulo | undefined {
-    const node = this.children.head?.children?.head.children.head;
+    const node = this.children.head?.children?.head.children.head || this.children.head.children.head.next.children.head;
     return node instanceof EtaBlotRotulo ? node : node?.next;
   }
 
@@ -76,7 +76,7 @@ export class EtaContainerTable extends Container {
   }
 
   get blotAbreAspas(): EtaBlotAbreAspas {
-    return this.children.head.children.head.children.head;
+    return this.findBlot(EtaBlotAbreAspas.blotName) as EtaBlotAbreAspas;
   }
 
   get blotFechaAspas(): EtaBlotFechaAspas {
@@ -89,6 +89,7 @@ export class EtaContainerTable extends Container {
 
   get containerDireito(): EtaContainerTdDireito {
     return this.children.head.children.tail;
+    // return this.children.head.children.head;
   }
 
   get blotInsideContainerDireito(): EtaBlot {
