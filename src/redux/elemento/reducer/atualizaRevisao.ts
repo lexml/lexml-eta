@@ -6,6 +6,7 @@ import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { LocalizadorElemento } from '../../../model/elemento/elemento';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -54,7 +55,7 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, e)!;
       const eAux = revisao?.elementoAntesRevisao || (JSON.parse(JSON.stringify(d.situacao.dispositivoOriginal)) as Elemento);
-      result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, montarLocalizadorElemento(e), undefined));
       if (revisao) {
         revisoesParaRemover.push(revisao);
       }
@@ -80,7 +81,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       }
     } else {
       const eAux = getElementoAntesModificacao(state, e);
-      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, montarLocalizadorElemento(e), undefined));
     }
   });
 
@@ -104,14 +105,25 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
       } else {
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
+        // revisao.uuidRevisado = incluidos[index].uuid!;
+        revisao.localizadorElementoRevisado = montarLocalizadorElemento(incluidos[index]);
         revisao.usuario = state.usuario!;
-        revisao.uuidRevisado = incluidos[index].uuid!;
       }
     });
   } else {
     removidos.forEach((e, index) => {
       // const revExclusao = new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, e.elementoAnteriorNaSequenciaDeLeitura?.uuid);
-      const revInclusao = new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), e, incluidos[index].uuid!, undefined);
+      // eslint-disable-next-line prettier/prettier
+      const revInclusao = new RevisaoElemento(
+        actionType,
+        StateType.ElementoIncluido,
+        '',
+        state.usuario!,
+        formatDateTime(new Date()),
+        e,
+        montarLocalizadorElemento(incluidos[index]),
+        undefined
+      );
       // revExclusao.idRevisaoAssociada = revInclusao.id;
       // revInclusao.idRevisaoAssociada = revExclusao.id;
       // result.push(revExclusao);
@@ -135,7 +147,7 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, e.uuid!, undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, montarLocalizadorElemento(e), undefined));
     }
   });
 
@@ -157,7 +169,17 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
     } else {
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
       result.push(
-        new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, e.uuid!, e.elementoAnteriorNaSequenciaDeLeitura?.uuid)
+        // eslint-disable-next-line prettier/prettier
+        new RevisaoElemento(
+          actionType,
+          StateType.ElementoRemovido,
+          '',
+          state.usuario!,
+          formatDateTime(new Date()),
+          eAux,
+          montarLocalizadorElemento(e),
+          e.elementoAnteriorNaSequenciaDeLeitura && montarLocalizadorElemento(e.elementoAnteriorNaSequenciaDeLeitura)
+        )
       );
     }
   });
@@ -185,7 +207,17 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
       const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior);
       const eAux = d?.situacao.dispositivoOriginal || elementoAnterior;
       result.push(
-        new RevisaoElemento(actionType, StateType.ElementoRestaurado, '', state.usuario!, formatDateTime(new Date()), revisao?.elementoAntesRevisao || eAux, eAux.uuid!, undefined)
+        // eslint-disable-next-line prettier/prettier
+        new RevisaoElemento(
+          actionType,
+          StateType.ElementoRestaurado,
+          '',
+          state.usuario!,
+          formatDateTime(new Date()),
+          revisao?.elementoAntesRevisao || eAux,
+          montarLocalizadorElemento(eAux),
+          undefined
+        )
       );
       if (revisao) {
         revisoesParaRemover.push(revisao);
@@ -227,7 +259,8 @@ const getRevisoesElemento = (revisoes: Revisao[] = []): RevisaoElemento[] => {
 };
 
 const findRevisao = (revisoes: Revisao[] = [], elemento: Elemento): RevisaoElemento | undefined => {
-  return getRevisoesElemento(revisoes).find(r => r.uuidRevisado === elemento.uuid);
+  // return getRevisoesElemento(revisoes).find(r => r.uuidRevisado === elemento.uuid);
+  return getRevisoesElemento(revisoes).find(r => r.localizadorElementoRevisado.uuid === elemento.uuid);
 };
 
 const isAcaoMover = (state: State): boolean => {
@@ -238,7 +271,8 @@ const isAcaoMover = (state: State): boolean => {
 
 const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: Elemento[]): boolean => {
   const revisoesElemento = getRevisoesElemento(revisoes);
-  return elementos.every(e => revisoesElemento.some(r => r.uuidRevisado === e.uuid));
+  // return elementos.every(e => revisoesElemento.some(r => r.uuidRevisado === e.uuid));
+  return elementos.every(e => revisoesElemento.some(r => r.localizadorElementoRevisado.uuid === e.uuid));
 };
 
 const findRevisaoById = (revisoes: Revisao[] = [], idRevisao: string): Revisao | undefined => {
@@ -247,9 +281,15 @@ const findRevisaoById = (revisoes: Revisao[] = [], idRevisao: string): Revisao |
 
 const montarListaDeRevisoesParaRemover = (state: State, revisao: Revisao): Revisao[] => {
   const result = [revisao];
-  if (revisao.idRevisaoAssociada) {
-    const revisaoAssociada = findRevisaoById(state.revisoes, revisao.idRevisaoAssociada);
-    revisaoAssociada && result.push(revisaoAssociada);
+  // if (revisao.idRevisaoAssociada) {
+  //   const revisaoAssociada = findRevisaoById(state.revisoes, revisao.idRevisaoAssociada);
+  //   revisaoAssociada && result.push(revisaoAssociada);
+  // }
+  if (revisao.idsRevisoesAssociadas.length) {
+    revisao.idsRevisoesAssociadas.forEach(id => {
+      const revisaoAssociada = findRevisaoById(state.revisoes, id);
+      revisaoAssociada && result.push(revisaoAssociada);
+    });
   }
   return result;
 };
@@ -259,4 +299,8 @@ const getElementoAntesModificacao = (state: State, elemento: Elemento): Elemento
   const modificacoes = eventos.filter(se => se.stateType === StateType.ElementoModificado && se.elementos?.some(e => e.uuid === elemento.uuid));
   const modificacao = modificacoes.pop();
   return modificacao ? JSON.parse(JSON.stringify(modificacao.elementos![0])) : undefined;
+};
+
+const montarLocalizadorElemento = (elemento: Partial<Elemento>): LocalizadorElemento => {
+  return { uuid: elemento.uuid!, lexmlId: elemento.lexmlId! };
 };

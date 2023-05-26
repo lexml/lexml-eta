@@ -42,3 +42,8 @@ export class Elemento extends Referencia {
   elementoAnteriorNaSequenciaDeLeitura?: Elemento;
   revisao?: Revisao;
 }
+
+export interface LocalizadorElemento {
+  uuid: number;
+  lexmlId?: string;
+}
