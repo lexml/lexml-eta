@@ -1,5 +1,5 @@
 import { Artigo } from './../../../model/dispositivo/dispositivo';
-import { hasFilhos, getAgrupadorAntes, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -241,6 +241,11 @@ export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] =
   if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
     aRestaurar.forEach(addRestauracao);
+
+    const elementoPai = getElementoPaiDeEnumerodos(dispositivo);
+    if (elementoPai) {
+      result.push({ stateType: StateType.ElementoValidado, elementos: [elementoPai] });
+    }
   } else {
     addRestauracao(dispositivo);
   }
@@ -257,15 +262,24 @@ export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dis
   const eventos = new Eventos();
   eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
 
-  const artigo = getArtigo(dispositivo);
-  if (artigo) {
-    artigo.mensagens = validaDispositivo(artigo);
-    const elementoArtigo = createElemento(artigo, true);
-    eventos.add(StateType.ElementoValidado, [elementoArtigo]);
+  const elementoPai = getElementoPaiDeEnumerodos(dispositivo);
+  if (elementoPai) {
+    eventos.add(StateType.ElementoValidado, [elementoPai]);
   }
 
   eventos.add(StateType.ElementoSelecionado, [createElemento(dispositivo, true)]);
   return eventos.build();
+};
+
+export const getElementoPaiDeEnumerodos = (dispositivo: Dispositivo): Elemento | null => {
+  const dipositivoPai = dispositivo.pai && !isAgrupador(dispositivo.pai) ? (isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai) : null;
+
+  if (dipositivoPai) {
+    dipositivoPai.mensagens = validaDispositivo(dipositivoPai);
+    return createElemento(dipositivoPai, true);
+  }
+
+  return null;
 };
 
 export const getEvento = (eventos: StateEvent[], stateType: StateType): StateEvent => {
