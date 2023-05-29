@@ -562,13 +562,14 @@ export const editorStyles = html`
       width: 30px;
     } */
 
+    /*
     [em-revisao='true'] .container__revisao {
       /* border: 3px solid #f98b88; */
       /* width: 30px; */
 
       background-color: #f98b88;
       width: 30px;
-    }
+    }*/
 
     /*
     [em-revisao='false'] .blot__revisao {
