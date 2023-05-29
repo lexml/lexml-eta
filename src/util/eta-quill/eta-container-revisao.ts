@@ -1,3 +1,5 @@
+import { Elemento } from '../../model/elemento';
+
 const Container = Quill.import('blots/container');
 
 export class EtaContainerRevisao extends Container {
@@ -9,17 +11,18 @@ export class EtaContainerRevisao extends Container {
     return EtaContainerRevisao.blotName;
   }
 
-  static create(): any {
+  static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaContainerRevisao.className);
+    node.setAttribute('id', EtaContainerRevisao.className + elemento.uuid);
     return node;
   }
 
   [key: string]: any;
 
-  constructor() {
-    super(EtaContainerRevisao.create());
+  constructor(elemento: Elemento) {
+    super(EtaContainerRevisao.create(elemento));
   }
 }

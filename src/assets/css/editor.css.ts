@@ -570,6 +570,16 @@ export const editorStyles = html`
       width: 30px;
     }
 
+    /*
+    [em-revisao='false'] .blot__revisao {
+      visibility:hidden;
+    }
+
+    [em-revisao='true'] .blot__revisao {
+      visibility:visible;
+    }
+    */
+
     /* .container__menu {
       border: 1px solid blue;
     } */

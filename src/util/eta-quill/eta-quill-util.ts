@@ -17,6 +17,7 @@ import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { AlinhamentoMenu } from './eta-blot-menu';
+import { EtaBlotRevisao } from './eta-blot-revisao';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -26,6 +27,7 @@ export class EtaQuillUtil {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(elemento.editavel, this.alinhamentoMenu);
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
+    const etaContainerRevisao: EtaContainerRevisao = new EtaContainerRevisao(elemento);
 
     if (elemento.abreAspas) {
       new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
@@ -59,7 +61,9 @@ export class EtaQuillUtil {
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
     if (elemento.tipo !== 'Articulacao') {
-      new EtaContainerRevisao().insertInto(etaTrContainer);
+      new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
+      etaContainerRevisao.insertInto(etaTrContainer);
+      //new EtaContainerRevisao(elemento).insertInto(etaTrContainer);
     }
     etaTdTexto.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
