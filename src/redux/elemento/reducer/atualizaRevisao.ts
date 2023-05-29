@@ -43,7 +43,7 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   }
 
   state.revisoes!.push(...revisoes);
-  state.revisoes = identificarRevisaoElementoPai(state.revisoes);
+  state.revisoes = identificarRevisaoElementoPai(state);
 
   state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
 

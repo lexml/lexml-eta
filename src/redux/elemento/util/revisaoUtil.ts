@@ -1,4 +1,5 @@
 import { Elemento, Referencia } from '../../../model/elemento';
+import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
@@ -48,24 +49,32 @@ export const montarListaDeRevisoesParaRemover = (state: State, revisao: Revisao)
   return result;
 };
 
-export const identificarRevisaoElementoPai = (revisoes: Revisao[] = []): Revisao[] => {
-  return revisoes.map(r => {
+export const identificarRevisaoElementoPai = (state: State): Revisao[] => {
+  if (!state.revisoes) {
+    return [];
+  }
+
+  const revisoes: Revisao[] = [];
+
+  state.revisoes.forEach(r => {
     if (r instanceof RevisaoElemento) {
-      const elementoPai = r.elementoAntesRevisao?.hierarquia?.pai;
-      const rPai = elementoPai && findRevisaoByElementoUuid(revisoes, elementoPai.uuid);
-      if (rPai && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao) {
+      const uuidPai = r.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, r) : r.elementoAntesRevisao?.hierarquia?.pai?.uuid;
+      const rPai = uuidPai ? findRevisaoByElementoUuid(state.revisoes, uuidPai) : undefined;
+      if (rPai && isRevisaoMesmaSituacao(r, rPai)) {
         r.idRevisaoElementoPai = rPai.id;
-        r.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(revisoes, rPai)?.id;
+        r.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(state, state.revisoes!, rPai)?.id;
       }
-      return r;
     }
-    return r;
+    revisoes.push(r);
   });
+
+  return revisoes;
 };
 
-export const findRevisaoElementoPrincipal = (revisoes: Revisao[], rPai: RevisaoElemento): RevisaoElemento | undefined => {
-  const rAux = rPai && findRevisaoByElementoUuid(revisoes, rPai.elementoAntesRevisao?.hierarquia?.pai?.uuid);
-  return rAux ? findRevisaoElementoPrincipal(revisoes, rAux) : rPai;
+export const findRevisaoElementoPrincipal = (state: State, revisoes: Revisao[], rPai: RevisaoElemento): RevisaoElemento | undefined => {
+  const uuid = rPai.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rPai) : rPai.elementoAntesRevisao?.hierarquia?.pai?.uuid;
+  const rAux = rPai && findRevisaoByElementoUuid(revisoes, uuid);
+  return rAux ? findRevisaoElementoPrincipal(state, revisoes, rAux) : rPai;
 };
 
 export const buildDescricaoRevisao = (revisao: Revisao): string => {
@@ -109,4 +118,12 @@ export const buildDescricaoMovimentacaoElemento = (revisao: RevisaoElemento): st
 export const buildDescricaoUndoRedoRevisaoElemento = (revisao: RevisaoElemento, elementoAposRevisao?: Elemento): string => {
   const isUndoRedoDeMovimentacao = revisao.elementoAntesRevisao && elementoAposRevisao && revisao.elementoAntesRevisao.numero !== elementoAposRevisao.numero;
   return isUndoRedoDeMovimentacao ? buildDescricaoMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType]();
+};
+
+const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): number => {
+  return getDispositivoFromElemento(state.articulacao!, revisao.localizadorElementoRevisado)?.pai?.uuid || 0;
+};
+
+const isRevisaoMesmaSituacao = (r: RevisaoElemento, rPai: RevisaoElemento): boolean => {
+  return r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao;
 };
