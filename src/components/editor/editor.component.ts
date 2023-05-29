@@ -1283,6 +1283,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (buttonRevisao) {
         if (elemento.revisao) {
           buttonRevisao.removeAttribute('hidden');
+          const pipe = ' | ';
+          const mensagem = 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
+          buttonRevisao.setAttribute('title', mensagem);
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
         }

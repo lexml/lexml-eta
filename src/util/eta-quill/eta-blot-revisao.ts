@@ -26,6 +26,7 @@ export class EtaBlotRevisao extends EtaBlot {
     node.setAttribute('class', EtaBlotRevisao.className);
     node.setAttribute('id', 'buttonRevisao' + elemento.uuid);
     node.setAttribute('hidden', elemento.revisao ? 'true' : 'false');
+    node.setAttribute('title', 'Teste');
     // node.setAttribute('name', 'gear')
     return node;
   }

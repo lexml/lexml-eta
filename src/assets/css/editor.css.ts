@@ -557,6 +557,14 @@ export const editorStyles = html`
       background-color: #d3d3d3;
     }
 
+    .blot__revisao {
+      padding: 1px 6px;
+      border-width: 1px;
+      border-style: outset;
+      border-color: buttonborder;
+      border-image: initial;
+    }
+
     /* .container__revisao {
       border: 3px solid #f98b88;
       width: 30px;
