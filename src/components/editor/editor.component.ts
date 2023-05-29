@@ -186,10 +186,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </svg>
           </button>
 
-          <div>
+          <!-- <div>
             <input type="checkbox" id="chk-em-revisao" class="checkBoxRevisao" @input=${(): void => this.ativarDesativarMarcaDeRevisao()}/>
             <label>Revisão<label/>
-          </div>
+          </div> -->
+          <sl-switch id="chk-em-revisao" size="small" @sl-change=${(): void =>
+            this.ativarDesativarMarcaDeRevisao()}><span>Marcas de alteração</span> <sl-badge variant="warning" pill>4</sl-badge></sl-switch>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
             <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
@@ -1255,6 +1257,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
+    console.log('ativarDesativarMarcaDeRevisao');
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
   }
 

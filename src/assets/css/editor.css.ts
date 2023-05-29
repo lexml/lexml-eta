@@ -26,6 +26,8 @@ export const editorStyles = html`
       box-sizing: border-box;
       font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
       /* padding: 8px; */
+      display: flex;
+      align-items: center;
     }
     #lx-eta-box .ql-snow.ql-toolbar button,
     .ql-snow .ql-toolbar button {
@@ -533,6 +535,9 @@ export const editorStyles = html`
       .mobile-buttons {
         display: inline-block !important;
       }
+      #chk-em-revisao span {
+        display: none;
+      }
     }
 
     @media (max-width: 480px) {
@@ -565,6 +570,18 @@ export const editorStyles = html`
       border-image: initial;
     }
 
+    #chk-em-revisao {
+      border: 1px solid #ccc !important;
+      padding: 5px 10px !important;
+      border-radius: 20px !important;
+      margin-left: auto;
+      font-weight: bold;
+      background-color: #eee;
+    }
+    #chk-em-revisao[checked] {
+      background-color: #dfe9ff;
+    }
+
     /* .container__revisao {
       border: 3px solid #f98b88;
       width: 30px;
@@ -572,9 +589,8 @@ export const editorStyles = html`
 
     /*
     [em-revisao='true'] .container__revisao {
-      /* border: 3px solid #f98b88; */
-      /* width: 30px; */
-
+      border: 3px solid #f98b88;
+      width: 30px;
       background-color: #f98b88;
       width: 30px;
     }*/
