@@ -62,9 +62,62 @@ export class EtaContainerTable extends Container {
     return blotRef.instanceBlotName === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
   }
 
+  protected findBlotByClass<T>(node: any, clazz: { new (...args: any[]): T }): T | undefined {
+    // Verifica se o nó atual é do tipo BlotRotulo
+    if (node instanceof clazz) {
+      return node;
+    }
+
+    // Verifica se o nó atual é um objeto
+    if (typeof node === 'object' && node) {
+      // Percorre as propriedades do objeto
+      for (const key in node) {
+        if (['children', 'head', 'next'].includes(key)) {
+          // Chamada recursiva para cada propriedade do objeto
+          const result = this.findBlotByClass(node[key], clazz);
+
+          // Se um nó EtaBlotRotulo for encontrado, retorna o resultado
+          if (result instanceof clazz) {
+            return result;
+          }
+        }
+      }
+    }
+
+    // Caso nenhum nó EtaBlotRotulo seja encontrado, retorna undefined
+    return undefined;
+  }
+
+  private searchBlotRotuloNode(node: any): EtaBlotRotulo | undefined {
+    // Verifica se o nó atual é do tipo BlotRotulo
+    if (node instanceof EtaBlotRotulo) {
+      return node;
+    }
+
+    // Verifica se o nó atual é um objeto
+    if (typeof node === 'object' && node) {
+      // Percorre as propriedades do objeto
+      for (const key in node) {
+        if (['children', 'head', 'next'].includes(key)) {
+          // Chamada recursiva para cada propriedade do objeto
+          const result = this.searchBlotRotuloNode(node[key]);
+
+          // Se um nó EtaBlotRotulo for encontrado, retorna o resultado
+          if (result instanceof EtaBlotRotulo) {
+            return result;
+          }
+        }
+      }
+    }
+
+    // Caso nenhum nó EtaBlotRotulo seja encontrado, retorna undefined
+    return undefined;
+  }
+
   get blotRotulo(): EtaBlotRotulo | undefined {
-    const node = this.children.head?.children?.head.children.head || this.children.head.children.head.next.children.head;
-    return node instanceof EtaBlotRotulo ? node : node?.next;
+    // const node = this.children.head?.children?.head.children.head || this.children.head.children.head.next.children.head;
+    // return node instanceof EtaBlotRotulo ? node : node?.next;
+    return this.searchBlotRotuloNode(this.children.head);
   }
 
   get blotExistencia(): EtaBlotExistencia {

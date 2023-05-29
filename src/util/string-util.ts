@@ -81,7 +81,7 @@ export function removeAllHtmlTags(texto: string): string {
 
 export const removeAllHtmlTagsExcept = (texto: string, tags: string[]): string => {
   // const regex = new RegExp(`(<(?!${tags.join('|')})[^>]+>)`, 'gi');
-  const regex = new RegExp(`<(?!(?:/?(${tags.join('|')})))[^>]*>`, 'gi');
+  const regex = new RegExp(`<(?!(?:/?(${tags.join('|')})\\b))[^>]*>`, 'gi');
   return texto.replace(regex, '');
 };
 

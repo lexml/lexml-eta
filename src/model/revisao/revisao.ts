@@ -10,6 +10,8 @@ export abstract class Revisao {
   dataHora: string;
   descricao?: string;
   idsRevisoesAssociadas: string[];
+  idRevisaoElementoPai?: string;
+  idRevisaoElementoPrincipal?: string;
 
   constructor(usuario: Usuario, dataHora: string, descricao?: string, idsRevisoesAssociadas: string[] = []) {
     this.id = generateUUID();

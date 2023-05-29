@@ -7,6 +7,7 @@ import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { LocalizadorElemento } from '../../../model/elemento/elemento';
+import { identificarRevisaoElementoPai, findRevisaoByElementoUuid, montarListaDeRevisoesParaRemover, existeRevisaoParaElementos } from '../util/revisaoUtil';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -36,8 +37,9 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   }
 
   state.revisoes!.push(...revisoes);
+  state.revisoes = identificarRevisaoElementoPai(state.revisoes);
 
-  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisao(state.revisoes, e))));
+  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
 
   return state;
 };
@@ -49,7 +51,7 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisao(state.revisoes, e);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       revisoesParaRemover.push(revisao);
     } else {
@@ -74,7 +76,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisao(state.revisoes, e);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, e)) {
         revisoesParaRemover.push(...montarListaDeRevisoesParaRemover(state, revisao));
@@ -99,13 +101,12 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
 
   if (existeRevisaoParaElementos(state.revisoes, removidos)) {
     removidos.forEach((e, index) => {
-      const revisao = findRevisao(state.revisoes, e)!;
+      const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid)!;
       if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
         revisoesParaRemover.push(...montarListaDeRevisoesParaRemover(state, revisao));
       } else {
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
-        // revisao.uuidRevisado = incluidos[index].uuid!;
         revisao.localizadorElementoRevisado = montarLocalizadorElemento(incluidos[index]);
         revisao.usuario = state.usuario!;
       }
@@ -113,7 +114,6 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
   } else {
     removidos.forEach((e, index) => {
       // const revExclusao = new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, e.elementoAnteriorNaSequenciaDeLeitura?.uuid);
-      // eslint-disable-next-line prettier/prettier
       const revInclusao = new RevisaoElemento(
         actionType,
         StateType.ElementoIncluido,
@@ -143,7 +143,7 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisao(state.revisoes, e);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
@@ -163,13 +163,12 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisao(state.revisoes, e);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
       result.push(
-        // eslint-disable-next-line prettier/prettier
         new RevisaoElemento(
           actionType,
           StateType.ElementoRemovido,
@@ -200,14 +199,13 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
     const elementoAnterior = se.elementos![0];
     const eAux = elementoAtual || elementoAnterior;
 
-    const revisao = findRevisao(state.revisoes, elementoAnterior);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, elementoAnterior.uuid);
     if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === eAux.descricaoSituacao && revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, eAux)) {
       revisoesParaRemover.push(revisao);
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior);
       const eAux = d?.situacao.dispositivoOriginal || elementoAnterior;
       result.push(
-        // eslint-disable-next-line prettier/prettier
         new RevisaoElemento(
           actionType,
           StateType.ElementoRestaurado,
@@ -254,44 +252,10 @@ const revisaoDeElementoComMesmoLexmlIdRotuloEConteudo = (r: RevisaoElemento, e: 
   return r.elementoAntesRevisao?.lexmlId === e.lexmlId && r.elementoAntesRevisao?.rotulo === e.rotulo && r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto;
 };
 
-const getRevisoesElemento = (revisoes: Revisao[] = []): RevisaoElemento[] => {
-  return revisoes.filter(r => r instanceof RevisaoElemento).map(r => r as RevisaoElemento);
-};
-
-const findRevisao = (revisoes: Revisao[] = [], elemento: Elemento): RevisaoElemento | undefined => {
-  // return getRevisoesElemento(revisoes).find(r => r.uuidRevisado === elemento.uuid);
-  return getRevisoesElemento(revisoes).find(r => r.localizadorElementoRevisado.uuid === elemento.uuid);
-};
-
 const isAcaoMover = (state: State): boolean => {
   const incluidos = getEventos(state, StateType.ElementoIncluido);
   const removidos = getEventos(state, StateType.ElementoRemovido);
   return !!incluidos.length && incluidos.length === removidos.length;
-};
-
-const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: Elemento[]): boolean => {
-  const revisoesElemento = getRevisoesElemento(revisoes);
-  // return elementos.every(e => revisoesElemento.some(r => r.uuidRevisado === e.uuid));
-  return elementos.every(e => revisoesElemento.some(r => r.localizadorElementoRevisado.uuid === e.uuid));
-};
-
-const findRevisaoById = (revisoes: Revisao[] = [], idRevisao: string): Revisao | undefined => {
-  return revisoes?.find(r => r.id === idRevisao);
-};
-
-const montarListaDeRevisoesParaRemover = (state: State, revisao: Revisao): Revisao[] => {
-  const result = [revisao];
-  // if (revisao.idRevisaoAssociada) {
-  //   const revisaoAssociada = findRevisaoById(state.revisoes, revisao.idRevisaoAssociada);
-  //   revisaoAssociada && result.push(revisaoAssociada);
-  // }
-  if (revisao.idsRevisoesAssociadas.length) {
-    revisao.idsRevisoesAssociadas.forEach(id => {
-      const revisaoAssociada = findRevisaoById(state.revisoes, id);
-      revisaoAssociada && result.push(revisaoAssociada);
-    });
-  }
-  return result;
 };
 
 const getElementoAntesModificacao = (state: State, elemento: Elemento): Elemento | undefined => {
