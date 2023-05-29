@@ -257,7 +257,7 @@ export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dis
   const eventos = new Eventos();
   eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
 
-  const artigo = getArtigo(dispositivo);
+  const artigo = isAgrupador(dispositivo) ? undefined : isArtigo(dispositivo) ? dispositivo : getArtigo(dispositivo);
   if (artigo) {
     artigo.mensagens = validaDispositivo(artigo);
     const elementoArtigo = createElemento(artigo, true);
