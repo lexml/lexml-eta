@@ -1,3 +1,5 @@
+import { findRevisaoByElementoLexmlId } from './../../../src/redux/elemento/util/revisaoUtil';
+import { getDispositivoAndFilhosAsLista } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { State } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { expect } from '@open-wc/testing';
@@ -31,6 +33,41 @@ describe('Carregando texto da MPV 905/2019', () => {
 
     it('Deveria estar em revisão', () => {
       expect(state.emRevisao).to.be.true;
+    });
+
+    describe('Suprimindo dispositivo com filhos', () => {
+      beforeEach(function () {
+        const d = buscaDispositivoById(state.articulacao!, 'art23')!;
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(d) });
+      });
+
+      it('Deveria possuir Art. 23 e filhos suprimidos', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art23')!;
+        expect(isSuprimido(d)).to.be.true;
+        expect(getDispositivoAndFilhosAsLista(d).every(isSuprimido)).to.be.true;
+      });
+
+      it('Deveria possuir 7 revisões', () => {
+        expect(state.revisoes?.length).to.be.equal(7);
+      });
+
+      it('Deveria possuir uma revisão sem idRevisaoElementoPai', () => {
+        expect(state.revisoes?.filter(r => !r.idRevisaoElementoPai).length).to.be.equal(1);
+      });
+
+      it('Deveria possuir 6 revisões apontando para a revisão sem idRevisaoElementoPai', () => {
+        const revisaoPrincipal = state.revisoes?.find(r => !r.idRevisaoElementoPai);
+        expect(state.revisoes?.filter(r => r.idRevisaoElementoPrincipal === revisaoPrincipal?.id).length).to.be.equal(6);
+      });
+
+      it('Deveria possuir revisão do elemento "art23_cpt_inc2_ali1" com atributo idRevisaoElementoPai apontando para a revisão do elemento "art23_cpt_inc2"', () => {
+        const revisaoArtigo = findRevisaoByElementoLexmlId(state.revisoes!, 'art23')!;
+        const revisaoInciso = findRevisaoByElementoLexmlId(state.revisoes!, 'art23_cpt_inc2')!;
+        const revisaoAlinea = findRevisaoByElementoLexmlId(state.revisoes!, 'art23_cpt_inc2_ali1')!;
+        expect(revisaoInciso.idRevisaoElementoPai).to.be.equal(revisaoArtigo.id);
+        expect(revisaoAlinea.idRevisaoElementoPai).to.be.equal(revisaoInciso.id);
+        expect(revisaoAlinea.idRevisaoElementoPrincipal).to.be.equal(revisaoArtigo.id);
+      });
     });
 
     describe('Suprimindo dispositivo', () => {
