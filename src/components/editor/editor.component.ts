@@ -1284,10 +1284,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const buttonRevisao = document.getElementById('buttonRevisao' + elemento.uuid) as any;
 
       if (buttonRevisao) {
-        if (elemento.revisao) {
+        if (elemento.revisao && !elemento.revisao.idRevisaoElementoPrincipal) {
           buttonRevisao.removeAttribute('hidden');
           const pipe = ' | ';
-          const mensagem = 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
+          const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
           buttonRevisao.setAttribute('title', mensagem);
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
