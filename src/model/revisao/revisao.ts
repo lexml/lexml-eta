@@ -3,6 +3,7 @@ import { StateType } from '../../redux/state';
 import { Elemento } from '../elemento';
 import { Usuario } from './usuario';
 import { LocalizadorElemento } from '../elemento/elemento';
+import { buildDescricaoRevisao } from '../../redux/elemento/util/revisaoUtil';
 
 export abstract class Revisao {
   id: string;
@@ -27,12 +28,9 @@ export class RevisaoJustificativa extends Revisao {}
 export class RevisaoElemento extends Revisao {
   actionType: string;
   stateType: StateType;
-  // tipo: TipoRevisao;
   elementoAntesRevisao: Partial<Elemento> | undefined;
   localizadorElementoRevisado: LocalizadorElemento;
   localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento;
-  // uuidRevisado: number;
-  // uuidPosicaoAntesRevisao?: number;
 
   constructor(
     actionType: string,
@@ -41,8 +39,6 @@ export class RevisaoElemento extends Revisao {
     usuario: Usuario,
     dataHora: string,
     elementoAntesRevisao: Partial<Elemento> | undefined,
-    // uuidRevisado: number,
-    // uuidPosicaoAntesRevisao?: number,
     localizadorElementoRevisado: LocalizadorElemento,
     localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento,
     idsRevisoesAssociadas: string[] = []
@@ -51,11 +47,10 @@ export class RevisaoElemento extends Revisao {
     this.actionType = actionType;
     this.stateType = stateType;
     this.elementoAntesRevisao = elementoAntesRevisao;
-    // this.uuidRevisado = uuidRevisado;
-    // this.uuidPosicaoAntesRevisao = uuidPosicaoAntesRevisao;
     this.localizadorElementoRevisado = { ...localizadorElementoRevisado };
     if (localizadorElementoPosicaoAntesRevisao) {
       this.localizadorElementoPosicaoAntesRevisao = { ...localizadorElementoPosicaoAntesRevisao };
     }
+    this.descricao = descricao || buildDescricaoRevisao(this);
   }
 }

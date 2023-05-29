@@ -7,7 +7,13 @@ import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { LocalizadorElemento } from '../../../model/elemento/elemento';
-import { identificarRevisaoElementoPai, findRevisaoByElementoUuid, montarListaDeRevisoesParaRemover, existeRevisaoParaElementos } from '../util/revisaoUtil';
+import {
+  identificarRevisaoElementoPai,
+  findRevisaoByElementoUuid,
+  montarListaDeRevisoesParaRemover,
+  existeRevisaoParaElementos,
+  buildDescricaoUndoRedoRevisaoElemento,
+} from '../util/revisaoUtil';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -109,6 +115,7 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
         revisao.dataHora = formatDateTime(new Date());
         revisao.localizadorElementoRevisado = montarLocalizadorElemento(incluidos[index]);
         revisao.usuario = state.usuario!;
+        revisao.descricao = buildDescricaoUndoRedoRevisaoElemento(revisao, incluidos[index]);
       }
     });
   } else {
@@ -124,6 +131,7 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
         montarLocalizadorElemento(incluidos[index]),
         undefined
       );
+      revInclusao.descricao = buildDescricaoUndoRedoRevisaoElemento(revInclusao, incluidos[index]);
       // revExclusao.idRevisaoAssociada = revInclusao.id;
       // revInclusao.idRevisaoAssociada = revExclusao.id;
       // result.push(revExclusao);
