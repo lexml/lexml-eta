@@ -1,3 +1,4 @@
+import { EtaContainerRevisao } from './eta-container-revisao';
 import { DescricaoSituacao } from './../../model/dispositivo/situacao';
 import { EtaBlotQuebraLinha } from './eta-blot-quebra-linha';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
@@ -57,6 +58,9 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
+    if (elemento.tipo !== 'Articulacao') {
+      new EtaContainerRevisao().insertInto(etaTrContainer);
+    }
     etaTdTexto.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
 

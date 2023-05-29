@@ -13,6 +13,7 @@ import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
+import { RevisaoElemento } from '../../model/revisao/revisao';
 
 const Container = Quill.import('blots/container');
 
@@ -62,7 +63,7 @@ export class EtaContainerTable extends Container {
   }
 
   get blotRotulo(): EtaBlotRotulo | undefined {
-    const node = this.children.head?.children?.head.children.head;
+    const node = this.children.head?.children?.head.children.head || this.children.head.children.head.next.children.head;
     return node instanceof EtaBlotRotulo ? node : node?.next;
   }
 
@@ -75,7 +76,7 @@ export class EtaContainerTable extends Container {
   }
 
   get blotAbreAspas(): EtaBlotAbreAspas {
-    return this.children.head.children.head.children.head;
+    return this.findBlot(EtaBlotAbreAspas.blotName) as EtaBlotAbreAspas;
   }
 
   get blotFechaAspas(): EtaBlotFechaAspas {
@@ -88,6 +89,7 @@ export class EtaContainerTable extends Container {
 
   get containerDireito(): EtaContainerTdDireito {
     return this.children.head.children.tail;
+    // return this.children.head.children.head;
   }
 
   get blotInsideContainerDireito(): EtaBlot {
@@ -230,8 +232,12 @@ export class EtaContainerTable extends Container {
   atualizarAtributos(elemento: Elemento): void {
     if (elemento.revisao) {
       this.domNode.setAttribute('em-revisao', 'true');
+      if ((elemento.revisao as RevisaoElemento).stateType === 'ElementoRemovido') {
+        this.domNode.setAttribute('excluido', 'true');
+      }
     } else {
       this.domNode.removeAttribute('em-revisao');
+      this.domNode.removeAttribute('excluido');
     }
 
     if (podeAdicionarAtributoDeExistencia(elemento)) {
@@ -330,5 +336,9 @@ export class EtaContainerTable extends Container {
       classe = `${classe} dispositivo-alteracao`;
     }
     return classe;
+  }
+
+  public isLinhaComMarcacaoDeExclusao(): boolean {
+    return this.domNode.hasAttribute('excluido');
   }
 }
