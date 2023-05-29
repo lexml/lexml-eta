@@ -107,7 +107,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !isUltimaEnumeracao(dispositivo) &&
     dispositivo.INDICADOR_SEQUENCIA !== undefined &&
     !hasIndicativoContinuacaoSequencia(dispositivo)
@@ -163,7 +163,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isParagrafo(dispositivo) &&
     dispositivo.texto &&
     !hasFilhoGenerico(dispositivo.pai!) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     isUltimaEnumeracao(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
@@ -180,9 +180,8 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !dispositivo.alteracoes &&
-    !isUnicoMesmoTipo(dispositivo) &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasCitacaoAoFinalFrase(dispositivo.texto)
   ) {
@@ -344,7 +343,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isOmissis(dispositivo) &&
     dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 &&
     !hasFilhoGenerico(dispositivo.pai!) &&
-    !hasFilhos(dispositivo) &&
+    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     !isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo)

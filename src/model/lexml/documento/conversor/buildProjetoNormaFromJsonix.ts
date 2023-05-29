@@ -235,7 +235,7 @@ const substituiAspasRetasPorCurvas = (html: string): string => {
       elements[i].innerHTML = newInnerHTML;
     }
   }
-  return div.innerHTML;
+  return div.innerHTML.replace(/&nbsp;/g, ' ');
 };
 
 export const buildContent = (content: any): string => {
