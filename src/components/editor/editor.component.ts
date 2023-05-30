@@ -1289,6 +1289,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           const pipe = ' | ';
           const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
           buttonRevisao.setAttribute('title', mensagem);
+          buttonRevisao.innerHTML =
+            elemento.revisao.usuario.nome
+              .match(/\b[A-Z][a-z]*\b/g)
+              ?.map(word => word.charAt(0))
+              .filter((_, i, arr) => i === 0 || i === arr.length - 1)
+              .join('') || 'R';
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
         }
