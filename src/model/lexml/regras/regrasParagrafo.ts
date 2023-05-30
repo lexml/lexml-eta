@@ -24,7 +24,6 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -33,6 +32,7 @@ import {
   isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
+  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -73,7 +73,7 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (isDispositivoAlteracao(dispositivo) && !isDispositivoNovoNaNormaAlterada(dispositivo.pai!)) {
         acoes.push(renumerarElementoAction);
       }
-      if (dispositivo.texto && hasIndicativoDesdobramento(dispositivo)) {
+      if (!isSuprimido(dispositivo)) {
         acoes.push(adicionarInciso);
       }
       if ((isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) && (!getDispositivoAnterior(dispositivo) || !isOmissis(getDispositivoAnterior(dispositivo)!))) {

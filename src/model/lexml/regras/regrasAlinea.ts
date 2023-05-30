@@ -19,7 +19,7 @@ import {
   transformarAlineaEmIncisoParagrafo,
   transformarEmOmissisAlinea,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
+import { hasIndicativoContinuacaoSequencia } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -27,6 +27,7 @@ import {
   isDispositivoAlteracao,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
+  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -75,7 +76,7 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       if (dispositivo.texto.length === 0 || hasIndicativoContinuacaoSequencia(dispositivo)) {
         acoes.push(adicionarAlinea);
       }
-      if (dispositivo.texto.length === 0 || hasIndicativoDesdobramento(dispositivo)) {
+      if (!isSuprimido(dispositivo)) {
         acoes.push(adicionarItem);
       }
       if (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) {

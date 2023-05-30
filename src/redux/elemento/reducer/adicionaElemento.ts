@@ -1,4 +1,4 @@
-import { isArtigo, isEmenta } from './../../../model/dispositivo/tipo';
+import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
@@ -26,6 +26,7 @@ import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { isArticulacaoAlteracao, getDispositivoAnteriorNaSequenciaDeLeitura, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { TipoArtigo } from '../../../model/lexml/tipo/tipoArtigo';
 
 const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined => {
   const posicaoAtual = atual.pai!.indexOf(atual);
@@ -38,7 +39,10 @@ const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined
 export const adicionaElemento = (state: any, action: any): State => {
   let textoModificado = false;
 
-  const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const refAtual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const atualCaputPosicaoAusente = refAtual && isArtigo(refAtual) && action.novo.tipo === TipoDispositivo.inciso.tipo ? (refAtual as TipoArtigo).caput : undefined;
+  const atual = atualCaputPosicaoAusente ? atualCaputPosicaoAusente : refAtual;
+  const refUltimoFilho = atual && action.posicao === undefined ? (hasFilhos(atual) ? atual.filhos[atual.filhos.length - 1] : undefined) : undefined;
 
   if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
     state.ui.events = [];
@@ -130,6 +134,8 @@ export const adicionaElemento = (state: any, action: any): State => {
     }
   } else if (atual.hasAlteracao()) {
     novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
+  } else if (action.novo.tipo && atual.tipo !== action.novo.tipo) {
+    novo = criaDispositivo(atual, action.novo.tipo, refUltimoFilho);
   } else {
     novo = createByInferencia(atual, action);
   }
@@ -177,7 +183,14 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo.id = buildId(novo);
   }
 
-  const eventos = action.posicao && action.posicao === 'antes' ? buildEventoAdicionarElemento(ref!, novo) : buildEventoAdicionarElemento(atual, novo);
+  const eventos =
+    action.posicao && action.posicao === 'antes'
+      ? buildEventoAdicionarElemento(ref!, novo)
+      : action.posicao === undefined && refUltimoFilho
+      ? buildEventoAdicionarElemento(refUltimoFilho, novo)
+      : action.posicao === undefined && !refUltimoFilho && isCaput(atual)
+      ? buildEventoAdicionarElemento(atual.pai!, novo)
+      : buildEventoAdicionarElemento(atual, novo);
 
   const elementoAtualAtualizado = createElementoValidado(atual);
 

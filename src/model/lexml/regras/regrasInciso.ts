@@ -22,7 +22,7 @@ import {
   transformarIncisoParagrafoEmAlinea,
   transformarIncisoParagrafoEmParagrafo,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
+import { hasIndicativoContinuacaoSequencia, hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -31,6 +31,7 @@ import {
   isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
+  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -74,7 +75,7 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(iniciarBlocoAlteracao);
       }
 
-      if (hasIndicativoDesdobramento(dispositivo)) {
+      if (!isSuprimido(dispositivo)) {
         acoes.push(adicionarAlinea);
       }
       if (hasIndicativoContinuacaoSequencia(dispositivo)) {

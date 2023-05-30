@@ -125,12 +125,16 @@ acoesMenu.push(adicionarSubsecao);
 
 acoesMenu.push(adicionarArtigoAntes);
 acoesMenu.push(adicionarArtigoDepois);
-acoesMenu.push(adicionarAlineaAntes);
-acoesMenu.push(adicionarAlineaDepois);
+acoesMenu.push(adicionarInciso);
 acoesMenu.push(adicionarIncisoAntes);
 acoesMenu.push(adicionarIncisoDepois);
+acoesMenu.push(adicionarAlinea);
+acoesMenu.push(adicionarAlineaAntes);
+acoesMenu.push(adicionarAlineaDepois);
+acoesMenu.push(adicionarItem);
 acoesMenu.push(adicionarItemAntes);
 acoesMenu.push(adicionarItemDepois);
+acoesMenu.push(adicionarParagrafo);
 acoesMenu.push(adicionarParagrafoAntes);
 acoesMenu.push(adicionarParagrafoDepois);
 
@@ -142,10 +146,6 @@ acoesMenu.push(removerTextoOmissisAction);
 export const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);
 acoesExclusivasEdicao.push(adicionarArtigo);
-acoesExclusivasEdicao.push(adicionarAlinea);
-acoesExclusivasEdicao.push(adicionarInciso);
-acoesExclusivasEdicao.push(adicionarItem);
-acoesExclusivasEdicao.push(adicionarParagrafo);
 
 export const isAcaoMenu = (acao: ElementoAction): boolean => {
   return acoesMenu.includes(acao);
