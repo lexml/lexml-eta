@@ -29,8 +29,8 @@ export class RevisaoElemento extends Revisao {
   actionType: string;
   stateType: StateType;
   elementoAntesRevisao: Partial<Elemento> | undefined;
-  localizadorElementoRevisado: LocalizadorElemento;
-  localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento;
+  elementoAposRevisao: Partial<Elemento>; // No caso de exclusão de elemento, o elementoAposRevisao terá o mesmo valor que o elementoAntesRevisao
+  localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento; // Localizador do elemento anterior ao elementoAntesRevisao
 
   constructor(
     actionType: string,
@@ -39,7 +39,7 @@ export class RevisaoElemento extends Revisao {
     usuario: Usuario,
     dataHora: string,
     elementoAntesRevisao: Partial<Elemento> | undefined,
-    localizadorElementoRevisado: LocalizadorElemento,
+    elementoAposRevisao: Partial<Elemento>,
     localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento,
     idsRevisoesAssociadas: string[] = []
   ) {
@@ -47,7 +47,7 @@ export class RevisaoElemento extends Revisao {
     this.actionType = actionType;
     this.stateType = stateType;
     this.elementoAntesRevisao = elementoAntesRevisao;
-    this.localizadorElementoRevisado = { ...localizadorElementoRevisado };
+    this.elementoAposRevisao = elementoAposRevisao;
     if (localizadorElementoPosicaoAntesRevisao) {
       this.localizadorElementoPosicaoAntesRevisao = { ...localizadorElementoPosicaoAntesRevisao };
     }
