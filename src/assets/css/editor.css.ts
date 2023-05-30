@@ -569,6 +569,8 @@ export const editorStyles = html`
       background-color: rgb(217, 119, 6);
       color: white;
       cursor: pointer;
+      position: relative;
+      top: -2px;
     }
 
     #chk-em-revisao {
