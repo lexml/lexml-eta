@@ -18,6 +18,7 @@ import {
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
   if (!state.emRevisao || !actionType || !numElementos) {
+    associarRevisoesAosElementos(state);
     return state;
   }
 
@@ -45,9 +46,13 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   state.revisoes!.push(...revisoes);
   state.revisoes = identificarRevisaoElementoPai(state.revisoes);
 
-  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
+  associarRevisoesAosElementos(state);
 
   return state;
+};
+
+const associarRevisoesAosElementos = (state: State): void => {
+  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
 };
 
 const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] => {
