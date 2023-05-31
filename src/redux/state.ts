@@ -26,6 +26,8 @@ export enum StateType {
   RevisaoAtivada = 'RevisaoAtivada',
   RevisaoDesativada = 'RevisaoDesativada',
   AtualizaUsuario = 'AtualizaUsuario',
+  RevisaoAceita = 'RevisaoAceita',
+  RevisaoRejeitada = 'RevisaoRejeitada',
 }
 export interface StateEvent {
   stateType: StateType;

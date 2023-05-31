@@ -557,9 +557,9 @@ export const editorStyles = html`
       background-color: var(--sl-color-amber-100);
     }
 
-    [excluido='true'] {
+    [excluido='true'] .texto__dispositivo {
       text-decoration: line-through;
-      background-color: #d3d3d3;
+      /* background-color: #d3d3d3; */
     }
 
     .blot__revisao {

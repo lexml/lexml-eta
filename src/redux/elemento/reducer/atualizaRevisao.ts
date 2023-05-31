@@ -14,6 +14,8 @@ import {
   existeRevisaoParaElementos,
   buildDescricaoUndoRedoRevisaoElemento,
 } from '../util/revisaoUtil';
+import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
+import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -47,6 +49,8 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   state.revisoes = identificarRevisaoElementoPai(state.revisoes);
 
   associarRevisoesAosElementos(state);
+
+  adicionarOpcoesAoMenu(state);
 
   return state;
 };
@@ -217,7 +221,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
           state.usuario!,
           formatDateTime(new Date()),
           eAux,
-          eAux,
+          { ...eAux, acoesPossiveis: [] },
           e.elementoAnteriorNaSequenciaDeLeitura && montarLocalizadorElemento(e.elementoAnteriorNaSequenciaDeLeitura)
         )
       );
@@ -320,4 +324,16 @@ const getElementoAntesModificacao = (state: State, elemento: Elemento): Elemento
 
 const montarLocalizadorElemento = (elemento: Partial<Elemento>): LocalizadorElemento => {
   return { uuid: elemento.uuid!, lexmlId: elemento.lexmlId! };
+};
+
+const adicionarOpcoesAoMenu = (state: State): void => {
+  state.ui?.events.forEach(se =>
+    se.elementos?.forEach(e => {
+      if (e.revisao && !e.revisao.idRevisaoElementoPrincipal) {
+        e.acoesPossiveis = se.stateType === StateType.ElementoRemovido ? [] : [...(e.acoesPossiveis || [])];
+        !e.acoesPossiveis.includes(aceitarRevisaoAction) && e.acoesPossiveis.push(aceitarRevisaoAction);
+        !e.acoesPossiveis.includes(rejeitarRevisaoAction) && e.acoesPossiveis.push(rejeitarRevisaoAction);
+      }
+    })
+  );
 };

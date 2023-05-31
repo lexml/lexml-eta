@@ -70,6 +70,10 @@ import { atualizaRevisao } from './atualizaRevisao';
 import { State } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
+import { ACEITAR_REVISAO } from '../../../model/lexml/acao/aceitarRevisaoAction';
+import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoAction';
+import { aceitaRevisao } from './aceitaRevisao';
+import { rejeitaRevisao } from './rejeitaRevisao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -77,7 +81,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   let usuario = (state as State).usuario;
   let actionType = action.type;
   let emRevisao = (state as State).emRevisao;
-  const revisoes = (state as State).revisoes || [];
+  let revisoes = (state as State).revisoes || [];
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
 
   switch (action.type) {
@@ -189,6 +193,14 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ATUALIZAR_USUARIO:
       tempState = atualizaUsuario(state, action);
       usuario = tempState.usuario;
+      break;
+    case ACEITAR_REVISAO:
+      tempState = aceitaRevisao(state, action);
+      revisoes = tempState.revisoes!;
+      break;
+    case REJEITAR_REVISAO:
+      tempState = rejeitaRevisao(state, action);
+      revisoes = tempState.revisoes!;
       break;
     default:
       actionType = undefined;
