@@ -122,6 +122,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.alertar(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
+        this.checkedSwitchMarcaAlteracao();
       }
     }
   }
@@ -1027,6 +1028,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+
+    this.checkedSwitchMarcaAlteracao();
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
