@@ -639,7 +639,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.atualizaQuantidadeRevisao(this.getQuantidadeRevisoes());
       this.indicadorMarcaRevisao(event);
-      //this.atualizaQuantidadeMarcaAlteracao(event);
       this.quill.limparHistory();
     });
 
