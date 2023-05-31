@@ -1330,17 +1330,4 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     }
   };
-
-  private enableSwitchMarcaAlteracao = (): void => {
-    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao') as any;
-
-    if (switchMarcaAlteracaoView) {
-      const state = rootStore.getState().elementoReducer as any;
-      if (state.revisoes.length > 0) {
-        switchMarcaAlteracaoView.setAttribute('disabled', '');
-      } else {
-        switchMarcaAlteracaoView.removeAttribute('disabled');
-      }
-    }
-  };
 }
