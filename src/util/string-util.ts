@@ -116,3 +116,13 @@ export const removeTagStyle = (texto: string): string => removeTagEConteudo(text
 export const removeTagScript = (texto: string): string => removeTagEConteudo(texto, 'script');
 
 export const removeTagHead = (texto: string): string => removeTagEConteudo(texto, 'head');
+
+export const getIniciais = (texto = ''): string => {
+  return (
+    texto
+      .match(/\b[A-Z][a-z]*\b/g)
+      ?.map(word => word.charAt(0))
+      .filter((_, i, arr) => i === 0 || i === arr.length - 1)
+      .join('') || ''
+  );
+};

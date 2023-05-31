@@ -65,6 +65,7 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { ativarDesativarRevisaoAction } from '../../model/lexml/acao/ativarDesativarRevisaoAction';
+import { getIniciais } from '../../util/string-util';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -1291,8 +1292,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.revisao && !elemento.revisao.idRevisaoElementoPrincipal) {
           buttonRevisao.removeAttribute('hidden');
           const pipe = ' | ';
-          const mensagem = 'Ação: ' + elemento.revisao.mensagem + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
+          const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
           buttonRevisao.setAttribute('title', mensagem);
+          buttonRevisao.innerHTML = getIniciais(elemento.revisao.usuario.nome) || 'R';
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
         }

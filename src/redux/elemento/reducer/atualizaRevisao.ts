@@ -7,11 +7,18 @@ import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { LocalizadorElemento } from '../../../model/elemento/elemento';
-import { identificarRevisaoElementoPai, findRevisaoByElementoUuid, montarListaDeRevisoesParaRemover, existeRevisaoParaElementos } from '../util/revisaoUtil';
+import {
+  identificarRevisaoElementoPai,
+  findRevisaoByElementoUuid,
+  montarListaDeRevisoesParaRemover,
+  existeRevisaoParaElementos,
+  buildDescricaoUndoRedoRevisaoElemento,
+} from '../util/revisaoUtil';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
   if (!state.emRevisao || !actionType || !numElementos) {
+    associarRevisoesAosElementos(state);
     return state;
   }
 
@@ -39,9 +46,13 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   state.revisoes!.push(...revisoes);
   state.revisoes = identificarRevisaoElementoPai(state.revisoes);
 
-  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
+  associarRevisoesAosElementos(state);
 
   return state;
+};
+
+const associarRevisoesAosElementos = (state: State): void => {
+  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
 };
 
 const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] => {
@@ -57,19 +68,8 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, e)!;
       const eAux = revisao?.elementoAntesRevisao || (JSON.parse(JSON.stringify(d.situacao.dispositivoOriginal)) as Elemento);
-      result.push(
-        new RevisaoElemento(
-          actionType,
-          StateType.ElementoSuprimido,
-          '',
-          state.usuario!,
-          formatDateTime(new Date()),
-          eAux,
-          'Dispositivo Suprimido',
-          montarLocalizadorElemento(e),
-          undefined
-        )
-      );
+      // result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, montarLocalizadorElemento(e), undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)), undefined));
       if (revisao) {
         revisoesParaRemover.push(revisao);
       }
@@ -95,19 +95,8 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       }
     } else {
       const eAux = getElementoAntesModificacao(state, e);
-      result.push(
-        new RevisaoElemento(
-          actionType,
-          StateType.ElementoModificado,
-          '',
-          state.usuario!,
-          formatDateTime(new Date()),
-          eAux,
-          'Dispositivo Modificado',
-          montarLocalizadorElemento(e),
-          undefined
-        )
-      );
+      // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, montarLocalizadorElemento(e), undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)), undefined));
     }
   });
 
@@ -131,24 +120,38 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
       } else {
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
-        revisao.localizadorElementoRevisado = montarLocalizadorElemento(incluidos[index]);
+        // revisao.localizadorElementoRevisado = montarLocalizadorElemento(incluidos[index]);
+        revisao.elementoAposRevisao = JSON.parse(JSON.stringify(incluidos[index]));
         revisao.usuario = state.usuario!;
+        revisao.descricao = buildDescricaoUndoRedoRevisaoElemento(revisao, incluidos[index]);
       }
     });
   } else {
     removidos.forEach((e, index) => {
       // const revExclusao = new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), e, e.uuid!, e.elementoAnteriorNaSequenciaDeLeitura?.uuid);
+
+      // const revInclusao = new RevisaoElemento(
+      //   actionType,
+      //   StateType.ElementoIncluido,
+      //   '',
+      //   state.usuario!,
+      //   formatDateTime(new Date()),
+      //   e,
+      //   montarLocalizadorElemento(incluidos[index]),
+      //   undefined
+      // );
       const revInclusao = new RevisaoElemento(
         actionType,
         StateType.ElementoIncluido,
         '',
         state.usuario!,
         formatDateTime(new Date()),
-        e,
-        'Dispositivo Movido',
-        montarLocalizadorElemento(incluidos[index]),
+        JSON.parse(JSON.stringify(e)),
+        JSON.parse(JSON.stringify(incluidos[index])),
         undefined
       );
+
+      revInclusao.descricao = buildDescricaoUndoRedoRevisaoElemento(revInclusao, incluidos[index]);
       // revExclusao.idRevisaoAssociada = revInclusao.id;
       // revInclusao.idRevisaoAssociada = revExclusao.id;
       // result.push(revExclusao);
@@ -172,19 +175,8 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      result.push(
-        new RevisaoElemento(
-          actionType,
-          StateType.ElementoIncluido,
-          '',
-          state.usuario!,
-          formatDateTime(new Date()),
-          undefined,
-          'Dispositivo Adicionado',
-          montarLocalizadorElemento(e),
-          undefined
-        )
-      );
+      // result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, montarLocalizadorElemento(e), undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e)), undefined));
     }
   });
 
@@ -205,6 +197,18 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
       revisoesParaRemover.push(revisao);
     } else {
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
+      // result.push(
+      //   new RevisaoElemento(
+      //     actionType,
+      //     StateType.ElementoRemovido,
+      //     '',
+      //     state.usuario!,
+      //     formatDateTime(new Date()),
+      //     eAux,
+      //     montarLocalizadorElemento(e),
+      //     e.elementoAnteriorNaSequenciaDeLeitura && montarLocalizadorElemento(e.elementoAnteriorNaSequenciaDeLeitura)
+      //   )
+      // );
       result.push(
         new RevisaoElemento(
           actionType,
@@ -213,8 +217,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
           state.usuario!,
           formatDateTime(new Date()),
           eAux,
-          'Dispositivo Excluído',
-          montarLocalizadorElemento(e),
+          eAux,
           e.elementoAnteriorNaSequenciaDeLeitura && montarLocalizadorElemento(e.elementoAnteriorNaSequenciaDeLeitura)
         )
       );
@@ -243,6 +246,18 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior);
       const eAux = d?.situacao.dispositivoOriginal || elementoAnterior;
+      // result.push(
+      //   new RevisaoElemento(
+      //     actionType,
+      //     StateType.ElementoRestaurado,
+      //     '',
+      //     state.usuario!,
+      //     formatDateTime(new Date()),
+      //     revisao?.elementoAntesRevisao || eAux,
+      //     montarLocalizadorElemento(eAux),
+      //     undefined
+      //   )
+      // );
       result.push(
         new RevisaoElemento(
           actionType,
@@ -251,8 +266,7 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
           state.usuario!,
           formatDateTime(new Date()),
           revisao?.elementoAntesRevisao || eAux,
-          'Dispositivo Restaurado',
-          montarLocalizadorElemento(eAux),
+          JSON.parse(JSON.stringify(eAux)),
           undefined
         )
       );

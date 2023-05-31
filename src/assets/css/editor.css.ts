@@ -554,7 +554,7 @@ export const editorStyles = html`
     }
 
     [em-revisao='true'] {
-      background-color: #fff2a6;
+      background-color: var(--sl-color-amber-100);
     }
 
     [excluido='true'] {
@@ -563,11 +563,14 @@ export const editorStyles = html`
     }
 
     .blot__revisao {
-      padding: 1px 6px;
-      border-width: 1px;
-      border-style: outset;
-      border-color: buttonborder;
-      border-image: initial;
+      padding: 1px 5px;
+      border: 1px solid white;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      top: -2px;
     }
 
     #chk-em-revisao {
