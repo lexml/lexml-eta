@@ -1266,6 +1266,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private ativarDesativarMarcaDeRevisao(): void {
     console.log('ativarDesativarMarcaDeRevisao');
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+    this.checkedSwitchMarcaAlteracao();
   }
 
   private atualizarEstiloBotaoRevisao(): void {
@@ -1316,6 +1317,30 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const contadorView = document.getElementById('badge-marca-alteracao') as any;
     if (contadorView) {
       contadorView.innerHTML = quantidade;
+    }
+  };
+
+  private checkedSwitchMarcaAlteracao = (): void => {
+    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao') as any;
+    if (switchMarcaAlteracaoView) {
+      if (rootStore.getState().elementoReducer.emRevisao) {
+        switchMarcaAlteracaoView.setAttribute('checked', '');
+      } else {
+        switchMarcaAlteracaoView.removeAttribute('checked');
+      }
+    }
+  };
+
+  private enableSwitchMarcaAlteracao = (): void => {
+    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao') as any;
+
+    if (switchMarcaAlteracaoView) {
+      const state = rootStore.getState().elementoReducer as any;
+      if (state.revisoes.length > 0) {
+        switchMarcaAlteracaoView.setAttribute('disabled', '');
+      } else {
+        switchMarcaAlteracaoView.removeAttribute('disabled');
+      }
     }
   };
 }
