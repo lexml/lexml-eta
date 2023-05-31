@@ -1,5 +1,8 @@
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
+import { REMOVER_ELEMENTO } from '../../model/lexml/acao/removerElementoAction';
+import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
+import { RevisaoElemento } from '../../model/revisao/revisao';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotRotulo extends EtaBlot {
@@ -31,7 +34,7 @@ export class EtaBlotRotulo extends EtaBlot {
       node.setAttribute('tipo-dispositivo', elemento.tipo);
     }
 
-    node.innerHTML = elemento.rotulo;
+    node.innerHTML = EtaBlotRotulo.montarRotulo(elemento);
     if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.dispositivoAlteracao) {
       node.title = elemento.existeNaNormaAlterada ? 'Dispositivo existente na norma alterada' : 'Dispositivo a ser adicionado à norma';
     }
@@ -112,6 +115,16 @@ export class EtaBlotRotulo extends EtaBlot {
     }
 
     this.domNode.onclick = onclick(this.domNode, elemento);
+    this.domNode.innerHTML = EtaBlotRotulo.montarRotulo(elemento);
+  }
+
+  private static montarRotulo(elemento: Elemento): string {
+    const descricaoTipo = TipoDispositivo[elemento.tipo!.toLowerCase()].descricao;
+    return elemento.revisao && EtaBlotRotulo.isRevisaoPrincipalDeExclusaoDeDispositivo(elemento) ? descricaoTipo ?? '' : elemento.rotulo;
+  }
+
+  private static isRevisaoPrincipalDeExclusaoDeDispositivo(elemento: Elemento): boolean {
+    return !elemento.revisao?.idRevisaoElementoPrincipal && (elemento.revisao as RevisaoElemento).actionType === REMOVER_ELEMENTO;
   }
 }
 

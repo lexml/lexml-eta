@@ -355,6 +355,18 @@ export const createEventos = (): StateEvent[] => {
       pai: undefined,
       elementos: [],
     },
+    {
+      stateType: StateType.RevisaoAceita,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RevisaoRejeitada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
   ];
 };
 

@@ -611,6 +611,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoSelecionado:
+        case StateType.RevisaoAceita:
           this.atualizarAtributos(event);
           if (events[events.length - 1] === event) {
             this.montarMenuContexto(event);
@@ -881,6 +882,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+    this.montarMenuContexto(event);
 
     const range = this.quill.getSelection();
     if (range) {
