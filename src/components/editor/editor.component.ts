@@ -54,7 +54,7 @@ import { EtaContainerTable } from '../../util/eta-quill/eta-container-table';
 import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
-import { Subscription } from '../../util/observable';
+import { Observable, Subscription } from '../../util/observable';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { LexmlEtaComponent } from '../lexml-eta.component';
@@ -88,6 +88,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
 
+  private onChangeQuantidadeRevisao: Observable<string> = new Observable<string>();
+
   constructor() {
     super();
     this.tabIndex = -1;
@@ -119,6 +121,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.alertar(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
+        this.atualizaQuantidadeMarcaAlteracao(state.elementoReducer.ui.events);
       }
     }
   }
@@ -191,7 +194,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             <label>Revisão<label/>
           </div> -->
           <sl-switch id="chk-em-revisao" size="small" @sl-change=${(): void =>
-            this.ativarDesativarMarcaDeRevisao()}><span>Marcas de alteração</span> <sl-badge variant="warning" pill>4</sl-badge></sl-switch>
+            this.ativarDesativarMarcaDeRevisao()}><span>Marcas de alteração</span> <sl-badge id="badge-marca-alteracao" variant="warning" pill>0</sl-badge></sl-switch>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
             <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
@@ -634,6 +637,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
       }
       this.indicadorMarcaRevisao(event);
+      //this.atualizaQuantidadeMarcaAlteracao(event);
       this.quill.limparHistory();
     });
 
@@ -1292,6 +1296,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
         }
+      }
+    });
+  }
+
+  private atualizaQuantidadeMarcaAlteracao(event: StateEvent): void {
+    const elementos: Elemento[] = event.elementos ?? [];
+    let quantidadeMarcasAlteracao = 0;
+
+    elementos!.forEach((elemento: Elemento) => {
+      const contadorView = document.getElementById('badge-marca-alteracao') as any;
+      if (elemento.revisao && !elemento.revisao.idRevisaoElementoPrincipal) {
+        quantidadeMarcasAlteracao++;
+        contadorView.innerHTML = quantidadeMarcasAlteracao;
       }
     });
   }
