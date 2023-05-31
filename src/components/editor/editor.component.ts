@@ -872,17 +872,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
 
-    elementos.forEach((elemento: Elemento) => {
+    elementos.forEach((elemento: Elemento, index) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
         if (elemento.revisao) {
           linha.atualizarElemento(elemento);
+          index === 0 && this.montarMenuContexto(event);
         } else {
           linha.remove();
         }
       }
     });
-    this.montarMenuContexto(event);
 
     const range = this.quill.getSelection();
     if (range) {
