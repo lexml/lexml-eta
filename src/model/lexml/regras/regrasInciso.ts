@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
-import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
+import { adicionarAlinea, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -22,7 +22,7 @@ import {
   transformarIncisoParagrafoEmAlinea,
   transformarIncisoParagrafoEmParagrafo,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
+import { hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -77,9 +77,6 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
 
       if (!isSuprimido(dispositivo)) {
         acoes.push(adicionarAlinea);
-      }
-      if (hasIndicativoContinuacaoSequencia(dispositivo)) {
-        acoes.push(adicionarInciso);
       }
       if (hasIndicativoFinalSequencia(dispositivo) && isUltimoMesmoTipo(dispositivo)) {
         acoes.push(adicionarParagrafo);
