@@ -36,6 +36,7 @@ import {
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
+  isSuprimido,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
   podeEditarNotaAlteracao,
@@ -43,7 +44,7 @@ import {
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
-import { getProximoAgrupadorAposArtigo, isDispositivoNaNormaAlterada } from './../hierarquia/hierarquiaUtil';
+import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import { MotivosOperacaoNaoPermitida } from './regrasUtil';
 
@@ -160,11 +161,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+      if (!isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+      if (isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(removerTextoOmissisAction);
       }
 

@@ -27,13 +27,14 @@ import {
   isDispositivoAlteracao,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
+  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { atualizarNotaAlteracaoAction } from './../acao/atualizarNotaAlteracaoAction';
-import { isDispositivoNaNormaAlterada, podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
+import { podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import { MotivosOperacaoNaoPermitida, podeConverterEmOmissis } from './regrasUtil';
 
@@ -96,11 +97,11 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo)) {
+      if (!isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo)) {
+      if (isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(removerTextoOmissisAction);
       }
 
