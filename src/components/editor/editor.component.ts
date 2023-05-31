@@ -636,6 +636,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarEstiloBotaoRevisao();
           break;
       }
+
+      this.atualizaQuantidadeRevisao(this.getQuantidadeRevisoes());
       this.indicadorMarcaRevisao(event);
       //this.atualizaQuantidadeMarcaAlteracao(event);
       this.quill.limparHistory();
@@ -1300,4 +1302,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     });
   }
+
+  private getQuantidadeRevisoes = (): number => {
+    const state = rootStore.getState().elementoReducer as any;
+    if (state.revisoes) {
+      return state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined).length;
+    }
+    return 0;
+  };
+
+  private atualizaQuantidadeRevisao = (quantidade: number): void => {
+    const contadorView = document.getElementById('badge-marca-alteracao') as any;
+    if (contadorView) {
+      contadorView.innerHTML = quantidade;
+    }
+  };
 }
