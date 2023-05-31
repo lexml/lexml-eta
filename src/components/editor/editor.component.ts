@@ -122,7 +122,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.alertar(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
-        this.atualizaQuantidadeMarcaAlteracao(state.elementoReducer.ui.events);
       }
     }
   }
@@ -1298,19 +1297,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
         }
-      }
-    });
-  }
-
-  private atualizaQuantidadeMarcaAlteracao(event: StateEvent): void {
-    const elementos: Elemento[] = event.elementos ?? [];
-    let quantidadeMarcasAlteracao = 0;
-
-    elementos!.forEach((elemento: Elemento) => {
-      const contadorView = document.getElementById('badge-marca-alteracao') as any;
-      if (elemento.revisao && !elemento.revisao.idRevisaoElementoPrincipal) {
-        quantidadeMarcasAlteracao++;
-        contadorView.innerHTML = quantidadeMarcasAlteracao;
       }
     });
   }

@@ -43,12 +43,27 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
     revisoes.push(...processaEventosDeRemocao(state, actionType));
   }
 
+  atualizaQuantidadeRevisao(getQuantidadeRevisoes(state));
   state.revisoes!.push(...revisoes);
   state.revisoes = identificarRevisaoElementoPai(state.revisoes);
 
   associarRevisoesAosElementos(state);
 
   return state;
+};
+
+const getQuantidadeRevisoes = (state: State): number => {
+  if (state.revisoes) {
+    return state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined).length;
+  }
+  return 0;
+};
+
+const atualizaQuantidadeRevisao = (quantidade: number): void => {
+  const contadorView = document.getElementById('badge-marca-alteracao') as any;
+  if (contadorView) {
+    contadorView.innerHTML = quantidade;
+  }
 };
 
 const associarRevisoesAosElementos = (state: State): void => {
