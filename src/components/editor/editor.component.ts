@@ -195,7 +195,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             <label>Revisão<label/>
           </div> -->
           <sl-switch id="chk-em-revisao" size="small" @sl-change=${(): void =>
-            this.ativarDesativarMarcaDeRevisao()}><span>Marcas de alteração</span> <sl-badge id="badge-marca-alteracao" variant="warning" pill>0</sl-badge></sl-switch>
+            this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao" variant="warning" pill>0</sl-badge></sl-switch>
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
             <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
