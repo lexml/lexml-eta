@@ -563,7 +563,7 @@ export const editorStyles = html`
     }
 
     .blot__revisao {
-      padding: 1px 5px;
+      padding: 3px 7px;
       border: 1px solid white;
       border-radius: 1rem;
       background-color: rgb(217, 119, 6);
