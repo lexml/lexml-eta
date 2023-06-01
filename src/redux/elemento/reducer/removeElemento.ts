@@ -17,6 +17,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
 export const removeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -56,6 +57,13 @@ export const removeElemento = (state: any, action: any): State => {
     (isArtigoUnico(dispositivo) || (state.articulacao.filhos.length === 1 && state.articulacao.filhos[0] === dispositivo && !hasFilhos(dispositivo)))
   ) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir o único dispositivo disponível.' });
+  }
+
+  if (state.emRevisao && existeFilhoExcluidoDuranteRevisao(state, dispositivo)) {
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não é possível remover dispositivo que possua dispositivo subordinado já removido em modo de revisão.',
+    });
   }
 
   const primeiroFilhoDoAgrupador = isAgrupador(dispositivo) ? dispositivo.filhos[0] || getDispositivoPosterior(dispositivo) || getDispositivoAnterior(dispositivo) : undefined;

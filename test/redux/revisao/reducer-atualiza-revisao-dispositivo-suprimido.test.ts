@@ -52,12 +52,12 @@ describe('Carregando texto da MPV 905/2019', () => {
       });
 
       it('Deveria possuir uma revisão sem idRevisaoElementoPai', () => {
-        expect(state.revisoes?.filter(r => !r.idRevisaoElementoPai).length).to.be.equal(1);
+        expect(state.revisoes?.filter(r => !(r as RevisaoElemento).idRevisaoElementoPai).length).to.be.equal(1);
       });
 
       it('Deveria possuir 6 revisões apontando para a revisão sem idRevisaoElementoPai', () => {
-        const revisaoPrincipal = state.revisoes?.find(r => !r.idRevisaoElementoPai);
-        expect(state.revisoes?.filter(r => r.idRevisaoElementoPrincipal === revisaoPrincipal?.id).length).to.be.equal(6);
+        const revisaoPrincipal = state.revisoes?.find(r => !(r as RevisaoElemento).idRevisaoElementoPai);
+        expect(state.revisoes?.filter(r => (r as RevisaoElemento).idRevisaoElementoPrincipal === revisaoPrincipal?.id).length).to.be.equal(6);
       });
 
       it('Deveria possuir revisão do elemento "art23_cpt_inc2_ali1" com atributo idRevisaoElementoPai apontando para a revisão do elemento "art23_cpt_inc2"', () => {
