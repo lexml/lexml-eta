@@ -340,7 +340,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const dialogElem = document.createElement('sl-dialog');
     document.body.appendChild(dialogElem);
 
-    dialogElem.label = 'Informar numeração de dispositivo';
+    dialogElem.label = 'Informar numeração';
     dialogElem.addEventListener('sl-request-close', (event: any) => {
       if (event.detail.source === 'overlay') {
         event.preventDefault();
