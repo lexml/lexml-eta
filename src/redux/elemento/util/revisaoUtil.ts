@@ -140,7 +140,7 @@ export const getElementosFromRevisoes = (revisoes: Revisao[] = [], state?: State
 
 export const isRevisaoElemento = (revisao: Revisao): boolean => 'elementoAposRevisao' in revisao;
 
-export const existeFilhoExcluidoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
+export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
   if (!state.revisoes?.length) {
     return false;
   }
@@ -148,5 +148,5 @@ export const existeFilhoExcluidoDuranteRevisao = (state: State, dispositivo: Dis
   return state.revisoes
     .filter(isRevisaoElemento)
     .map(r => r as RevisaoElemento)
-    .some(r => r.actionType === REMOVER_ELEMENTO && ids.includes(r.elementoAntesRevisao?.lexmlId));
+    .some(r => ids.includes(r.elementoAntesRevisao?.lexmlId));
 };

@@ -17,7 +17,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
+import { existeFilhoExcluidoOuAlteradoDuranteRevisao } from '../util/revisaoUtil';
 
 export const removeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -59,10 +59,10 @@ export const removeElemento = (state: any, action: any): State => {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir o único dispositivo disponível.' });
   }
 
-  if (state.emRevisao && existeFilhoExcluidoDuranteRevisao(state, dispositivo)) {
+  if (state.emRevisao && existeFilhoExcluidoOuAlteradoDuranteRevisao(state, dispositivo)) {
     return retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não é possível remover dispositivo que possua dispositivo subordinado já removido em modo de revisão.',
+      descricao: 'Não é possível remover dispositivo que possua dispositivo subordinado já removido ou alterado em modo de revisão.',
     });
   }
 
