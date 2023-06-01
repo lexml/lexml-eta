@@ -1338,7 +1338,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   };
 
+  /**
+   * Método utilizado para navegar entre as marcas de revisão
+   * @param direcao
+   */
   private navegarEntreMarcasRevisao = (direcao: string): void => {
-    console.log('navegar entre revisoes ' + direcao);
+    const atributo = direcao === 'abaixo' ? 'next' : 'prev';
+    let linha = this.quill.linhaAtual;
+    if (linha.elemento.revisao) {
+      linha = linha[atributo];
+    }
+
+    while (linha && !linha.elemento.revisao) {
+      linha = linha[atributo];
+    }
+
+    if (linha) {
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      this.quill.marcarLinhaAtual(linha);
+    }
   };
 }
