@@ -554,7 +554,7 @@ export const editorStyles = html`
     }
 
     [em-revisao='true'] {
-      background-color: var(--sl-color-amber-100);
+      background-color: var(--sl-color-blue-100);
     }
 
     [excluido='true'] .texto__dispositivo {
@@ -582,7 +582,7 @@ export const editorStyles = html`
       background-color: #eee;
     }
     #chk-em-revisao[checked] {
-      background-color: #dfe9ff;
+      background-color: var(--sl-color-blue-100);
     }
 
     /* .container__revisao {
