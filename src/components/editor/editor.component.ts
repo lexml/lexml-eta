@@ -196,6 +196,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           </div> -->
           <sl-switch id="chk-em-revisao" size="small" @sl-change=${(): void =>
             this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao" variant="warning" pill>0</sl-badge></sl-switch>
+          
+          <sl-icon-button name="arrow-down" @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}></sl-icon-button>  
+          <sl-icon-button name="arrow-up" @click=${(): void => this.navegarEntreMarcasRevisao('acima')} ></sl-icon-button> 
+          
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
             <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
@@ -1332,5 +1336,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         switchMarcaAlteracaoView.removeAttribute('checked');
       }
     }
+  };
+
+  private navegarEntreMarcasRevisao = (direcao: string): void => {
+    console.log('navegar entre revisoes ' + direcao);
   };
 }
