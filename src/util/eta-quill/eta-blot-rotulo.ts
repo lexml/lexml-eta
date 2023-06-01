@@ -124,7 +124,8 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   private static isRevisaoPrincipalDeExclusaoDeDispositivo(elemento: Elemento): boolean {
-    return !elemento.revisao?.idRevisaoElementoPrincipal && (elemento.revisao as RevisaoElemento).actionType === REMOVER_ELEMENTO;
+    const r = elemento.revisao as RevisaoElemento;
+    return !r?.idRevisaoElementoPrincipal && r.actionType === REMOVER_ELEMENTO;
   }
 }
 

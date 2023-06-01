@@ -11,8 +11,6 @@ export abstract class Revisao {
   dataHora: string;
   descricao?: string;
   idsRevisoesAssociadas: string[];
-  idRevisaoElementoPai?: string;
-  idRevisaoElementoPrincipal?: string;
 
   constructor(usuario: Usuario, dataHora: string, descricao?: string, idsRevisoesAssociadas: string[] = []) {
     this.id = generateUUID();
@@ -31,6 +29,8 @@ export class RevisaoElemento extends Revisao {
   elementoAntesRevisao: Partial<Elemento> | undefined;
   elementoAposRevisao: Partial<Elemento>; // No caso de exclusão de elemento, o elementoAposRevisao terá o mesmo valor que o elementoAntesRevisao
   localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento; // Localizador do elemento anterior ao elementoAntesRevisao
+  idRevisaoElementoPai?: string;
+  idRevisaoElementoPrincipal?: string;
 
   constructor(
     actionType: string,

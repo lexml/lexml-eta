@@ -1,3 +1,4 @@
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { Elemento, Referencia } from '../../../model/elemento';
 import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
@@ -9,6 +10,7 @@ import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoActio
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
+import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateType } from '../../state';
 
@@ -58,8 +60,8 @@ export const identificarRevisaoElementoPai = (revisoes: Revisao[] = []): Revisao
       const uuidPai = rAux.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(rAux) : rAux.elementoAntesRevisao?.hierarquia?.pai?.uuid;
       const rPai = uuidPai ? findRevisaoByElementoUuid(revisoes, uuidPai) : undefined;
       if (rPai && isRevisaoMesmaSituacao(rAux, rPai)) {
-        r.idRevisaoElementoPai = rPai.id;
-        r.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(revisoes!, rPai)?.id;
+        rAux.idRevisaoElementoPai = rPai.id;
+        rAux.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(revisoes!, rPai)?.id;
       }
     }
     result.push(r);
@@ -137,3 +139,14 @@ export const getElementosFromRevisoes = (revisoes: Revisao[] = [], state?: State
 };
 
 export const isRevisaoElemento = (revisao: Revisao): boolean => 'elementoAposRevisao' in revisao;
+
+export const existeFilhoExcluidoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
+  if (!state.revisoes?.length) {
+    return false;
+  }
+  const ids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.id);
+  return state.revisoes
+    .filter(isRevisaoElemento)
+    .map(r => r as RevisaoElemento)
+    .some(r => r.actionType === REMOVER_ELEMENTO && ids.includes(r.elementoAntesRevisao?.lexmlId));
+};
