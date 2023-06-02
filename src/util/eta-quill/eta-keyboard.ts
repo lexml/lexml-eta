@@ -96,7 +96,7 @@ export class EtaKeyboard extends Keyboard {
           }
         }
         if (ev.altKey || ev.metaKey) {
-          if (['r', '®'].includes(ev.key.toLowerCase())) {
+          if (['n', '®'].includes(ev.key.toLowerCase())) {
             this.onHotKeyRenumeraDispositivo(ev);
           } else if (['x', '≈'].includes(ev.key.toLowerCase())) {
             this.onHotKeyToggleExistencia(ev);

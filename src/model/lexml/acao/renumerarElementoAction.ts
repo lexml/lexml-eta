@@ -6,7 +6,7 @@ export const RENUMERAR_ELEMENTO = 'RENUMERAR_ELEMENTO';
 export class RenumerarElemento implements ElementoAction {
   descricao: string;
   tipo?: string;
-  hotkey = '(Ctrl+Alt+R)';
+  hotkey = '(Ctrl+Alt+N)';
 
   constructor() {
     this.descricao = 'Numerar dispositivo';
