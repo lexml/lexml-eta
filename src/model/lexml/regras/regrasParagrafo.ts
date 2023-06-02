@@ -30,6 +30,7 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
+  isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
   isSuprimido,
@@ -100,11 +101,11 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (!isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(removerTextoOmissisAction);
       }
 
