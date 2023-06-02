@@ -40,9 +40,9 @@ export const adicionaElemento = (state: any, action: any): State => {
   let textoModificado = false;
 
   const refAtual = getDispositivoFromElemento(state.articulacao, action.atual, true);
-  const atualCaputPosicaoAusente = refAtual && isArtigo(refAtual) && action.novo.tipo === TipoDispositivo.inciso.tipo ? (refAtual as TipoArtigo).caput : undefined;
-  const atual = atualCaputPosicaoAusente ? atualCaputPosicaoAusente : refAtual;
-  const refUltimoFilho = atual && action.posicao === undefined ? (hasFilhos(atual) ? atual.filhos[atual.filhos.length - 1] : undefined) : undefined;
+  const atualCaputPosicaoFilho = refAtual && isArtigo(refAtual) && action.novo.tipo === TipoDispositivo.inciso.tipo ? (refAtual as TipoArtigo).caput : undefined;
+  const atual = action.posicao === 'filho' && atualCaputPosicaoFilho ? atualCaputPosicaoFilho : refAtual;
+  const refUltimoFilho = atual && action.posicao === 'filho' ? (hasFilhos(atual) ? atual.filhos[atual.filhos.length - 1] : undefined) : undefined;
 
   if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
     state.ui.events = [];
@@ -114,7 +114,7 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   let novo;
 
-  if (action.posicao && !isEmenta(atual)) {
+  if (action.posicao && action.posicao !== 'filho' && !isEmenta(atual)) {
     if (atual.tipo === action.novo.tipo) {
       novo =
         action.posicao === 'antes'
@@ -186,9 +186,9 @@ export const adicionaElemento = (state: any, action: any): State => {
   const eventos =
     action.posicao && action.posicao === 'antes'
       ? buildEventoAdicionarElemento(ref!, novo)
-      : action.posicao === undefined && refUltimoFilho
+      : action.posicao === 'filho' && refUltimoFilho
       ? buildEventoAdicionarElemento(refUltimoFilho, novo)
-      : action.posicao === undefined && !refUltimoFilho && isCaput(atual)
+      : action.posicao === 'filho' && !refUltimoFilho && isCaput(atual)
       ? buildEventoAdicionarElemento(atual.pai!, novo)
       : buildEventoAdicionarElemento(atual, novo);
 

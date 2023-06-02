@@ -3,7 +3,14 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
-import { adicionarArtigo, adicionarArtigoAntes, adicionarArtigoDepois, adicionarElementoAction, adicionarInciso, adicionarParagrafo } from '../acao/adicionarElementoAction';
+import {
+  adicionarArtigo,
+  adicionarArtigoAntes,
+  adicionarArtigoDepois,
+  adicionarElementoAction,
+  adicionarIncisoFilho,
+  adicionarParagrafoFilho,
+} from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
@@ -83,8 +90,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       acoes.push(adicionarArtigoDepois);
 
       if (!isSuprimido(dispositivo)) {
-        acoes.push(adicionarParagrafo);
-        acoes.push(adicionarInciso);
+        acoes.push(adicionarParagrafoFilho);
+        acoes.push(adicionarIncisoFilho);
       }
 
       if (!isDispositivoAlteracao(dispositivo)) {

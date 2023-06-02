@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
-import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
+import { adicionarAlineaFilho, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -76,7 +76,7 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
       }
 
       if (!isSuprimido(dispositivo)) {
-        acoes.push(adicionarAlinea);
+        acoes.push(adicionarAlineaFilho);
       }
       if (hasIndicativoContinuacaoSequencia(dispositivo)) {
         acoes.push(adicionarInciso);
