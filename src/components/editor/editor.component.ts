@@ -617,7 +617,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoSelecionado:
-        case StateType.RevisaoAceita:
           this.atualizarAtributos(event);
           if (events[events.length - 1] === event) {
             this.montarMenuContexto(event);
@@ -641,6 +640,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.RevisaoDesativada:
           // this.atualizarMensagemQuill(event);
           this.atualizarEstiloBotaoRevisao();
+          break;
+        case StateType.RevisaoAceita:
+          this.processaRevisoesAceita(events, event);
           break;
       }
 
@@ -667,6 +669,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
+  }
+
+  private processaRevisoesAceita(events: StateEvent[], event: StateEvent): void {
+    if (this.isAceitandoRevisoesDeExclusao(event)) {
+      this.removerLinhaQuill(event);
+    } else {
+      this.atualizarAtributos(event);
+      if (events[events.length - 1] === event) {
+        this.montarMenuContexto(event);
+      }
+      this.atualizarMensagemQuill(event);
+    }
+  }
+
+  private isAceitandoRevisoesDeExclusao(event: StateEvent): boolean {
+    return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento).stateType === StateType.ElementoRemovido) ?? false;
   }
 
   private removerMarcacoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
@@ -881,7 +899,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento, index) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        if (elemento.revisao) {
+        if (elemento.revisao && !linha.elemento.revisao) {
           linha.atualizarElemento(elemento);
           index === 0 && this.montarMenuContexto(event);
         } else {
