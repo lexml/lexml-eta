@@ -45,7 +45,7 @@ export class AtalhosComponent extends LitElement {
           <div><b>Tab</b>&nbsp;-&nbsp;Indenta para a direita o dispositivo, transformando-o no tipo mais provável</div>
           <div><b>Shift+Tab</b>&nbsp;-&nbsp;Recua o dispositivo para a esquerda, transformando-o no tipo mais provável</div>
           <hr></hr>
-          <div><b>Ctrl+Alt+R</b>&nbsp;-&nbsp;Renumera o dispositivo</div>
+          <div><b>Ctrl+Alt+N</b>&nbsp;-&nbsp;Numera o dispositivo</div>
         </div>
       </div>
     `;
