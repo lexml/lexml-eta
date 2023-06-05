@@ -20,7 +20,7 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     private normalizaNumeracao(numero: string): string {
-      const num = /[CDILMVX]+(-[a-zA-Z]+)*/.exec(numero);
+      const num = /[CDILMVX]+(-[a-zA-Z0-9]+)*/.exec(numero);
       return num ? num[0] : addSpaceRegex(numero).trim().replace(/-$/, '').trim();
     }
 
