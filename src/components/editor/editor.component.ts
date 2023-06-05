@@ -63,6 +63,7 @@ import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.mo
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
+import { transformarAction } from '../../model/lexml/acao/transformarAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -505,7 +506,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
-    if (Keyboard.keys.TAB) {
+    if (ev.key.toLowerCase() === 'o') {
+      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
+    } else if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
   }
