@@ -2,6 +2,7 @@ import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { Elemento, Referencia } from '../../../model/elemento';
 import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
+import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
@@ -85,11 +86,12 @@ const mapperActionTypeToDescricao = {
   [REMOVER_ELEMENTO]: (): string => 'Dispositivo removido',
   [SUPRIMIR_ELEMENTO]: (): string => 'Dispositivo suprimido',
   [ATUALIZAR_TEXTO_ELEMENTO]: (): string => 'Texto do dispositivo foi alterado',
-  [MOVER_ELEMENTO_ABAIXO]: (revisao: RevisaoElemento): string => buildDescricaoMovimentacaoElemento(revisao),
+  [MOVER_ELEMENTO_ABAIXO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromMovimentacaoElemento(revisao),
   [MOVER_ELEMENTO_ACIMA]: (): string => 'Dispositivo movido',
   [RESTAURAR_ELEMENTO]: (): string => 'Dispositivo restaurado',
-  [UNDO]: (revisao: RevisaoElemento): string => buildDescricaoUndoRedoRevisaoElemento(revisao),
-  [REDO]: (revisao: RevisaoElemento): string => buildDescricaoUndoRedoRevisaoElemento(revisao),
+  [ADICIONAR_ELEMENTOS_FROM_CLIPBOARD]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
+  [UNDO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
+  [REDO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
 };
 
 const mapperStateTypeToDescricao = {
@@ -102,21 +104,22 @@ const mapperStateTypeToDescricao = {
 };
 
 export const buildDescricaoRevisaoElemento = (revisao: RevisaoElemento): string => {
-  return mapperActionTypeToDescricao[revisao.actionType](revisao);
+  const fn = mapperActionTypeToDescricao[revisao.actionType];
+  return fn ? mapperActionTypeToDescricao[revisao.actionType](revisao) : buildDescricaoRevisaoFromStateType(revisao);
 };
 
 export const buildDescricaoRevisaoTexto = (revisao: Revisao): string => {
   return revisao.descricao ?? '';
 };
 
-export const buildDescricaoMovimentacaoElemento = (revisao: RevisaoElemento): string => {
-  const { tipo, numero } = revisao.elementoAntesRevisao || { tipo: '', numero: 0 };
-  return `Dispositivo movido${tipo ? ` (antes era ${tipo} ${numero})` : ''}`;
+export const buildDescricaoRevisaoFromMovimentacaoElemento = (revisao: RevisaoElemento): string => {
+  const { tipo, rotulo } = revisao.elementoAntesRevisao || { tipo: '', numero: 0 };
+  return `Dispositivo movido${tipo ? ` (antes era "${tipo} ${rotulo}")` : ''}`;
 };
 
-export const buildDescricaoUndoRedoRevisaoElemento = (revisao: RevisaoElemento, elementoAposRevisao?: Elemento): string => {
+export const buildDescricaoRevisaoFromStateType = (revisao: RevisaoElemento, elementoAposRevisao?: Elemento): string => {
   const isUndoRedoDeMovimentacao = revisao.elementoAntesRevisao && elementoAposRevisao && revisao.elementoAntesRevisao.numero !== elementoAposRevisao.numero;
-  return isUndoRedoDeMovimentacao ? buildDescricaoMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType]();
+  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType]();
 };
 
 const getUuidPaiElementoRevisado = (revisao: RevisaoElemento): number => {
@@ -124,7 +127,10 @@ const getUuidPaiElementoRevisado = (revisao: RevisaoElemento): number => {
 };
 
 const isRevisaoMesmaSituacao = (r: RevisaoElemento, rPai: RevisaoElemento): boolean => {
-  return r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao;
+  // return r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao;
+  return (
+    r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao && r.stateType === rPai.stateType
+  );
 };
 
 export const getRevisoesElementoAssociadas = (revisoes: Revisao[] = [], revisao: RevisaoElemento): RevisaoElemento[] => {
@@ -150,3 +156,7 @@ export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispos
     .map(r => r as RevisaoElemento)
     .some(r => ids.includes(r.elementoAntesRevisao?.lexmlId));
 };
+
+export const isRevisaoPrincipal = (revisao: Revisao): boolean => isRevisaoElemento(revisao) && !(revisao as RevisaoElemento).idRevisaoElementoPrincipal;
+
+export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => (r as RevisaoElemento).stateType === StateType.ElementoRemovido);
