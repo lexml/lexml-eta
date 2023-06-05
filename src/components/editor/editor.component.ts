@@ -32,7 +32,6 @@ import { removerElementoSemTextoAction } from '../../model/lexml/acao/removerEle
 import { renumerarElementoAction } from '../../model/lexml/acao/renumerarElementoAction';
 import { shiftTabAction } from '../../model/lexml/acao/shiftTabAction';
 import { tabAction } from '../../model/lexml/acao/tabAction';
-import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
@@ -360,7 +359,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const dialogElem = document.createElement('sl-dialog');
     document.body.appendChild(dialogElem);
 
-    dialogElem.label = 'Informar numeração de dispositivo';
+    dialogElem.label = 'Informar numeração';
     dialogElem.addEventListener('sl-request-close', (event: any) => {
       if (event.detail.source === 'overlay') {
         event.preventDefault();
@@ -528,19 +527,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
-    if (ev.key.toLowerCase() === 'a') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.artigo.name!));
-    } else if (ev.key.toLowerCase() === 'l') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.alinea.name!));
-    } else if (ev.key.toLowerCase() === 'n') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.inciso.name!));
-    } else if (ev.key.toLowerCase() === 'o') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
-    } else if (ev.key.toLowerCase() === 'p') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.paragrafo.name!));
-    } else if (ev.key.toLowerCase() === 't') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.item.name!));
-    } else if (Keyboard.keys.TAB) {
+    if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
   }

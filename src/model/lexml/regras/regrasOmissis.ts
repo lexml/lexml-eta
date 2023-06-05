@@ -1,6 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArticulacao, isArtigo, isCaput, isInciso, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
+import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -19,6 +20,7 @@ import {
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
   isUltimaAlteracao,
+  podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 
@@ -61,6 +63,10 @@ export function RegrasOmissis<TBase extends Constructor>(Base: TBase): any {
       }
       if (isAlinea(dispositivo.pai!)) {
         acoes.push(transformarOmissisEmItem);
+      }
+
+      if (podeEditarNotaAlteracao(dispositivo)) {
+        acoes.push(atualizarNotaAlteracaoAction);
       }
 
       return dispositivo.getAcoesPermitidas(dispositivo, acoes);

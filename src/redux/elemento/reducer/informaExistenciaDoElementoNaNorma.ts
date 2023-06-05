@@ -15,7 +15,7 @@ import { State, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
-import { isAgrupador, isArtigo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArtigo, isOmissis } from '../../../model/dispositivo/tipo';
 
 export const informaExistenciaDoElementoNaNorma = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -112,7 +112,7 @@ const validaAlteracaoNovoParaExistente = (dispositivo: Dispositivo): Mensagem | 
 
 const validaAlteracaoExistenteParaNovo = (dispositivo: Dispositivo): Mensagem | undefined => {
   const dispositivos = getDispositivoAndFilhosAsLista(dispositivo).filter(d => !isAgrupador(dispositivo) || !isArtigo(d));
-  if (existeDispositivoSemNumero(dispositivos.slice(1))) {
+  if (existeDispositivoSemNumeroNaoOmissis(dispositivos.slice(1))) {
     return {
       tipo: TipoMensagem.INFO,
       descricao: 'Não é permitido mudar a indicação de dispositivo "Existente" para "Novo" quando existe dispositivo subordinado sem numeração.',
@@ -139,8 +139,8 @@ const isDispositivoPossuiPaiNovoNaNormaAlterada = (dispositivo: Dispositivo): bo
   return !isArtigo(dispositivo) && !isDispositivoCabecaAlteracao(dispositivo) && !(existe ?? true);
 };
 
-const existeDispositivoSemNumero = (dispositivos: Dispositivo[]): boolean => {
-  return dispositivos.some(d => d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')) || d.numero === undefined);
+const existeDispositivoSemNumeroNaoOmissis = (dispositivos: Dispositivo[]): boolean => {
+  return dispositivos.some(d => (d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')) || d.numero === undefined) && !isOmissis(d));
 };
 
 const existeOmissis = (dispositivo: Dispositivo): boolean => {
