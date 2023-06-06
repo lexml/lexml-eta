@@ -44,9 +44,9 @@ export const transformarAlineaEmIncisoCaput = new TransformarElemento(TipoDispos
 export const transformarAlineaEmIncisoParagrafo = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarAlineaEmIncisoParagrafo', '(Shift+Tab)');
 export const transformaAlineaEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar em Item', 'transformarAlineaEmItem', '(Tab)');
 export const transformarArtigoEmParagrafo = new TransformarElemento(TipoDispositivo.paragrafo, 'Transformar em Parágrafo', 'transformarArtigoEmParagrafo', '(Tab)');
-export const transformarGenericoEmInciso = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarDispositivoGenericoEmInciso', '(Ctrl+Alt+N)');
-export const transformarGenericoEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarDispositivoGenericoEmAlinea', '(Ctrl+Alt+L)');
-export const transformarGenericoEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar em Item', 'transformarDispositivoGenericoEmItem', '(Ctrl+Alt+T)');
+export const transformarGenericoEmInciso = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarDispositivoGenericoEmInciso');
+export const transformarGenericoEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarDispositivoGenericoEmAlinea');
+export const transformarGenericoEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar em Item', 'transformarDispositivoGenericoEmItem');
 export const transformarIncisoParagrafoEmParagrafo = new TransformarElemento(
   TipoDispositivo.paragrafo,
   'Transformar em Parágrafo',
@@ -57,12 +57,12 @@ export const transformarIncisoCaputEmParagrafo = new TransformarElemento(TipoDis
 export const transformarIncisoCaputEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarIncisoCaputEmAlinea', '(Tab)');
 export const transformarIncisoParagrafoEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarIncisoParagrafoEmAlinea', '(Tab)');
 
-export const transformarOmissisEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarOmissisEmAlinea', '(Ctrl+Alt+L)');
-export const transformarOmissisEmArtigo = new TransformarElemento(TipoDispositivo.artigo, 'Transformar em Artigo', 'transformarOmissisEmArtigo', '(Ctrl+Alt+A)');
-export const transformarOmissisEmIncisoCaput = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarOmissisEmIncisoCaput', '(Ctrl+Alt+N)');
-export const transformarOmissisEmIncisoParagrafo = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarOmissisEmIncisoParagrafo', '(Ctrl+Alt+N)');
-export const transformarOmissisEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar em Item', 'transformarOmissisEmItem', '(Ctrl+Alt+T)');
-export const transformarOmissisEmParagrafo = new TransformarElemento(TipoDispositivo.paragrafo, 'Transformar em Parágrafo', 'transformarOmissisEmParagrafo', '(Ctrl+Alt+P)');
+export const transformarOmissisEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarOmissisEmAlinea');
+export const transformarOmissisEmArtigo = new TransformarElemento(TipoDispositivo.artigo, 'Transformar em Artigo', 'transformarOmissisEmArtigo');
+export const transformarOmissisEmIncisoCaput = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarOmissisEmIncisoCaput');
+export const transformarOmissisEmIncisoParagrafo = new TransformarElemento(TipoDispositivo.inciso, 'Transformar em Inciso', 'transformarOmissisEmIncisoParagrafo');
+export const transformarOmissisEmItem = new TransformarElemento(TipoDispositivo.item, 'Transformar em Item', 'transformarOmissisEmItem');
+export const transformarOmissisEmParagrafo = new TransformarElemento(TipoDispositivo.paragrafo, 'Transformar em Parágrafo', 'transformarOmissisEmParagrafo');
 
 export const transformarItemEmAlinea = new TransformarElemento(TipoDispositivo.alinea, 'Transformar em Alínea', 'transformarItemEmAlinea', '(Shift+Tab)');
 export const transformarParagrafoEmArtigo = new TransformarElemento(TipoDispositivo.artigo, 'Transformar em Artigo', 'transformarParagrafoEmArtigo', '(Shift+Tab)');
