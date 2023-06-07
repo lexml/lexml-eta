@@ -629,7 +629,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarEstiloBotaoRevisao();
           break;
         case StateType.RevisaoAceita:
-          this.processaRevisoesAceita(events, event);
+          this.processaRevisoesAceitas(events, event);
           break;
       }
 
@@ -658,7 +658,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private processaRevisoesAceita(events: StateEvent[], event: StateEvent): void {
+  private processaRevisoesAceitas(events: StateEvent[], event: StateEvent): void {
     if (this.isAceitandoRevisoesDeExclusao(event)) {
       this.removerLinhaQuill(event);
     } else {
@@ -671,7 +671,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private isAceitandoRevisoesDeExclusao(event: StateEvent): boolean {
-    return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento).stateType === StateType.ElementoRemovido) ?? false;
+    return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
   }
 
   private removerMarcacoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
@@ -1277,7 +1277,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
-    console.log('ativarDesativarMarcaDeRevisao');
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
     this.checkedSwitchMarcaAlteracao();
   }

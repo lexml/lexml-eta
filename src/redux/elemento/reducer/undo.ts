@@ -96,8 +96,9 @@ export const undo = (state: any): State => {
     }
   }
 
+  events.add(StateType.SituacaoElementoModificada, events.get(StateType.ElementoIncluido).elementos || []);
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
-  events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: processaSituacoesAlteradas(state, eventos) });
+  events.add(StateType.SituacaoElementoModificada, processaSituacoesAlteradas(state, eventos));
 
   const eventosRevisaoAceita = eventos.filter((se: StateEvent) => se.stateType === StateType.RevisaoAceita);
   if (eventosRevisaoAceita.length) {
@@ -109,7 +110,8 @@ export const undo = (state: any): State => {
         events.eventos.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
         events.eventos.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
       } else {
-        events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosFromRevisoes(revisoes, state) });
+        // events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosFromRevisoes(revisoes, state) });
+        events.get(StateType.SituacaoElementoModificada).elementos?.push(...getElementosFromRevisoes(revisoes, state));
       }
     });
   }

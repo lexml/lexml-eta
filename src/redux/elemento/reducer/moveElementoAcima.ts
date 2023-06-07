@@ -42,7 +42,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
     return state;
   }
 
-  const removidos = getElementos(atual);
+  const removidos = getElementos(atual, false, true);
   const renumerados = irmaosMesmoTipo(atual).filter(d => d !== atual && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL);
 
   resetUuidTodaArvore(atual);
