@@ -73,8 +73,8 @@ describe('Testando a transformação de alínea em item', () => {
         expect(state.articulacao.artigos[1].caput.filhos[0].filhos[1].rotulo).to.equal('b)');
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar 4 eventos', () => {
+          expect(state.ui.events.length).to.equal(4);
         });
         it('Deveria apresentar a antiga alínea e seus filhos', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
