@@ -648,6 +648,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.atualizaQuantidadeRevisao(this.getQuantidadeRevisoes());
       this.indicadorMarcaRevisao(event);
+      this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
 
@@ -1376,5 +1377,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
       this.quill.marcarLinhaAtual(linha);
     }
+  };
+
+  private disabledParagrafoElementoRemovido = (event: StateEvent): void => {
+    const elementos: Elemento[] = event.elementos ?? [];
+    elementos!.forEach((elemento: Elemento) => {
+      const paragrafo = document.getElementById('texto__dispositivo' + elemento.uuid) as any;
+
+      if (paragrafo) {
+        if (elemento.revisao && elemento.revisao.descricao === 'Dispositivo removido') {
+          paragrafo.setAttribute('contenteditable', 'false');
+        } else {
+          paragrafo.setAttribute('contenteditable', 'true');
+        }
+      }
+    });
   };
 }
