@@ -578,6 +578,7 @@ export const editorStyles = html`
       padding: 5px 10px !important;
       border-radius: 20px !important;
       margin-left: auto;
+      margin-right: 5px;
       font-weight: bold;
       background-color: #eee;
     }
