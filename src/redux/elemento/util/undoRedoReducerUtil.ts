@@ -103,6 +103,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo
 export const incluir = (state: State, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const elemento = evento.elementos[0];
+    const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
 
     const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
@@ -125,7 +126,6 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
       novosEvento.referencia = evento.referencia;
     }
 
-    const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
     return novos.map(n => createElemento(n, true, procurarElementoAnterior));
   }
   return [];

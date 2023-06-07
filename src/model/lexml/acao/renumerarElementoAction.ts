@@ -9,7 +9,7 @@ export class RenumerarElemento implements ElementoAction {
   hotkey = '(Ctrl+Alt+R)';
 
   constructor() {
-    this.descricao = 'Numerar e criar rótulo';
+    this.descricao = 'Numerar dispositivo';
   }
 
   execute(atual: Referencia, numero: string): any {

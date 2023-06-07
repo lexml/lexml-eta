@@ -1,3 +1,4 @@
+import { findRevisaoByElementoLexmlId } from './../util/revisaoUtil';
 import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador, processarRestaurados } from './../util/undoRedoReducerUtil';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
@@ -8,6 +9,8 @@ import { buildPast } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaSituacoesAlteradas, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
 import { agrupaElemento } from './agrupaElemento';
 import { removeElemento } from './removeElemento';
+import { Elemento } from '../../../model/elemento/elemento';
+import { Revisao } from '../../../model/revisao/revisao';
 
 export const redo = (state: any): State => {
   if (state.future === undefined || state.future.length === 0) {
@@ -28,6 +31,10 @@ export const redo = (state: any): State => {
       events: [],
       alertas: state.ui?.alertas,
     },
+    emRevisao: state.emRevisao,
+    usuario: state.usuario,
+    revisoes: state.revisoes,
+    numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
   };
 
   if (isUndoRedoInclusaoExclusaoAgrupador(eventos)) {
@@ -81,6 +88,21 @@ export const redo = (state: any): State => {
 
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
   events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: processaSituacoesAlteradas(state, eventos) });
+
+  const eventosRevisaoAceita = eventos.filter((se: StateEvent) => se.stateType === StateType.RevisaoAceita);
+  if (eventosRevisaoAceita.length) {
+    const idsRevisoesAssociadas = eventosRevisaoAceita
+      .map((se: StateEvent) => se.elementos)
+      .flat()
+      .map((e: Elemento) => {
+        // Procura revisão associada ao elemento (id pode ter mudado em função de redo de inclusão/exclusão/supressão/modificação)
+        e.revisao = findRevisaoByElementoLexmlId(retorno.revisoes, e.lexmlId);
+        return e.revisao?.id;
+      })
+      .filter(Boolean);
+    eventosRevisaoAceita.forEach((se: StateEvent) => events.eventos.push({ stateType: StateType.RevisaoAceita, elementos: se.elementos }));
+    retorno.revisoes = state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id));
+  }
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

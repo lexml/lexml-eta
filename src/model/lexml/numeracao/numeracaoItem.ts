@@ -12,12 +12,12 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
     rotulo?: string;
 
     private normalizaNumeracao(numero: string): string {
-      const num = /\d+(-[a-zA-Z]+)*/.exec(numero.trim());
+      const num = /\d+(-[a-zA-Z0-9]+)*/.exec(numero.trim());
       return num ? num[0] : addSpaceRegex(numero).trim().replace(/\.$/, '').trim();
     }
 
     private isNumeracaoValidaParaRotulo(numero: string): boolean {
-      return /^\d{1,}(([-]?[a-zA-Z]+){0,2})$/.test(numero);
+      return /^\d{1,}(([-]?[a-zA-Z0-9]+){0,2})$/.test(numero);
     }
 
     createNumeroFromRotulo(rotulo: string): void {

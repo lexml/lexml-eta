@@ -12,14 +12,15 @@ import {
   findRevisaoByElementoUuid,
   montarListaDeRevisoesParaRemover,
   existeRevisaoParaElementos,
-  buildDescricaoUndoRedoRevisaoElemento,
+  buildDescricaoRevisaoFromStateType,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
+import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
-  if (!state.emRevisao || !actionType || !numElementos) {
+  if (!state.emRevisao || !actionType || !numElementos || actionType === APLICAR_ALTERACOES_EMENDA) {
     associarRevisoesAosElementos(state);
     return state;
   }
@@ -32,20 +33,22 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
     return state;
   }
 
-  const revisoes: Revisao[] = [];
-  revisoes.push(...processaEventosDeSupressao(state, actionType));
-  revisoes.push(...processaEventosDeModificacao(state, actionType));
-  revisoes.push(...processaEventosDeRestauracao(state, actionType));
-  // revisoes.push(...processaEventosDeRenumeracao(state, actionType, elementoAntesAcao));
+  if (UNDO !== actionType || !isUndoDeRevisaoAceita(state)) {
+    const revisoes: Revisao[] = [];
+    revisoes.push(...processaEventosDeSupressao(state, actionType));
+    revisoes.push(...processaEventosDeModificacao(state, actionType));
+    revisoes.push(...processaEventosDeRestauracao(state, actionType));
+    // revisoes.push(...processaEventosDeRenumeracao(state, actionType, elementoAntesAcao));
 
-  if (isAcaoMover(state)) {
-    revisoes.push(...processaEventosDeMover(state, actionType));
-  } else {
-    revisoes.push(...processaEventosDeInclusao(state, actionType));
-    revisoes.push(...processaEventosDeRemocao(state, actionType));
+    if (isAcaoMover(state)) {
+      revisoes.push(...processaEventosDeMover(state, actionType));
+    } else {
+      revisoes.push(...processaEventosDeInclusao(state, actionType));
+      revisoes.push(...processaEventosDeRemocao(state, actionType));
+    }
+
+    state.revisoes!.push(...revisoes);
   }
-
-  state.revisoes!.push(...revisoes);
   state.revisoes = identificarRevisaoElementoPai(state.revisoes);
 
   associarRevisoesAosElementos(state);
@@ -55,8 +58,15 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   return state;
 };
 
+const isUndoDeRevisaoAceita = (state: State): boolean => !!state.future?.length && state.future[state.future.length - 1][0].stateType === StateType.RevisaoAceita;
+
 const associarRevisoesAosElementos = (state: State): void => {
-  state.ui?.events.forEach(se => se.elementos?.forEach(e => (e.revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid))));
+  state.ui?.events.forEach(se =>
+    se.elementos?.forEach(e => {
+      const r = findRevisaoByElementoUuid(state.revisoes, e.uuid);
+      e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
+    })
+  );
 };
 
 const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] => {
@@ -124,7 +134,7 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
         revisao.dataHora = formatDateTime(new Date());
         revisao.elementoAposRevisao = JSON.parse(JSON.stringify(incluidos[index]));
         revisao.usuario = state.usuario!;
-        revisao.descricao = buildDescricaoUndoRedoRevisaoElemento(revisao, incluidos[index]);
+        revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, incluidos[index]);
       }
     });
   } else {
@@ -140,7 +150,7 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
         undefined
       );
 
-      revInclusao.descricao = buildDescricaoUndoRedoRevisaoElemento(revInclusao, incluidos[index]);
+      revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, incluidos[index]);
       // revExclusao.idRevisaoAssociada = revInclusao.id;
       // revInclusao.idRevisaoAssociada = revExclusao.id;
       // result.push(revExclusao);

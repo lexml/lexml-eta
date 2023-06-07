@@ -28,5 +28,9 @@ export const retornaEstadoAtualComMensagem = (state: any, mensagem: Mensagem): S
       events: state.ui?.events,
       message: mensagem,
     },
+    emRevisao: state.emRevisao,
+    usuario: state.usuario,
+    revisoes: state.revisoes,
+    numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
   };
 };

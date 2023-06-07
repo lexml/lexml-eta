@@ -67,7 +67,7 @@ import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosN
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
-import { State } from '../../state';
+import { State, StateType } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
 import { ACEITAR_REVISAO } from '../../../model/lexml/acao/aceitarRevisaoAction';
@@ -208,13 +208,18 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
   }
 
-  if (actionType !== ABRIR_ARTICULACAO) {
+  if (actionType !== ABRIR_ARTICULACAO && !isRedoDeRevisaoAceita(actionType, tempState)) {
     tempState.revisoes = revisoes;
   }
+
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
 
   tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
 
   return atualizaRevisao(tempState, actionType);
+};
+
+const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {
+  return actionType === REDO && !!state.ui?.events.every(event => event.stateType === StateType.RevisaoAceita);
 };

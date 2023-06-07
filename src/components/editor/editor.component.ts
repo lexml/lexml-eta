@@ -32,7 +32,6 @@ import { removerElementoSemTextoAction } from '../../model/lexml/acao/removerEle
 import { renumerarElementoAction } from '../../model/lexml/acao/renumerarElementoAction';
 import { shiftTabAction } from '../../model/lexml/acao/shiftTabAction';
 import { tabAction } from '../../model/lexml/acao/tabAction';
-import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
@@ -198,8 +197,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <sl-switch id="chk-em-revisao" size="small" @sl-change=${(): void =>
             this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao" variant="warning" pill>0</sl-badge></sl-switch>
 
-          <sl-icon-button name="arrow-down" @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}></sl-icon-button>
-          <sl-icon-button name="arrow-up" @click=${(): void => this.navegarEntreMarcasRevisao('acima')} ></sl-icon-button>
+          <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
+            <sl-icon-button name="arrow-down"></sl-icon-button>
+          </sl-button>
+
+          <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
+            <sl-icon-button name="arrow-up"></sl-icon-button>
+          </sl-button>
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
@@ -360,7 +364,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const dialogElem = document.createElement('sl-dialog');
     document.body.appendChild(dialogElem);
 
-    dialogElem.label = 'Informar numeração de dispositivo';
+    dialogElem.label = 'Informar numeração';
     dialogElem.addEventListener('sl-request-close', (event: any) => {
       if (event.detail.source === 'overlay') {
         event.preventDefault();
@@ -528,19 +532,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
-    if (ev.key.toLowerCase() === 'a') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.artigo.name!));
-    } else if (ev.key.toLowerCase() === 'l') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.alinea.name!));
-    } else if (ev.key.toLowerCase() === 'n') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.inciso.name!));
-    } else if (ev.key.toLowerCase() === 'o') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
-    } else if (ev.key.toLowerCase() === 'p') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.paragrafo.name!));
-    } else if (ev.key.toLowerCase() === 't') {
-      rootStore.dispatch(transformarAction(elemento, TipoDispositivo.item.name!));
-    } else if (Keyboard.keys.TAB) {
+    if (Keyboard.keys.TAB) {
       rootStore.dispatch(ev.shiftKey ? shiftTabAction(elemento) : tabAction(elemento));
     }
   }
@@ -1291,7 +1283,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
-    console.log('ativarDesativarMarcaDeRevisao');
+    this.mostrarDialogDisclaimerRevisao();
     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
     this.checkedSwitchMarcaAlteracao();
   }
@@ -1376,6 +1368,46 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (linha) {
       this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
       this.quill.marcarLinhaAtual(linha);
+    }
+  };
+
+  private mostrarDialogDisclaimerRevisao = (): void => {
+    if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !rootStore.getState().elementoReducer.emRevisao) {
+      const dialog = document.createElement('sl-dialog');
+      dialog.label = 'Marcas de revisão';
+      const botoesHtml = ` <sl-button slot="footer" variant="primary" id="closeButton">Fechar</sl-button>`;
+      dialog.innerHTML = `
+        Todas as alterações realizadas no texto serão registradas e ficarão disponíveis para consulta.
+        Esta é uma versão inicial da funcionalidade de controle de alterações/marcas de revisão.
+        <br><br>
+        <sl-switch id="chk-nao-mostrar-modal-novamente">Não mostrar mais essa mensagem</sl-switch>
+      `.concat(botoesHtml);
+      document.body.appendChild(dialog);
+      dialog.show();
+
+      dialog.addEventListener('sl-request-close', (event: any) => {
+        if (event.detail.source === 'overlay') {
+          event.preventDefault();
+        }
+      });
+
+      const chkNaoMostrarNovamente = dialog.querySelector('#chk-nao-mostrar-modal-novamente') as any;
+      chkNaoMostrarNovamente?.addEventListener('sl-change', () => {
+        this.salvaNoNavegadorOpcaoNaoMostrarNovamente();
+      });
+
+      const closeButton = dialog.querySelector('#closeButton[slot="footer"]');
+      closeButton?.addEventListener('click', () => {
+        dialog.hide();
+        dialog.remove();
+      });
+    }
+  };
+
+  private salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
+    const checkbox = document.getElementById('chk-nao-mostrar-modal-novamente') as any;
+    if (checkbox) {
+      localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', checkbox.checked ? 'true' : 'false');
     }
   };
 

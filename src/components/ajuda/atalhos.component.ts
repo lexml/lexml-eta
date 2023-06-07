@@ -42,12 +42,6 @@ export class AtalhosComponent extends LitElement {
           <div><b>Ctrl+Z</b>&nbsp;-&nbsp;Desfaz ultima alteração</div>
           <div><b>Ctrl+Y</b>&nbsp;-&nbsp;Refaz alteração</div>
           <hr></hr>
-          <div><b>Ctrl+Alt+A</b>&nbsp;-&nbsp;Transforma o dispositivo em artigo</div>
-          <div><b>Ctrl+Alt+L</b>&nbsp;-&nbsp;Transforma o dispositivo em alínea</div>
-          <div><b>Ctrl+Alt+N</b>&nbsp;-&nbsp;Transforma o dispositivo em inciso</div>
-          <div><b>Ctrl+Alt+O</b>&nbsp;-&nbsp;Transforma o dispositivo em omissis</div>
-          <div><b>Ctrl+Alt+P</b>&nbsp;-&nbsp;Transforma o dispositivo em parágrafo</div>
-          <div><b>Ctrl+Alt+T</b>&nbsp;-&nbsp;Transforma o dispositivo em item</div>
           <div><b>Tab</b>&nbsp;-&nbsp;Indenta para a direita o dispositivo, transformando-o no tipo mais provável</div>
           <div><b>Shift+Tab</b>&nbsp;-&nbsp;Recua o dispositivo para a esquerda, transformando-o no tipo mais provável</div>
           <hr></hr>
