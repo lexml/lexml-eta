@@ -19,6 +19,7 @@ export class EtaBlotExistencia extends EtaBlot {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
+    node.setAttribute('id', 'blot-existencia' + elemento.uuid);
     node.classList.add(EtaBlotExistencia.className);
     EtaBlotExistencia._atualizarAtributos(elemento, node);
 
@@ -51,6 +52,9 @@ export class EtaBlotExistencia extends EtaBlot {
 
   private static montarHTML(elemento: Elemento): string {
     if (podeAdicionarAtributoDeExistencia(elemento)) {
+      if (elemento.revisao && elemento.revisao.descricao === 'Dispositivo removido') {
+        return 'Removido';
+      }
       return elemento.existeNaNormaAlterada ? 'Existente' : 'Novo';
     } else {
       return '';
