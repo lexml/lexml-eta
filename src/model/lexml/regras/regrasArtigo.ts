@@ -36,7 +36,6 @@ import {
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isDispositivoNaNormaAlterada,
   isSuprimido,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -162,11 +161,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(removerTextoOmissisAction);
       }
 

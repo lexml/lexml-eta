@@ -17,7 +17,6 @@ import {
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
-  isDispositivoNaNormaAlterada,
   isDispositivoNovoNaNormaAlterada,
   isSuprimido,
   isUltimaAlteracao,
@@ -73,11 +72,11 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (isDispositivoNaNormaAlterada(dispositivo) && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(removerTextoOmissisAction);
       }
 
