@@ -98,7 +98,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
-    lexmlId: dispositivo.numero && buildId(dispositivo),
+    lexmlId: (dispositivo.numero && buildId(dispositivo)) || dispositivo.id,
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {

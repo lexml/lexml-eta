@@ -3,7 +3,7 @@ import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situ
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
-import { createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   findDispositivoByUuid,
@@ -80,6 +80,12 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
   }
   if (isArtigo(novo)) {
     (novo as Artigo).caput!.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
+    if (elemento.norma) {
+      createAlteracao(novo);
+      (novo as Artigo).alteracoes!.base = elemento.norma;
+      novo.alteracoes!.situacao = new DispositivoAdicionado();
+      (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+    }
   }
   return novo;
 };
