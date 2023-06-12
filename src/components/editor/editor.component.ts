@@ -18,7 +18,6 @@ import { Elemento } from '../../model/elemento';
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
-import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
 import { autofixAction } from '../../model/lexml/acao/autoFixAction';
@@ -345,7 +344,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const atual = linha.blotConteudo.html;
     const elemento: Elemento = this.criarElemento(
       linha!.uuid ?? 0,
       linha.lexmlId,
@@ -402,7 +400,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     `);
 
     const input = <SlInput>content.querySelector('sl-input');
-    input.value = `${rotuloParaEdicao(linha.blotRotulo!.rotulo)}`;
+    const rotuloAtual = `${rotuloParaEdicao(linha.blotRotulo!.rotulo)}`;
+    input.value = rotuloAtual;
 
     const botoes = content.querySelectorAll('sl-button');
     const cancelar = botoes[0];
@@ -416,12 +415,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       dialogElem?.hide();
       dialogElem?.remove();
 
-      if (elemento.conteudo?.texto !== atual) {
-        elemento.conteudo!.texto = atual;
-        rootStore.dispatch(atualizarElementoAction.execute(elemento));
+      if (input.value?.trim().toLowerCase() !== rotuloAtual?.toLowerCase()) {
+        rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
       }
-
-      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
     };
 
     cancelar.onclick = (): void => {
