@@ -52,9 +52,6 @@ export class EtaBlotExistencia extends EtaBlot {
 
   private static montarHTML(elemento: Elemento): string {
     if (podeAdicionarAtributoDeExistencia(elemento)) {
-      if (elemento.revisao && elemento.revisao.descricao === 'Dispositivo removido') {
-        return 'Removido';
-      }
       return elemento.existeNaNormaAlterada ? 'Existente' : 'Novo';
     } else {
       return '';
