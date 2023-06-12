@@ -43,7 +43,7 @@ describe('Testando carregamento da MPV 885/2019', () => {
       const incluidos = getEvento(eventos, StateType.ElementoIncluido);
       expect(incluidos.elementos?.length).equal(1);
       expect(incluidos.referencia?.tipo).equal('Ementa');
-      expect(incluidos.referencia?.lexmlId ?? '').equal('');
+      expect(incluidos.referencia?.lexmlId ?? '').equal('ementa');
     });
   });
 });
