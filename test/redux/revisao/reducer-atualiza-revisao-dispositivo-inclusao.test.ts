@@ -83,6 +83,40 @@ describe('Carregando texto da MPV 905/2019', () => {
       });
     });
 
+    describe('Adicionando 2 dispositivos', () => {
+      beforeEach(function () {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+        state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+        const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+        e.conteudo!.texto = 'texto inciso novo A;';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+
+        // Adiciona novo inciso antes do inciso anterior, o que provoca a renumeração do inciso anterior e alteração do respectivo lexmlId
+        state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+        const e2 = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+        e2.conteudo!.texto = 'texto inciso novo B;';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e2 });
+      });
+
+      it('Deveria possuir duas revisões', () => {
+        expect(state.revisoes?.length).to.be.equal(2);
+        expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.undefined;
+        expect((state.revisoes![1] as RevisaoElemento).elementoAntesRevisao).to.be.undefined;
+      });
+
+      it('Deveria possuir o lexmlId do elementoAposRevisao da revisão 1 igual ao id do dispositivo "art1_par1u_inc1-2"', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+        expect((state.revisoes![0] as RevisaoElemento).elementoAposRevisao?.uuid).to.be.equal(d.uuid);
+        // expect((state.revisoes![0] as RevisaoElemento).elementoAposRevisao?.lexmlId).to.be.equal(d.id);
+      });
+
+      it('Deveria possuir o lexmlId do elementoAposRevisao da revisão 2 igual ao id do dispositivo "art1_par1u_inc1-1"', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+        expect((state.revisoes![1] as RevisaoElemento).elementoAposRevisao?.uuid).to.be.equal(d.uuid);
+        expect((state.revisoes![1] as RevisaoElemento).elementoAposRevisao?.lexmlId).to.be.equal(d.id);
+      });
+    });
+
     describe('Adicionando e removendo dispositivo', () => {
       it('Deveria não possuir revisão', () => {
         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
