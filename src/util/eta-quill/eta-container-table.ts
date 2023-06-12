@@ -37,9 +37,10 @@ export class EtaContainerTable extends Container {
     node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
-    if (podeAdicionarAtributoDeExistencia(elemento)) {
-      node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
-    }
+
+    EtaContainerTable.atualizarAtributoRevisao(elemento, node);
+    EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, node);
+
     if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
       node.classList.add('container_elemento--omissis');
     }
@@ -282,22 +283,30 @@ export class EtaContainerTable extends Container {
     this.blotRotulo!.setEstilo(elemento);
   }
 
-  atualizarAtributos(elemento: Elemento): void {
+  static atualizarAtributoRevisao(elemento: Elemento, node: HTMLElement): void {
     if (elemento.revisao) {
-      this.domNode.setAttribute('em-revisao', 'true');
+      node.setAttribute('em-revisao', 'true');
       if ((elemento.revisao as RevisaoElemento).stateType === 'ElementoRemovido') {
-        this.domNode.setAttribute('excluido', 'true');
+        node.setAttribute('excluido', 'true');
       }
     } else {
-      this.domNode.removeAttribute('em-revisao');
-      this.domNode.removeAttribute('excluido');
+      node.removeAttribute('em-revisao');
+      node.removeAttribute('excluido');
     }
+  }
 
+  static atualizarAtributoExistenciaNormaAlterada(elemento: Elemento, node: HTMLElement): void {
     if (podeAdicionarAtributoDeExistencia(elemento)) {
-      this.domNode.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada);
+      node.setAttribute('existenanormaalterada', (!!elemento.existeNaNormaAlterada).toString());
     } else {
-      this.domNode.removeAttribute('existenanormaalterada');
+      node.removeAttribute('existenanormaalterada');
     }
+  }
+
+  atualizarAtributos(elemento: Elemento): void {
+    EtaContainerTable.atualizarAtributoRevisao(elemento, this.domNode);
+    EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, this.domNode);
+
     this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);
     this.blotExistencia?.atualizarAtributos(elemento);

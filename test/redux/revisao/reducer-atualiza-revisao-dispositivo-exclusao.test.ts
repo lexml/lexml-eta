@@ -107,5 +107,44 @@ describe('Carregando texto da MPV 905/2019', () => {
         });
       });
     });
+
+    describe('Adicionando outro inciso fora de revisão', () => {
+      beforeEach(function () {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+        state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+        const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!);
+        e.conteudo!.texto = 'texto inciso 1-2;';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+      });
+
+      it('Deveria possuir outro novo inciso', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+        expect(d).not.to.be.undefined;
+        expect(d.texto).to.be.equal('texto inciso 1-2;');
+      });
+
+      describe('Ativa revisão', () => {
+        beforeEach(function () {
+          state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+        });
+
+        it('Deveria estar em revisão', () => {
+          expect(state.emRevisao).to.be.true;
+        });
+
+        describe('Removendo dispositivo', () => {
+          it('Deveria possuir uma revisão', () => {
+            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+            const e = createElemento(d);
+            state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: e });
+            // d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+            // expect(d).to.be.undefined;
+            expect(state.revisoes?.length).to.be.equal(1);
+            expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
+            expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);
+          });
+        });
+      });
+    });
   });
 });

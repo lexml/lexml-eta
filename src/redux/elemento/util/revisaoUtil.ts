@@ -133,7 +133,7 @@ const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): num
 const getUuidPai = (state: State, elemento?: Partial<Elemento>): number | undefined => {
   const d = getDispositivoFromElemento(state.articulacao!, elemento!)!;
   if (isDispositivoAlteracao(d)) {
-    return isArticulacaoAlteracao(d.pai!) || isCaput(d.pai!) ? d.pai?.pai?.uuid : d.uuid;
+    return isArticulacaoAlteracao(d.pai!) || isCaput(d.pai!) ? d.pai?.pai?.uuid : d.pai?.uuid;
   } else {
     return isCaput(d.pai!) ? d.pai?.pai?.uuid : d.pai?.uuid;
   }

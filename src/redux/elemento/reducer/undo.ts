@@ -1,4 +1,3 @@
-import { RevisaoElemento } from './../../../model/revisao/revisao';
 import { agrupaElemento } from './agrupaElemento';
 import { removeElemento } from './removeElemento';
 import {
@@ -7,6 +6,7 @@ import {
   processaSituacoesAlteradas,
   processarRestaurados,
   processarSuprimidos,
+  processarRevisoesAceitasOuRejeitadas,
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -15,8 +15,6 @@ import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { existeRevisaoCriadaPorExclusao, getElementosFromRevisoes } from '../util/revisaoUtil';
-import { Elemento } from '../../../model/elemento';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -100,21 +98,8 @@ export const undo = (state: any): State => {
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
   events.add(StateType.SituacaoElementoModificada, processaSituacoesAlteradas(state, eventos));
 
-  const eventosRevisaoAceita = eventos.filter((se: StateEvent) => se.stateType === StateType.RevisaoAceita);
-  if (eventosRevisaoAceita.length) {
-    eventosRevisaoAceita.forEach((ev: StateEvent) => {
-      const revisoes = ev.elementos!.map(e => e.revisao! as RevisaoElemento);
-      retorno.revisoes!.push(...revisoes);
-      if (existeRevisaoCriadaPorExclusao(revisoes)) {
-        const elementos = revisoes.map(r => r.elementoAntesRevisao as Elemento);
-        events.eventos.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
-        events.eventos.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
-      } else {
-        // events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosFromRevisoes(revisoes, state) });
-        events.get(StateType.SituacaoElementoModificada).elementos?.push(...getElementosFromRevisoes(revisoes, state));
-      }
-    });
-  }
+  events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita));
+  events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada));
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();

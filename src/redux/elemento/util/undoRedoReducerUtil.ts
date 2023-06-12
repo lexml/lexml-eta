@@ -1,3 +1,4 @@
+import { atualizaTextoElemento } from './../reducer/atualizaTextoElemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
@@ -20,9 +21,11 @@ import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOr
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { existeRevisaoCriadaPorExclusao, getElementosFromRevisoes } from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
@@ -339,4 +342,39 @@ export const processarSuprimidos = (state: State, evento: StateEvent): StateEven
   });
 
   return result;
+};
+
+export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
+  const result: StateEvent[] = [];
+  const eventosFiltrados = eventos.filter((se: StateEvent) => se.stateType === stateType);
+  if (eventosFiltrados.length) {
+    eventosFiltrados.forEach((ev: StateEvent) => {
+      const revisoes = ev.elementos!.map(e => e.revisao! as RevisaoElemento);
+      state.revisoes!.push(...revisoes);
+
+      if (stateType === StateType.RevisaoRejeitada) {
+        atualizaDispositivosComTextoModificado(state, revisoes);
+      }
+
+      if (existeRevisaoCriadaPorExclusao(revisoes)) {
+        const elementos = revisoes.map(r => r.elementoAntesRevisao as Elemento);
+        result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
+        result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+      } else {
+        result.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosFromRevisoes(revisoes, state) });
+      }
+    });
+  }
+  return result;
+};
+
+export const isUndoRevisaoRejeitada = (eventos: StateEvent[]): boolean => eventos.some(ev => ev.stateType === StateType.RevisaoRejeitada);
+
+const atualizaDispositivosComTextoModificado = (state: State, revisoes: RevisaoElemento[]): void => {
+  revisoes
+    .filter(r => r.stateType === StateType.ElementoModificado)
+    .forEach(r => {
+      const tempState = { ...state, past: [], future: [], present: [] };
+      atualizaTextoElemento(tempState, { atual: r.elementoAposRevisao });
+    });
 };
