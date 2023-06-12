@@ -29,7 +29,8 @@ export const rejeitaRevisao = (state: any, action: any): State => {
   revisoesAssociadas
     .filter(r => !r.idRevisaoElementoPrincipal)
     .forEach(r => {
-      r.stateType === StateType.ElementoSuprimido && eventos.push(...rejeitaSupressaoOuModificacao(tempState, r));
+      r.stateType === StateType.ElementoSuprimido && eventos.push(...rejeitaSupressao(tempState, r));
+      r.stateType === StateType.ElementoModificado && eventos.push(...rejeitaModificacao(tempState, r));
       r.stateType === StateType.ElementoRestaurado && eventos.push(...rejeitaRestauracao(tempState, r));
       r.stateType === StateType.ElementoIncluido && eventos.push(...rejeitaInclusao(tempState, r));
       r.stateType === StateType.ElementoRemovido && eventos.push(...rejeitaExclusao(tempState, r));
@@ -49,8 +50,16 @@ export const rejeitaRevisao = (state: any, action: any): State => {
   };
 };
 
-const rejeitaSupressaoOuModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+const rejeitaSupressao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
   return restauraElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+};
+
+const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  if (revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+  } else {
+    return restauraElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+  }
 };
 
 const rejeitaRestauracao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
