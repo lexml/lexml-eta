@@ -881,11 +881,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0) {
+        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
         }
       }
     });
+  }
+
+  private elementoRemovidoEmRevisao(elemento: Elemento): boolean {
+    if (elemento.revisao && elemento.revisao.descricao === 'Dispositivo removido') {
+      return true;
+    }
+    return false;
   }
 
   private removerLinhaQuill(event: StateEvent): void {
@@ -939,7 +946,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0) {
+        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
         }
       }
