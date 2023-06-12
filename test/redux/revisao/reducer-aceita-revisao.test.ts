@@ -1,6 +1,6 @@
 import { isArticulacao } from './../../../src/model/dispositivo/tipo';
-import { getDispositivoAndFilhosAsLista, isAdicionado, isSuprimido } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
-import { isRevisaoPrincipal } from './../../../src/redux/elemento/util/revisaoUtil';
+import { getDispositivoAndFilhosAsLista, isAdicionado, isSuprimido, buscaDispositivoById } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { isRevisaoPrincipal, findRevisaoByElementoLexmlId } from './../../../src/redux/elemento/util/revisaoUtil';
 import { State, StateType } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { expect } from '@open-wc/testing';
@@ -9,11 +9,9 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
-import { findRevisaoByElementoLexmlId } from '../../../src/redux/elemento/util/revisaoUtil';
 import { ACEITAR_REVISAO } from '../../../src/model/lexml/acao/aceitarRevisaoAction';
 import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElemento';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
@@ -288,7 +286,7 @@ describe('Carregando texto da MPV 905/2019', () => {
                 state = elementoReducer(state, { type: UNDO });
               });
 
-              it('Deveria possuir 2 revisão "principal"', () => {
+              it('Deveria possuir 2 revisões "principais"', () => {
                 expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
                 expect(state.revisoes?.length).to.be.equal(4);
               });

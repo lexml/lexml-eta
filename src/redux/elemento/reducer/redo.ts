@@ -1,4 +1,4 @@
-import { findRevisaoByElementoLexmlId } from './../util/revisaoUtil';
+import { findRevisaoByElementoUuid } from './../util/revisaoUtil';
 import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador, processarRestaurados } from './../util/undoRedoReducerUtil';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
@@ -95,8 +95,7 @@ export const redo = (state: any): State => {
       .map((se: StateEvent) => se.elementos)
       .flat()
       .map((e: Elemento) => {
-        // Procura revisão associada ao elemento (id pode ter mudado em função de redo de inclusão/exclusão/supressão/modificação)
-        e.revisao = findRevisaoByElementoLexmlId(retorno.revisoes, e.lexmlId);
+        e.revisao = findRevisaoByElementoUuid(retorno.revisoes, e.uuid);
         return e.revisao?.id;
       })
       .filter(Boolean);
