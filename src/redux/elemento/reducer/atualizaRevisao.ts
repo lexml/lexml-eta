@@ -33,7 +33,7 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
     return state;
   }
 
-  if (UNDO !== actionType || !isUndoDeRevisaoAceita(state)) {
+  if ((UNDO !== actionType || !isUndoDeRevisaoAceita(state)) && !isAcaoDeRevisaoRejeitada(state)) {
     const revisoes: Revisao[] = [];
     revisoes.push(...processaEventosDeSupressao(state, actionType));
     revisoes.push(...processaEventosDeModificacao(state, actionType));
@@ -49,7 +49,7 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
 
     state.revisoes!.push(...revisoes);
   }
-  state.revisoes = identificarRevisaoElementoPai(state.revisoes);
+  state.revisoes = identificarRevisaoElementoPai(state);
 
   associarRevisoesAosElementos(state);
 
@@ -59,6 +59,8 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
 };
 
 const isUndoDeRevisaoAceita = (state: State): boolean => !!state.future?.length && state.future[state.future.length - 1][0].stateType === StateType.RevisaoAceita;
+
+const isAcaoDeRevisaoRejeitada = (state: State): boolean => !!state.ui?.events.some(ev => ev.stateType === StateType.RevisaoRejeitada);
 
 const associarRevisoesAosElementos = (state: State): void => {
   state.ui?.events.forEach(se =>

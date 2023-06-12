@@ -84,8 +84,8 @@ describe('Testando a transformação de artigo em parágrafo', () => {
         expect(state.articulacao.artigos.length).to.equal(5);
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar 4 eventos', () => {
+          expect(state.ui.events.length).to.equal(4);
         });
         it('Deveria apresentar o antigo artigo e seus filhos', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -232,8 +232,8 @@ describe('Testando a transformação de artigo em parágrafo', () => {
           expect(state.articulacao.artigos[0].filhos.length).to.equal(0);
         });
         describe('Testando eventos', () => {
-          it('Deveria apresentar 3 eventos', () => {
-            expect(state.ui.events.length).to.equal(3);
+          it('Deveria apresentar 4 eventos', () => {
+            expect(state.ui.events.length).to.equal(4);
           });
           it('Deveria voltar apresentar o antigo artigo 2', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

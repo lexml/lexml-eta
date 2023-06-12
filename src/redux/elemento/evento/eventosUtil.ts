@@ -386,6 +386,6 @@ export const createEventos = (): StateEvent[] => {
 
 export const getElementosRemovidosEIncluidos = (eventos: StateEvent[]): Elemento[] => {
   const map = new Map();
-  eventos.filter(ev => [StateType.ElementoRemovido, StateType.ElementoIncluido].includes(ev.stateType)).forEach(ev => ev.elementos?.forEach(el => map.set(el.lexmlId!, el)));
+  eventos.filter(ev => [StateType.ElementoRemovido, StateType.ElementoIncluido].includes(ev.stateType)).forEach(ev => ev.elementos?.forEach(el => map.set(el.uuid!, el)));
   return Array.from(map.values());
 };

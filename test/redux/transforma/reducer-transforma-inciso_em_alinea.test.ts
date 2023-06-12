@@ -54,8 +54,8 @@ describe('Testando a transformação de inciso em alínea', () => {
         expect(state.articulacao.artigos[1].caput.filhos.length).to.equal(2);
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar 4 eventos', () => {
+          expect(state.ui.events.length).to.equal(4);
         });
         it('Deveria apresentar o antigo inciso II no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -162,7 +162,7 @@ describe('Testando a transformação de inciso em alínea', () => {
       });
       describe('Testando eventos', () => {
         it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(2);
+          expect(state.ui.events.length).to.equal(3);
         });
         it('Deveria apresentar o antigo inciso II e seus filhos transformados no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

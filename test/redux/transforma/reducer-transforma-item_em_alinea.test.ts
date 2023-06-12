@@ -36,7 +36,7 @@ describe('Testando a transformação de item em alínea', () => {
       expect(state.articulacao.artigos[1].caput.filhos[0].filhos[2].rotulo).to.equal('c)');
     });
     describe('Testando os eventos', () => {
-      it('Deveria apresentar 4 eventos', () => {
+      it('Deveria apresentar 5 eventos', () => {
         expect(state.ui.events.length).to.equal(4);
       });
       it('Deveria apresentar o item transformado', () => {
@@ -74,8 +74,8 @@ describe('Testando a transformação de item em alínea', () => {
         expect(state.articulacao.artigos[1].caput.filhos[0].filhos[1].rotulo).to.equal('b)');
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 4 eventos', () => {
-          expect(state.ui.events.length).to.equal(4);
+        it('Deveria apresentar 5 eventos', () => {
+          expect(state.ui.events.length).to.equal(5);
         });
         it('Deveria apresentar o item original no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

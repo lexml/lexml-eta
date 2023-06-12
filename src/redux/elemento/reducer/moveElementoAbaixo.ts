@@ -35,7 +35,7 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
 
   const movendoArtigoParaAgrupador = isAgrupadorNaoArticulacao(proximo);
 
-  const removidos = [...getElementos(atual)];
+  const removidos = [...getElementos(atual, false, true)];
   const renumerados = listaDispositivosRenumerados(atual);
 
   const paiAntigo = atual.pai!;
