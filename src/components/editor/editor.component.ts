@@ -66,6 +66,7 @@ import { ativarDesativarRevisaoAction } from '../../model/lexml/acao/ativarDesat
 import { getIniciais } from '../../util/string-util';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
+import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -1332,8 +1333,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private getQuantidadeRevisoes = (): number => {
     const state = rootStore.getState().elementoReducer as any;
+
     if (state.revisoes) {
-      return state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined).length;
+      const qtdRevisoesJustificativa = state.revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
+      const qtdRevisoes = state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined && e.descricao !== RevisaoJustificativaEnum.JustificativaAlterada).length;
+
+      return qtdRevisoesJustificativa > 0 ? qtdRevisoes + 1 : qtdRevisoes;
     }
     return 0;
   };

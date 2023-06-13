@@ -1,6 +1,7 @@
 import { Revisao, RevisaoJustificativa } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State } from '../../state';
+import { RevisaoJustificativaEnum } from '../util/revisaoUtil';
 
 export const atualizaRevisaoJustificativa = (state: State): State => {
   if (!state.emRevisao) {
@@ -21,7 +22,7 @@ const criaRevisaoJustificativa = (state: State): Revisao[] => {
   const result: Revisao[] = [];
 
   if (!jaExisteRevisaoUsuarioAtual(state)) {
-    result.push(new RevisaoJustificativa(state.usuario!, formatDateTime(new Date()), 'Justificativa Alterada'));
+    result.push(new RevisaoJustificativa(state.usuario!, formatDateTime(new Date()), RevisaoJustificativaEnum.JustificativaAlterada));
   }
 
   return result;

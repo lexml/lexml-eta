@@ -173,3 +173,7 @@ export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispos
 export const isRevisaoPrincipal = (revisao: Revisao): boolean => isRevisaoElemento(revisao) && !(revisao as RevisaoElemento).idRevisaoElementoPrincipal;
 
 export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => (r as RevisaoElemento).stateType === StateType.ElementoRemovido);
+
+export enum RevisaoJustificativaEnum {
+  JustificativaAlterada = 'Justificativa Alterada',
+}

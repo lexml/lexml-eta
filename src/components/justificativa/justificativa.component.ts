@@ -4,6 +4,8 @@ import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
+import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil';
+import { Revisao } from '../../model/revisao/revisao';
 @customElement('lexml-emenda-justificativa')
 export class JustificativaEmendaComponent extends LitElement {
   @property({ type: String }) texto = '';
@@ -95,7 +97,7 @@ export class JustificativaEmendaComponent extends LitElement {
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
-        <sl-icon-button name="person-exclamation" label="Settings"></sl-icon-button>
+        <sl-icon-button id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title="teste"></sl-icon-button>
       </div>
       <div id="editor-justificativa"></div>
     `;
@@ -171,6 +173,7 @@ export class JustificativaEmendaComponent extends LitElement {
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
+    this.atualiazaRevisaoJusutificativaIcon();
   };
 
   undo = (): any => {
@@ -179,5 +182,24 @@ export class JustificativaEmendaComponent extends LitElement {
 
   redo = (): any => {
     return this.quill?.history.redo();
+  };
+
+  private atualiazaRevisaoJusutificativaIcon = (): void => {
+    const contadorView = document.getElementById('revisoes-justificativa-icon') as any;
+    contadorView.setAttribute('title', this.getMensagemRevisaoJustificativa());
+  };
+
+  private getMensagemRevisaoJustificativa = (): string => {
+    const revisoes = rootStore.getState().elementoReducer.revisoes;
+    const revisoesJustificativa = revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
+    let mensagem = '';
+
+    if (revisoesJustificativa.length > 0) {
+      revisoesJustificativa!.forEach((revisao: Revisao) => {
+        const pipe = ' | ';
+        mensagem = mensagem + ' - Usuário: ' + revisao.usuario.nome + pipe + 'Data/Hora: ' + revisao.dataHora;
+      });
+    }
+    return mensagem;
   };
 }
