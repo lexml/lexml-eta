@@ -2,6 +2,8 @@ import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
+import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
+import { rootStore } from '../../redux/store';
 @customElement('lexml-emenda-justificativa')
 export class JustificativaEmendaComponent extends LitElement {
   @property({ type: String }) texto = '';
@@ -93,6 +95,7 @@ export class JustificativaEmendaComponent extends LitElement {
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
+        <sl-icon-button name="person-exclamation" label="Settings"></sl-icon-button>
       </div>
       <div id="editor-justificativa"></div>
     `;
@@ -167,6 +170,7 @@ export class JustificativaEmendaComponent extends LitElement {
       : '';
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
+    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
   };
 
   undo = (): any => {

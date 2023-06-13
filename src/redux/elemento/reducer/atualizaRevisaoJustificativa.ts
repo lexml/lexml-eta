@@ -1,10 +1,37 @@
+import { Revisao, RevisaoJustificativa } from '../../../model/revisao/revisao';
+import { formatDateTime } from '../../../util/date-util';
 import { State } from '../../state';
 
-export const atualizaRevisaoJustificativa = (state: State, actionType: any): State => {
-  const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
-  if (!state.emRevisao || !actionType || !numElementos) {
+export const atualizaRevisaoJustificativa = (state: State): State => {
+  if (!state.emRevisao) {
     return state;
   }
 
+  let revisoes: Revisao[] = [];
+  revisoes = criaRevisaoJustificativa(state);
+
+  if (revisoes.length > 0) {
+    state.revisoes!.push(...revisoes);
+  }
+
   return state;
+};
+
+const criaRevisaoJustificativa = (state: State): Revisao[] => {
+  const result: Revisao[] = [];
+
+  if (!jaExisteRevisaoUsuarioAtual(state)) {
+    result.push(new RevisaoJustificativa(state.usuario!, formatDateTime(new Date()), 'Justificativa Alterada'));
+  }
+
+  return result;
+};
+
+const jaExisteRevisaoUsuarioAtual = (state: State): boolean => {
+  const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome);
+
+  if (revisoesUsuarioAtual!.length > 0) {
+    return true;
+  }
+  return false;
 };

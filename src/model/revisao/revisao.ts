@@ -21,7 +21,11 @@ export abstract class Revisao {
   }
 }
 
-export class RevisaoJustificativa extends Revisao {}
+export class RevisaoJustificativa extends Revisao {
+  constructor(usuario: Usuario, dataHora: string, descricao: string) {
+    super(usuario, dataHora, descricao);
+  }
+}
 
 export class RevisaoElemento extends Revisao {
   actionType: string;
