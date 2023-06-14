@@ -106,8 +106,11 @@ export class JustificativaEmendaComponent extends LitElement {
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
+
         <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon>
-        <sl-icon-button id="aceita-revisao-justificativa" name="check-lg" label="Settings" title="Aceitar Revisões Justificativa">Aceitar Revisões</sl-icon-button>
+        <sl-icon-button id="aceita-revisao-justificativa" name="check-lg" label="" title="Aceitar Revisões Justificativa" @click=${(): void => this.aceitaRevisoesJustificativa()}
+          >Aceitar Revisões
+        </sl-icon-button>
       </div>
       <div id="editor-justificativa"></div>
     `;
@@ -200,8 +203,7 @@ export class JustificativaEmendaComponent extends LitElement {
   };
 
   private getMensagemRevisaoJustificativa = (): string => {
-    const revisoes = rootStore.getState().elementoReducer.revisoes;
-    const revisoesJustificativa = revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
+    const revisoesJustificativa = this.getRevisoesJustificativa();
     let mensagem = '';
 
     if (revisoesJustificativa.length > 0) {
@@ -211,5 +213,15 @@ export class JustificativaEmendaComponent extends LitElement {
       });
     }
     return mensagem;
+  };
+
+  private aceitaRevisoesJustificativa = (): void => {
+    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+    this.atualiazaRevisaoJusutificativaIcon();
+  };
+
+  private getRevisoesJustificativa = (): Revisao[] => {
+    const revisoes = rootStore.getState().elementoReducer.revisoes;
+    return revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
   };
 }
