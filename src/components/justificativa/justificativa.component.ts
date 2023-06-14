@@ -64,6 +64,15 @@ export class JustificativaEmendaComponent extends LitElement {
         .ql-toolbar.ql-snow .ql-formats {
           margin-right: 8px;
         }
+        #revisoes-justificativa-icon {
+          border: 1px solid #ccc !important;
+          padding: 5px 5px !important;
+          border-radius: 15px !important;
+          margin-left: auto;
+          margin-right: 5px;
+          font-weight: bold;
+          background-color: #eee;
+        }
       </style>
       <div id="toolbar">
         <span class="ql-formats">
@@ -97,7 +106,8 @@ export class JustificativaEmendaComponent extends LitElement {
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
-        <sl-icon-button id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title="teste"></sl-icon-button>
+        <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon>
+        <sl-icon-button id="aceita-revisao-justificativa" name="check-lg" label="Settings" title="Aceitar Revisões Justificativa">Aceitar Revisões</sl-icon-button>
       </div>
       <div id="editor-justificativa"></div>
     `;
@@ -197,7 +207,7 @@ export class JustificativaEmendaComponent extends LitElement {
     if (revisoesJustificativa.length > 0) {
       revisoesJustificativa!.forEach((revisao: Revisao) => {
         const pipe = ' | ';
-        mensagem = mensagem + ' - Usuário: ' + revisao.usuario.nome + pipe + 'Data/Hora: ' + revisao.dataHora;
+        mensagem = mensagem + ' - (Usuário: ' + revisao.usuario.nome + pipe + 'Data/Hora: ' + revisao.dataHora + ')';
       });
     }
     return mensagem;
