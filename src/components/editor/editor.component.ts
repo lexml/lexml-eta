@@ -52,7 +52,7 @@ import { EtaContainerTable } from '../../util/eta-quill/eta-container-table';
 import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
-import { Observable, Subscription } from '../../util/observable';
+import { Subscription } from '../../util/observable';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { LexmlEtaComponent } from '../lexml-eta.component';
@@ -89,8 +89,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
-
-  private onChangeQuantidadeRevisao: Observable<string> = new Observable<string>();
 
   constructor() {
     super();
