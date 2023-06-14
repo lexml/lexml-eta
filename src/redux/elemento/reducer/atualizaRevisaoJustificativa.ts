@@ -37,7 +37,7 @@ const criaRevisaoJustificativa = (state: State): Revisao[] => {
 };
 
 const jaExisteRevisaoUsuarioAtual = (state: State): boolean => {
-  const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome);
+  const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome && r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
 
   if (revisoesUsuarioAtual!.length > 0) {
     return true;
