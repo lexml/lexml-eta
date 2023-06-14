@@ -108,7 +108,13 @@ export class JustificativaEmendaComponent extends LitElement {
         </span>
 
         <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon>
-        <sl-icon-button id="aceita-revisao-justificativa" name="check-lg" label="" title="Aceitar Revisões Justificativa" @click=${(): void => this.aceitaRevisoesJustificativa()}
+        <sl-icon-button
+          id="aceita-revisao-justificativa"
+          name="check-lg"
+          label=""
+          title="Aceitar Revisões Justificativa"
+          @click=${(): void => this.aceitaRevisoesJustificativa()}
+          disabled="true"
           >Aceitar Revisões
         </sl-icon-button>
       </div>
@@ -187,6 +193,7 @@ export class JustificativaEmendaComponent extends LitElement {
     this.agendarEmissaoEventoOnChange();
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
     this.atualiazaRevisaoJusutificativaIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
   };
 
   undo = (): any => {
@@ -218,10 +225,20 @@ export class JustificativaEmendaComponent extends LitElement {
   private aceitaRevisoesJustificativa = (): void => {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
     this.atualiazaRevisaoJusutificativaIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
   };
 
   private getRevisoesJustificativa = (): Revisao[] => {
     const revisoes = rootStore.getState().elementoReducer.revisoes;
     return revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
+  };
+
+  private desabilitaBtnAceitarRevisoes = (desabilita: boolean): void => {
+    const contadorView = document.getElementById('aceita-revisao-justificativa') as any;
+    if (desabilita) {
+      contadorView.setAttribute('disabled', desabilita);
+    } else {
+      contadorView.removeAttribute('disabled');
+    }
   };
 }
