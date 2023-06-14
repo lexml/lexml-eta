@@ -74,6 +74,10 @@ export class JustificativaEmendaComponent extends LitElement {
           background-color: #eee;
           cursor: pointer;
         }
+        .lista-revisoes-justificativa {
+          padding-left: 1rem;
+          padding-right: 0.5rem;
+        }
       </style>
       <div id="toolbar">
         <span class="ql-formats">
@@ -221,15 +225,15 @@ export class JustificativaEmendaComponent extends LitElement {
 
   private getMensagemRevisaoJustificativa = (): string => {
     const revisoesJustificativa = this.getRevisoesJustificativa();
-    let mensagem = '';
+    let mensagem = '<ul class="lista-revisoes-justificativa">';
 
     if (revisoesJustificativa.length > 0) {
       revisoesJustificativa!.forEach((revisao: Revisao) => {
         const pipe = ' | ';
-        mensagem = mensagem + '(Usuário: ' + revisao.usuario.nome + pipe + 'Data/Hora: ' + revisao.dataHora + ')<br>';
+        mensagem = mensagem + '<li>' + revisao.usuario.nome + pipe + revisao.dataHora + '</li>';
       });
     }
-    return mensagem;
+    return mensagem + '</ul>';
   };
 
   private aceitaRevisoesJustificativa = (): void => {
