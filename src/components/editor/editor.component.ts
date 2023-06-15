@@ -678,8 +678,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private isAceitandoRevisoesDeExclusao(event: StateEvent): boolean {
-    // return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
-    return event.elementos?.some(e => (this.quill.getLinhaByUuid2(e.uuid2!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
+    return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
   }
 
   private existeReinclusaoDoElemento(elementosIncluidos: Elemento[], elemento: Elemento): boolean {
@@ -736,7 +735,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elementosIncluidos = event.elementos!;
 
     elementosIncluidos.forEach(elemento => {
-      const linha = this.quill.getLinhaByUuid2(elemento.uuid2!)!;
+      const linha = this.quill.getLinha(elemento.uuid!)!;
       if (linha.next?.isLinhaComMarcacaoDeExclusao()) {
         const e = { ...linha.next.elemento, elementoAnteriorNaSequenciaDeLeitura: { ...elemento } };
         map.set(e.uuid2!, e);
@@ -759,7 +758,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     };
 
-    const linhaASerReinserida = this.quill.getLinhaByUuid2(elemento.uuid2!);
+    const linhaASerReinserida = this.quill.getLinha(elemento.uuid!);
 
     if (linhaASerReinserida) {
       linhaASerReinserida.atualizarElemento(elemento);
