@@ -20,6 +20,8 @@ import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component'
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
+import { isRevisaoElemento } from '../redux/elemento/util/revisaoUtil';
+import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -123,8 +125,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
     emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
-
+    emenda.revisoes = this.getRevisoes();
     return emenda;
+  }
+
+  private getRevisoes(): Revisao[] {
+    const revisoes = [...rootStore.getState().elementoReducer.revisoes];
+    return revisoes.sort((a, b) =>
+      isRevisaoElemento(a) && isRevisaoElemento(b) ? (a as RevisaoElemento).elementoAposRevisao.uuid! - (b as RevisaoElemento).elementoAposRevisao.uuid! : 1
+    );
   }
 
   inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, usuario?: Usuario): void {
@@ -146,7 +155,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private setEmenda(emenda: Emenda): void {
-    this._lexmlEta.setDispositivosEmenda(emenda.componentes[0].dispositivos);
+    this._lexmlEta.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
