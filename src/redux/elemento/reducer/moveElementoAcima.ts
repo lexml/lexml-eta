@@ -17,8 +17,10 @@ import { buildListaDispositivos } from '../../../model/lexml/hierarquia/hierarqu
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { existeFilhoExcluidoOuAlteradoDuranteRevisao } from '../util/revisaoUtil';
 
 export const moveElementoAcima = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -30,6 +32,13 @@ export const moveElementoAcima = (state: any, action: any): State => {
 
   if (!isAcaoPermitida(atual, MoverElementoAcima)) {
     return montaEMostraMensagensErro(atual, state);
+  }
+
+  if (state.emRevisao && existeFilhoExcluidoOuAlteradoDuranteRevisao(state, atual) && !action.isRejeitandoRevisao) {
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não é possível mover dispositivo que possua dispositivo subordinado já removido ou alterado em modo de revisão.',
+    });
   }
 
   // Dispositivo cuja posição será trocada com o atual
