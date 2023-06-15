@@ -171,7 +171,7 @@ export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispos
   return state.revisoes
     .filter(isRevisaoElemento)
     .map(r => r as RevisaoElemento)
-    .some(r => uuids.includes(r.elementoAntesRevisao?.uuid));
+    .some(r => uuids.includes(r.elementoAntesRevisao?.uuid) || uuids.includes(r.elementoAntesRevisao?.hierarquia?.pai?.uuid));
 };
 
 export const isRevisaoPrincipal = (revisao: Revisao): boolean => isRevisaoElemento(revisao) && !(revisao as RevisaoElemento).idRevisaoElementoPrincipal;
