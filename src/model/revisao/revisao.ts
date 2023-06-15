@@ -2,7 +2,6 @@ import { generateUUID } from './../../util/uuid';
 import { StateType } from '../../redux/state';
 import { Elemento } from '../elemento';
 import { Usuario } from './usuario';
-import { LocalizadorElemento } from '../elemento/elemento';
 import { removeAtributosDoElemento, buildDescricaoRevisao } from '../../redux/elemento/util/revisaoUtil';
 
 export abstract class Revisao {
@@ -32,7 +31,6 @@ export class RevisaoElemento extends Revisao {
   stateType: StateType;
   elementoAntesRevisao: Partial<Elemento> | undefined;
   elementoAposRevisao: Partial<Elemento>; // No caso de exclusão de elemento, o elementoAposRevisao terá o mesmo valor que o elementoAntesRevisao
-  localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento; // Localizador do elemento anterior ao elementoAntesRevisao
   idRevisaoElementoPai?: string;
   idRevisaoElementoPrincipal?: string;
 
@@ -44,7 +42,6 @@ export class RevisaoElemento extends Revisao {
     dataHora: string,
     elementoAntesRevisao: Partial<Elemento> | undefined,
     elementoAposRevisao: Partial<Elemento>,
-    localizadorElementoPosicaoAntesRevisao?: LocalizadorElemento,
     idsRevisoesAssociadas: string[] = []
   ) {
     super(usuario, dataHora, descricao, idsRevisoesAssociadas);
@@ -52,9 +49,6 @@ export class RevisaoElemento extends Revisao {
     this.stateType = stateType;
     this.elementoAntesRevisao = elementoAntesRevisao;
     this.elementoAposRevisao = elementoAposRevisao;
-    if (localizadorElementoPosicaoAntesRevisao) {
-      this.localizadorElementoPosicaoAntesRevisao = { ...localizadorElementoPosicaoAntesRevisao };
-    }
     this.descricao = descricao || buildDescricaoRevisao(this);
 
     removeAtributosDoElemento(this.elementoAntesRevisao);

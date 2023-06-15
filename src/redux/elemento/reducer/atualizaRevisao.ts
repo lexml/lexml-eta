@@ -6,7 +6,6 @@ import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { LocalizadorElemento } from '../../../model/elemento/elemento';
 import {
   identificarRevisaoElementoPai,
   findRevisaoByElementoUuid,
@@ -199,18 +198,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
       revisoesParaRemover.push(revisao);
     } else {
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
-      result.push(
-        new RevisaoElemento(
-          actionType,
-          StateType.ElementoRemovido,
-          '',
-          state.usuario!,
-          formatDateTime(new Date()),
-          eAux,
-          { ...eAux, acoesPossiveis: [] },
-          e.elementoAnteriorNaSequenciaDeLeitura && montarLocalizadorElemento(e.elementoAnteriorNaSequenciaDeLeitura)
-        )
-      );
+      result.push(new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, { ...eAux, acoesPossiveis: [] }));
     }
   });
 
@@ -294,10 +282,6 @@ const getElementoAntesModificacao = (state: State, elemento: Elemento): Elemento
   const modificacoes = eventos.filter(se => se.stateType === StateType.ElementoModificado && se.elementos?.some(e => e.uuid === elemento.uuid));
   const modificacao = modificacoes.pop();
   return modificacao ? JSON.parse(JSON.stringify(modificacao.elementos![0])) : undefined;
-};
-
-const montarLocalizadorElemento = (elemento: Partial<Elemento>): LocalizadorElemento => {
-  return { uuid: elemento.uuid!, lexmlId: elemento.lexmlId! };
 };
 
 const adicionarOpcoesAoMenu = (state: State): void => {
