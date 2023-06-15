@@ -9,14 +9,12 @@ export abstract class Revisao {
   usuario: Usuario;
   dataHora: string;
   descricao?: string;
-  idsRevisoesAssociadas: string[];
 
-  constructor(usuario: Usuario, dataHora: string, descricao?: string, idsRevisoesAssociadas: string[] = []) {
+  constructor(usuario: Usuario, dataHora: string, descricao?: string) {
     this.id = generateUUID();
     this.usuario = usuario;
     this.dataHora = dataHora;
     this.descricao = descricao;
-    this.idsRevisoesAssociadas = [...idsRevisoesAssociadas];
   }
 }
 
@@ -41,10 +39,9 @@ export class RevisaoElemento extends Revisao {
     usuario: Usuario,
     dataHora: string,
     elementoAntesRevisao: Partial<Elemento> | undefined,
-    elementoAposRevisao: Partial<Elemento>,
-    idsRevisoesAssociadas: string[] = []
+    elementoAposRevisao: Partial<Elemento>
   ) {
-    super(usuario, dataHora, descricao, idsRevisoesAssociadas);
+    super(usuario, dataHora, descricao);
     this.actionType = actionType;
     this.stateType = stateType;
     this.elementoAntesRevisao = elementoAntesRevisao;

@@ -46,17 +46,6 @@ export const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: 
   return elementos.every(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
 };
 
-export const montarListaDeRevisoesParaRemover = (state: State, revisao: Revisao): Revisao[] => {
-  const result = [revisao];
-  if (revisao.idsRevisoesAssociadas.length) {
-    revisao.idsRevisoesAssociadas.forEach(id => {
-      const revisaoAssociada = findRevisaoById(state.revisoes, id);
-      revisaoAssociada && result.push(revisaoAssociada);
-    });
-  }
-  return result;
-};
-
 export const identificarRevisaoElementoPai = (state: State): Revisao[] => {
   const revisoes = state.revisoes;
   const result: Revisao[] = [];

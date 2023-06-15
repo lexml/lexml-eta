@@ -9,9 +9,9 @@ import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil
 import {
   identificarRevisaoElementoPai,
   findRevisaoByElementoUuid,
-  montarListaDeRevisoesParaRemover,
   existeRevisaoParaElementos,
   buildDescricaoRevisaoFromStateType,
+  removeAtributosDoElemento,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -85,7 +85,7 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, e)!;
       const eAux = revisao?.elementoAntesRevisao || (JSON.parse(JSON.stringify(d.situacao.dispositivoOriginal)) as Elemento);
-      result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)), undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
       if (revisao) {
         revisoesParaRemover.push(revisao);
       }
@@ -107,11 +107,11 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, e)) {
-        revisoesParaRemover.push(...montarListaDeRevisoesParaRemover(state, revisao));
+        revisoesParaRemover.push(revisao);
       }
     } else {
       const eAux = getElementoAntesModificacao(state, e);
-      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)), undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
     }
   });
 
@@ -131,11 +131,12 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
     removidos.forEach((e, index) => {
       const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid)!;
       if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
-        revisoesParaRemover.push(...montarListaDeRevisoesParaRemover(state, revisao));
+        revisoesParaRemover.push(revisao);
       } else {
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
         revisao.elementoAposRevisao = JSON.parse(JSON.stringify(incluidos[index]));
+        removeAtributosDoElemento(revisao.elementoAposRevisao);
         revisao.usuario = state.usuario!;
         revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, incluidos[index]);
       }
@@ -149,8 +150,7 @@ const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
         state.usuario!,
         formatDateTime(new Date()),
         JSON.parse(JSON.stringify(e)),
-        JSON.parse(JSON.stringify(incluidos[index])),
-        undefined
+        JSON.parse(JSON.stringify(incluidos[index]))
       );
 
       revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, incluidos[index]);
@@ -177,7 +177,7 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e)), undefined));
+      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e))));
     }
   });
 
@@ -232,8 +232,7 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
           state.usuario!,
           formatDateTime(new Date()),
           revisao?.elementoAntesRevisao || eAux,
-          JSON.parse(JSON.stringify(eAux)),
-          undefined
+          JSON.parse(JSON.stringify(eAux))
         )
       );
       if (revisao) {
