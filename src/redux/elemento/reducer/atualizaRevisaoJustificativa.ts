@@ -3,19 +3,27 @@ import { formatDateTime } from '../../../util/date-util';
 import { State } from '../../state';
 import { RevisaoJustificativaEnum } from '../util/revisaoUtil';
 
-export const atualizaRevisaoJustificativa = (state: State): State => {
+export const atualizaRevisaoJustificativa = (state: State, removeAllRevisoesJustificativa = false): State => {
   if (!state.emRevisao) {
     return state;
   }
 
-  let revisoes: Revisao[] = [];
-  revisoes = criaRevisaoJustificativa(state);
+  if (!removeAllRevisoesJustificativa) {
+    let revisoes: Revisao[] = [];
+    revisoes = criaRevisaoJustificativa(state);
 
-  if (revisoes.length > 0) {
-    state.revisoes!.push(...revisoes);
+    if (revisoes.length > 0) {
+      state.revisoes!.push(...revisoes);
+    }
+  } else {
+    remove(state);
   }
 
   return state;
+};
+
+const remove = (state: State): void => {
+  state.revisoes = state.revisoes?.filter(r => r.descricao !== RevisaoJustificativaEnum.JustificativaAlterada);
 };
 
 const criaRevisaoJustificativa = (state: State): Revisao[] => {
@@ -29,7 +37,7 @@ const criaRevisaoJustificativa = (state: State): Revisao[] => {
 };
 
 const jaExisteRevisaoUsuarioAtual = (state: State): boolean => {
-  const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome);
+  const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome && r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
 
   if (revisoesUsuarioAtual!.length > 0) {
     return true;

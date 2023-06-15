@@ -64,6 +64,20 @@ export class JustificativaEmendaComponent extends LitElement {
         .ql-toolbar.ql-snow .ql-formats {
           margin-right: 8px;
         }
+        #revisoes-justificativa-icon sl-icon {
+          border: 1px solid #ccc !important;
+          padding: 5px 5px !important;
+          border-radius: 15px !important;
+          margin-left: auto;
+          margin-right: 5px;
+          font-weight: bold;
+          background-color: #eee;
+          cursor: pointer;
+        }
+        .lista-revisoes-justificativa {
+          padding-left: 1rem;
+          padding-right: 0.5rem;
+        }
       </style>
       <div id="toolbar">
         <span class="ql-formats">
@@ -97,7 +111,24 @@ export class JustificativaEmendaComponent extends LitElement {
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
-        <sl-icon-button id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title="teste"></sl-icon-button>
+
+        <!-- <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon> -->
+        <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
+          <div slot="content">
+            <div>Revisões Justificativa</div>
+          </div>
+          <sl-icon name="exclamation-octagon" title=""></sl-icon>
+        </sl-tooltip>
+
+        <sl-icon-button
+          id="aceita-revisao-justificativa"
+          name="check-lg"
+          label=""
+          title="Aceitar Revisões Justificativa"
+          @click=${(): void => this.aceitaRevisoesJustificativa()}
+          disabled="true"
+          >Aceitar Revisões
+        </sl-icon-button>
       </div>
       <div id="editor-justificativa"></div>
     `;
@@ -174,6 +205,7 @@ export class JustificativaEmendaComponent extends LitElement {
     this.agendarEmissaoEventoOnChange();
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
     this.atualiazaRevisaoJusutificativaIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
   };
 
   undo = (): any => {
@@ -185,21 +217,42 @@ export class JustificativaEmendaComponent extends LitElement {
   };
 
   private atualiazaRevisaoJusutificativaIcon = (): void => {
-    const contadorView = document.getElementById('revisoes-justificativa-icon') as any;
-    contadorView.setAttribute('title', this.getMensagemRevisaoJustificativa());
+    // const contadorView = document.getElementById('revisoes-justificativa-icon') as any;
+    // contadorView.setAttribute('title', this.getMensagemRevisaoJustificativa());
+    const contentRevisoes = document.querySelector('#revisoes-justificativa-icon > div[slot=content]') as any;
+    contentRevisoes.innerHTML = this.getMensagemRevisaoJustificativa();
   };
 
   private getMensagemRevisaoJustificativa = (): string => {
-    const revisoes = rootStore.getState().elementoReducer.revisoes;
-    const revisoesJustificativa = revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
-    let mensagem = '';
+    const revisoesJustificativa = this.getRevisoesJustificativa();
+    let mensagem = '<ul class="lista-revisoes-justificativa">';
 
     if (revisoesJustificativa.length > 0) {
       revisoesJustificativa!.forEach((revisao: Revisao) => {
         const pipe = ' | ';
-        mensagem = mensagem + ' - Usuário: ' + revisao.usuario.nome + pipe + 'Data/Hora: ' + revisao.dataHora;
+        mensagem = mensagem + '<li>' + revisao.usuario.nome + pipe + revisao.dataHora + '</li>';
       });
     }
-    return mensagem;
+    return mensagem + '</ul>';
+  };
+
+  private aceitaRevisoesJustificativa = (): void => {
+    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+    this.atualiazaRevisaoJusutificativaIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
+  };
+
+  private getRevisoesJustificativa = (): Revisao[] => {
+    const revisoes = rootStore.getState().elementoReducer.revisoes;
+    return revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
+  };
+
+  private desabilitaBtnAceitarRevisoes = (desabilita: boolean): void => {
+    const contadorView = document.getElementById('aceita-revisao-justificativa') as any;
+    if (desabilita) {
+      contadorView.setAttribute('disabled', desabilita);
+    } else {
+      contadorView.removeAttribute('disabled');
+    }
   };
 }
