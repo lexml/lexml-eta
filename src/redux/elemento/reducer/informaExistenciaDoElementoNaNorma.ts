@@ -1,21 +1,16 @@
-import { StateEvent } from './../../state';
-import { createElemento, getElementos } from './../../../model/elemento/elementoUtil';
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { isAgrupador, isArtigo, isOmissis } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { InformarExistenciaDoElementoNaNorma } from '../../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
-import {
-  getDispositivoAndFilhosAsLista,
-  getDispositivoCabecaAlteracao,
-  isDispositivoCabecaAlteracao,
-  isDispositivoNovoNaNormaAlterada,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
+import { getDispositivoAndFilhosAsLista, isDispositivoCabecaAlteracao, isDispositivoNovoNaNormaAlterada } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { Mensagem, TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
-import { isAgrupador, isArtigo, isOmissis } from '../../../model/dispositivo/tipo';
+import { createElemento, getElementos } from './../../../model/elemento/elementoUtil';
+import { StateEvent } from './../../state';
 
 export const informaExistenciaDoElementoNaNorma = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -144,8 +139,7 @@ const existeDispositivoSemNumeroNaoOmissis = (dispositivos: Dispositivo[]): bool
 };
 
 const existeOmissis = (dispositivo: Dispositivo): boolean => {
-  const dispositivoCabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-  const dispositivos = getDispositivoAndFilhosAsLista(dispositivoCabecaAlteracao);
+  const dispositivos = getDispositivoAndFilhosAsLista(dispositivo);
   return dispositivos.some(d => d.tipo === 'Omissis' || d.texto?.includes(TEXTO_OMISSIS));
 };
 
