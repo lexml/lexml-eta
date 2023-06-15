@@ -225,5 +225,5 @@ export const elementoReducer = (state = {}, action: any): any => {
 };
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {
-  return actionType === REDO && !!state.ui?.events.every(event => event.stateType === StateType.RevisaoAceita);
+  return actionType === REDO && !!state.ui?.events.some(event => event.stateType === StateType.RevisaoAceita);
 };
