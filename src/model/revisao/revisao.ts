@@ -3,7 +3,7 @@ import { StateType } from '../../redux/state';
 import { Elemento } from '../elemento';
 import { Usuario } from './usuario';
 import { LocalizadorElemento } from '../elemento/elemento';
-import { buildDescricaoRevisao } from '../../redux/elemento/util/revisaoUtil';
+import { removeAtributosDoElemento, buildDescricaoRevisao } from '../../redux/elemento/util/revisaoUtil';
 
 export abstract class Revisao {
   id: string;
@@ -56,5 +56,8 @@ export class RevisaoElemento extends Revisao {
       this.localizadorElementoPosicaoAntesRevisao = { ...localizadorElementoPosicaoAntesRevisao };
     }
     this.descricao = descricao || buildDescricaoRevisao(this);
+
+    removeAtributosDoElemento(this.elementoAntesRevisao);
+    removeAtributosDoElemento(this.elementoAposRevisao);
   }
 }

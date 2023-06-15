@@ -196,3 +196,15 @@ export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
 };
 
 export const isRevisaoDeExclusao = (revisao: RevisaoElemento): boolean => revisao.stateType === StateType.ElementoRemovido;
+
+export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefined): void => {
+  if (!elemento) {
+    return;
+  }
+
+  delete elemento.acoesPossiveis;
+  delete elemento.tiposAgrupadoresQuePodemSerInseridosAntes;
+  delete elemento.tiposAgrupadoresQuePodemSerInseridosDepois;
+
+  removeAtributosDoElemento(elemento.elementoAnteriorNaSequenciaDeLeitura);
+};
