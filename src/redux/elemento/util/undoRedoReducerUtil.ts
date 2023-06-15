@@ -7,6 +7,7 @@ import { createElemento, getDispositivoFromElemento, isElementoDispositivoAltera
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
+  buscaDispositivoById,
   findDispositivoByUuid,
   getDispositivoAnterior,
   getTiposAgrupadorArtigoOrdenados,
@@ -41,7 +42,9 @@ const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
-    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
+    const artigo = isArticulacaoAlteracao(articulacao)
+      ? articulacao.pai!
+      : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!) || buscaDispositivoById(articulacao, elemento.hierarquia!.pai!.lexmlId!);
 
     if (artigo) {
       if (!artigo.alteracoes) {
@@ -51,10 +54,10 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
       if (elemento.hierarquia!.pai!.tipo! === TipoDispositivo.articulacao.tipo) {
         return artigo.alteracoes;
       }
-      return findDispositivoByUuid(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
+      return findDispositivoByUuid(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!) || buscaDispositivoById(artigo.alteracoes, elemento.hierarquia!.pai!.lexmlId!) || null;
     }
   }
-  return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!);
+  return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!) || buscaDispositivoById(articulacao, elemento.hierarquia!.pai!.lexmlId!) || null;
 };
 
 const isOmissisCaput = (elemento: Elemento): boolean => {
@@ -69,6 +72,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
     elemento.hierarquia!.posicao
   );
   novo.uuid = elemento.uuid;
+  novo.uuid2 = elemento.uuid2;
   novo.id = elemento.lexmlId;
   novo!.texto = elemento?.conteudo?.texto ?? '';
   novo!.numero = elemento?.hierarquia?.numero;
@@ -96,12 +100,17 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
 const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo: string | undefined): Dispositivo[] => {
   const primeiroElemento = elementos.shift();
 
-  const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!);
+  const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!) || buscaDispositivoById(articulacao, primeiroElemento!.hierarquia!.pai!.lexmlId!);
   const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!, modo);
+  const idPrimeiroDispositivo = primeiro.id!;
 
   const novos: Dispositivo[] = [primeiro];
   elementos?.forEach(filho => {
-    const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoPaiFromElemento(articulacao, filho);
+    const parent =
+      filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai
+        ? primeiro.pai!
+        : getDispositivoPaiFromElemento(articulacao, filho) || buscaDispositivoById(articulacao, idPrimeiroDispositivo);
+
     const novo = redodDispositivoExcluido(filho, parent!, modo);
     novos.push(novo);
   });

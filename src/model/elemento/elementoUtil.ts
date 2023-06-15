@@ -53,11 +53,16 @@ const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
 
 const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   const pai = dispositivo.pai ? (isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai) : undefined;
+  const articulacaoAlteracao = pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai : undefined;
   return {
     tipo: pai?.tipo,
     uuid: pai?.uuid,
-    uuidAlteracao: pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
-    existeNaNormaAlterada: pai?.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    uuid2: pai?.uuid2,
+    lexmlId: pai?.id,
+    uuidAlteracao: articulacaoAlteracao?.uuid,
+    uuid2Alteracao: articulacaoAlteracao?.uuid2,
+    existeNaNormaAlterada: pai && isAdicionado(pai) ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    descricaoSituacao: pai?.situacao?.descricaoSituacao,
   };
 };
 
@@ -98,6 +103,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
+    uuid2: dispositivo.uuid2,
     lexmlId: (dispositivo.numero && buildId(dispositivo)) || dispositivo.id,
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
@@ -131,7 +137,7 @@ export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
 };
 
 export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo, validados = false, procurarElementoAnterior = false): void => {
-  const fnCreateElemento = validados ? createElemento : createElementoValidado;
+  const fnCreateElemento = validados ? createElementoValidado : createElemento;
 
   if (dispositivo.filhos === undefined) {
     return;

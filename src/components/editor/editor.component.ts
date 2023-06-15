@@ -67,6 +67,7 @@ import { getIniciais } from '../../util/string-util';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil';
+import { atualizarReferenciaEmRevisoesDeExclusaoAction } from '../../model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -330,10 +331,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
       textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
     }
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
@@ -489,7 +490,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElementoSemTexto(key: string): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
     rootStore.dispatch(removerElementoSemTextoAction.execute(elemento, key));
   }
 
@@ -497,11 +498,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo?.rotulo}?`;
 
+    const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
+
     this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
       const choice: any = event.detail.closeResult;
       if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
-        rootStore.dispatch(removerElementoAction.execute(elemento));
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+        rootStore.dispatch(removerElementoAction.execute(elemento, elementoLinhaAnterior));
       }
       this.quill.focus();
     });
@@ -513,7 +516,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
       const textoLinha = blotConteudo.html;
 
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
       if (ev.key === 'ArrowUp') {
         rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
@@ -528,7 +531,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key.toLowerCase() === 'o') {
       rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
@@ -540,7 +543,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private elementoSelecionado(uuid: number): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     if (linha) {
-      const elemento: Elemento = this.criarElemento(uuid, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(uuid, linha!.uuid2, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
       rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
       this.quill.processandoMudancaLinha = false;
     }
@@ -577,7 +580,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
           this.inserirNovosElementosNoQuill(event, true);
-          this.removerMarcacoesDeExclusaoSeNecessario(events, event);
+          this.atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events, event);
           break;
 
         case StateType.ElementoModificado:
@@ -677,21 +680,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private isAceitandoRevisoesDeExclusao(event: StateEvent): boolean {
-    return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
-  }
-
-  private removerMarcacoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
-    const elementosIncluidos = event.elementos!;
-    const ultimoElementoIncluido = elementosIncluidos[elementosIncluidos.length - 1];
-    const linha = this.quill.getLinha(ultimoElementoIncluido.uuid!)!;
-    let proximaLinha = linha.next as EtaContainerTable;
-    const linhasParaRemoverDoQuill: EtaContainerTable[] = [];
-    while (proximaLinha.isLinhaComMarcacaoDeExclusao() && this.existeReinclusaoDoElemento(elementosIncluidos, proximaLinha.elemento)) {
-      linhasParaRemoverDoQuill.push(proximaLinha);
-      proximaLinha = proximaLinha.next as EtaContainerTable;
-    }
-
-    linhasParaRemoverDoQuill.forEach(linha => linha.remove());
+    // return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
+    return event.elementos?.some(e => (this.quill.getLinhaByUuid2(e.uuid2!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
   }
 
   private existeReinclusaoDoElemento(elementosIncluidos: Elemento[], elemento: Elemento): boolean {
@@ -722,24 +712,63 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private processarEscolhaMenu(itemMenu: any): void {
-    /*     if (itemMenu === 'Remover dispositivo') {
-      this.removerElemento();
-    } else
- */ if (itemMenu === renumerarElementoAction) {
+    if (itemMenu === renumerarElementoAction) {
       this.renumerarElemento();
     } else if (itemMenu === atualizarNotaAlteracaoAction) {
       this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
     } else if (itemMenu instanceof AdicionarAgrupadorArtigo) {
       this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
+    } else if (itemMenu === removerElementoAction) {
+      const linha: EtaContainerTable = this.quill.linhaAtual;
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+      elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
+
+      const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
+      rootStore.dispatch(itemMenu.execute(elemento, elementoLinhaAnterior));
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
-      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(itemMenu.execute(elemento));
     }
   }
 
+  private atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
+    const map = new Map<string, Elemento>();
+    const elementosIncluidos = event.elementos!;
+
+    elementosIncluidos.forEach(elemento => {
+      const linha = this.quill.getLinhaByUuid2(elemento.uuid2!)!;
+      if (linha.next?.isLinhaComMarcacaoDeExclusao()) {
+        const e = { ...linha.next.elemento, elementoAnteriorNaSequenciaDeLeitura: { ...elemento } };
+        map.set(e.uuid2!, e);
+      }
+    });
+
+    if (map.size > 0) {
+      rootStore.dispatch(atualizarReferenciaEmRevisoesDeExclusaoAction.execute([...map.values()]));
+    }
+  }
+
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento, selecionarLinha?: boolean): void {
+    const fnSelecionarNovaLinha = (linha: EtaContainerTable): void => {
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      this.quill.marcarLinhaAtual(linha);
+      try {
+        this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), Quill.sources.SILENT);
+      } catch (e) {
+        // console.log(e);
+      }
+    };
+
+    const linhaASerReinserida = this.quill.getLinhaByUuid2(elemento.uuid2!);
+
+    if (linhaASerReinserida) {
+      linhaASerReinserida.atualizarElemento(elemento);
+      selecionarLinha && fnSelecionarNovaLinha(linhaASerReinserida);
+      return;
+    }
+
     const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia.uuid!);
 
     if (linhaRef) {
@@ -753,18 +782,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
       if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
-        if (selecionarLinha) {
-          this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
-          this.quill.marcarLinhaAtual(novaLinha);
-          try {
-            this.quill.setIndex(this.quill.getIndex(novaLinha.blotConteudo), Quill.sources.SILENT);
-          } catch (e) {
-            // console.log(e);
-          }
-        }
+        selecionarLinha && fnSelecionarNovaLinha(novaLinha);
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
+
       novaLinha.descricaoSituacao = elemento.descricaoSituacao;
       novaLinha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
       novaLinha.setEstilo(elemento!);
@@ -976,6 +998,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private criarElemento(
     uuid: number,
+    uuid2: string,
     lexmlId: string,
     tipo: string,
     html: string,
@@ -986,6 +1009,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   ): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
+    elemento.uuid2 = uuid2;
     elemento.lexmlId = lexmlId;
     elemento.tipo = tipo;
     elemento.numero = numero;
@@ -1046,7 +1070,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.renumerarElemento();
         } else {
           const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
-          const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
+          const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
           rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
         }
       }
@@ -1064,6 +1088,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(
         linhaAtual.uuid,
+        linhaAtual.uuid2,
         linhaAtual.lexmlId,
         linhaAtual.tipo,
         linhaAtual.blotConteudo?.html ?? '',

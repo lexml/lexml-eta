@@ -33,6 +33,10 @@ export const findRevisaoByElementoUuid = (revisoes: Revisao[] = [], uuid = 0): R
   return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid === uuid);
 };
 
+export const findRevisaoByElementoUuid2 = (revisoes: Revisao[] = [], uuid2 = ''): RevisaoElemento | undefined => {
+  return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid2 === uuid2);
+};
+
 export const findRevisaoByElementoLexmlId = (revisoes: Revisao[] = [], lexmlId = '?'): RevisaoElemento | undefined => {
   return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.lexmlId === lexmlId);
 };
@@ -163,17 +167,32 @@ export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispos
   if (!state.revisoes?.length) {
     return false;
   }
-  const ids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.id);
+  const uuids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.uuid);
   return state.revisoes
     .filter(isRevisaoElemento)
     .map(r => r as RevisaoElemento)
-    .some(r => ids.includes(r.elementoAntesRevisao?.lexmlId));
+    .some(r => uuids.includes(r.elementoAntesRevisao?.uuid));
 };
 
 export const isRevisaoPrincipal = (revisao: Revisao): boolean => isRevisaoElemento(revisao) && !(revisao as RevisaoElemento).idRevisaoElementoPrincipal;
 
-export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => (r as RevisaoElemento).stateType === StateType.ElementoRemovido);
+export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => isRevisaoDeExclusao(r as RevisaoElemento));
 
 export enum RevisaoJustificativaEnum {
   JustificativaAlterada = 'Justificativa Alterada',
 }
+
+export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
+  return revisoes.sort((r1, r2) => {
+    if (isRevisaoElemento(r1) && isRevisaoElemento(r2)) {
+      return (r1 as RevisaoElemento).elementoAposRevisao.uuid! - (r2 as RevisaoElemento).elementoAposRevisao.uuid!;
+    } else if (isRevisaoElemento(r1)) {
+      return 0;
+    } else if (isRevisaoElemento(r2)) {
+      return -1;
+    }
+    return 0;
+  });
+};
+
+export const isRevisaoDeExclusao = (revisao: RevisaoElemento): boolean => revisao.stateType === StateType.ElementoRemovido;
