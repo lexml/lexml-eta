@@ -1,9 +1,12 @@
 import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
+import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
+import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
   buscaDispositivoById,
+  findDispositivoByUuid2,
   getDispositivoCabecaAlteracao,
   getTiposAgrupadorArtigoOrdenados,
   hasEmenta,
@@ -13,9 +16,12 @@ import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivo
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { buildId } from '../../../model/lexml/util/idUtil';
+import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
+import { Counter } from '../../../util/counter';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
+import { isRevisaoDeExclusao, isRevisaoElemento, isRevisaoPrincipal } from '../util/revisaoUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
@@ -34,6 +40,8 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
       events: [],
       alertas: [],
     },
+    revisoes: [],
+    emRevisao: state.emRevisao,
   };
 
   const eventos = new Eventos();
@@ -69,6 +77,11 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 
   if (action.alteracoesEmenda.dispositivosAdicionados) {
     eventos.eventos.push(...processaDispositivosAdicionados(state, action.alteracoesEmenda));
+  }
+
+  if (action.revisoes?.length) {
+    eventos.eventos.push(...processaRevisoes(retorno, action.revisoes));
+    retorno.emRevisao = true;
   }
 
   retorno.ui!.events = eventos.build();
@@ -260,6 +273,7 @@ const corrigeIdDispositivoSeNecessario = (id: string, idPai: string): string => 
 const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: DispositivoEmendaAdicionado, modo: ClassificacaoDocumento): void => {
   dispositivo.texto = da.texto ?? '';
   dispositivo.id = da.id;
+  dispositivo.uuid2 = da.uuid2;
   const situacao = new DispositivoAdicionado();
   situacao.tipoEmenda = modo;
   dispositivo.situacao = situacao;
@@ -285,3 +299,65 @@ const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: Disp
 };
 
 const idSemCpt = (id: string): string => id.replace(/(_cpt)$/, '');
+
+const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
+  const result: StateEvent[] = [];
+  const elementosExcluidosEmModoDeRevisao: Elemento[] = [];
+  let elementoAnterior: Elemento;
+
+  revisoes.forEach(r => {
+    if (isRevisaoElemento(r)) {
+      const rAux = r as RevisaoElemento;
+      if (isRevisaoDeExclusao(rAux)) {
+        let e: Elemento | undefined;
+        if (isRevisaoPrincipal(rAux)) {
+          let d = findDispositivoByUuid2(state.articulacao!, rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.uuid2!);
+          d = d || buscaDispositivoById(state.articulacao!, idSemCpt(rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.lexmlId!)) || null;
+          // TODO: O código abaixo não trata exclusões intercaladas. Alterar para tratar.
+          e = d ? createElemento(d) : elementoAnterior;
+        } else {
+          e = elementoAnterior;
+        }
+
+        rAux.elementoAposRevisao.uuid = Counter.next();
+        rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
+        // atualizarDadosPai(state.articulacao!, rAux.elementoAposRevisao);
+
+        rAux.elementoAntesRevisao!.uuid = rAux.elementoAposRevisao.uuid;
+        rAux.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
+        // atualizarDadosPai(state.articulacao!, rAux.elementoAntesRevisao!);
+
+        elementosExcluidosEmModoDeRevisao.push(rAux.elementoAposRevisao as Elemento);
+        elementoAnterior = rAux.elementoAposRevisao as Elemento;
+      } else {
+        const d = buscaDispositivoById(state.articulacao!, rAux.elementoAposRevisao.lexmlId!)!;
+        rAux.elementoAposRevisao.uuid = d.uuid;
+        if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(rAux.actionType)) {
+          rAux.elementoAntesRevisao!.uuid = Counter.next();
+        } else if (rAux.stateType !== StateType.ElementoIncluido) {
+          rAux.elementoAntesRevisao!.uuid = d.uuid;
+        }
+      }
+    }
+    state.revisoes?.push(r);
+  });
+
+  result.push({ stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao });
+  return result;
+};
+
+// const getElementoPai = (articulacao: Articulacao, elemento: Elemento): Elemento => {
+//   const partesId = elemento.lexmlId!.split('_');
+//   partesId.pop();
+//   if (!partesId.length) {
+//     // articulacao
+//   } else {
+//     const idPai = idSemCpt(partesId.join('_'));
+//     const d = buscaDispositivoById(articulacao, idPai);
+//     elemento.hierarquia!.pai!.uuid = d!.uuid;
+//     elemento.hierarquia!.pai!.uuid2 = d!.uuid2;
+//     elemento.hierarquia!.pai!.
+//   }
+
+//   return elemento;
+// };
