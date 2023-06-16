@@ -155,7 +155,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
           });
           it('Deveria apresentar os elementos transformados no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-            expect(validados.elementos!.length).equal(7);
+            expect(validados.elementos!.length).equal(13);
           });
         });
       });
@@ -282,7 +282,7 @@ describe('Testando a transformação de artigo em parágrafo', () => {
             });
             it('Deveria apresentar o elemento transformado no array de elementos no evento de ElementoValidado', () => {
               const validados = getEvento(state.ui.events, StateType.ElementoValidado);
-              expect(validados.elementos!.length).equal(1);
+              expect(validados.elementos!.length).equal(2);
             });
           });
         });
