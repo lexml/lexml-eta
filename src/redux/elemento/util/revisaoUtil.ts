@@ -152,6 +152,17 @@ export const getElementosFromRevisoes = (revisoes: Revisao[] = [], state?: State
 
 export const isRevisaoElemento = (revisao: Revisao): boolean => 'elementoAposRevisao' in revisao;
 
+export const existeFilhoExcluidoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
+  if (!state.revisoes?.length) {
+    return false;
+  }
+  const uuids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.uuid);
+  return state.revisoes
+    .filter(r => isRevisaoElemento(r) && isRevisaoDeExclusao(r as RevisaoElemento))
+    .map(r => r as RevisaoElemento)
+    .some(r => uuids.includes(r.elementoAntesRevisao?.uuid) || uuids.includes(r.elementoAntesRevisao?.hierarquia?.pai?.uuid));
+};
+
 export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
   if (!state.revisoes?.length) {
     return false;
