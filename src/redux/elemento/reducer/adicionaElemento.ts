@@ -1,5 +1,5 @@
 import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
@@ -156,6 +156,9 @@ export const adicionaElemento = (state: any, action: any): State => {
     atual.situacao instanceof DispositivoAdicionado
   ) {
     novo.situacao = new DispositivoAdicionado();
+    if (isArtigo(novo)) {
+      (novo as Artigo).caput!.situacao = new DispositivoAdicionado();
+    }
     (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
     const pai = novo.pai!;
     if (isArticulacaoAlteracao(pai) && pai.filhos.length === 1) {
