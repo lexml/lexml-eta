@@ -255,9 +255,7 @@ export const processaValidados = (state: State, eventos: StateEvent[]): Elemento
       const dispositivo = getDispositivoFromElemento(state.articulacao!, e, true);
       if (dispositivo) {
         dispositivo.mensagens = validaDispositivo(dispositivo);
-        if (dispositivo.mensagens.length > 0) {
-          validados.push(createElemento(dispositivo));
-        }
+        validados.push(createElemento(dispositivo));
       }
     });
     return validados;
