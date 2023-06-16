@@ -73,8 +73,8 @@ describe('Testando a transformação de inciso em parágrafo', () => {
         expect(state.articulacao.artigos[0].filhos[0].rotulo).to.equal('I –');
       });
       describe('Testando os eventos resultantes da ação', () => {
-        it('Deveria apresentar 2 eventos', () => {
-          expect(eventos.length).to.equal(2);
+        it('Deveria apresentar 3 eventos', () => {
+          expect(eventos.length).to.equal(3);
         });
         it('Deveria apresentar o inciso no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

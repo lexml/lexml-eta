@@ -129,7 +129,7 @@ describe('Testando a transformação de item em alínea', () => {
           it('Deveria apresentar a alínea no array de elementos no evento de ElementoValidado', () => {
             const validados = getEvento(state.ui.events, StateType.ElementoValidado);
             const ali = validados.elementos!.find(e => e.rotulo === 'b)');
-            expect(validados.elementos!.length).equal(3);
+            expect(validados.elementos!.length).equal(6);
             expect(ali!.rotulo).to.equal('b)');
             expect(ali!.conteudo?.texto).to.equal('texto do item 1 da alinea 1 do inciso 1 do caput do artigo 2.');
             expect(ali!.mensagens?.length).equal(1);
