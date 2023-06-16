@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAlinea, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
-import { adicionarInciso, adicionarParagrafoAntes, adicionarParagrafoDepois } from '../acao/adicionarElementoAction';
+import { adicionarIncisoFilho, adicionarParagrafoAntes, adicionarParagrafoDepois } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -24,7 +24,6 @@ import {
   transformarParagrafoEmIncisoCaput,
   transformarParagrafoEmIncisoParagrafo,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -73,8 +72,8 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       if (isDispositivoAlteracao(dispositivo) && !isDispositivoNovoNaNormaAlterada(dispositivo.pai!)) {
         acoes.push(renumerarElementoAction);
       }
-      if (dispositivo.texto && hasIndicativoDesdobramento(dispositivo)) {
-        acoes.push(adicionarInciso);
+      if (!isSuprimido(dispositivo)) {
+        acoes.push(adicionarIncisoFilho);
       }
       if ((isPrimeiroMesmoTipo(dispositivo) || isUnicoMesmoTipo(dispositivo)) && (!getDispositivoAnterior(dispositivo) || !isOmissis(getDispositivoAnterior(dispositivo)!))) {
         acoes.push(transformarParagrafoEmIncisoCaput);
