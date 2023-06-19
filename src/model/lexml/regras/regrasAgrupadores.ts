@@ -1,7 +1,7 @@
 import { DescricaoSituacao } from './../../dispositivo/situacao';
 // import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isOmissis } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
 import { ElementoAction, getAcaoAgrupamento } from '../acao';
 import { adicionarAgrupadorArtigoAction } from '../acao/adicionarAgrupadorArtigoAction';
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../acao/adicionarElementoAction';
@@ -56,7 +56,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
       } */
 
-      if (isDispositivoAlteracao(dispositivo) && !isOmissis(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
 
