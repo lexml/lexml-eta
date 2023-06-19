@@ -1,6 +1,6 @@
 import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isArtigo } from '../../dispositivo/tipo';
+import { isArtigo, isOmissis } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
 import {
@@ -250,6 +250,11 @@ export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boo
   if (dispositivo === undefined) {
     return false;
   }
+
+  if (isOmissis(dispositivo)) {
+    return false;
+  }
+
   return (
     elemento.hierarquia?.pai?.uuidAlteracao !== undefined &&
     elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
