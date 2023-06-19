@@ -788,7 +788,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
       if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
-        selecionarLinha && fnSelecionarNovaLinha(novaLinha);
+        selecionarLinha && !this.timerOnChange && fnSelecionarNovaLinha(novaLinha);
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
@@ -1165,6 +1165,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.alertaGlobalVerificaCorrelacao();
     this.eventosOnChange = [];
+    this.timerOnChange = null;
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
