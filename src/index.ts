@@ -44,3 +44,4 @@ export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
 export { ComandoEmendaModalComponent } from './components/comandoEmenda/comandoEmenda.modal.component';
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
+export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';

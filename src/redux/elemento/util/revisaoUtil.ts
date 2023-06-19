@@ -4,6 +4,7 @@ import { Elemento, Referencia } from '../../../model/elemento';
 import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
+import { ativarDesativarRevisaoAction } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
@@ -177,3 +178,82 @@ export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolea
 export enum RevisaoJustificativaEnum {
   JustificativaAlterada = 'Justificativa Alterada',
 }
+
+export const getQuantidadeRevisoes = (rootStore: any): number => {
+  const state = rootStore.getState().elementoReducer as any;
+
+  if (state.revisoes) {
+    //const qtdRevisoesJustificativa = state.revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
+    const qtdRevisoes = state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined && e.descricao !== RevisaoJustificativaEnum.JustificativaAlterada).length;
+    //return qtdRevisoesJustificativa > 0 ? qtdRevisoes + 1 : qtdRevisoes;
+    return qtdRevisoes;
+  }
+  return 0;
+};
+
+const getQuantidadeRevisoesJustificativa = (rootStore: any): number => {
+  const state = rootStore.getState().elementoReducer as any;
+  return state.revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
+};
+
+const mostrarDialogDisclaimerRevisao = (rootStore: any): void => {
+  if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !rootStore.getState().elementoReducer.emRevisao) {
+    const dialog = document.createElement('sl-dialog');
+    dialog.label = 'Marcas de revisão';
+    const botoesHtml = ` <sl-button slot="footer" variant="primary" id="closeButton">Fechar</sl-button>`;
+    dialog.innerHTML = `
+      Todas as alterações realizadas no texto serão registradas e ficarão disponíveis para consulta.
+      Esta é uma versão inicial da funcionalidade de controle de alterações/marcas de revisão.
+      <br><br>
+      <sl-switch id="chk-nao-mostrar-modal-novamente">Não mostrar mais essa mensagem</sl-switch>
+    `.concat(botoesHtml);
+    document.body.appendChild(dialog);
+    dialog.show();
+
+    dialog.addEventListener('sl-request-close', (event: any) => {
+      if (event.detail.source === 'overlay') {
+        event.preventDefault();
+      }
+    });
+
+    const chkNaoMostrarNovamente = dialog.querySelector('#chk-nao-mostrar-modal-novamente') as any;
+    chkNaoMostrarNovamente?.addEventListener('sl-change', () => {
+      salvaNoNavegadorOpcaoNaoMostrarNovamente();
+    });
+
+    const closeButton = dialog.querySelector('#closeButton[slot="footer"]');
+    closeButton?.addEventListener('click', () => {
+      dialog.hide();
+      dialog.remove();
+    });
+  }
+};
+
+const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
+  const checkbox = document.getElementById('chk-nao-mostrar-modal-novamente') as any;
+  if (checkbox) {
+    localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', checkbox.checked ? 'true' : 'false');
+  }
+};
+
+export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
+  mostrarDialogDisclaimerRevisao(rootStore);
+  rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+};
+
+export const atualizaQuantidadeRevisao = (rootStore: any, element: any, justificativa = false): void => {
+  const quantidade = justificativa ? getQuantidadeRevisoesJustificativa(rootStore) : getQuantidadeRevisoes(rootStore);
+  if (element) {
+    element.innerHTML = quantidade;
+  }
+};
+
+export const setCheckedElement = (element: any, checked: boolean): void => {
+  if (element) {
+    if (checked) {
+      element.setAttribute('checked', '');
+    } else {
+      element.removeAttribute('checked');
+    }
+  }
+};

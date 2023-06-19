@@ -4,14 +4,19 @@ import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
-import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, RevisaoJustificativaEnum, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { Revisao } from '../../model/revisao/revisao';
+import { connect } from 'pwa-helpers';
+import { StateEvent, StateType } from '../../redux/state';
+
 @customElement('lexml-emenda-justificativa')
-export class JustificativaEmendaComponent extends LitElement {
+export class JustificativaEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
 
   onChange: Observable<string> = new Observable<string>();
   private timerOnChange?: any;
+  private _idSwitchRevisao = 'chk-em-revisao-justificativa';
+  private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao-justificativa';
 
   quill?: Quill;
   container;
@@ -52,6 +57,27 @@ export class JustificativaEmendaComponent extends LitElement {
     return this;
   }
 
+  stateChanged(state: any): void {
+    if (state.elementoReducer.ui) {
+      if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
+        this.processarStateEvents(state.elementoReducer.ui.events);
+      }
+    }
+  }
+
+  private processarStateEvents(events: StateEvent[]): void {
+    events?.forEach((event: StateEvent): void => {
+      switch (event.stateType) {
+        case StateType.RevisaoAtivada:
+          this.checkedSwitchMarcaAlteracao();
+          break;
+        case StateType.RevisaoDesativada:
+          this.checkedSwitchMarcaAlteracao();
+          break;
+      }
+    });
+  }
+
   render(): TemplateResult {
     return html`
       <style>
@@ -67,9 +93,7 @@ export class JustificativaEmendaComponent extends LitElement {
         #revisoes-justificativa-icon sl-icon {
           border: 1px solid #ccc !important;
           padding: 5px 5px !important;
-          border-radius: 15px !important;
-          margin-left: auto;
-          margin-right: 5px;
+          border-radius: 15px !important;          
           font-weight: bold;
           background-color: #eee;
           cursor: pointer;
@@ -77,6 +101,29 @@ export class JustificativaEmendaComponent extends LitElement {
         .lista-revisoes-justificativa {
           padding-left: 1rem;
           padding-right: 0.5rem;
+        }
+        #chk-em-revisao-justificativa {
+          border: 1px solid #ccc !important;
+          padding: 5px 10px !important;
+          border-radius: 20px !important;
+          margin-left: auto;
+          margin-right: 5px;
+          font-weight: bold;
+          background-color: #eee;
+        }
+        #chk-em-revisao-justificativa[checked] {
+          background-color: var(--sl-color-blue-100);
+        }
+        #revisao-div {
+          margin-left: auto;
+        }
+        @media (max-width: 768px) {
+          .mobile-buttons {
+            display: inline-block !important;
+          }
+          #chk-em-revisao-justificativa span {
+            display: none;
+          }
         }
       </style>
       <div id="toolbar">
@@ -111,15 +158,29 @@ export class JustificativaEmendaComponent extends LitElement {
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
-
+         
         <!-- <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon> -->
+          
+        <!--
+        <sl-switch id="chk-em-revisao-justificativa" size="small" @sl-change=${(): void =>
+          this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao-justificativa" variant="warning" pill>0</sl-badge>          
+        </sl-switch> 
+        -->
+
+        <lexml-switch-revisao
+          .nomeSwitch="${this._idSwitchRevisao}"
+          .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+          >
+        </lexml-switch-revisao>
+
+        </lexml-switch-revisao>
         <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
           <div slot="content">
             <div>Revisões Justificativa</div>
           </div>
           <sl-icon name="exclamation-octagon" title=""></sl-icon>
         </sl-tooltip>
-
+        
         <sl-icon-button
           id="aceita-revisao-justificativa"
           name="check-lg"
@@ -206,6 +267,7 @@ export class JustificativaEmendaComponent extends LitElement {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
     this.atualiazaRevisaoJusutificativaIcon();
     this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
+    this.atualizaQuantidadeRevisao();
   };
 
   undo = (): any => {
@@ -240,6 +302,7 @@ export class JustificativaEmendaComponent extends LitElement {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
     this.atualiazaRevisaoJusutificativaIcon();
     this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
+    this.atualizaQuantidadeRevisao();
   };
 
   private getRevisoesJustificativa = (): Revisao[] => {
@@ -254,5 +317,19 @@ export class JustificativaEmendaComponent extends LitElement {
     } else {
       contadorView.removeAttribute('disabled');
     }
+  };
+
+  private ativarDesativarMarcaDeRevisao(): void {
+    ativarDesativarMarcaDeRevisao(rootStore);
+    this.checkedSwitchMarcaAlteracao();
+  }
+
+  private checkedSwitchMarcaAlteracao = (): void => {
+    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao-justificativa') as any;
+    setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
+  };
+
+  private atualizaQuantidadeRevisao = (): void => {
+    atualizaQuantidadeRevisao(rootStore, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
   };
 }

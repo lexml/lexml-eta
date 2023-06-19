@@ -62,11 +62,10 @@ import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.mo
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
-import { ativarDesativarRevisaoAction } from '../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { getIniciais } from '../../util/string-util';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
-import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil';
+import { atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -89,6 +88,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
+
+  private _idSwitchRevisao = 'chk-em-revisao';
+  private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao';
 
   constructor() {
     super();
@@ -121,7 +123,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.alertar(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
-        this.checkedSwitchMarcaAlteracao();
       }
     }
   }
@@ -189,12 +190,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </svg>
           </button>
 
-          <!-- <div>
-            <input type="checkbox" id="chk-em-revisao" class="checkBoxRevisao" @input=${(): void => this.ativarDesativarMarcaDeRevisao()}/>
-            <label>Revisão<label/>
-          </div> -->
-          <sl-switch id="chk-em-revisao" size="small" @sl-change=${(): void =>
-            this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao" variant="warning" pill>0</sl-badge></sl-switch>
+          <lexml-switch-revisao
+          .nomeSwitch="${this._idSwitchRevisao}"
+          .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+          >
+          </lexml-switch-revisao>
+
+          <!--
+          <lexml-eta-marca-revisao-on-of></lexml-eta-marca-revisao-on-of>
+          -->
 
           <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
             <sl-icon-button name="arrow-down"></sl-icon-button>
@@ -627,7 +631,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.RevisaoAtivada:
+          this.checkedSwitchMarcaAlteracao();
+          break;
         case StateType.RevisaoDesativada:
+          this.checkedSwitchMarcaAlteracao();
           // this.atualizarMensagemQuill(event);
           this.atualizarEstiloBotaoRevisao();
           break;
@@ -636,7 +643,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
       }
 
-      this.atualizaQuantidadeRevisao(this.getQuantidadeRevisoes());
+      this.atualizaQuantidadeRevisao();
       this.indicadorMarcaRevisao(event);
       this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
@@ -1050,7 +1057,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     });
 
-    this.checkedSwitchMarcaAlteracao();
+    //this.checkedSwitchMarcaAlteracao();
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
@@ -1287,12 +1294,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     colarTextoArticuladoDialog(this.quill, rootStore, infoTextoColado, payload.range);
   }
 
-  private ativarDesativarMarcaDeRevisao(): void {
-    this.mostrarDialogDisclaimerRevisao();
-    rootStore.dispatch(ativarDesativarRevisaoAction.execute());
-    this.checkedSwitchMarcaAlteracao();
-  }
-
   private atualizarEstiloBotaoRevisao(): void {
     const botaoRevisao = this.getHtmlElement('lx-eta-btn-revisao');
     if (botaoRevisao) {
@@ -1329,34 +1330,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  private getQuantidadeRevisoes = (): number => {
-    const state = rootStore.getState().elementoReducer as any;
-
-    if (state.revisoes) {
-      const qtdRevisoesJustificativa = state.revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
-      const qtdRevisoes = state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined && e.descricao !== RevisaoJustificativaEnum.JustificativaAlterada).length;
-
-      return qtdRevisoesJustificativa > 0 ? qtdRevisoes + 1 : qtdRevisoes;
-    }
-    return 0;
-  };
-
-  private atualizaQuantidadeRevisao = (quantidade: number): void => {
-    const contadorView = document.getElementById('badge-marca-alteracao') as any;
-    if (contadorView) {
-      contadorView.innerHTML = quantidade;
-    }
-  };
-
-  private checkedSwitchMarcaAlteracao = (): void => {
-    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao') as any;
-    if (switchMarcaAlteracaoView) {
-      if (rootStore.getState().elementoReducer.emRevisao) {
-        switchMarcaAlteracaoView.setAttribute('checked', '');
-      } else {
-        switchMarcaAlteracaoView.removeAttribute('checked');
-      }
-    }
+  private atualizaQuantidadeRevisao = (): void => {
+    atualizaQuantidadeRevisao(rootStore, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
   };
 
   /**
@@ -1380,44 +1355,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  private mostrarDialogDisclaimerRevisao = (): void => {
-    if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !rootStore.getState().elementoReducer.emRevisao) {
-      const dialog = document.createElement('sl-dialog');
-      dialog.label = 'Marcas de revisão';
-      const botoesHtml = ` <sl-button slot="footer" variant="primary" id="closeButton">Fechar</sl-button>`;
-      dialog.innerHTML = `
-        Todas as alterações realizadas no texto serão registradas e ficarão disponíveis para consulta.
-        Esta é uma versão inicial da funcionalidade de controle de alterações/marcas de revisão.
-        <br><br>
-        <sl-switch id="chk-nao-mostrar-modal-novamente">Não mostrar mais essa mensagem</sl-switch>
-      `.concat(botoesHtml);
-      document.body.appendChild(dialog);
-      dialog.show();
-
-      dialog.addEventListener('sl-request-close', (event: any) => {
-        if (event.detail.source === 'overlay') {
-          event.preventDefault();
-        }
-      });
-
-      const chkNaoMostrarNovamente = dialog.querySelector('#chk-nao-mostrar-modal-novamente') as any;
-      chkNaoMostrarNovamente?.addEventListener('sl-change', () => {
-        this.salvaNoNavegadorOpcaoNaoMostrarNovamente();
-      });
-
-      const closeButton = dialog.querySelector('#closeButton[slot="footer"]');
-      closeButton?.addEventListener('click', () => {
-        dialog.hide();
-        dialog.remove();
-      });
-    }
-  };
-
-  private salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
-    const checkbox = document.getElementById('chk-nao-mostrar-modal-novamente') as any;
-    if (checkbox) {
-      localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', checkbox.checked ? 'true' : 'false');
-    }
+  private checkedSwitchMarcaAlteracao = (): void => {
+    const switchMarcaAlteracaoView = document.getElementById(this._idSwitchRevisao) as any;
+    setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
   };
 
   private disabledParagrafoElementoRemovido = (event: StateEvent): void => {
