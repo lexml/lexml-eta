@@ -11,15 +11,18 @@ export const atualizaReferenciaEmRevisoesExclusao = (state: any, action: any): S
   elementos.forEach(e => {
     const revisao = findRevisaoByElementoUuid2(state.revisoes, e.uuid2) as RevisaoElemento;
 
-    const dImediatamenteAnterior = getDispositivoFromElemento(state.articulacao, e.elementoAnteriorNaSequenciaDeLeitura!)!;
+    if (isRevisaoPrincipal(revisao)) {
+      let posicao = revisao.elementoAposRevisao.hierarquia!.posicao;
 
-    if (isRevisaoPrincipal(revisao) && dImediatamenteAnterior) {
-      const dAnteriorMesmoTipo =
-        dImediatamenteAnterior.tipo === revisao.elementoAposRevisao.tipo
-          ? dImediatamenteAnterior
-          : getDispositivoAnteriorNaSequenciaDeLeitura(dImediatamenteAnterior, (disp: Dispositivo) => disp.tipo === revisao.elementoAposRevisao.tipo);
+      const dImediatamenteAnterior = getDispositivoFromElemento(state.articulacao, e.elementoAnteriorNaSequenciaDeLeitura!)!;
+      if (dImediatamenteAnterior) {
+        const dAnteriorMesmoTipo =
+          dImediatamenteAnterior.tipo === revisao.elementoAposRevisao.tipo
+            ? dImediatamenteAnterior
+            : getDispositivoAnteriorNaSequenciaDeLeitura(dImediatamenteAnterior, (disp: Dispositivo) => disp.tipo === revisao.elementoAposRevisao.tipo);
 
-      const posicao = getPosicaoDispositivo(state.articulacao, dAnteriorMesmoTipo!) + 1;
+        posicao = getPosicaoDispositivo(state.articulacao, dAnteriorMesmoTipo!) + 1;
+      }
 
       revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = e.elementoAnteriorNaSequenciaDeLeitura;
       revisao.elementoAposRevisao.hierarquia!.posicao = posicao;

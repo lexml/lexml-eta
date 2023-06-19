@@ -745,6 +745,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementosIncluidos.forEach(elemento => {
       const linha = this.quill.getLinha(elemento.uuid!)!;
       if (linha.next?.isLinhaComMarcacaoDeExclusao()) {
+        // passa o elemento da revisão de exclusão já com o novo valor do elemento anterior na sequência de leitura
         const e = { ...linha.next.elemento, elementoAnteriorNaSequenciaDeLeitura: { ...elemento } };
         map.set(e.uuid2!, e);
       }

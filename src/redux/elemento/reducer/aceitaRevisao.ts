@@ -27,6 +27,12 @@ export const aceitaRevisao = (state: any, action: any): State => {
     events.push({ stateType: StateType.ElementoValidado, elementos: elementosValidados });
   }
 
+  const revisoes = state.revisoes.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id));
+  if (isRevisaoDeExclusao(revisao)) {
+    // Se está aceitando uma revisão de exclusão, é preciso atualizar os elementos de outras revisões de exclusão que referenciam o elemento REALMENTE excluído durante a aceitação
+    atualizaReferenciaEmRevisoesExclusaoAposAceitacao(revisoes, revisoesAssociadas);
+  }
+
   return {
     ...state,
     past: buildPast(state, events),
@@ -38,4 +44,15 @@ export const aceitaRevisao = (state: any, action: any): State => {
     },
     revisoes: state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id)),
   };
+};
+
+const atualizaReferenciaEmRevisoesExclusaoAposAceitacao = (revisoes: Revisao[], revisoesAssociadas: RevisaoElemento[]): void => {
+  const revisaoPrincipal = revisoesAssociadas[0];
+  const ultimaRevisao = revisoesAssociadas[revisoesAssociadas.length - 1];
+
+  const revisao = revisoes.find(r => (r as RevisaoElemento).elementoAposRevisao?.elementoAnteriorNaSequenciaDeLeitura?.uuid === ultimaRevisao.elementoAposRevisao.uuid);
+  if (revisao) {
+    (revisao as RevisaoElemento).elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = revisaoPrincipal.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura;
+    (revisao as RevisaoElemento).elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = revisaoPrincipal.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura;
+  }
 };
