@@ -20,8 +20,9 @@ const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): b
 
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const textoOriginal = dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto;
   const textoAtual = action.atual?.conteudo?.texto;
-  const dispositivoOriginalNovamente = dispositivo && dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto === textoAtual;
+  const dispositivoOriginalNovamente = dispositivo && textoOriginal === textoAtual;
 
   if (dispositivo === undefined || dispositivo.texto === textoAtual) {
     state.ui.events = [];
@@ -54,7 +55,10 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
   eventosUi.add(StateType.ElementoSelecionado, [elemento]);
-  eventosUi.add(StateType.ElementoMarcado, [elemento]);
+
+  if (textoAtual === '') {
+    eventosUi.add(StateType.ElementoMarcado, [elemento]);
+  }
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
