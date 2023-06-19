@@ -58,10 +58,8 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
   }
 
   stateChanged(state: any): void {
-    if (state.elementoReducer.ui) {
-      if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
-        this.processarStateEvents(state.elementoReducer.ui.events);
-      }
+    if (state.elementoReducer.ui?.events) {
+      this.processarStateEvents(state.elementoReducer.ui.events);
     }
   }
 
@@ -69,12 +67,11 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.RevisaoAtivada:
-          this.checkedSwitchMarcaAlteracao();
-          break;
         case StateType.RevisaoDesativada:
           this.checkedSwitchMarcaAlteracao();
           break;
       }
+      this.atualizaQuantidadeRevisao();
     });
   }
 
