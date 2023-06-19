@@ -1,8 +1,8 @@
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
-import { REMOVER_ELEMENTO } from '../../model/lexml/acao/removerElementoAction';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { RevisaoElemento } from '../../model/revisao/revisao';
+import { isRevisaoDeExclusao, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaBlot } from './eta-blot';
 
 export class EtaBlotRotulo extends EtaBlot {
@@ -125,7 +125,7 @@ export class EtaBlotRotulo extends EtaBlot {
 
   private static isRevisaoPrincipalDeExclusaoDeDispositivo(elemento: Elemento): boolean {
     const r = elemento.revisao as RevisaoElemento;
-    return !r?.idRevisaoElementoPrincipal && r.actionType === REMOVER_ELEMENTO;
+    return isRevisaoPrincipal(r) && isRevisaoDeExclusao(r);
   }
 }
 

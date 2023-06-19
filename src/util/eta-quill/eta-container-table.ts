@@ -235,6 +235,15 @@ export class EtaContainerTable extends Container {
     return parseInt(this.id.substr(7), 0);
   }
 
+  private _uuid2: string;
+  set uuid2(uuid2: string) {
+    this._uuid2 = uuid2;
+  }
+
+  get uuid2(): string {
+    return this._uuid2;
+  }
+
   private _lexmlId: string;
   set lexmlId(lexmlId: string) {
     this._lexmlId = lexmlId;
@@ -319,6 +328,7 @@ export class EtaContainerTable extends Container {
     this.elemento = elemento;
 
     this._lexmlId = elemento.lexmlId ?? '';
+    this._uuid2 = elemento.uuid2 ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
     this._numero = elemento.numero ?? '';
@@ -337,6 +347,7 @@ export class EtaContainerTable extends Container {
     super(EtaContainerTable.create(elemento));
     this.elemento = elemento;
     this._lexmlId = elemento.lexmlId ?? '';
+    this._uuid2 = elemento.uuid2 ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
     this._numero = elemento.numero ?? '';

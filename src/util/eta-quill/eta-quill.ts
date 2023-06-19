@@ -182,6 +182,17 @@ export class EtaQuill extends Quill {
     return this.scroll.children.tail;
   }
 
+  getLinhaByUuid2(uuid2: string, linha: EtaContainerTable = this.getPrimeiraLinha()): EtaContainerTable | undefined {
+    if (linha.uuid2 === uuid2) {
+      return linha;
+    }
+    if (linha.next) {
+      return this.getLinhaByUuid2(uuid2, linha.next);
+    } else {
+      return undefined;
+    }
+  }
+
   getLinha(uuid: number, linha: EtaContainerTable = this.getPrimeiraLinha()): EtaContainerTable | undefined {
     if (linha.uuid === uuid) {
       return linha;

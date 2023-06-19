@@ -3,7 +3,7 @@ import { isOriginal, isModificado } from './../../../src/model/lexml/hierarquia/
 import { REJEITAR_REVISAO } from './../../../src/model/lexml/acao/rejeitarRevisaoAction';
 import { isArticulacao } from '../../../src/model/dispositivo/tipo';
 import { getDispositivoAndFilhosAsLista, isAdicionado, isSuprimido, buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
-import { isRevisaoPrincipal, findRevisaoByElementoLexmlId } from '../../../src/redux/elemento/util/revisaoUtil';
+import { isRevisaoPrincipal, findRevisaoByElementoLexmlId, findRevisaoByElementoUuid2 } from '../../../src/redux/elemento/util/revisaoUtil';
 import { State, StateType } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { expect } from '@open-wc/testing';
@@ -22,9 +22,12 @@ import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicar
 import { EMENDA_005 } from '../../doc/emendas/emenda-005';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
+import { ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO } from '../../../src/model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
 
 let state: State;
 let aux: any;
+let uuid2_alineaA: string;
+let uuid2_alineaB: string;
 
 describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
@@ -216,6 +219,21 @@ describe('Carregando texto da MPV 905/2019', () => {
       expect(dispositivos.length).to.be.equal(7);
     });
 
+    it('Deveria possuir alínea "art1_par1u_inc1-1_ali1" com texto "teste B:"', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+      expect(dispositivo.filhos[0].texto).to.be.equal('teste B:');
+    });
+
+    it('Deveria possuir alínea "art1_par1u_inc1-1_ali2" com texto "teste E;"', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+      expect(dispositivo.filhos[1].texto).to.be.equal('teste E;');
+    });
+
+    it('Deveria possuir alínea "art1_par1u_inc1-1_ali3" com texto "teste F;"', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+      expect(dispositivo.filhos[2].texto).to.be.equal('teste F;');
+    });
+
     describe('Ativando revisão', () => {
       beforeEach(function () {
         state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
@@ -223,6 +241,207 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       it('Deveria estar em revisão', () => {
         expect(state.emRevisao).to.be.true;
+      });
+
+      describe('Removendo alíneas "art1_par1u_inc1-1_ali2" (b) e "art1_par1u_inc1-1_ali1" (a), nessa ordem', () => {
+        beforeEach(function () {
+          uuid2_alineaA = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!.uuid2!;
+          uuid2_alineaB = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali2')!.uuid2!;
+
+          let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali2')!;
+          state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+
+          d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+          state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+        });
+
+        it('Deveria possuir 2 revisões principais e 2 não principais', () => {
+          expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
+          expect(state.revisoes?.filter(r => !isRevisaoPrincipal(r)).length).to.be.equal(2);
+        });
+
+        it('Deveria possuir revisões de exclusão para os elementos "art1_par1u_inc1-1_ali1" e "art1_par1u_inc1-1_ali2"', () => {
+          const revisoes = state.revisoes!.filter(isRevisaoPrincipal).map(r => r as RevisaoElemento);
+          expect(revisoes[0].elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc1-1_ali2');
+          expect(revisoes[1].elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc1-1_ali1');
+
+          expect(revisoes[0].elementoAposRevisao.uuid2).to.be.equal(uuid2_alineaB);
+          expect(revisoes[1].elementoAposRevisao.uuid2).to.be.equal(uuid2_alineaA);
+        });
+
+        it('Deveria possuir inciso "I-1" com 1 alínea com texto "teste F;" (texto do dispositivo que era alínea "c", originalmente', () => {
+          const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          expect(dispositivo.filhos.length).to.be.equal(1);
+          expect(dispositivo.filhos[0].texto).to.be.equal('teste F;');
+        });
+
+        describe('Rejeitando a revisão de exclusão da alínea "art1_par1u_inc1-1_ali1"', () => {
+          beforeEach(function () {
+            const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaA)!;
+            state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
+
+            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
+            const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
+            state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
+          });
+
+          it('Deveria possuir 1 revisão', () => {
+            expect(state.revisoes?.length).to.be.equal(1);
+          });
+
+          it('Deveria possuir inciso "I-1" com 2 filhos', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+            expect(dispositivo.filhos.length).to.be.equal(2);
+          });
+
+          it('Deveria possuir alínea "art1_par1u_inc1-1_ali1" com 2 itens', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            expect(dispositivo.filhos.length).to.be.equal(2);
+          });
+
+          it('Deveria possuir a atual alínea "art1_par1u_inc1-1_ali1" com texto "teste B:"', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            expect(dispositivo.texto).to.be.equal('teste B:');
+          });
+
+          it('Deveria possuir a atual alínea "art1_par1u_inc1-1_ali2" com texto "teste F;"', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali2')!;
+            expect(dispositivo.texto).to.be.equal('teste F;');
+          });
+
+          describe('Rejeitando a revisão de exclusão da alínea "art1_par1u_inc1-1_ali2" (originalmente)', () => {
+            beforeEach(function () {
+              const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
+              state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
+            });
+
+            it('Deveria não possuir revisão', () => {
+              expect(state.revisoes?.length).to.be.equal(0);
+            });
+
+            it('Deveria possuir inciso "I-1" com 3 filhos', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos.length).to.be.equal(3);
+            });
+
+            it('Deveria possuir alínea "art1_par1u_inc1-1_ali1" com texto "teste B:"', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos[0].texto).to.be.equal('teste B:');
+            });
+
+            it('Deveria possuir alínea "art1_par1u_inc1-1_ali2" com texto "teste E;"', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos[1].texto).to.be.equal('teste E;');
+            });
+
+            it('Deveria possuir alínea "art1_par1u_inc1-1_ali3" com texto "teste F;"', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos[2].texto).to.be.equal('teste F;');
+            });
+          });
+        });
+        /////////////////////////
+      });
+
+      describe('Removendo alíneas "art1_par1u_inc1-1_ali1" (a) e "art1_par1u_inc1-1_ali2" (b), nessa ordem', () => {
+        beforeEach(function () {
+          uuid2_alineaA = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!.uuid2!;
+          uuid2_alineaB = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali2')!.uuid2!;
+
+          let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+          state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+
+          d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!; // A alínea B (ali2) passou a ser a alínea A (ali1)
+          state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+        });
+
+        it('Deveria possuir 2 revisões principais e 2 não principais', () => {
+          expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
+          expect(state.revisoes?.filter(r => !isRevisaoPrincipal(r)).length).to.be.equal(2);
+        });
+
+        it('Deveria possuir revisões de exclusão para os elementos "art1_par1u_inc1-1_ali1" e "art1_par1u_inc1-1_ali2"', () => {
+          const revisoes = state.revisoes!.filter(isRevisaoPrincipal).map(r => r as RevisaoElemento);
+          expect(revisoes[0].elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc1-1_ali1');
+          expect(revisoes[1].elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc1-1_ali1');
+
+          expect(revisoes[0].elementoAposRevisao.uuid2).to.be.equal(uuid2_alineaA);
+          expect(revisoes[1].elementoAposRevisao.uuid2).to.be.equal(uuid2_alineaB);
+        });
+
+        it('Deveria possuir inciso "I-1" com 1 alínea com texto "teste F;" (texto do dispositivo que era alínea "c", originalmente', () => {
+          const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          expect(dispositivo.filhos.length).to.be.equal(1);
+          expect(dispositivo.filhos[0].texto).to.be.equal('teste F;');
+        });
+
+        describe('Rejeitando a revisão de exclusão da alínea "art1_par1u_inc1-1_ali1"', () => {
+          beforeEach(function () {
+            const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaA)!;
+            state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
+
+            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
+            const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
+            state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
+          });
+
+          it('Deveria possuir 1 revisão', () => {
+            expect(state.revisoes?.length).to.be.equal(1);
+          });
+
+          it('Deveria possuir inciso "I-1" com 2 filhos', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+            expect(dispositivo.filhos.length).to.be.equal(2);
+          });
+
+          it('Deveria possuir alínea "art1_par1u_inc1-1_ali1" com 2 itens', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            expect(dispositivo.filhos.length).to.be.equal(2);
+          });
+
+          it('Deveria possuir a atual alínea "art1_par1u_inc1-1_ali1" com texto "teste B:"', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            expect(dispositivo.texto).to.be.equal('teste B:');
+          });
+
+          it('Deveria possuir a atual alínea "art1_par1u_inc1-1_ali2" com texto "teste F;"', () => {
+            const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali2')!;
+            expect(dispositivo.texto).to.be.equal('teste F;');
+          });
+
+          describe('Rejeitando a revisão de exclusão da alínea "art1_par1u_inc1-1_ali2" (originalmente)', () => {
+            beforeEach(function () {
+              const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
+              state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
+            });
+
+            it('Deveria não possuir revisão', () => {
+              expect(state.revisoes?.length).to.be.equal(0);
+            });
+
+            it('Deveria possuir inciso "I-1" com 3 filhos', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos.length).to.be.equal(3);
+            });
+
+            it('Deveria possuir alínea "art1_par1u_inc1-1_ali1" com texto "teste B:"', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos[0].texto).to.be.equal('teste B:');
+            });
+
+            it('Deveria possuir alínea "art1_par1u_inc1-1_ali2" com texto "teste E;"', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos[1].texto).to.be.equal('teste E;');
+            });
+
+            it('Deveria possuir alínea "art1_par1u_inc1-1_ali3" com texto "teste F;"', () => {
+              const dispositivo = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(dispositivo.filhos[2].texto).to.be.equal('teste F;');
+            });
+          });
+        });
       });
 
       describe('Movendo alínea "art1_par1u_inc1-1_ali1" para baixo', () => {

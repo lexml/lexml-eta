@@ -995,3 +995,26 @@ export const isEmendaArtigoOndeCouber = (referencia: Dispositivo): boolean => {
     d => (d.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER
   );
 };
+
+export const findDispositivoByUuid2 = (dispositivo: Dispositivo, uuid2: string): Dispositivo | null => {
+  if (!uuid2) {
+    throw new Error('uuid não foi informado');
+  }
+  return getDispositivoByUuid2(dispositivo, uuid2);
+};
+
+export function getDispositivoByUuid2(dispositivo: Dispositivo, uuid2: string): Dispositivo | Articulacao | null {
+  if (dispositivo.uuid2 === uuid2) {
+    return dispositivo;
+  } else if (dispositivo.filhos !== null) {
+    let result: any = null;
+
+    const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
+
+    for (let i = 0; result === null && i < filhos.length; i++) {
+      result = getDispositivoByUuid2(filhos[i], uuid2);
+    }
+    return result;
+  }
+  return null;
+}

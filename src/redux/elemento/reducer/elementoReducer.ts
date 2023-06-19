@@ -74,6 +74,8 @@ import { ACEITAR_REVISAO } from '../../../model/lexml/acao/aceitarRevisaoAction'
 import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 import { aceitaRevisao } from './aceitaRevisao';
 import { rejeitaRevisao } from './rejeitaRevisao';
+import { ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO } from '../../../model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
+import { atualizaReferenciaEmRevisoesExclusao } from './atualizaReferenciaEmRevisoesExclusao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -81,7 +83,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   let usuario = (state as State).usuario;
   let actionType = action.type;
   let emRevisao = (state as State).emRevisao;
-  let revisoes = (state as State).revisoes || [];
+  const revisoes = (state as State).revisoes || [];
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
 
   switch (action.type) {
@@ -96,6 +98,7 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case APLICAR_ALTERACOES_EMENDA:
       tempState = aplicaAlteracoesEmenda(state, action);
+      emRevisao = tempState.emRevisao;
       break;
     case ASSISTENTE_ALTERACAO:
       tempState = adicionaAlteracaoComAssistente(state, action);
@@ -196,11 +199,12 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ACEITAR_REVISAO:
       tempState = aceitaRevisao(state, action);
-      revisoes = tempState.revisoes!;
       break;
     case REJEITAR_REVISAO:
       tempState = rejeitaRevisao(state, action);
-      revisoes = tempState.revisoes!;
+      break;
+    case ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO:
+      tempState = atualizaReferenciaEmRevisoesExclusao(state, action);
       break;
     default:
       actionType = undefined;
@@ -208,7 +212,7 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
   }
 
-  if (actionType !== ABRIR_ARTICULACAO && !isRedoDeRevisaoAceita(actionType, tempState)) {
+  if (![ABRIR_ARTICULACAO, APLICAR_ALTERACOES_EMENDA, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) && !isRedoDeRevisaoAceita(actionType, tempState)) {
     tempState.revisoes = revisoes;
   }
 
@@ -221,5 +225,5 @@ export const elementoReducer = (state = {}, action: any): any => {
 };
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {
-  return actionType === REDO && !!state.ui?.events.every(event => event.stateType === StateType.RevisaoAceita);
+  return actionType === REDO && !!state.ui?.events.some(event => event.stateType === StateType.RevisaoAceita);
 };

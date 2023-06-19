@@ -6,10 +6,12 @@ import { Revisao } from '../revisao/revisao';
 export class Referencia {
   tipo?: string;
   uuid?: number;
+  uuid2?: string;
   lexmlId?: string;
   conteudo?: Partial<Conteudo>;
   descricaoSituacao?: string;
   uuidAlteracao?: number;
+  uuid2Alteracao?: string;
   existeNaNormaAlterada?: boolean;
 }
 export class Elemento extends Referencia {
@@ -41,9 +43,4 @@ export class Elemento extends Referencia {
   artigoDefinido?: string;
   elementoAnteriorNaSequenciaDeLeitura?: Elemento;
   revisao?: Revisao;
-}
-
-export interface LocalizadorElemento {
-  uuid: number;
-  lexmlId?: string;
 }

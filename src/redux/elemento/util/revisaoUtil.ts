@@ -34,6 +34,10 @@ export const findRevisaoByElementoUuid = (revisoes: Revisao[] = [], uuid = 0): R
   return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid === uuid);
 };
 
+export const findRevisaoByElementoUuid2 = (revisoes: Revisao[] = [], uuid2 = ''): RevisaoElemento | undefined => {
+  return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid2 === uuid2);
+};
+
 export const findRevisaoByElementoLexmlId = (revisoes: Revisao[] = [], lexmlId = '?'): RevisaoElemento | undefined => {
   return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.lexmlId === lexmlId);
 };
@@ -41,17 +45,6 @@ export const findRevisaoByElementoLexmlId = (revisoes: Revisao[] = [], lexmlId =
 export const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: Elemento[]): boolean => {
   const revisoesElemento = getRevisoesElemento(revisoes);
   return elementos.every(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
-};
-
-export const montarListaDeRevisoesParaRemover = (state: State, revisao: Revisao): Revisao[] => {
-  const result = [revisao];
-  if (revisao.idsRevisoesAssociadas.length) {
-    revisao.idsRevisoesAssociadas.forEach(id => {
-      const revisaoAssociada = findRevisaoById(state.revisoes, id);
-      revisaoAssociada && result.push(revisaoAssociada);
-    });
-  }
-  return result;
 };
 
 export const identificarRevisaoElementoPai = (state: State): Revisao[] => {
@@ -160,24 +153,62 @@ export const getElementosFromRevisoes = (revisoes: Revisao[] = [], state?: State
 
 export const isRevisaoElemento = (revisao: Revisao): boolean => 'elementoAposRevisao' in revisao;
 
+export const existeFilhoExcluidoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
+  if (!state.revisoes?.length) {
+    return false;
+  }
+  const uuids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.uuid);
+  return state.revisoes
+    .filter(r => isRevisaoElemento(r) && isRevisaoDeExclusao(r as RevisaoElemento))
+    .map(r => r as RevisaoElemento)
+    .some(r => uuids.includes(r.elementoAntesRevisao?.uuid) || uuids.includes(r.elementoAntesRevisao?.hierarquia?.pai?.uuid));
+};
+
 export const existeFilhoExcluidoOuAlteradoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
   if (!state.revisoes?.length) {
     return false;
   }
-  const ids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.id);
+  const uuids = getDispositivoAndFilhosAsLista(dispositivo).map(d => d.uuid);
   return state.revisoes
     .filter(isRevisaoElemento)
     .map(r => r as RevisaoElemento)
-    .some(r => ids.includes(r.elementoAntesRevisao?.lexmlId));
+    .some(r => uuids.includes(r.elementoAntesRevisao?.uuid) || uuids.includes(r.elementoAntesRevisao?.hierarquia?.pai?.uuid));
 };
 
 export const isRevisaoPrincipal = (revisao: Revisao): boolean => isRevisaoElemento(revisao) && !(revisao as RevisaoElemento).idRevisaoElementoPrincipal;
 
-export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => (r as RevisaoElemento).stateType === StateType.ElementoRemovido);
+export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => isRevisaoDeExclusao(r as RevisaoElemento));
 
 export enum RevisaoJustificativaEnum {
   JustificativaAlterada = 'Justificativa Alterada',
 }
+
+export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
+  return revisoes.sort((r1, r2) => {
+    if (isRevisaoElemento(r1) && isRevisaoElemento(r2)) {
+      return (r1 as RevisaoElemento).elementoAposRevisao.uuid! - (r2 as RevisaoElemento).elementoAposRevisao.uuid!;
+    } else if (isRevisaoElemento(r1)) {
+      return 0;
+    } else if (isRevisaoElemento(r2)) {
+      return -1;
+    }
+    return 0;
+  });
+};
+
+export const isRevisaoDeExclusao = (revisao: RevisaoElemento): boolean => revisao.stateType === StateType.ElementoRemovido;
+
+export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefined): void => {
+  if (!elemento) {
+    return;
+  }
+
+  delete elemento.acoesPossiveis;
+  delete elemento.tiposAgrupadoresQuePodemSerInseridosAntes;
+  delete elemento.tiposAgrupadoresQuePodemSerInseridosDepois;
+
+  removeAtributosDoElemento(elemento.elementoAnteriorNaSequenciaDeLeitura);
+};
 
 export const getQuantidadeRevisoes = (rootStore: any): number => {
   const state = rootStore.getState().elementoReducer as any;

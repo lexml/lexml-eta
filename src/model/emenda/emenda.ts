@@ -1,3 +1,5 @@
+import { Revisao } from '../revisao/revisao';
+
 export class Emenda {
   // Metadados padronizados para o lexml-eta
   dataUltimaModificacao = new Date().toISOString();
@@ -17,6 +19,8 @@ export class Emenda {
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
+
+  revisoes: Revisao[] = [];
 }
 
 export type MetadadosEmenda = {
@@ -90,6 +94,7 @@ export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
   idPosicaoAgrupador?: string;
   existeNaNormaAlterada?: boolean;
   filhos?: Array<DispositivoEmendaAdicionado>;
+  uuid2?: string;
 }
 
 export class ComandoEmenda {

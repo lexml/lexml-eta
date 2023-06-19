@@ -4,19 +4,19 @@ Art. 1º .....
   Parágrafo único. .....
     I – .....
 
-    I-1 - teste:
-      a) teste:
-        1. teste;
-        2. teste;
-      b) teste;
-      c) teste;
-    I-2 - teste;
+    I-1 - teste A:
+      a) teste B:
+        1. teste C;
+        2. teste D;
+      b) teste E;
+      c) teste F;
+    I-2 - teste G;
 
     II – .....
     .....
 */
 export const EMENDA_005 = {
-  dataUltimaModificacao: '2023-06-03T14:50:41.004Z',
+  dataUltimaModificacao: '2023-06-13T23:44:55.580Z',
   aplicacao: '',
   versaoAplicacao: '',
   modoEdicao: 'emenda',
@@ -49,49 +49,56 @@ export const EMENDA_005 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-1',
+            uuid2: '8593d95a-6880-428b-a33b-85ff274ef617',
             rotulo: 'I-1 –',
-            texto: 'teste inciso I-1:',
+            texto: 'teste A :',
             idIrmaoAnterior: 'art1_par1u_inc1',
             filhos: [
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali1',
+                uuid2: 'b2754303-2fae-45a0-9d53-c76266c60abb',
                 rotulo: 'a)',
-                texto: 'teste alínea a:',
+                texto: 'teste B:',
                 filhos: [
                   {
                     tipo: 'Item',
                     id: 'art1_par1u_inc1-1_ali1_ite1',
+                    uuid2: 'b3db3b15-2c2a-4715-950f-56c2292f5063',
                     rotulo: '1.',
-                    texto: 'teste item 1;',
+                    texto: 'teste C;',
                   },
                   {
                     tipo: 'Item',
                     id: 'art1_par1u_inc1-1_ali1_ite2',
+                    uuid2: '5bced458-a089-48a3-a90e-864d68849f49',
                     rotulo: '2.',
-                    texto: 'teste item 2;',
+                    texto: 'teste D;',
                   },
                 ],
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali2',
+                uuid2: '589ed7cd-4040-449c-8c11-113bf43fc5ac',
                 rotulo: 'b)',
-                texto: 'teste alínea b;',
+                texto: 'teste E;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali3',
+                uuid2: 'd47f7530-f7fe-4e1b-80b0-9de876229082',
                 rotulo: 'c)',
-                texto: 'teste alínea c;',
+                texto: 'teste F;',
               },
             ],
           },
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-2',
+            uuid2: '269c1df1-a9e9-4ba5-bce9-fd281cedc2f6',
             rotulo: 'I-2 –',
-            texto: 'teste inciso I-2;',
+            texto: 'teste G;',
             idIrmaoAnterior: 'art1_par1u_inc1-1',
           },
         ],
@@ -111,7 +118,7 @@ export const EMENDA_005 = {
   },
   justificativa: '',
   local: 'Sala da comissão',
-  data: '2023-06-03',
+  data: '2023-06-13',
   autoria: {
     tipo: 'Parlamentar',
     imprimirPartidoUF: true,
@@ -125,4 +132,5 @@ export const EMENDA_005 = {
     reduzirEspacoEntreLinhas: false,
     tamanhoFonte: 14,
   },
+  revisoes: [],
 };

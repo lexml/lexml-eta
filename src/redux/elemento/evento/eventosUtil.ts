@@ -20,7 +20,7 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
-import { StateEvent, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
 
@@ -100,10 +100,18 @@ export const buildEventoTransformacaooElemento = (
   return eventos;
 };
 
-export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
+export const removeAndBuildEvents = (state: State, dispositivo: Dispositivo, elementoLinhaAnterior: Elemento | undefined): StateEvent[] => {
+  const articulacao = state.articulacao!;
   const removidos = getElementos(dispositivo, false, true);
   const dispositivosRenumerados = listaDispositivosRenumerados(dispositivo);
   const dispositivoAnterior = getDispositivoAnterior(dispositivo);
+
+  // O elemento anterior no Quill pode ser diferente do elemento anterior na articulação
+  // Isso ocorre quando o elemento anterior, no Quill, foi excluído em modo de revisão (não está mais na articulação, porém está no Quill)
+  // Nesse caso, o elemento anterior na articulação é o elemento anterior do elemento anterior no Quill
+  if (state.emRevisao && elementoLinhaAnterior && removidos[0].elementoAnteriorNaSequenciaDeLeitura?.uuid2 !== elementoLinhaAnterior.uuid2) {
+    removidos[0].elementoAnteriorNaSequenciaDeLeitura = elementoLinhaAnterior;
+  }
 
   const ehDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 

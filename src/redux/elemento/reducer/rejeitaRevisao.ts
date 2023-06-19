@@ -1,5 +1,7 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
+import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { getDispositivoAndFilhosAsLista, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getElementosRemovidosEIncluidos } from '../evento/eventosUtil';
@@ -85,6 +87,29 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   const evento: StateEvent = { stateType: StateType.ElementoRemovido, elementos: revisoesAssociadas.map(r => r.elementoAntesRevisao as Elemento) };
   const eventoAux: StateEvent = { stateType: StateType.ElementoIncluido, elementos: [] };
   const result: StateEvent[] = [{ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) }];
+
+  result.push({ stateType: StateType.ElementoRenumerado, elementos: montarListaElementosRenumerados(state, result[0].elementos!) });
+
   result.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosAlteracaoASeremAtualizados(state.articulacao!, getElementosRemovidosEIncluidos(result)) });
+  return result;
+};
+
+const montarListaElementosRenumerados = (state: State, elementos: Elemento[]): Elemento[] => {
+  const result: Elemento[] = [];
+  const map = new Map<number, Elemento>();
+
+  elementos.forEach(elemento => {
+    if (!map.has(elemento.uuid!) || !map.has(elemento.hierarquia!.pai!.uuid!)) {
+      const dispositivos = getDispositivoAndFilhosAsLista(getDispositivoFromElemento(state.articulacao!, elemento)!.pai!);
+      dispositivos.filter(isAdicionado).forEach(dispositivo => {
+        if (!map.has(dispositivo.uuid!)) {
+          const e = createElemento(dispositivo);
+          map.set(dispositivo.uuid!, e);
+          result.push(e);
+        }
+      });
+    }
+  });
+
   return result;
 };
