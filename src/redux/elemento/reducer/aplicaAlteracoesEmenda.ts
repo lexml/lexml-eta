@@ -42,6 +42,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     },
     revisoes: [],
     emRevisao: state.emRevisao,
+    numEventosPassadosAntesDaRevisao: 0,
   };
 
   const eventos = new Eventos();
