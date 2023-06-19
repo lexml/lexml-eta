@@ -192,6 +192,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           </button>
 
           <lexml-switch-revisao
+          class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
           >

@@ -90,7 +90,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         #revisoes-justificativa-icon sl-icon {
           border: 1px solid #ccc !important;
           padding: 5px 5px !important;
-          border-radius: 15px !important;          
+          border-radius: 15px !important;
           font-weight: bold;
           background-color: #eee;
           cursor: pointer;
@@ -111,7 +111,10 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         #chk-em-revisao-justificativa[checked] {
           background-color: var(--sl-color-blue-100);
         }
-        #revisao-div {
+        #toolbar {
+          padding: 1.5px 0 1.5px 8px;
+        }
+        revisao-container {
           margin-left: auto;
         }
         @media (max-width: 768px) {
@@ -155,16 +158,17 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         <span class="ql-formats">
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
-         
+
         <!-- <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon> -->
-          
+
         <!--
         <sl-switch id="chk-em-revisao-justificativa" size="small" @sl-change=${(): void =>
-          this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao-justificativa" variant="warning" pill>0</sl-badge>          
-        </sl-switch> 
+          this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao-justificativa" variant="warning" pill>0</sl-badge>
+        </sl-switch>
         -->
 
         <lexml-switch-revisao
+          class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
           >
@@ -177,7 +181,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           </div>
           <sl-icon name="exclamation-octagon" title=""></sl-icon>
         </sl-tooltip>
-        
+
         <sl-icon-button
           id="aceita-revisao-justificativa"
           name="check-lg"

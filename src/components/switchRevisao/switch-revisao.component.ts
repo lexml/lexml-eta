@@ -56,10 +56,10 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
         #chk-em-revisao[checked] {
           background-color: var(--sl-color-blue-100);
         }
-        #revisao-div {
+        .revisao-container {
           margin-left: auto;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
           .mobile-buttons {
             display: inline-block !important;
           }
