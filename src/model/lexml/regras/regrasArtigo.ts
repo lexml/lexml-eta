@@ -98,7 +98,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(InformarDadosAssistenteAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo) && !isOmissis(dispositivo)) {
         acoes.push(renumerarElementoAction);
       }
       if (dispositivo.alteracoes && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
