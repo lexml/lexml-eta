@@ -40,6 +40,8 @@ const jaExisteRevisaoUsuarioAtual = (state: State): boolean => {
   const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome && r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
 
   if (revisoesUsuarioAtual!.length > 0) {
+    const revisaoDataHoraModificada = revisoesUsuarioAtual![0];
+    revisaoDataHoraModificada.dataHora = formatDateTime(new Date());
     return true;
   }
   return false;
