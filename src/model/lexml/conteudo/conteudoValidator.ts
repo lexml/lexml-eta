@@ -31,22 +31,13 @@ const hasCitacaoAoFinalFrase = (texto: string): boolean => {
 export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
   if (!isArticulacao(dispositivo) && (!dispositivo.texto || dispositivo.texto.trim().length === 0)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Não foi informado um texto para ${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Não foi informado um texto para ${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`);
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && endsWithPunctuation(dispositivo.texto)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Não pode haver sinal de pontuação ao final do texto d${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Não pode haver sinal de pontuação ao final do texto d${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`);
   }
   if (!isArticulacao(dispositivo) && containsTags(dispositivo.texto)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Texto d${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()} não pode possuir formatação.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Texto d${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()} não pode possuir formatação.`);
   }
   return mensagens;
 };
@@ -58,30 +49,18 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   // validações comuns a dispositivos de texto
   //
   if ((!isArticulacao(dispositivo) && !dispositivo.texto) || dispositivo.texto.trim().length === 0) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Não foi informado um texto para ${dispositivo.artigoDefinido + ' ' + dispositivo.descricao?.toLowerCase()}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Não foi informado um texto para ${dispositivo.artigoDefinido + ' ' + dispositivo.descricao?.toLowerCase()}.`);
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && !isValidHTML(dispositivo.texto)) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: 'O conteúdo do dispositivo não é um HTML válido.',
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, 'O conteúdo do dispositivo não é um HTML válido.');
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && dispositivo.texto.trim().length > 500) {
-    mensagens.push({
-      tipo: TipoMensagem.WARNING,
-      descricao: `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas.`,
-    });
+    addMensagem(mensagens, TipoMensagem.WARNING, `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas.`);
   }
 
   // Verifica se o texto tem r$ (com letra minuscula)
   if (dispositivo.texto && dispositivo.texto.indexOf('r$') !== -1) {
-    mensagens.push({
-      tipo: TipoMensagem.WARNING,
-      descricao: `O texto do dispositivo possui r$ (real brasileiro) com letra minúscula. Deveria ser R$ com letra maiúscula.`,
-    });
+    addMensagem(mensagens, TipoMensagem.WARNING, `O texto do dispositivo possui r$ (real brasileiro) com letra minúscula. Deveria ser R$ com letra maiúscula.`);
   }
 
   //
@@ -94,10 +73,11 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     /^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto)) &&
     dispositivo.texto.indexOf('R$') !== 0
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.WARNING,
-      descricao: `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.`,
-    });
+    addMensagem(
+      mensagens,
+      TipoMensagem.WARNING,
+      `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.`
+    );
   }
 
   if (
@@ -112,10 +92,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.INDICADOR_SEQUENCIA !== undefined &&
     !hasIndicativoContinuacaoSequencia(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ponto e vírgula.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ponto e vírgula.`);
   }
 
   //
@@ -129,10 +106,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !/^[...]{3,}/.test(dispositivo.texto) &&
     !/^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria iniciar com letra maiúscula.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria iniciar com letra maiúscula.`);
   }
 
   //
@@ -150,10 +124,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
   }
 
   // dispositivos de artigo
@@ -167,10 +138,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isUltimaEnumeracao(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
   }
 
   // Artigo e Parágrafo
@@ -185,10 +153,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasCitacaoAoFinalFrase(dispositivo.texto)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}.`);
   }
 
   // Artigo
@@ -203,10 +168,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasIndicativoDesdobramento(dispositivo) &&
     !hasIndicativoInicioAlteracao(dispositivo.texto)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
   }
   if (
     !isDispositivoAlteracao(dispositivo) &&
@@ -219,10 +181,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isDispositivoCabecaAlteracao(dispositivo) &&
     hasIndicativoDesdobramento(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}.`);
   }
 
   if (
@@ -235,18 +194,11 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !dispositivo.hasAlteracao() &&
     hasIndicativoDesdobramento(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria informar alterações propostas.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria informar alterações propostas.`);
   }
 
   if (!isDispositivoAlteracao(dispositivo) && isArtigo(dispositivo) && dispositivo.hasAlteracao() && !dispositivo.alteracoes?.base) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: AutoFix.INFORMAR_NORMA,
-      fix: true,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, AutoFix.INFORMAR_NORMA, true);
   }
 
   //
@@ -263,10 +215,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     hasFilhos(dispositivo) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
   }
 
   if (
@@ -280,10 +229,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     hasFilhos((dispositivo as Artigo).caput!) &&
     !hasIndicativoDesdobramento(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
   }
 
   if (
@@ -296,10 +242,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     hasIndicativoDesdobramento(dispositivo) &&
     ((isArtigo(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!)) || !hasFilhos(dispositivo))
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} não deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} não deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
   }
 
   if (
@@ -314,10 +257,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     (!getDispositivoPosterior(dispositivo) || !isOmissis(getDispositivoPosterior(dispositivo)!))
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_SEQUENCIA!)}.`);
   }
 
   if (
@@ -327,10 +267,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.filhos.length === 0 &&
     (dispositivo.texto === TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO || dispositivo.texto.indexOf(TEXTO_OMISSIS) >= 0)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Não foi informada nenhuma alteração.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Não foi informada nenhuma alteração.`);
   }
 
   if (
@@ -348,13 +285,21 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo)
   ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`,
-    });
+    addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
   }
 
   return [...new Set(mensagens)];
+};
+
+const addMensagem = (mensagens: Mensagem[], tipo: TipoMensagem, descricao: string | AutoFix, fix?: boolean): void => {
+  const existe = mensagens.filter(m => m.descricao === descricao).length > 0;
+  if (!existe) {
+    if (fix === undefined) {
+      mensagens.push({ tipo, descricao });
+    } else {
+      mensagens.push({ tipo, descricao, fix });
+    }
+  }
 };
 
 export const validaTexto = (dispositivo: Dispositivo): Mensagem[] => {
