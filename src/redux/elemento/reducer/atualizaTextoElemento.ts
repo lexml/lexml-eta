@@ -1,4 +1,3 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isTextoMaiusculo } from '../../../model/dispositivo/tipo';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -12,11 +11,11 @@ import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
 
-const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): boolean => {
-  const textoAtual = action.atual?.conteudo?.texto;
-  const textoOriginal = dispositivo.situacao.dispositivoOriginal?.conteudo?.texto;
-  return textoAtual !== dispositivo.texto && textoAtual !== textoOriginal;
-};
+// const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): boolean => {
+//   const textoAtual = action.atual?.conteudo?.texto;
+//   const textoOriginal = dispositivo.situacao.dispositivoOriginal?.conteudo?.texto;
+//   return textoAtual !== dispositivo.texto && textoAtual !== textoOriginal;
+// };
 
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -44,15 +43,15 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
 
-  if (houveAlteracaoNoTextoAposAcao(dispositivo, action)) {
-    eventosUi.add(StateType.ElementoModificado, [elemento]);
-  }
+  // if (houveAlteracaoNoTextoAposAcao(dispositivo, action)) {
+  //   eventosUi.add(StateType.ElementoModificado, [elemento]);
+  // }
 
   if (isTextoMaiusculo(dispositivo)) {
     dispositivo.texto = dispositivo.texto.toUpperCase();
   }
 
-  eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
+  eventosUi.add(StateType.ElementoModificado, [elemento]);
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
   if (textoAtual === '') {
