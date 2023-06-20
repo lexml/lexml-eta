@@ -54,11 +54,12 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
 
   eventosUi.add(StateType.SituacaoElementoModificada, [elemento]);
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
-  eventosUi.add(StateType.ElementoSelecionado, [elemento]);
 
   if (textoAtual === '') {
     eventosUi.add(StateType.ElementoMarcado, [elemento]);
   }
+
+  eventosUi.eventos.push({ stateType: StateType.ElementoSelecionado, elementos: [elemento] });
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
