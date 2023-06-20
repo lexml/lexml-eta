@@ -20,8 +20,8 @@ import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component'
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { isRevisaoElemento } from '../redux/elemento/util/revisaoUtil';
-import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
+import { ordernarRevisoes } from '../redux/elemento/util/revisaoUtil';
+import { Revisao } from '../model/revisao/revisao';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -130,10 +130,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private getRevisoes(): Revisao[] {
-    const revisoes = [...rootStore.getState().elementoReducer.revisoes];
-    return revisoes.sort((a, b) =>
-      isRevisaoElemento(a) && isRevisaoElemento(b) ? (a as RevisaoElemento).elementoAposRevisao.uuid! - (b as RevisaoElemento).elementoAposRevisao.uuid! : 1
-    );
+    return ordernarRevisoes(...rootStore.getState().elementoReducer.revisoes);
   }
 
   inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, usuario?: Usuario): void {

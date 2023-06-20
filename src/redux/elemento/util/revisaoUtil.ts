@@ -153,6 +153,8 @@ export const getElementosFromRevisoes = (revisoes: Revisao[] = [], state?: State
 
 export const isRevisaoElemento = (revisao: Revisao): boolean => 'elementoAposRevisao' in revisao;
 
+export const isRevisaoJustificativa = (revisao: Revisao): boolean => !isRevisaoElemento(revisao);
+
 export const existeFilhoExcluidoDuranteRevisao = (state: State, dispositivo: Dispositivo): boolean => {
   if (!state.revisoes?.length) {
     return false;
@@ -184,16 +186,16 @@ export enum RevisaoJustificativaEnum {
 }
 
 export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
-  return revisoes.sort((r1, r2) => {
-    if (isRevisaoElemento(r1) && isRevisaoElemento(r2)) {
-      return (r1 as RevisaoElemento).elementoAposRevisao.uuid! - (r2 as RevisaoElemento).elementoAposRevisao.uuid!;
-    } else if (isRevisaoElemento(r1)) {
-      return 0;
-    } else if (isRevisaoElemento(r2)) {
-      return -1;
-    }
-    return 0;
-  });
+  const result: Revisao[] = revisoes.filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento));
+  result.push(...getRevisoesDeExclusaoOrdenadasPorUuid(revisoes));
+  result.push(...revisoes.filter(isRevisaoJustificativa));
+  return result;
+};
+
+const getRevisoesDeExclusaoOrdenadasPorUuid = (revisoes: Revisao[] = []): Revisao[] => {
+  return revisoes
+    .filter(r => isRevisaoElemento(r) && isRevisaoDeExclusao(r as RevisaoElemento))
+    .sort((r1, r2) => (r1 as RevisaoElemento).elementoAposRevisao.uuid! - (r2 as RevisaoElemento).elementoAposRevisao.uuid!);
 };
 
 export const isRevisaoDeExclusao = (revisao: RevisaoElemento): boolean => revisao.stateType === StateType.ElementoRemovido;
