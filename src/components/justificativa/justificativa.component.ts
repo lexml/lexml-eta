@@ -189,7 +189,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         </lexml-switch-revisao>
         <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
           <div slot="content">
-            <div>Revisões Justificativa</div>
+            <div>Revisões na justificativa</div>
           </div>
           <sl-icon name="pencil-square"></sl-icon>
         </sl-tooltip>
@@ -295,11 +295,12 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
     // const contadorView = document.getElementById('revisoes-justificativa-icon') as any;
     // contadorView.setAttribute('title', this.getMensagemRevisaoJustificativa());
     const contentRevisoes = document.querySelector('#revisoes-justificativa-icon > div[slot=content]') as any;
-    contentRevisoes.innerHTML = this.getMensagemRevisaoJustificativa();
     const iconRevisoes = document.querySelector('#revisoes-justificativa-icon > sl-icon') as any;
     if (this.getRevisoesJustificativa().length !== 0) {
+      contentRevisoes.innerHTML = this.getMensagemRevisaoJustificativa();
       iconRevisoes.classList.add('revisoes-justificativa-icon__ativo');
     } else {
+      contentRevisoes.innerHTML = 'Revisões na justificativa';
       iconRevisoes.classList.remove('revisoes-justificativa-icon__ativo');
     }
   };
