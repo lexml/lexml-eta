@@ -87,6 +87,13 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         .ql-toolbar.ql-snow .ql-formats {
           margin-right: 8px;
         }
+
+        .revisoes-justificativa-icon__ativo {
+          color: white;
+          background-color: black !important;
+          border-color: black !important;
+        }
+
         #revisoes-justificativa-icon sl-icon {
           border: 1px solid #ccc !important;
           padding: 5px 5px !important;
@@ -114,9 +121,14 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         #toolbar {
           padding: 1.5px 0 1.5px 8px;
         }
+
+        #badge-marca-alteracao-justificativa::part(base) {
+          min-width: 1.4rem;
+        }
         revisao-container {
           margin-left: auto;
         }
+
         @media (max-width: 768px) {
           .mobile-buttons {
             display: inline-block !important;
@@ -179,7 +191,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           <div slot="content">
             <div>Revisões Justificativa</div>
           </div>
-          <sl-icon name="exclamation-octagon" title=""></sl-icon>
+          <sl-icon name="pencil-square"></sl-icon>
         </sl-tooltip>
 
         <sl-icon-button
@@ -284,6 +296,12 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
     // contadorView.setAttribute('title', this.getMensagemRevisaoJustificativa());
     const contentRevisoes = document.querySelector('#revisoes-justificativa-icon > div[slot=content]') as any;
     contentRevisoes.innerHTML = this.getMensagemRevisaoJustificativa();
+    const iconRevisoes = document.querySelector('#revisoes-justificativa-icon > sl-icon') as any;
+    if (this.getRevisoesJustificativa().length !== 0) {
+      iconRevisoes.classList.add('revisoes-justificativa-icon__ativo');
+    } else {
+      iconRevisoes.classList.remove('revisoes-justificativa-icon__ativo');
+    }
   };
 
   private getMensagemRevisaoJustificativa = (): string => {
