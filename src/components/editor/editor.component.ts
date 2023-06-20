@@ -64,7 +64,6 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -603,7 +602,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
       }
       this.quill.limparHistory();
-      this.disabledParagrafoElementoSuprimido(event);
     });
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
@@ -1197,19 +1195,4 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
     colarTextoArticuladoDialog(this.quill, rootStore, infoTextoColado, payload.range);
   }
-
-  private disabledParagrafoElementoSuprimido = (event: StateEvent): void => {
-    const elementos: Elemento[] = event.elementos ?? [];
-    elementos!.forEach((elemento: Elemento) => {
-      const paragrafo = document.getElementById('texto__dispositivo' + elemento.uuid) as any;
-
-      if (paragrafo) {
-        if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-          paragrafo.setAttribute('contenteditable', 'false');
-        } else {
-          paragrafo.setAttribute('contenteditable', 'true');
-        }
-      }
-    });
-  };
 }
