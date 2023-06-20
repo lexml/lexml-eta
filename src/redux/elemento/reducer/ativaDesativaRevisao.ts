@@ -8,7 +8,7 @@ export const ativaDesativaRevisao = (state: any): State => {
     return {
       ...retornaEstadoAtualComMensagem(state, {
         tipo: TipoMensagem.INFO,
-        descricao: 'É necessário resolver todas as marcas de revisão para desativar o modo de controle de alterações',
+        descricao: 'É necessário resolver todas as marcas de revisão (texto/justificativa) para desativar o modo de controle de alterações',
       }),
       emRevisao: true,
     };
