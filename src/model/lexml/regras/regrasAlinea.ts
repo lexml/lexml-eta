@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAlinea, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
-import { adicionarAlinea, adicionarAlineaAntes, adicionarAlineaDepois, adicionarItem } from '../acao/adicionarElementoAction';
+import { adicionarAlineaAntes, adicionarAlineaDepois, adicionarItemFilho } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
@@ -19,7 +19,6 @@ import {
   transformarAlineaEmIncisoParagrafo,
   transformarEmOmissisAlinea,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -73,11 +72,8 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(iniciarBlocoAlteracao);
       }
 
-      if (dispositivo.texto.length === 0 || hasIndicativoContinuacaoSequencia(dispositivo)) {
-        acoes.push(adicionarAlinea);
-      }
-      if (dispositivo.texto.length === 0 || hasIndicativoDesdobramento(dispositivo)) {
-        acoes.push(adicionarItem);
+      if (!isSuprimido(dispositivo)) {
+        acoes.push(adicionarItemFilho);
       }
       if (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) {
         acoes.push(isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput);

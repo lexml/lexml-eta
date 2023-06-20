@@ -3,7 +3,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isInciso, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
-import { adicionarAlinea, adicionarInciso, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
+import { adicionarAlineaFilho, adicionarElementoAction, adicionarIncisoAntes, adicionarIncisoDepois, adicionarParagrafo } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -22,7 +22,7 @@ import {
   transformarIncisoParagrafoEmAlinea,
   transformarIncisoParagrafoEmParagrafo,
 } from '../acao/transformarElementoAction';
-import { hasIndicativoContinuacaoSequencia, hasIndicativoDesdobramento, hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
+import { hasIndicativoFinalSequencia } from '../conteudo/conteudoUtil';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
@@ -50,7 +50,9 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         return [];
       }
 
+      acoes.push(adicionarElementoAction);
       acoes.push(removerElementoAction);
+
       if (!isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.numero !== '1') {
         acoes.push(adicionarIncisoAntes);
       }
@@ -74,11 +76,8 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(iniciarBlocoAlteracao);
       }
 
-      if (hasIndicativoDesdobramento(dispositivo)) {
-        acoes.push(adicionarAlinea);
-      }
-      if (hasIndicativoContinuacaoSequencia(dispositivo)) {
-        acoes.push(adicionarInciso);
+      if (!isSuprimido(dispositivo)) {
+        acoes.push(adicionarAlineaFilho);
       }
       if (hasIndicativoFinalSequencia(dispositivo) && isUltimoMesmoTipo(dispositivo)) {
         acoes.push(adicionarParagrafo);

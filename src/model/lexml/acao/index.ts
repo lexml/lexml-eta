@@ -5,6 +5,7 @@ import {
   adicionarAlinea,
   adicionarAlineaAntes,
   adicionarAlineaDepois,
+  adicionarAlineaFilho,
   adicionarArtigo,
   adicionarArtigoAntes,
   adicionarArtigoDepois,
@@ -12,12 +13,15 @@ import {
   adicionarInciso,
   adicionarIncisoAntes,
   adicionarIncisoDepois,
+  adicionarIncisoFilho,
   adicionarItem,
   adicionarItemAntes,
   adicionarItemDepois,
+  adicionarItemFilho,
   adicionarParagrafo,
   adicionarParagrafoAntes,
   adicionarParagrafoDepois,
+  adicionarParagrafoFilho,
 } from './adicionarElementoAction';
 import { adicionarCapitulo, adicionarLivro, adicionarParte, adicionarSecao, adicionarSubsecao, adicionarTitulo, AgruparElemento } from './agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
@@ -127,14 +131,18 @@ acoesMenu.push(adicionarSubsecao);
 
 acoesMenu.push(adicionarArtigoAntes);
 acoesMenu.push(adicionarArtigoDepois);
-acoesMenu.push(adicionarAlineaAntes);
-acoesMenu.push(adicionarAlineaDepois);
 acoesMenu.push(adicionarIncisoAntes);
 acoesMenu.push(adicionarIncisoDepois);
+acoesMenu.push(adicionarIncisoFilho);
+acoesMenu.push(adicionarAlineaAntes);
+acoesMenu.push(adicionarAlineaDepois);
+acoesMenu.push(adicionarAlineaFilho);
 acoesMenu.push(adicionarItemAntes);
 acoesMenu.push(adicionarItemDepois);
+acoesMenu.push(adicionarItemFilho);
 acoesMenu.push(adicionarParagrafoAntes);
 acoesMenu.push(adicionarParagrafoDepois);
+acoesMenu.push(adicionarParagrafoFilho);
 
 acoesMenu.push(adicionarAgrupadorArtigoAction);
 acoesMenu.push(adicionarAgrupadorArtigoAntesAction);
@@ -147,10 +155,10 @@ acoesMenu.push(rejeitarRevisaoAction);
 export const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);
 acoesExclusivasEdicao.push(adicionarArtigo);
-acoesExclusivasEdicao.push(adicionarAlinea);
 acoesExclusivasEdicao.push(adicionarInciso);
-acoesExclusivasEdicao.push(adicionarItem);
 acoesExclusivasEdicao.push(adicionarParagrafo);
+acoesExclusivasEdicao.push(adicionarItem);
+acoesExclusivasEdicao.push(adicionarAlinea);
 
 export const isAcaoMenu = (acao: ElementoAction): boolean => {
   return acoesMenu.includes(acao);
