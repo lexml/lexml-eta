@@ -18,6 +18,7 @@ export class EtaBlotConteudo extends EtaBlot {
 
     node.setAttribute('class', EtaBlotConteudo.getClasseCSS(elemento));
     node.setAttribute('contenteditable', elemento?.editavel ? 'true' : 'false');
+    node.setAttribute('id', 'texto__dispositivo' + elemento.uuid);
 
     if (elemento.notaAlteracao) {
       node.setAttribute('nota-alteracao', elemento.notaAlteracao || '');
