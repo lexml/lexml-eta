@@ -16,6 +16,8 @@ import { EtaBlotMenuConteudo } from './eta-blot-menu-conteudo';
 import { EtaBlotMenuItem } from './eta-blot-menu-item';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRevisao } from './eta-blot-revisao';
+import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
+import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaClipboard } from './eta-clipboard';
@@ -141,6 +143,8 @@ export class EtaQuill extends Quill {
     EtaQuill.register(EtaContainerTr, true);
     EtaQuill.register(EtaContainerRevisao, true);
     EtaQuill.register(EtaBlotRevisao, true);
+    EtaQuill.register(EtaBlotRevisaoAceitar, true);
+    EtaQuill.register(EtaBlotRevisaoRecusar, true);
     EtaQuill.register(id, true);
     EtaQuill.register(paddingLeft, true);
     EtaQuill.register(border, true);

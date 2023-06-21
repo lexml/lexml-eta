@@ -18,6 +18,8 @@ import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { AlinhamentoMenu } from './eta-blot-menu';
 import { EtaBlotRevisao } from './eta-blot-revisao';
+import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
+import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -62,6 +64,8 @@ export class EtaQuillUtil {
 
     if (elemento.tipo !== 'Articulacao') {
       new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
+      new EtaBlotRevisaoAceitar(elemento).insertInto(etaContainerRevisao);
+      new EtaBlotRevisaoRecusar(elemento).insertInto(etaContainerRevisao);
       etaContainerRevisao.insertInto(etaTrContainer);
       //new EtaContainerRevisao(elemento).insertInto(etaTrContainer);
     }
