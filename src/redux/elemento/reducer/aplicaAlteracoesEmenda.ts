@@ -306,61 +306,55 @@ const idSemCpt = (id: string): string => id.replace(/(_cpt)$/, '');
 const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
   const result: StateEvent[] = [];
   const elementosExcluidosEmModoDeRevisao: Elemento[] = [];
-  let elementoAnterior: Elemento;
+  let elementoAnterior: Partial<Elemento>;
 
   revisoes.forEach(r => {
-    if (isRevisaoElemento(r)) {
-      const rAux = r as RevisaoElemento;
-      if (isRevisaoDeExclusao(rAux)) {
-        let e: Elemento | undefined;
-        if (isRevisaoPrincipal(rAux)) {
-          let d = findDispositivoByUuid2(state.articulacao!, rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.uuid2!);
-          d = d || buscaDispositivoById(state.articulacao!, idSemCpt(rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.lexmlId!)) || null;
-          // TODO: O código abaixo não trata exclusões intercaladas. Alterar para tratar.
-          e = d ? createElemento(d) : elementoAnterior;
-        } else {
-          e = elementoAnterior;
-        }
-
-        rAux.elementoAposRevisao.uuid = Counter.next();
-        rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
-        // atualizarDadosPai(state.articulacao!, rAux.elementoAposRevisao);
-
-        rAux.elementoAntesRevisao!.uuid = rAux.elementoAposRevisao.uuid;
-        rAux.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
-        // atualizarDadosPai(state.articulacao!, rAux.elementoAntesRevisao!);
-
-        elementosExcluidosEmModoDeRevisao.push(rAux.elementoAposRevisao as Elemento);
-        elementoAnterior = rAux.elementoAposRevisao as Elemento;
-      } else {
-        const d = buscaDispositivoById(state.articulacao!, rAux.elementoAposRevisao.lexmlId!)!;
-        rAux.elementoAposRevisao.uuid = d.uuid;
-        if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(rAux.actionType)) {
-          rAux.elementoAntesRevisao!.uuid = Counter.next();
-        } else if (rAux.stateType !== StateType.ElementoIncluido) {
-          rAux.elementoAntesRevisao!.uuid = d.uuid;
+    try {
+      if (isRevisaoElemento(r)) {
+        const rAux = r as RevisaoElemento;
+        processarElementoDaRevisao(state, rAux, elementoAnterior, elementosExcluidosEmModoDeRevisao);
+        if (isRevisaoDeExclusao(rAux)) {
+          elementoAnterior = rAux.elementoAposRevisao;
         }
       }
+      state.revisoes?.push(r);
+    } catch (error) {
+      // TODO: tratar erro
     }
-    state.revisoes?.push(r);
   });
 
   result.push({ stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao });
   return result;
 };
 
-// const getElementoPai = (articulacao: Articulacao, elemento: Elemento): Elemento => {
-//   const partesId = elemento.lexmlId!.split('_');
-//   partesId.pop();
-//   if (!partesId.length) {
-//     // articulacao
-//   } else {
-//     const idPai = idSemCpt(partesId.join('_'));
-//     const d = buscaDispositivoById(articulacao, idPai);
-//     elemento.hierarquia!.pai!.uuid = d!.uuid;
-//     elemento.hierarquia!.pai!.uuid2 = d!.uuid2;
-//     elemento.hierarquia!.pai!.
-//   }
+const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elementoAnterior: Partial<Elemento>, elementosExcluidosEmModoDeRevisao: Elemento[]): void => {
+  if (isRevisaoDeExclusao(revisao)) {
+    let e: Partial<Elemento> | undefined;
 
-//   return elemento;
-// };
+    if (isRevisaoPrincipal(revisao)) {
+      let d = findDispositivoByUuid2(state.articulacao!, revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.uuid2!);
+      d = d || buscaDispositivoById(state.articulacao!, idSemCpt(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.lexmlId!)) || null;
+      // TODO: O código abaixo não trata exclusões intercaladas. Alterar para tratar.
+      e = d ? createElemento(d) : elementoAnterior;
+    } else {
+      e = elementoAnterior;
+    }
+
+    revisao.elementoAposRevisao.uuid = Counter.next();
+    revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
+
+    revisao.elementoAntesRevisao!.uuid = revisao.elementoAposRevisao.uuid;
+    revisao.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
+
+    elementosExcluidosEmModoDeRevisao.push(revisao.elementoAposRevisao as Elemento);
+    elementoAnterior = revisao.elementoAposRevisao as Elemento;
+  } else {
+    const d = buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.lexmlId!)!;
+    revisao.elementoAposRevisao.uuid = d.uuid;
+    if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(revisao.actionType)) {
+      revisao.elementoAntesRevisao!.uuid = Counter.next();
+    } else if (revisao.stateType !== StateType.ElementoIncluido) {
+      revisao.elementoAntesRevisao!.uuid = d.uuid;
+    }
+  }
+};

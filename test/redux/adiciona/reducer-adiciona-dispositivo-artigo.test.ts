@@ -27,9 +27,7 @@ describe('Testando a inclusão de dispositivos de artigo', () => {
         state = adicionaElemento(state, {
           type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid },
-          novo: {
-            tipo: TipoDispositivo.inciso.tipo,
-          },
+          novo: {},
         });
         // eventos = getEventosQuePossuemElementos(state.ui.events);
       });

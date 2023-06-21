@@ -65,6 +65,7 @@ describe('Testando adicionar parágrafos', () => {
         state = adicionaElemento(state, {
           type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid },
+          novo: {},
         });
       });
       it('Deveria manter inalterado o inciso I', () => {
@@ -98,6 +99,7 @@ describe('Testando adicionar parágrafos', () => {
         state = adicionaElemento(state, {
           type: ADICIONAR_ELEMENTO,
           atual: { tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid, conteudo: { texto: 'teste' } },
+          novo: {},
         });
       });
       it('Deveria manter inalterado o inciso I', () => {
