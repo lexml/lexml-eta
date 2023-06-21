@@ -8,11 +8,8 @@ export enum AlinhamentoMenu {
 
 export class EtaBlotRevisaoAceitar extends EtaBlot {
   static blotName = 'EtaBlotRevisaoAceitar';
-  static className = 'blot__revisao';
-
-  //static tagName = 'sl-icon-button';
+  static className = 'blot__revisao_aceitar';
   static tagName = 'button';
-  //static className = 'ql-bold';
 
   get instanceBlotName(): string {
     return EtaBlotRevisaoAceitar.blotName;
@@ -21,12 +18,12 @@ export class EtaBlotRevisaoAceitar extends EtaBlot {
   static create(elemento: Elemento): any {
     //const node: SlIconButton = super.create();
     const node: HTMLElement = super.create();
-    node.innerHTML = 'Ok';
+    node.innerHTML = ' ';
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRevisaoAceitar.className);
     node.setAttribute('id', 'buttonRevisaoAceitar' + elemento.uuid);
     node.setAttribute('hidden', elemento.revisao ? 'true' : 'false');
-    node.setAttribute('title', 'Teste');
+    node.setAttribute('title', 'Aceitar revisão');
     // node.setAttribute('name', 'gear')
     return node;
   }
