@@ -67,6 +67,8 @@ import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { atualizarReferenciaEmRevisoesDeExclusaoAction } from '../../model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
+import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
+import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -1368,6 +1370,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           buttonRevisao.removeAttribute('hidden');
           buttonRevisaoAceitar.removeAttribute('hidden');
           buttonRevisaoRecusar.removeAttribute('hidden');
+          buttonRevisaoAceitar.addEventListener('click', () => {
+            rootStore.dispatch(aceitarRevisaoAction.execute(elemento, elemento.revisao));
+          });
+          buttonRevisaoRecusar.addEventListener('click', () => {
+            rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, elemento.revisao));
+          });
           const pipe = ' | ';
           const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
           buttonRevisao.setAttribute('title', mensagem);
