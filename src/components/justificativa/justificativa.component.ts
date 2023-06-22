@@ -191,7 +191,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           <div slot="content">
             <div>Revisões na justificativa</div>
           </div>
-          <sl-icon name="pencil-square"></sl-icon>
+          <sl-icon name="person-check-fill"></sl-icon>
         </sl-tooltip>
 
         <sl-icon-button
