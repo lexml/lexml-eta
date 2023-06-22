@@ -34,15 +34,11 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
       <style>
         #revisoes-justificativa-icon sl-icon {
           border: 1px solid #ccc !important;
-          padding: 5px 5px !important;
+          padding: 0.4rem 0.4rem !important;
           border-radius: 15px !important;
           font-weight: bold;
           background-color: #eee;
           cursor: pointer;
-        }
-        .lista-revisoes-justificativa {
-          padding-left: 1rem;
-          padding-right: 0.5rem;
         }
         #chk-em-revisao {
           border: 1px solid #ccc !important;

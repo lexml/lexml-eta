@@ -88,19 +88,15 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           margin-right: 8px;
         }
 
-        .revisoes-justificativa-icon__ativo {
-          color: white;
-          background-color: black !important;
-          border-color: black !important;
+        #revisoes-justificativa-icon sl-icon,
+        #aceita-revisao-justificativa {
+          margin-right: 0.1rem;
         }
 
-        #revisoes-justificativa-icon sl-icon {
-          border: 1px solid #ccc !important;
-          padding: 5px 5px !important;
-          border-radius: 15px !important;
-          font-weight: bold;
-          background-color: #eee;
-          cursor: pointer;
+        .revisoes-justificativa-icon__ativo {
+          color: white;
+          background-color: var(--sl-color-warning-600) !important;
+          border-color: white !important;
         }
         .lista-revisoes-justificativa {
           padding-left: 1rem;
@@ -179,14 +175,9 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
         </sl-switch>
         -->
 
-        <lexml-switch-revisao
-          class="revisao-container"
-          .nomeSwitch="${this._idSwitchRevisao}"
-          .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
-          >
+        <lexml-switch-revisao class="revisao-container" .nomeSwitch="${this._idSwitchRevisao}" .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}">
         </lexml-switch-revisao>
 
-        </lexml-switch-revisao>
         <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
           <div slot="content">
             <div>Revisões na justificativa</div>
@@ -194,15 +185,17 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           <sl-icon name="person-check-fill"></sl-icon>
         </sl-tooltip>
 
-        <sl-icon-button
+        <sl-button
           id="aceita-revisao-justificativa"
-          name="check-lg"
-          label=""
-          title="Aceitar Revisões Justificativa"
+          variant="default"
+          size="small"
+          title="Limpar revisões na justificativa"
           @click=${(): void => this.aceitaRevisoesJustificativa()}
-          disabled="true"
-          >Aceitar Revisões
-        </sl-icon-button>
+          disabled
+          circle
+        >
+          <sl-icon name="check-lg"></sl-icon>
+        </sl-button>
       </div>
       <div id="editor-justificativa"></div>
     `;
