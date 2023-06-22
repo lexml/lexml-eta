@@ -166,9 +166,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
-    if (this.modo.startsWith('emenda')) {
+    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
       if (this.sizeMode === 'desktop') {
-        this.splitPanelPosition = this.slSplitPanel.position;
+        this.slSplitPanel.position = this.splitPanelPosition;
       }
 
       if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
@@ -180,7 +180,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.slSplitPanel.position = this.splitPanelPosition;
         this.slSplitPanel.removeAttribute('disabled');
       }
-    } else if (this.modo === 'edicao') {
+    } else {
       this.slSplitPanel.position = 100;
     }
   }
@@ -220,7 +220,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    if (this.modo.startsWith('emenda')) {
+    console.log('updated', this.modo);
+    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
       this.slSplitPanel.removeAttribute('disabled');
       this.slSplitPanel.position = this.splitPanelPosition;
     } else {
@@ -260,7 +261,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(): void {
-    if (this.modo.startsWith('emenda')) {
+    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
       const comandoEmenda = this._lexmlEta.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
@@ -300,7 +301,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         lexml-emenda-comando {
           font-family: var(--eta-font-serif);
-          display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
+          display: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? 'block' : 'none'};
           height: 100%;
         }
         lexml-eta {
@@ -317,7 +318,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin-top: -4px;
         }
         sl-split-panel {
-          --divider-width: ${this.modo.startsWith('emenda') ? '15px' : '0px'};
+          --divider-width: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? '15px' : '0px'};
         }
         sl-tab sl-icon {
           margin-right: 5px;

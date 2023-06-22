@@ -26,6 +26,7 @@ export type MetadadosEmenda = {
 export enum ModoEdicaoEmenda {
   EMENDA = 'emenda',
   EMENDA_ARTIGO_ONDE_COUBER = 'emendaArtigoOndeCouber',
+  EMENDA_TEXTO_LIVRE = 'emendaTextoLivre',
 }
 
 // Dados da proposição ----------------------------
