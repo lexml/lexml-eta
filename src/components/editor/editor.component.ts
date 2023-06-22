@@ -65,8 +65,10 @@ import { informarNormaDialog } from './informarNormaDialog';
 import { getIniciais } from '../../util/string-util';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
-import { atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { atualizaQuantidadeRevisao, getQuantidadeRevisoes, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { atualizarReferenciaEmRevisoesDeExclusaoAction } from '../../model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
+import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
+import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
@@ -198,17 +200,33 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           >
           </lexml-switch-revisao>
 
-          <!--
-          <lexml-eta-marca-revisao-on-of></lexml-eta-marca-revisao-on-of>
-          -->
-
           <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
             <sl-icon-button name="arrow-down"></sl-icon-button>
-          </sl-button>
+          </sl-button>          
 
           <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
             <sl-icon-button name="arrow-up"></sl-icon-button>
-          </sl-button>
+          </sl-button>          
+
+          <sl-icon-button
+            id="rejeita-revisao"
+            name="x"
+            label=""
+            title="Aceitar Revisões"
+            @click=${(): void => this.actionRevisao('rejeitar')} 
+            disabled="true"           
+            >Aceitar Revisões
+          </sl-icon-button>
+
+          <sl-icon-button
+            id="aceita-revisao"
+            name="check-lg"
+            label=""
+            title="Aceitar Revisões"
+            @click=${(): void => this.actionRevisao('aceitar')}
+            disabled="true"
+            >Aceitar Revisões
+          </sl-icon-button>
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
@@ -649,6 +667,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.atualizaQuantidadeRevisao();
       this.indicadorMarcaRevisao(event);
+      this.habilitaBotoesAceitarRejeitarRevisoes();
       this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
@@ -1406,5 +1425,52 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+  };
+
+  private actionRevisao = (acao: string): void => {
+    while (getQuantidadeRevisoes(rootStore) > 0) {
+      let linha = this.quill.getPrimeiraLinha();
+
+      while (linha && !linha.elemento.revisao) {
+        linha = linha['next'];
+      }
+
+      if (linha) {
+        if (acao === 'aceitar') {
+          this.aceitaRejeitaRevisaoLinhaEncontrada(linha, aceitarRevisaoAction);
+        } else {
+          this.aceitaRejeitaRevisaoLinhaEncontrada(linha, rejeitarRevisaoAction);
+        }
+      }
+    }
+    this.habilitaBotoesAceitarRejeitarRevisoes();
+    this.quill.focus();
+  };
+
+  private aceitaRejeitaRevisaoLinhaEncontrada = (linha: any, action: any): void => {
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
+
+    rootStore.dispatch(action.execute(elemento, elemento.revisao));
+
+    if (action === aceitarRevisaoAction) {
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      this.quill.marcarLinhaAtual(linha);
+    }
+  };
+
+  private habilitaBotoesAceitarRejeitarRevisoes = (): void => {
+    const btnAceitarRevisao = document.getElementById('aceita-revisao') as any;
+    const btnRejeitarRevisao = document.getElementById('rejeita-revisao') as any;
+
+    if (btnAceitarRevisao && btnRejeitarRevisao) {
+      if (getQuantidadeRevisoes(rootStore) > 0) {
+        btnAceitarRevisao.removeAttribute('disabled');
+        btnRejeitarRevisao.removeAttribute('disabled');
+      } else {
+        btnAceitarRevisao.setAttribute('disabled', 'true');
+        btnRejeitarRevisao.setAttribute('disabled', 'true');
+      }
+    }
   };
 }
