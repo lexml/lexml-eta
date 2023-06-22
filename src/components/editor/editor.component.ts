@@ -212,7 +212,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             id="rejeita-revisao"
             name="x"
             label=""
-            title="Aceitar Revisões"
+            title="Rejeitar Revisões"
             @click=${(): void => this.actionRevisao('rejeitar')} 
             disabled="true"           
             >Aceitar Revisões
