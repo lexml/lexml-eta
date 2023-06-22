@@ -34,7 +34,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-eta')
   _lexmlEta!: LexmlEtaComponent;
-  @query('lexml-emenda-justificativa')
+  @query('editor-texto-rico')
   _lexmlJustificativa;
   @query('lexml-autoria')
   _lexmlAutoria;
@@ -307,7 +307,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        lexml-emenda-justificativa #editor-justificativa {
+        #editor-texto-rico-justificativa #editor-texto-rico {
           height: calc(var(--height) - 44px);
           overflow: var(--overflow);
         }
@@ -348,7 +348,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
-              <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
+              <editor-texto-rico id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">

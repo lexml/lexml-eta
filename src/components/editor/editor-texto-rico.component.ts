@@ -2,9 +2,10 @@ import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
-@customElement('lexml-emenda-justificativa')
-export class JustificativaEmendaComponent extends LitElement {
+@customElement('editor-texto-rico')
+export class EditorTextoRicoComponent extends LitElement {
   @property({ type: String }) texto = '';
+  @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
 
   onChange: Observable<string> = new Observable<string>();
   private timerOnChange?: any;
@@ -32,11 +33,11 @@ export class JustificativaEmendaComponent extends LitElement {
           bubbles: true,
           composed: true,
           detail: {
-            origemEvento: 'justificativa',
+            origemEvento: this.registroEvento,
           },
         })
       );
-      this.onChange.notify('justificativa');
+      this.onChange.notify(this.registroEvento);
     }, 1000);
   }
 
@@ -51,10 +52,10 @@ export class JustificativaEmendaComponent extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        #editor-justificativa {
+        #editor-texto-rico {
           height: 375px;
         }
-        #editor-justificativa p:not(.ql-align-rigth, .ql-align-center) {
+        #editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
           text-indent: 3em;
         }
         .ql-toolbar.ql-snow .ql-formats {
@@ -94,7 +95,7 @@ export class JustificativaEmendaComponent extends LitElement {
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
       </div>
-      <div id="editor-justificativa"></div>
+      <div id="editor-texto-rico"></div>
     `;
   }
 
@@ -117,7 +118,7 @@ export class JustificativaEmendaComponent extends LitElement {
   }
 
   init = (): void => {
-    this.container = document.querySelector('#editor-justificativa');
+    this.container = document.querySelector('#editor-texto-rico');
     if (this.container) {
       this.quill = new Quill(this.container as HTMLElement, {
         formats: ['bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
