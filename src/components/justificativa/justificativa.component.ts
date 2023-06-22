@@ -88,7 +88,8 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           margin-right: 8px;
         }
 
-        #revisoes-justificativa-icon sl-icon {
+        #revisoes-justificativa-icon sl-icon,
+        #aceita-revisao-justificativa {
           margin-right: 0.1rem;
         }
 
@@ -188,7 +189,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           id="aceita-revisao-justificativa"
           variant="default"
           size="small"
-          title="Aceitar Revisões Justificativa"
+          title="Limpar revisões na justificativa"
           @click=${(): void => this.aceitaRevisoesJustificativa()}
           disabled
           circle
