@@ -130,7 +130,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private getRevisoes(): Revisao[] {
-    return ordernarRevisoes(...rootStore.getState().elementoReducer.revisoes);
+    return ordernarRevisoes([...rootStore.getState().elementoReducer.revisoes]);
   }
 
   inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, usuario?: Usuario): void {
