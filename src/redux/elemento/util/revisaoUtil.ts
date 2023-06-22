@@ -209,7 +209,21 @@ export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefine
   delete elemento.tiposAgrupadoresQuePodemSerInseridosAntes;
   delete elemento.tiposAgrupadoresQuePodemSerInseridosDepois;
 
-  removeAtributosDoElemento(elemento.elementoAnteriorNaSequenciaDeLeitura);
+  removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura);
+};
+
+const atributosPermtidos = ['tipo', 'uuid', 'uuid2', 'lexmlId', 'conteudo', 'descricaoSituacao', 'uuidAlteracao', 'uuid2Alteracao', 'existeNaNormaAlterada'];
+
+const removeAtributosDoElementoAnteriorNaSequenciaDeLeitura = (elemento: Partial<Elemento> | undefined): void => {
+  if (!elemento) {
+    return;
+  }
+
+  for (const key in elemento) {
+    if (!atributosPermtidos.includes(key)) {
+      delete elemento[key];
+    }
+  }
 };
 
 export const getQuantidadeRevisoes = (rootStore: any): number => {

@@ -8,7 +8,7 @@ export enum AlinhamentoMenu {
 
 export class EtaBlotRevisaoRecusar extends EtaBlot {
   static blotName = 'EtaBlotRevisaoRecusar';
-  static className = 'blot__revisao';
+  static className = 'blot__revisao_recusar';
 
   //static tagName = 'sl-icon-button';
   static tagName = 'button';
@@ -21,12 +21,12 @@ export class EtaBlotRevisaoRecusar extends EtaBlot {
   static create(elemento: Elemento): any {
     //const node: SlIconButton = super.create();
     const node: HTMLElement = super.create();
-    node.innerHTML = 'X';
+    node.innerHTML = ' ';
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRevisaoRecusar.className);
     node.setAttribute('id', 'buttonRevisaoRecusar' + elemento.uuid);
     node.setAttribute('hidden', elemento.revisao ? 'true' : 'false');
-    node.setAttribute('title', 'Teste');
+    node.setAttribute('title', 'Recusar revisão');
     // node.setAttribute('name', 'gear')
     return node;
   }

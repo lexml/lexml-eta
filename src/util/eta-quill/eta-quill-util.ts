@@ -63,9 +63,9 @@ export class EtaQuillUtil {
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
     if (elemento.tipo !== 'Articulacao') {
-      new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
       new EtaBlotRevisaoAceitar(elemento).insertInto(etaContainerRevisao);
       new EtaBlotRevisaoRecusar(elemento).insertInto(etaContainerRevisao);
+      new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
       etaContainerRevisao.insertInto(etaTrContainer);
       //new EtaContainerRevisao(elemento).insertInto(etaTrContainer);
     }

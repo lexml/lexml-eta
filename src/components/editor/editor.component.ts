@@ -1367,16 +1367,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (buttonRevisao && buttonRevisaoAceitar && buttonRevisaoRecusar) {
         if (elemento.revisao && !(elemento.revisao as RevisaoElemento).idRevisaoElementoPrincipal) {
           buttonRevisao.removeAttribute('hidden');
-          //buttonRevisaoAceitar.removeAttribute('hidden');
-          //buttonRevisaoRecusar.removeAttribute('hidden');
+          buttonRevisaoAceitar.removeAttribute('hidden');
+          buttonRevisaoRecusar.removeAttribute('hidden');
           const pipe = ' | ';
           const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
           buttonRevisao.setAttribute('title', mensagem);
           buttonRevisao.innerHTML = getIniciais(elemento.revisao.usuario.nome).charAt(0) || 'R';
         } else {
           buttonRevisao.setAttribute('hidden', 'true');
-          //buttonRevisaoAceitar.setAttribute('hidden', 'true');
-          //buttonRevisaoRecusar.setAttribute('hidden', 'true');
+          buttonRevisaoAceitar.setAttribute('hidden', 'true');
+          buttonRevisaoRecusar.setAttribute('hidden', 'true');
         }
       }
     });

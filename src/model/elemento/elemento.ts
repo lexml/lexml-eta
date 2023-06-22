@@ -41,6 +41,6 @@ export class Elemento extends Referencia {
   tiposAgrupadoresQuePodemSerInseridosAntes?: string[];
   tiposAgrupadoresQuePodemSerInseridosDepois?: string[];
   artigoDefinido?: string;
-  elementoAnteriorNaSequenciaDeLeitura?: Partial<Elemento>;
+  elementoAnteriorNaSequenciaDeLeitura?: Referencia;
   revisao?: Revisao;
 }

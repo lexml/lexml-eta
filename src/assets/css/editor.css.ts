@@ -570,7 +570,43 @@ export const editorStyles = html`
       color: white;
       cursor: pointer;
       position: relative;
-      top: -2px;
+      top: -1px;
+    }
+
+    .blot__revisao_aceitar {
+      padding: 5px;
+      border: 1px solid black;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      width: 1.3rem;
+      height: 1.3rem;
+      top: -1px;
+      background: url('assets/icons/check-lg.svg') no-repeat center;
+      background-size: 1rem;
+    }
+
+    .blot__revisao_recusar {
+      padding: 5px;
+      border: 1px solid black;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      width: 1.3rem;
+      height: 1.3rem;
+      top: -1px;
+      background: url('assets/icons/x.svg') no-repeat center;
+      background-size: 1rem;
+    }
+
+    .blot__revisao_aceitar:focus,
+    .blot__revisao_recusar:focus {
+      outline: 1px solid #000;
+      border: 1px solid #000;
     }
 
     #chk-em-revisao {
@@ -586,10 +622,15 @@ export const editorStyles = html`
       background-color: var(--sl-color-blue-100);
     }
 
-    /* .container__revisao {
-      border: 3px solid #f98b88;
-      width: 30px;
-    } */
+    .container__revisao {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.1rem;
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+    }
 
     /*
     [em-revisao='true'] .container__revisao {
