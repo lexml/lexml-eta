@@ -65,8 +65,7 @@ import { informarNormaDialog } from './informarNormaDialog';
 import { getIniciais } from '../../util/string-util';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
-import { atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
-import { atualizarReferenciaEmRevisoesDeExclusaoAction } from '../../model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
+import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -202,19 +201,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
             <sl-icon-button name="arrow-down"></sl-icon-button>
-          </sl-button>          
+          </sl-button>
 
           <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
             <sl-icon-button name="arrow-up"></sl-icon-button>
-          </sl-button>          
+          </sl-button>
 
           <!--
           <sl-icon-button
             id="rejeita-revisao"
             name="x"
             label=""
-            title="Rejeitar Revisões"            
-            disabled="true"           
+            title="Rejeitar Revisões"
+            disabled="true"
             >Aceitar Revisões
           </sl-icon-button>
 
@@ -602,7 +601,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
           this.inserirNovosElementosNoQuill(event, true);
-          this.atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events, event);
+          // this.atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events, event);
           break;
 
         case StateType.ElementoModificado:
@@ -663,6 +662,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
         case StateType.RevisaoAceita:
           this.processaRevisoesAceitas(events, event);
+          break;
+        case StateType.RevisaoAdicionalRejeitada:
+          this.removerLinhaQuill(event);
           break;
       }
 
@@ -758,23 +760,23 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
-    const map = new Map<string, Elemento>();
-    const elementosIncluidos = event.elementos!;
+  // private atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
+  //   const map = new Map<string, Elemento>();
+  //   const elementosIncluidos = event.elementos!;
 
-    elementosIncluidos.forEach(elemento => {
-      const linha = this.quill.getLinha(elemento.uuid!)!;
-      if (linha.next?.isLinhaComMarcacaoDeExclusao()) {
-        // passa o elemento da revisão de exclusão já com o novo valor do elemento anterior na sequência de leitura
-        const e = { ...linha.next.elemento, elementoAnteriorNaSequenciaDeLeitura: { ...elemento } };
-        map.set(e.uuid2!, e);
-      }
-    });
+  //   elementosIncluidos.forEach(elemento => {
+  //     const linha = this.quill.getLinha(elemento.uuid!)!;
+  //     if (linha.next?.isLinhaComMarcacaoDeExclusao()) {
+  //       // passa o elemento da revisão de exclusão já com o novo valor do elemento anterior na sequência de leitura
+  //       const e = { ...linha.next.elemento, elementoAnteriorNaSequenciaDeLeitura: { ...elemento } };
+  //       map.set(e.uuid2!, e);
+  //     }
+  //   });
 
-    if (map.size > 0) {
-      rootStore.dispatch(atualizarReferenciaEmRevisoesDeExclusaoAction.execute([...map.values()]));
-    }
-  }
+  //   if (map.size > 0) {
+  //     rootStore.dispatch(atualizarReferenciaEmRevisoesDeExclusaoAction.execute([...map.values()]));
+  //   }
+  // }
 
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento, selecionarLinha?: boolean): void {
     const fnSelecionarNovaLinha = (linha: EtaContainerTable): void => {
@@ -947,7 +949,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento, index) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
-        if (elemento.revisao && !linha.elemento.revisao) {
+        if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusao(linha.elemento.revisao as RevisaoElemento))) {
           linha.atualizarElemento(elemento);
           index === 0 && this.montarMenuContexto(event);
         } else {
