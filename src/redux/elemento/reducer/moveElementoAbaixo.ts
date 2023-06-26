@@ -1,5 +1,5 @@
 import { isAgrupadorNaoArticulacao } from './../../../model/dispositivo/tipo';
-import { getIrmaoPosteriorIndependenteDeTipo, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getIrmaoPosteriorIndependenteDeTipo, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida, montaEMostraMensagensErro } from '../../../model/lexml/acao/acaoUtil';
@@ -10,6 +10,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
@@ -60,6 +61,8 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   if (paiAntigo !== novoPai) {
     paiAntigo.renumeraFilhos();
   }
+
+  getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
 
   const referencia = movendoArtigoParaAgrupador ? proximo : getUltimoFilho(proximo);
 

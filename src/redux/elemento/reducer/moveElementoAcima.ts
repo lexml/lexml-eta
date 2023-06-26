@@ -6,6 +6,7 @@ import {
   isArticulacaoAlteracao,
   irmaosMesmoTipo,
   isDispositivoAlteracao,
+  getDispositivoAndFilhosAsLista,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isEmenta } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -19,6 +20,7 @@ import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
@@ -92,6 +94,8 @@ export const moveElementoAcima = (state: any, action: any): State => {
   if (paiAntigo !== novoPai) {
     paiAntigo.renumeraFilhos();
   }
+
+  getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
 
   const referencia = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d) && !isArticulacaoAlteracao(d))!;
 
