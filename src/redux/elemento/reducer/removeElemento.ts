@@ -17,7 +17,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { existeFilhoExcluidoOuAlteradoDuranteRevisao } from '../util/revisaoUtil';
+import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
 
 export const removeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -66,11 +66,21 @@ export const removeElemento = (state: any, action: any): State => {
     });
   }
 
+  const revisao = findRevisaoByElementoUuid2(state.revisoes, dispositivo.uuid2);
+  if (state.emRevisao && revisao && isRevisaoPrincipal(revisao) && isRevisaoMovimentacao(revisao) && !action.isRejeitandoRevisao) {
+    // if (revisao && isRevisaoMovimentacao(revisao) && !action.isRejeitandoRevisao) {
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      // descricao: 'Não é possível remover este dispositivo porque ele possui uma sinalização de revisão de movimentação.',
+      descricao: 'Não é possível remover dispositivo movido em modo de revisão.',
+    });
+  }
+
   const primeiroFilhoDoAgrupador = isAgrupador(dispositivo) ? dispositivo.filhos[0] || getDispositivoPosterior(dispositivo) || getDispositivoAnterior(dispositivo) : undefined;
   const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
   const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
 
-  const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo, action.elementoLinhaAnterior);
+  const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
   if (elPrimeiroFilhoDoAgrupador) {
     events.push({ stateType: StateType.ElementoMarcado, elementos: [elPrimeiroFilhoDoAgrupador] });
