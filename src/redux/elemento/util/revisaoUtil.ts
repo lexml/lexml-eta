@@ -352,7 +352,13 @@ export const findUltimaRevisaoDoGrupo = (revisoes: Revisao[] = [], revisao: Revi
 
 export const isRevisaoMovimentacao = (revisao: Revisao): boolean => {
   const r = revisao as RevisaoElemento;
-  return !!(isRevisaoElemento(revisao) && r.elementoAntesRevisao && r.elementoAposRevisao && r.elementoAntesRevisao.tipo === r.elementoAposRevisao.tipo);
+  return !!(
+    isRevisaoElemento(revisao) &&
+    r.stateType === StateType.ElementoIncluido &&
+    r.elementoAntesRevisao &&
+    r.elementoAposRevisao &&
+    r.elementoAntesRevisao.tipo === r.elementoAposRevisao.tipo
+  );
 };
 
 export const isRevisaoDeTransformacao = (revisao: Revisao): boolean => {
