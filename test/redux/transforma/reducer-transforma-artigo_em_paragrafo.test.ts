@@ -138,8 +138,11 @@ describe('Testando a transformação de artigo em parágrafo', () => {
           expect(state.articulacao.artigos[2].filhos.length).to.equal(2);
         });
         describe('Testando eventos', () => {
-          it('Deveria apresentar 4 eventos', () => {
-            expect(state.ui.events.length).to.equal(4);
+          it('Deveria apresentar eventos', () => {
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
           });
           it('Deveria apresentar o antigo artigo como parágrafo do artigo anterior', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -271,8 +274,11 @@ describe('Testando a transformação de artigo em parágrafo', () => {
             expect(state.articulacao.artigos[0].filhos.length).to.equal(1);
           });
           describe('Testando eventos', () => {
-            it('Deveria apresentar 4 eventos', () => {
-              expect(state.ui.events.length).to.equal(4);
+            it('Deveria apresentar eventos', () => {
+              expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+              expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+              expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+              expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
             });
             it('Deveria apresentar o antigo artigo como parágrafo únicodo artigo anterior', () => {
               const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

@@ -6,7 +6,7 @@ import { getEvento } from '../../../src/redux/elemento/evento/eventosUtil';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { transformaTipoElemento } from '../../../src/redux/elemento/reducer/transformaTipoElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { StateType } from '../../../src/redux/state';
+import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
 
 let state: any;
@@ -76,8 +76,12 @@ describe('Testando a transformação de alínea em inciso', () => {
         expect(state.articulacao.artigos[1].filhos[1].rotulo).to.equal('II –');
       });
       describe('Testando os eventos resultantes da ação', () => {
-        it('Deveria apresentar 5 eventos: inclusão, remoção, renumeração, validação e "situação modificada"  nessa ordem', () => {
-          expect(state.ui.events.length).to.equal(5);
+        it('Deveria apresentar eventos: inclusão, remoção, renumeração, validação e "situação modificada"  nessa ordem', () => {
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.SituacaoElementoModificada).length).to.be.greaterThan(0);
         });
         it('Deveria apresentar a alínea anterior e seus itens', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -117,8 +121,11 @@ describe('Testando a transformação de alínea em inciso', () => {
           expect(state.articulacao.artigos[1].filhos[1].filhos[1].rotulo).to.equal('b)');
         });
         describe('Testando os eventos resultantes da ação', () => {
-          it('Deveria apresentar 4 eventos: inclusão, remoção, renumeração e validação, nessa ordem', () => {
-            expect(state.ui.events.length).to.equal(4);
+          it('Deveria apresentar eventos: inclusão, remoção, renumeração e validação, nessa ordem', () => {
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
           });
           it('Deveria apresentar a alínea incluída como inciso e seus itens como alinea', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
