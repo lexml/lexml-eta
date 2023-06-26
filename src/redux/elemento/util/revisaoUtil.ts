@@ -325,10 +325,17 @@ export const atualizaReferenciaElementoAnteriorSeNecessario = (articulacao: Arti
       removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura!);
     } else {
       // Pega o último filho do elemento incluído e utiliza como elemento anterior da revisão principal (rAux)
-      const ultimoFilho = createElemento(getUltimoFilho(getDispositivoFromElemento(articulacao, elemento)!));
+      const dPrimeiroElementoIncluido = getDispositivoFromElemento(articulacao, elemento)!;
+      const ultimoFilho = createElemento(getUltimoFilho(dPrimeiroElementoIncluido));
       removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(ultimoFilho);
       rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = ultimoFilho;
       rAux.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = ultimoFilho;
+
+      const ePrimeiroElementoIncluido = createElemento(dPrimeiroElementoIncluido);
+      if (isAtualizarPosicaoDeElementoExcluido(ePrimeiroElementoIncluido, rAux.elementoAposRevisao)) {
+        rAux.elementoAposRevisao.hierarquia!.posicao = ePrimeiroElementoIncluido.hierarquia!.posicao! + 1;
+        rAux.elementoAntesRevisao!.hierarquia!.posicao = ePrimeiroElementoIncluido.hierarquia!.posicao! + 1;
+      }
     }
   }
 };
@@ -364,4 +371,8 @@ export const isRevisaoMovimentacao = (revisao: Revisao): boolean => {
 export const isRevisaoDeTransformacao = (revisao: Revisao): boolean => {
   const r = revisao as RevisaoElemento;
   return !!(isRevisaoElemento(revisao) && r.elementoAntesRevisao && r.elementoAposRevisao && r.elementoAntesRevisao.tipo !== r.elementoAposRevisao.tipo);
+};
+
+export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {
+  return elementoIncluido.hierarquia?.pai?.lexmlId === elementoExcluido.hierarquia?.pai?.lexmlId && elementoIncluido.uuid! < elementoExcluido.uuid!;
 };

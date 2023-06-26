@@ -360,6 +360,22 @@ export const processarSuprimidos = (state: State, evento: StateEvent): StateEven
 };
 
 export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
+  const atualizaReferenciaElementoAnteriorSeNecessario = (revisoesRetornadasParaState: RevisaoElemento[]): void => {
+    revisoesRetornadasParaState.filter(isRevisaoPrincipal).forEach(r => {
+      const e = r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
+      const revisaoASerAtualizada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes!, e);
+      if (revisaoASerAtualizada) {
+        const revisaoRetornada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoesRetornadasParaState, e);
+        const ultimaRevisaoDoGrupo = findUltimaRevisaoDoGrupo(revisoesRetornadasParaState, revisaoRetornada!);
+
+        const elementoAnterior = JSON.parse(JSON.stringify(ultimaRevisaoDoGrupo.elementoAposRevisao));
+        removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elementoAnterior);
+        revisaoASerAtualizada.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
+        revisaoASerAtualizada.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
+      }
+    });
+  };
+
   const result: StateEvent[] = [];
   const eventosFiltrados = eventos.filter((se: StateEvent) => se.stateType === stateType);
   if (eventosFiltrados.length) {
@@ -379,20 +395,7 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
         result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
         result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
 
-        // Atualiza referência de elemento anterior em revisões de exclusão
-        revisoesRetornadasParaState.filter(isRevisaoPrincipal).forEach(r => {
-          const e = r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
-          const revisaoASerAtualizada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes!, e);
-          if (revisaoASerAtualizada) {
-            const revisaoRetornada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoesRetornadasParaState, e);
-            const ultimaRevisaoDoGrupo = findUltimaRevisaoDoGrupo(revisoesRetornadasParaState, revisaoRetornada!);
-
-            const elementoAnterior = JSON.parse(JSON.stringify(ultimaRevisaoDoGrupo.elementoAposRevisao));
-            removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elementoAnterior);
-            revisaoASerAtualizada.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
-            revisaoASerAtualizada.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
-          }
-        });
+        atualizaReferenciaElementoAnteriorSeNecessario(revisoesRetornadasParaState);
       } else {
         const elementos = getElementosFromRevisoes(revisoesRetornadasParaState, state);
         result.push({ stateType: StateType.SituacaoElementoModificada, elementos: elementos });

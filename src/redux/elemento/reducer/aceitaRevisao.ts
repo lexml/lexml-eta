@@ -30,7 +30,7 @@ export const aceitaRevisao = (state: any, action: any): State => {
   const revisoes = state.revisoes.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id));
   if (isRevisaoDeExclusao(revisao)) {
     // Se está aceitando uma revisão de exclusão, é preciso atualizar os elementos de outras revisões de exclusão que referenciam o elemento REALMENTE excluído durante a aceitação
-    atualizaReferenciaEmRevisoesExclusaoAposAceitacao(revisoes, revisoesAssociadas);
+    atualizaReferenciaElementoAnteriorEmRevisoesExclusaoAposAceitacao(revisoes, revisoesAssociadas);
   }
 
   return {
@@ -46,7 +46,7 @@ export const aceitaRevisao = (state: any, action: any): State => {
   };
 };
 
-const atualizaReferenciaEmRevisoesExclusaoAposAceitacao = (revisoes: Revisao[], revisoesAssociadas: RevisaoElemento[]): void => {
+const atualizaReferenciaElementoAnteriorEmRevisoesExclusaoAposAceitacao = (revisoes: Revisao[], revisoesAssociadas: RevisaoElemento[]): void => {
   const revisaoPrincipal = revisoesAssociadas[0];
   const ultimaRevisao = revisoesAssociadas[revisoesAssociadas.length - 1];
 

@@ -68,6 +68,7 @@ describe('Carregando texto da MPV 905/2019', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           expect(state.revisoes?.length).to.be.equal(1);
+          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.not.undefined;
         });
       });
 
@@ -102,7 +103,7 @@ describe('Carregando texto da MPV 905/2019', () => {
     });
   });
 
-  describe('Transformando dispositivo adicionado em revisão', () => {
+  describe('Transformando dispositivo adicionado em modo de revisão', () => {
     beforeEach(function () {
       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
     });
@@ -155,8 +156,8 @@ describe('Carregando texto da MPV 905/2019', () => {
           expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
         });
 
-        it('Revisão deveria possuir "elementoAntesRevisao"', () => {
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.not.undefined;
+        it('Revisão deveria não possuir "elementoAntesRevisao"', () => {
+          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.undefined;
         });
 
         describe('Rejeitando a revisão', () => {
@@ -169,9 +170,11 @@ describe('Carregando texto da MPV 905/2019', () => {
             expect(state.revisoes?.length).to.be.equal(0);
           });
 
-          it('Deveria encontrar o inciso adicionado na articulação', () => {
-            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
-            expect(d).to.be.not.undefined;
+          it('Deveria não encontrar o inciso adicionado na articulação', () => {
+            let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+            expect(d).to.be.undefined;
+            d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1_ali1')!;
+            expect(d).to.be.undefined;
           });
         });
       });
