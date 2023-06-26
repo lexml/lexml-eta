@@ -22,7 +22,6 @@ import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicar
 import { EMENDA_005 } from '../../doc/emendas/emenda-005';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
-import { ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO } from '../../../src/model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
 
 let state: State;
 let aux: any;
@@ -280,10 +279,10 @@ describe('Carregando texto da MPV 905/2019', () => {
             const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaA)!;
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
 
-            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
-            const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
-            const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
-            state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
+            // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            // const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
+            // const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
+            // state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
           });
 
           it('Deveria possuir 1 revisão', () => {
@@ -381,10 +380,10 @@ describe('Carregando texto da MPV 905/2019', () => {
             const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaA)!;
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
 
-            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
-            const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
-            const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
-            state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
+            // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
+            // const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
+            // const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
+            // state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
           });
 
           it('Deveria possuir 1 revisão', () => {
@@ -469,8 +468,11 @@ describe('Carregando texto da MPV 905/2019', () => {
           });
 
           describe('Desfazendo rejeição da revisão', () => {
-            it('Deveria possuir 3 revisões', () => {
+            beforeEach(function () {
               state = elementoReducer(state, { type: UNDO });
+            });
+
+            it('Deveria possuir 3 revisões', () => {
               expect(state.revisoes?.length).to.be.equal(3);
             });
           });
