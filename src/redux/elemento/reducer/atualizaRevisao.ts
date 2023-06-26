@@ -1,3 +1,4 @@
+import { isRevisaoDeTransformacao } from './../util/revisaoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
@@ -12,10 +13,16 @@ import {
   existeRevisaoParaElementos,
   buildDescricaoRevisaoFromStateType,
   removeAtributosDoElemento,
+  atualizaReferenciaElementoAnteriorSeNecessario,
+  isRevisaoPrincipal,
+  isRevisaoMovimentacao,
+  findRevisoesByElementoUuid2,
+  findRevisoesByElementoLexmlId,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -32,23 +39,26 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
     return state;
   }
 
+  if (state.ui?.message?.tipo === TipoMensagem.ERROR) {
+    return state;
+  }
+
+  let revisoes: Revisao[] = [];
   if ((UNDO !== actionType || !isUndoDeRevisaoAceitaOuRejeitada(state)) && !isAcaoDeRevisaoRejeitada(state)) {
-    const revisoes: Revisao[] = [];
     revisoes.push(...processaEventosDeSupressao(state, actionType));
     revisoes.push(...processaEventosDeModificacao(state, actionType));
     revisoes.push(...processaEventosDeRestauracao(state, actionType));
     // revisoes.push(...processaEventosDeRenumeracao(state, actionType, elementoAntesAcao));
 
-    if (isAcaoMover(state)) {
-      revisoes.push(...processaEventosDeMover(state, actionType));
+    if (isAcaoMoverOuTransformar(state)) {
+      revisoes.push(...processaEventosDeMoverOuTransformar(state, actionType));
     } else {
       revisoes.push(...processaEventosDeInclusao(state, actionType));
       revisoes.push(...processaEventosDeRemocao(state, actionType));
     }
-
-    state.revisoes!.push(...revisoes);
   }
-  state.revisoes = identificarRevisaoElementoPai(state);
+  revisoes = identificarRevisaoElementoPai(state, revisoes);
+  state.revisoes!.push(...revisoes);
 
   associarRevisoesAosElementos(state);
 
@@ -106,7 +116,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   getElementosFromEventos(eventos).forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
-      if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, e)) {
+      if (revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
         revisoesParaRemover.push(revisao);
       }
     } else {
@@ -120,45 +130,63 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   return result;
 };
 
-const processaEventosDeMover = (state: State, actionType: any): Revisao[] => {
+const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Revisao[] => {
   const incluidos = getElementosFromEventos(getEventos(state, StateType.ElementoIncluido));
   const removidos = getElementosFromEventos(getEventos(state, StateType.ElementoRemovido));
 
   const result: Revisao[] = [];
   const revisoesParaRemover: Revisao[] = [];
 
+  const montarNovaRevisao = (eAntesRevisao: Elemento, eAposRevisao: Elemento): RevisaoElemento => {
+    const revInclusao = new RevisaoElemento(
+      actionType,
+      StateType.ElementoIncluido,
+      '',
+      state.usuario!,
+      formatDateTime(new Date()),
+      eAntesRevisao ? JSON.parse(JSON.stringify(eAntesRevisao)) : undefined,
+      JSON.parse(JSON.stringify(eAposRevisao))
+    );
+
+    revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, eAposRevisao);
+    // revExclusao.idRevisaoAssociada = revInclusao.id;
+    // revInclusao.idRevisaoAssociada = revExclusao.id;
+    // result.push(revExclusao);
+    return revInclusao;
+  };
+
   if (existeRevisaoParaElementos(state.revisoes, removidos)) {
     removidos.forEach((e, index) => {
       const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid)!;
-      if (revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
-        revisoesParaRemover.push(revisao);
+      // A revisão pode não existir se houver dispositivo removido após a movimentação em modo de revisão
+      // Exemplo: moveu inciso com alíneas, removeu alínea e depois moveu novamente o inciso
+      if (!revisao) {
+        result.push(montarNovaRevisao(e, incluidos[index]));
+      } else if (isRevisaoDeTransformacao(revisao) && revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
+        revisoesParaRemover.push(...findRevisoesByElementoLexmlId(state.revisoes, e.lexmlId));
+      } else if (revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, incluidos[index])) {
+        revisoesParaRemover.push(...findRevisoesByElementoUuid2(state.revisoes, incluidos[index].uuid2));
       } else {
+        state.revisoes = state.revisoes?.filter(r => r.id !== revisao.id);
+
+        // result.push(montarNovaRevisao(revisao.elementoAntesRevisao! as Elemento, incluidos[index]));
+
+        revisao.stateType = StateType.ElementoIncluido;
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
         revisao.elementoAposRevisao = JSON.parse(JSON.stringify(incluidos[index]));
         removeAtributosDoElemento(revisao.elementoAposRevisao);
         revisao.usuario = state.usuario!;
         revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, incluidos[index]);
+
+        revisao.idRevisaoElementoPai = revisoesParaRemover.find(r => r.id === revisao.idRevisaoElementoPai) ? undefined : revisao.idRevisaoElementoPai;
+        revisao.idRevisaoElementoPrincipal = revisoesParaRemover.find(r => r.id === revisao.idRevisaoElementoPrincipal) ? undefined : revisao.idRevisaoElementoPrincipal;
+
+        result.push(revisao);
       }
     });
   } else {
-    removidos.forEach((e, index) => {
-      const revInclusao = new RevisaoElemento(
-        actionType,
-        StateType.ElementoIncluido,
-        '',
-        state.usuario!,
-        formatDateTime(new Date()),
-        JSON.parse(JSON.stringify(e)),
-        JSON.parse(JSON.stringify(incluidos[index]))
-      );
-
-      revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, incluidos[index]);
-      // revExclusao.idRevisaoAssociada = revInclusao.id;
-      // revInclusao.idRevisaoAssociada = revExclusao.id;
-      // result.push(revExclusao);
-      result.push(revInclusao);
-    });
+    removidos.forEach((e, index) => result.push(montarNovaRevisao(e, incluidos[index])));
   }
 
   state.revisoes = state.revisoes?.filter(r => !revisoesParaRemover.includes(r));
@@ -171,12 +199,17 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
 
   const result: Revisao[] = [];
   const revisoesParaRemover: Revisao[] = [];
+  const elementosIncluidos = getElementosFromEventos(eventos);
+  const uuidsElementosIncluidos = elementosIncluidos.map(e => e.uuid);
 
   getElementosFromEventos(eventos).forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
+      if (!uuidsElementosIncluidos.includes(e.hierarquia?.pai?.uuid)) {
+        atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'inclusao');
+      }
       result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e))));
     }
   });
@@ -191,12 +224,17 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
 
   const result: Revisao[] = [];
   const revisoesParaRemover: Revisao[] = [];
+  const elementosRemovidos = getElementosFromEventos(eventos);
+  const uuidsElementosRemovidos = elementosRemovidos.map(e => e.uuid);
 
-  getElementosFromEventos(eventos).forEach(e => {
+  elementosRemovidos.forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
-    if (revisao) {
+    if (revisao && (isRevisaoPrincipal(revisao) || !isRevisaoMovimentacao(revisao))) {
       revisoesParaRemover.push(revisao);
     } else {
+      if (!uuidsElementosRemovidos.includes(e.hierarquia?.pai?.uuid)) {
+        atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'exclusao');
+      }
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
       result.push(new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, { ...eAux, acoesPossiveis: [] }));
     }
@@ -219,7 +257,7 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
     const eAux = elementoAtual || elementoAnterior;
 
     const revisao = findRevisaoByElementoUuid(state.revisoes, elementoAnterior.uuid);
-    if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === eAux.descricaoSituacao && revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, eAux)) {
+    if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === eAux.descricaoSituacao && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, eAux)) {
       revisoesParaRemover.push(revisao);
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior);
@@ -270,7 +308,11 @@ const revisaoDeElementoComMesmoLexmlIdRotuloEConteudo = (r: RevisaoElemento, e: 
   return r.elementoAntesRevisao?.lexmlId === e.lexmlId && r.elementoAntesRevisao?.rotulo === e.rotulo && r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto;
 };
 
-const isAcaoMover = (state: State): boolean => {
+const revisaoDeElementoComMesmoUuid2RotuloEConteudo = (r: RevisaoElemento, e: Elemento): boolean => {
+  return r.elementoAntesRevisao?.uuid2 === e.uuid2 && r.elementoAntesRevisao?.rotulo === e.rotulo && r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto;
+};
+
+const isAcaoMoverOuTransformar = (state: State): boolean => {
   const incluidos = getEventos(state, StateType.ElementoIncluido);
   const removidos = getEventos(state, StateType.ElementoRemovido);
   return !!incluidos.length && incluidos.length === removidos.length;

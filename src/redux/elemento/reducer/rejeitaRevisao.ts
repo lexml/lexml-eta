@@ -6,7 +6,14 @@ import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getElementosRemovidosEIncluidos } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
-import { findRevisaoByElementoUuid, getRevisoesElementoAssociadas } from '../util/revisaoUtil';
+import {
+  findRevisaoByElementoUuid,
+  findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
+  findUltimaRevisaoDoGrupo,
+  getRevisoesElementoAssociadas,
+  isRevisaoMovimentacao,
+  isRevisaoPrincipal,
+} from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { incluir } from '../util/undoRedoReducerUtil';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
@@ -26,18 +33,31 @@ export const rejeitaRevisao = (state: any, action: any): State => {
 
   const eventos: StateEvent[] = [{ stateType: StateType.RevisaoRejeitada, elementos }];
 
+  if (isRevisaoMovimentacao(revisao)) {
+    // Elementos com revisão de movimentação também podem ter revisão de exclusão (desde que não seja o elemento principal)
+    // Nesse caso, a revisão de exclusão deve ser removida do state (não precisa ser rejeitada)
+    const uuid2Elementos = elementos.map(e => e.uuid2);
+    const outrasRevisoes = state.revisoes
+      .filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id))
+      .filter((r: Revisao) => uuid2Elementos.includes((r as RevisaoElemento).elementoAposRevisao.uuid2)) as RevisaoElemento[];
+    idsRevisoesAssociadas.push(...outrasRevisoes.map(r => r.id));
+
+    // Desfaz as ações feitas após a movimentação do dispositivo e que geraram revisões adicionais
+    processaRevisoes(state, outrasRevisoes.filter(isRevisaoPrincipal));
+
+    const elementosDeOutrasRevisoes = outrasRevisoes.map(r => {
+      r.elementoAposRevisao.revisao = JSON.parse(JSON.stringify(r));
+      return r.elementoAposRevisao as Elemento;
+    });
+
+    eventos.push({ stateType: StateType.RevisaoAdicionalRejeitada, elementos: elementosDeOutrasRevisoes });
+
+    // eventos[0].elementos!.push(...elementosDeOutrasRevisoes);
+  }
+
   const tempState = { ...state, past: [] };
 
-  revisoesAssociadas
-    .filter(r => !r.idRevisaoElementoPrincipal)
-    .forEach(r => {
-      r.stateType === StateType.ElementoSuprimido && eventos.push(...rejeitaSupressao(tempState, r));
-      r.stateType === StateType.ElementoModificado && eventos.push(...rejeitaModificacao(tempState, r));
-      r.stateType === StateType.ElementoRestaurado && eventos.push(...rejeitaRestauracao(tempState, r));
-      r.stateType === StateType.ElementoIncluido && eventos.push(...rejeitaInclusao(tempState, r));
-      r.stateType === StateType.ElementoRemovido && eventos.push(...rejeitaExclusao(tempState, r));
-      // rejeitaMovimentacao(state, revisao);
-    });
+  eventos.push(...processaRevisoes(tempState, revisoesAssociadas.filter(isRevisaoPrincipal)));
 
   return {
     ...state,
@@ -48,8 +68,22 @@ export const rejeitaRevisao = (state: any, action: any): State => {
       events: eventos,
       alertas: state.ui?.alertas,
     },
+    // revisoes: state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id) && !idsOutrasRevisoes.includes(r.id)),
     revisoes: state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id)),
   };
+};
+
+const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent[] => {
+  const eventos: StateEvent[] = [];
+  revisoes.forEach(r => {
+    r.stateType === StateType.ElementoSuprimido && eventos.push(...rejeitaSupressao(state, r));
+    r.stateType === StateType.ElementoModificado && eventos.push(...rejeitaModificacao(state, r));
+    r.stateType === StateType.ElementoRestaurado && eventos.push(...rejeitaRestauracao(state, r));
+    r.stateType === StateType.ElementoIncluido && eventos.push(...rejeitaInclusao(state, r));
+    r.stateType === StateType.ElementoRemovido && eventos.push(...rejeitaExclusao(state, r));
+    // rejeitaMovimentacao(state, revisao);
+  });
+  return eventos;
 };
 
 const rejeitaSupressao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
@@ -74,11 +108,21 @@ const rejeitaRestauracao = (state: State, revisao: RevisaoElemento): StateEvent[
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  // return removeElemento(state, { atual: revisao.elementoAposRevisao }).ui?.events || [];
   const result = removeElemento(state, { atual: revisao.elementoAposRevisao, isRejeitandoRevisao: true }).ui?.events || [];
+
+  // Se existe elemento antes da revisão, então reinclui elemento (havia sido excluído por se tratar de uma movimentação)
   if (revisao.elementoAntesRevisao) {
     result.push(...rejeitaExclusao(state, revisao));
   }
+
+  const ultimaRevisaoDoGrupo = findUltimaRevisaoDoGrupo(state.revisoes, revisao);
+  const rAux2 = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes, ultimaRevisaoDoGrupo.elementoAposRevisao);
+
+  if (rAux2) {
+    rAux2.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura));
+    rAux2.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura));
+  }
+
   return result;
 };
 

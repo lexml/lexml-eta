@@ -1,4 +1,4 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento, Referencia } from '../../../model/elemento';
 import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
@@ -13,7 +13,7 @@ import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoActio
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
-import { getDispositivoAndFilhosAsLista, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateType } from '../../state';
 
@@ -25,30 +25,40 @@ export const findRevisaoById = (revisoes: Revisao[] = [], idRevisao: string): Re
   return revisoes?.find(r => r.id === idRevisao);
 };
 
-export const findRevisaoByElemento = (revisoes: Revisao[] = [], elemento: Elemento | Referencia | undefined): RevisaoElemento | undefined => {
-  const { uuid = 0, lexmlId = '?' } = elemento || {};
-  return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid === uuid || r.elementoAposRevisao.lexmlId === lexmlId);
-};
-
 export const findRevisaoByElementoUuid = (revisoes: Revisao[] = [], uuid = 0): RevisaoElemento | undefined => {
-  return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid === uuid);
+  return getRevisoesElemento(revisoes)
+    .filter(r => r.elementoAposRevisao.uuid === uuid)
+    .slice(-1)[0];
 };
 
 export const findRevisaoByElementoUuid2 = (revisoes: Revisao[] = [], uuid2 = ''): RevisaoElemento | undefined => {
-  return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.uuid2 === uuid2);
+  return getRevisoesElemento(revisoes)
+    .filter(r => r.elementoAposRevisao.uuid2 === uuid2)
+    .slice(-1)[0];
+};
+
+export const findRevisoesByElementoUuid2 = (revisoes: Revisao[] = [], uuid2 = ''): RevisaoElemento[] => {
+  return getRevisoesElemento(revisoes).filter(r => r.elementoAposRevisao.uuid2 === uuid2);
+};
+
+export const findRevisoesByElementoLexmlId = (revisoes: Revisao[] = [], lexmlId = ''): RevisaoElemento[] => {
+  return getRevisoesElemento(revisoes).filter(r => r.elementoAposRevisao.lexmlId === lexmlId);
 };
 
 export const findRevisaoByElementoLexmlId = (revisoes: Revisao[] = [], lexmlId = '?'): RevisaoElemento | undefined => {
-  return getRevisoesElemento(revisoes).find(r => r.elementoAposRevisao.lexmlId === lexmlId);
+  return getRevisoesElemento(revisoes)
+    .filter(r => r.elementoAposRevisao.lexmlId === lexmlId)
+    .slice(-1)[0];
 };
 
 export const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: Elemento[]): boolean => {
   const revisoesElemento = getRevisoesElemento(revisoes);
-  return elementos.every(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
+  // return elementos.every(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
+  return elementos.some(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
 };
 
-export const identificarRevisaoElementoPai = (state: State): Revisao[] => {
-  const revisoes = state.revisoes;
+export const identificarRevisaoElementoPai = (state: State, revisoes: Revisao[]): Revisao[] => {
+  // const revisoes = state.revisoes;
   const result: Revisao[] = [];
 
   revisoes?.forEach(r => {
@@ -212,15 +222,15 @@ export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefine
   removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura);
 };
 
-const atributosPermtidos = ['tipo', 'uuid', 'uuid2', 'lexmlId', 'conteudo', 'descricaoSituacao', 'uuidAlteracao', 'uuid2Alteracao', 'existeNaNormaAlterada'];
+const atributosPermitidos = ['tipo', 'uuid', 'uuid2', 'lexmlId', 'conteudo', 'descricaoSituacao', 'uuidAlteracao', 'uuid2Alteracao', 'existeNaNormaAlterada'];
 
-const removeAtributosDoElementoAnteriorNaSequenciaDeLeitura = (elemento: Partial<Elemento> | undefined): void => {
+export const removeAtributosDoElementoAnteriorNaSequenciaDeLeitura = (elemento: Partial<Elemento> | undefined): void => {
   if (!elemento) {
     return;
   }
 
   for (const key in elemento) {
-    if (!atributosPermtidos.includes(key)) {
+    if (!atributosPermitidos.includes(key)) {
       delete elemento[key];
     }
   }
@@ -303,4 +313,49 @@ export const setCheckedElement = (element: any, checked: boolean): void => {
       element.removeAttribute('checked');
     }
   }
+};
+
+export const atualizaReferenciaElementoAnteriorSeNecessario = (articulacao: Articulacao, revisoes: Revisao[] = [], elemento: Elemento, tipoProcessamento: string): void => {
+  // Procura o elemento anterior ao excluído/incluído nos elementos anteriores das outras revisões.
+  const rAux = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoes, elemento.elementoAnteriorNaSequenciaDeLeitura!);
+  if (rAux) {
+    if (tipoProcessamento === 'exclusao') {
+      // Pega a última revisão do grupo da revisão principal (rAux) e utiliza o "elementoAposRevisao" como elemento anterior do atual elemento removido
+      elemento.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(findUltimaRevisaoDoGrupo(revisoes, rAux).elementoAposRevisao));
+      removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura!);
+    } else {
+      // Pega o último filho do elemento incluído e utiliza como elemento anterior da revisão principal (rAux)
+      const ultimoFilho = createElemento(getUltimoFilho(getDispositivoFromElemento(articulacao, elemento)!));
+      removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(ultimoFilho);
+      rAux.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = ultimoFilho;
+      rAux.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = ultimoFilho;
+    }
+  }
+};
+
+export const findRevisaoDeExclusaoComElementoAnteriorApontandoPara = (revisoes: Revisao[] = [], elementoAnteriorNaSequenciaDeLeitura: Referencia): RevisaoElemento | undefined => {
+  return revisoes
+    .filter(isRevisaoElemento)
+    .map(r => r as RevisaoElemento)
+    .filter(isRevisaoDeExclusao)
+    .find(r => r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.uuid === elementoAnteriorNaSequenciaDeLeitura.uuid);
+};
+
+export const findUltimaRevisaoDoGrupo = (revisoes: Revisao[] = [], revisao: RevisaoElemento): RevisaoElemento => {
+  return (
+    revisoes
+      .map(r => r as RevisaoElemento)
+      .filter(r => r.idRevisaoElementoPrincipal === revisao.id)
+      .slice(-1)[0] || revisao
+  );
+};
+
+export const isRevisaoMovimentacao = (revisao: Revisao): boolean => {
+  const r = revisao as RevisaoElemento;
+  return !!(isRevisaoElemento(revisao) && r.elementoAntesRevisao && r.elementoAposRevisao && r.elementoAntesRevisao.tipo === r.elementoAposRevisao.tipo);
+};
+
+export const isRevisaoDeTransformacao = (revisao: Revisao): boolean => {
+  const r = revisao as RevisaoElemento;
+  return !!(isRevisaoElemento(revisao) && r.elementoAntesRevisao && r.elementoAposRevisao && r.elementoAntesRevisao.tipo !== r.elementoAposRevisao.tipo);
 };

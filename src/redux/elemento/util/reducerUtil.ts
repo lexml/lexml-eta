@@ -101,10 +101,10 @@ export const getElementosDoDispositivo = (dispositivo: Dispositivo, valida = fal
       const mensagens = validaDispositivo(d);
       if (mensagens) {
         d.mensagens = mensagens;
-        lista.push(createElemento(d));
+        lista.push(createElemento(d, true, true));
       }
     } else {
-      lista.push(createElemento(d));
+      lista.push(createElemento(d, true, true));
     }
   });
   return lista;

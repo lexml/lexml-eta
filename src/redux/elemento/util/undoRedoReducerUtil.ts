@@ -26,8 +26,16 @@ import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { existeRevisaoCriadaPorExclusao, getElementosFromRevisoes } from './revisaoUtil';
+import {
+  existeRevisaoCriadaPorExclusao,
+  findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
+  findUltimaRevisaoDoGrupo,
+  getElementosFromRevisoes,
+  isRevisaoPrincipal,
+  removeAtributosDoElementoAnteriorNaSequenciaDeLeitura,
+} from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
+import { removeElemento } from '../reducer/removeElemento';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
@@ -356,19 +364,38 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
   const eventosFiltrados = eventos.filter((se: StateEvent) => se.stateType === stateType);
   if (eventosFiltrados.length) {
     eventosFiltrados.forEach((ev: StateEvent) => {
-      const revisoes = ev.elementos!.map(e => e.revisao! as RevisaoElemento);
-      state.revisoes!.push(...revisoes);
+      const revisoesRetornadasParaState = ev.elementos!.map(e => e.revisao! as RevisaoElemento);
+      state.revisoes!.push(...revisoesRetornadasParaState);
 
       if (stateType === StateType.RevisaoRejeitada) {
-        atualizaDispositivosComTextoModificado(state, revisoes);
+        atualizaDispositivosComTextoModificado(state, revisoesRetornadasParaState);
       }
 
-      if (existeRevisaoCriadaPorExclusao(revisoes)) {
-        const elementos = revisoes.map(r => r.elementoAntesRevisao as Elemento);
+      if (existeRevisaoCriadaPorExclusao(revisoesRetornadasParaState)) {
+        const elementos = revisoesRetornadasParaState.map(r => r.elementoAntesRevisao as Elemento);
+        if (stateType === StateType.RevisaoAdicionalRejeitada) {
+          elementos.forEach(e => removeElemento({ ...state, emRevisao: false }, { atual: e }));
+        }
         result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
         result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+
+        // Atualiza referência de elemento anterior em revisões de exclusão
+        revisoesRetornadasParaState.filter(isRevisaoPrincipal).forEach(r => {
+          const e = r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
+          const revisaoASerAtualizada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes!, e);
+          if (revisaoASerAtualizada) {
+            const revisaoRetornada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoesRetornadasParaState, e);
+            const ultimaRevisaoDoGrupo = findUltimaRevisaoDoGrupo(revisoesRetornadasParaState, revisaoRetornada!);
+
+            const elementoAnterior = JSON.parse(JSON.stringify(ultimaRevisaoDoGrupo.elementoAposRevisao));
+            removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elementoAnterior);
+            revisaoASerAtualizada.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
+            revisaoASerAtualizada.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
+          }
+        });
       } else {
-        result.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosFromRevisoes(revisoes, state) });
+        const elementos = getElementosFromRevisoes(revisoesRetornadasParaState, state);
+        result.push({ stateType: StateType.SituacaoElementoModificada, elementos: elementos });
       }
     });
   }

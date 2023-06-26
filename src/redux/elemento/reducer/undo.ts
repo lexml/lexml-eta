@@ -100,6 +100,7 @@ export const undo = (state: any): State => {
 
   events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita));
   events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada));
+  events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada));
 
   retorno.ui!.events = events.build();
   retorno.present = events.build();
