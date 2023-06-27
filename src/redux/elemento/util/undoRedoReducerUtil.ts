@@ -383,6 +383,8 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
       const revisoesRetornadasParaState = ev.elementos!.map(e => e.revisao! as RevisaoElemento);
       state.revisoes!.push(...revisoesRetornadasParaState);
 
+      result.push({ stateType: ev.stateType, elementos: ev.elementos });
+
       if (stateType === StateType.RevisaoRejeitada) {
         atualizaDispositivosComTextoModificado(state, revisoesRetornadasParaState);
       }
@@ -392,8 +394,8 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
         if (stateType === StateType.RevisaoAdicionalRejeitada) {
           elementos.forEach(e => removeElemento({ ...state, emRevisao: false }, { atual: e }));
         }
-        result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
-        result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+        // result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
+        // result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
 
         atualizaReferenciaElementoAnteriorSeNecessario(revisoesRetornadasParaState);
       } else {

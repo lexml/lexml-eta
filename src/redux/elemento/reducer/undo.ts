@@ -98,12 +98,14 @@ export const undo = (state: any): State => {
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
   events.add(StateType.SituacaoElementoModificada, processaSituacoesAlteradas(state, eventos));
 
-  events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita));
-  events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada));
-  events.eventos.push(...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada));
+  const eventosRevisao = [
+    ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
+    ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
+    ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
+  ].filter(ev => ev.elementos?.length);
 
-  retorno.ui!.events = events.build();
-  retorno.present = events.build();
+  retorno.ui!.events = [...eventosRevisao, ...events.build()];
+  retorno.present = [...eventosRevisao, ...events.build()];
 
   return retorno;
 };

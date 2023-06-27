@@ -212,7 +212,11 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
   }
 
-  if (![ABRIR_ARTICULACAO, APLICAR_ALTERACOES_EMENDA, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) && !isRedoDeRevisaoAceita(actionType, tempState)) {
+  if (
+    ![ABRIR_ARTICULACAO, APLICAR_ALTERACOES_EMENDA, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
+    !isRedoDeRevisaoAceita(actionType, tempState) &&
+    !isRedoDeRevisaoRejeitada(actionType, tempState)
+  ) {
     tempState.revisoes = revisoes;
   }
 
@@ -226,4 +230,8 @@ export const elementoReducer = (state = {}, action: any): any => {
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {
   return actionType === REDO && !!state.ui?.events.some(event => event.stateType === StateType.RevisaoAceita);
+};
+
+const isRedoDeRevisaoRejeitada = (actionType: string | undefined, state: State): boolean => {
+  return actionType === REDO && !!state.ui?.events.some(event => event.stateType === StateType.RevisaoRejeitada);
 };

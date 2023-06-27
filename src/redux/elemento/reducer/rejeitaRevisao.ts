@@ -1,7 +1,7 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
-import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { getDispositivoAndFilhosAsLista, getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { createElemento, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getElementosRemovidosEIncluidos } from '../evento/eventosUtil';
@@ -131,14 +131,16 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   const revisoesAssociadas = getRevisoesElementoAssociadas(state.revisoes, revisao);
   const evento: StateEvent = { stateType: StateType.ElementoRemovido, elementos: revisoesAssociadas.map(r => r.elementoAntesRevisao as Elemento) };
   const eventoAux: StateEvent = { stateType: StateType.ElementoIncluido, elementos: [] };
+
   const result: StateEvent[] = [{ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) }];
 
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);
 
-  result.push({ stateType: StateType.ElementoRenumerado, elementos: montarListaElementosRenumerados(state, result[0].elementos!) });
+  const dispositivosRenumerados = listaDispositivosRenumerados(getDispositivoFromElemento(state.articulacao!, result[0].elementos![0])!).filter(isAdicionado);
+  result.push({ stateType: StateType.ElementoRenumerado, elementos: dispositivosRenumerados.map(d => createElemento(d)) });
 
   result.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosAlteracaoASeremAtualizados(state.articulacao!, getElementosRemovidosEIncluidos(result)) });
-  return result;
+  return result.filter(ev => ev.elementos?.length);
 };
 
 const atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao = (state: State, revisao: RevisaoElemento, primeiroElementoReincluido: Elemento): void => {
@@ -161,46 +163,4 @@ const atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao = (stat
       revisaoASerAtualizada.elementoAntesRevisao!.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
     }
   }
-};
-
-// const atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao = (state: State, revisao: RevisaoElemento, primeiroElementoReincluido: Elemento): void => {
-//   // Atualizar referência
-//   // Procurar revisão de exclusão que aponta para o mesmo elemento anterior do dispositivo que foi reincluído
-//   const revisaoASerAtualizada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(
-//     state.revisoes?.filter(r => r.id !== revisao.id),
-//     primeiroElementoReincluido.elementoAnteriorNaSequenciaDeLeitura!
-//   );
-
-//   if (revisaoASerAtualizada && revisaoASerAtualizada.id !== revisao.id) {
-//     // Atualiza referência
-//     const novaReferencia = createElemento(getUltimoFilho(getDispositivoFromElemento(state.articulacao!, primeiroElementoReincluido)!), false, true);
-//     revisaoASerAtualizada.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(novaReferencia));
-//     revisaoASerAtualizada.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(novaReferencia));
-
-//     // Atualiza posição
-//     if (isAtualizarPosicaoDeElementoExcluido(primeiroElementoReincluido, revisaoASerAtualizada.elementoAposRevisao)) {
-//       revisaoASerAtualizada.elementoAposRevisao.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
-//       revisaoASerAtualizada.elementoAntesRevisao!.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
-//     }
-//   }
-// };
-
-const montarListaElementosRenumerados = (state: State, elementos: Elemento[]): Elemento[] => {
-  const result: Elemento[] = [];
-  const map = new Map<number, Elemento>();
-
-  elementos.forEach(elemento => {
-    if (!map.has(elemento.uuid!) || !map.has(elemento.hierarquia!.pai!.uuid!)) {
-      const dispositivos = getDispositivoAndFilhosAsLista(getDispositivoFromElemento(state.articulacao!, elemento)!.pai!);
-      dispositivos.filter(isAdicionado).forEach(dispositivo => {
-        if (!map.has(dispositivo.uuid!)) {
-          const e = createElemento(dispositivo);
-          map.set(dispositivo.uuid!, e);
-          result.push(e);
-        }
-      });
-    }
-  });
-
-  return result;
 };

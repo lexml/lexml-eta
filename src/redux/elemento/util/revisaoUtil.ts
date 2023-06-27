@@ -31,10 +31,20 @@ export const findRevisaoByElementoUuid = (revisoes: Revisao[] = [], uuid = 0): R
     .slice(-1)[0];
 };
 
+export const findRevisaoByElementoUuidAndStateType = (revisoes: Revisao[] = [], uuid = 0, stateType: StateType): RevisaoElemento | undefined => {
+  return getRevisoesElemento(revisoes)
+    .filter(r => r.elementoAposRevisao.uuid === uuid && r.stateType === stateType)
+    .slice(-1)[0];
+};
+
 export const findRevisaoByElementoUuid2 = (revisoes: Revisao[] = [], uuid2 = ''): RevisaoElemento | undefined => {
   return getRevisoesElemento(revisoes)
     .filter(r => r.elementoAposRevisao.uuid2 === uuid2)
     .slice(-1)[0];
+};
+
+export const findRevisoesByElementoUuid = (revisoes: Revisao[] = [], uuid = 0): RevisaoElemento[] => {
+  return getRevisoesElemento(revisoes).filter(r => r.elementoAposRevisao.uuid === uuid);
 };
 
 export const findRevisoesByElementoUuid2 = (revisoes: Revisao[] = [], uuid2 = ''): RevisaoElemento[] => {
