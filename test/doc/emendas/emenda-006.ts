@@ -4,7 +4,7 @@ Art. 1º ...
     I - ...
 
     I-1 - teste A:
-      a) teste B:
+      a) teste B;
       b) teste C;
     I-2 - teste D:
       a) teste E;

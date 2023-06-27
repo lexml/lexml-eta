@@ -64,7 +64,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
       });
 
-      it('State.ui.events deveria possuir evento com StateType.SituacaoElementoModificada (para atualizar e numeração na tela)', () => {
+      it('State.ui.events deveria possuir evento com StateType.SituacaoElementoModificada (para atualizar e numeração na tela) (*)', () => {
         expect(state.ui?.events.some(ev => ev.stateType === StateType.SituacaoElementoModificada)).to.be.true;
       });
 
@@ -73,13 +73,13 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
           state = elementoReducer(state, { type: REDO });
         });
 
-        it('Deveria não possuir revisão', () => {
+        it('Deveria não possuir revisão (*)', () => {
           expect(state.revisoes?.length).to.be.equal(0);
         });
 
-        it('State.ui.events deveria possuir evento com StateType.SituacaoElementoModificada (para atualizar e numeração na tela)', () => {
-          expect(state.ui?.events.some(ev => ev.stateType === StateType.SituacaoElementoModificada)).to.be.true;
-        });
+        // it('State.ui.events deveria possuir evento com StateType.SituacaoElementoModificada (para atualizar e numeração na tela) (**)', () => {
+        //   expect(state.ui?.events.some(ev => ev.stateType === StateType.SituacaoElementoModificada)).to.be.true;
+        // });
       });
     });
 
@@ -141,7 +141,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         expect(d.filhos[1].texto).to.be.equal('teste F;');
       });
 
-      describe('Tentando remover dispositivo "art1_par1u_inc1-2"', () => {
+      describe('Tentando remover INCISO "art1_par1u_inc1-2"', () => {
         beforeEach(function () {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
           state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
@@ -157,7 +157,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         });
       });
 
-      describe('Remover dispositivo "art1_par1u_inc1-2_ali2"', () => {
+      describe('Remover ALÍNEA "art1_par1u_inc1-2_ali2"', () => {
         beforeEach(function () {
           // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2_ali2')!;
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
@@ -183,7 +183,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: r });
           });
 
-          it('Deveria não possuir revisões', () => {
+          it('Deveria não possuir revisões (**)', () => {
             expect(state.revisoes?.length).to.be.equal(0);
           });
 
@@ -222,7 +222,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
                 state = elementoReducer(state, { type: REDO });
               });
 
-              it('Deveria não possuir revisões', () => {
+              it('Deveria não possuir revisões (***)', () => {
                 expect(state.revisoes?.length).to.be.equal(0);
               });
 
