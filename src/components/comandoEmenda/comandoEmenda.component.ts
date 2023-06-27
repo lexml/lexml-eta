@@ -113,9 +113,18 @@ export class ComandoEmendaComponent extends LitElement {
           background-color: #fff3cd;
           border-color: #ffeeba;
         }
+        .mensagem--danger {
+          color: #721c24;
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
+        }
       </style>
 
       <div class="lexml-emenda-comando">
+        <div class="lexml-emenda-complementoComando mensagem mensagem--danger">
+          Cada emenda pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de
+          submetê-la.
+        </div>
         ${cabecalhoComum ? unsafeHTML(`<p class="lexml-emenda-cabecalhoComando">${cabecalhoComum}</p>`) : ''}
         ${comandos?.map(comando => {
           return unsafeHTML(
