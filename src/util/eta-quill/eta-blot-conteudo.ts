@@ -2,7 +2,6 @@ import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 
 export class EtaBlotConteudo extends EtaBlot {
   static blotName = 'EtaBlotConteudo';
@@ -73,12 +72,6 @@ export class EtaBlotConteudo extends EtaBlot {
       this.domNode.setAttribute('fecha-aspas', 'true');
     } else {
       this.domNode.removeAttribute('fecha-aspas');
-    }
-
-    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      this.domNode.setAttribute('contenteditable', 'false');
-    } else {
-      this.domNode.setAttribute('contenteditable', 'true');
     }
   }
 }
