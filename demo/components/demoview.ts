@@ -122,9 +122,14 @@ export class DemoView extends LitElement {
       this.modo = elmAcao.value;
       setTimeout(() => {
         this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
-        this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
-        this.atualizarProposicaoCorrente(this.projetoNorma);
-        this.elLexmlEmenda.style.display = 'block';
+
+        if (this.elLexmlEmenda) {
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
+          this.atualizarProposicaoCorrente(this.projetoNorma);
+          this.elLexmlEmenda.style.display = 'block';
+        } else {
+          this.atualizarProposicaoCorrente(this.projetoNorma);
+        }
       }, 0);
     }
   }

@@ -62,7 +62,7 @@ export class EditorTextoRicoComponent extends LitElement {
           margin-right: 8px;
         }
       </style>
-      <div id="toolbar">
+      <div id="${`toolbar${this.id}`}">
         <span class="ql-formats">
           <button type="button" class="ql-bold" title="Negrito (Ctrl+b)"></button>
           <button type="button" class="ql-italic" title="Itálico (Ctrl+i)"></button>
@@ -95,7 +95,7 @@ export class EditorTextoRicoComponent extends LitElement {
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
       </div>
-      <div id="editor-texto-rico"></div>
+      <div id="${this.id}-inner"></div>
     `;
   }
 
@@ -118,13 +118,13 @@ export class EditorTextoRicoComponent extends LitElement {
   }
 
   init = (): void => {
-    this.container = document.querySelector('#editor-texto-rico');
+    this.container = document.querySelector(`#${this.id}-inner`);
     if (this.container) {
       this.quill = new Quill(this.container as HTMLElement, {
         formats: ['bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
         modules: {
           toolbar: {
-            container: '#toolbar',
+            container: '#toolbar' + this.id,
             handlers: {
               undo: this.undo,
               redo: this.redo,
@@ -148,7 +148,8 @@ export class EditorTextoRicoComponent extends LitElement {
   };
 
   setContent = (texto: string): void => {
-    if (!this.quill) {
+    console.log('setContent', texto, this.quill, this.quill?.root);
+    if (!this.quill || !this.quill.root) {
       return;
     }
     this.quill.root.innerHTML = texto

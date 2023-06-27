@@ -7,6 +7,10 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { editorStyles } from '../assets/css/editor.css';
+import { quillSnowStyles } from '../assets/css/quill.snow.css';
+import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
+
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
@@ -26,6 +30,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
 
+  @property({ type: String })
   private modo: any = ClassificacaoDocumento.EMENDA;
   private projetoNorma = {};
 
@@ -33,7 +38,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   autoria = new Autoria();
 
   @query('lexml-eta')
-  _lexmlEta!: LexmlEtaComponent;
+  _lexmlEta?: LexmlEtaComponent;
   @query('editor-texto-rico')
   _lexmlJustificativa;
   @query('lexml-autoria')
@@ -110,8 +115,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   getEmenda(): Emenda {
     const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
-    emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
-    emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    if (this._lexmlEta) {
+      emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
+      emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
@@ -129,17 +136,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlEmendaComando.emenda = [];
     this.modo = modo;
     this.projetoNorma = projetoNorma;
-    this._lexmlEta.setProjetoNorma(modo, projetoNorma, !!emenda);
-    if (emenda) {
-      this.setEmenda(emenda);
-    } else {
-      this.resetaEmenda(modo as ModoEdicaoEmenda);
+
+    if (this.modo !== 'emendaTextoLivre') {
+      this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
+      if (emenda) {
+        this.setEmenda(emenda);
+      } else {
+        this.resetaEmenda(modo as ModoEdicaoEmenda);
+      }
     }
     setTimeout(this.handleResize, 0);
   }
 
   private setEmenda(emenda: Emenda): void {
-    this._lexmlEta.setDispositivosEmenda(emenda.componentes[0].dispositivos);
+    if (this._lexmlEta) {
+      this._lexmlEta.setDispositivosEmenda(emenda.componentes[0].dispositivos);
+    }
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
@@ -220,7 +232,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    console.log('updated', this.modo);
     if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
       this.slSplitPanel.removeAttribute('disabled');
       this.slSplitPanel.position = this.splitPanelPosition;
@@ -262,7 +273,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private onChange(): void {
     if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
-      const comandoEmenda = this._lexmlEta.getComandoEmenda();
+      const comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
 
@@ -282,6 +293,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
+      ${shoelaceLightThemeStyles} ${quillSnowStyles} ${editorStyles}
       <style>
         :root {
           --height: 100%;
@@ -346,7 +358,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              <lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>
+              ${this.modo !== 'emendaTextoLivre'
+                ? html`<lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>`
+                : html`<editor-texto-rico id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
               <editor-texto-rico id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
