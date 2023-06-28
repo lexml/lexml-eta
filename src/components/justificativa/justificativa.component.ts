@@ -343,6 +343,6 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
   };
 
   private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
   };
 }

@@ -246,21 +246,12 @@ export const removeAtributosDoElementoAnteriorNaSequenciaDeLeitura = (elemento: 
   }
 };
 
-export const getQuantidadeRevisoes = (rootStore: any): number => {
-  const state = rootStore.getState().elementoReducer as any;
-
-  if (state.revisoes) {
-    //const qtdRevisoesJustificativa = state.revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
-    const qtdRevisoes = state.revisoes.filter(e => e.idRevisaoElementoPrincipal === undefined && e.descricao !== RevisaoJustificativaEnum.JustificativaAlterada).length;
-    //return qtdRevisoesJustificativa > 0 ? qtdRevisoes + 1 : qtdRevisoes;
-    return qtdRevisoes;
-  }
-  return 0;
+export const getQuantidadeRevisoes = (revisoes: Revisao[] = []): number => {
+  return revisoes.filter(isRevisaoPrincipal).length;
 };
 
-const getQuantidadeRevisoesJustificativa = (rootStore: any): number => {
-  const state = rootStore.getState().elementoReducer as any;
-  return state.revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
+const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number => {
+  return revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
 };
 
 const mostrarDialogDisclaimerRevisao = (rootStore: any): void => {
@@ -308,8 +299,8 @@ export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
   rootStore.dispatch(ativarDesativarRevisaoAction.execute());
 };
 
-export const atualizaQuantidadeRevisao = (rootStore: any, element: any, justificativa = false): void => {
-  const quantidade = justificativa ? getQuantidadeRevisoesJustificativa(rootStore) : getQuantidadeRevisoes(rootStore);
+export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, justificativa = false): void => {
+  const quantidade = justificativa ? getQuantidadeRevisoesJustificativa(revisoes) : getQuantidadeRevisoes(revisoes);
   if (element) {
     element.innerHTML = quantidade;
   }

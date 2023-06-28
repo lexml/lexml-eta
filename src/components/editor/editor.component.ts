@@ -1393,7 +1393,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
   };
 
   /**
