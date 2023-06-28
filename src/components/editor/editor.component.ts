@@ -668,12 +668,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
       }
 
-      this.atualizaQuantidadeRevisao();
       this.indicadorMarcaRevisao(event);
       //this.habilitaBotoesAceitarRejeitarRevisoes();
       this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
+
+    this.atualizaQuantidadeRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
     const eventosQueDevemEmitirTextChange = [
@@ -779,8 +780,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   // }
 
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento, selecionarLinha?: boolean): void {
-    const fnSelecionarNovaLinha = (linha: EtaContainerTable): void => {
-      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+    const fnSelecionarNovaLinha = (linha: EtaContainerTable, linhaAtual: EtaContainerTable): void => {
+      this.quill.desmarcarLinhaAtual(linhaAtual);
       this.quill.marcarLinhaAtual(linha);
       try {
         this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), Quill.sources.SILENT);
@@ -793,7 +794,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (linhaASerReinserida) {
       linhaASerReinserida.atualizarElemento(elemento);
-      selecionarLinha && fnSelecionarNovaLinha(linhaASerReinserida);
+      selecionarLinha && fnSelecionarNovaLinha(linhaASerReinserida, this.quill.linhaAtual);
       return;
     }
 
@@ -810,7 +811,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
       if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
-        selecionarLinha && !this.timerOnChange && fnSelecionarNovaLinha(novaLinha);
+        selecionarLinha && !this.timerOnChange && fnSelecionarNovaLinha(novaLinha, this.quill.linhaAtual);
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
@@ -947,7 +948,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
-      linha = this.quill.getLinhaByUuid2(elemento.uuid2 ?? '', linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
       if (linha) {
         if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusao(linha.elemento.revisao as RevisaoElemento))) {
           linha.atualizarElemento(elemento);
