@@ -48,7 +48,7 @@ export const undo = (state: any): State => {
     tempState.present = [];
     tempState.future = [];
 
-    const eventosFiltrados = eventos.filter((ev: StateEvent) => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada].includes(ev.stateType));
+    const eventosFiltrados = eventos.filter((ev: StateEvent) => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada, StateType.RevisaoAdicionalRejeitada].includes(ev.stateType));
 
     if (eventosFiltrados[0].stateType === StateType.ElementoIncluido) {
       tempState = removeElemento(tempState, { atual: eventosFiltrados[0].elementos[0] });
