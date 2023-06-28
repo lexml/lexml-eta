@@ -74,7 +74,7 @@ export class EtaKeyboard extends Keyboard {
         }
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (elementoLinhaAtual.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      } else if (elementoLinhaAtual.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && this.isNotTeclasDeNavegacao(ev)) {
         cancelarPropagacaoDoEvento(ev);
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
@@ -169,6 +169,12 @@ export class EtaKeyboard extends Keyboard {
     });
 
     super.listen();
+  }
+
+  private isNotTeclasDeNavegacao(ev: KeyboardEvent): boolean {
+    return (
+      !ev.ctrlKey && ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown' && ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End' && !ev.shiftKey
+    );
   }
 
   private isTeclaComCaracterGrafico(ev: KeyboardEvent): boolean {
