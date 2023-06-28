@@ -93,7 +93,10 @@ const rejeitaSupressao = (state: State, revisao: RevisaoElemento): StateEvent[] 
 };
 
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  if (revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+  if (
+    revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
+    revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO
+  ) {
     return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
   } else {
     return restauraElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
@@ -154,14 +157,14 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
     result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) });
   }
 
-  result.push({ stateType: StateType.ElementoValidado, elementos: montarListaElementosValidados(state, result) });
-
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);
 
   const dispositivosRenumerados = listaDispositivosRenumerados(getDispositivoFromElemento(state.articulacao!, result[0].elementos![0])!).filter(isAdicionado);
   result.push({ stateType: StateType.ElementoRenumerado, elementos: dispositivosRenumerados.map(d => createElemento(d)) });
 
   result.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosAlteracaoASeremAtualizados(state.articulacao!, getElementosRemovidosEIncluidos(result)) });
+  result.push({ stateType: StateType.ElementoValidado, elementos: montarListaElementosValidados(state, result) });
+
   return result.filter(ev => ev.elementos?.length);
 };
 
