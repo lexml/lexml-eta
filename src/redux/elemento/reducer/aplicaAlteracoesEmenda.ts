@@ -21,7 +21,7 @@ import { Counter } from '../../../util/counter';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
-import { isRevisaoDeExclusao, isRevisaoElemento, isRevisaoPrincipal } from '../util/revisaoUtil';
+import { identificarRevisaoElementoPai, isRevisaoDeExclusao, isRevisaoElemento, isRevisaoPrincipal } from '../util/revisaoUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
@@ -327,6 +327,8 @@ const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
     }
   });
 
+  state.revisoes = identificarRevisaoElementoPai(state, state.revisoes!);
+
   result.push({ stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao });
   return result;
 };
@@ -353,12 +355,21 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
     elementosExcluidosEmModoDeRevisao.push(revisao.elementoAposRevisao as Elemento);
     elementoAnterior = revisao.elementoAposRevisao as Elemento;
   } else {
-    const d = buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.lexmlId!)!;
-    revisao.elementoAposRevisao.uuid = d.uuid;
+    const e = createElemento(buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.lexmlId!)!);
+    revisao.elementoAposRevisao.uuid = e.uuid;
+    revisao.elementoAposRevisao.uuid2 = e.uuid2;
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
+
     if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(revisao.actionType)) {
       revisao.elementoAntesRevisao!.uuid = Counter.next();
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
     } else if (revisao.stateType !== StateType.ElementoIncluido) {
-      revisao.elementoAntesRevisao!.uuid = d.uuid;
+      revisao.elementoAntesRevisao!.uuid = e.uuid;
+      revisao.elementoAntesRevisao!.uuid2 = e.uuid2;
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
     }
   }
 };
