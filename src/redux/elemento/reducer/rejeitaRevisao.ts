@@ -1,6 +1,6 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
-import { createElemento, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
@@ -154,6 +154,8 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
     result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) });
   }
 
+  result.push({ stateType: StateType.ElementoValidado, elementos: montarListaElementosValidados(state, result) });
+
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);
 
   const dispositivosRenumerados = listaDispositivosRenumerados(getDispositivoFromElemento(state.articulacao!, result[0].elementos![0])!).filter(isAdicionado);
@@ -183,4 +185,13 @@ const atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao = (stat
       revisaoASerAtualizada.elementoAntesRevisao!.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
     }
   }
+};
+
+const montarListaElementosValidados = (state: State, result: StateEvent[]): Elemento[] => {
+  return result
+    .filter(ev => ev.stateType === StateType.ElementoIncluido)
+    .map(ev => ev.elementos || [])
+    .flat()
+    .map(e => getDispositivoFromElemento(state.articulacao!, e)!)
+    .map(d => createElementoValidado(d));
 };

@@ -129,8 +129,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
   };
 };
 
-export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
-  const el = createElemento(dispositivo);
+export const createElementoValidado = (dispositivo: Dispositivo, procurarElementoAnterior = false): Elemento => {
+  const el = createElemento(dispositivo, true, procurarElementoAnterior);
   el.mensagens = validaDispositivo(dispositivo);
 
   return el;
