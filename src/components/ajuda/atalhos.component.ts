@@ -33,7 +33,7 @@ export class AtalhosComponent extends LitElement {
       font-style: italic;
     }
     .lx-eta-help-content h4 {
-      padding-bottom: 0.5rem;
+      padding: 1rem 0 0.5rem 0;
       margin: 0;
     }
 
