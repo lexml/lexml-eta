@@ -1,3 +1,4 @@
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { cancelarPropagacaoDoEvento } from '../event-util';
 import { Observable } from '../observable';
 import { EtaContainerTable } from './eta-container-table';
@@ -38,7 +39,7 @@ export class EtaKeyboard extends Keyboard {
 
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       this.altGraphPressionado = ev.altKey && ev.location === 2;
-
+      const elementoLinhaAtual = this.quill.linhaAtual.elemento;
       if (!(this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) && this.isTeclaQueAlteraTexto(ev)) {
         this.onChange.notify('keyboard');
       }
@@ -73,6 +74,8 @@ export class EtaKeyboard extends Keyboard {
         }
         cancelarPropagacaoDoEvento(ev);
         return;
+      } else if (elementoLinhaAtual.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+        cancelarPropagacaoDoEvento(ev);
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
           if (['Delete', 'Backspace'].includes(ev.key)) {
