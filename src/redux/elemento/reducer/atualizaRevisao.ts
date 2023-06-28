@@ -1,4 +1,3 @@
-import { isRevisaoDeTransformacao } from './../util/revisaoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
@@ -8,8 +7,10 @@ import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import {
+  // findRevisaoByElementoUuid2,
+  findRevisaoByElementoUuid,
+  isRevisaoDeTransformacao,
   identificarRevisaoElementoPai,
-  findRevisaoByElementoUuid2,
   existeRevisaoParaElementos,
   buildDescricaoRevisaoFromStateType,
   removeAtributosDoElemento,
@@ -79,7 +80,7 @@ const associarRevisoesAosElementos = (state: State): void => {
     .filter(se => se.stateType !== StateType.RevisaoAdicionalRejeitada)
     .forEach(se =>
       se.elementos?.forEach(e => {
-        const r = findRevisaoByElementoUuid2(state.revisoes, e.uuid2);
+        const r = findRevisaoByElementoUuid(state.revisoes, e.uuid);
         e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
       })
     );
@@ -92,7 +93,7 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisaoByElementoUuid2(state.revisoes, e.uuid2);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
       revisoesParaRemover.push(revisao);
     } else {
@@ -117,7 +118,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisaoByElementoUuid2(state.revisoes, e.uuid2);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       if (revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
         revisoesParaRemover.push(revisao);
@@ -160,7 +161,7 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
 
   if (existeRevisaoParaElementos(state.revisoes, removidos)) {
     removidos.forEach((e, index) => {
-      const revisao = findRevisaoByElementoUuid2(state.revisoes, e.uuid2)!;
+      const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid)!;
       // A revisão pode não existir se houver dispositivo removido após a movimentação em modo de revisão
       // Exemplo: moveu inciso com alíneas, removeu alínea e depois moveu novamente o inciso
       if (!revisao) {
@@ -206,7 +207,7 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
   const uuidsElementosIncluidos = elementosIncluidos.map(e => e.uuid);
 
   getElementosFromEventos(eventos).forEach(e => {
-    const revisao = findRevisaoByElementoUuid2(state.revisoes, e.uuid2);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
@@ -231,7 +232,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
   const uuidsElementosRemovidos = elementosRemovidos.map(e => e.uuid);
 
   elementosRemovidos.forEach(e => {
-    const revisao = findRevisaoByElementoUuid2(state.revisoes, e.uuid2);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao && (isRevisaoPrincipal(revisao) || !isRevisaoMovimentacao(revisao))) {
       revisoesParaRemover.push(revisao);
     } else {
@@ -259,7 +260,7 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
     const elementoAnterior = se.elementos![0];
     const eAux = elementoAtual || elementoAnterior;
 
-    const revisao = findRevisaoByElementoUuid2(state.revisoes, elementoAnterior.uuid2);
+    const revisao = findRevisaoByElementoUuid(state.revisoes, elementoAnterior.uuid);
     if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === eAux.descricaoSituacao && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, eAux)) {
       revisoesParaRemover.push(revisao);
     } else {
