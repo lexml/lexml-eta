@@ -95,6 +95,10 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     elementos: getElementosAlteracaoASeremAtualizados(state.articulacao, elementosInseridos),
   });
 
+  if (retorno.emRevisao) {
+    retorno.ui!.events.push({ stateType: StateType.RevisaoAtivada });
+  }
+
   return retorno;
 };
 
