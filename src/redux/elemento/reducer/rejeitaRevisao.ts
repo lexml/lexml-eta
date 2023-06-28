@@ -17,6 +17,7 @@ import {
 } from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { incluir } from '../util/undoRedoReducerUtil';
+import { agrupaElemento } from './agrupaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { removeElemento } from './removeElemento';
 import { restauraElemento } from './restauraElemento';
@@ -132,7 +133,26 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   const evento: StateEvent = { stateType: StateType.ElementoRemovido, elementos: revisoesAssociadas.map(r => r.elementoAntesRevisao as Elemento) };
   const eventoAux: StateEvent = { stateType: StateType.ElementoIncluido, elementos: [] };
 
-  const result: StateEvent[] = [{ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) }];
+  const result: StateEvent[] = [];
+
+  const elementoASerIncluido = revisao.elementoAposRevisao;
+
+  if (elementoASerIncluido.agrupador) {
+    let tempState: State = { ...state, past: [], present: [], future: [], ui: { events: [] } };
+    tempState = agrupaElemento(tempState, {
+      atual: elementoASerIncluido.elementoAnteriorNaSequenciaDeLeitura,
+      novo: {
+        tipo: elementoASerIncluido.tipo,
+        uuid: elementoASerIncluido.uuid,
+        posicao: 'depois',
+        manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas,
+      },
+    });
+
+    result.push(...tempState.ui!.events!);
+  } else {
+    result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) });
+  }
 
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);
 

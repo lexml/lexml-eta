@@ -288,11 +288,12 @@ export const processaSituacoesAlteradas = (state: State, eventos: StateEvent[]):
 
 export const isUndoRedoInclusaoExclusaoAgrupador = (eventos: StateEvent[]): boolean => {
   const tiposAgrupadorArtigo = getTiposAgrupadorArtigoOrdenados();
+  const eventosFiltrados = eventos.filter(ev => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada].includes(ev.stateType));
   return (
-    eventos.length > 0 &&
-    [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventos[0].stateType) &&
-    eventos[0].elementos!.length > 0 &&
-    tiposAgrupadorArtigo.includes(eventos[0].elementos![0].tipo!)
+    eventosFiltrados.length > 0 &&
+    [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventosFiltrados[0].stateType) &&
+    eventosFiltrados[0].elementos!.length > 0 &&
+    tiposAgrupadorArtigo.includes(eventosFiltrados[0].elementos![0].tipo!)
   );
 };
 

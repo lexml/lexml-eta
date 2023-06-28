@@ -56,8 +56,24 @@ export const redo = (state: any): State => {
       tempState = removeElemento(tempState, { atual: eventos[0].elementos[0] });
     }
 
-    retorno.present = tempState.ui!.events;
-    retorno.ui!.events = tempState.ui!.events;
+    const eventosRevisao = getEventosDeRevisao(eventos);
+    if (eventosRevisao.length) {
+      const idsRevisoesAssociadas = eventosRevisao
+        .map((se: StateEvent) => se.elementos || [])
+        .flat()
+        .map((e: Elemento) => findRevisoesByElementoUuid(retorno.revisoes, e.uuid))
+        .flat()
+        .map(r => r.id)
+        .filter(Boolean);
+
+      retorno.revisoes = state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id));
+    }
+
+    retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+
+    // retorno.present = tempState.ui!.events;
+    // retorno.ui!.events = tempState.ui!.events;
     return retorno;
   }
 

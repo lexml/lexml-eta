@@ -48,20 +48,31 @@ export const undo = (state: any): State => {
     tempState.present = [];
     tempState.future = [];
 
-    if (eventos[0].stateType === StateType.ElementoIncluido) {
-      tempState = removeElemento(tempState, { atual: eventos[0].elementos[0] });
+    const eventosFiltrados = eventos.filter((ev: StateEvent) => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada].includes(ev.stateType));
+
+    if (eventosFiltrados[0].stateType === StateType.ElementoIncluido) {
+      tempState = removeElemento(tempState, { atual: eventosFiltrados[0].elementos[0] });
     } else {
-      const ref = eventos.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
-      const elementoASerIncluido = eventos[0].elementos[0];
+      const ref = eventosFiltrados.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
+      const elementoASerIncluido = eventosFiltrados[0].elementos[0];
       tempState = agrupaElemento(tempState, {
         atual: ref,
         novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
       });
-      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventos, tempState.ui!.events);
+      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventosFiltrados, tempState.ui!.events);
     }
 
-    retorno.present = tempState.ui!.events;
-    retorno.ui!.events = tempState.ui!.events;
+    const eventosRevisao = [
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
+    ].filter(ev => ev.elementos?.length);
+
+    retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+
+    // retorno.present = tempState.ui!.events;
+    // retorno.ui!.events = tempState.ui!.events;
     return retorno;
   }
 
