@@ -5,7 +5,7 @@ import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgru
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, query } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { editorStyles } from '../../assets/css/editor.css';
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
@@ -64,10 +64,13 @@ import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
+import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
+  @property() lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
 
@@ -541,11 +544,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.InformarDadosAssistente:
-          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction);
+          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction, this.lexmlEtaConfig);
           break;
 
         case StateType.InformarNorma:
-          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction);
+          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction, this.lexmlEtaConfig);
           break;
 
         case StateType.ElementoIncluido:

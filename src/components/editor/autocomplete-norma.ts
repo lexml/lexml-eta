@@ -2,11 +2,14 @@ import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 import { Option, AutocompleteAsync } from './autocomplete-async';
 import { Norma } from '../../model/emenda/norma';
+import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 
 @customElement('autocomplete-norma')
 export class AutocompleteNorma extends LitElement {
   @property({ type: String })
   urnInicial = '';
+
+  @property() lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   @property({ type: Function })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
@@ -26,7 +29,7 @@ export class AutocompleteNorma extends LitElement {
 
   async _searchNormas(query: string): Promise<Norma[]> {
     try {
-      const _response = await fetch(`api/autocomplete-norma?query=${query}`);
+      const _response = await fetch(`${this.lexmlEtaConfig.urlAutocomplete}?query=${query}`);
       const _normas = await _response.json();
       return _normas.map(n => new Norma(n.urn, n.nomePreferido, n.nomePorExtenso, n.nomes, n.nomesAlternativos, n.ementa));
     } catch (err) {

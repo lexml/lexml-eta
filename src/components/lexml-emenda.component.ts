@@ -18,6 +18,7 @@ import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
+import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -25,6 +26,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
+  @property() lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = ClassificacaoDocumento.EMENDA;
   private projetoNorma = {};
@@ -56,7 +58,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
-      const _response = await fetch('api/parlamentares');
+      const _response = await fetch(this.lexmlEmendaConfig.urlConsultaParlamentares);
       const _parlamentares = await _response.json();
       return _parlamentares.map(p => ({
         identificacao: p.id + '',

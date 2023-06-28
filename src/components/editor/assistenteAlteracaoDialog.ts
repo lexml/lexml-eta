@@ -2,9 +2,10 @@ import { SlInput } from '@shoelace-style/shoelace';
 import { Elemento } from '../../model/elemento';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Norma } from '../../model/emenda/norma';
+import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 import './autocomplete-norma';
 
-export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
+export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any, lexmlEtaConfig: LexmlEmendaConfig): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
 
   document.body.appendChild(dialogElem);
@@ -58,7 +59,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       }
     }
   </style>
-  <autocomplete-norma id="auto-norma"></autocomplete-norma>
+  <autocomplete-norma id="auto-norma" lexmlEtaConfig=${lexmlEtaConfig}></autocomplete-norma>
   <br />
     <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="Dispositivo da norma" clearable></sl-input>
     <span class="ajuda">Informar apenas um dispositivo. Depois poderão ser adicionados outros.</span>
