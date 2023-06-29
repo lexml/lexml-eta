@@ -16,6 +16,7 @@ import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElemento';
+import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 
 let state: State;
 
@@ -23,6 +24,62 @@ describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+  });
+
+  describe('Testando rejeição de modificação de dispositivo com texto alterado antes da revisão', () => {
+    beforeEach(function () {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      const e = createElemento(d);
+      e.conteudo!.texto = 'texto modificado;'; // antes era "menor aprendiz;"
+      state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+    });
+
+    it('Deveria apresentar inciso "art1_par1u_inc1" com o texto "texto modificado"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      expect(d.texto).to.be.equal('texto modificado;');
+    });
+
+    describe('Ativando modo de revisão', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+      });
+
+      it('Deveria estar em revisão', () => {
+        expect(state.emRevisao).to.be.true;
+      });
+
+      describe('Modificando texto do inciso "art1_par1u_inc1"', () => {
+        beforeEach(function () {
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+          const e = createElemento(d);
+          e.conteudo!.texto = 'texto modificado 2;';
+          state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+        });
+
+        it('Deveria possuir 1 revisão', () => {
+          expect(state.revisoes?.length).to.be.equal(1);
+        });
+
+        describe('Rejeitando revisão de modificação do inciso "art1_par1u_inc1"', () => {
+          beforeEach(function () {
+            state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: state.revisoes![0] });
+          });
+
+          it('Deveria não possuir revisões', () => {
+            expect(state.revisoes?.length).to.be.equal(0);
+          });
+
+          it('Deveria apresentar inciso "art1_par1u_inc1" com o texto "texto modificado;"', () => {
+            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+            expect(d.texto).to.be.equal('texto modificado;');
+          });
+
+          it('"State.ui.events" deveria possuir evento "ElementoModificado" com texto "texto modificado;"', () => {
+            expect(state.ui?.events[1].elementos![0].conteudo?.texto).to.be.equal('texto modificado;');
+          });
+        });
+      });
+    });
   });
 
   describe('Ativando modo de revisão', () => {

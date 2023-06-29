@@ -48,6 +48,47 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       expect(state.emRevisao).to.be.true;
     });
 
+    describe('Movendo inciso "art1_par1u_inc1-1" para baixo', () => {
+      beforeEach(function () {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
+      });
+
+      it('Deveria apresentar inciso "art1_par1u_inc1-2" com texto "teste A:"', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+        expect(d.texto).to.be.equal('teste A:');
+      });
+
+      it('Deveria apresentar alínea "art1_par1u_inc1-2_ali2" com texto "teste C;"', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2_ali2')!;
+        expect(d.texto).to.be.equal('teste C;');
+      });
+
+      it('Deveria possuir 3 revisão, sendo 1 principal', () => {
+        expect(state.revisoes?.length).to.be.equal(3);
+        expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+      });
+
+      describe('Alterando texto da alínea "art1_par1u_inc1-2_ali2"', () => {
+        beforeEach(function () {
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2_ali2')!;
+          const e = createElemento(d);
+          e.conteudo!.texto = 'texto modificado;';
+          state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+        });
+
+        it('Deveria apresentar alínea "art1_par1u_inc1-2_ali2" com texto "texto modificado;"', () => {
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2_ali2')!;
+          expect(d.texto).to.be.equal('texto modificado;');
+        });
+
+        // it('Deveria possuir 4 revisões, sendo 2 principais', () => {
+        //   expect(state.revisoes?.length).to.be.equal(4);
+        //   expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
+        // });
+      });
+    });
+
     describe('Movendo dispositivo "art1_par1u_inc1-1" para baixo, rejeitando revisão, fazendo UNDO da rejeição', () => {
       beforeEach(function () {
         let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
