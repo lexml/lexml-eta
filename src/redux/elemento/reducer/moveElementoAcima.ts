@@ -87,6 +87,8 @@ export const moveElementoAcima = (state: any, action: any): State => {
   }
 
   getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
+  const dPosterior = atual.pai!.filhos[atual.pai!.indexOf(atual) + 1];
+  dPosterior && getDispositivoAndFilhosAsLista(dPosterior).forEach(d => (d.id = buildId(d)));
 
   const referencia = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d) && !isArticulacaoAlteracao(d))!;
 
