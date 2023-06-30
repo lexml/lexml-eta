@@ -1368,17 +1368,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const buttonRevisaoAceitar = document.getElementById('buttonRevisaoAceitar' + elemento.uuid) as any;
       const buttonRevisaoRecusar = document.getElementById('buttonRevisaoRecusar' + elemento.uuid) as any;
 
+      //refatorar código movendo para os respectivos blots
       if (buttonRevisao && buttonRevisaoAceitar && buttonRevisaoRecusar) {
         if (elemento.revisao && !(elemento.revisao as RevisaoElemento).idRevisaoElementoPrincipal) {
           buttonRevisao.removeAttribute('hidden');
           buttonRevisaoAceitar.removeAttribute('hidden');
           buttonRevisaoRecusar.removeAttribute('hidden');
-          buttonRevisaoAceitar.addEventListener('click', () => {
-            rootStore.dispatch(aceitarRevisaoAction.execute(elemento, elemento.revisao));
-          });
-          buttonRevisaoRecusar.addEventListener('click', () => {
-            rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, elemento.revisao));
-          });
+
+          if (!buttonRevisaoAceitar.getAttribute('possui-click')) {
+            buttonRevisaoAceitar.addEventListener('click', () => {
+              rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
+            });
+            buttonRevisaoAceitar.setAttribute('possui-click', 'true');
+          }
+
+          if (!buttonRevisaoRecusar.getAttribute('possui-click')) {
+            buttonRevisaoRecusar.addEventListener('click', () => {
+              rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
+            });
+            buttonRevisaoRecusar.setAttribute('possui-click', 'true');
+          }
+
           const pipe = ' | ';
           const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
           buttonRevisao.setAttribute('title', mensagem);
