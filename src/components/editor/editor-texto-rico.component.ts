@@ -148,7 +148,6 @@ export class EditorTextoRicoComponent extends LitElement {
   };
 
   setContent = (texto: string): void => {
-    console.log('setContent', texto, this.quill, this.quill?.root);
     if (!this.quill || !this.quill.root) {
       return;
     }

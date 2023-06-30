@@ -39,7 +39,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-eta')
   _lexmlEta?: LexmlEtaComponent;
-  @query('editor-texto-rico')
+  @query('#editor-texto-rico-emenda')
+  _lexmlEmendaTextoRico;
+  @query('#editor-texto-rico-justificativa')
   _lexmlJustificativa;
   @query('lexml-autoria')
   _lexmlAutoria;
@@ -144,6 +146,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       } else {
         this.resetaEmenda(modo as ModoEdicaoEmenda);
       }
+    } else if (this.modo === 'emendaTextoLivre') {
+      this.showAlertaEmendaTextoLivre();
     }
     setTimeout(this.handleResize, 0);
   }
@@ -288,7 +292,23 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
       }
+    } else if (this.modo === 'emendaTextoLivre') {
+      if (!this._lexmlEmendaTextoRico.texto) {
+        this.showAlertaEmendaTextoLivre();
+      } else {
+        rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
+      }
     }
+  }
+
+  showAlertaEmendaTextoLivre(): void {
+    const alerta = {
+      id: 'alerta-global-emenda-texto-livre',
+      tipo: 'error',
+      mensagem: 'O comando de emenda deve ser preenchido.',
+      podeFechar: false,
+    };
+    rootStore.dispatch(adicionarAlerta(alerta));
   }
 
   render(): TemplateResult {
