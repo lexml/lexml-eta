@@ -33,7 +33,7 @@ export class AtalhosComponent extends LitElement {
       font-style: italic;
     }
     .lx-eta-help-content h4 {
-      padding-bottom: 0.5rem;
+      padding: 1rem 0 0.5rem 0;
       margin: 0;
     }
 
@@ -77,8 +77,8 @@ export class AtalhosComponent extends LitElement {
               <sl-badge variant="neutral">Shift</sl-badge>+<sl-badge variant="neutral">Tab</sl-badge>&nbsp;-&nbsp;Recua o dispositivo para a esquerda, transformando-o no tipo mais
               provável
             </div>
-            <div><sl-badge variant="neutral">Alt</sl-badge>+<sl-badge variant="neutral">&uarr;</sl-badge>&nbsp;-&nbsp;Move o dispositivo acima</div>
-            <div><sl-badge variant="neutral">Alt</sl-badge>+<sl-badge variant="neutral">&darr;</sl-badge>&nbsp;-&nbsp;Move o dispositivo abaixo</div>
+            <div><sl-badge variant="neutral">Alt</sl-badge>+<sl-badge variant="neutral">&uarr;</sl-badge>&nbsp;-&nbsp;Move o dispositivo para cima</div>
+            <div><sl-badge variant="neutral">Alt</sl-badge>+<sl-badge variant="neutral">&darr;</sl-badge>&nbsp;-&nbsp;Move o dispositivo para baixo</div>
             <div><sl-badge variant="neutral">Ctrl</sl-badge>+<sl-badge variant="neutral">D</sl-badge>&nbsp;-&nbsp;Remove dispositivo atual</div>
             <div><span class="lx-eta-help-info">Os atalhos abaixo funcionam apenas para dispositivos adicionados em alteração de normas</span></div>
             <div>
@@ -93,7 +93,7 @@ export class AtalhosComponent extends LitElement {
           </div>
           <h4>Formatação de texto</h4>
           <div class="lx-eta-help-group">
-            <div><sl-badge variant="neutral">Ctrl</sl-badge>+<sl-badge variant="neutral">N</sl-badge>&nbsp;-&nbsp;Aplica <b>negrito</b> ao texto selecionado</div>
+            <div><sl-badge variant="neutral">Ctrl</sl-badge>+<sl-badge variant="neutral">B</sl-badge>&nbsp;-&nbsp;Aplica <b>negrito</b> ao texto selecionado</div>
             <div><sl-badge variant="neutral">Ctrl</sl-badge>+<sl-badge variant="neutral">I</sl-badge>&nbsp;-&nbsp;Aplica <i>itálico</i> ao texto selecionado</div>
           </div>
         </div>

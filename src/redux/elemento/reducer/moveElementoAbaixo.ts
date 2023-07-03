@@ -54,6 +54,8 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   }
 
   getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
+  const dAnterior = atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
+  dAnterior && getDispositivoAndFilhosAsLista(dAnterior).forEach(d => (d.id = buildId(d)));
 
   const referencia = movendoArtigoParaAgrupador ? proximo : getUltimoFilho(proximo);
 
