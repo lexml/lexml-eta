@@ -16,7 +16,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   const content = document.createRange().createContextualFragment(`
 
   <div class="input-validation-required">
-    <autocomplete-norma id="auto-norma" urnInicial="${elemento.norma}" lexmlEtaConfig=${lexmlEtaConfig}></autocomplete-norma>
+    <autocomplete-norma id="auto-norma" urnInicial="${elemento.norma}" .lexmlEtaConfig=${lexmlEtaConfig}></autocomplete-norma>
   </div>
   <br/>
   <sl-alert variant="warning" closable class="alert-closable">

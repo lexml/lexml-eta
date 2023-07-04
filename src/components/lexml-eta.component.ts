@@ -20,7 +20,7 @@ import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
-  @property() lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = '';
 
@@ -129,8 +129,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           box-shadow: none;
         }
       </style>
-
-      <lexml-eta-articulacao lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-articulacao>
+      <lexml-eta-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-articulacao>
     `;
   }
 }

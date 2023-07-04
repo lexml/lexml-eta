@@ -26,7 +26,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
-  @property() lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+  @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = ClassificacaoDocumento.EMENDA;
   private projetoNorma = {};
@@ -347,7 +347,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              <lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>
+              <lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
               <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>

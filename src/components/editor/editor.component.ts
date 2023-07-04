@@ -69,7 +69,7 @@ import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
-  @property() lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
