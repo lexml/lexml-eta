@@ -15,6 +15,7 @@ import {
   DispositivoEmenda,
   DispositivoEmendaAdicionado,
   DispositivoEmendaModificado,
+  DispositivoEmendaRestaurado,
   DispositivoEmendaSuprimido,
   DispositivosEmenda,
   ModoEdicaoEmenda,
@@ -49,6 +50,18 @@ export class DispositivosEmendaBuilder {
         ds.rotulo = d.rotulo;
         this.addUrnNormaAlteradaSeNecessario(d, ds);
         dispositivosEmenda.dispositivosSuprimidos.push(ds);
+      }
+    }
+
+    const dispositivosRestaurados = dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && d.restaurado);
+    if (dispositivosRestaurados.length) {
+      for (const d of dispositivosRestaurados) {
+        const ds = new DispositivoEmendaRestaurado();
+        ds.tipo = this.getTipoDispositivoParaEmenda(d);
+        ds.id = d.id!;
+        ds.rotulo = d.rotulo;
+        this.addUrnNormaAlteradaSeNecessario(d, ds);
+        dispositivosEmenda.dispositivosRestaurados.push(ds);
       }
     }
 

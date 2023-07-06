@@ -69,6 +69,7 @@ export class DispositivosEmenda {
   dispositivosSuprimidos: DispositivoEmendaSuprimido[] = [];
   dispositivosModificados: DispositivoEmendaModificado[] = [];
   dispositivosAdicionados: DispositivoEmendaAdicionado[] = [];
+  dispositivosRestaurados: DispositivoEmendaRestaurado[] = [];
 }
 
 export class DispositivoEmenda {
@@ -79,6 +80,7 @@ export class DispositivoEmenda {
 }
 
 export class DispositivoEmendaSuprimido extends DispositivoEmenda {}
+export class DispositivoEmendaRestaurado extends DispositivoEmenda {}
 
 export class DispositivoEmendaModificado extends DispositivoEmenda {
   texto?: string;

@@ -225,6 +225,7 @@ const restaura = (d: Dispositivo): void => {
   d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
   d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
   d.situacao = new DispositivoOriginal();
+  d.restaurado = true;
   if (isArtigo(d)) {
     (d as Artigo).caput!.situacao = new DispositivoOriginal();
   }

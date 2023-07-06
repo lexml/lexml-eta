@@ -14,6 +14,7 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
+import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
@@ -58,6 +59,22 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
           d.situacao = new DispositivoSuprimido(createElemento(d));
           eventos.get(StateType.ElementoSuprimido).elementos?.push(createElemento(d));
         });
+      }
+    });
+  }
+
+  if (action.alteracoesEmenda.dispositivosRestaurados) {
+    eventos.add(StateType.ElementoRestaurado, []);
+
+    action.alteracoesEmenda.dispositivosRestaurados.forEach(dispositivo => {
+      const d = buscaDispositivoById(state.articulacao, dispositivo.id);
+
+      if (d) {
+        //percorreHierarquiaDispositivos(d, d => {
+        d.situacao = new DispositivoOriginal();
+        d.restaurado = true;
+        eventos.get(StateType.ElementoRestaurado).elementos?.push(createElemento(d));
+        //});
       }
     });
   }

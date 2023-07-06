@@ -81,6 +81,9 @@ const associarRevisoesAosElementos = (state: State): void => {
     .forEach(se =>
       se.elementos?.forEach(e => {
         const r = findRevisaoByElementoUuid(state.revisoes, e.uuid);
+        if (r) {
+          console.log('achou revisão');
+        }
         e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
       })
     );

@@ -90,7 +90,9 @@ export class ComandoEmendaBuilder {
         }
       } else if (!temDispositivoDeProjeto) {
         temDispositivoDeProjeto = true;
-        ret.push(d);
+        if (!d.restaurado) {
+          ret.push(d);
+        }
       }
     });
 
