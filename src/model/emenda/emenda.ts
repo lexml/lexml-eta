@@ -12,6 +12,7 @@ export class Emenda {
   epigrafe = new Epigrafe();
   componentes = [new ComponenteEmendado()];
   comandoEmenda = new ComandoEmenda();
+  comandoEmendaTextoLivre = new ComandoEmendaTextoLivre();
   justificativa = '';
   local = '';
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
@@ -96,6 +97,11 @@ export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
 export class ComandoEmenda {
   cabecalhoComum?: string;
   comandos: ItemComandoEmenda[] = [];
+}
+
+export class ComandoEmendaTextoLivre {
+  motivo?: string;
+  texto?: string;
 }
 
 export class ItemComandoEmenda {

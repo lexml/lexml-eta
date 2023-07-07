@@ -124,7 +124,7 @@ export class DemoView extends LitElement {
         this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
 
         if (this.elLexmlEmenda) {
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, undefined, 'Motivo da emenda de texto livre');
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.elLexmlEmenda.style.display = 'block';
         } else {
@@ -142,7 +142,6 @@ export class DemoView extends LitElement {
     const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-
     a.href = objectUrl;
     a.download = fileName;
     document.body.appendChild(a);
@@ -167,7 +166,7 @@ export class DemoView extends LitElement {
           const emenda = 'emenda' in result ? result.emenda : result;
           this.modo = emenda.modoEdicao;
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda);
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda, emenda.comandoEmendaTextoLivre.motivo);
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;

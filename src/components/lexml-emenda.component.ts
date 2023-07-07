@@ -32,6 +32,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @property({ type: String })
   private modo: any = ClassificacaoDocumento.EMENDA;
+
+  @property({ type: String })
+  private motivo = '';
+
   private projetoNorma = {};
 
   @state()
@@ -120,6 +124,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (this._lexmlEta) {
       emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    } else {
+      emenda.comandoEmendaTextoLivre.motivo = this.motivo;
+      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
@@ -134,19 +141,23 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return emenda;
   }
 
-  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda): void {
+  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, motivo = ''): void {
     this._lexmlEmendaComando.emenda = [];
     this.modo = modo;
     this.projetoNorma = projetoNorma;
+    this.motivo = motivo;
 
     if (this.modo !== 'emendaTextoLivre') {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
-      if (emenda) {
-        this.setEmenda(emenda);
-      } else {
-        this.resetaEmenda(modo as ModoEdicaoEmenda);
-      }
-    } else if (this.modo === 'emendaTextoLivre') {
+    }
+
+    if (emenda) {
+      this.setEmenda(emenda);
+    } else {
+      this.resetaEmenda(modo as ModoEdicaoEmenda);
+    }
+
+    if (this.modo === 'emendaTextoLivre' && !this._lexmlEmendaTextoRico.texto) {
       this.showAlertaEmendaTextoLivre();
     }
     setTimeout(this.handleResize, 0);
@@ -159,6 +170,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
+    this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
     this._lexmlData.data = emenda.data;
   }
 
