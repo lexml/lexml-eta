@@ -207,8 +207,27 @@ export enum RevisaoJustificativaEnum {
 
 export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
   const result: Revisao[] = revisoes.filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento));
+  result.push(...removeAcoesPossiveisRevisaoJson(result));
   result.push(...getRevisoesDeExclusaoOrdenadasPorUuid(revisoes));
   result.push(...revisoes.filter(isRevisaoJustificativa));
+  return result;
+};
+
+const removeAcoesPossiveisRevisaoJson = (revisoes: Revisao[] = []): Revisao[] => {
+  const result: Revisao[] = [];
+
+  if (revisoes.length > 0) {
+    revisoes?.forEach(r => {
+      if (isRevisaoElemento(r)) {
+        const rAux = r as RevisaoElemento;
+        delete rAux.elementoAntesRevisao?.acoesPossiveis;
+        result.push(rAux);
+      } else {
+        result.push(r);
+      }
+    });
+  }
+
   return result;
 };
 
@@ -228,6 +247,10 @@ export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefine
   delete elemento.acoesPossiveis;
   delete elemento.tiposAgrupadoresQuePodemSerInseridosAntes;
   delete elemento.tiposAgrupadoresQuePodemSerInseridosDepois;
+
+  if (elemento.revisao) {
+    elemento.revisao;
+  }
 
   removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura);
 };
