@@ -15,7 +15,6 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
@@ -107,19 +106,21 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 };
 
 const buildEventosRevisaoDispositivoRestaurado = (state: any, eventos: any, action: any): void => {
-  const revisoesRestauracao = action.revisoes.filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
+  if (action.revisoes) {
+    const revisoesRestauracao = action.revisoes.filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
 
-  if (revisoesRestauracao.length > 0) {
-    eventos.add(StateType.ElementoRestaurado, []);
-    revisoesRestauracao.forEach(revisao => {
-      if (isRevisaoElemento(revisao)) {
-        const d = buscaDispositivoById(state.articulacao, revisao.elementoAntesRevisao.lexmlId);
-        if (d) {
-          d.situacao = new DispositivoOriginal();
-          eventos.get(StateType.ElementoRestaurado).elementos?.push(createElemento(d));
+    if (revisoesRestauracao.length > 0) {
+      eventos.add(StateType.ElementoRestaurado, []);
+      revisoesRestauracao.forEach(revisao => {
+        if (isRevisaoElemento(revisao)) {
+          const d = buscaDispositivoById(state.articulacao, revisao.elementoAntesRevisao.lexmlId);
+          if (d) {
+            //d.situacao = new DispositivoOriginal();
+            eventos.get(StateType.ElementoRestaurado).elementos?.push(createElemento(d));
+          }
         }
-      }
-    });
+      });
+    }
   }
 };
 

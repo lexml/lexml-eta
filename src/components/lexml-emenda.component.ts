@@ -20,8 +20,8 @@ import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component'
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { ordernarRevisoes } from '../redux/elemento/util/revisaoUtil';
-import { Revisao } from '../model/revisao/revisao';
+import { isRevisaoElemento, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -130,7 +130,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private getRevisoes(): Revisao[] {
-    return ordernarRevisoes([...rootStore.getState().elementoReducer.revisoes]);
+    const revisoes = ordernarRevisoes([...rootStore.getState().elementoReducer.revisoes]);
+
+    revisoes.filter(isRevisaoElemento).forEach(r => {
+      const re = r as RevisaoElemento;
+      removeAtributosDoElemento(re.elementoAposRevisao);
+      re.elementoAntesRevisao && removeAtributosDoElemento(re.elementoAntesRevisao);
+    });
+
+    return revisoes;
   }
 
   inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, usuario?: Usuario): void {

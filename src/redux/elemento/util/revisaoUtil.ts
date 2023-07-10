@@ -206,24 +206,10 @@ export enum RevisaoJustificativaEnum {
 }
 
 export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
-  let result: Revisao[] = revisoes.filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento));
-  result = removeAcoesPossiveisRevisaoJson(result);
+  const result: Revisao[] = revisoes.filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento));
   result.push(...getRevisoesDeExclusaoOrdenadasPorUuid(revisoes));
   result.push(...revisoes.filter(isRevisaoJustificativa));
   return result;
-};
-
-const removeAcoesPossiveisRevisaoJson = (revisoes: Revisao[] = []): Revisao[] => {
-  if (revisoes.length > 0) {
-    revisoes?.forEach(r => {
-      if (isRevisaoElemento(r)) {
-        const rAux = r as RevisaoElemento;
-        delete rAux.elementoAntesRevisao?.acoesPossiveis;
-      }
-    });
-  }
-
-  return revisoes;
 };
 
 const getRevisoesDeExclusaoOrdenadasPorUuid = (revisoes: Revisao[] = []): Revisao[] => {

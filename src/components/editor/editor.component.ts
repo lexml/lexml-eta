@@ -369,6 +369,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const elemento: Elemento = this.criarElemento(
       linha!.uuid ?? 0,
+      linha!.uuid2 ?? '',
       linha.lexmlId,
       linha!.tipo ?? '',
       '',
