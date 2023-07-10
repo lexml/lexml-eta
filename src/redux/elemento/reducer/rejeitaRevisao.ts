@@ -4,7 +4,7 @@ import { createElemento, createElementoValidado, getDispositivoFromElemento, lis
 import { getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
-import { getElementosRemovidosEIncluidos } from '../evento/eventosUtil';
+import { getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import {
   findRevisaoByElementoUuid,
@@ -85,7 +85,8 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
     r.stateType === StateType.ElementoRemovido && eventos.push(...rejeitaExclusao(state, r));
     // rejeitaMovimentacao(state, revisao);
   });
-  return eventos;
+
+  return unificarEvento(state, eventos, StateType.ElementoRenumerado);
 };
 
 const rejeitaSupressao = (state: State, revisao: RevisaoElemento): StateEvent[] => {

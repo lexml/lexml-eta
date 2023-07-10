@@ -4,7 +4,14 @@ import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import {
+  buildListaElementosRenumerados,
+  createElemento,
+  criaListaElementosAfinsValidados,
+  getDispositivoFromElemento,
+  getElementos,
+  listaDispositivosRenumerados,
+} from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   getDispositivoAndFilhosAsLista,
@@ -389,4 +396,23 @@ export const getElementosRemovidosEIncluidos = (eventos: StateEvent[]): Elemento
   const map = new Map();
   eventos.filter(ev => [StateType.ElementoRemovido, StateType.ElementoIncluido].includes(ev.stateType)).forEach(ev => ev.elementos?.forEach(el => map.set(el.uuid!, el)));
   return Array.from(map.values());
+};
+
+export const unificarEvento = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
+  const eventosAux = eventos.filter(ev => ev.stateType !== stateType);
+
+  const setDispositivos = new Set(
+    eventos
+      .filter(ev => ev.stateType === stateType)
+      .map(ev => ev.elementos || [])
+      .flat()
+      .map(e => getDispositivoFromElemento(state.articulacao!, e)!)
+  );
+
+  const evento: StateEvent = {
+    stateType: stateType,
+    elementos: [...setDispositivos].map(d => createElemento(d)),
+  };
+
+  return [...eventosAux, evento];
 };
