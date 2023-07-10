@@ -79,7 +79,6 @@ export class DispositivoEmenda {
 }
 
 export class DispositivoEmendaSuprimido extends DispositivoEmenda {}
-export class DispositivoEmendaRestaurado extends DispositivoEmenda {}
 
 export class DispositivoEmendaModificado extends DispositivoEmenda {
   texto?: string;
