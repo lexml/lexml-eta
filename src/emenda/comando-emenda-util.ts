@@ -32,7 +32,7 @@ export class CmdEmdUtil {
     }
 
     percorreHierarquiaDispositivos(articulacao, d => {
-      if ((d.pai && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) || d.restaurado) {
+      if (d.pai && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
         ret.push(d);
       }
     });

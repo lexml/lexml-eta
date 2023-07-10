@@ -69,7 +69,6 @@ export class DispositivosEmenda {
   dispositivosSuprimidos: DispositivoEmendaSuprimido[] = [];
   dispositivosModificados: DispositivoEmendaModificado[] = [];
   dispositivosAdicionados: DispositivoEmendaAdicionado[] = [];
-  dispositivosRestaurados: DispositivoEmendaRestaurado[] = [];
 }
 
 export class DispositivoEmenda {

@@ -3,6 +3,7 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
+import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
   buscaDispositivoById,
@@ -63,22 +64,6 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     });
   }
 
-  if (action.alteracoesEmenda.dispositivosRestaurados) {
-    eventos.add(StateType.ElementoRestaurado, []);
-
-    action.alteracoesEmenda.dispositivosRestaurados.forEach(dispositivo => {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.id);
-
-      if (d) {
-        //percorreHierarquiaDispositivos(d, d => {
-        d.situacao = new DispositivoOriginal();
-        d.restaurado = true;
-        eventos.get(StateType.ElementoRestaurado).elementos?.push(createElemento(d));
-        //});
-      }
-    });
-  }
-
   if (action.alteracoesEmenda.dispositivosModificados) {
     eventos.add(StateType.ElementoModificado, []);
 
@@ -96,6 +81,8 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   if (action.alteracoesEmenda.dispositivosAdicionados) {
     eventos.eventos.push(...processaDispositivosAdicionados(state, action.alteracoesEmenda));
   }
+
+  buildEventosRevisaoDispositivoRestaurado(state, eventos, action);
 
   if (action.revisoes?.length) {
     eventos.eventos.push(...processaRevisoes(retorno, action.revisoes));
@@ -117,6 +104,23 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   }
 
   return retorno;
+};
+
+const buildEventosRevisaoDispositivoRestaurado = (state: any, eventos: any, action: any): void => {
+  const revisoesRestauracao = action.revisoes.filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
+
+  if (revisoesRestauracao.length > 0) {
+    eventos.add(StateType.ElementoRestaurado, []);
+    revisoesRestauracao.forEach(revisao => {
+      if (isRevisaoElemento(revisao)) {
+        const d = buscaDispositivoById(state.articulacao, revisao.elementoAntesRevisao.lexmlId);
+        if (d) {
+          d.situacao = new DispositivoOriginal();
+          eventos.get(StateType.ElementoRestaurado).elementos?.push(createElemento(d));
+        }
+      }
+    });
+  }
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
