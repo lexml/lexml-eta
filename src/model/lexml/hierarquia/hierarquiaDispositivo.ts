@@ -4,7 +4,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import { isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao, podeRenumerarFilhosAutomaticamente } from './hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, isAntesDoPrimeiroDispositivoOriginal, isDispositivoAlteracao, podeRenumerarFilhosAutomaticamente } from './hierarquiaUtil';
 
 export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -58,7 +58,10 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
         ) {
           filho.numero = calculaNumeracao(filho);
           filho.createRotulo(filho);
-          filho.id = buildId(filho);
+          const novoId = buildId(filho);
+          if (filho.id !== novoId) {
+            getDispositivoAndFilhosAsLista(filho).forEach(d => (d.id = buildId(d)));
+          }
         } else {
           //filho.createRotulo(filho);
         }
