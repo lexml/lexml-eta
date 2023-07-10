@@ -977,7 +977,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.map((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
         linha.blotRotulo?.format(EtaBlotRotulo.blotName, elemento.rotulo);
       }
