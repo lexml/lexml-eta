@@ -48,6 +48,138 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       expect(state.emRevisao).to.be.true;
     });
 
+    describe('Movendo inciso "art1_par1u_inc1-1" para baixo, rejeitando revisão', () => {
+      beforeEach(function () {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
+        state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: state.revisoes![0] });
+      });
+
+      it('Deveria não possuir revisão', () => {
+        expect(state.revisoes!.length).to.equal(0);
+      });
+
+      describe('Testando articulação', () => {
+        it('Deveria apresentar atual inciso "art1_par1u_inc1-1" com texto "teste A:"', () => {
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          expect(d.texto).to.be.equal('teste A:');
+
+          expect(d.filhos[0].texto).to.be.equal('teste B;');
+          expect(d.filhos[1].texto).to.be.equal('teste C;');
+
+          expect(d.filhos[0].id).to.be.equal('art1_par1u_inc1-1_ali1');
+          expect(d.filhos[1].id).to.be.equal('art1_par1u_inc1-1_ali2');
+        });
+
+        it('Deveria apresentar atual inciso "art1_par1u_inc1-2" com texto "teste D:"', () => {
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+          expect(d.texto).to.be.equal('teste D:');
+
+          expect(d.filhos[0].texto).to.be.equal('teste E;');
+          expect(d.filhos[1].texto).to.be.equal('teste F;');
+
+          expect(d.filhos[0].id).to.be.equal('art1_par1u_inc1-2_ali1');
+          expect(d.filhos[1].id).to.be.equal('art1_par1u_inc1-2_ali2');
+        });
+      });
+
+      describe('Testando eventos', () => {
+        it('"State.ui.events" deveria possuir evento "ElementoRenumerado" contendo inciso "art1_par1u_inc1-2" com texto "teste D:"', () => {
+          const eventoRenumeracao = state.ui?.events.find(ev => ev.stateType === 'ElementoRenumerado');
+          const elemento = eventoRenumeracao?.elementos?.find(e => e.lexmlId === 'art1_par1u_inc1-2');
+          expect(elemento?.rotulo.startsWith('I-2')).to.be.true;
+          expect(elemento?.conteudo?.texto).to.equal('teste D:');
+        });
+      });
+
+      describe('Fazendo UNDO da rejeição', () => {
+        beforeEach(function () {
+          state = elementoReducer(state, { type: UNDO });
+        });
+
+        it('Deveria possuir 3 revisões sendo 1 principal', () => {
+          expect(state.revisoes!.length).to.equal(3);
+          expect(state.revisoes!.filter(isRevisaoPrincipal).length).to.equal(1);
+        });
+
+        describe('Testando articulação', () => {
+          it('Deveria apresentar atual inciso "art1_par1u_inc1-1" com texto "teste D:"', () => {
+            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+            expect(d.texto).to.be.equal('teste D:');
+
+            expect(d.filhos[0].texto).to.be.equal('teste E;');
+            expect(d.filhos[1].texto).to.be.equal('teste F;');
+
+            expect(d.filhos[0].id).to.be.equal('art1_par1u_inc1-1_ali1');
+            expect(d.filhos[1].id).to.be.equal('art1_par1u_inc1-1_ali2');
+          });
+
+          it('Deveria apresentar atual inciso "art1_par1u_inc1-2" com texto "teste A:"', () => {
+            const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+            expect(d.texto).to.be.equal('teste A:');
+
+            expect(d.filhos[0].texto).to.be.equal('teste B;');
+            expect(d.filhos[1].texto).to.be.equal('teste C;');
+
+            expect(d.filhos[0].id).to.be.equal('art1_par1u_inc1-2_ali1');
+            expect(d.filhos[1].id).to.be.equal('art1_par1u_inc1-2_ali2');
+          });
+        });
+
+        describe('Testando eventos', () => {
+          it('"State.ui.events" deveria possuir evento "ElementoRenumerado" contendo inciso "art1_par1u_inc1-1" com texto "teste D:"', () => {
+            const eventoRenumeracao = state.ui?.events.find(ev => ev.stateType === 'ElementoRenumerado');
+            const elemento = eventoRenumeracao?.elementos?.find(e => e.lexmlId === 'art1_par1u_inc1-1');
+            expect(elemento?.rotulo.startsWith('I-1')).to.be.true;
+            expect(elemento?.conteudo?.texto).to.equal('teste D:');
+          });
+        });
+
+        describe('Fazendo REDO da rejeição', () => {
+          beforeEach(function () {
+            state = elementoReducer(state, { type: REDO });
+          });
+
+          it('Deveria não possuir revisões', () => {
+            expect(state.revisoes?.length).to.equal(0);
+          });
+
+          describe('Testando articulação', () => {
+            it('Deveria apresentar atual inciso "art1_par1u_inc1-1" com texto "teste A:"', () => {
+              const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+              expect(d.texto).to.be.equal('teste A:');
+
+              expect(d.filhos[0].texto).to.be.equal('teste B;');
+              expect(d.filhos[1].texto).to.be.equal('teste C;');
+
+              expect(d.filhos[0].id).to.be.equal('art1_par1u_inc1-1_ali1');
+              expect(d.filhos[1].id).to.be.equal('art1_par1u_inc1-1_ali2');
+            });
+
+            it('Deveria apresentar atual inciso "art1_par1u_inc1-2" com texto "teste D:"', () => {
+              const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+              expect(d.texto).to.be.equal('teste D:');
+
+              expect(d.filhos[0].texto).to.be.equal('teste E;');
+              expect(d.filhos[1].texto).to.be.equal('teste F;');
+
+              expect(d.filhos[0].id).to.be.equal('art1_par1u_inc1-2_ali1');
+              expect(d.filhos[1].id).to.be.equal('art1_par1u_inc1-2_ali2');
+            });
+          });
+
+          describe('Testando eventos', () => {
+            it('"State.ui.events" deveria possuir evento "ElementoRenumerado" contendo inciso "art1_par1u_inc1-2" com texto "teste D:"', () => {
+              const eventoRenumeracao = state.ui?.events.find(ev => ev.stateType === 'ElementoRenumerado');
+              const elemento = eventoRenumeracao?.elementos?.find(e => e.lexmlId === 'art1_par1u_inc1-2');
+              expect(elemento?.rotulo.startsWith('I-2')).to.be.true;
+              expect(elemento?.conteudo?.texto).to.equal('teste D:');
+            });
+          });
+        });
+      });
+    });
+
     describe('Movendo inciso "art1_par1u_inc1-1" para baixo', () => {
       beforeEach(function () {
         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
