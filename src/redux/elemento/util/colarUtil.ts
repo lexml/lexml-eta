@@ -558,8 +558,7 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .replace(/^["“']/g, '')
     .replace(/<\/?body[^>]*>/gi, '')
     .replace(/\r/g, '')
-    .replace(/\n+/g, '\n')
-    .replace(/<\/?i[^>]*>/gi, '');
+    .replace(/\n+/g, '\n');
 
   const allowedTags = ['B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
 
@@ -580,6 +579,7 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .replace(/\n+/g, '\n')
     .replace(/ +/g, ' ')
     .replace(/\n\s+/g, '\n')
+    .replace(/\n *<i>(Parágrafo único\. *)<\/i>/gi, '\n$1') // Remove itálico de rótulo de parágrafo único
     .trim();
 
   return html;

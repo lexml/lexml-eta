@@ -1161,6 +1161,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         mensagem:
           'Cada emenda pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
         podeFechar: true,
+        exibirComandoEmenda: true,
       };
       rootStore.dispatch(adicionarAlerta(alerta));
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === 'alerta-global-correlacao')) {
