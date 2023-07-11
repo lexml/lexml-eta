@@ -29,6 +29,7 @@ import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteraca
 import {
   existeRevisaoCriadaPorExclusao,
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
+  findRevisaoDeRestauracaoByUuid,
   findUltimaRevisaoDoGrupo,
   getElementosFromRevisoes,
   isRevisaoPrincipal,
@@ -192,7 +193,7 @@ export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestau
   return [];
 };
 
-export const processarModificados = (state: State, evento: StateEvent, isRedo = false): Elemento[] => {
+export const processarModificados = (state: State, evento: StateEvent, isRedo = false, revisoes: RevisaoElemento[] = []): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -202,7 +203,7 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
       if (dispositivo) {
         if ((isRedo && anterior === dispositivo.uuid) || anterior !== dispositivo.uuid) {
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-            if (dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
+            if (findRevisaoDeRestauracaoByUuid(revisoes, dispositivo.uuid!) || dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
               dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
               dispositivo.situacao = new DispositivoOriginal();
             } else {

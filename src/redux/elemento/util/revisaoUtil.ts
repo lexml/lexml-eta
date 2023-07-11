@@ -171,6 +171,8 @@ export const getElementosFromRevisoes = (revisoes: Revisao[] = [], state?: State
   });
 };
 
+export const getRevisoesFromElementos = (elementos: Elemento[] = []): RevisaoElemento[] => elementos!.map(e => e.revisao! as RevisaoElemento);
+
 export const isRevisaoElemento = (revisao: Revisao): boolean => 'elementoAposRevisao' in revisao;
 
 export const isRevisaoJustificativa = (revisao: Revisao): boolean => !isRevisaoElemento(revisao);
@@ -384,4 +386,8 @@ export const isRevisaoDeModificacao = (revisao: Revisao): boolean => {
 
 export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {
   return elementoIncluido.hierarquia?.pai?.lexmlId === elementoExcluido.hierarquia?.pai?.lexmlId && elementoIncluido.uuid! < elementoExcluido.uuid!;
+};
+
+export const findRevisaoDeRestauracaoByUuid = (revisoes: Revisao[] = [], uuid: number): RevisaoElemento | undefined => {
+  return revisoes.map(r => r as RevisaoElemento).find(r => isRevisaoElemento(r) && r.stateType === StateType.ElementoRestaurado && r.elementoAposRevisao.uuid === uuid);
 };
