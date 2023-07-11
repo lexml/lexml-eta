@@ -17,6 +17,9 @@ import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElemen
 import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { MOVER_ELEMENTO_ACIMA } from '../../../src/model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
+import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
+import { EMENDA_006 } from '../../doc/emendas/emenda-006';
+import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 
 let state: State;
 
@@ -26,7 +29,28 @@ describe('Carregando texto da MPV 905/2019', () => {
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
   });
 
-  describe('Movendo dispositivo adicionado fora de revisão', () => {
+  describe('Movendo dispositivo adicionado fora de revisão, alterando texto de dispositivo subordinado e fazendo UNDO da alteração', () => {
+    beforeEach(function () {
+      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+      state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
+
+      const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2_ali2')!);
+      e.conteudo!.texto = 'novo texto da alínea 2 do atual inciso "I-2";';
+      state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+
+      state = elementoReducer(state, { type: UNDO });
+    });
+
+    it('Deveria possuir 3 revisões sendo 1 principal', () => {
+      expect(state.revisoes?.length).to.be.equal(3);
+      expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+    });
+  });
+
+  describe('Movendo dispositivo adicionado fora de revisão (caso 2)', () => {
     beforeEach(function () {
       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
