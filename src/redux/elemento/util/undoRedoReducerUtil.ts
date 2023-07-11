@@ -365,7 +365,7 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
     revisoesRetornadasParaState.filter(isRevisaoPrincipal).forEach(r => {
       const e = r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
       const revisaoASerAtualizada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes!, e);
-      if (revisaoASerAtualizada) {
+      if (revisaoASerAtualizada && revisaoASerAtualizada.id !== r.id) {
         const revisaoRetornada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoesRetornadasParaState, e);
         const ultimaRevisaoDoGrupo = findUltimaRevisaoDoGrupo(revisoesRetornadasParaState, revisaoRetornada!);
 
@@ -396,6 +396,7 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
           elementos.forEach(e => removeElemento({ ...state, emRevisao: false }, { atual: e }));
         }
 
+        // Reapresenta, no editor, os dispositivos removidos em modo de revisão
         if (stateType === StateType.RevisaoAceita) {
           result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
           result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
