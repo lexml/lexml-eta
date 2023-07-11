@@ -137,7 +137,8 @@ const colarDispositivos = (
   eventoElementoRemovido && eventos.push(eventoElementoRemovido);
   eventos.push(...buildEventosElementoModificado(modificados));
   eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
-  eventos.push(buildEventoElementoSuprimido(referencia));
+  //eventos.push(buildEventoElementoSuprimido(referencia, eventos));
+  processaEventosSuprimidos(eventos, modificados);
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
   adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
 
@@ -206,15 +207,37 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
   return eventos;
 };
 
-const buildEventoElementoSuprimido = (referencia: Dispositivo): StateEvent => {
+const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[]): void => {
+  if (modificados.length > 0) {
+    modificados.forEach(d => {
+      if (!existeEventoSupressaoEsteDispositivo(eventos, d)) {
+        eventos.push(buildEventoElementoSuprimido(d, eventos));
+      }
+    });
+  }
+};
+
+const existeEventoSupressaoEsteDispositivo = (eventos: any, dispositivo: Dispositivo): boolean => {
+  const eventosSupressao = eventos.filter(ev => ev.stateType === StateType.ElementoSuprimido);
+
+  if (eventosSupressao.length > 0) {
+    return eventosSupressao.filter(e => e.lexmlId === dispositivo.id) ? true : false;
+  }
+
+  return false;
+};
+
+const buildEventoElementoSuprimido = (referencia: Dispositivo, eventos: StateEvent[]): StateEvent => {
   const suprimidos = getDispositivoAndFilhosAsLista(referencia.pai!)
     .filter(isSuprimido)
     .map(d => getDispositivoAndFilhosAsLista(d))
     .flat();
 
+  const suprimidosAux = suprimidos.filter(s => !existeEventoSupressaoEsteDispositivo(eventos, s));
+
   return {
     stateType: StateType.ElementoSuprimido,
-    elementos: suprimidos.map(d => createElementoValidado(d)),
+    elementos: suprimidosAux.map(d => createElementoValidado(d)),
   };
 };
 
