@@ -19,6 +19,7 @@ import {
   isRevisaoMovimentacao,
   findRevisoesByElementoUuid2,
   findRevisoesByElementoLexmlId,
+  isRevisaoDeModificacao,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -120,7 +121,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   getElementosFromEventos(eventos).forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
-      if (revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
+      if (isRevisaoDeModificacao(revisao) && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
         revisoesParaRemover.push(revisao);
       }
     } else {

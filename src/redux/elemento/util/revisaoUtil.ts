@@ -378,6 +378,10 @@ export const isRevisaoDeTransformacao = (revisao: Revisao): boolean => {
   return !!(isRevisaoElemento(revisao) && r.elementoAntesRevisao && r.elementoAposRevisao && r.elementoAntesRevisao.tipo !== r.elementoAposRevisao.tipo);
 };
 
+export const isRevisaoDeModificacao = (revisao: Revisao): boolean => {
+  return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType !== StateType.ElementoIncluido;
+};
+
 export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {
   return elementoIncluido.hierarquia?.pai?.lexmlId === elementoExcluido.hierarquia?.pai?.lexmlId && elementoIncluido.uuid! < elementoExcluido.uuid!;
 };
