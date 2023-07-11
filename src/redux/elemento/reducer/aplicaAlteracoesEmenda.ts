@@ -22,7 +22,7 @@ import { Counter } from '../../../util/counter';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
-import { identificarRevisaoElementoPai, isRevisaoDeExclusao, isRevisaoElemento, isRevisaoPrincipal } from '../util/revisaoUtil';
+import { findRevisaoById, identificarRevisaoElementoPai, isRevisaoDeExclusao, isRevisaoElemento, isRevisaoPrincipal } from '../util/revisaoUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
@@ -374,6 +374,8 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
     revisao.elementoAntesRevisao!.uuid = revisao.elementoAposRevisao.uuid;
     revisao.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
 
+    atualizarUuidDoPaiDoElementoRemovido(state, revisao);
+
     elementosExcluidosEmModoDeRevisao.push(revisao.elementoAposRevisao as Elemento);
     elementoAnterior = revisao.elementoAposRevisao as Elemento;
   } else {
@@ -394,4 +396,26 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
       revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
     }
   }
+};
+
+const atualizarUuidDoPaiDoElementoRemovido = (state: State, revisao: RevisaoElemento): void => {
+  let uuid: number | undefined = 0;
+  let uuid2: string | undefined = '';
+
+  if (isRevisaoPrincipal(revisao)) {
+    const pai = buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.hierarquia!.pai!.lexmlId!);
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid = pai?.uuid;
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = pai?.uuid2;
+    revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = pai?.uuid;
+    revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = pai?.uuid2;
+  } else {
+    const revisaoPai = findRevisaoById(state.revisoes!, revisao.idRevisaoElementoPai!) as RevisaoElemento;
+    uuid = revisaoPai!.elementoAposRevisao.uuid;
+    uuid2 = revisaoPai!.elementoAposRevisao.uuid2;
+  }
+
+  revisao.elementoAposRevisao.hierarquia!.pai!.uuid = uuid;
+  revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = uuid2;
+  revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = uuid;
+  revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = uuid2;
 };
