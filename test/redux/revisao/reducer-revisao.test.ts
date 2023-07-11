@@ -471,6 +471,18 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
           expect(elementoAnterior.conteudo?.texto).to.equal('teste I;');
           expect(elementoAnterior.uuid2).to.equal('I-3.B');
         });
+
+        describe('Aceitando exclusão de I-4 (original) e fazendo UNDO', () => {
+          beforeEach(function () {
+            state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: findRevisaoByElementoUuid2(state.revisoes!, 'I-4')! });
+            state = elementoReducer(state, { type: UNDO });
+          });
+
+          it('Deveria possuir 9 revisões, sendo 3 principais', () => {
+            expect(state.revisoes?.length).to.equal(9);
+            expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.equal(3);
+          });
+        });
       });
     });
 
