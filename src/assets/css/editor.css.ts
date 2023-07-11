@@ -346,6 +346,7 @@ export const editorStyles = html`
       border-radius: 4px;
       font-size: 12px;
       white-space: nowrap;
+      display: none;
     }
 
     .agrupador .blot-tipo-omissis {
