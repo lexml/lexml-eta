@@ -395,8 +395,11 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
         if (stateType === StateType.RevisaoAdicionalRejeitada) {
           elementos.forEach(e => removeElemento({ ...state, emRevisao: false }, { atual: e }));
         }
-        // result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
-        // result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+
+        if (stateType === StateType.RevisaoAceita) {
+          result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
+          result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+        }
 
         atualizaReferenciaElementoAnteriorSeNecessario(revisoesRetornadasParaState);
       } else {
