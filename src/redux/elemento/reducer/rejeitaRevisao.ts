@@ -1,7 +1,8 @@
+import { isCaput } from './../../../model/dispositivo/tipo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
 import { createElemento, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
@@ -114,6 +115,9 @@ const rejeitaRestauracao = (state: State, revisao: RevisaoElemento): StateEvent[
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  const dispositivoASerRemovido = getDispositivoFromElemento(state.articulacao!, revisao.elementoAposRevisao)!;
+  const dispositivoAnterior = getDispositivoAnteriorNaSequenciaDeLeitura(dispositivoASerRemovido, d => !isCaput(d));
+
   const result = removeElemento(state, { atual: revisao.elementoAposRevisao, isRejeitandoRevisao: true }).ui?.events || [];
 
   // Se existe elemento antes da revisão, então reinclui elemento (havia sido excluído por se tratar de uma movimentação)
@@ -125,8 +129,9 @@ const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   const rAux2 = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes, ultimaRevisaoDoGrupo.elementoAposRevisao);
 
   if (rAux2) {
-    rAux2.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura));
-    rAux2.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura));
+    const e = dispositivoAnterior ? createElemento(dispositivoAnterior) : undefined;
+    rAux2.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = e ? JSON.parse(JSON.stringify(e)) : undefined;
+    rAux2.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = e ? JSON.parse(JSON.stringify(e)) : undefined;
   }
 
   return result;
