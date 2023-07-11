@@ -2,9 +2,8 @@
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   files: [
-    //'out-tsc/test/**/*.test.js',
-    //'!out-tsc/test/emenda/**/*.test.js',
-    'out-tsc/test/redux/revisao/**/*.test.js',
+    'out-tsc/test/**/*.test.js',
+    '!out-tsc/test/emenda/**/*.test.js',
   ],
   nodeResolve: true,
 
