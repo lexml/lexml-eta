@@ -391,3 +391,17 @@ export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento,
 export const findRevisaoDeRestauracaoByUuid = (revisoes: Revisao[] = [], uuid: number): RevisaoElemento | undefined => {
   return revisoes.map(r => r as RevisaoElemento).find(r => isRevisaoElemento(r) && r.stateType === StateType.ElementoRestaurado && r.elementoAposRevisao.uuid === uuid);
 };
+
+export const associarRevisoesAosElementosDosEventos = (state: State): void => {
+  state.ui?.events
+    .filter(se => se.stateType !== StateType.RevisaoRejeitada)
+    .filter(se => se.stateType !== StateType.RevisaoAdicionalRejeitada)
+    .forEach(se => associarRevisoesAosElementos(state.revisoes, se.elementos));
+};
+
+export const associarRevisoesAosElementos = (revisoes: Revisao[] = [], elementos: Elemento[] = []): void => {
+  elementos.forEach(e => {
+    const r = findRevisaoByElementoUuid(revisoes, e.uuid);
+    e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
+  });
+};

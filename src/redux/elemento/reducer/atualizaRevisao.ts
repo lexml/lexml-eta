@@ -20,6 +20,7 @@ import {
   findRevisoesByElementoUuid2,
   findRevisoesByElementoLexmlId,
   isRevisaoDeModificacao,
+  associarRevisoesAosElementosDosEventos,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -29,7 +30,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
   if (!state.emRevisao || !actionType || !numElementos || actionType === APLICAR_ALTERACOES_EMENDA) {
-    associarRevisoesAosElementos(state);
+    associarRevisoesAosElementosDosEventos(state);
     return state;
   }
 
@@ -62,7 +63,7 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   revisoes = identificarRevisaoElementoPai(state, revisoes);
   state.revisoes!.push(...revisoes);
 
-  associarRevisoesAosElementos(state);
+  associarRevisoesAosElementosDosEventos(state);
 
   adicionarOpcoesAoMenu(state);
 
@@ -74,18 +75,6 @@ const isUndoDeRevisaoAceitaOuRejeitada = (state: State): boolean => {
 };
 
 const isAcaoDeRevisaoRejeitada = (state: State): boolean => !!state.ui?.events.some(ev => ev.stateType === StateType.RevisaoRejeitada);
-
-const associarRevisoesAosElementos = (state: State): void => {
-  state.ui?.events
-    .filter(se => se.stateType !== StateType.RevisaoRejeitada)
-    .filter(se => se.stateType !== StateType.RevisaoAdicionalRejeitada)
-    .forEach(se =>
-      se.elementos?.forEach(e => {
-        const r = findRevisaoByElementoUuid(state.revisoes, e.uuid);
-        e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
-      })
-    );
-};
 
 const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] => {
   const eventos = getEventos(state, StateType.ElementoSuprimido);
