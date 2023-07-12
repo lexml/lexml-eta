@@ -1,8 +1,7 @@
+import { isRevisaoDeMovimentacao, isRevisaoDeTransformacao } from './../util/revisaoUtil';
 import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
-import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
-import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
@@ -374,7 +373,8 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
     revisao.elementoAposRevisao.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
     revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
 
-    if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(revisao.actionType)) {
+    // if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(revisao.actionType)) {
+    if (isRevisaoDeMovimentacao(revisao) || isRevisaoDeTransformacao(revisao)) {
       revisao.elementoAntesRevisao!.uuid = Counter.next();
       revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
       revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;

@@ -364,7 +364,7 @@ export const findUltimaRevisaoDoGrupo = (revisoes: Revisao[] = [], revisao: Revi
   );
 };
 
-export const isRevisaoMovimentacao = (revisao: Revisao): boolean => {
+export const isRevisaoDeMovimentacao = (revisao: Revisao): boolean => {
   const r = revisao as RevisaoElemento;
   return !!(
     isRevisaoElemento(revisao) &&

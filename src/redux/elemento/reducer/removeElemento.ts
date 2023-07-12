@@ -17,7 +17,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
+import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
 
 export const removeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -67,7 +67,7 @@ export const removeElemento = (state: any, action: any): State => {
   }
 
   const revisao = findRevisaoByElementoUuid2(state.revisoes, dispositivo.uuid2);
-  if (state.emRevisao && revisao && isRevisaoPrincipal(revisao) && isRevisaoMovimentacao(revisao) && !action.isRejeitandoRevisao) {
+  if (state.emRevisao && revisao && isRevisaoPrincipal(revisao) && isRevisaoDeMovimentacao(revisao) && !action.isRejeitandoRevisao) {
     // if (revisao && isRevisaoMovimentacao(revisao) && !action.isRejeitandoRevisao) {
     return retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.ERROR,

@@ -13,7 +13,7 @@ import {
   findUltimaRevisaoDoGrupo,
   getRevisoesElementoAssociadas,
   isAtualizarPosicaoDeElementoExcluido,
-  isRevisaoMovimentacao,
+  isRevisaoDeMovimentacao,
   isRevisaoPrincipal,
 } from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
@@ -36,7 +36,7 @@ export const rejeitaRevisao = (state: any, action: any): State => {
 
   const eventos: StateEvent[] = [{ stateType: StateType.RevisaoRejeitada, elementos }];
 
-  if (isRevisaoMovimentacao(revisao)) {
+  if (isRevisaoDeMovimentacao(revisao)) {
     // Elementos com revisão de movimentação também podem ter revisão de exclusão (desde que não seja o elemento principal)
     // Nesse caso, a revisão de exclusão deve ser removida do state (não precisa ser rejeitada)
     const uuid2Elementos = elementos.map(e => e.uuid2);

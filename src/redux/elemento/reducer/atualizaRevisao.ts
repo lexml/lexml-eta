@@ -16,7 +16,7 @@ import {
   removeAtributosDoElemento,
   atualizaReferenciaElementoAnteriorSeNecessario,
   isRevisaoPrincipal,
-  isRevisaoMovimentacao,
+  isRevisaoDeMovimentacao,
   findRevisoesByElementoUuid2,
   findRevisoesByElementoLexmlId,
   isRevisaoDeModificacao,
@@ -234,7 +234,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
 
   elementosRemovidos.forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
-    if (revisao && (isRevisaoPrincipal(revisao) || !isRevisaoMovimentacao(revisao))) {
+    if (revisao && (isRevisaoPrincipal(revisao) || !isRevisaoDeMovimentacao(revisao))) {
       revisoesParaRemover.push(revisao);
     } else {
       if (!uuidsElementosRemovidos.includes(e.hierarquia?.pai?.uuid)) {
