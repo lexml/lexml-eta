@@ -81,8 +81,6 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     eventos.eventos.push(...processaDispositivosAdicionados(state, action.alteracoesEmenda));
   }
 
-  buildEventosRevisaoDispositivoRestaurado(state, eventos, action);
-
   if (action.revisoes?.length) {
     eventos.eventos.push(...processaRevisoes(retorno, action.revisoes));
     retorno.emRevisao = true;
@@ -103,25 +101,6 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   }
 
   return retorno;
-};
-
-const buildEventosRevisaoDispositivoRestaurado = (state: any, eventos: any, action: any): void => {
-  if (action.revisoes) {
-    const revisoesRestauracao = action.revisoes.filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
-
-    if (revisoesRestauracao.length > 0) {
-      eventos.add(StateType.ElementoRestaurado, []);
-      revisoesRestauracao.forEach(revisao => {
-        if (isRevisaoElemento(revisao)) {
-          const d = buscaDispositivoById(state.articulacao, revisao.elementoAntesRevisao.lexmlId);
-          if (d) {
-            //d.situacao = new DispositivoOriginal();
-            eventos.get(StateType.ElementoRestaurado).elementos?.push(createElemento(d));
-          }
-        }
-      });
-    }
-  }
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
@@ -330,7 +309,6 @@ const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: Disp
 const idSemCpt = (id: string): string => id.replace(/(_cpt)$/, '');
 
 const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
-  const result: StateEvent[] = [];
   const elementosExcluidosEmModoDeRevisao: Elemento[] = [];
   let elementoAnterior: Partial<Elemento>;
 
@@ -351,7 +329,18 @@ const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
 
   state.revisoes = identificarRevisaoElementoPai(state, state.revisoes!);
 
-  result.push({ stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao });
+  return [...buildEventoRevisaoDispositivoRestaurado(state, revisoes), { stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao }];
+};
+
+const buildEventoRevisaoDispositivoRestaurado = (state: State, revisoes: Revisao[]): StateEvent[] => {
+  const result: StateEvent[] = [];
+  const revisoesRestauracao = revisoes.map(r => r as RevisaoElemento).filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
+
+  if (revisoesRestauracao.length) {
+    const elementos = revisoesRestauracao.map(r => buscaDispositivoById(state.articulacao!, r.elementoAposRevisao.lexmlId!)!).map(d => createElemento(d));
+    result.push({ stateType: StateType.ElementoRestaurado, elementos });
+  }
+
   return result;
 };
 
