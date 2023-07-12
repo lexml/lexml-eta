@@ -1,7 +1,8 @@
+// Tipo string para salvar o nome em vez do índice
 export enum TipoMensagem {
-  INFO,
-  WARNING,
-  ERROR,
+  INFO = 'INFO',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
 }
 
 export enum AutoFix {

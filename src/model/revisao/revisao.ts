@@ -5,6 +5,7 @@ import { Usuario } from './usuario';
 import { removeAtributosDoElemento, buildDescricaoRevisao } from '../../redux/elemento/util/revisaoUtil';
 
 export abstract class Revisao {
+  abstract type: string; // Necessário para identificação da classe no Java
   id: string;
   usuario: Usuario;
   dataHora: string;
@@ -19,12 +20,14 @@ export abstract class Revisao {
 }
 
 export class RevisaoJustificativa extends Revisao {
+  type = 'RevisaoJustificativa';
   constructor(usuario: Usuario, dataHora: string, descricao: string) {
     super(usuario, dataHora, descricao);
   }
 }
 
 export class RevisaoElemento extends Revisao {
+  type = 'RevisaoElemento';
   actionType: string;
   stateType: StateType;
   elementoAntesRevisao: Partial<Elemento> | undefined;
