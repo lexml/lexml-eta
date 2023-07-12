@@ -68,10 +68,8 @@ export const removeElemento = (state: any, action: any): State => {
 
   const revisao = findRevisaoByElementoUuid2(state.revisoes, dispositivo.uuid2);
   if (state.emRevisao && revisao && isRevisaoPrincipal(revisao) && isRevisaoDeMovimentacao(revisao) && !action.isRejeitandoRevisao) {
-    // if (revisao && isRevisaoMovimentacao(revisao) && !action.isRejeitandoRevisao) {
     return retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.ERROR,
-      // descricao: 'Não é possível remover este dispositivo porque ele possui uma sinalização de revisão de movimentação.',
       descricao: 'Não é possível remover dispositivo movido em modo de revisão.',
     });
   }
