@@ -208,46 +208,25 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
 
 const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[]): void => {
   if (modificados.length > 0) {
+    const suprimidos: Dispositivo[] = [];
     modificados.forEach(d => {
-      eventos.push(buildEventoElementoSuprimido(d, eventos));
-    });
-  }
-};
-
-const existeEventoSupressaoEsteDispositivo = (eventos: any, dispositivo: Dispositivo): boolean => {
-  const eventosSupressao = eventos.filter(ev => ev.stateType === StateType.ElementoSuprimido);
-  let existe = false;
-
-  if (eventosSupressao.length > 0) {
-    eventosSupressao.forEach(es => {
-      es.elementos.forEach(e => {
-        if (e.lexmlId === dispositivo.id) {
-          existe = true;
+      getDispositivosToElementoSuprimido(d).forEach(d => {
+        if (suprimidos.filter(s => s.id === d.id).length === 0) {
+          suprimidos.push(d);
         }
       });
     });
+    eventos.push({ stateType: StateType.ElementoSuprimido, elementos: suprimidos.map(d => createElementoValidado(d)) });
   }
-
-  return existe;
 };
 
-const buildEventoElementoSuprimido = (referencia: Dispositivo, eventos: StateEvent[]): StateEvent => {
+const getDispositivosToElementoSuprimido = (referencia: Dispositivo): Dispositivo[] => {
   const suprimidos = getDispositivoAndFilhosAsLista(referencia.pai!)
     .filter(isSuprimido)
     .map(d => getDispositivoAndFilhosAsLista(d))
     .flat();
 
-  for (let index = 0; index < suprimidos.length; index++) {
-    if (existeEventoSupressaoEsteDispositivo(eventos, suprimidos[index])) {
-      suprimidos.splice(index, 1);
-      index--;
-    }
-  }
-
-  return {
-    stateType: StateType.ElementoSuprimido,
-    elementos: suprimidos.map(d => createElementoValidado(d)),
-  };
+  return suprimidos;
 };
 
 const buildEventoSituacaoElementoModificada = (dispositivos: Dispositivo[], isColandoEmAlteracaoDeNorma: boolean): StateEvent => {
