@@ -13,6 +13,7 @@ import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
+import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 
 let state: State;
 
@@ -80,6 +81,27 @@ describe('Carregando texto da MPV 905/2019', () => {
 
         expect(state.revisoes?.length).to.be.equal(1);
         expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.undefined;
+      });
+    });
+
+    describe('Adicionando 2 dispositivos (pai e filho)', () => {
+      beforeEach(function () {
+        let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+        state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+        let e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+        e.conteudo!.texto = 'texto inciso novo A:';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+
+        d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+        state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Alinea' } });
+        e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!);
+        e.conteudo!.texto = 'texto alínea A;';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+      });
+
+      it('Deveria possuir 2 revisões, sendo 1 principal', () => {
+        expect(state.revisoes?.length).to.be.equal(2);
+        expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
       });
     });
 
