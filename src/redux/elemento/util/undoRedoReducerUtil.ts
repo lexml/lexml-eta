@@ -317,16 +317,6 @@ export const processarRestaurados = (state: State, evento: StateEvent, acao: str
   const elementoAntesDeRestaurarSituacao = createElemento(d);
   let stateType: StateType;
 
-  // if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-  //   d.situacao = new DispositivoModificado(createElemento(d));
-  //   stateType = StateType.ElementoModificado;
-  // } else if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-  //   d.situacao = new DispositivoSuprimido(createElemento(d));
-  //   stateType = StateType.ElementoSuprimido;
-  // } else {
-  //   d.situacao = new DispositivoOriginal();
-  //   stateType = StateType.ElementoRestaurado;
-  // }
   if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
     d.situacao = new DispositivoModificado(createElemento(d));
     stateType = StateType.ElementoRestaurado;
@@ -342,7 +332,6 @@ export const processarRestaurados = (state: State, evento: StateEvent, acao: str
   d.rotulo = elementoDeReferencia.rotulo ?? '';
   d.texto = elementoDeReferencia.conteudo?.texto ?? '';
 
-  // const elementos = stateType === StateType.ElementoSuprimido ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
   const elementos = isSuprimido(d) ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
 
   return { stateType, elementos };

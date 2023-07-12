@@ -350,7 +350,6 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
     if (isRevisaoPrincipal(revisao)) {
       let d = findDispositivoByUuid2(state.articulacao!, revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.uuid2!);
       d = d || buscaDispositivoById(state.articulacao!, idSemCpt(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.lexmlId!)) || null;
-      // TODO: O código abaixo não trata exclusões intercaladas. Alterar para tratar.
       e = d ? createElemento(d) : elementoAnterior;
     } else {
       e = elementoAnterior;
@@ -373,7 +372,6 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
     revisao.elementoAposRevisao.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
     revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
 
-    // if ([MOVER_ELEMENTO_ABAIXO, MOVER_ELEMENTO_ACIMA].includes(revisao.actionType)) {
     if (isRevisaoDeMovimentacao(revisao) || isRevisaoDeTransformacao(revisao)) {
       revisao.elementoAntesRevisao!.uuid = Counter.next();
       revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;

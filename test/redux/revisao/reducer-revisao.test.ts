@@ -214,10 +214,10 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
           expect(d.texto).to.be.equal('texto modificado;');
         });
 
-        // it('Deveria possuir 4 revisões, sendo 2 principais', () => {
-        //   expect(state.revisoes?.length).to.be.equal(4);
-        //   expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
-        // });
+        it('Deveria possuir 3 revisões, sendo 1 principal', () => {
+          expect(state.revisoes?.length).to.be.equal(3);
+          expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+        });
       });
     });
 
@@ -249,10 +249,6 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         it('Deveria não possuir revisão (*)', () => {
           expect(state.revisoes?.length).to.be.equal(0);
         });
-
-        // it('State.ui.events deveria possuir evento com StateType.SituacaoElementoModificada (para atualizar e numeração na tela) (**)', () => {
-        //   expect(state.ui?.events.some(ev => ev.stateType === StateType.SituacaoElementoModificada)).to.be.true;
-        // });
       });
     });
 
@@ -332,7 +328,6 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
 
       describe('Remover ALÍNEA "art1_par1u_inc1-2_ali2"', () => {
         beforeEach(function () {
-          // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2_ali2')!;
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
           state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d.filhos[1]) });
         });

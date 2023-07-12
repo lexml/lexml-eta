@@ -252,8 +252,6 @@ describe('Carregando texto da MPV 905/2019', () => {
             const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
             const e = createElemento(d);
             state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: e });
-            // d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
-            // expect(d).to.be.undefined;
             expect(state.revisoes?.length).to.be.equal(1);
             expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
             expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);

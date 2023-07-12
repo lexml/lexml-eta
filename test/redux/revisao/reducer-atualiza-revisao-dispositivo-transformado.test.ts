@@ -50,19 +50,6 @@ describe('Carregando texto da MPV 905/2019', () => {
         expect(state.emRevisao).to.be.true;
       });
 
-      // describe('Modificando texto do inciso adicionado', () => {
-      //   it('Deveria possuir uma revisão', () => {
-      //     let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
-      //     const e = createElemento(d);
-      //     e.conteudo!.texto = 'texto teste modificado;';
-      //     state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
-      //     d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
-      //     expect(isAdicionado(d)).to.be.true;
-      //     expect(state.revisoes?.length).to.be.equal(1);
-      //     expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto teste;');
-      //   });
-      // });
-
       describe('Transformando inciso adicionado em alínea', () => {
         it('Deveria possuir uma revisão', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;

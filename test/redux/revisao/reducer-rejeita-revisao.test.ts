@@ -284,11 +284,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           beforeEach(function () {
             const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaA)!;
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
-
-            // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
-            // const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
-            // const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
-            // state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
           });
 
           it('Deveria possuir 1 revisão', () => {
@@ -393,8 +388,6 @@ describe('Carregando texto da MPV 905/2019', () => {
         });
       });
 
-      ///////////////////////////////////////////
-
       describe('Removendo alíneas "art1_par1u_inc1-1_ali1" (a) e "art1_par1u_inc1-1_ali2" (b), nessa ordem', () => {
         beforeEach(function () {
           uuid2_alineaA = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!.uuid2!;
@@ -431,11 +424,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           beforeEach(function () {
             const revisao = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaA)!;
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
-
-            // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!;
-            // const r = findRevisaoByElementoUuid2(state.revisoes!, uuid2_alineaB)!;
-            // const e = { ...r.elementoAposRevisao, elementoAnteriorNaSequenciaDeLeitura: createElemento(d) };
-            // state = elementoReducer(state, { type: ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO, elementos: [e] });
           });
 
           it('Deveria possuir 1 revisão', () => {
@@ -629,7 +617,6 @@ describe('Carregando texto da MPV 905/2019', () => {
       });
 
       describe('Removendo alíneas "art1_par1u_inc1-1_ali3" e "art1_par1u_inc1-1_ali1" nessa ordem', () => {
-        // TODO: testar removendo na ordem inversa
         beforeEach(function () {
           state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali3')!) });
           state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1')!) });
@@ -718,5 +705,3 @@ describe('Carregando texto da MPV 905/2019', () => {
     });
   });
 });
-
-// TODO: testar rejeitando revisão de dispositivo movido

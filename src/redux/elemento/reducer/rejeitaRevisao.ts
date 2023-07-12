@@ -54,8 +54,6 @@ export const rejeitaRevisao = (state: any, action: any): State => {
     });
 
     eventos.push({ stateType: StateType.RevisaoAdicionalRejeitada, elementos: elementosDeOutrasRevisoes });
-
-    // eventos[0].elementos!.push(...elementosDeOutrasRevisoes);
   }
 
   const tempState = { ...state, past: [] };
@@ -71,7 +69,6 @@ export const rejeitaRevisao = (state: any, action: any): State => {
       events: eventos,
       alertas: state.ui?.alertas,
     },
-    // revisoes: state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id) && !idsOutrasRevisoes.includes(r.id)),
     revisoes: state.revisoes?.filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id)),
   };
 };
@@ -84,7 +81,6 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
     r.stateType === StateType.ElementoRestaurado && eventos.push(...rejeitaRestauracao(state, r));
     r.stateType === StateType.ElementoIncluido && eventos.push(...rejeitaInclusao(state, r));
     r.stateType === StateType.ElementoRemovido && eventos.push(...rejeitaExclusao(state, r));
-    // rejeitaMovimentacao(state, revisao);
   });
 
   return unificarEvento(state, eventos, StateType.ElementoRenumerado);

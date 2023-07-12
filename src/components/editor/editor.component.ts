@@ -1,5 +1,4 @@
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
-
 import { InfoTextoColado } from './../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
@@ -14,7 +13,6 @@ import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
@@ -68,7 +66,6 @@ import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -659,7 +656,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
         case StateType.RevisaoDesativada:
           this.checkedSwitchMarcaAlteracao();
-          // this.atualizarMensagemQuill(event);
           this.atualizarEstiloBotaoRevisao();
           break;
         case StateType.RevisaoAceita:
@@ -671,7 +667,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
 
       this.indicadorMarcaRevisao(event);
-      //this.habilitaBotoesAceitarRejeitarRevisoes();
       this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
@@ -762,24 +757,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(itemMenu.execute(elemento));
     }
   }
-
-  // private atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events: StateEvent[], event: StateEvent): void {
-  //   const map = new Map<string, Elemento>();
-  //   const elementosIncluidos = event.elementos!;
-
-  //   elementosIncluidos.forEach(elemento => {
-  //     const linha = this.quill.getLinha(elemento.uuid!)!;
-  //     if (linha.next?.isLinhaComMarcacaoDeExclusao()) {
-  //       // passa o elemento da revisão de exclusão já com o novo valor do elemento anterior na sequência de leitura
-  //       const e = { ...linha.next.elemento, elementoAnteriorNaSequenciaDeLeitura: { ...elemento } };
-  //       map.set(e.uuid2!, e);
-  //     }
-  //   });
-
-  //   if (map.size > 0) {
-  //     rootStore.dispatch(atualizarReferenciaEmRevisoesDeExclusaoAction.execute([...map.values()]));
-  //   }
-  // }
 
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento, selecionarLinha?: boolean): void {
     const fnSelecionarNovaLinha = (linha: EtaContainerTable, linhaAtual: EtaContainerTable): void => {
@@ -1106,8 +1083,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
-
-    //this.checkedSwitchMarcaAlteracao();
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
@@ -1279,13 +1254,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
   private alertar(mensagem: string): void {
-    // const toast: any = this.querySelector('#toast-alerta');
-    // const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
-
-    // elmHtml.innerHTML = mensagem;
-    // toast.fromEdge = 'top';
-    // toast.open();
-
     const alert = Object.assign(document.createElement('sl-alert'), {
       variant: 'danger',
       closable: true,

@@ -51,8 +51,6 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
 
     it('Deveria possuir inciso "art1_par1u_inc1-1" com texto "teste A:"', () => {
-      // const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
-      // expect(d.texto).to.be.equal('teste A:');
       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u')!;
       expect(d.filhos[1].texto).to.be.equal('teste A:');
     });

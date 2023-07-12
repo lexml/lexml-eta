@@ -72,8 +72,6 @@ export const redo = (state: any): State => {
     retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
     retorno.present = [...eventosRevisao, ...tempState.ui!.events];
 
-    // retorno.present = tempState.ui!.events;
-    // retorno.ui!.events = tempState.ui!.events;
     return retorno;
   }
 
