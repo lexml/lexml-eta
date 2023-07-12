@@ -161,7 +161,7 @@ describe('Carregando texto da MPV 905/2019', () => {
           expect(elementos.length).to.be.equal(1);
         });
 
-        describe('Desfazendo rejeição da revisão', () => {
+        describe('Desfazendo rejeição da revisão (*)', () => {
           it('Deveria possuir uma revisão', () => {
             state = elementoReducer(state, { type: UNDO });
             expect(state.revisoes?.length).to.be.equal(1);
@@ -193,7 +193,7 @@ describe('Carregando texto da MPV 905/2019', () => {
           expect(elementos.length).to.be.equal(6);
         });
 
-        describe('Desfazendo rejeição da revisão', () => {
+        describe('Desfazendo rejeição da revisão (**)', () => {
           it('Deveria possuir 6 revisões (1 principal e 5 associadas)', () => {
             state = elementoReducer(state, { type: UNDO });
             expect(state.revisoes?.filter(r => !(r as RevisaoElemento).idRevisaoElementoPrincipal).length).to.be.equal(1);
@@ -513,7 +513,7 @@ describe('Carregando texto da MPV 905/2019', () => {
             expect(state.revisoes?.length).to.be.equal(0);
           });
 
-          describe('Desfazendo rejeição da revisão', () => {
+          describe('Desfazendo rejeição da revisão (***)', () => {
             beforeEach(function () {
               state = elementoReducer(state, { type: UNDO });
             });
@@ -545,7 +545,7 @@ describe('Carregando texto da MPV 905/2019', () => {
           expect(isAdicionado(d)).to.be.true;
         });
 
-        describe('Desfazendo rejeição da revisão', () => {
+        describe('Desfazendo rejeição da revisão (****)', () => {
           it('Deveria possuir uma revisão', () => {
             let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali1_ite1')!;
             state = elementoReducer(state, { type: UNDO });
@@ -591,7 +591,7 @@ describe('Carregando texto da MPV 905/2019', () => {
           expect(isOriginal(d)).to.be.true;
         });
 
-        describe('Desfazendo rejeição da revisão', () => {
+        describe('Desfazendo rejeição da revisão (*****)', () => {
           it('Deveria possuir uma revisão', () => {
             state = elementoReducer(state, { type: UNDO });
             expect(state.revisoes?.length).to.be.equal(1);

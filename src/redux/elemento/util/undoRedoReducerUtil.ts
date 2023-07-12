@@ -27,6 +27,7 @@ import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import {
+  associarRevisoesAosElementos,
   existeRevisaoCriadaPorExclusao,
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
   findRevisaoDeRestauracaoByUuid,
@@ -394,8 +395,10 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
 
         atualizaReferenciaElementoAnteriorSeNecessario(revisoesRetornadasParaState);
       } else {
-        const elementos = getElementosFromRevisoes(revisoesRetornadasParaState, state);
+        const elementos = getElementosFromRevisoes(revisoesRetornadasParaState, state).map(e => JSON.parse(JSON.stringify(e)));
+        associarRevisoesAosElementos(state.revisoes, elementos);
         result.push({ stateType: StateType.SituacaoElementoModificada, elementos: elementos });
+        result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
       }
     });
   }

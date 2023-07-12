@@ -400,7 +400,7 @@ export const associarRevisoesAosElementosDosEventos = (state: State): void => {
 };
 
 export const associarRevisoesAosElementos = (revisoes: Revisao[] = [], elementos: Elemento[] = []): void => {
-  elementos.forEach(e => {
+  elementos.filter(Boolean).forEach(e => {
     const r = findRevisaoByElementoUuid(revisoes, e.uuid);
     e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
   });

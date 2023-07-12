@@ -321,7 +321,7 @@ const getElementoAntesModificacao = (state: State, elemento: Elemento): Elemento
 
 const adicionarOpcoesAoMenu = (state: State): void => {
   state.ui?.events.forEach(se =>
-    se.elementos?.forEach(e => {
+    se.elementos?.filter(Boolean).forEach(e => {
       if (e.revisao && !(e.revisao as RevisaoElemento).idRevisaoElementoPrincipal) {
         e.acoesPossiveis = se.stateType === StateType.ElementoRemovido ? [] : [...(e.acoesPossiveis || [])];
         !e.acoesPossiveis.includes(aceitarRevisaoAction) && e.acoesPossiveis.push(aceitarRevisaoAction);

@@ -114,7 +114,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       });
     });
 
-    describe('Testando evento ElementoRenumerado', () => {
+    describe('Testando evento ElementoRenumerado (*)', () => {
       it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
         expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
         expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
@@ -175,9 +175,10 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     it('Deveria possuir "State.ui.events" com eventos: RevisaoRejeitada, ElementoIncluido, ElementoRenumerado', () => {
       expect(state.ui?.events[0].stateType).to.be.equal(StateType.RevisaoRejeitada);
       expect(state.ui?.events[1].stateType).to.be.equal(StateType.SituacaoElementoModificada);
-      expect(state.ui?.events[2].stateType).to.be.equal(StateType.ElementoIncluido);
-      expect(state.ui?.events[3].stateType).to.be.equal(StateType.ElementoRenumerado);
-      expect(state.ui?.events[4].stateType).to.be.equal(StateType.SituacaoElementoModificada);
+      expect(state.ui?.events[2].stateType).to.be.equal(StateType.ElementoMarcado);
+      expect(state.ui?.events[3].stateType).to.be.equal(StateType.ElementoIncluido);
+      expect(state.ui?.events[4].stateType).to.be.equal(StateType.ElementoRenumerado);
+      expect(state.ui?.events[5].stateType).to.be.equal(StateType.SituacaoElementoModificada);
     });
 
     describe('Testando evento RevisaoRejeitada', () => {
@@ -212,22 +213,22 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       });
     });
 
-    describe('Testando evento ElementoRenumerado', () => {
+    describe('Testando evento ElementoRenumerado (**)', () => {
       it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
-        expect(state.ui?.events[3].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[3].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
-        expect(state.ui?.events[3].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
+        expect(state.ui?.events[4].elementos?.length).to.be.equal(7);
+        expect(state.ui?.events[4].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
+        expect(state.ui?.events[4].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {
-        expect(state.ui?.events[3].elementos![0].conteudo!.texto).to.be.equal('teste G:');
-        expect(state.ui?.events[3].elementos![1].conteudo!.texto).to.be.equal('teste J:');
-        expect(state.ui?.events[3].elementos![2].conteudo!.texto).to.be.equal('teste M:');
-        expect(state.ui?.events[3].elementos![3].conteudo!.texto).to.be.equal('teste P:');
+        expect(state.ui?.events[4].elementos![0].conteudo!.texto).to.be.equal('teste G:');
+        expect(state.ui?.events[4].elementos![1].conteudo!.texto).to.be.equal('teste J:');
+        expect(state.ui?.events[4].elementos![2].conteudo!.texto).to.be.equal('teste M:');
+        expect(state.ui?.events[4].elementos![3].conteudo!.texto).to.be.equal('teste P:');
       });
 
       it('Os elementos não devem possuir revisão', () => {
-        expect(state.ui?.events[3].elementos?.every(e => !e.revisao)).to.be.true;
+        expect(state.ui?.events[4].elementos?.every(e => !e.revisao)).to.be.true;
       });
     });
   });
@@ -307,7 +308,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       });
     });
 
-    describe('Testando evento ElementoRenumerado', () => {
+    describe('Testando evento ElementoRenumerado (***)', () => {
       it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
         expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
         expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
