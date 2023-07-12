@@ -63,20 +63,17 @@ export const findRevisaoByElementoLexmlId = (revisoes: Revisao[] = [], lexmlId =
 
 export const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: Elemento[]): boolean => {
   const revisoesElemento = getRevisoesElemento(revisoes);
-  // return elementos.every(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
   return elementos.some(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
 };
 
 export const identificarRevisaoElementoPai = (state: State, revisoes: Revisao[]): Revisao[] => {
-  // const revisoes = state.revisoes;
   const result: Revisao[] = [];
 
   revisoes?.forEach(r => {
     if (isRevisaoElemento(r)) {
       const rAux = r as RevisaoElemento;
       const uuidPai = rAux.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rAux) : rAux.elementoAntesRevisao?.hierarquia?.pai?.uuid;
-      // const uuidPai = getUuidPai(state, rAux.stateType === StateType.ElementoIncluido ? rAux.elementoAposRevisao : rAux.elementoAntesRevisao);
-      const rPai = uuidPai ? findRevisaoByElementoUuid(revisoes, uuidPai) : undefined;
+      const rPai = uuidPai ? findRevisaoByElementoUuid(rAux.actionType === ADICIONAR_ELEMENTO ? state.revisoes : revisoes, uuidPai) : undefined;
       if (rPai && isRevisaoMesmaSituacao(rAux, rPai)) {
         rAux.idRevisaoElementoPai = rPai.id;
         rAux.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(state, revisoes!, rPai)?.id;
