@@ -297,6 +297,8 @@ export class EtaContainerTable extends Container {
       node.setAttribute('em-revisao', 'true');
       if ((elemento.revisao as RevisaoElemento).stateType === 'ElementoRemovido') {
         node.setAttribute('excluido', 'true');
+      } else {
+        node.removeAttribute('excluido');
       }
     } else {
       node.removeAttribute('em-revisao');
