@@ -137,7 +137,6 @@ const colarDispositivos = (
   eventoElementoRemovido && eventos.push(eventoElementoRemovido);
   eventos.push(...buildEventosElementoModificado(modificados));
   eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
-  //eventos.push(buildEventoElementoSuprimido(referencia, eventos));
   processaEventosSuprimidos(eventos, modificados);
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
   adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
@@ -210,21 +209,26 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
 const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[]): void => {
   if (modificados.length > 0) {
     modificados.forEach(d => {
-      if (!existeEventoSupressaoEsteDispositivo(eventos, d)) {
-        eventos.push(buildEventoElementoSuprimido(d, eventos));
-      }
+      eventos.push(buildEventoElementoSuprimido(d, eventos));
     });
   }
 };
 
 const existeEventoSupressaoEsteDispositivo = (eventos: any, dispositivo: Dispositivo): boolean => {
   const eventosSupressao = eventos.filter(ev => ev.stateType === StateType.ElementoSuprimido);
+  let existe = false;
 
   if (eventosSupressao.length > 0) {
-    return eventosSupressao.filter(e => e.lexmlId === dispositivo.id) ? true : false;
+    eventosSupressao.forEach(es => {
+      es.elementos.forEach(e => {
+        if (e.lexmlId === dispositivo.id) {
+          existe = true;
+        }
+      });
+    });
   }
 
-  return false;
+  return existe;
 };
 
 const buildEventoElementoSuprimido = (referencia: Dispositivo, eventos: StateEvent[]): StateEvent => {
@@ -233,11 +237,16 @@ const buildEventoElementoSuprimido = (referencia: Dispositivo, eventos: StateEve
     .map(d => getDispositivoAndFilhosAsLista(d))
     .flat();
 
-  const suprimidosAux = suprimidos.filter(s => !existeEventoSupressaoEsteDispositivo(eventos, s));
+  for (let index = 0; index < suprimidos.length; index++) {
+    if (existeEventoSupressaoEsteDispositivo(eventos, suprimidos[index])) {
+      suprimidos.splice(index, 1);
+      index--;
+    }
+  }
 
   return {
     stateType: StateType.ElementoSuprimido,
-    elementos: suprimidosAux.map(d => createElementoValidado(d)),
+    elementos: suprimidos.map(d => createElementoValidado(d)),
   };
 };
 
