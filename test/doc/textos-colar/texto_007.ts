@@ -1,8 +1,7 @@
-/*
-  I - texto novo inciso:
-	a) texto nova alínea a;
-	b) texto nova alínea b;
-*/
+// TEXTO UTILIZADO
+//Art. 16 XXXX
+//Art. 19 XXXX
+
 export const TEXTO_007 = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -47,58 +46,66 @@ export const TEXTO_007 = {
             {
               name: {
                 namespaceURI: 'http://www.lexml.gov.br/1.0',
-                localPart: 'Inciso',
+                localPart: 'Artigo',
                 prefix: '',
-                key: '{http://www.lexml.gov.br/1.0}Inciso',
-                string: '{http://www.lexml.gov.br/1.0}Inciso',
+                key: '{http://www.lexml.gov.br/1.0}Artigo',
+                string: '{http://www.lexml.gov.br/1.0}Artigo',
               },
               value: {
                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                id: 'inc1',
-                rotulo: 'I –',
-                p: [
-                  {
-                    TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                    content: ['\n    texto novo inciso:\n\n  '],
-                  },
-                ],
+                id: 'art16',
+                rotulo: 'Art. 16.',
                 lXcontainersOmissis: [
                   {
                     name: {
                       namespaceURI: 'http://www.lexml.gov.br/1.0',
-                      localPart: 'Alinea',
+                      localPart: 'Caput',
                       prefix: '',
-                      key: '{http://www.lexml.gov.br/1.0}Alinea',
-                      string: '{http://www.lexml.gov.br/1.0}Alinea',
+                      key: '{http://www.lexml.gov.br/1.0}Caput',
+                      string: '{http://www.lexml.gov.br/1.0}Caput',
                     },
                     value: {
                       TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                      id: 'inc1_ali1',
-                      rotulo: 'a)',
+                      id: 'art16_cpt',
                       p: [
                         {
                           TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                          content: ['\n    texto nova alínea a;\n\n  '],
+                          content: ['\n    XXXX.\n\n  '],
                         },
                       ],
                     },
                   },
+                ],
+              },
+            },
+            {
+              name: {
+                namespaceURI: 'http://www.lexml.gov.br/1.0',
+                localPart: 'Artigo',
+                prefix: '',
+                key: '{http://www.lexml.gov.br/1.0}Artigo',
+                string: '{http://www.lexml.gov.br/1.0}Artigo',
+              },
+              value: {
+                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                id: 'art19',
+                rotulo: 'Art. 19.',
+                lXcontainersOmissis: [
                   {
                     name: {
                       namespaceURI: 'http://www.lexml.gov.br/1.0',
-                      localPart: 'Alinea',
+                      localPart: 'Caput',
                       prefix: '',
-                      key: '{http://www.lexml.gov.br/1.0}Alinea',
-                      string: '{http://www.lexml.gov.br/1.0}Alinea',
+                      key: '{http://www.lexml.gov.br/1.0}Caput',
+                      string: '{http://www.lexml.gov.br/1.0}Caput',
                     },
                     value: {
                       TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                      id: 'inc1_ali2',
-                      rotulo: 'b)',
+                      id: 'art19_cpt',
                       p: [
                         {
                           TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                          content: ['\n    texto nova alínea b;\n\n  '],
+                          content: ['\n    YYYY.\n\n  '],
                         },
                       ],
                     },

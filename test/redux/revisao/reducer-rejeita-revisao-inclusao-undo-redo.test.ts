@@ -12,7 +12,7 @@ import { isAlinea, isArticulacao, isInciso } from '../../../src/model/dispositiv
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/acao/AdicionarElementosFromClipboardAction';
-import { TEXTO_007 } from '../../doc/textos-colar/texto_007';
+import { TEXTO_006 } from '../../doc/textos-colar/texto_006';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
@@ -50,7 +50,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         novo: {
           isDispositivoAlteracao: isDispositivoAlteracao(d),
           conteudo: {
-            texto: TEXTO_007,
+            texto: TEXTO_006,
           },
         },
         isColarSubstituindo: false,
@@ -143,7 +143,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         novo: {
           isDispositivoAlteracao: isDispositivoAlteracao(d),
           conteudo: {
-            texto: TEXTO_007,
+            texto: TEXTO_006,
           },
         },
         isColarSubstituindo: false,
@@ -241,7 +241,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         novo: {
           isDispositivoAlteracao: isDispositivoAlteracao(d),
           conteudo: {
-            texto: TEXTO_007,
+            texto: TEXTO_006,
           },
         },
         isColarSubstituindo: false,
