@@ -158,7 +158,7 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
         result.push(montarNovaRevisao(e, incluidos[index]));
       } else if (isRevisaoDeTransformacao(revisao) && revisaoDeElementoComMesmoLexmlIdRotuloEConteudo(revisao, incluidos[index])) {
         revisoesParaRemover.push(...findRevisoesByElementoLexmlId(state.revisoes, e.lexmlId));
-      } else if (revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, incluidos[index])) {
+      } else if (revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, incluidos[index]) && revisao.elementoAntesRevisao!.uuid !== e.uuid) {
         revisoesParaRemover.push(...findRevisoesByElementoUuid2(state.revisoes, incluidos[index].uuid2));
       } else {
         state.revisoes = state.revisoes?.filter(r => r.id !== revisao.id);
@@ -303,7 +303,12 @@ const revisaoDeElementoComMesmoLexmlIdRotuloEConteudo = (r: RevisaoElemento, e: 
 };
 
 const revisaoDeElementoComMesmoUuid2RotuloEConteudo = (r: RevisaoElemento, e: Elemento): boolean => {
-  return r.elementoAntesRevisao?.uuid2 === e.uuid2 && r.elementoAntesRevisao?.rotulo === e.rotulo && r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto;
+  return (
+    r.elementoAntesRevisao?.uuid2 === e.uuid2 &&
+    r.elementoAntesRevisao?.rotulo === e.rotulo &&
+    r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto &&
+    r.elementoAntesRevisao?.hierarquia?.pai?.lexmlId === e.hierarquia?.pai?.lexmlId // Checa se elementos estão na mesma hierarquia
+  );
 };
 
 const isAcaoMoverOuTransformar = (state: State): boolean => {

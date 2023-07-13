@@ -20,6 +20,7 @@ import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
 import { EMENDA_006 } from '../../doc/emendas/emenda-006';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
+import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 
 let state: State;
 
@@ -27,6 +28,43 @@ describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+  });
+
+  describe('Movendo (2 vezes para baixo) dispositivo adicionado fora de revisão', () => {
+    beforeEach(function () {
+      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+      state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!) });
+      state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!) });
+    });
+
+    it('Deveria possuir 3 revisões sendo 1 principal', () => {
+      expect(state.revisoes?.length).to.be.equal(3);
+      expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+    });
+
+    it('Atual inciso I-3 deveria possuir texto "teste A:"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+      expect(d.texto).to.be.equal('teste A:');
+    });
+
+    describe('Rejeitando revisão e fazendo UNDO', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: state.revisoes![0] });
+        state = elementoReducer(state, { type: UNDO });
+      });
+
+      it('Deveria possuir 3 revisões sendo 1 principal', () => {
+        expect(state.revisoes?.length).to.be.equal(3);
+        expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+      });
+
+      it('Atual inciso I-3 deveria possuir texto "teste A:"', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+        expect(d.texto).to.be.equal('teste A:');
+      });
+    });
   });
 
   describe('Movendo dispositivo adicionado fora de revisão, alterando texto de dispositivo subordinado e fazendo UNDO da alteração', () => {
