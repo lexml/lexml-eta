@@ -137,7 +137,7 @@ const colarDispositivos = (
   eventoElementoRemovido && eventos.push(eventoElementoRemovido);
   eventos.push(...buildEventosElementoModificado(modificados));
   eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
-  eventos.push(buildEventoElementoSuprimido(referencia));
+  processaEventosSuprimidos(eventos, modificados);
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
   adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
 
@@ -206,16 +206,27 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
   return eventos;
 };
 
-const buildEventoElementoSuprimido = (referencia: Dispositivo): StateEvent => {
+const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[]): void => {
+  if (modificados.length > 0) {
+    const suprimidos: Dispositivo[] = [];
+    modificados.forEach(d => {
+      getDispositivosToElementoSuprimido(d).forEach(d => {
+        if (suprimidos.filter(s => s.id === d.id).length === 0) {
+          suprimidos.push(d);
+        }
+      });
+    });
+    eventos.push({ stateType: StateType.ElementoSuprimido, elementos: suprimidos.map(d => createElementoValidado(d)) });
+  }
+};
+
+const getDispositivosToElementoSuprimido = (referencia: Dispositivo): Dispositivo[] => {
   const suprimidos = getDispositivoAndFilhosAsLista(referencia.pai!)
     .filter(isSuprimido)
     .map(d => getDispositivoAndFilhosAsLista(d))
     .flat();
 
-  return {
-    stateType: StateType.ElementoSuprimido,
-    elementos: suprimidos.map(d => createElementoValidado(d)),
-  };
+  return suprimidos;
 };
 
 const buildEventoSituacaoElementoModificada = (dispositivos: Dispositivo[], isColandoEmAlteracaoDeNorma: boolean): StateEvent => {
