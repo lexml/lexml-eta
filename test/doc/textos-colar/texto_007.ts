@@ -2,7 +2,7 @@
 //Art. 16 XXXX
 //Art. 19 XXXX
 
-export const TEXTO_006 = {
+export const TEXTO_007 = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
     localPart: 'LexML',

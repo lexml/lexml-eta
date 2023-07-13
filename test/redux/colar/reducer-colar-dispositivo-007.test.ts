@@ -7,7 +7,7 @@ import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/
 import { openArticulacaoAction } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { TEXTO_006 } from '../../doc/textos-colar/texto_006';
+import { TEXTO_007 } from '../../doc/textos-colar/texto_007';
 
 let state: State;
 
@@ -38,7 +38,7 @@ describe('Testando carregamento da MPV 905/2019', () => {
         novo: {
           isDispositivoAlteracao: isDispositivoAlteracao(disp),
           conteudo: {
-            texto: TEXTO_006,
+            texto: TEXTO_007,
           },
         },
         isColarSubstituindo,
