@@ -398,7 +398,10 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
         const elementos = getElementosFromRevisoes(revisoesRetornadasParaState, state).map(e => JSON.parse(JSON.stringify(e)));
         associarRevisoesAosElementos(state.revisoes, elementos);
         result.push({ stateType: StateType.SituacaoElementoModificada, elementos: elementos });
-        result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+
+        if (stateType === StateType.RevisaoAceita) {
+          result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+        }
       }
     });
   }
