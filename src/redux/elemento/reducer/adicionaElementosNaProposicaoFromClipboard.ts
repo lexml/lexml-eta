@@ -137,7 +137,6 @@ const colarDispositivos = (
   eventoElementoRemovido && eventos.push(eventoElementoRemovido);
   eventos.push(...buildEventosElementoModificado(modificados));
   eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
-  //eventos.push(buildEventoElementoSuprimido(referencia, eventos));
   processaEventosSuprimidos(eventos, modificados);
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
   adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
@@ -209,36 +208,25 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
 
 const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[]): void => {
   if (modificados.length > 0) {
+    const suprimidos: Dispositivo[] = [];
     modificados.forEach(d => {
-      if (!existeEventoSupressaoEsteDispositivo(eventos, d)) {
-        eventos.push(buildEventoElementoSuprimido(d, eventos));
-      }
+      getDispositivosToElementoSuprimido(d).forEach(d => {
+        if (suprimidos.filter(s => s.id === d.id).length === 0) {
+          suprimidos.push(d);
+        }
+      });
     });
+    eventos.push({ stateType: StateType.ElementoSuprimido, elementos: suprimidos.map(d => createElementoValidado(d)) });
   }
 };
 
-const existeEventoSupressaoEsteDispositivo = (eventos: any, dispositivo: Dispositivo): boolean => {
-  const eventosSupressao = eventos.filter(ev => ev.stateType === StateType.ElementoSuprimido);
-
-  if (eventosSupressao.length > 0) {
-    return eventosSupressao.filter(e => e.lexmlId === dispositivo.id) ? true : false;
-  }
-
-  return false;
-};
-
-const buildEventoElementoSuprimido = (referencia: Dispositivo, eventos: StateEvent[]): StateEvent => {
+const getDispositivosToElementoSuprimido = (referencia: Dispositivo): Dispositivo[] => {
   const suprimidos = getDispositivoAndFilhosAsLista(referencia.pai!)
     .filter(isSuprimido)
     .map(d => getDispositivoAndFilhosAsLista(d))
     .flat();
 
-  const suprimidosAux = suprimidos.filter(s => !existeEventoSupressaoEsteDispositivo(eventos, s));
-
-  return {
-    stateType: StateType.ElementoSuprimido,
-    elementos: suprimidosAux.map(d => createElementoValidado(d)),
-  };
+  return suprimidos;
 };
 
 const buildEventoSituacaoElementoModificada = (dispositivos: Dispositivo[], isColandoEmAlteracaoDeNorma: boolean): StateEvent => {
