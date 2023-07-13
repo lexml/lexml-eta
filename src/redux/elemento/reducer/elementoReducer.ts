@@ -74,8 +74,6 @@ import { ACEITAR_REVISAO } from '../../../model/lexml/acao/aceitarRevisaoAction'
 import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 import { aceitaRevisao } from './aceitaRevisao';
 import { rejeitaRevisao } from './rejeitaRevisao';
-// import { ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO } from '../../../model/lexml/acao/atualizarReferenciaEmRevisoesDeExclusaoAction';
-// import { atualizaReferenciaEmRevisoesExclusao } from './atualizaReferenciaEmRevisoesExclusao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -203,9 +201,6 @@ export const elementoReducer = (state = {}, action: any): any => {
     case REJEITAR_REVISAO:
       tempState = rejeitaRevisao(state, action);
       break;
-    // case ATUALIZAR_REFERENCIA_EM_REVISOES_EXCLUSAO:
-    //   tempState = atualizaReferenciaEmRevisoesExclusao(state, action);
-    //   break;
     default:
       actionType = undefined;
       tempState = state as State;
