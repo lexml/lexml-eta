@@ -3,7 +3,7 @@
 	a) texto nova alínea a;
 	b) texto nova alínea b;
 */
-export const TEXTO_006 = {
+export const TEXTO_007 = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
     localPart: 'LexML',
