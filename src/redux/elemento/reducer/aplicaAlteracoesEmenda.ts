@@ -278,9 +278,6 @@ const corrigeIdDispositivoSeNecessario = (id: string, idPai: string): string => 
 const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: DispositivoEmendaAdicionado, modo: ClassificacaoDocumento): void => {
   dispositivo.texto = da.texto ?? '';
   dispositivo.id = da.id;
-  if (da.uuid2) {
-    dispositivo.uuid2 = da.uuid2;
-  }
   const situacao = new DispositivoAdicionado();
   situacao.tipoEmenda = modo;
   dispositivo.situacao = situacao;

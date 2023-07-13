@@ -94,7 +94,6 @@ export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
   idPosicaoAgrupador?: string;
   existeNaNormaAlterada?: boolean;
   filhos?: Array<DispositivoEmendaAdicionado>;
-  uuid2?: string;
 }
 
 export class ComandoEmenda {

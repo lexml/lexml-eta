@@ -58,7 +58,6 @@ export const EMENDA_007 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-1',
-            uuid2: 'a3af7019-b658-4e04-b551-8a39b08d6c91',
             rotulo: 'I-1 –',
             texto: 'teste A:',
             idIrmaoAnterior: 'art1_par1u_inc1',
@@ -66,14 +65,12 @@ export const EMENDA_007 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali1',
-                uuid2: 'f5e912e4-e10d-4d3a-92f7-4024b193f8e8',
                 rotulo: 'a)',
                 texto: 'teste B;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali2',
-                uuid2: 'd4b80c2a-ce25-410b-afbd-8db8791c34c9',
                 rotulo: 'b)',
                 texto: 'teste C;',
               },
@@ -82,7 +79,6 @@ export const EMENDA_007 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-2',
-            uuid2: 'bbaf3d53-3ba0-4549-b3aa-1a36d35f6746',
             rotulo: 'I-2 –',
             texto: 'teste G:',
             idIrmaoAnterior: 'art1_par1u_inc1-1',
@@ -90,14 +86,12 @@ export const EMENDA_007 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-2_ali1',
-                uuid2: '9c84a0c8-8e95-4a34-9783-75007ac5e61e',
                 rotulo: 'a)',
                 texto: 'teste H;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-2_ali2',
-                uuid2: 'b038b873-63c7-42a0-8b22-1a86ee4f906a',
                 rotulo: 'b)',
                 texto: 'teste I;',
               },
@@ -106,7 +100,6 @@ export const EMENDA_007 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-3',
-            uuid2: '4bc05f63-8a92-4ebd-8ae7-61d372c267cb',
             rotulo: 'I-3 –',
             texto: 'teste J:',
             idIrmaoAnterior: 'art1_par1u_inc1-2',
@@ -114,14 +107,12 @@ export const EMENDA_007 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-3_ali1',
-                uuid2: '15f68562-dc44-4c53-b96a-bb73beb9069d',
                 rotulo: 'a)',
                 texto: 'teste K;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-3_ali2',
-                uuid2: '53a06067-9630-4191-89e8-90574e354450',
                 rotulo: 'b)',
                 texto: 'teste L;',
               },
@@ -130,7 +121,6 @@ export const EMENDA_007 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-4',
-            uuid2: '9c42eb58-8eae-4f30-820a-8606461256a9',
             rotulo: 'I-4 –',
             texto: 'teste M:',
             idIrmaoAnterior: 'art1_par1u_inc1-3',
@@ -138,14 +128,12 @@ export const EMENDA_007 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-4_ali1',
-                uuid2: '214cea5e-f617-4ae9-9191-50a10f6732d0',
                 rotulo: 'a)',
                 texto: 'teste N;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-4_ali2',
-                uuid2: '8a8520a2-4109-48b8-8425-efab22798b7d',
                 rotulo: 'b)',
                 texto: 'teste O;',
               },
@@ -154,7 +142,6 @@ export const EMENDA_007 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-5',
-            uuid2: 'ec1ed0eb-ad67-4815-ba91-e5ff0846494f',
             rotulo: 'I-5 –',
             texto: 'teste P:',
             idIrmaoAnterior: 'art1_par1u_inc1-4',
@@ -162,14 +149,12 @@ export const EMENDA_007 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-5_ali1',
-                uuid2: '4a7dba66-52e1-4d1d-af85-2c338e6c97cf',
                 rotulo: 'a)',
                 texto: 'teste Q;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-5_ali2',
-                uuid2: 'acab76d6-558a-44d2-884d-ea363cd5fe1b',
                 rotulo: 'b)',
                 texto: 'teste R;',
               },

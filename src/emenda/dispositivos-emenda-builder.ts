@@ -118,7 +118,6 @@ export class DispositivosEmendaBuilder {
       d.id = buildId(d);
     }
     da.id = d.id;
-    da.uuid2 = d.uuid2;
 
     if (!isCaput(d) && !isArticulacaoAlteracao(d) && !isOmissis(d)) {
       da.rotulo = d.rotulo;

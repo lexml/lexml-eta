@@ -12,7 +12,7 @@ import { isAlinea, isArticulacao, isInciso } from '../../../src/model/dispositiv
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { findRevisaoByElementoUuid2, isRevisaoDeExclusao, isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
+import { findRevisaoByElementoUuid, isRevisaoDeExclusao, isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { TEXTO_007 } from '../../doc/textos-colar/texto_007';
@@ -22,6 +22,7 @@ import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 
 let state: State;
 
@@ -227,7 +228,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
 
         d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
-        state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: findRevisaoByElementoUuid2(state.revisoes!, d.uuid2!)! });
+        state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: findRevisaoByElementoUuid(state.revisoes!, d.uuid!)! });
 
         state = elementoReducer(state, { type: UNDO });
       });
@@ -298,7 +299,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
 
       it('Atual dispositivo "art1_par1u_inc1-2" deveria possuir 1 revisão principal', () => {
         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
-        const revisao = findRevisaoByElementoUuid2(state.revisoes!, d.uuid2!);
+        const revisao = findRevisaoByElementoUuid(state.revisoes, d.uuid!);
         expect(revisao).to.be.exist;
         expect(isRevisaoPrincipal(revisao!)).to.be.true;
       });
@@ -338,7 +339,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         });
 
         it('A função findRevisionByElementoUuid2 deveria retornar a revisão de exclusão da alínea', () => {
-          const revisao = findRevisaoByElementoUuid2(state.revisoes!, 'I-1.B');
+          const revisao = state.revisoes![3] as RevisaoElemento;
           expect(revisao).to.be.exist;
           expect(isRevisaoPrincipal(revisao!)).to.be.true;
           expect(isRevisaoDeExclusao(revisao!)).to.be.true;
@@ -347,7 +348,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         describe('Rejeitando revisão de movimentação do dispositivo "art1_par1u_inc1-1"', () => {
           beforeEach(function () {
             const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
-            const r = findRevisaoByElementoUuid2(state.revisoes, d.uuid2);
+            const r = findRevisaoByElementoUuid(state.revisoes, d.uuid);
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: r });
           });
 
@@ -431,7 +432,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         });
 
         // Aceita exclusão de I-3 (original)
-        state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: findRevisaoByElementoUuid2(state.revisoes!, 'I-3')! });
+        state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: state.revisoes![0] });
       });
 
       it('Deveria possuir 6 revisões, sendo 2 principais', () => {
@@ -440,7 +441,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       });
 
       it('O atributo "elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura" da revisão de exclusão do inciso I-4 original, deveria apontar para a alínea B do novo inciso I-3 (que possui texto "texto nova alínea b;")', () => {
-        const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-4');
+        const revisaoPrincipal = state.revisoes![0] as RevisaoElemento;
         expect(revisaoPrincipal).to.not.be.undefined;
         const elementoAnterior = revisaoPrincipal!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
         expect(elementoAnterior.conteudo?.texto).to.equal('texto nova alínea b;');
@@ -460,16 +461,15 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         });
 
         it('O atributo "elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura" da revisão de exclusão do inciso I-4 original, deveria apontar para a alínea B do inciso I-3 original (que possui texto "teste I;")', () => {
-          const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-4');
+          const revisaoPrincipal = state.revisoes![0] as RevisaoElemento;
           expect(revisaoPrincipal).to.not.be.undefined;
           const elementoAnterior = revisaoPrincipal!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
           expect(elementoAnterior.conteudo?.texto).to.equal('teste I;');
-          expect(elementoAnterior.uuid2).to.equal('I-3.B');
         });
 
         describe('Aceitando exclusão de I-4 (original) e fazendo UNDO', () => {
           beforeEach(function () {
-            state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: findRevisaoByElementoUuid2(state.revisoes!, 'I-4')! });
+            state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: state.revisoes![0] });
             state = elementoReducer(state, { type: UNDO });
           });
 
@@ -504,7 +504,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       it('Deveria possuir 3 revisões, sendo 1 principal', () => {
         expect(state.revisoes?.length).to.equal(3);
         expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.equal(1);
-        const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-3');
+        const revisaoPrincipal = state.revisoes![0];
         expect(revisaoPrincipal).to.not.be.undefined;
         expect(isRevisaoPrincipal(revisaoPrincipal!)).to.be.true;
       });
@@ -532,16 +532,16 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         it('Deveria possuir 6 revisões, sendo 2 principais', () => {
           expect(state.revisoes?.length).to.equal(6);
           expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.equal(2);
-          const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-4');
+          const revisaoPrincipal = state.revisoes![3];
           expect(revisaoPrincipal).to.not.be.undefined;
           expect(isRevisaoPrincipal(revisaoPrincipal!)).to.be.true;
         });
 
         it('A segunda revisão principal deveria possuir o atributo "elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura" apontando para a alínea "b" do inciso I-3', () => {
-          const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-4');
+          const revisaoPrincipal = state.revisoes![3] as RevisaoElemento;
           expect(revisaoPrincipal).to.not.be.undefined;
           const elementoAnterior = revisaoPrincipal!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
-          expect(elementoAnterior.uuid2).to.equal('I-3.B');
+          expect(elementoAnterior.lexmlId).to.equal('art1_par1u_inc1-3_ali2');
         });
       });
 
@@ -549,6 +549,11 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         beforeEach(function () {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
           state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' }, posicao: 'depois' });
+        });
+
+        it('Deveria possuir 4 revisões, sendo 2 principais', () => {
+          expect(state.revisoes?.length).to.equal(4);
+          expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.equal(2);
         });
 
         it('Deveria possuir novo inciso I-3', () => {
@@ -562,7 +567,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         });
 
         it('O atributo "elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura" da revisão de exclusão do inciso I-3 original, deveria apontar para o novo inciso I-3', () => {
-          const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-3');
+          const revisaoPrincipal = state.revisoes![0] as RevisaoElemento;
           expect(revisaoPrincipal).to.not.be.undefined;
           const elementoAnterior = revisaoPrincipal!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
 
@@ -599,7 +604,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         });
 
         it('O atributo "elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura" da revisão de exclusão do inciso I-3 original, deveria apontar para a alínea B do novo inciso I-3', () => {
-          const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-3');
+          const revisaoPrincipal = state.revisoes![0] as RevisaoElemento;
           expect(revisaoPrincipal).to.not.be.undefined;
           const elementoAnterior = revisaoPrincipal!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
 
@@ -611,7 +616,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
         describe('Rejeitando revisão do inclusão do novo inciso I-3', () => {
           beforeEach(function () {
             const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
-            const r = findRevisaoByElementoUuid2(state.revisoes, d.uuid2);
+            const r = findRevisaoByElementoUuid(state.revisoes, d.uuid);
             state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: r });
           });
 
@@ -621,11 +626,10 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
           });
 
           it('O atributo "elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura" da revisão de exclusão do inciso I-3 original, deveria apontar para a alínea B do inciso I-2 (que possui texto "teste F;")', () => {
-            const revisaoPrincipal = findRevisaoByElementoUuid2(state.revisoes, 'I-3');
-            expect(revisaoPrincipal).to.not.be.undefined;
-            const elementoAnterior = revisaoPrincipal!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
+            const revisao = state.revisoes![0] as RevisaoElemento;
+            expect(revisao).to.not.be.undefined;
+            const elementoAnterior = revisao!.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
             expect(elementoAnterior.conteudo?.texto).to.equal('teste F;');
-            expect(elementoAnterior.uuid2).to.equal('I-2.B');
           });
         });
       });

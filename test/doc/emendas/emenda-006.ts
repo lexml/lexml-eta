@@ -58,7 +58,6 @@ export const EMENDA_006 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-1',
-            uuid2: 'I-1',
             rotulo: 'I-1 –',
             texto: 'teste A:',
             idIrmaoAnterior: 'art1_par1u_inc1',
@@ -66,14 +65,12 @@ export const EMENDA_006 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali1',
-                uuid2: 'I-1.A',
                 rotulo: 'a)',
                 texto: 'teste B;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-1_ali2',
-                uuid2: 'I-1.B',
                 rotulo: 'b)',
                 texto: 'teste C;',
               },
@@ -82,7 +79,6 @@ export const EMENDA_006 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-2',
-            uuid2: 'I-2',
             rotulo: 'I-2 –',
             texto: 'teste D:',
             idIrmaoAnterior: 'art1_par1u_inc1-1',
@@ -90,14 +86,12 @@ export const EMENDA_006 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-2_ali1',
-                uuid2: 'I-2.A',
                 rotulo: 'a)',
                 texto: 'teste E;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-2_ali2',
-                uuid2: 'I-2.B',
                 rotulo: 'b)',
                 texto: 'teste F;',
               },
@@ -106,7 +100,6 @@ export const EMENDA_006 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-3',
-            uuid2: 'I-3',
             rotulo: 'I-3 –',
             texto: 'teste G:',
             idIrmaoAnterior: 'art1_par1u_inc1-2',
@@ -114,14 +107,12 @@ export const EMENDA_006 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-3_ali1',
-                uuid2: 'I-3.A',
                 rotulo: 'a)',
                 texto: 'teste H;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-3_ali2',
-                uuid2: 'I-3.B',
                 rotulo: 'b)',
                 texto: 'teste I;',
               },
@@ -130,7 +121,6 @@ export const EMENDA_006 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-4',
-            uuid2: 'I-4',
             rotulo: 'I-4 –',
             texto: 'teste J:',
             idIrmaoAnterior: 'art1_par1u_inc1-3',
@@ -138,14 +128,12 @@ export const EMENDA_006 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-4_ali1',
-                uuid2: 'I-4.A',
                 rotulo: 'a)',
                 texto: 'teste K;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-4_ali2',
-                uuid2: 'I-4.B',
                 rotulo: 'b)',
                 texto: 'teste L;',
               },
@@ -154,7 +142,6 @@ export const EMENDA_006 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-5',
-            uuid2: 'I-5',
             rotulo: 'I-5 –',
             texto: 'teste M:',
             idIrmaoAnterior: 'art1_par1u_inc1-4',
@@ -162,14 +149,12 @@ export const EMENDA_006 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-5_ali1',
-                uuid2: 'I-5.A',
                 rotulo: 'a)',
                 texto: 'teste N;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-5_ali2',
-                uuid2: 'I-5.B',
                 rotulo: 'b)',
                 texto: 'teste O;',
               },
@@ -178,7 +163,6 @@ export const EMENDA_006 = {
           {
             tipo: 'Inciso',
             id: 'art1_par1u_inc1-6',
-            uuid2: 'I-6',
             rotulo: 'I-6 –',
             texto: 'teste P:',
             idIrmaoAnterior: 'art1_par1u_inc1-5',
@@ -186,14 +170,12 @@ export const EMENDA_006 = {
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-6_ali1',
-                uuid2: 'I-6.A',
                 rotulo: 'a)',
                 texto: 'teste Q;',
               },
               {
                 tipo: 'Alinea',
                 id: 'art1_par1u_inc1-6_ali2',
-                uuid2: 'I-6.B',
                 rotulo: 'b)',
                 texto: 'teste R;',
               },
