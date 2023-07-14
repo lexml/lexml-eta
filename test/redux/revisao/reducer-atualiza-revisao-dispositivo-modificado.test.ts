@@ -26,6 +26,42 @@ describe('Carregando texto da MPV 905/2019', () => {
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
   });
 
+  describe('Alterar dispositivo, abandonar modificação, fazer undo 2 vezes', () => {
+    beforeEach(function () {
+      state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      const e = createElemento(d);
+      e.conteudo!.texto = 'texto modificado;';
+      state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+      state = elementoReducer(state, { type: RESTAURAR_ELEMENTO, atual: e });
+      state = elementoReducer(state, { type: UNDO });
+      state = elementoReducer(state, { type: UNDO });
+    });
+
+    it('Deveria não possuir revisão', () => {
+      expect(state.revisoes?.length).to.be.equal(0);
+    });
+
+    it('Deveria possuir inciso "art1_par1u_inc1" com o texto "menor aprendiz;"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      expect(d.texto).to.be.equal('menor aprendiz;');
+      expect(isOriginal(d)).to.be.true;
+    });
+
+    describe('Testando os eventos', () => {
+      it('State.ui deveria apresentar elemento "art1_par1u_inc1" com texto "menor aprendiz;" e sem revisão', () => {
+        const elementos = state
+          .ui!.events.map(e => e.elementos || [])
+          .flat()
+          .filter(e => e.lexmlId === 'art1_par1u_inc1');
+        expect(elementos.length).to.be.greaterThan(0);
+        expect(elementos.every(e => e.conteudo?.texto === 'menor aprendiz;')).to.be.true;
+        expect(elementos.every(e => !e.revisao)).to.be.true;
+      });
+    });
+  });
+
   describe('Alterando texto fora do modo de revisão, ativando revisão, restaurando texto', () => {
     beforeEach(function () {
       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
