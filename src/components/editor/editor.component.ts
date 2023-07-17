@@ -597,11 +597,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.InformarDadosAssistente:
-          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction, this.lexmlEtaConfig);
+          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction, this.lexmlEtaConfig.urlAutocomplete);
           break;
 
         case StateType.InformarNorma:
-          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction, this.lexmlEtaConfig);
+          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction, this.lexmlEtaConfig.urlAutocomplete);
           break;
 
         case StateType.ElementoIncluido:

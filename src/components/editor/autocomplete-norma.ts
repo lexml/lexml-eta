@@ -2,14 +2,14 @@ import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 import { Option, AutocompleteAsync } from './autocomplete-async';
 import { Norma } from '../../model/emenda/norma';
-import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 
 @customElement('autocomplete-norma')
 export class AutocompleteNorma extends LitElement {
   @property({ type: String })
   urnInicial = '';
 
-  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+  @property({ type: String })
+  urlAutocomplete;
 
   @property({ type: Function })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
@@ -27,9 +27,9 @@ export class AutocompleteNorma extends LitElement {
   @query('#auto-complete-async')
   _autoCompleteAsync!: AutocompleteAsync;
 
-  async _searchNormas(query: string, lexmlEtaConfig: LexmlEmendaConfig): Promise<Norma[]> {
+  async _searchNormas(query: string): Promise<Norma[]> {
     try {
-      const _response = await fetch(`${lexmlEtaConfig.urlAutocomplete}?query=${query}`);
+      const _response = await fetch(`${this.urlAutocomplete}?query=${query}`);
       const _normas = await _response.json();
       return _normas.map(n => new Norma(n.urn, n.nomePreferido, n.nomePorExtenso, n.nomes, n.nomesAlternativos, n.ementa));
     } catch (err) {
@@ -44,7 +44,7 @@ export class AutocompleteNorma extends LitElement {
       .replace(/[,;]| nº /gi, ' ')
       .replaceAll('.', '')
       .toLowerCase();
-    this._searchNormas(query, this.lexmlEtaConfig).then(normas => {
+    this._searchNormas(query).then(normas => {
       this._normas = normas;
       this._optionsNorma = normas.map(n => new Option(n.urn, n.nomePreferido));
     });
@@ -65,7 +65,7 @@ export class AutocompleteNorma extends LitElement {
   _getNormaByURN(urn: string): void {
     const norma = new Norma(urn);
     const query = `${norma.sData()} ${norma.numero()}`;
-    this._searchNormas(query, this.lexmlEtaConfig).then(normas => {
+    this._searchNormas(query).then(normas => {
       this._selectedNorma = normas.find(n => n.urn === urn) as Norma;
       this.onSelect(this._selectedNorma);
       this._autoCompleteAsync.value = this._selectedNorma.nomePreferido;
