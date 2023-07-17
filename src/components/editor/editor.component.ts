@@ -140,6 +140,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.removeEventListener('rotulo', (event: any) => console.log(event));
     this.removeEventListener('nota-alteracao', (event: any) => console.log(event));
     this.removeEventListener('toggle-existencia', (event: any) => console.log(event));
+    this.removeEventListener('aceitar-revisao', (event: any) => console.log(event));
+    this.removeEventListener('rejeitar-revisao', (event: any) => console.log(event));
+    this.removeEventListener('exibir-diferencas', (event: any) => console.log(event));
     this.destroiQuill();
     super.disconnectedCallback();
   }
