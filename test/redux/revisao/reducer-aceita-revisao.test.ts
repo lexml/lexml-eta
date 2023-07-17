@@ -20,6 +20,8 @@ import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoA
 import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
 import { EMENDA_005 } from '../../doc/emendas/emenda-005';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
+import { EMENDA_006 } from '../../doc/emendas/emenda-006';
+import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
 
 let state: State;
 
@@ -38,7 +40,7 @@ describe('Carregando texto da MPV 905/2019', () => {
       expect(state.emRevisao).to.be.true;
     });
 
-    describe('Testando aceite de múltiplas revisões', () => {
+    describe('Testando aceite de múltiplas revisões (*)', () => {
       beforeEach(function () {
         state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u')!) });
         state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par1')!) });
@@ -59,7 +61,7 @@ describe('Carregando texto da MPV 905/2019', () => {
           expect(state.revisoes?.length).to.be.equal(0);
         });
 
-        it('Deveria possuir 1 item em State.past', () => {
+        it('Deveria possuir 4 itens em State.past', () => {
           expect(state.past?.length).to.be.equal(4);
         });
 
@@ -82,6 +84,78 @@ describe('Carregando texto da MPV 905/2019', () => {
           it('Deveria possuir 7 revisões, sendo 3 principais', () => {
             expect(state.revisoes?.length).to.be.equal(7);
             expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(3);
+          });
+        });
+      });
+    });
+
+    describe('Testando aceite de múltiplas revisões (**)', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+
+        // gera 1 revisão
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par1')!) });
+
+        // gera 1 revisão
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par3')!) });
+
+        // gera 2 revisões (Art. 3º possui parágrafo único)
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art3')!) });
+
+        // gerar 3 revisões (o inciso movimentado possui 2 alíneas)
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!) });
+
+        // gerar 3 revisões (o inciso removido possui 2 alíneas)
+        state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!) });
+      });
+
+      it('Deveria possuir 10 revisões, sendo 5 principais', () => {
+        expect(state.revisoes?.length).to.be.equal(10);
+        expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(5);
+      });
+
+      describe('Aceitando todas as revisões', () => {
+        beforeEach(function () {
+          state = elementoReducer(state, { type: ACEITAR_REVISAO });
+        });
+
+        it('Deveria não possuir revisão', () => {
+          expect(state.revisoes?.length).to.be.equal(0);
+        });
+
+        it('Deveria possuir 6 itens em State.past', () => {
+          expect(state.past?.length).to.be.equal(6);
+        });
+
+        it('State.past deveria possuir 5 eventos RevisaoAceita', () => {
+          const eventos = (state.past![5] as unknown as StateEvent[]).filter(ev => ev.stateType === StateType.RevisaoAceita);
+          expect(eventos.length).to.be.equal(5);
+        });
+
+        it('State.past deveria possuir 1 evento ElementoValidado', () => {
+          const eventos = (state.past![5] as unknown as StateEvent[]).filter(ev => ev.stateType === StateType.ElementoValidado);
+          expect(eventos.length).to.be.equal(1);
+          expect(eventos[0].elementos?.length).to.be.equal(7); // Os dispositivos removidos não são validados
+        });
+
+        describe('Fazendo UNDO do aceite', () => {
+          beforeEach(function () {
+            state = elementoReducer(state, { type: UNDO });
+          });
+
+          it('Deveria possuir 10 revisões, sendo 5 principais', () => {
+            expect(state.revisoes?.length).to.be.equal(10);
+            expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(5);
+          });
+
+          describe('Fazendo REDO do aceite', () => {
+            beforeEach(function () {
+              state = elementoReducer(state, { type: REDO });
+            });
+
+            it('Deveria não possuir revisão', () => {
+              expect(state.revisoes?.length).to.be.equal(0);
+            });
           });
         });
       });
