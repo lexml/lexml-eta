@@ -151,7 +151,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   @property({ type: Boolean })
-  exibirBotoesParaTratarTodas = false;
+  exibirBotoesParaTratarTodas = true;
 
   render(): TemplateResult {
     return html`
@@ -253,7 +253,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private renderBotoesParaTratarTodasRevisoes(): TemplateResult {
     return html`
-      <sl-icon-button id="btRejeitarTodasRevisoes" name="x" label="" title="Rejeitar Revisões" ?disabled=${true} @click=${(): void => this.rejeitarTodasRevisoes()}>
+      <sl-icon-button id="btnRejeitarTodasRevisoes" name="x" label="" title="Rejeitar Revisões" ?disabled=${true} @click=${(): void => this.rejeitarTodasRevisoes()}>
         Rejeitar Revisões
       </sl-icon-button>
 
