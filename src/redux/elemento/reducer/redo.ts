@@ -82,7 +82,7 @@ export const redo = (state: any): State => {
 
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, true) }));
+    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'REDO') }));
 
   events.add(
     StateType.ElementoSuprimido,

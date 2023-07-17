@@ -10,7 +10,7 @@ import {
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
+import { getElementosRemovidosEIncluidos, getEvento, unificarEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
@@ -94,7 +94,7 @@ export const undo = (state: any): State => {
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
     .forEach((ev: StateEvent) =>
-      events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, false, revisoesDeRejeicaoDeRestauracaoASeremRetornadas) })
+      events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO', revisoesDeRejeicaoDeRestauracaoASeremRetornadas) })
     );
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
@@ -117,11 +117,15 @@ export const undo = (state: any): State => {
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
   events.add(StateType.SituacaoElementoModificada, processaSituacoesAlteradas(state, eventos));
 
-  const eventosRevisao = [
+  let eventosRevisao = [
     ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
     ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
     ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
   ].filter(ev => ev.elementos?.length);
+
+  eventosRevisao = unificarEvento(retorno, eventosRevisao, StateType.ElementoIncluido);
+  eventosRevisao = unificarEvento(retorno, eventosRevisao, StateType.SituacaoElementoModificada);
+  eventosRevisao = unificarEvento(retorno, eventosRevisao, StateType.ElementoMarcado);
 
   retorno.ui!.events = [...eventosRevisao, ...events.build()];
   retorno.present = [...eventosRevisao, ...events.build()];

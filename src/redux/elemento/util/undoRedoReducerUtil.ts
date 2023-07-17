@@ -1,4 +1,3 @@
-import { atualizaTextoElemento } from './../reducer/atualizaTextoElemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
@@ -194,7 +193,7 @@ export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestau
   return [];
 };
 
-export const processarModificados = (state: State, evento: StateEvent, isRedo = false, revisoes: RevisaoElemento[] = []): Elemento[] => {
+export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO', revisoes: RevisaoElemento[] = []): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -202,7 +201,8 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
     evento.elementos.forEach(e => {
       const dispositivo = getDispositivoFromElemento(state.articulacao!, e, true);
       if (dispositivo) {
-        if ((isRedo && anterior === dispositivo.uuid) || anterior !== dispositivo.uuid) {
+        const permiteAtualizar = anterior !== dispositivo.uuid || (operacao === 'REDO' && anterior === dispositivo.uuid);
+        if (permiteAtualizar) {
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
             if (findRevisaoDeRestauracaoByUuid(revisoes, dispositivo.uuid!) || dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
               dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
@@ -377,10 +377,6 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
 
       result.push({ stateType: ev.stateType, elementos: ev.elementos });
 
-      if (stateType === StateType.RevisaoRejeitada) {
-        atualizaDispositivosComTextoModificado(state, revisoesRetornadasParaState);
-      }
-
       if (existeRevisaoCriadaPorExclusao(revisoesRetornadasParaState)) {
         const elementos = revisoesRetornadasParaState.map(r => r.elementoAntesRevisao as Elemento);
         if (stateType === StateType.RevisaoAdicionalRejeitada) {
@@ -406,15 +402,4 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
     });
   }
   return result;
-};
-
-export const isUndoRevisaoRejeitada = (eventos: StateEvent[]): boolean => eventos.some(ev => ev.stateType === StateType.RevisaoRejeitada);
-
-const atualizaDispositivosComTextoModificado = (state: State, revisoes: RevisaoElemento[]): void => {
-  revisoes
-    .filter(r => r.stateType === StateType.ElementoModificado)
-    .forEach(r => {
-      const tempState = { ...state, past: [], future: [], present: [] };
-      atualizaTextoElemento(tempState, { atual: r.elementoAposRevisao });
-    });
 };
