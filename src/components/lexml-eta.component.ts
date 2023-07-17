@@ -1,5 +1,5 @@
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
@@ -16,10 +16,13 @@ import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicio
 import { DispositivosEmenda } from './../model/emenda/emenda';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { rootStore } from './../redux/store';
+import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { Revisao } from '../model/revisao/revisao';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+
   private modo: any = '';
 
   private projetoNorma = {};
@@ -129,8 +132,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           box-shadow: none;
         }
       </style>
-
-      <lexml-eta-articulacao></lexml-eta-articulacao>
+      <lexml-eta-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-articulacao>
     `;
   }
 }

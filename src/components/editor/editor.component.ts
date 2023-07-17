@@ -63,6 +63,7 @@ import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
+import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
@@ -71,6 +72,8 @@ import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao'
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
 
@@ -597,11 +600,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.InformarDadosAssistente:
-          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction);
+          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction, this.lexmlEtaConfig.urlAutocomplete);
           break;
 
         case StateType.InformarNorma:
-          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction);
+          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction, this.lexmlEtaConfig.urlAutocomplete);
           break;
 
         case StateType.ElementoIncluido:

@@ -8,6 +8,9 @@ export class AutocompleteNorma extends LitElement {
   @property({ type: String })
   urnInicial = '';
 
+  @property({ type: String })
+  urlAutocomplete;
+
   @property({ type: Function })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
   onSelect = (value: Norma): void => {};
@@ -26,7 +29,7 @@ export class AutocompleteNorma extends LitElement {
 
   async _searchNormas(query: string): Promise<Norma[]> {
     try {
-      const _response = await fetch(`api/autocomplete-norma?query=${query}`);
+      const _response = await fetch(`${this.urlAutocomplete}?query=${query}`);
       const _normas = await _response.json();
       return _normas.map(n => new Norma(n.urn, n.nomePreferido, n.nomePorExtenso, n.nomes, n.nomesAlternativos, n.ementa));
     } catch (err) {
