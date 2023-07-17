@@ -1,3 +1,5 @@
+import { createElementoValidado } from './../../../model/elemento/elementoUtil';
+import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
@@ -399,20 +401,40 @@ export const getElementosRemovidosEIncluidos = (eventos: StateEvent[]): Elemento
 };
 
 export const unificarEvento = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
-  const eventosAux = eventos.filter(ev => ev.stateType !== stateType);
+  const result = eventos.filter(ev => ev.stateType !== stateType);
 
-  const setDispositivos = new Set(
+  if (stateType === StateType.ElementoRemovido) {
+    const elementos = eventos
+      .filter(ev => ev.stateType === StateType.ElementoRemovido)
+      .map(ev => ev.elementos || [])
+      .flat();
+    elementos.length && result.push({ stateType: stateType, elementos });
+  } else {
+    const elementos: Elemento[] = [];
+    const mapDispositivos: Map<number, Dispositivo> = new Map();
+
     eventos
       .filter(ev => ev.stateType === stateType)
-      .map(ev => ev.elementos || [])
-      .flat()
-      .map(e => getDispositivoFromElemento(state.articulacao!, e)!)
-  );
+      .forEach(ev => {
+        ev.elementos?.forEach(e => {
+          const r = [StateType.ElementoIncluido, StateType.ElementoMarcado, StateType.SituacaoElementoModificada].includes(stateType)
+            ? findRevisaoByElementoUuid(state.revisoes, e.uuid!)
+            : undefined;
+          if (r && isRevisaoDeExclusao(r)) {
+            elementos.push(e);
+          } else if (!mapDispositivos.has(e.uuid!)) {
+            const dispositivo = getDispositivoFromElemento(state.articulacao!, e)!;
+            if (!dispositivo) {
+              console.log(11111);
+            }
 
-  const evento: StateEvent = {
-    stateType: stateType,
-    elementos: [...setDispositivos].map(d => createElemento(d)),
-  };
+            mapDispositivos.set(e.uuid!, dispositivo);
+            elementos.push(createElementoValidado(dispositivo, stateType === StateType.ElementoIncluido));
+          }
+        });
+      });
 
-  return [...eventosAux, evento];
+    elementos.length && result.push({ stateType: stateType, elementos });
+  }
+  return result;
 };
