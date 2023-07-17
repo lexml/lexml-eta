@@ -1,3 +1,4 @@
+import { StateEvent } from './../../../src/redux/state';
 import { isArticulacao } from './../../../src/model/dispositivo/tipo';
 import { getDispositivoAndFilhosAsLista, isAdicionado, isSuprimido, buscaDispositivoById } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { isRevisaoPrincipal, findRevisaoByElementoLexmlId } from './../../../src/redux/elemento/util/revisaoUtil';
@@ -35,6 +36,69 @@ describe('Carregando texto da MPV 905/2019', () => {
 
     it('Deveria estar em revisão', () => {
       expect(state.emRevisao).to.be.true;
+    });
+
+    describe('Testando aceite de múltiplas revisões', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u')!) });
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par1')!) });
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par3')!) });
+      });
+
+      it('Deveria possuir 7 revisões, sendo 3 principais', () => {
+        expect(state.revisoes?.length).to.be.equal(7);
+        expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(3);
+      });
+
+      describe('Aceitando todas as revisões', () => {
+        beforeEach(function () {
+          state = elementoReducer(state, { type: ACEITAR_REVISAO });
+        });
+
+        it('Deveria não possuir revisão', () => {
+          expect(state.revisoes?.length).to.be.equal(0);
+        });
+
+        it('Deveria possuir 1 item em State.past', () => {
+          expect(state.past?.length).to.be.equal(4);
+        });
+
+        it('State.past deveria possuir 3 eventos RevisaoAceita', () => {
+          const eventos = (state.past![3] as unknown as StateEvent[]).filter(ev => ev.stateType === StateType.RevisaoAceita);
+          expect(eventos.length).to.be.equal(3);
+        });
+
+        it('State.past deveria possuir 1 evento ElementoValidado', () => {
+          const eventos = (state.past![3] as unknown as StateEvent[]).filter(ev => ev.stateType === StateType.ElementoValidado);
+          expect(eventos.length).to.be.equal(1);
+          expect(eventos[0].elementos?.length).to.be.equal(7);
+        });
+
+        describe('Fazendo UNDO do aceite', () => {
+          beforeEach(function () {
+            state = elementoReducer(state, { type: UNDO });
+          });
+
+          it('Deveria possuir 7 revisões, sendo 3 principais', () => {
+            expect(state.revisoes?.length).to.be.equal(7);
+            expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(3);
+          });
+        });
+      });
+    });
+
+    describe('Testando UNDO do aceite de múltiplas revisões', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!) });
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!) });
+        state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc3')!) });
+        state = elementoReducer(state, { type: ACEITAR_REVISAO });
+        state = elementoReducer(state, { type: UNDO });
+      });
+
+      it('Deveria possuir 3 revisões', () => {
+        expect(state.revisoes?.length).to.be.equal(3);
+      });
     });
 
     describe('Suprimindo "art1_par1u_inc1"', () => {
