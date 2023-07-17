@@ -1,10 +1,11 @@
+import { isRevisaoPrincipal, getQuantidadeRevisoes } from './../../redux/elemento/util/revisaoUtil';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
 import { InfoTextoColado } from './../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, query } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { editorStyles } from '../../assets/css/editor.css';
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
@@ -60,12 +61,13 @@ import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.mo
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
-import { getIniciais } from '../../util/string-util';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
+import { exibirDiferencasDialog } from './exibirDiferencaDialog';
+import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -77,6 +79,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-emenda-comando-modal')
   private comandoEmendaModal!: ComandoEmendaModalComponent;
+
+  @query('#btnAceitarTodasRevisoes')
+  private btnAceitarTodasRevisoes!: HTMLButtonElement;
+
+  @query('#btnRejeitarTodasRevisoes')
+  private btnRejeitarTodasRevisoes!: HTMLButtonElement;
 
   private _quill?: EtaQuill;
   private get quill(): EtaQuill {
@@ -135,6 +143,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.destroiQuill();
     super.disconnectedCallback();
   }
+
+  @property({ type: Boolean })
+  exibirBotoesParaTratarTodas = false;
 
   render(): TemplateResult {
     return html`
@@ -204,26 +215,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             <sl-icon-button name="arrow-up"></sl-icon-button>
           </sl-button>
 
-          <!--
-          <sl-icon-button
-            id="rejeita-revisao"
-            name="x"
-            label=""
-            title="Rejeitar Revisões"
-            disabled="true"
-            >Aceitar Revisões
-          </sl-icon-button>
-
-          <sl-icon-button
-            id="aceita-revisao"
-            name="check-lg"
-            label=""
-            title="Aceitar Revisões"
-            disabled="true"
-            >Aceitar Revisões
-          </sl-icon-button>
-          -->
-
+          ${this.exibirBotoesParaTratarTodas ? this.renderBotoesParaTratarTodasRevisoes() : ''}
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
@@ -250,6 +242,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <lexml-ajuda-modal></lexml-ajuda-modal>
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
       <lexml-atalhos-modal></lexml-atalhos-modal>
+    `;
+  }
+
+  private renderBotoesParaTratarTodasRevisoes(): TemplateResult {
+    return html`
+      <sl-icon-button id="btRejeitarTodasRevisoes" name="x" label="" title="Rejeitar Revisões" ?disabled=${true} @click=${(): void => this.rejeitarTodasRevisoes()}>
+        Rejeitar Revisões
+      </sl-icon-button>
+
+      <sl-icon-button id="btnAceitarTodasRevisoes" name="check-lg" label="" title="Aceitar Revisões" ?disabled=${true} @click=${(): void => this.aceitarTodasRevisoes()}>
+        Aceitar Revisões
+      </sl-icon-button>
     `;
   }
 
@@ -666,12 +670,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
       }
 
-      this.indicadorMarcaRevisao(event);
       this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
 
+    this.indicadorMarcaRevisao(events);
     this.atualizaQuantidadeRevisao();
+    this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
     const eventosQueDevemEmitirTextChange = [
@@ -916,7 +921,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private elementoRemovidoEmRevisao(elemento: Elemento): boolean {
-    if (elemento.revisao && elemento.revisao.descricao === 'Dispositivo removido') {
+    if (elemento.revisao && (elemento.revisao as RevisaoElemento).stateType === StateType.ElementoRemovido) {
       return true;
     }
     return false;
@@ -1083,6 +1088,44 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+
+    editorHtml.addEventListener('aceitar-revisao', (event: any) => {
+      event.stopImmediatePropagation();
+      this.aceitarRevisao(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('rejeitar-revisao', (event: any) => {
+      event.stopImmediatePropagation();
+      this.rejeitarRevisao(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('exibir-diferencas', (event: any) => {
+      event.stopImmediatePropagation();
+      this.exibirDiferencas(event.detail.elemento);
+    });
+  }
+
+  exibirDiferencas(elemento: Elemento): void {
+    const revisao = elemento.revisao as RevisaoElemento;
+    const texto1 = revisao.elementoAntesRevisao?.conteudo?.texto;
+    const texto2 = revisao.elementoAposRevisao.conteudo?.texto;
+    exibirDiferencasDialog(texto1, texto2);
+  }
+
+  aceitarRevisao(elemento: Elemento): void {
+    rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
+  }
+
+  rejeitarRevisao(elemento: Elemento): void {
+    rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
+  }
+
+  aceitarTodasRevisoes(): void {
+    rootStore.dispatch(aceitarRevisaoAction.execute(undefined as any, undefined));
+  }
+
+  rejeitarTodasRevisoes(): void {
+    rootStore.dispatch(rejeitarRevisaoAction.execute(undefined as any, undefined));
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
@@ -1223,7 +1266,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <sl-button slot="footer" variant="primary">Sim</sl-button>
     `;
     dialog.innerHTML = mensagem + botoesHtml;
-    await document.body.appendChild(dialog);
+    document.body.appendChild(dialog);
     await dialog.show();
     const botoesDialog = dialog.querySelectorAll('sl-button');
     const nao = botoesDialog[0] as SlButton;
@@ -1332,42 +1375,43 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
   }
 
-  private indicadorMarcaRevisao(event: StateEvent): void {
-    const elementos: Elemento[] = event.elementos ?? [];
-    elementos!.forEach((elemento: Elemento) => {
-      const buttonRevisao = document.getElementById('buttonRevisao' + elemento.uuid) as any;
-      const buttonRevisaoAceitar = document.getElementById('buttonRevisaoAceitar' + elemento.uuid) as any;
-      const buttonRevisaoRecusar = document.getElementById('buttonRevisaoRecusar' + elemento.uuid) as any;
+  private indicadorMarcaRevisao(events: StateEvent[]): void {
+    const ignorarStateTypes: StateType[] = [
+      StateType.DocumentoCarregado,
+      StateType.ElementoIncluido,
+      StateType.ElementoValidado,
+      StateType.AtualizaUsuario,
+      StateType.AtualizacaoAlertas,
+    ];
+    const mapElementos: Map<number, Elemento> = new Map();
+    events
+      .filter(ev => !ignorarStateTypes.includes(ev.stateType))
+      .map(ev => ev.elementos || [])
+      .flat()
+      .forEach(e => mapElementos.set(e.uuid!, e));
 
-      //refatorar código movendo para os respectivos blots
-      if (buttonRevisao && buttonRevisaoAceitar && buttonRevisaoRecusar) {
-        if (elemento.revisao && !(elemento.revisao as RevisaoElemento).idRevisaoElementoPrincipal) {
-          buttonRevisao.removeAttribute('hidden');
-          buttonRevisaoAceitar.removeAttribute('hidden');
-          buttonRevisaoRecusar.removeAttribute('hidden');
+    const elementos: Elemento[] = [...mapElementos.values()];
+    const uuidsElementosSemRevisao = elementos.filter(e => !e.revisao).map(e => e.uuid!);
+    const uuidsElementosComRevisao = elementos.filter(e => e.revisao && isRevisaoPrincipal(e.revisao)).map(e => e.uuid!);
 
-          if (!buttonRevisaoAceitar.getAttribute('possui-click')) {
-            buttonRevisaoAceitar.addEventListener('click', () => {
-              rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
-            });
-            buttonRevisaoAceitar.setAttribute('possui-click', 'true');
-          }
+    // Remove container de revisão de elementos que não estão mais em revisão
+    uuidsElementosSemRevisao.forEach(uuid => {
+      const containerRevisao = document.getElementById(EtaContainerRevisao.className + uuid);
+      if (containerRevisao) {
+        const linha = this.quill.getLinha(uuid);
+        linha?.containerRevisao?.remove();
+      }
+    });
 
-          if (!buttonRevisaoRecusar.getAttribute('possui-click')) {
-            buttonRevisaoRecusar.addEventListener('click', () => {
-              rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
-            });
-            buttonRevisaoRecusar.setAttribute('possui-click', 'true');
-          }
-
-          const pipe = ' | ';
-          const mensagem = 'Ação: ' + elemento.revisao.descricao + pipe + 'Usuário: ' + elemento.revisao.usuario.nome + pipe + 'Data/Hora: ' + elemento.revisao.dataHora;
-          buttonRevisao.setAttribute('title', mensagem);
-          buttonRevisao.innerHTML = getIniciais(elemento.revisao.usuario.nome).charAt(0) || 'R';
+    // Adiciona (ou atualiza) container de revisão para elementos que estão em revisão
+    uuidsElementosComRevisao.forEach(uuid => {
+      const linha = this.quill.getLinha(uuid);
+      if (linha) {
+        if (linha.containerRevisao?.blotBotaoAceitarRevisao) {
+          linha.containerRevisao.atualizarElemento(mapElementos.get(uuid)!);
         } else {
-          buttonRevisao.setAttribute('hidden', 'true');
-          buttonRevisaoAceitar.setAttribute('hidden', 'true');
-          buttonRevisaoRecusar.setAttribute('hidden', 'true');
+          const containerTr = linha.children.head;
+          containerTr.insertBefore(EtaQuillUtil.criarContainerRevisao(mapElementos.get(uuid)!), linha.containerDireito.prev);
         }
       }
     });
@@ -1376,6 +1420,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private atualizaQuantidadeRevisao = (): void => {
     atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
   };
+
+  private atualizarStatusBotoesRevisao(): void {
+    const numRevisoes = getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes);
+    this.btnAceitarTodasRevisoes && (this.btnAceitarTodasRevisoes.disabled = numRevisoes === 0);
+    this.btnRejeitarTodasRevisoes && (this.btnRejeitarTodasRevisoes.disabled = numRevisoes === 0);
+  }
 
   /**
    * Método utilizado para navegar entre as marcas de revisão

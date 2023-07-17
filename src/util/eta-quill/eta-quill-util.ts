@@ -20,6 +20,7 @@ import { AlinhamentoMenu } from './eta-blot-menu';
 import { EtaBlotRevisao } from './eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
+import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -29,7 +30,6 @@ export class EtaQuillUtil {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(elemento.editavel, this.alinhamentoMenu);
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
-    const etaContainerRevisao: EtaContainerRevisao = new EtaContainerRevisao(elemento);
 
     if (elemento.abreAspas) {
       new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
@@ -62,12 +62,8 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
-    if (elemento.tipo !== 'Articulacao') {
-      new EtaBlotRevisaoAceitar(elemento).insertInto(etaContainerRevisao);
-      new EtaBlotRevisaoRecusar(elemento).insertInto(etaContainerRevisao);
-      new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
-      etaContainerRevisao.insertInto(etaTrContainer);
-      //new EtaContainerRevisao(elemento).insertInto(etaTrContainer);
+    if (elemento.revisao && isRevisaoPrincipal(elemento.revisao)) {
+      EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
     }
     etaTdTexto.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
@@ -75,6 +71,14 @@ export class EtaQuillUtil {
     etaTrContainer.insertInto(etaTable);
 
     return etaTable;
+  }
+
+  static criarContainerRevisao(elemento: Elemento): EtaContainerRevisao {
+    const etaContainerRevisao: EtaContainerRevisao = new EtaContainerRevisao(elemento);
+    new EtaBlotRevisaoAceitar(elemento).insertInto(etaContainerRevisao);
+    new EtaBlotRevisaoRecusar(elemento).insertInto(etaContainerRevisao);
+    new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
+    return etaContainerRevisao;
   }
 
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {

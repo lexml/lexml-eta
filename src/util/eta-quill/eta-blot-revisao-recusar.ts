@@ -9,29 +9,32 @@ export enum AlinhamentoMenu {
 export class EtaBlotRevisaoRecusar extends EtaBlot {
   static blotName = 'EtaBlotRevisaoRecusar';
   static className = 'blot__revisao_recusar';
-
-  //static tagName = 'sl-icon-button';
   static tagName = 'button';
-  //static className = 'ql-bold';
 
   get instanceBlotName(): string {
     return EtaBlotRevisaoRecusar.blotName;
   }
 
   static create(elemento: Elemento): any {
-    //const node: SlIconButton = super.create();
     const node: HTMLElement = super.create();
     node.innerHTML = ' ';
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRevisaoRecusar.className);
-    node.setAttribute('id', 'buttonRevisaoRecusar' + elemento.uuid);
-    node.setAttribute('hidden', elemento.revisao ? 'true' : 'false');
     node.setAttribute('title', 'Recusar revisão');
-    // node.setAttribute('name', 'gear')
+    EtaBlotRevisaoRecusar.atualizarAtributos(elemento, node);
     return node;
   }
 
   constructor(elemento: Elemento) {
     super(EtaBlotRevisaoRecusar.create(elemento));
+  }
+
+  atualizarElemento(elemento: Elemento): void {
+    EtaBlotRevisaoRecusar.atualizarAtributos(elemento, this.domNode);
+  }
+
+  static atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
+    node.setAttribute('id', 'buttonRevisaoRecusar' + elemento.uuid);
+    node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rejeitar-revisao', { bubbles: true, cancelable: true, detail: { elemento } }));
   }
 }

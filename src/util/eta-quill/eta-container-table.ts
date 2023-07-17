@@ -14,10 +14,10 @@ import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { RevisaoElemento } from '../../model/revisao/revisao';
+import { EtaContainerRevisao } from './eta-container-revisao';
+import { EtaContainer } from './eta-container';
 
-const Container = Quill.import('blots/container');
-
-export class EtaContainerTable extends Container {
+export class EtaContainerTable extends EtaContainer {
   static blotName = 'EtaContainerTable';
   static tagName = 'DIV';
   static className = 'container__elemento';
@@ -49,44 +49,18 @@ export class EtaContainerTable extends Container {
 
   [key: string]: any;
 
-  private findBlot(blotName: string): EtaBlot | undefined {
+  protected findBlot(blotName: string): EtaBlot | undefined {
     if (!this.blotRotulo) {
       return undefined;
     }
     return this.findBlotRef(this.blotRotulo.next, blotName);
   }
 
-  private findBlotRef(blotRef: EtaBlot, blotName: string): EtaBlot | undefined {
+  protected findBlotRef(blotRef: EtaBlot, blotName: string): EtaBlot | undefined {
     if (!blotRef) {
       return;
     }
     return blotRef.instanceBlotName === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
-  }
-
-  protected findBlotByClass<T>(node: any, clazz: { new (...args: any[]): T }): T | undefined {
-    // Verifica se o nó atual é do tipo BlotRotulo
-    if (node instanceof clazz) {
-      return node;
-    }
-
-    // Verifica se o nó atual é um objeto
-    if (typeof node === 'object' && node) {
-      // Percorre as propriedades do objeto
-      for (const key in node) {
-        if (['children', 'head', 'next'].includes(key)) {
-          // Chamada recursiva para cada propriedade do objeto
-          const result = this.findBlotByClass(node[key], clazz);
-
-          // Se um nó EtaBlotRotulo for encontrado, retorna o resultado
-          if (result instanceof clazz) {
-            return result;
-          }
-        }
-      }
-    }
-
-    // Caso nenhum nó EtaBlotRotulo seja encontrado, retorna undefined
-    return undefined;
   }
 
   private searchBlotRotuloNode(node: any): EtaBlotRotulo | undefined {
@@ -141,9 +115,12 @@ export class EtaContainerTable extends Container {
     return this.findBlot(EtaBlotNotaAlteracao.blotName) as EtaBlotNotaAlteracao;
   }
 
+  get containerRevisao(): EtaContainerRevisao | undefined {
+    return this.findBlotByBlotName(this.children, EtaContainerRevisao.blotName);
+  }
+
   get containerDireito(): EtaContainerTdDireito {
     return this.children.head.children.tail;
-    // return this.children.head.children.head;
   }
 
   get blotInsideContainerDireito(): EtaBlot {
