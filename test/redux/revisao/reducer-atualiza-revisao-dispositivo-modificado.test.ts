@@ -1,3 +1,4 @@
+import { StateType } from './../../../src/redux/state';
 import { State } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { expect } from '@open-wc/testing';
@@ -24,6 +25,70 @@ describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+  });
+
+  describe('Alterar dispositivo, ativar revisão, alterar dispositivo novamente, rejeitar revisão, fazer UNDO da rejeição', () => {
+    beforeEach(function () {
+      let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      let e = createElemento(d);
+      e.conteudo!.texto = 'texto modificado;';
+      state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+
+      state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+      d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      e = createElemento(d);
+      e.conteudo!.texto = 'texto modificado novamente;';
+      state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+
+      state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: state.revisoes![0] });
+      state = elementoReducer(state, { type: UNDO });
+    });
+
+    it('Deveria possuir 1 revisão', () => {
+      expect(state.revisoes?.length).to.be.equal(1);
+    });
+
+    it('Deveria possuir inciso "art1_par1u_inc1" com o texto "texto modificado novamente;"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      expect(d.texto).to.be.equal('texto modificado novamente;');
+      expect(isModificado(d)).to.be.true;
+    });
+
+    it('State.ui.events deveria possuir todos os elementos "art1_par1u_inc1" com texto "texto modificado novamente;"', () => {
+      const elementos = state
+        .ui!.events.filter(ev => ev.stateType !== StateType.RevisaoRejeitada)
+        .map(e => e.elementos || [])
+        .flat()
+        .filter(e => e.lexmlId === 'art1_par1u_inc1');
+      expect(elementos.length).to.be.greaterThan(0);
+      expect(elementos.every(e => e.conteudo?.texto === 'texto modificado novamente;')).to.be.true;
+    });
+
+    describe('Fazer REDO da rejeição', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: REDO });
+      });
+
+      it('Deveria não possuir revisão', () => {
+        expect(state.revisoes?.length).to.be.equal(0);
+      });
+
+      it('Deveria possuir inciso "art1_par1u_inc1" com o texto "texto modificado;"', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+        expect(d.texto).to.be.equal('texto modificado;');
+        expect(isModificado(d)).to.be.true;
+      });
+
+      it('State.ui.events deveria possuir todos os elementos "art1_par1u_inc1" com texto "texto modificado;"', () => {
+        const mapTextoElementos: Map<StateType, string> = new Map();
+        state
+          .ui!.events.filter(ev => ev.stateType !== StateType.RevisaoRejeitada)
+          .forEach(ev => ev.elementos?.filter(e => e.lexmlId === 'art1_par1u_inc1').forEach(e => mapTextoElementos.set(ev.stateType, e.conteudo?.texto || '')));
+        expect(mapTextoElementos.size).to.be.greaterThan(0);
+        expect([...mapTextoElementos.values()].every(t => t === 'texto modificado;')).to.be.true;
+      });
+    });
   });
 
   describe('Alterar dispositivo, abandonar modificação, fazer undo 2 vezes', () => {
