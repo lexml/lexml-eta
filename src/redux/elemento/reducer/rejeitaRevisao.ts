@@ -1,7 +1,14 @@
+import { isRevisaoDeModificacao } from './../util/revisaoUtil';
 import { isCaput } from './../../../model/dispositivo/tipo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
-import { createElemento, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import {
+  createElemento,
+  createElementoValidado,
+  criaListaElementosAfinsValidados,
+  getDispositivoFromElemento,
+  listaDispositivosRenumerados,
+} from '../../../model/elemento/elementoUtil';
 import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
@@ -59,10 +66,11 @@ export const rejeitaRevisao = (state: any, action: any): State => {
   const tempState = { ...state, past: [] };
 
   eventos.push(...processaRevisoes(tempState, revisoesAssociadas.filter(isRevisaoPrincipal)));
+  const eventosPast = isRevisaoDeModificacao(revisao) ? montarEventosDeModificacaoParaHistorico(eventos, revisao, state) : eventos;
 
   return {
     ...state,
-    past: buildPast(state, eventos),
+    past: buildPast(state, eventosPast),
     present: eventos,
     future: [],
     ui: {
@@ -73,8 +81,20 @@ export const rejeitaRevisao = (state: any, action: any): State => {
   };
 };
 
+const montarEventosDeModificacaoParaHistorico = (eventos: StateEvent[], revisao: RevisaoElemento, state: State): StateEvent[] => {
+  // O PASSADO de evento de modificação (StateType.ElementoModificado) deve possuir 2 itens no array elemento:
+  // Item 0: valor a ser retornado para a articulação em caso de UNDO
+  // Item 1: valor a ser retornado para a articulação em caso de REDO
+  const eventosPast = eventos.filter(ev => ev.stateType !== StateType.ElementoModificado) as StateEvent[];
+  const dispositivo = getDispositivoFromElemento(state.articulacao!, revisao.elementoAposRevisao)!;
+  eventosPast.push({ stateType: StateType.ElementoModificado, elementos: [revisao.elementoAposRevisao! as Elemento, revisao.elementoAntesRevisao as Elemento] });
+  eventosPast.push({ stateType: StateType.ElementoValidado, elementos: criaListaElementosAfinsValidados(dispositivo, true) });
+  return eventosPast;
+};
+
 const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent[] => {
   const eventos: StateEvent[] = [];
+
   revisoes.forEach(r => {
     r.stateType === StateType.ElementoSuprimido && eventos.push(...rejeitaSupressao(state, r));
     r.stateType === StateType.ElementoModificado && eventos.push(...rejeitaModificacao(state, r));
@@ -91,14 +111,7 @@ const rejeitaSupressao = (state: State, revisao: RevisaoElemento): StateEvent[] 
 };
 
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  if (
-    revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
-    revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO
-  ) {
-    return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
-  } else {
-    return restauraElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
-  }
+  return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
 };
 
 const rejeitaRestauracao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
