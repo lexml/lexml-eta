@@ -378,7 +378,11 @@ export const isRevisaoDeTransformacao = (revisao: Revisao): boolean => {
 };
 
 export const isRevisaoDeModificacao = (revisao: Revisao): boolean => {
-  return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType !== StateType.ElementoIncluido;
+  return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType === StateType.ElementoModificado;
+};
+
+export const isRevisaoDeRestauracao = (revisao: Revisao): boolean => {
+  return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType === StateType.ElementoRestaurado;
 };
 
 export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {

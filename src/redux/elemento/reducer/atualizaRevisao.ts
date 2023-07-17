@@ -1,3 +1,5 @@
+import { isRevisaoDeRestauracao } from './../util/revisaoUtil';
+import { createElemento } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
@@ -26,10 +28,15 @@ import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAc
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
+import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
+import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulacaoAction';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
-  if (!state.emRevisao || !actionType || !numElementos || actionType === APLICAR_ALTERACOES_EMENDA) {
+  if ([ABRIR_ARTICULACAO, ATUALIZAR_USUARIO, VALIDAR_ARTICULACAO].includes(actionType) || !state.emRevisao || !actionType || !numElementos) {
+    return state;
+  } else if (actionType === APLICAR_ALTERACOES_EMENDA) {
     associarRevisoesAosElementosDosEventos(state);
     return state;
   }
@@ -110,9 +117,10 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   getElementosFromEventos(eventos).forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
     if (revisao) {
-      if (isRevisaoDeModificacao(revisao) && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
+      if ((isRevisaoDeModificacao(revisao) || isRevisaoDeRestauracao(revisao)) && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
         revisoesParaRemover.push(revisao);
       }
+      revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
     } else {
       const eAux = getElementoAntesModificacao(state, e);
       result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
@@ -254,8 +262,9 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
     if (revisao && revisao.elementoAntesRevisao?.descricaoSituacao === eAux.descricaoSituacao && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, eAux)) {
       revisoesParaRemover.push(revisao);
     } else {
-      const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior);
-      const eAux = d?.situacao.dispositivoOriginal || elementoAnterior;
+      const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior)!;
+      const eAntesRevisao = !elementoAtual ? d.situacao.dispositivoOriginal : elementoAnterior;
+      const eAposRevisao = createElemento(d);
       result.push(
         new RevisaoElemento(
           actionType,
@@ -263,8 +272,8 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
           '',
           state.usuario!,
           formatDateTime(new Date()),
-          revisao?.elementoAntesRevisao || eAux,
-          JSON.parse(JSON.stringify(eAux))
+          JSON.parse(JSON.stringify(eAntesRevisao)),
+          JSON.parse(JSON.stringify(eAposRevisao))
         )
       );
       if (revisao) {
