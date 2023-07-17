@@ -1,4 +1,4 @@
-import { isRevisaoDeModificacao } from './../util/revisaoUtil';
+import { isRevisaoDeModificacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
 import { isCaput } from './../../../model/dispositivo/tipo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
@@ -32,6 +32,23 @@ import { restauraElemento } from './restauraElemento';
 import { suprimeElemento } from './suprimeElemento';
 
 export const rejeitaRevisao = (state: any, action: any): State => {
+  if (action.revisao || action.elemento) {
+    return rejeitarRevisao(state, action);
+  } else {
+    return rejeitarRevisaoEmLote(state, state.revisoes);
+  }
+};
+
+export const rejeitarRevisaoEmLote = (state: State, revisoes: Revisao[] = []): State => {
+  const tempStates: State[] = [];
+  revisoes.filter(isRevisaoPrincipal).forEach((revisao: Revisao) => {
+    const tempState = { ...state, past: [], present: [], future: [], ui: { ...state.ui, events: [] } };
+    tempStates.push(rejeitarRevisao(tempState, { revisao }));
+  });
+  return mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'rejeitar');
+};
+
+export const rejeitarRevisao = (state: any, action: any): State => {
   const revisao = (action.revisao || findRevisaoByElementoUuid(state.revisoes, action.elemento.uuid)) as RevisaoElemento;
   const revisoesAssociadas = getRevisoesElementoAssociadas(state.revisoes, revisao);
   const idsRevisoesAssociadas = revisoesAssociadas.map(r => r.id);
