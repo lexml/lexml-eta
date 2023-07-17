@@ -15,7 +15,9 @@ import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
-import { State, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
+import { unificarEvento } from '../evento/eventosUtil';
+import { buildPast } from './stateReducerUtil';
 
 export const getRevisoesElemento = (revisoes: Revisao[] = []): RevisaoElemento[] => {
   return revisoes.filter(isRevisaoElemento).map(r => r as RevisaoElemento);
@@ -405,4 +407,48 @@ export const associarRevisoesAosElementos = (revisoes: Revisao[] = [], elementos
     const r = findRevisaoByElementoUuid(revisoes, e.uuid);
     e.revisao = r ? JSON.parse(JSON.stringify(r)) : undefined;
   });
+};
+
+export const mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes = (state: State, tempStates: State[], revisoes: Revisao[], operacao: 'aceitar' | 'rejeitar'): State => {
+  const eventosParaUnificar = {
+    aceitar: [StateType.ElementoValidado],
+    rejeitar: [
+      StateType.ElementoIncluido,
+      StateType.ElementoRemovido,
+      StateType.ElementoSuprimido,
+      StateType.ElementoRenumerado,
+      StateType.ElementoValidado,
+      StateType.ElementoSelecionado,
+      StateType.ElementoMarcado,
+      StateType.SituacaoElementoModificada,
+    ],
+  };
+
+  let eventosPast: StateEvent[] = [];
+  let eventos: StateEvent[] = [];
+
+  tempStates.forEach(tempState => {
+    eventosPast.push(...(tempState.past![0] as any as StateEvent[]));
+    eventos.push(...tempState.ui!.events);
+  });
+
+  const tempState: State = { ...state };
+
+  eventosParaUnificar[operacao].forEach(stateType => {
+    eventosPast = unificarEvento(tempState, eventosPast, stateType);
+    eventos = unificarEvento(tempState, eventos, stateType);
+  });
+
+  const idsRevisoes = revisoes.map(r => r.id);
+
+  tempState.past = buildPast(tempState, eventosPast);
+  tempState.present = eventos;
+  tempState.future = [];
+  tempState.ui = {
+    events: eventos,
+    alertas: state.ui?.alertas,
+  };
+  tempState.revisoes = state.revisoes?.filter((r: Revisao) => !idsRevisoes.includes(r.id));
+
+  return tempState;
 };

@@ -1,11 +1,10 @@
-import { isRevisaoPrincipal } from './../util/revisaoUtil';
+import { isRevisaoPrincipal, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
 import { createElementoValidado, getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
 import { Elemento } from '../../../model/elemento/elemento';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { findRevisaoByElementoUuid, getRevisoesElementoAssociadas, isRevisaoDeExclusao } from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { unificarEvento } from '../evento/eventosUtil';
 
 export const aceitaRevisao = (state: any, action: any): State => {
   if (action.revisao || action.elemento) {
@@ -22,35 +21,7 @@ export const aceitarRevisaoEmLote = (state: State, revisoes: Revisao[] = []): St
     tempStates.push(aceitarRevisao(tempState, { revisao }));
   });
 
-  return mergeEventosStates(state, tempStates, revisoes);
-};
-
-const mergeEventosStates = (state: State, tempStates: State[], revisoes: Revisao[]): State => {
-  let eventosPast: StateEvent[] = [];
-  let eventos: StateEvent[] = [];
-
-  tempStates.forEach(tempState => {
-    eventosPast.push(...(tempState.past![0] as any as StateEvent[]));
-    eventos.push(...tempState.ui!.events);
-  });
-
-  const tempState: State = { ...state };
-
-  eventosPast = unificarEvento(tempState, eventosPast, StateType.ElementoValidado);
-  eventos = unificarEvento(tempState, eventos, StateType.ElementoValidado);
-
-  const idsRevisoesAceitas = revisoes.map(r => r.id);
-
-  tempState.past = buildPast(tempState, eventosPast);
-  tempState.present = eventos;
-  tempState.future = [];
-  tempState.ui = {
-    events: eventos,
-    alertas: state.ui?.alertas,
-  };
-  tempState.revisoes = state.revisoes?.filter((r: Revisao) => !idsRevisoesAceitas.includes(r.id));
-
-  return tempState;
+  return mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'aceitar');
 };
 
 const aceitarRevisao = (state: any, action: any): State => {

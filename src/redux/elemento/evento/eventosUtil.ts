@@ -417,17 +417,13 @@ export const unificarEvento = (state: State, eventos: StateEvent[], stateType: S
       .filter(ev => ev.stateType === stateType)
       .forEach(ev => {
         ev.elementos?.forEach(e => {
-          const r = [StateType.ElementoIncluido, StateType.ElementoMarcado, StateType.SituacaoElementoModificada].includes(stateType)
+          const r = [StateType.ElementoIncluido, StateType.ElementoMarcado, StateType.SituacaoElementoModificada, StateType.ElementoRenumerado].includes(stateType)
             ? findRevisaoByElementoUuid(state.revisoes, e.uuid!)
             : undefined;
           if (r && isRevisaoDeExclusao(r)) {
             elementos.push(e);
           } else if (!mapDispositivos.has(e.uuid!)) {
             const dispositivo = getDispositivoFromElemento(state.articulacao!, e)!;
-            if (!dispositivo) {
-              console.log(11111);
-            }
-
             mapDispositivos.set(e.uuid!, dispositivo);
             elementos.push(createElementoValidado(dispositivo, stateType === StateType.ElementoIncluido));
           }
