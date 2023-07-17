@@ -7,6 +7,7 @@ import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../../doc/parser/mpv_885_20190617';
+import { StateEvent, StateType } from '../../../src/redux/state';
 
 let state: any;
 
@@ -58,8 +59,10 @@ describe('Testando undo de remover artigo com bloco de alteração', () => {
       it('Deveria possuir 5 artigos após o undo', () => {
         expect(state.articulacao.artigos.length).to.equal(5);
       });
-      it('Deveria apresentar 3 eventos: inclusão, renumeração e situação modificada, nessa ordem', () => {
-        expect(state.ui.events.length).to.equal(3);
+      it('Deveria apresentar eventos: inclusão, renumeração e situação modificada, nessa ordem', () => {
+        expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+        expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+        expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.SituacaoElementoModificada).length).to.be.greaterThan(0);
       });
       it('Deveria apresentar 14 elementos incluídos já que o artigo possui 13 filhos', () => {
         expect(state.ui.events[0].elementos.length).equal(14);

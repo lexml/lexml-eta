@@ -12,10 +12,11 @@ export class RemoverElemento implements ElementoAction {
     this.descricao = 'Remover';
   }
 
-  execute(atual: Referencia): any {
+  execute(atual: Referencia, elementoLinhaAnterior: any): any {
     return {
       type: REMOVER_ELEMENTO,
       atual,
+      elementoLinhaAnterior,
     };
   }
 }

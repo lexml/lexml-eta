@@ -1,10 +1,19 @@
+import { createElementoValidado } from './../../../model/elemento/elementoUtil';
+import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
-import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
+import {
+  buildListaElementosRenumerados,
+  createElemento,
+  criaListaElementosAfinsValidados,
+  getDispositivoFromElemento,
+  getElementos,
+  listaDispositivosRenumerados,
+} from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   getDispositivoAndFilhosAsLista,
@@ -20,7 +29,7 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
-import { StateEvent, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
 
@@ -100,8 +109,9 @@ export const buildEventoTransformacaooElemento = (
   return eventos;
 };
 
-export const removeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  const removidos = getElementos(dispositivo);
+export const removeAndBuildEvents = (state: State, dispositivo: Dispositivo): StateEvent[] => {
+  const articulacao = state.articulacao!;
+  const removidos = getElementos(dispositivo, false, true);
   const dispositivosRenumerados = listaDispositivosRenumerados(dispositivo);
   const dispositivoAnterior = getDispositivoAnterior(dispositivo);
 
@@ -144,7 +154,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   let pos = atual.pai!.indexOf(atual);
   const agrupadoresAnteriorMesmoTipo = atual.pai!.filhos.filter((d, i) => i < pos && isAgrupador(d));
   const paiOriginal = atual.pai;
-  const removido = createElemento(atual);
+  const removido = createElemento(atual, false, true);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
   const agrupadorAntes = getAgrupadorAntes(atual);
@@ -369,11 +379,62 @@ export const createEventos = (): StateEvent[] => {
       pai: undefined,
       elementos: [],
     },
+    {
+      stateType: StateType.RevisaoAceita,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RevisaoRejeitada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
   ];
 };
 
 export const getElementosRemovidosEIncluidos = (eventos: StateEvent[]): Elemento[] => {
   const map = new Map();
-  eventos.filter(ev => [StateType.ElementoRemovido, StateType.ElementoIncluido].includes(ev.stateType)).forEach(ev => ev.elementos?.forEach(el => map.set(el.lexmlId!, el)));
+  eventos.filter(ev => [StateType.ElementoRemovido, StateType.ElementoIncluido].includes(ev.stateType)).forEach(ev => ev.elementos?.forEach(el => map.set(el.uuid!, el)));
   return Array.from(map.values());
+};
+
+export const unificarEvento = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
+  const result = eventos.filter(ev => ev.stateType !== stateType);
+
+  if (stateType === StateType.ElementoRemovido) {
+    const elementos = eventos
+      .filter(ev => ev.stateType === StateType.ElementoRemovido)
+      .map(ev => ev.elementos || [])
+      .flat();
+    elementos.length && result.push({ stateType: stateType, elementos });
+  } else {
+    const elementos: Elemento[] = [];
+    const mapDispositivos: Map<number, Dispositivo> = new Map();
+
+    eventos
+      .filter(ev => ev.stateType === stateType)
+      .forEach(ev => {
+        ev.elementos?.forEach(e => {
+          const r = [StateType.ElementoIncluido, StateType.ElementoMarcado, StateType.SituacaoElementoModificada].includes(stateType)
+            ? findRevisaoByElementoUuid(state.revisoes, e.uuid!)
+            : undefined;
+          if (r && isRevisaoDeExclusao(r)) {
+            elementos.push(e);
+          } else if (!mapDispositivos.has(e.uuid!)) {
+            const dispositivo = getDispositivoFromElemento(state.articulacao!, e)!;
+            if (!dispositivo) {
+              console.log(11111);
+            }
+
+            mapDispositivos.set(e.uuid!, dispositivo);
+            elementos.push(createElementoValidado(dispositivo, stateType === StateType.ElementoIncluido));
+          }
+        });
+      });
+
+    elementos.length && result.push({ stateType: stateType, elementos });
+  }
+  return result;
 };

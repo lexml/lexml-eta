@@ -17,6 +17,7 @@ import { DispositivosEmenda } from './../model/emenda/emenda';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { rootStore } from './../redux/store';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
+import { Revisao } from '../model/revisao/revisao';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -27,6 +28,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private projetoNorma = {};
 
   private dispositivosEmenda: DispositivosEmenda | undefined;
+  private revisoes: Revisao[] | undefined;
 
   createRenderRoot(): LitElement {
     return this;
@@ -48,7 +50,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return new DispositivosEmendaBuilder(this.modo, urn, articulacao).getDispositivosEmenda();
   }
 
-  setDispositivosEmenda(dispositivosEmenda: DispositivosEmenda | undefined): void {
+  setDispositivosERevisoesEmenda(dispositivosEmenda: DispositivosEmenda | undefined, revisoes?: Revisao[]): void {
+    this.revisoes = revisoes;
     if (dispositivosEmenda) {
       this.dispositivosEmenda = dispositivosEmenda;
       this.loadEmenda();
@@ -104,7 +107,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     if (this.dispositivosEmenda) {
       clearInterval(this._timerLoadEmenda);
       this._timerLoadEmenda = window.setTimeout(() => {
-        rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!));
+        rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!, this.revisoes));
       }, 1000);
     }
   }

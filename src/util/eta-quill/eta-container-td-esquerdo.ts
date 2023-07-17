@@ -1,8 +1,7 @@
 import { Elemento } from '../../model/elemento';
+import { EtaContainer } from './eta-container';
 
-const Container = Quill.import('blots/container');
-
-export class EtaContainerTdEsquerdo extends Container {
+export class EtaContainerTdEsquerdo extends EtaContainer {
   static blotName = 'EtaContainerTdEsquerdo';
   static tagName = 'DIV';
   static className = 'container__texto';

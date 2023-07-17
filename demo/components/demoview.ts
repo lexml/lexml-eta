@@ -16,6 +16,7 @@ import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
+import { Usuario } from '../../src/model/revisao/usuario';
 
 const mapProjetosNormas = {
   novo: {},
@@ -49,6 +50,8 @@ export class DemoView extends LitElement {
   @state() modo = '';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
+
+  private nomeUsuario?: string;
 
   constructor() {
     super();
@@ -148,6 +151,15 @@ export class DemoView extends LitElement {
     const fileUpload = document.getElementById('fileUpload');
     if (fileUpload !== null) {
       fileUpload.click();
+    }
+  }
+
+  usuario(): void {
+    // createUsuarioRevisaoDialog(rootStore);
+    const nome = prompt('Nome do usuário', this.nomeUsuario ?? '');
+    if (nome !== null) {
+      this.nomeUsuario = nome;
+      this.elLexmlEmenda.setUsuario(new Usuario(nome));
     }
   }
 
@@ -267,6 +279,7 @@ export class DemoView extends LitElement {
         <div class="lexml-eta-main-header--actions">
           <input type="button" value="Salvar" @click=${this.salvar} />
           <input type="button" value="Abrir" @click=${this.abrir} />
+          <input type="button" value="Usuário" @click=${this.usuario} />
           <input type="file" id="fileUpload" accept="application/json" @change="${this.selecionaArquivo}" style="display: none" />
         </div>
 

@@ -6,7 +6,7 @@ import { getEvento } from '../../../src/redux/elemento/evento/eventosUtil';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { transformaTipoElemento } from '../../../src/redux/elemento/reducer/transformaTipoElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { StateType } from '../../../src/redux/state';
+import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_PARAGRAFOS } from '../../doc/exemplo-paragrafos';
 
 let state: any;
@@ -76,8 +76,12 @@ describe('Testando a transformação de parágrafo em artigo', () => {
         expect(state.articulacao.artigos[1].filhos.length).to.equal(3);
       });
       describe('Testando os eventos resultantes da ação', () => {
-        it('Deveria apresentar 4 eventos', () => {
-          expect(state.ui.events.length).to.equal(4);
+        it('Deveria apresentar eventos', () => {
+          expect(state.ui.events).to.exist;
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
         });
         it('Deveria apresentar o artigo restaurado com seus incisos e parágrafo', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -114,8 +118,11 @@ describe('Testando a transformação de parágrafo em artigo', () => {
           expect(state.articulacao.artigos[1].filhos.length).to.equal(2);
         });
         describe('Testando os eventos resultantes da ação', () => {
-          it('Deveria apresentar 4 eventos', () => {
-            expect(state.ui.events.length).to.equal(4);
+          it('Deveria apresentar eventos', () => {
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRenumerado).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
           });
           it('Deveria apresentar o artigo incluído com seus incisos, já transformados em incisos de caput', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);

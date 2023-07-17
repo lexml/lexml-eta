@@ -19,6 +19,7 @@ export class EtaBlotExistencia extends EtaBlot {
     const node: HTMLElement = super.create();
 
     node.setAttribute('contenteditable', 'false');
+    node.setAttribute('id', 'blot-existencia' + elemento.uuid);
     node.classList.add(EtaBlotExistencia.className);
     EtaBlotExistencia._atualizarAtributos(elemento, node);
 

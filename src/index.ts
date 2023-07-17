@@ -23,6 +23,8 @@ import '@shoelace-style/shoelace/dist/components/split-panel/split-panel';
 import '@shoelace-style/shoelace/dist/components/radio/radio';
 import '@shoelace-style/shoelace/dist/components/details/details';
 import '@shoelace-style/shoelace/dist/components/checkbox/checkbox';
+import '@shoelace-style/shoelace/dist/components/switch/switch';
+import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
 // ---------------------------------------------------
 
 export { ArticulacaoComponent } from './components/articulacao.component';
@@ -42,3 +44,4 @@ export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
 export { ComandoEmendaModalComponent } from './components/comandoEmenda/comandoEmenda.modal.component';
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
+export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';

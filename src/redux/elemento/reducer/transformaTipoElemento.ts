@@ -40,7 +40,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
 
   action.subType = normalizaNomeAcaoTransformacao(atual, action.subType);
 
-  const removidos = [...getElementos(atual)];
+  const removidos = [...getElementos(atual, false, true)];
 
   const atualRenumerados = listaDispositivosRenumerados(atual);
 

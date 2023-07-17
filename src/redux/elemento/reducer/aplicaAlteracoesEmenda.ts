@@ -1,9 +1,12 @@
+import { isRevisaoDeMovimentacao, isRevisaoDeTransformacao } from './../util/revisaoUtil';
 import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
+import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
   buscaDispositivoById,
+  findDispositivoByUuid2,
   getDispositivoCabecaAlteracao,
   getTiposAgrupadorArtigoOrdenados,
   hasEmenta,
@@ -13,9 +16,12 @@ import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivo
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { buildId } from '../../../model/lexml/util/idUtil';
+import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
+import { Counter } from '../../../util/counter';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
+import { findRevisaoById, identificarRevisaoElementoPai, isRevisaoDeExclusao, isRevisaoElemento, isRevisaoPrincipal } from '../util/revisaoUtil';
 import { Articulacao, Artigo, Dispositivo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { getDispositivoFromElemento } from './../../../model/elemento/elementoUtil';
@@ -34,6 +40,9 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
       events: [],
       alertas: [],
     },
+    revisoes: [],
+    emRevisao: state.emRevisao,
+    numEventosPassadosAntesDaRevisao: 0,
   };
 
   const eventos = new Eventos();
@@ -71,6 +80,11 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     eventos.eventos.push(...processaDispositivosAdicionados(state, action.alteracoesEmenda));
   }
 
+  if (action.revisoes?.length) {
+    eventos.eventos.push(...processaRevisoes(retorno, action.revisoes));
+    retorno.emRevisao = true;
+  }
+
   retorno.ui!.events = eventos.build();
 
   const elementosInseridos: Elemento[] = [];
@@ -80,6 +94,10 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     stateType: StateType.SituacaoElementoModificada,
     elementos: getElementosAlteracaoASeremAtualizados(state.articulacao, elementosInseridos),
   });
+
+  if (retorno.emRevisao) {
+    retorno.ui!.events.push({ stateType: StateType.RevisaoAtivada });
+  }
 
   return retorno;
 };
@@ -285,3 +303,103 @@ const ajustaAtributosDispositivoAdicionado = (dispositivo: Dispositivo, da: Disp
 };
 
 const idSemCpt = (id: string): string => id.replace(/(_cpt)$/, '');
+
+const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
+  const elementosExcluidosEmModoDeRevisao: Elemento[] = [];
+  let elementoAnterior: Partial<Elemento>;
+
+  revisoes.forEach(r => {
+    try {
+      if (isRevisaoElemento(r)) {
+        const rAux = r as RevisaoElemento;
+        processarElementoDaRevisao(state, rAux, elementoAnterior, elementosExcluidosEmModoDeRevisao);
+        if (isRevisaoDeExclusao(rAux)) {
+          elementoAnterior = rAux.elementoAposRevisao;
+        }
+      }
+      state.revisoes?.push(r);
+    } catch (error) {
+      // TODO: tratar erro
+    }
+  });
+
+  state.revisoes = identificarRevisaoElementoPai(state, state.revisoes!);
+
+  return [...buildEventoRevisaoDispositivoRestaurado(state, revisoes), { stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao }];
+};
+
+const buildEventoRevisaoDispositivoRestaurado = (state: State, revisoes: Revisao[]): StateEvent[] => {
+  const result: StateEvent[] = [];
+  const revisoesRestauracao = revisoes.map(r => r as RevisaoElemento).filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
+
+  if (revisoesRestauracao.length) {
+    const elementos = revisoesRestauracao.map(r => buscaDispositivoById(state.articulacao!, r.elementoAposRevisao.lexmlId!)!).map(d => createElemento(d));
+    result.push({ stateType: StateType.ElementoRestaurado, elementos });
+  }
+
+  return result;
+};
+
+const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elementoAnterior: Partial<Elemento>, elementosExcluidosEmModoDeRevisao: Elemento[]): void => {
+  if (isRevisaoDeExclusao(revisao)) {
+    let e: Partial<Elemento> | undefined;
+
+    if (isRevisaoPrincipal(revisao)) {
+      let d = findDispositivoByUuid2(state.articulacao!, revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.uuid2!);
+      d = d || buscaDispositivoById(state.articulacao!, idSemCpt(revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!.lexmlId!)) || null;
+      e = d ? createElemento(d) : elementoAnterior;
+    } else {
+      e = elementoAnterior;
+    }
+
+    revisao.elementoAposRevisao.uuid = Counter.next();
+    revisao.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
+
+    revisao.elementoAntesRevisao!.uuid = revisao.elementoAposRevisao.uuid;
+    revisao.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e));
+
+    atualizarUuidDoPaiDoElementoRemovido(state, revisao);
+
+    elementosExcluidosEmModoDeRevisao.push(revisao.elementoAposRevisao as Elemento);
+    elementoAnterior = revisao.elementoAposRevisao as Elemento;
+  } else {
+    const e = createElemento(buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.lexmlId!)!);
+    revisao.elementoAposRevisao.uuid = e.uuid;
+    revisao.elementoAposRevisao.uuid2 = e.uuid2;
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
+
+    if (isRevisaoDeMovimentacao(revisao) || isRevisaoDeTransformacao(revisao)) {
+      revisao.elementoAntesRevisao!.uuid = Counter.next();
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
+    } else if (revisao.stateType !== StateType.ElementoIncluido) {
+      revisao.elementoAntesRevisao!.uuid = e.uuid;
+      revisao.elementoAntesRevisao!.uuid2 = e.uuid2;
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
+    }
+  }
+};
+
+const atualizarUuidDoPaiDoElementoRemovido = (state: State, revisao: RevisaoElemento): void => {
+  let uuid: number | undefined = 0;
+  let uuid2: string | undefined = '';
+
+  if (isRevisaoPrincipal(revisao)) {
+    const pai = buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.hierarquia!.pai!.lexmlId!);
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid = pai?.uuid;
+    revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = pai?.uuid2;
+    revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = pai?.uuid;
+    revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = pai?.uuid2;
+  } else {
+    const revisaoPai = findRevisaoById(state.revisoes!, revisao.idRevisaoElementoPai!) as RevisaoElemento;
+    uuid = revisaoPai!.elementoAposRevisao.uuid;
+    uuid2 = revisaoPai!.elementoAposRevisao.uuid2;
+  }
+
+  revisao.elementoAposRevisao.hierarquia!.pai!.uuid = uuid;
+  revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = uuid2;
+  revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = uuid;
+  revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = uuid2;
+};

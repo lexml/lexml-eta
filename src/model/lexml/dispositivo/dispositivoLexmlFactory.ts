@@ -1,4 +1,5 @@
 import { Counter } from '../../../util/counter';
+import { generateUUID } from '../../../util/uuid';
 import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
@@ -159,6 +160,7 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
   }
 
   dispositivo.uuid = Counter.next();
+  dispositivo.uuid2 = generateUUID();
   dispositivo.name = name;
   dispositivo.pai = isInciso(dispositivo) && isArtigo(parent) ? (parent as Artigo).caput : parent;
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
@@ -171,6 +173,7 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
 export const createArticulacao = (): Articulacao => {
   const articulacao = new ArticulacaoLexml();
   articulacao.uuid = Counter.next();
+  articulacao.uuid2 = generateUUID();
   return articulacao;
 };
 

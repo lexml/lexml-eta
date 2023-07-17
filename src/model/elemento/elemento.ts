@@ -1,14 +1,17 @@
 import { Conteudo } from '../dispositivo/conteudo';
 import { ElementoAction } from '../lexml/acao';
 import { Mensagem } from '../lexml/util/mensagem';
+import { Revisao } from '../revisao/revisao';
 
 export class Referencia {
   tipo?: string;
   uuid?: number;
+  uuid2?: string;
   lexmlId?: string;
   conteudo?: Partial<Conteudo>;
   descricaoSituacao?: string;
   uuidAlteracao?: number;
+  uuid2Alteracao?: string;
   existeNaNormaAlterada?: boolean;
 }
 export class Elemento extends Referencia {
@@ -38,5 +41,6 @@ export class Elemento extends Referencia {
   tiposAgrupadoresQuePodemSerInseridosAntes?: string[];
   tiposAgrupadoresQuePodemSerInseridosDepois?: string[];
   artigoDefinido?: string;
-  elementoAnteriorNaSequenciaDeLeitura?: Elemento;
+  elementoAnteriorNaSequenciaDeLeitura?: Referencia;
+  revisao?: Revisao;
 }
