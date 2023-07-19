@@ -68,7 +68,7 @@ export class EtaQuillUtil {
       EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
     }
 
-    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao)) {
       EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
     }
 

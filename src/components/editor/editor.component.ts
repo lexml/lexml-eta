@@ -1410,7 +1410,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const elementos: Elemento[] = [...mapElementos.values()];
     const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
-    const uuidsElementosComModificacao = elementos.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos
+      .filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao))
+      .map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {
       const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
