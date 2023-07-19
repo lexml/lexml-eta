@@ -21,6 +21,8 @@ import { EtaBlotRevisao } from './eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
+import { EtaContainerOpcoes } from './eta-container-opcoes';
+import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -65,6 +67,11 @@ export class EtaQuillUtil {
     if (elemento.revisao && isRevisaoPrincipal(elemento.revisao)) {
       EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
     }
+
+    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+      EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
+    }
+
     etaTdTexto.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
 
@@ -79,6 +86,12 @@ export class EtaQuillUtil {
     new EtaBlotRevisaoRecusar(elemento).insertInto(etaContainerRevisao);
     new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
     return etaContainerRevisao;
+  }
+
+  static criarContainerOpcoes(elemento: Elemento): EtaContainerOpcoes {
+    const etaContainerOpcoes: EtaContainerOpcoes = new EtaContainerOpcoes(elemento);
+    new EtaBlotOpcoesDiff(elemento).insertInto(etaContainerOpcoes);
+    return etaContainerOpcoes;
   }
 
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {

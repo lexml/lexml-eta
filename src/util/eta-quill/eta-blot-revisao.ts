@@ -1,4 +1,3 @@
-import { isRevisaoDeModificacao, isRevisaoDeRestauracao } from './../../redux/elemento/util/revisaoUtil';
 import { EtaBlot } from './eta-blot';
 import { Elemento } from '../../model/elemento';
 import { getIniciais } from '../string-util';
@@ -37,10 +36,10 @@ export class EtaBlotRevisao extends EtaBlot {
     node.setAttribute('id', 'buttonInfoRevisao' + elemento.uuid);
     node.setAttribute('title', EtaBlotRevisao.montarMensagem(elemento));
     node.innerHTML = getIniciais(elemento.revisao!.usuario.nome).charAt(0) || 'R';
-    node.onclick =
-      isRevisaoDeModificacao(elemento.revisao!) || isRevisaoDeRestauracao(elemento.revisao!)
-        ? (): boolean => node.dispatchEvent(new CustomEvent('exibir-diferencas', { bubbles: true, cancelable: true, detail: { elemento } }))
-        : (): boolean => false;
+    // node.onclick =
+    //   isRevisaoDeModificacao(elemento.revisao!) || isRevisaoDeRestauracao(elemento.revisao!)
+    //     ? (): boolean => node.dispatchEvent(new CustomEvent('exibir-diferencas', { bubbles: true, cancelable: true, detail: { elemento } }))
+    //     : (): boolean => false;
   }
 
   static montarMensagem(elemento: Elemento): string {

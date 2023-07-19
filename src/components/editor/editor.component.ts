@@ -69,6 +69,9 @@ import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoActio
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 import { exibirDiferencasDialog } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
+import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
+import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -680,6 +683,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.limparHistory();
     });
 
+    this.indicadorTextoModificado(events);
     this.indicadorMarcaRevisao(events);
     this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
@@ -1113,9 +1117,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   exibirDiferencas(elemento: Elemento): void {
     const revisao = elemento.revisao as RevisaoElemento;
-    const texto1 = revisao.elementoAntesRevisao?.conteudo?.texto;
-    const texto2 = revisao.elementoAposRevisao.conteudo?.texto;
-    exibirDiferencasDialog(texto1, texto2);
+    if (revisao) {
+      const texto1 = revisao.elementoAntesRevisao?.conteudo?.texto;
+      const texto2 = revisao.elementoAposRevisao.conteudo?.texto;
+      exibirDiferencasDialog(texto1, texto2);
+    } else {
+      const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
+      if (d) {
+        exibirDiferencasDialog(d.situacao.dispositivoOriginal!.conteudo!.texto, elemento.conteudo!.texto);
+      }
+    }
   }
 
   aceitarRevisao(elemento: Elemento): void {
@@ -1379,6 +1390,48 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       })
     );
+  }
+
+  private indicadorTextoModificado(events: StateEvent[]): void {
+    const ignorarStateTypes: StateType[] = [
+      StateType.DocumentoCarregado,
+      StateType.ElementoIncluido,
+      StateType.ElementoValidado,
+      StateType.AtualizaUsuario,
+      StateType.AtualizacaoAlertas,
+    ];
+    const mapElementos: Map<number, Elemento> = new Map();
+
+    events
+      .filter(ev => !ignorarStateTypes.includes(ev.stateType))
+      .map(ev => ev.elementos || [])
+      .flat()
+      .forEach(e => mapElementos.set(e.uuid!, e));
+
+    const elementos: Elemento[] = [...mapElementos.values()];
+    const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
+
+    uuidsElementosSemModificacao.forEach(uuid => {
+      const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
+      if (containerOpcoes) {
+        const linha = this.quill.getLinha(uuid);
+        linha?.containerOpcoes?.remove();
+        containerOpcoes.remove();
+      }
+    });
+
+    uuidsElementosComModificacao.forEach(uuid => {
+      const linha = this.quill.getLinha(uuid);
+      if (linha) {
+        if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
+          linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
+        } else {
+          const containerTr = linha.children.head;
+          containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
+        }
+      }
+    });
   }
 
   private indicadorMarcaRevisao(events: StateEvent[]): void {
