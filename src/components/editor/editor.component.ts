@@ -1427,8 +1427,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
           linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
         } else {
-          const containerTr = linha.children.head;
-          containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
+          const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
+          if (!containerOpcoes) {
+            const containerTr = linha.children.head;
+            containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
+          }
         }
       }
     });
