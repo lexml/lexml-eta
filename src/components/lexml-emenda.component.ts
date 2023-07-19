@@ -50,7 +50,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlOpcoesImpressao;
   @query('#tabs-esquerda')
   _tabsEsquerda;
-
+  @query('#tabs-direita')
+  _tabsDireita;
   @query('lexml-emenda-comando')
   _lexmlEmendaComando!: ComandoEmendaComponent;
 
@@ -240,6 +241,27 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.parlamentares.length === 0 && this.atualizaListaParlamentares();
       }
     });
+
+    const badgeAtalhos = this._tabsDireita?.querySelector('#badgeAtalhos');
+    if (badgeAtalhos) {
+      const naoPulsarBadgeAtalhos = localStorage.getItem('naoPulsarBadgeAtalhos');
+      if (!naoPulsarBadgeAtalhos) {
+        badgeAtalhos.pulse = true;
+        badgeAtalhos.setAttribute('variant', 'warning');
+      }
+    }
+
+    this._tabsDireita?.addEventListener('sl-tab-show', (event: any) => {
+      const tabName = event.detail.name;
+      if (tabName === 'atalhos') {
+        const badge = (event.target as Element).querySelector('sl-badge');
+        if (badge) {
+          badge.pulse = false;
+          badge.setAttribute('variant', 'primmay');
+        }
+        localStorage.setItem('naoPulsarBadgeAtalhos', 'true');
+      }
+    });
   }
 
   updated(): void {
@@ -339,6 +361,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           height: 16px;
           margin-top: -4px;
         }
+
+        #badgeAtalhos::part(base) {
+          height: 16px;
+          margin-top: 2px;
+          font-size: var(--sl-font-size-small);
+          background-color: transparent;
+          color: var(--sl-color-neutral-600);
+        }
+        sl-tab[panel='atalhos'][active] #badgeAtalhos::part(base) {
+          color: var(--sl-color-primary-600);
+        }
+
         sl-split-panel {
           --divider-width: ${this.modo.startsWith('emenda') ? '15px' : '0px'};
         }
@@ -387,7 +421,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           </sl-tab-group>
         </div>
         <div slot="end">
-          <sl-tab-group>
+          <sl-tab-group id="tabs-direita">
             <sl-tab slot="nav" panel="comando">
               <sl-icon name="code"></sl-icon>
               Comando
@@ -397,8 +431,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               Dicas
             </sl-tab>
             <sl-tab slot="nav" panel="atalhos">
-              <sl-icon name="keyboard"></sl-icon>
-              Atalhos
+              <sl-badge variant="primary" id="badgeAtalhos" pill>
+                <sl-icon name="keyboard"></sl-icon>
+                Atalhos
+              </sl-badge>
             </sl-tab>
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
