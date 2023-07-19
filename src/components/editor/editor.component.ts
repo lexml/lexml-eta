@@ -1430,10 +1430,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
         } else {
           const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
-          if (!containerOpcoes) {
-            const containerTr = linha.children.head;
-            containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
+          if (containerOpcoes) {
+            containerOpcoes.remove();
           }
+          const containerTr = linha.children.head;
+          containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
         }
       }
     });
