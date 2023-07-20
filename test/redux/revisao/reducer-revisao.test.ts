@@ -26,6 +26,282 @@ import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 
 let state: State;
 
+// describe('Carregando texto da MPV 905/2019', () => {
+//   beforeEach(function () {
+//     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+//     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+//   });
+
+//   describe('Testando', () => {
+//     beforeEach(function () {
+//       state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+
+//       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+//       // Remove inciso I-1
+//       let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+//       state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+
+//       // Adiciona novo inciso após inciso I (e antes do atual inciso I-1)
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+//       let e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+//       e.conteudo!.texto = 'teste 2;';
+//       state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+
+//       // Adiciona novo inciso após inciso I (e antes do atual inciso I-1)
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+//       e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+//       e.conteudo!.texto = 'teste 1;';
+//       state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+//     });
+
+//     it('Deveria possuir 5 revisões, sendo 3 principais', () => {
+//       expect(state.revisoes?.length).to.be.equal(5);
+//       expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(3);
+//     });
+
+//     it('Inciso "art1_par1u_inc1-1" deveria possuir texto "teste 1"', () => {
+//       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+//       expect(d.texto).to.be.equal('teste 1;');
+//     });
+
+//     it('Inciso "art1_par1u_inc1-2" deveria possuir texto "teste 2"', () => {
+//       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+//       expect(d.texto).to.be.equal('teste 2;');
+//     });
+
+//     it('Inciso "art1_par1u_inc1-3" deveria possuir texto "teste D:"', () => {
+//       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+//       expect(d.texto).to.be.equal('teste D:');
+//     });
+
+//     it('O atributo "elementoAposRevisao.r.elementoAposRevisao.hierarquia.posicao" da primeira revisão deveria ser "3"', () => {
+//       const r = state.revisoes![0] as RevisaoElemento;
+//       expect(r.elementoAposRevisao.hierarquia?.posicao).to.be.equal(3);
+//     });
+
+//     describe('Removendo o atual inciso "art1_par1u_inc1-1"', () => {
+//       beforeEach(function () {
+//         state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!) });
+//       });
+
+//       it('Deveria possuir 4 revisões, sendo 2 principais', () => {
+//         expect(state.revisoes?.length).to.be.equal(4);
+//         expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
+//       });
+
+//       it('O atributo "elementoAposRevisao.r.elementoAposRevisao.hierarquia.posicao" da primeira revisão deveria ser "2"', () => {
+//         const r = state.revisoes![0] as RevisaoElemento;
+//         expect(r.elementoAposRevisao.hierarquia?.posicao).to.be.equal(2);
+//       });
+//     });
+
+//     describe('Rejeitando revisão de exclusão do inciso "I-1"', () => {
+//       beforeEach(function () {
+//         state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: state.revisoes![0] });
+//       });
+
+//       it('Deveria possuir 2 revisões', () => {
+//         expect(state.revisoes?.length).to.be.equal(2);
+//       });
+
+//       it('Inciso "art1_par1u_inc1-1" deveria possuir texto "teste 1"', () => {
+//         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+//         expect(d.texto).to.be.equal('teste 1;');
+//       });
+
+//       it('Inciso "art1_par1u_inc1-2" deveria possuir texto "teste 2"', () => {
+//         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+//         expect(d.texto).to.be.equal('teste 2;');
+//       });
+
+//       it('Inciso "art1_par1u_inc1-3" deveria possuir texto "teste A:"', () => {
+//         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+//         expect(d.texto).to.be.equal('teste A:');
+//       });
+
+//       describe('Fazendo UNDO da rejeição', () => {
+//         beforeEach(function () {
+//           state = elementoReducer(state, { type: UNDO });
+//         });
+
+//         it('Deveria possuir 5 revisões, sendo 3 principais', () => {
+//           expect(state.revisoes?.length).to.be.equal(5);
+//           expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(3);
+//         });
+
+//         it('Inciso "art1_par1u_inc1-3" deveria possuir texto "teste D:"', () => {
+//           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+//           expect(d.texto).to.be.equal('teste D:');
+//         });
+
+//         it('O atributo "elementoAposRevisao.r.elementoAposRevisao.hierarquia.posicao" da revisão[2] deveria ser "3"', () => {
+//           const r = state.revisoes![2] as RevisaoElemento;
+//           expect(r.elementoAposRevisao.hierarquia?.posicao).to.be.equal(3);
+//         });
+//       });
+//     });
+//   });
+
+//   describe('Testando atualização de dados das revisões ao inserir dispositivo antes de dispositivo que possua filho removido em modo de revisão', () => {
+//     beforeEach(function () {
+//       // Adiciona, fora de revisão, novo inciso (com alíneas) após inciso I
+//       let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, {
+//         type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+//         atual: createElemento(d),
+//         novo: {
+//           isDispositivoAlteracao: isDispositivoAlteracao(d),
+//           conteudo: {
+//             texto: TEXTO_006,
+//           },
+//         },
+//         isColarSubstituindo: false,
+//         posicao: 'depois',
+//       });
+
+//       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+//       // Remove alínea "b" do inciso I-1
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+//       state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+
+//       // Adiciona novo inciso após inciso I (e antes do atual inciso I-1)
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+//       const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+//       e.conteudo!.texto = 'teste 1;';
+//       state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+//     });
+
+//     it('Deveria possuir 4 revisões, sendo 2 principais', () => {
+//       expect(state.revisoes?.length).to.be.equal(4);
+//       expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
+//     });
+
+//     it('O atributo "elementoAposRevisao.r.elementoAposRevisao.hierarquia.posicao" da primeira revisão deveria ser "2"', () => {
+//       const r = state.revisoes![0] as RevisaoElemento;
+//       expect(r.elementoAposRevisao.hierarquia?.posicao).to.be.equal(2);
+//     });
+
+//     describe('Removendo inciso adicionado', () => {
+//       beforeEach(function () {
+//         const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+//         state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: e });
+//       });
+
+//       it('Deveria possuir 3 revisões, sendo 1 principal', () => {
+//         expect(state.revisoes?.length).to.be.equal(3);
+//         expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+//       });
+
+//       it('O atributo "elementoAposRevisao.r.elementoAposRevisao.hierarquia.posicao" da primeira revisão deveria ser "1"', () => {
+//         const r = state.revisoes![0] as RevisaoElemento;
+//         expect(r.elementoAposRevisao.hierarquia?.posicao).to.be.equal(1);
+//       });
+//     });
+//   });
+
+//   describe('Testando atualização de dados das revisões ao inserir dispositivo antes de dispositivo que possua filho removido em modo de revisão', () => {
+//     beforeEach(function () {
+//       // Adiciona, fora de revisão, novo inciso (com alíneas) após inciso I
+//       let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, {
+//         type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+//         atual: createElemento(d),
+//         novo: {
+//           isDispositivoAlteracao: isDispositivoAlteracao(d),
+//           conteudo: {
+//             texto: TEXTO_006,
+//           },
+//         },
+//         isColarSubstituindo: false,
+//         posicao: 'depois',
+//       });
+
+//       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+//       // Remove alínea "b" do inciso I-1
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1_ali2')!;
+//       state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
+
+//       // Adiciona novo inciso após inciso I (e antes do atual inciso I-1)
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+//       const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+//       e.conteudo!.texto = 'teste 1;';
+//       state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+//     });
+
+//     it('Deveria possuir 2 revisões', () => {
+//       expect(state.revisoes?.length).to.be.equal(2);
+//     });
+
+//     it('O atributo "elementoAposRevisao.hierarquia.pai.lexmlId" da primeira revisão deveria ser "art1_par1u_inc1-2"', () => {
+//       const r = state.revisoes![0] as RevisaoElemento;
+//       expect(r.elementoAposRevisao.hierarquia?.pai?.lexmlId).to.be.equal('art1_par1u_inc1-2');
+//     });
+//   });
+
+//   describe('Testando atualização de dados das revisões ao inserir 2 dispositivos, em modo de revisão', () => {
+//     beforeEach(function () {
+//       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+
+//       // Adiciona novo inciso (com alíneas) após inciso I
+//       let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, {
+//         type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+//         atual: createElemento(d),
+//         novo: {
+//           isDispositivoAlteracao: isDispositivoAlteracao(d),
+//           conteudo: {
+//             texto: TEXTO_006,
+//           },
+//         },
+//         isColarSubstituindo: false,
+//         posicao: 'depois',
+//       });
+
+//       // Segundo dispositivo será adicionado antes do inciso adicionado no passo anterior
+//       d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+//       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
+//       const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+//       e.conteudo!.texto = 'teste 1;';
+//       state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+//     });
+
+//     it('Deveria possuir 4 revisões, sendo 2 principais', () => {
+//       expect(state.revisoes?.length).to.be.equal(4);
+//       expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(2);
+//     });
+
+//     it('Deveria possuir inciso "art1_par1u_inc1-1" com texto "teste 1;"', () => {
+//       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+//       expect(d).not.to.be.undefined;
+//       expect(d.texto).to.be.equal('teste 1;');
+//     });
+
+//     it('Deveria possuir inciso "art1_par1u_inc1-2" com texto "texto novo inciso:"', () => {
+//       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+//       expect(d).not.to.be.undefined;
+//       expect(d.texto).to.be.equal('texto novo inciso:');
+//     });
+
+//     it('O atributo "elementoAposRevisao.lexmlId" da primeira revisão deveria ser "art1_par1u_inc1-2"', () => {
+//       const r = state.revisoes![0] as RevisaoElemento;
+//       expect(r.elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc1-2');
+//     });
+
+//     it('O atributo "elementoAposRevisao.lexmlId" da segunda revisão deveria ser "art1_par1u_inc1-2_ali1"', () => {
+//       const r = state.revisoes![1] as RevisaoElemento;
+//       expect(r.elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc1-2_ali1');
+//       expect(r.elementoAposRevisao.hierarquia?.pai?.lexmlId).to.be.equal('art1_par1u_inc1-2');
+//     });
+//   });
+// });
+
 describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);

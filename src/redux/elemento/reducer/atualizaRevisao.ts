@@ -1,4 +1,4 @@
-import { isRevisaoDeRestauracao } from './../util/revisaoUtil';
+import { getRevisoesElemento, isRevisaoDeExclusao, isRevisaoDeRestauracao } from './../util/revisaoUtil';
 import { createElemento } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento';
@@ -31,6 +31,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
 import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulacaoAction';
+import { getEvento } from '../evento/eventosUtil';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -68,6 +69,12 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
     }
   }
   revisoes = identificarRevisaoElementoPai(state, revisoes);
+
+  // if (existeEventoDeInclusaoOuExclusao(state)) {
+  //   atualizarLexmlIdEmElementosDeRevisoes(state);
+  //   atualizarPosicaoDeElementosEmRevisoes(state);
+  // }
+
   state.revisoes!.push(...revisoes);
 
   associarRevisoesAosElementosDosEventos(state);
@@ -343,4 +350,62 @@ const adicionarOpcoesAoMenu = (state: State): void => {
       }
     })
   );
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const existeEventoDeInclusaoOuExclusao = (state: State): boolean => {
+  const eventos = state.ui?.events || [];
+  return eventos.some(se => se.stateType === StateType.ElementoIncluido || se.stateType === StateType.ElementoRemovido);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
+  let revisoes = getRevisoesElemento(state.revisoes || [])
+    .filter(r => r.elementoAposRevisao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
+    .filter(r => !isRevisaoDeExclusao(r));
+
+  revisoes.forEach(r => {
+    const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);
+    if (d) {
+      const e = createElemento(d, false, true);
+      r.elementoAposRevisao.lexmlId = d.id;
+      r.elementoAposRevisao.hierarquia!.pai!.lexmlId = d.pai!.id;
+      r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e.elementoAnteriorNaSequenciaDeLeitura));
+
+      if (r.elementoAntesRevisao) {
+        r.elementoAntesRevisao.lexmlId = d.id;
+        r.elementoAntesRevisao.hierarquia!.pai!.lexmlId = d.pai!.id;
+        r.elementoAntesRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(e.elementoAnteriorNaSequenciaDeLeitura));
+      }
+    }
+  });
+
+  revisoes = getRevisoesElemento(state.revisoes || []).filter(r => isRevisaoPrincipal(r) && isRevisaoDeExclusao(r));
+  revisoes.forEach(r => {
+    const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao.hierarquia!.pai!)!;
+    r.elementoAposRevisao.hierarquia!.pai!.lexmlId = d.id;
+  });
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const atualizarPosicaoDeElementosEmRevisoes = (state: State): void => {
+  const revisoes = getRevisoesElemento(state.revisoes || []).filter(r => isRevisaoPrincipal(r) && isRevisaoDeExclusao(r));
+  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoIncluido));
+  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoRemovido));
+};
+
+const atualizarPosicaoDeElementosEmRevisoesByEvento = (revisoes: RevisaoElemento[] = [], evento: StateEvent | undefined): void => {
+  if (!evento) {
+    return;
+  }
+  const fator = evento.stateType === StateType.ElementoIncluido ? 1 : -1;
+  const fnCondicaoInclusao = (e: Elemento, posicaoAtual: number): boolean => e.hierarquia!.posicao! <= posicaoAtual;
+  const fnCondicaoExclusao = (e: Elemento, posicaoAtual: number): boolean => e.hierarquia!.posicao! < posicaoAtual;
+  const fnCondicao2 = evento.stateType === StateType.ElementoIncluido ? fnCondicaoInclusao : fnCondicaoExclusao;
+  revisoes.forEach(r => {
+    const lexmlIdPai = r.elementoAposRevisao.hierarquia!.pai!.lexmlId;
+    const posicaoAtual = r.elementoAposRevisao.hierarquia!.posicao!;
+    const deslocamento = evento.elementos!.filter(e => e.hierarquia?.pai?.lexmlId === lexmlIdPai && fnCondicao2(e, posicaoAtual)).length * fator;
+    r.elementoAposRevisao.hierarquia!.posicao! += deslocamento;
+  });
 };
