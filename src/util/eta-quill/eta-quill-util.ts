@@ -21,8 +21,8 @@ import { EtaBlotRevisao } from './eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
-// import { EtaContainerOpcoes } from './eta-container-opcoes';
-// import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
+import { EtaContainerOpcoes } from './eta-container-opcoes';
+import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -68,9 +68,9 @@ export class EtaQuillUtil {
       EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
     }
 
-    // if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao)) {
-    //   EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
-    // }
+    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao)) {
+      EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
+    }
 
     etaTdTexto.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
@@ -88,11 +88,11 @@ export class EtaQuillUtil {
     return etaContainerRevisao;
   }
 
-  // static criarContainerOpcoes(elemento: Elemento): EtaContainerOpcoes {
-  //   const etaContainerOpcoes: EtaContainerOpcoes = new EtaContainerOpcoes(elemento);
-  //   new EtaBlotOpcoesDiff(elemento).insertInto(etaContainerOpcoes);
-  //   return etaContainerOpcoes;
-  // }
+  static criarContainerOpcoes(elemento: Elemento): EtaContainerOpcoes {
+    const etaContainerOpcoes: EtaContainerOpcoes = new EtaContainerOpcoes(elemento);
+    new EtaBlotOpcoesDiff(elemento).insertInto(etaContainerOpcoes);
+    return etaContainerOpcoes;
+  }
 
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(false, this.alinhamentoMenu);
