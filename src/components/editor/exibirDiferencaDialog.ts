@@ -1,7 +1,16 @@
+import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { textoDiffAsHtml } from '../../util/string-util';
 
-export const exibirDiferencasDialog = (texto1 = '', texto2 = '', quill?: any): void => {
-  const textoDiff = textoDiffAsHtml(texto1, texto2, 'diffWords');
+export class TextoDiff {
+  quill!: EtaQuill;
+  textoOriginal!: string;
+  textoAntesRevisao!: string;
+  textoAposRevisao!: string;
+  textoAtual!: string;
+}
+
+export const exibirDiferencasDialog = (diff: TextoDiff): void => {
+  const textoDiff = textoDiffAsHtml(diff.textoAtual, diff.textoOriginal, 'diffWords');
 
   Array.from(document.querySelectorAll('#slDialogExibirDiferencas')).forEach(el => document.body.removeChild(el));
 
@@ -13,7 +22,7 @@ export const exibirDiferencasDialog = (texto1 = '', texto2 = '', quill?: any): v
 
   const fnDestroy = (): void => {
     try {
-      quill && quill.focus();
+      diff.quill && diff.quill.focus();
       dialogElem?.hide();
       document.body.removeChild(dialogElem);
     } catch (error) {
@@ -45,7 +54,7 @@ export const exibirDiferencasDialog = (texto1 = '', texto2 = '', quill?: any): v
 
   fechar.onclick = (): Promise<void> => dialogElem?.hide();
 
-  quill && quill.blur();
+  diff.quill && diff.quill.blur();
   dialogElem.appendChild(content);
   dialogElem.show();
 };
