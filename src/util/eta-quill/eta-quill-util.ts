@@ -64,12 +64,15 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
-    if (elemento.revisao && isRevisaoPrincipal(elemento.revisao)) {
-      EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
+    if (
+      elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao && elemento.revisao.descricao === 'Texto do dispositivo foi alterado')
+    ) {
+      EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
     }
 
-    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao)) {
-      EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
+    if (elemento.revisao && isRevisaoPrincipal(elemento.revisao)) {
+      EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
     }
 
     etaTdTexto.insertInto(etaTrContainer);

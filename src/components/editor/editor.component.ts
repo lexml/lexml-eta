@@ -683,8 +683,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.limparHistory();
     });
 
-    this.indicadorTextoModificado(events);
     this.indicadorMarcaRevisao(events);
+    this.indicadorTextoModificado(events);
     this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
 
@@ -1116,19 +1116,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   exibirDiferencas(elemento: Elemento): void {
-    const revisao = elemento.revisao as RevisaoElemento;
-    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
-
     const diff: TextoDiff = new TextoDiff();
-    diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
     diff.textoAtual = elemento.conteudo!.texto!;
     diff.quill = this.quill;
 
+    const revisao = elemento.revisao as RevisaoElemento;
+
     if (revisao) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
+      diff.textoOriginal = diff.textoAntesRevisao;
       diff.textoAposRevisao = revisao.elementoAposRevisao.conteudo!.texto!;
       exibirDiferencasDialog(diff);
     } else {
+      const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
+      if (d) {
+        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
+      }
       exibirDiferencasDialog(diff);
     }
   }
@@ -1415,7 +1418,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const elementos: Elemento[] = [...mapElementos.values()];
     const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
     const uuidsElementosComModificacao = elementos
-      .filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao))
+      .filter(
+        e =>
+          e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado')
+      )
       .map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {
