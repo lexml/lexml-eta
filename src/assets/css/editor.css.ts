@@ -585,8 +585,12 @@ export const editorStyles = html`
       width: 1.3rem;
       height: 1.3rem;
       top: -1px;
-      background: url('assets/icons/check-lg.svg') no-repeat center;
+      background: url('assets/icons/check-lg.svg') no-repeat center, white;
       background-size: 1rem;
+    }
+
+    .blot__revisao_aceitar:hover {
+      filter: invert(100%);
     }
 
     .blot__opcoes_diff {
@@ -600,8 +604,12 @@ export const editorStyles = html`
       width: 1.3rem;
       height: 1.3rem;
       top: -1px;
-      background: url('assets/icons/file-diff.svg') no-repeat center;
-      background-size: 1rem;
+      background: url('assets/icons/plus-minus.svg') no-repeat center, white;
+      background-size: 0.8rem;
+    }
+
+    .blot__opcoes_diff:hover {
+      filter: invert(100%);
     }
 
     .blot__revisao_recusar {
@@ -615,8 +623,12 @@ export const editorStyles = html`
       width: 1.3rem;
       height: 1.3rem;
       top: -1px;
-      background: url('assets/icons/x.svg') no-repeat center;
+      background: url('assets/icons/x.svg') no-repeat center, white;
       background-size: 1rem;
+    }
+
+    .blot__revisao_recusar:hover {
+      filter: invert(100%);
     }
 
     .blot__revisao_aceitar:focus,
@@ -652,6 +664,7 @@ export const editorStyles = html`
       display: flex;
       flex-direction: row;
       align-items: center;
+      margin-left: 0.1rem;
       gap: 0.1rem;
       @media (max-width: 768px) {
         flex-direction: column;

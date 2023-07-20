@@ -20,7 +20,7 @@ export class EtaBlotOpcoesDiff extends EtaBlot {
     node.innerHTML = ' ';
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotOpcoesDiff.className);
-    node.setAttribute('title', 'Exibir Diferenças');
+    node.setAttribute('title', 'Exibir diferenças');
     EtaBlotOpcoesDiff.atualizarAtributos(elemento, node);
     return node;
   }
