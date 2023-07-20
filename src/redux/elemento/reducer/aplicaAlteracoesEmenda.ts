@@ -388,10 +388,8 @@ const atualizarUuidDoPaiDoElementoRemovido = (state: State, revisao: RevisaoElem
 
   if (isRevisaoPrincipal(revisao)) {
     const pai = buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.hierarquia!.pai!.lexmlId!);
-    revisao.elementoAposRevisao.hierarquia!.pai!.uuid = pai?.uuid;
-    revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = pai?.uuid2;
-    revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = pai?.uuid;
-    revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = pai?.uuid2;
+    uuid = pai?.uuid;
+    uuid2 = pai?.uuid2;
   } else {
     const revisaoPai = findRevisaoById(state.revisoes!, revisao.idRevisaoElementoPai!) as RevisaoElemento;
     uuid = revisaoPai!.elementoAposRevisao.uuid;
