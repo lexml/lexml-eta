@@ -52,10 +52,10 @@ export class EditorTextoRicoComponent extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        #editor-texto-rico {
+        .editor-texto-rico {
           height: 375px;
         }
-        #editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
+        .editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
           text-indent: 3em;
         }
         .ql-toolbar.ql-snow .ql-formats {
@@ -95,7 +95,7 @@ export class EditorTextoRicoComponent extends LitElement {
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
       </div>
-      <div id="${this.id}-inner"></div>
+      <div id="${this.id}-inner" class="editor-texto-rico"></div>
     `;
   }
 

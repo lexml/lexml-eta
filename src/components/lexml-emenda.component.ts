@@ -170,7 +170,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
-    this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
+    if (this._lexmlEmendaTextoRico) {
+      this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
+    }
     this._lexmlData.data = emenda.data;
   }
 
@@ -390,7 +392,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              ${this.modo !== 'emendaTextoLivre'
+              ${this.modo && this.modo !== 'emendaTextoLivre'
                 ? html`<lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>`
                 : html`<editor-texto-rico id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
             </sl-tab-panel>
