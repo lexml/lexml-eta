@@ -15,3 +15,6 @@ export const sublinhado = `
 <rect x="3" y="12.9" class="st0" width="9.9" height="0.8"/>
 </svg>
 `;
+
+export const controleDropdown =
+  '<svg viewBox="0 0 18 18"> <polygon class="ql-stroke" points="7 11 9 13 11 11 7 11"></polygon> <polygon class="ql-stroke" points="7 7 9 5 11 7 7 7"></polygon> </svg>';

@@ -1,6 +1,6 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { negrito, sublinhado } from '../../../assets/icons/icons';
+import { negrito, sublinhado, controleDropdown } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends LitElement {
@@ -61,8 +61,29 @@ export class EditorTextoRicoComponent extends LitElement {
         .ql-toolbar.ql-snow .ql-formats {
           margin-right: 8px;
         }
+        .editor-texto-rico .estilo-artigo-subordinados {
+          text-indent: 0 !important;
+          text-align: justify;
+        }
+        .editor-texto-rico .estilo-agrupador-artigo {
+          text-indent: 0 !important;
+          text-align: center;
+        }
+        .editor-texto-rico .estilo-emenda {
+          text-indent: 0 !important;
+          text-align: justify;
+          margin-left: 40%;
+        }
       </style>
       <div id="${`toolbar${this.id}`}">
+        <span class="ql-formats">
+          <select id="select-estilo" class="ql-estilo" title="Estilo">
+            <option value="estilo-normal">Texto normal</option>
+            <option value="estilo-artigo-subordinados">Artigo e subordinados</option>
+            <option value="estilo-agrupador-artigo">Agrupador de artigo</option>
+            <option value="estilo-emenda">Ementa</option>
+          </select>
+        </span>
         <span class="ql-formats">
           <button type="button" class="ql-bold" title="Negrito (Ctrl+b)"></button>
           <button type="button" class="ql-italic" title="Itálico (Ctrl+i)"></button>
@@ -121,13 +142,14 @@ export class EditorTextoRicoComponent extends LitElement {
     this.container = document.querySelector(`#${this.id}-inner`);
     if (this.container) {
       this.quill = new Quill(this.container as HTMLElement, {
-        formats: ['bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
+        formats: ['estilo', 'bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
         modules: {
           toolbar: {
             container: '#toolbar' + this.id,
             handlers: {
               undo: this.undo,
               redo: this.redo,
+              estilo: this.changeEstilo,
             },
           },
           history: {
@@ -144,6 +166,7 @@ export class EditorTextoRicoComponent extends LitElement {
       this.setContent(this.texto);
 
       this.quill?.on('text-change', this.updateTexto);
+      this.loadDropDownEstilo();
     }
   };
 
@@ -176,5 +199,27 @@ export class EditorTextoRicoComponent extends LitElement {
 
   redo = (): any => {
     return this.quill?.history.redo();
+  };
+
+  changeEstilo = (value): void => {
+    const label = document.querySelector(`#toolbar${this.id} .ql-estilo .ql-picker-label`);
+    const itens = document.querySelectorAll(`#toolbar${this.id} .ql-estilo .ql-picker-item`);
+    const placeholderPickerItems = Array.prototype.slice.call(itens);
+    const item = placeholderPickerItems.filter(item => item.dataset.value === value)[0];
+    label!.innerHTML = item.dataset.label + '&nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
+    const range = this.quill?.getSelection();
+    if (range) {
+      this.quill?.getLines(range.index)[0].domNode.setAttribute('class', value);
+    }
+  };
+
+  loadDropDownEstilo = (): void => {
+    const label = document.querySelector(`#toolbar${this.id} .ql-estilo .ql-picker-label`);
+    const itens = document.querySelectorAll(`#toolbar${this.id} .ql-estilo .ql-picker-item`);
+    if (this.container && label) {
+      const placeholderPickerItems = Array.prototype.slice.call(itens);
+      placeholderPickerItems.forEach(item => (item.textContent = item.dataset.label));
+      label!.innerHTML = 'Texto Normal &nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
+    }
   };
 }
