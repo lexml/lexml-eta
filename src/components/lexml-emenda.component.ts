@@ -22,6 +22,7 @@ import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
+import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -156,6 +157,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } else {
       this.resetaEmenda(modo as ModoEdicaoEmenda);
     }
+
+    this.limparAlertas();
 
     if (this.modo === 'emendaTextoLivre' && !this._lexmlEmendaTextoRico.texto) {
       this.showAlertaEmendaTextoLivre();
@@ -313,6 +316,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
       }
     }
+  }
+
+  limparAlertas(): void {
+    rootStore.dispatch(limparAlertas());
   }
 
   showAlertaEmendaTextoLivre(): void {
