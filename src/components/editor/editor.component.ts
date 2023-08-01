@@ -1126,7 +1126,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (revisao) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
 
-      if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
         diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
       } else {
         diff.textoOriginal = diff.textoAntesRevisao;
@@ -1428,7 +1428,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .filter(
         e =>
           e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado')
+          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado') ||
+          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao && e.revisao.descricao === 'Dispositivo restaurado')
       )
       .map(e => e.uuid!);
 
