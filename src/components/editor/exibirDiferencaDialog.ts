@@ -7,10 +7,11 @@ export class TextoDiff {
   textoAntesRevisao!: string;
   textoAposRevisao!: string;
   textoAtual!: string;
+  adicionado = false;
 }
 
 export const exibirDiferencasDialog = (diff: TextoDiff): void => {
-  const textoDiff = textoDiffAsHtml(diff.textoAtual, diff.textoOriginal, 'diffWords');
+  //const textoDiff = textoDiffAsHtml(diff.textoAtual, diff.textoOriginal, 'diffWords');
 
   Array.from(document.querySelectorAll('#slDialogExibirDiferencas')).forEach(el => document.body.removeChild(el));
 
@@ -34,6 +35,49 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
     setTimeout(() => fnDestroy(), 0);
   });
 
+  const tabModificado = !diff.adicionado ? `<sl-tab slot="nav" panel="modificado">Modificado</sl-tab>` : '';
+  const tabModificadoRevisao =
+    diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined ? `<sl-tab slot="nav" panel="modificadoRevisao">Modificado em revisão</sl-tab>` : '';
+
+  const tabPanelModificado = !diff.adicionado
+    ? `<sl-tab-panel name="modificado">
+    <div class="texto-alterado">
+      <p>Texto Original</p>
+      ${diff.textoOriginal}
+    </div>
+
+    <p>Diferença</p>
+    <div class="texto-alterado">
+      ${textoDiffAsHtml(diff.textoOriginal, diff.textoAntesRevisao !== undefined ? diff.textoAntesRevisao : diff.textoAtual, 'diffWords')}
+    </div>
+
+    <p>Texto Atual</p>
+    <div class="texto-alterado">
+      ${diff.textoAtual}
+    </div>
+  </sl-tab-panel>`
+    : '';
+
+  const tabPanelModificadoRevisao =
+    diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined
+      ? `<sl-tab-panel name="modificadoRevisao">
+    <div class="texto-alterado">
+      <p>Texto antes da revisão</p>
+      ${diff.textoAntesRevisao}
+    </div>
+
+    <p>Diferença</p>
+    <div class="texto-alterado">
+      ${textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAposRevisao, 'diffWords')}
+    </div>
+
+    <p>Texto após revisão (atual)</p>
+    <div class="texto-alterado">
+      ${diff.textoAposRevisao}
+    </div>
+  </sl-tab-panel>`
+      : '';
+
   const content = document.createRange().createContextualFragment(`
   <style>
     .texto-alterado ins {
@@ -45,8 +89,16 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
     }
   </style>
   <div class="texto-alterado">
-    ${textoDiff}
+    <sl-tab-group>
+      ${tabModificado}    
+      ${tabModificadoRevisao}
+
+      ${tabPanelModificado}
+      ${tabPanelModificadoRevisao}    
+    </sl-tab-group>
   </div>
+
+
   <sl-button slot="footer" variant="primary">Fechar</sl-button>
   `);
 

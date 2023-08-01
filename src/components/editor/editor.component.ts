@@ -1121,14 +1121,21 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     diff.quill = this.quill;
 
     const revisao = elemento.revisao as RevisaoElemento;
+    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
 
     if (revisao) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
-      diff.textoOriginal = diff.textoAntesRevisao;
+
+      if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
+      } else {
+        diff.textoOriginal = diff.textoAntesRevisao;
+        diff.adicionado = true;
+      }
+
       diff.textoAposRevisao = revisao.elementoAposRevisao.conteudo!.texto!;
       exibirDiferencasDialog(diff);
     } else {
-      const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
       if (d) {
         diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
       }
