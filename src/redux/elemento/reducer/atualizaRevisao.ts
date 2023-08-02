@@ -70,10 +70,10 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   }
   revisoes = identificarRevisaoElementoPai(state, revisoes);
 
-  // if (existeEventoDeInclusaoOuExclusao(state)) {
-  //   atualizarLexmlIdEmElementosDeRevisoes(state);
-  //   atualizarPosicaoDeElementosEmRevisoes(state);
-  // }
+  if (existeEventoDeInclusaoOuExclusao(state)) {
+    atualizarLexmlIdEmElementosDeRevisoes(state);
+    atualizarPosicaoDeElementosEmRevisoes(state);
+  }
 
   state.revisoes!.push(...revisoes);
 

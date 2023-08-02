@@ -19,7 +19,6 @@ import {
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
   findUltimaRevisaoDoGrupo,
   getRevisoesElementoAssociadas,
-  isAtualizarPosicaoDeElementoExcluido,
   isRevisaoDeMovimentacao,
   isRevisaoPrincipal,
 } from '../util/revisaoUtil';
@@ -214,11 +213,11 @@ const atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao = (stat
     revisaoASerAtualizada.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(eUltimoFilho));
     revisaoASerAtualizada.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(eUltimoFilho));
 
-    // Atualiza posição
-    if (isAtualizarPosicaoDeElementoExcluido(primeiroElementoReincluido, revisaoASerAtualizada.elementoAposRevisao)) {
-      revisaoASerAtualizada.elementoAposRevisao.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
-      revisaoASerAtualizada.elementoAntesRevisao!.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
-    }
+    // // Atualiza posição
+    // if (isAtualizarPosicaoDeElementoExcluido(primeiroElementoReincluido, revisaoASerAtualizada.elementoAposRevisao)) {
+    //   revisaoASerAtualizada.elementoAposRevisao.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
+    //   revisaoASerAtualizada.elementoAntesRevisao!.hierarquia!.posicao = primeiroElementoReincluido.hierarquia!.posicao! + 1;
+    // }
   }
 };
 
