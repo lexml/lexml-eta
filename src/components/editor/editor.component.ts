@@ -706,6 +706,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
+
+    if (events?.some(ev => [StateType.RevisaoAtivada, StateType.RevisaoDesativada].includes(ev.stateType))) {
+      this.emitiEventoOnRevisao(rootStore.getState().elementoReducer.emRevisao);
+    }
   }
 
   private processaRevisoesAceitas(events: StateEvent[], event: StateEvent): void {
@@ -1208,6 +1212,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === 'alerta-global-correlacao')) {
       rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
     }
+  }
+
+  private emitiEventoOnRevisao(emRevisao: boolean): void {
+    this.dispatchEvent(
+      new CustomEvent('onrevisao', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          emRevisao,
+        },
+      })
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
