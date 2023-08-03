@@ -42,45 +42,70 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   const tabPanelModificado =
     !diff.adicionado && diferencaModificado !== diff.textoOriginal
       ? `<sl-tab-panel name="modificado">
-        <div class="texto-alterado">
-          <p>Texto Original</p>
+
+        <sl-card class="card-header texto-alterado">
+          <div slot="header">
+            Texto Original
+          </div>
           ${diff.textoOriginal}
-        </div>
+        </sl-card>
 
-        <p>Diferença</p>
-        <div class="texto-alterado">
+        <sl-card class="card-header texto-alterado">
+          <div slot="header">
+            Diferença
+          </div>
           ${diferencaModificado}
-        </div>
+        </sl-card>
 
-        <p>Texto Atual</p>
-        <div class="texto-alterado">
+        <sl-card class="card-header texto-alterado">
+          <div slot="header">
+          Texto Atual
+          </div>
           ${diff.textoAtual}
-        </div>
+        </sl-card>
+
       </sl-tab-panel>`
       : '';
 
   const tabPanelModificadoRevisao =
     diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined
       ? `<sl-tab-panel name="modificadoRevisao">
-          <div class="texto-alterado">
-            <p>Texto antes da revisão</p>
+
+          <sl-card class="card-header texto-alterado">
+            <div slot="header">
+              Texto antes da revisão
+            </div>
             ${diff.textoAntesRevisao}
-          </div>
+          </sl-card>
 
-          <p>Diferença</p>
-          <div class="texto-alterado">
+          <sl-card class="card-header texto-alterado">
+            <div slot="header">
+              Diferença
+            </div>
             ${textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAposRevisao, 'diffWords')}
-          </div>
+          </sl-card>
 
-          <p>Texto após revisão (atual)</p>
-          <div class="texto-alterado">
+          <sl-card class="card-header texto-alterado">
+            <div slot="header">
+              Texto após revisão (atual
+            </div>
             ${diff.textoAposRevisao}
-          </div>
+          </sl-card>
+
         </sl-tab-panel>`
       : '';
 
   const content = document.createRange().createContextualFragment(`
   <style>
+
+    sl-dialog {
+      --width: 90vw;
+    }
+    sl-dialog::part(base) {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
     .texto-alterado ins {
       background-color: #c6ffc6;
     }
@@ -88,14 +113,46 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
     .texto-alterado del {
       background-color: #ffc6c6;
     }
+
+    sl-tab-panel::part(base) {
+      padding-top: 1rem;
+      display: flex;
+      flex-direction: row;
+      gap: 1rem;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    sl-card {
+      box-shadow: var(--sl-shadow-x-large) !important;
+    }
+
+    sl-card::part(base){
+      height: 100%;
+    }
+
+    sl-card::part(header) {
+      background-color: var(--sl-color-neutral-200);
+    }
+
+
+    @media (max-width: 768px) {
+      sl-tab-panel::part(base) {
+        flex-direction: column;
+      }
+      sl-dialog {
+        --width: 100vw !important;
+      }
+    }
+
   </style>
   <div class="texto-alterado">
     <sl-tab-group>
-      ${tabModificado}    
+      ${tabModificado}
       ${tabModificadoRevisao}
 
       ${tabPanelModificado}
-      ${tabPanelModificadoRevisao}    
+      ${tabPanelModificadoRevisao}
     </sl-tab-group>
   </div>
 
