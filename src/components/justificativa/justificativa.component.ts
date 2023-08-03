@@ -72,6 +72,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           break;
       }
       this.atualizaQuantidadeRevisao();
+      this.atualiazaRevisaoJusutificativaIcon();
     });
   }
 
@@ -292,9 +293,11 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
     if (this.getRevisoesJustificativa().length !== 0) {
       contentRevisoes.innerHTML = this.getMensagemRevisaoJustificativa();
       iconRevisoes.classList.add('revisoes-justificativa-icon__ativo');
+      iconRevisoes.removeAttribute('disabled');
     } else {
       contentRevisoes.innerHTML = 'Revisões na justificativa';
       iconRevisoes.classList.remove('revisoes-justificativa-icon__ativo');
+      this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
     }
   };
 
