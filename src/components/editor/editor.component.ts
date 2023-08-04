@@ -939,7 +939,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
         if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusao(linha.elemento.revisao as RevisaoElemento))) {
           linha.atualizarElemento(elemento);
