@@ -1134,7 +1134,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       diff.textoAposRevisao = revisao.elementoAposRevisao.conteudo!.texto!;
       exibirDiferencasDialog(diff);
     } else {
-      if (d) {
+      if (d && d!.situacao.dispositivoOriginal?.conteudo !== undefined) {
         diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
       }
       exibirDiferencasDialog(diff);
@@ -1502,7 +1502,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         e =>
           e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
           (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado') ||
-          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao && e.revisao.descricao === 'Dispositivo restaurado')
+          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
+            e.revisao &&
+            (e.revisao as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto !== e.conteudo?.texto)
+        // || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao
+        //   && (e.revisao.descricao === 'Dispositivo restaurado' || e.revisao.descricao === 'Texto do dispositivo foi alterado'))
       )
       .map(e => e.uuid!);
 
