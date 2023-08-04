@@ -142,13 +142,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   disconnectedCallback(): void {
     this.inscricoes.forEach((i: Subscription) => i.cancel());
-    this.removeEventListener('ontextchange', (event: any) => console.log(event));
-    this.removeEventListener('rotulo', (event: any) => console.log(event));
-    this.removeEventListener('nota-alteracao', (event: any) => console.log(event));
-    this.removeEventListener('toggle-existencia', (event: any) => console.log(event));
-    this.removeEventListener('aceitar-revisao', (event: any) => console.log(event));
-    this.removeEventListener('rejeitar-revisao', (event: any) => console.log(event));
-    this.removeEventListener('exibir-diferencas', (event: any) => console.log(event));
     this.destroiQuill();
     super.disconnectedCallback();
   }
@@ -706,6 +699,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
+
+    if (events?.some(ev => [StateType.RevisaoAtivada, StateType.RevisaoDesativada].includes(ev.stateType))) {
+      this.emitiEventoOnRevisao(rootStore.getState().elementoReducer.emRevisao);
+    }
   }
 
   private processaRevisoesAceitas(events: StateEvent[], event: StateEvent): void {
@@ -1113,6 +1110,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       event.stopImmediatePropagation();
       this.exibirDiferencas(event.detail.elemento);
     });
+    this.configListenersEta();
   }
 
   exibirDiferencas(elemento: Elemento): void {
@@ -1218,6 +1216,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === 'alerta-global-correlacao')) {
       rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
     }
+  }
+
+  private emitiEventoOnRevisao(emRevisao: boolean): void {
+    this.dispatchEvent(
+      new CustomEvent('onrevisao', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          emRevisao,
+        },
+      })
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1365,6 +1375,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private destroiQuill(): void {
+    this.removeListenersEta();
+
     this.getHtmlElement('lx-eta-editor')!.innerHTML = '';
     this.getHtmlElement('lx-eta-buffer')!.innerHTML = '';
     if (this.quill) {
@@ -1372,6 +1384,67 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.destroi();
     }
     this._quill = undefined;
+  }
+
+  private listenerRotulo = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.renumerarElemento();
+  };
+
+  private listenerNotaAlteracao = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.editarNotaAlteracao(event.detail.elemento);
+  };
+
+  private listenerToggleExistencia = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.toggleExistenciaElemento(event.detail.elemento);
+  };
+
+  private listenerMensagem = (event: any): void => {
+    event.stopImmediatePropagation();
+
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+
+    if (linha) {
+      if (AutoFix.RENUMERAR_DISPOSITIVO === event.detail?.mensagem?.descricao) {
+        this.renumerarElemento();
+      } else {
+        const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+        const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
+        rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
+      }
+    }
+  };
+
+  private listenerAceitarRevisao = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.aceitarRevisao(event.detail.elemento);
+  };
+
+  private listenerRejeitarRevisao = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.rejeitarRevisao(event.detail.elemento);
+  };
+
+  private configListenersEta(): void {
+    const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
+    editorHtml.addEventListener('rotulo', this.listenerRotulo);
+    editorHtml.addEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.addEventListener('toggle-existencia', this.listenerToggleExistencia);
+    editorHtml.addEventListener('mensagem', this.listenerMensagem);
+    editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
+    editorHtml.addEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
+  }
+
+  private removeListenersEta(): void {
+    const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
+    editorHtml.removeEventListener('rotulo', this.listenerRotulo);
+    editorHtml.removeEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.removeEventListener('toggle-existencia', this.listenerToggleExistencia);
+    editorHtml.removeEventListener('mensagem', this.listenerMensagem);
+    editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);
+    editorHtml.removeEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
   }
 
   private async onPasteTextoArticulado(payload: any): Promise<void> {
