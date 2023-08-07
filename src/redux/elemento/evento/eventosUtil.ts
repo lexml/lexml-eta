@@ -424,8 +424,10 @@ export const unificarEvento = (state: State, eventos: StateEvent[], stateType: S
             elementos.push(e);
           } else if (!mapDispositivos.has(e.uuid!)) {
             const dispositivo = getDispositivoFromElemento(state.articulacao!, e)!;
-            mapDispositivos.set(e.uuid!, dispositivo);
-            elementos.push(createElementoValidado(dispositivo, stateType === StateType.ElementoIncluido));
+            if (dispositivo) {
+              mapDispositivos.set(e.uuid!, dispositivo);
+              elementos.push(createElementoValidado(dispositivo, stateType === StateType.ElementoIncluido));
+            }
           }
         });
       });

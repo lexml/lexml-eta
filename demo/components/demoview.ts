@@ -308,7 +308,15 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-emenda modo=${this.modo}></lexml-emenda>
+      <lexml-emenda modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-emenda>
     `;
+  }
+
+  private onRevisao(e: CustomEvent): void {
+    if (e.detail.emRevisao) {
+      console.log('Revisão ativada');
+    } else {
+      console.log('Revisão desativada');
+    }
   }
 }
