@@ -1,22 +1,20 @@
+import { isRevisaoPrincipal, getQuantidadeRevisoes } from './../../redux/elemento/util/revisaoUtil';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
-
 import { InfoTextoColado } from './../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, query } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
-import { atualizarElementoAction } from '../../model/lexml/acao/atualizarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
 import { autofixAction } from '../../model/lexml/acao/autoFixAction';
@@ -61,11 +59,22 @@ import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.mo
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
+import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
+import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
+import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
+import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
+import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
+// import { DescricaoSituacao } from '../../model/dispositivo/situacao';
+// import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
+import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
 
@@ -74,6 +83,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-emenda-comando-modal')
   private comandoEmendaModal!: ComandoEmendaModalComponent;
+
+  @query('#btnAceitarTodasRevisoes')
+  private btnAceitarTodasRevisoes!: HTMLButtonElement;
+
+  @query('#btnRejeitarTodasRevisoes')
+  private btnRejeitarTodasRevisoes!: HTMLButtonElement;
 
   private _quill?: EtaQuill;
   private get quill(): EtaQuill {
@@ -84,6 +99,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
+
+  private _idSwitchRevisao = 'chk-em-revisao';
+  private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao';
 
   constructor() {
     super();
@@ -122,13 +140,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   disconnectedCallback(): void {
     this.inscricoes.forEach((i: Subscription) => i.cancel());
-    this.removeEventListener('ontextchange', (event: any) => console.log(event));
-    this.removeEventListener('rotulo', (event: any) => console.log(event));
-    this.removeEventListener('nota-alteracao', (event: any) => console.log(event));
-    this.removeEventListener('toggle-existencia', (event: any) => console.log(event));
     this.destroiQuill();
     super.disconnectedCallback();
   }
+
+  @property({ type: Boolean })
+  exibirBotoesParaTratarTodas = true;
 
   render(): TemplateResult {
     return html`
@@ -144,6 +161,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);
+        }
+        .checkBoxRevisao {
+          padding: 3px 5px;
+          margin: 5px 5px 5px 4px;
         }
       </style>
       <div id="lx-eta-box">
@@ -167,7 +188,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               />
             </svg>
           </button>
-          <button type="button" class="ql-clean">
+          <button type="button" class="ql-clean" title="Remover formatação">
             <svg class="" viewBox="0 0 18 18">
               <line class="ql-stroke" x1="5" x2="13" y1="3" y2="3"></line>
               <line class="ql-stroke" x1="6" x2="9.35" y1="12" y2="3"></line>
@@ -176,6 +197,23 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               <rect class="ql-fill" height="1" rx="0.5" ry="0.5" width="7" x="2" y="14"></rect>
             </svg>
           </button>
+
+          <lexml-switch-revisao
+          class="revisao-container"
+          .nomeSwitch="${this._idSwitchRevisao}"
+          .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+          >
+          </lexml-switch-revisao>
+
+          <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
+            <sl-icon-button name="arrow-down"></sl-icon-button>
+          </sl-button>
+
+          <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
+            <sl-icon-button name="arrow-up"></sl-icon-button>
+          </sl-button>
+
+          ${this.exibirBotoesParaTratarTodas ? this.renderBotoesParaTratarTodasRevisoes() : ''}
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
@@ -202,6 +240,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <lexml-ajuda-modal></lexml-ajuda-modal>
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
       <lexml-atalhos-modal></lexml-atalhos-modal>
+    `;
+  }
+
+  private renderBotoesParaTratarTodasRevisoes(): TemplateResult {
+    return html`
+      <sl-icon-button id="btnRejeitarTodasRevisoes" name="x" label="" title="Rejeitar Revisões" ?disabled=${true} @click=${(): void => this.rejeitarTodasRevisoes()}>
+        Rejeitar Revisões
+      </sl-icon-button>
+
+      <sl-icon-button id="btnAceitarTodasRevisoes" name="check-lg" label="" title="Aceitar Revisões" ?disabled=${true} @click=${(): void => this.aceitarTodasRevisoes()}>
+        Aceitar Revisões
+      </sl-icon-button>
     `;
   }
 
@@ -301,10 +351,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       textoLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, 0, blotConteudo.tamanho - tamanhoNovaLinha);
       textoNovaLinha = this.quill.getConteudoHtmlParteLinha(blotConteudo, range.index - indexInicio, tamanhoNovaLinha);
     }
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
-      const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
@@ -316,9 +366,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const atual = linha.blotConteudo.html;
     const elemento: Elemento = this.criarElemento(
       linha!.uuid ?? 0,
+      linha!.uuid2 ?? '',
       linha.lexmlId,
       linha!.tipo ?? '',
       '',
@@ -373,7 +423,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     `);
 
     const input = <SlInput>content.querySelector('sl-input');
-    input.value = `${rotuloParaEdicao(linha.blotRotulo!.rotulo)}`;
+    const rotuloAtual = `${rotuloParaEdicao(linha.blotRotulo!.rotulo)}`;
+    input.value = rotuloAtual;
 
     const botoes = content.querySelectorAll('sl-button');
     const cancelar = botoes[0];
@@ -387,12 +438,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       dialogElem?.hide();
       dialogElem?.remove();
 
-      if (elemento.conteudo?.texto !== atual) {
-        elemento.conteudo!.texto = atual;
-        rootStore.dispatch(atualizarElementoAction.execute(elemento));
+      if (input.value?.trim().toLowerCase() !== rotuloAtual?.toLowerCase()) {
+        rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
       }
-
-      rootStore.dispatch(renumerarElementoAction.execute(elemento, input.value.trim()));
     };
 
     cancelar.onclick = (): void => {
@@ -437,6 +485,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const elemento: Elemento = this.criarElemento(
       linha!.uuid ?? 0,
+      linha!.uuid2 ?? '',
       linha.lexmlId,
       linha!.tipo ?? '',
       '',
@@ -463,7 +512,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElementoSemTexto(key: string): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
     rootStore.dispatch(removerElementoSemTextoAction.execute(elemento, key));
   }
 
@@ -471,11 +520,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo?.rotulo}?`;
 
+    const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
+
     this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
       const choice: any = event.detail.closeResult;
       if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
-        rootStore.dispatch(removerElementoAction.execute(elemento));
+        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+        rootStore.dispatch(removerElementoAction.execute(elemento, elementoLinhaAnterior));
       }
       this.quill.focus();
     });
@@ -483,15 +534,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private moverElemento(ev: KeyboardEvent): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
-    const textoLinha = blotConteudo.html;
+    if (linha) {
+      const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+      const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
-    if (ev.key === 'ArrowUp') {
-      rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
-    } else if (ev.key === 'ArrowDown') {
-      rootStore.dispatch(moverElementoAbaixoAction.execute(elemento));
+      if (ev.key === 'ArrowUp') {
+        rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
+      } else if (ev.key === 'ArrowDown') {
+        rootStore.dispatch(moverElementoAbaixoAction.execute(elemento));
+      }
     }
   }
 
@@ -500,7 +553,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
     const textoLinha = blotConteudo.html;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
     if (ev.key.toLowerCase() === 'o') {
       rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
@@ -511,9 +564,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private elementoSelecionado(uuid: number): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const elemento: Elemento = this.criarElemento(uuid, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
-    rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
-    this.quill.processandoMudancaLinha = false;
+    if (linha) {
+      const elemento: Elemento = this.criarElemento(uuid, linha!.uuid2, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
+      rootStore.dispatch(elementoSelecionadoAction.execute(elemento));
+      this.quill.processandoMudancaLinha = false;
+    }
   }
 
   private undoRedoEstrutura(tipo: string): void {
@@ -537,16 +592,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.InformarDadosAssistente:
-          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction);
+          assistenteAlteracaoDialog(event.elementos![0], this.quill, rootStore, adicionarAlteracaoComAssistenteAction, this.lexmlEtaConfig.urlAutocomplete);
           break;
 
         case StateType.InformarNorma:
-          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction);
+          informarNormaDialog(event.elementos![0], this.quill, rootStore, atualizarReferenciaElementoAction, this.lexmlEtaConfig.urlAutocomplete);
           break;
 
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
           this.inserirNovosElementosNoQuill(event, true);
+          // this.atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events, event);
           break;
 
         case StateType.ElementoModificado:
@@ -596,9 +652,30 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarMensagemQuill(event);
           this.atualizarOmissis(event);
           break;
+
+        case StateType.RevisaoAtivada:
+          this.checkedSwitchMarcaAlteracao();
+          break;
+        case StateType.RevisaoDesativada:
+          this.checkedSwitchMarcaAlteracao();
+          this.atualizarEstiloBotaoRevisao();
+          break;
+        case StateType.RevisaoAceita:
+          this.processaRevisoesAceitas(events, event);
+          break;
+        case StateType.RevisaoAdicionalRejeitada:
+          this.removerLinhaQuill(event);
+          break;
       }
+
+      this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
+
+    //this.indicadorTextoModificado(events);
+    this.indicadorMarcaRevisao(events);
+    this.atualizaQuantidadeRevisao();
+    this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
     const eventosQueDevemEmitirTextChange = [
@@ -618,46 +695,96 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
+
+    if (events?.some(ev => [StateType.RevisaoAtivada, StateType.RevisaoDesativada].includes(ev.stateType))) {
+      this.emitiEventoOnRevisao(rootStore.getState().elementoReducer.emRevisao);
+    }
+  }
+
+  private processaRevisoesAceitas(events: StateEvent[], event: StateEvent): void {
+    if (this.isAceitandoRevisoesDeExclusao(event)) {
+      this.removerLinhaQuill(event);
+    } else {
+      this.atualizarAtributos(event);
+      if (events[events.length - 1] === event) {
+        this.montarMenuContexto(event);
+      }
+      this.atualizarMensagemQuill(event);
+    }
+  }
+
+  private isAceitandoRevisoesDeExclusao(event: StateEvent): boolean {
+    return event.elementos?.some(e => (this.quill.getLinha(e.uuid!)?.elemento.revisao as RevisaoElemento)?.stateType === StateType.ElementoRemovido) ?? false;
+  }
+
+  private existeReinclusaoDoElemento(elementosIncluidos: Elemento[], elemento: Elemento): boolean {
+    return elementosIncluidos.some(elementoIncluido => elementoIncluido.uuid === elemento.uuid);
   }
 
   private marcarLinha(event: StateEvent): void {
-    this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
-    const elemento = event.elementos![0];
-    const linha = this.quill.getLinha(elemento.uuid!)!;
-    this.quill.atualizarLinhaCorrente(linha);
-    this.elementoSelecionado(linha.uuid);
-    const index = this.quill.getIndex(linha.blotConteudo);
     try {
-      this.quill.setIndex(index, Quill.sources.SILENT);
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-    if (event.moverParaFimLinha) {
-      setTimeout(() => {
-        const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
-        this.quill.setSelection(posicao, 0, Quill.sources.USER);
-      }, 0);
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      const elemento = event.elementos![0];
+      const linha = this.quill.getLinha(elemento.uuid!)!;
+      this.quill.atualizarLinhaCorrente(linha);
+      this.elementoSelecionado(linha.uuid);
+      const index = this.quill.getIndex(linha.blotConteudo);
+      try {
+        this.quill.setIndex(index, Quill.sources.SILENT);
+        // eslint-disable-next-line no-empty
+      } catch (error) {}
+      if (event.moverParaFimLinha) {
+        setTimeout(() => {
+          const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
+          this.quill.setSelection(posicao, 0, Quill.sources.USER);
+        }, 0);
+      }
+    } catch (error) {
+      // linha, provavelmente, foi removida do Quill
     }
   }
 
   private processarEscolhaMenu(itemMenu: any): void {
-    /*     if (itemMenu === 'Remover dispositivo') {
-      this.removerElemento();
-    } else
- */ if (itemMenu === renumerarElementoAction) {
+    if (itemMenu === renumerarElementoAction) {
       this.renumerarElemento();
     } else if (itemMenu === atualizarNotaAlteracaoAction) {
       this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
     } else if (itemMenu instanceof AdicionarAgrupadorArtigo) {
       this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
+    } else if (itemMenu === removerElementoAction) {
+      const linha: EtaContainerTable = this.quill.linhaAtual;
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+      elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
+
+      const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
+      rootStore.dispatch(itemMenu.execute(elemento, elementoLinhaAnterior));
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
-      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+      const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
       elemento.conteudo!.texto = linha.blotConteudo.html ?? '';
       rootStore.dispatch(itemMenu.execute(elemento));
     }
   }
 
   private inserirNovoElementoNoQuill(elemento: Elemento, referencia: Elemento, selecionarLinha?: boolean): void {
+    const fnSelecionarNovaLinha = (linha: EtaContainerTable, linhaAtual: EtaContainerTable): void => {
+      this.quill.desmarcarLinhaAtual(linhaAtual);
+      this.quill.marcarLinhaAtual(linha);
+      try {
+        this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), Quill.sources.SILENT);
+      } catch (e) {
+        // console.log(e);
+      }
+    };
+
+    const linhaASerReinserida = this.quill.getLinha(elemento.uuid!);
+
+    if (linhaASerReinserida) {
+      linhaASerReinserida.atualizarElemento(elemento);
+      selecionarLinha && fnSelecionarNovaLinha(linhaASerReinserida, this.quill.linhaAtual);
+      return;
+    }
+
     const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia.uuid!);
 
     if (linhaRef) {
@@ -671,18 +798,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
       if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
-        if (selecionarLinha) {
-          this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
-          this.quill.marcarLinhaAtual(novaLinha);
-          try {
-            this.quill.setIndex(this.quill.getIndex(novaLinha.blotConteudo), Quill.sources.SILENT);
-          } catch (e) {
-            // console.log(e);
-          }
-        }
+        selecionarLinha && !this.timerOnChange && fnSelecionarNovaLinha(novaLinha, this.quill.linhaAtual);
       } else {
         this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
       }
+
       novaLinha.descricaoSituacao = elemento.descricaoSituacao;
       novaLinha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
       novaLinha.setEstilo(elemento!);
@@ -707,6 +827,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
           linha.descricaoSituacao = elemento.descricaoSituacao;
           linha.setEstilo(elemento);
+          linha.atualizarElemento(elemento);
         }
       }
     });
@@ -795,21 +916,33 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0) {
+        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
         }
       }
     });
   }
 
+  private elementoRemovidoEmRevisao(elemento: Elemento): boolean {
+    if (elemento.revisao && (elemento.revisao as RevisaoElemento).stateType === StateType.ElementoRemovido) {
+      return true;
+    }
+    return false;
+  }
+
   private removerLinhaQuill(event: StateEvent): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
 
-    elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+    elementos.forEach((elemento: Elemento, index) => {
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
-        linha.remove();
+        if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusao(linha.elemento.revisao as RevisaoElemento))) {
+          linha.atualizarElemento(elemento);
+          index === 0 && this.montarMenuContexto(event);
+        } else {
+          linha.remove();
+        }
       }
     });
 
@@ -829,7 +962,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.map((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
         linha.blotRotulo?.format(EtaBlotRotulo.blotName, elemento.rotulo);
       }
@@ -848,7 +981,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0) {
+        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
         }
       }
@@ -881,6 +1014,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private criarElemento(
     uuid: number,
+    uuid2: string,
     lexmlId: string,
     tipo: string,
     html: string,
@@ -891,6 +1025,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   ): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
+    elemento.uuid2 = uuid2;
     elemento.lexmlId = lexmlId;
     elemento.tipo = tipo;
     elemento.numero = numero;
@@ -926,36 +1061,41 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(onChangeColarDialog.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(this.quill.clipboard.onPasteTextoArticulado.subscribe(this.onPasteTextoArticulado.bind(this)));
 
-    editorHtml.addEventListener('rotulo', (event: any) => {
-      event.stopImmediatePropagation();
-      this.renumerarElemento();
-    });
+    this.configListenersEta();
+  }
 
-    editorHtml.addEventListener('nota-alteracao', (event: any) => {
-      event.stopImmediatePropagation();
-      this.editarNotaAlteracao(event.detail.elemento);
-    });
+  exibirDiferencas(elemento: Elemento): void {
+    const revisao = elemento.revisao as RevisaoElemento;
+    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
 
-    editorHtml.addEventListener('toggle-existencia', (event: any) => {
-      event.stopImmediatePropagation();
-      this.toggleExistenciaElemento(event.detail.elemento);
-    });
+    const diff: TextoDiff = new TextoDiff();
+    diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
+    diff.textoAtual = elemento.conteudo!.texto!;
+    diff.quill = this.quill;
 
-    editorHtml.addEventListener('mensagem', (event: any) => {
-      event.stopImmediatePropagation();
+    if (revisao) {
+      diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
+      diff.textoAposRevisao = revisao.elementoAposRevisao.conteudo!.texto!;
+      exibirDiferencasDialog(diff);
+    } else {
+      exibirDiferencasDialog(diff);
+    }
+  }
 
-      const linha: EtaContainerTable = this.quill.linhaAtual;
+  aceitarRevisao(elemento: Elemento): void {
+    rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
+  }
 
-      if (linha) {
-        if (AutoFix.RENUMERAR_DISPOSITIVO === event.detail?.mensagem?.descricao) {
-          this.renumerarElemento();
-        } else {
-          const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
-          const elemento: Elemento = this.criarElemento(linha.uuid, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
-          rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
-        }
-      }
-    });
+  rejeitarRevisao(elemento: Elemento): void {
+    rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
+  }
+
+  aceitarTodasRevisoes(): void {
+    rootStore.dispatch(aceitarRevisaoAction.execute(undefined as any, undefined));
+  }
+
+  rejeitarTodasRevisoes(): void {
+    rootStore.dispatch(rejeitarRevisaoAction.execute(undefined as any, undefined));
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
@@ -967,6 +1107,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(
         linhaAtual.uuid,
+        linhaAtual.uuid2,
         linhaAtual.lexmlId,
         linhaAtual.tipo,
         linhaAtual.blotConteudo?.html ?? '',
@@ -1010,11 +1151,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         mensagem:
           'Cada emenda pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
         podeFechar: true,
+        exibirComandoEmenda: true,
       };
       rootStore.dispatch(adicionarAlerta(alerta));
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === 'alerta-global-correlacao')) {
       rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
     }
+  }
+
+  private emitiEventoOnRevisao(emRevisao: boolean): void {
+    this.dispatchEvent(
+      new CustomEvent('onrevisao', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          emRevisao,
+        },
+      })
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1037,6 +1191,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.alertaGlobalVerificaCorrelacao();
     this.eventosOnChange = [];
+    this.timerOnChange = null;
   }
 
   private carregarArticulacao(elementos: Elemento[]): void {
@@ -1093,7 +1248,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <sl-button slot="footer" variant="primary">Sim</sl-button>
     `;
     dialog.innerHTML = mensagem + botoesHtml;
-    await document.body.appendChild(dialog);
+    document.body.appendChild(dialog);
     await dialog.show();
     const botoesDialog = dialog.querySelectorAll('sl-button');
     const nao = botoesDialog[0] as SlButton;
@@ -1124,13 +1279,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
   private alertar(mensagem: string): void {
-    // const toast: any = this.querySelector('#toast-alerta');
-    // const elmHtml: HTMLElement = this.querySelector('#toast-msg') as HTMLElement;
-
-    // elmHtml.innerHTML = mensagem;
-    // toast.fromEdge = 'top';
-    // toast.open();
-
     const alert = Object.assign(document.createElement('sl-alert'), {
       variant: 'danger',
       closable: true,
@@ -1168,6 +1316,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private destroiQuill(): void {
+    this.removeListenersEta();
+
     this.getHtmlElement('lx-eta-editor')!.innerHTML = '';
     this.getHtmlElement('lx-eta-buffer')!.innerHTML = '';
     if (this.quill) {
@@ -1175,6 +1325,67 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.destroi();
     }
     this._quill = undefined;
+  }
+
+  private listenerRotulo = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.renumerarElemento();
+  };
+
+  private listenerNotaAlteracao = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.editarNotaAlteracao(event.detail.elemento);
+  };
+
+  private listenerToggleExistencia = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.toggleExistenciaElemento(event.detail.elemento);
+  };
+
+  private listenerMensagem = (event: any): void => {
+    event.stopImmediatePropagation();
+
+    const linha: EtaContainerTable = this.quill.linhaAtual;
+
+    if (linha) {
+      if (AutoFix.RENUMERAR_DISPOSITIVO === event.detail?.mensagem?.descricao) {
+        this.renumerarElemento();
+      } else {
+        const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+        const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
+        rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
+      }
+    }
+  };
+
+  private listenerAceitarRevisao = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.aceitarRevisao(event.detail.elemento);
+  };
+
+  private listenerRejeitarRevisao = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.rejeitarRevisao(event.detail.elemento);
+  };
+
+  private configListenersEta(): void {
+    const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
+    editorHtml.addEventListener('rotulo', this.listenerRotulo);
+    editorHtml.addEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.addEventListener('toggle-existencia', this.listenerToggleExistencia);
+    editorHtml.addEventListener('mensagem', this.listenerMensagem);
+    editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
+    editorHtml.addEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
+  }
+
+  private removeListenersEta(): void {
+    const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
+    editorHtml.removeEventListener('rotulo', this.listenerRotulo);
+    editorHtml.removeEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.removeEventListener('toggle-existencia', this.listenerToggleExistencia);
+    editorHtml.removeEventListener('mensagem', this.listenerMensagem);
+    editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);
+    editorHtml.removeEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
   }
 
   private async onPasteTextoArticulado(payload: any): Promise<void> {
@@ -1191,4 +1402,162 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
     colarTextoArticuladoDialog(this.quill, rootStore, infoTextoColado, payload.range);
   }
+
+  private atualizarEstiloBotaoRevisao(): void {
+    const botaoRevisao = this.getHtmlElement('lx-eta-btn-revisao');
+    if (botaoRevisao) {
+      botaoRevisao.classList.toggle('revisao-ativa', rootStore.getState().elementoReducer.emRevisao);
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('onRevisao', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          emRevisao: rootStore.getState().elementoReducer.emRevisao,
+        },
+      })
+    );
+  }
+
+  // private indicadorTextoModificado(events: StateEvent[]): void {
+  //   const ignorarStateTypes: StateType[] = [
+  //     StateType.DocumentoCarregado,
+  //     StateType.ElementoIncluido,
+  //     StateType.ElementoValidado,
+  //     StateType.AtualizaUsuario,
+  //     StateType.AtualizacaoAlertas,
+  //   ];
+  //   const mapElementos: Map<number, Elemento> = new Map();
+
+  //   events
+  //     .filter(ev => !ignorarStateTypes.includes(ev.stateType))
+  //     .map(ev => ev.elementos || [])
+  //     .flat()
+  //     .forEach(e => mapElementos.set(e.uuid!, e));
+
+  //   const elementos: Elemento[] = [...mapElementos.values()];
+  //   const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
+  //   const uuidsElementosComModificacao = elementos
+  //     .filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao))
+  //     .map(e => e.uuid!);
+
+  //   uuidsElementosSemModificacao.forEach(uuid => {
+  //     const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
+  //     if (containerOpcoes) {
+  //       const linha = this.quill.getLinha(uuid);
+  //       linha?.containerOpcoes?.remove();
+  //       containerOpcoes.remove();
+  //     }
+  //   });
+
+  //   uuidsElementosComModificacao.forEach(uuid => {
+  //     const linha = this.quill.getLinha(uuid);
+  //     if (linha) {
+  //       if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
+  //         linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
+  //       } else {
+  //         const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
+  //         if (containerOpcoes) {
+  //           containerOpcoes.remove();
+  //         }
+  //         const containerTr = linha.children.head;
+  //         containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
+  //       }
+  //     }
+  //   });
+  // }
+
+  private indicadorMarcaRevisao(events: StateEvent[]): void {
+    const ignorarStateTypes: StateType[] = [
+      StateType.DocumentoCarregado,
+      StateType.ElementoIncluido,
+      StateType.ElementoValidado,
+      StateType.AtualizaUsuario,
+      StateType.AtualizacaoAlertas,
+    ];
+    const mapElementos: Map<number, Elemento> = new Map();
+    events
+      .filter(ev => !ignorarStateTypes.includes(ev.stateType))
+      .map(ev => ev.elementos || [])
+      .flat()
+      .forEach(e => mapElementos.set(e.uuid!, e));
+
+    const elementos: Elemento[] = [...mapElementos.values()];
+    const uuidsElementosSemRevisao = elementos.filter(e => !e.revisao).map(e => e.uuid!);
+    const uuidsElementosComRevisao = elementos.filter(e => e.revisao && isRevisaoPrincipal(e.revisao)).map(e => e.uuid!);
+
+    // Remove container de revisão de elementos que não estão mais em revisão
+    uuidsElementosSemRevisao.forEach(uuid => {
+      const containerRevisao = document.getElementById(EtaContainerRevisao.className + uuid);
+      if (containerRevisao) {
+        const linha = this.quill.getLinha(uuid);
+        linha?.containerRevisao?.remove();
+      }
+    });
+
+    // Adiciona (ou atualiza) container de revisão para elementos que estão em revisão
+    uuidsElementosComRevisao.forEach(uuid => {
+      const linha = this.quill.getLinha(uuid);
+      if (linha) {
+        if (linha.containerRevisao?.blotBotaoAceitarRevisao) {
+          linha.containerRevisao.atualizarElemento(mapElementos.get(uuid)!);
+        } else {
+          const containerTr = linha.children.head;
+          containerTr.insertBefore(EtaQuillUtil.criarContainerRevisao(mapElementos.get(uuid)!), linha.containerDireito.prev);
+        }
+      }
+    });
+  }
+
+  private atualizaQuantidadeRevisao = (): void => {
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
+  };
+
+  private atualizarStatusBotoesRevisao(): void {
+    const numRevisoes = getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes);
+    this.btnAceitarTodasRevisoes && (this.btnAceitarTodasRevisoes.disabled = numRevisoes === 0);
+    this.btnRejeitarTodasRevisoes && (this.btnRejeitarTodasRevisoes.disabled = numRevisoes === 0);
+  }
+
+  /**
+   * Método utilizado para navegar entre as marcas de revisão
+   * @param direcao
+   */
+  private navegarEntreMarcasRevisao = (direcao: string): void => {
+    const atributo = direcao === 'abaixo' ? 'next' : 'prev';
+    let linha = this.quill.linhaAtual;
+    if (linha.elemento.revisao) {
+      linha = linha[atributo];
+    }
+
+    while (linha && !linha.elemento.revisao) {
+      linha = linha[atributo];
+    }
+
+    if (linha) {
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      this.quill.marcarLinhaAtual(linha);
+    }
+  };
+
+  private checkedSwitchMarcaAlteracao = (): void => {
+    const switchMarcaAlteracaoView = document.getElementById(this._idSwitchRevisao) as any;
+    setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
+  };
+
+  private disabledParagrafoElementoRemovido = (event: StateEvent): void => {
+    const elementos: Elemento[] = event.elementos ?? [];
+    elementos!.forEach((elemento: Elemento) => {
+      const paragrafo = document.getElementById('texto__dispositivo' + elemento.uuid) as any;
+
+      if (paragrafo) {
+        if (elemento.revisao && elemento.revisao.descricao === 'Dispositivo removido') {
+          paragrafo.setAttribute('contenteditable', 'false');
+        } else {
+          paragrafo.setAttribute('contenteditable', 'true');
+        }
+      }
+    });
+  };
 }

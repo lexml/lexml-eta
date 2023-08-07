@@ -15,9 +15,15 @@ import { EtaBlotMenuBotao } from './eta-blot-menu-botao';
 import { EtaBlotMenuConteudo } from './eta-blot-menu-conteudo';
 import { EtaBlotMenuItem } from './eta-blot-menu-item';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
+import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
+import { EtaBlotRevisao } from './eta-blot-revisao';
+import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
+import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaClipboard } from './eta-clipboard';
+import { EtaContainerOpcoes } from './eta-container-opcoes';
+import { EtaContainerRevisao } from './eta-container-revisao';
 import { EtaContainerTable } from './eta-container-table';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
@@ -137,6 +143,12 @@ export class EtaQuill extends Quill {
     EtaQuill.register(EtaContainerTdEsquerdo, true);
     EtaQuill.register(EtaContainerTdDireito, true);
     EtaQuill.register(EtaContainerTr, true);
+    EtaQuill.register(EtaContainerRevisao, true);
+    EtaQuill.register(EtaBlotRevisao, true);
+    EtaQuill.register(EtaBlotRevisaoAceitar, true);
+    EtaQuill.register(EtaBlotRevisaoRecusar, true);
+    EtaQuill.register(EtaContainerOpcoes, true);
+    EtaQuill.register(EtaBlotOpcoesDiff, true);
     EtaQuill.register(id, true);
     EtaQuill.register(paddingLeft, true);
     EtaQuill.register(border, true);
@@ -176,6 +188,17 @@ export class EtaQuill extends Quill {
 
   getUltimaLinha(): EtaContainerTable {
     return this.scroll.children.tail;
+  }
+
+  getLinhaByUuid2(uuid2: string, linha: EtaContainerTable = this.getPrimeiraLinha()): EtaContainerTable | undefined {
+    if (linha.uuid2 === uuid2) {
+      return linha;
+    }
+    if (linha.next) {
+      return this.getLinhaByUuid2(uuid2, linha.next);
+    } else {
+      return undefined;
+    }
   }
 
   getLinha(uuid: number, linha: EtaContainerTable = this.getPrimeiraLinha()): EtaContainerTable | undefined {
@@ -345,7 +368,7 @@ export class EtaQuill extends Quill {
   private onTextChange: TextChangeHandler = (): void => {
     if (this._linhaAtual) {
       setTimeout(() => {
-        this.linhaAtual.blotConteudo && this.acertarAspas();
+        this.linhaAtual?.blotConteudo && this.acertarAspas();
       }, 0);
     }
   };
@@ -402,7 +425,7 @@ export class EtaQuill extends Quill {
     const rect = el.getBoundingClientRect();
 
     const lxEtaBox = el.closest('#lx-eta-box');
-    const etaBoxHeight = lxEtaBox!.getBoundingClientRect().bottom;
+    const etaBoxHeight = lxEtaBox?.getBoundingClientRect().bottom || 0;
 
     return rect.top >= 0 && rect.bottom <= etaBoxHeight;
   }

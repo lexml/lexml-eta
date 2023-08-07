@@ -13,10 +13,11 @@ import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
+import { RevisaoElemento } from '../../model/revisao/revisao';
+import { EtaContainerRevisao } from './eta-container-revisao';
+import { EtaContainer } from './eta-container';
 
-const Container = Quill.import('blots/container');
-
-export class EtaContainerTable extends Container {
+export class EtaContainerTable extends EtaContainer {
   static blotName = 'EtaContainerTable';
   static tagName = 'DIV';
   static className = 'container__elemento';
@@ -36,9 +37,10 @@ export class EtaContainerTable extends Container {
     node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
-    if (podeAdicionarAtributoDeExistencia(elemento)) {
-      node.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada ? 'true' : 'false');
-    }
+
+    EtaContainerTable.atualizarAtributoRevisao(elemento, node);
+    EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, node);
+
     if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
       node.classList.add('container_elemento--omissis');
     }
@@ -47,23 +49,50 @@ export class EtaContainerTable extends Container {
 
   [key: string]: any;
 
-  private findBlot(blotName: string): EtaBlot | undefined {
+  protected findBlot(blotName: string): EtaBlot | undefined {
     if (!this.blotRotulo) {
       return undefined;
     }
     return this.findBlotRef(this.blotRotulo.next, blotName);
   }
 
-  private findBlotRef(blotRef: EtaBlot, blotName: string): EtaBlot | undefined {
+  protected findBlotRef(blotRef: EtaBlot, blotName: string): EtaBlot | undefined {
     if (!blotRef) {
       return;
     }
     return blotRef.instanceBlotName === blotName ? blotRef : this.findBlotRef(blotRef.next, blotName);
   }
 
+  private searchBlotRotuloNode(node: any): EtaBlotRotulo | undefined {
+    // Verifica se o nó atual é do tipo BlotRotulo
+    if (node instanceof EtaBlotRotulo) {
+      return node;
+    }
+
+    // Verifica se o nó atual é um objeto
+    if (typeof node === 'object' && node) {
+      // Percorre as propriedades do objeto
+      for (const key in node) {
+        if (['children', 'head', 'next'].includes(key)) {
+          // Chamada recursiva para cada propriedade do objeto
+          const result = this.searchBlotRotuloNode(node[key]);
+
+          // Se um nó EtaBlotRotulo for encontrado, retorna o resultado
+          if (result instanceof EtaBlotRotulo) {
+            return result;
+          }
+        }
+      }
+    }
+
+    // Caso nenhum nó EtaBlotRotulo seja encontrado, retorna undefined
+    return undefined;
+  }
+
   get blotRotulo(): EtaBlotRotulo | undefined {
-    const node = this.children.head?.children?.head.children.head;
-    return node instanceof EtaBlotRotulo ? node : node?.next;
+    // const node = this.children.head?.children?.head.children.head || this.children.head.children.head.next.children.head;
+    // return node instanceof EtaBlotRotulo ? node : node?.next;
+    return this.searchBlotRotuloNode(this.children.head);
   }
 
   get blotExistencia(): EtaBlotExistencia {
@@ -75,7 +104,7 @@ export class EtaContainerTable extends Container {
   }
 
   get blotAbreAspas(): EtaBlotAbreAspas {
-    return this.children.head.children.head.children.head;
+    return this.findBlot(EtaBlotAbreAspas.blotName) as EtaBlotAbreAspas;
   }
 
   get blotFechaAspas(): EtaBlotFechaAspas {
@@ -84,6 +113,10 @@ export class EtaContainerTable extends Container {
 
   get blotNotaAlteracao(): EtaBlotNotaAlteracao {
     return this.findBlot(EtaBlotNotaAlteracao.blotName) as EtaBlotNotaAlteracao;
+  }
+
+  get containerRevisao(): EtaContainerRevisao | undefined {
+    return this.findBlotByBlotName(this.children, EtaContainerRevisao.blotName);
   }
 
   get containerDireito(): EtaContainerTdDireito {
@@ -179,6 +212,15 @@ export class EtaContainerTable extends Container {
     return parseInt(this.id.substr(7), 0);
   }
 
+  private _uuid2: string;
+  set uuid2(uuid2: string) {
+    this._uuid2 = uuid2;
+  }
+
+  get uuid2(): string {
+    return this._uuid2;
+  }
+
   private _lexmlId: string;
   set lexmlId(lexmlId: string) {
     this._lexmlId = lexmlId;
@@ -227,12 +269,32 @@ export class EtaContainerTable extends Container {
     this.blotRotulo!.setEstilo(elemento);
   }
 
-  atualizarAtributos(elemento: Elemento): void {
-    if (podeAdicionarAtributoDeExistencia(elemento)) {
-      this.domNode.setAttribute('existenanormaalterada', elemento.existeNaNormaAlterada);
+  static atualizarAtributoRevisao(elemento: Elemento, node: HTMLElement): void {
+    if (elemento.revisao) {
+      node.setAttribute('em-revisao', 'true');
+      if ((elemento.revisao as RevisaoElemento).stateType === 'ElementoRemovido') {
+        node.setAttribute('excluido', 'true');
+      } else {
+        node.removeAttribute('excluido');
+      }
     } else {
-      this.domNode.removeAttribute('existenanormaalterada');
+      node.removeAttribute('em-revisao');
+      node.removeAttribute('excluido');
     }
+  }
+
+  static atualizarAtributoExistenciaNormaAlterada(elemento: Elemento, node: HTMLElement): void {
+    if (podeAdicionarAtributoDeExistencia(elemento)) {
+      node.setAttribute('existenanormaalterada', (!!elemento.existeNaNormaAlterada).toString());
+    } else {
+      node.removeAttribute('existenanormaalterada');
+    }
+  }
+
+  atualizarAtributos(elemento: Elemento): void {
+    EtaContainerTable.atualizarAtributoRevisao(elemento, this.domNode);
+    EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, this.domNode);
+
     this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);
     this.blotExistencia?.atualizarAtributos(elemento);
@@ -245,6 +307,7 @@ export class EtaContainerTable extends Container {
     this.elemento = elemento;
 
     this._lexmlId = elemento.lexmlId ?? '';
+    this._uuid2 = elemento.uuid2 ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
     this._numero = elemento.numero ?? '';
@@ -263,6 +326,7 @@ export class EtaContainerTable extends Container {
     super(EtaContainerTable.create(elemento));
     this.elemento = elemento;
     this._lexmlId = elemento.lexmlId ?? '';
+    this._uuid2 = elemento.uuid2 ?? '';
     this._editavel = elemento.editavel;
     this._nivel = elemento.nivel;
     this._numero = elemento.numero ?? '';
@@ -324,5 +388,9 @@ export class EtaContainerTable extends Container {
       classe = `${classe} dispositivo-alteracao`;
     }
     return classe;
+  }
+
+  public isLinhaComMarcacaoDeExclusao(): boolean {
+    return this.domNode.hasAttribute('excluido');
   }
 }

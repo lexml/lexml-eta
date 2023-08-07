@@ -2,7 +2,7 @@ import { SlInput } from '@shoelace-style/shoelace';
 import { Elemento } from '../../model/elemento';
 import './autocomplete-norma';
 
-export async function informarNormaDialog(elemento: Elemento, quill: any, store: any, action: any): Promise<any> {
+export async function informarNormaDialog(elemento: Elemento, quill: any, store: any, action: any, urlAutocomplete: string): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Dados da norma vigente';
@@ -15,7 +15,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   const content = document.createRange().createContextualFragment(`
 
   <div class="input-validation-required">
-    <autocomplete-norma id="auto-norma" urnInicial="${elemento.norma}"></autocomplete-norma>
+    <autocomplete-norma id="auto-norma" urnInicial="${elemento.norma}" urlAutocomplete="${urlAutocomplete}"></autocomplete-norma>
   </div>
   <br/>
   <sl-alert variant="warning" closable class="alert-closable">

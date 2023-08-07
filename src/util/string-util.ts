@@ -1,3 +1,5 @@
+import { diffChars, diffWords } from 'diff';
+
 export function containsTags(text: string): boolean {
   return /<.+>/g.test(text?.trim());
 }
@@ -116,3 +118,22 @@ export const removeTagStyle = (texto: string): string => removeTagEConteudo(text
 export const removeTagScript = (texto: string): string => removeTagEConteudo(texto, 'script');
 
 export const removeTagHead = (texto: string): string => removeTagEConteudo(texto, 'head');
+
+export const getIniciais = (texto = ''): string => {
+  return (
+    texto
+      .match(/\b[A-Z][a-z]*\b/g)
+      ?.map(word => word.charAt(0))
+      .filter((_, i, arr) => i === 0 || i === arr.length - 1)
+      .join('') || ''
+  );
+};
+
+export const textoDiffAsHtml = (texto1: string, texto2: string, typeDiff: 'diffChars' | 'diffWords'): string => {
+  const fn = typeDiff === 'diffChars' ? diffChars : diffWords;
+  const buildPartAdded = (str: string): string => `<ins>${str}</ins>`; //`<span class="texto-inserido">${str}</span>`;
+  const buildPartRemoved = (str: string): string => `<del>${str}</del>`; //`<span classs="texto-removido">${str}</span>`;
+
+  const diff = fn(texto1, texto2);
+  return diff.map(part => (part.added ? buildPartAdded(part.value) : part.removed ? buildPartRemoved(part.value) : part.value)).join('');
+};

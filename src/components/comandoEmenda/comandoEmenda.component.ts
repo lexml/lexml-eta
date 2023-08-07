@@ -1,13 +1,20 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-
+import { Alerta } from '../../model/alerta/alerta';
+import { rootStore } from '../../redux/store';
+import { connect } from 'pwa-helpers';
 @customElement('lexml-emenda-comando')
-export class ComandoEmendaComponent extends LitElement {
+export class ComandoEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) emenda;
+  @property({ type: Array }) alertas: Alerta[] = [];
 
   update(changedProperties: PropertyValues): void {
     super.update(changedProperties);
+  }
+
+  stateChanged(state: any): void {
+    this.alertas = state.elementoReducer.ui?.alertas || [];
   }
 
   buildTemplateComando(comandos: any[]): TemplateResult {
@@ -113,9 +120,17 @@ export class ComandoEmendaComponent extends LitElement {
           background-color: #fff3cd;
           border-color: #ffeeba;
         }
+        .mensagem--danger {
+          color: #721c24;
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
+        }
       </style>
 
       <div class="lexml-emenda-comando">
+        ${(this.alertas || [])
+          .filter(alerta => alerta.exibirComandoEmenda)
+          .map(alerta => html`<div class="lexml-emenda-complementoComando mensagem mensagem--danger">${alerta.mensagem}</div>`)}
         ${cabecalhoComum ? unsafeHTML(`<p class="lexml-emenda-cabecalhoComando">${cabecalhoComum}</p>`) : ''}
         ${comandos?.map(comando => {
           return unsafeHTML(

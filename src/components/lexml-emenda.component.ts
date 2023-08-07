@@ -1,3 +1,4 @@
+import { Usuario } from './../model/revisao/usuario';
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
@@ -23,6 +24,10 @@ import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component'
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
+import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
+import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
+import { isRevisaoElemento, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -30,6 +35,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
+  @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   @property({ type: String })
   private modo: any = ClassificacaoDocumento.EMENDA;
@@ -56,7 +62,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlOpcoesImpressao;
   @query('#tabs-esquerda')
   _tabsEsquerda;
-
+  @query('#tabs-direita')
+  _tabsDireita;
   @query('lexml-emenda-comando')
   _lexmlEmendaComando!: ComandoEmendaComponent;
 
@@ -68,7 +75,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
-      const _response = await fetch('api/parlamentares');
+      const _response = await fetch(this.lexmlEmendaConfig.urlConsultaParlamentares);
       const _parlamentares = await _response.json();
       return _parlamentares.map(p => ({
         identificacao: p.id + '',
@@ -138,11 +145,23 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
     emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
-
+    emenda.revisoes = this.getRevisoes();
     return emenda;
   }
 
-  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, motivo = ''): void {
+  private getRevisoes(): Revisao[] {
+    const revisoes = ordernarRevisoes([...rootStore.getState().elementoReducer.revisoes]);
+
+    revisoes.filter(isRevisaoElemento).forEach(r => {
+      const re = r as RevisaoElemento;
+      removeAtributosDoElemento(re.elementoAposRevisao);
+      re.elementoAntesRevisao && removeAtributosDoElemento(re.elementoAntesRevisao);
+    });
+
+    return revisoes;
+  }
+
+  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, motivo = '', usuario?: Usuario): void {
     this._lexmlEmendaComando.emenda = [];
     this.modo = modo;
     this.projetoNorma = projetoNorma;
@@ -163,12 +182,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (this.modo === 'emendaTextoLivre' && !this._lexmlEmendaTextoRico.texto) {
       this.showAlertaEmendaTextoLivre();
     }
+    this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
+  }
+
+  public setUsuario(usuario = new Usuario()): void {
+    rootStore.dispatch(atualizarUsuarioAction.execute(usuario));
   }
 
   private setEmenda(emenda: Emenda): void {
     if (this._lexmlEta) {
-      this._lexmlEta.setDispositivosEmenda(emenda.componentes[0].dispositivos);
+      this._lexmlEta.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     }
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
@@ -248,6 +272,27 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       } else if (tabName === 'autoria') {
         this.parlamentares.length === 0 && this.atualizaListaParlamentares();
+      }
+    });
+
+    const badgeAtalhos = this._tabsDireita?.querySelector('#badgeAtalhos');
+    if (badgeAtalhos) {
+      const naoPulsarBadgeAtalhos = localStorage.getItem('naoPulsarBadgeAtalhos');
+      if (!naoPulsarBadgeAtalhos) {
+        badgeAtalhos.pulse = true;
+        badgeAtalhos.setAttribute('variant', 'warning');
+      }
+    }
+
+    this._tabsDireita?.addEventListener('sl-tab-show', (event: any) => {
+      const tabName = event.detail.name;
+      if (tabName === 'atalhos') {
+        const badge = (event.target as Element).querySelector('sl-badge');
+        if (badge) {
+          badge.pulse = false;
+          badge.setAttribute('variant', 'primmay');
+        }
+        localStorage.setItem('naoPulsarBadgeAtalhos', 'true');
       }
     });
   }
@@ -370,6 +415,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           height: 16px;
           margin-top: -4px;
         }
+
+        #badgeAtalhos::part(base) {
+          height: 16px;
+          margin-top: 2px;
+          font-size: var(--sl-font-size-small);
+          background-color: transparent;
+          color: var(--sl-color-neutral-600);
+        }
+        sl-tab[panel='atalhos'][active] #badgeAtalhos::part(base) {
+          color: var(--sl-color-primary-600);
+        }
+
         sl-split-panel {
           --divider-width: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? '15px' : '0px'};
         }
@@ -400,7 +457,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
               ${this.modo && this.modo !== 'emendaTextoLivre'
-                ? html`<lexml-eta id="lexmlEta" @onchange=${this.onChange}></lexml-eta>`
+                ? html`<lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>`
                 : html`<editor-texto-rico id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
@@ -420,7 +477,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           </sl-tab-group>
         </div>
         <div slot="end">
-          <sl-tab-group>
+          <sl-tab-group id="tabs-direita">
             <sl-tab slot="nav" panel="comando">
               <sl-icon name="code"></sl-icon>
               Comando
@@ -430,8 +487,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               Dicas
             </sl-tab>
             <sl-tab slot="nav" panel="atalhos">
-              <sl-icon name="keyboard"></sl-icon>
-              Atalhos
+              <sl-badge variant="primary" id="badgeAtalhos" pill>
+                <sl-icon name="keyboard"></sl-icon>
+                Atalhos
+              </sl-badge>
             </sl-tab>
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>

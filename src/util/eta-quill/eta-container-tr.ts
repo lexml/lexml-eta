@@ -1,7 +1,7 @@
 import { AlinhamentoMenu } from './eta-blot-menu';
-const Container = Quill.import('blots/container');
+import { EtaContainer } from './eta-container';
 
-export class EtaContainerTr extends Container {
+export class EtaContainerTr extends EtaContainer {
   static blotName = 'EtaContainerTr';
   static tagName = 'DIV';
   static className = 'container__linha';

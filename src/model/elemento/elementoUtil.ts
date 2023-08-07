@@ -53,11 +53,16 @@ const getNivel = (dispositivo: Dispositivo, atual = 0): number => {
 
 const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   const pai = dispositivo.pai ? (isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai) : undefined;
+  const articulacaoAlteracao = pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai : undefined;
   return {
     tipo: pai?.tipo,
     uuid: pai?.uuid,
-    uuidAlteracao: pai && isDispositivoAlteracao(dispositivo) ? getArticulacao(dispositivo).pai?.uuid : undefined,
-    existeNaNormaAlterada: pai?.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    uuid2: pai?.uuid2,
+    lexmlId: pai?.id,
+    uuidAlteracao: articulacaoAlteracao?.uuid,
+    uuid2Alteracao: articulacaoAlteracao?.uuid2,
+    existeNaNormaAlterada: pai && isAdicionado(pai) ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    descricaoSituacao: pai?.situacao?.descricaoSituacao,
   };
 };
 
@@ -98,6 +103,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
     sendoEditado: false,
     uuid: dispositivo.uuid,
+    uuid2: dispositivo.uuid2,
     lexmlId: (dispositivo.numero && buildId(dispositivo)) || dispositivo.id,
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
@@ -123,21 +129,21 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
   };
 };
 
-export const createElementoValidado = (dispositivo: Dispositivo): Elemento => {
-  const el = createElemento(dispositivo);
+export const createElementoValidado = (dispositivo: Dispositivo, procurarElementoAnterior = false): Elemento => {
+  const el = createElemento(dispositivo, true, procurarElementoAnterior);
   el.mensagens = validaDispositivo(dispositivo);
 
   return el;
 };
 
-export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo, validados = false): void => {
-  const fnCreateElemento = validados ? createElemento : createElementoValidado;
+export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo, validados = false, procurarElementoAnterior = false): void => {
+  const fnCreateElemento = validados ? createElementoValidado : createElemento;
 
   if (dispositivo.filhos === undefined) {
     return;
   }
   dispositivo.filhos.forEach(d => {
-    const el = fnCreateElemento(d);
+    const el = fnCreateElemento(d, true, procurarElementoAnterior);
 
     if (isArtigo(d)) {
       el.conteudo!.texto = (d as Artigo).caput!.texto;
@@ -146,19 +152,19 @@ export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo,
 
     if (isArtigo(d) && (d as Artigo).hasAlteracao()) {
       (d as Artigo).alteracoes?.filhos.forEach(f => {
-        elementos.push(fnCreateElemento(f));
-        createElementos(elementos, f, validados);
+        elementos.push(fnCreateElemento(f, true, procurarElementoAnterior));
+        createElementos(elementos, f, validados, procurarElementoAnterior);
       });
     }
-    createElementos(elementos, d, validados);
+    createElementos(elementos, d, validados, procurarElementoAnterior);
   });
 };
 
-export const getElementos = (dispositivo: Dispositivo, validados = false): Elemento[] => {
-  const fnCreateElemento = validados ? createElemento : createElementoValidado;
+export const getElementos = (dispositivo: Dispositivo, validados = false, procurarElementoAnterior = false): Elemento[] => {
+  const fnCreateElemento = validados ? createElementoValidado : createElemento;
 
   const elementos: Elemento[] = [];
-  elementos.push(fnCreateElemento(dispositivo, true));
+  elementos.push(fnCreateElemento(dispositivo, true, procurarElementoAnterior));
 
   if (isArticulacao(dispositivo) && !isDispositivoAlteracao(dispositivo) && hasEmenta(dispositivo) && !isEmendaArtigoOndeCouber(dispositivo)) {
     elementos.push(fnCreateElemento((dispositivo as Articulacao).projetoNorma!.ementa!, true));
@@ -167,13 +173,13 @@ export const getElementos = (dispositivo: Dispositivo, validados = false): Eleme
   if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
     if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
       (dispositivo as Artigo).alteracoes?.filhos.forEach(f => {
-        elementos.push(fnCreateElemento(f));
-        createElementos(elementos, f, validados);
+        elementos.push(fnCreateElemento(f, true, procurarElementoAnterior));
+        createElementos(elementos, f, validados, procurarElementoAnterior);
       });
     }
   }
 
-  createElementos(elementos, dispositivo, validados);
+  createElementos(elementos, dispositivo, validados, procurarElementoAnterior);
 
   return elementos;
 };

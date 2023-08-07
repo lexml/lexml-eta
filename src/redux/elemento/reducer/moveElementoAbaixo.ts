@@ -1,5 +1,5 @@
 import { isAgrupadorNaoArticulacao } from './../../../model/dispositivo/tipo';
-import { getIrmaoPosteriorIndependenteDeTipo, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getIrmaoPosteriorIndependenteDeTipo, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { createElemento, getDispositivoFromElemento, getElementos, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida, montaEMostraMensagensErro } from '../../../model/lexml/acao/acaoUtil';
@@ -9,7 +9,10 @@ import { buildListaDispositivos, getProximoAgrupadorAposArtigo } from '../../../
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, resetUuidTodaArvore } from '../util/reducerUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { buildId } from '../../../model/lexml/util/idUtil';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
 export const moveElementoAbaixo = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -21,6 +24,13 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
 
   if (!isAcaoPermitida(atual, MoverElementoAbaixo)) {
     return montaEMostraMensagensErro(atual, state);
+  }
+
+  if (state.emRevisao && existeFilhoExcluidoDuranteRevisao(state, atual) && !action.isRejeitandoRevisao) {
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não é possível mover dispositivo que possua dispositivo subordinado já removido ou alterado em modo de revisão.',
+    });
   }
 
   // Dispositivo cuja posição será trocada com o atual
@@ -35,7 +45,7 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
 
   const movendoArtigoParaAgrupador = isAgrupadorNaoArticulacao(proximo);
 
-  const removidos = [...getElementos(atual)];
+  const removidos = [...getElementos(atual, false, true)];
   const renumerados = listaDispositivosRenumerados(atual);
 
   const paiAntigo = atual.pai!;
@@ -51,6 +61,10 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
   if (paiAntigo !== novoPai) {
     paiAntigo.renumeraFilhos();
   }
+
+  getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
+  const dAnterior = atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
+  dAnterior && getDispositivoAndFilhosAsLista(dAnterior).forEach(d => (d.id = buildId(d)));
 
   const referencia = movendoArtigoParaAgrupador ? proximo : getUltimoFilho(proximo);
 

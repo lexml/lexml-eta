@@ -579,6 +579,7 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .replace(/\n+/g, '\n')
     .replace(/ +/g, ' ')
     .replace(/\n\s+/g, '\n')
+    .replace(/\n *<i>(Parágrafo único\. *)<\/i>/gi, '\n$1') // Remove itálico de rótulo de parágrafo único
     .trim();
 
   return html;

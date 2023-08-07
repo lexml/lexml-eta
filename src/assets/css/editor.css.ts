@@ -26,6 +26,8 @@ export const editorStyles = html`
       box-sizing: border-box;
       font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
       /* padding: 8px; */
+      display: flex;
+      align-items: center;
     }
     #lx-eta-box .ql-snow.ql-toolbar button,
     .ql-snow .ql-toolbar button {
@@ -346,6 +348,7 @@ export const editorStyles = html`
       border-radius: 4px;
       font-size: 12px;
       white-space: nowrap;
+      display: none;
     }
 
     .agrupador .blot-tipo-omissis {
@@ -533,6 +536,9 @@ export const editorStyles = html`
       .mobile-buttons {
         display: inline-block !important;
       }
+      #chk-em-revisao span {
+        display: none;
+      }
     }
 
     @media (max-width: 480px) {
@@ -543,5 +549,148 @@ export const editorStyles = html`
         display: none !important;
       }
     }
+
+    .revisao-ativa {
+      background-color: #add8e6 !important;
+    }
+
+    [em-revisao='true'] {
+      background-color: var(--sl-color-blue-100);
+    }
+
+    [excluido='true'] .texto__dispositivo {
+      text-decoration: line-through;
+      /* background-color: #d3d3d3; */
+    }
+
+    .blot__revisao {
+      padding: 3px 7px;
+      border: 1px solid white;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      top: -1px;
+    }
+
+    .blot__revisao_aceitar {
+      padding: 5px;
+      border: 1px solid black;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      width: 1.3rem;
+      height: 1.3rem;
+      top: -1px;
+      background: url('assets/icons/check-lg.svg') no-repeat center, white;
+      background-size: 1rem;
+    }
+
+    .blot__revisao_aceitar:hover {
+      filter: invert(100%);
+    }
+
+    .blot__opcoes_diff {
+      padding: 5px;
+      border: 1px solid black;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      width: 1.3rem;
+      height: 1.3rem;
+      top: -1px;
+      background: url('assets/icons/plus-minus.svg') no-repeat center, white;
+      background-size: 0.8rem;
+    }
+
+    .blot__opcoes_diff:hover {
+      filter: invert(100%);
+    }
+
+    .blot__revisao_recusar {
+      padding: 5px;
+      border: 1px solid black;
+      border-radius: 1rem;
+      background-color: rgb(217, 119, 6);
+      color: white;
+      cursor: pointer;
+      position: relative;
+      width: 1.3rem;
+      height: 1.3rem;
+      top: -1px;
+      background: url('assets/icons/x.svg') no-repeat center, white;
+      background-size: 1rem;
+    }
+
+    .blot__revisao_recusar:hover {
+      filter: invert(100%);
+    }
+
+    .blot__revisao_aceitar:focus,
+    .blot__opcoes_diff:focus .blot__revisao_recusar:focus {
+      outline: 1px solid #000;
+      border: 1px solid #000;
+    }
+
+    #chk-em-revisao {
+      border: 1px solid #ccc !important;
+      padding: 5px 10px !important;
+      border-radius: 20px !important;
+      margin-left: auto;
+      margin-right: 5px;
+      font-weight: bold;
+      background-color: #eee;
+    }
+    #chk-em-revisao[checked] {
+      background-color: var(--sl-color-blue-100);
+    }
+
+    .container__revisao {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.1rem;
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+    }
+
+    .container__opcoes {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      margin-left: 0.1rem;
+      gap: 0.1rem;
+      @media (max-width: 768px) {
+        flex-direction: column;
+      }
+    }
+
+    /*
+    [em-revisao='true'] .container__revisao {
+      border: 3px solid #f98b88;
+      width: 30px;
+      background-color: #f98b88;
+      width: 30px;
+    }*/
+
+    /*
+    [em-revisao='false'] .blot__revisao {
+      visibility:hidden;
+    }
+
+    [em-revisao='true'] .blot__revisao {
+      visibility:visible;
+    }
+    */
+
+    /* .container__menu {
+      border: 1px solid blue;
+    } */
   </style>
 `;

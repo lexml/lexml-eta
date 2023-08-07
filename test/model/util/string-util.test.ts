@@ -1,7 +1,13 @@
 import { expect } from '@open-wc/testing';
-import { containsTags, endsWithPunctuation, endsWithWord, isValidHTML, isValidHtmlParagraph } from '../../../src/util/string-util';
+import { containsTags, endsWithPunctuation, endsWithWord, isValidHTML, isValidHtmlParagraph, textoDiffAsHtml } from '../../../src/util/string-util';
 
 describe('StringUtil', () => {
+  describe('textoDiffAsHtml', () => {
+    it('Deveria retornar html com diferenças', () => {
+      const textoDiff = textoDiffAsHtml('texto de teste', 'texto para teste', 'diffWords');
+      expect(textoDiff).to.be.equal('texto <del>de</del><ins>para</ins> teste');
+    });
+  });
   describe('containsTags => testes de reconhecimento de tags no texto', () => {
     it('Retorna false quando é informada uma string vazia', () => {
       expect(containsTags('')).to.false;

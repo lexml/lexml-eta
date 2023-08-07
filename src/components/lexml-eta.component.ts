@@ -1,5 +1,5 @@
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
@@ -16,14 +16,19 @@ import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicio
 import { DispositivosEmenda } from './../model/emenda/emenda';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { rootStore } from './../redux/store';
+import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
+import { Revisao } from '../model/revisao/revisao';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+
   private modo: any = '';
 
   private projetoNorma = {};
 
   private dispositivosEmenda: DispositivosEmenda | undefined;
+  private revisoes: Revisao[] | undefined;
 
   createRenderRoot(): LitElement {
     return this;
@@ -45,7 +50,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return new DispositivosEmendaBuilder(this.modo, urn, articulacao).getDispositivosEmenda();
   }
 
-  setDispositivosEmenda(dispositivosEmenda: DispositivosEmenda | undefined): void {
+  setDispositivosERevisoesEmenda(dispositivosEmenda: DispositivosEmenda | undefined, revisoes?: Revisao[]): void {
+    this.revisoes = revisoes;
     if (dispositivosEmenda) {
       this.dispositivosEmenda = dispositivosEmenda;
       this.loadEmenda();
@@ -101,7 +107,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     if (this.dispositivosEmenda) {
       clearInterval(this._timerLoadEmenda);
       this._timerLoadEmenda = window.setTimeout(() => {
-        rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!));
+        rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!, this.revisoes));
       }, 1000);
     }
   }
@@ -126,8 +132,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           box-shadow: none;
         }
       </style>
-
-      <lexml-eta-articulacao></lexml-eta-articulacao>
+      <lexml-eta-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-articulacao>
     `;
   }
 }

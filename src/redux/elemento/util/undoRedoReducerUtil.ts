@@ -6,11 +6,13 @@ import { createElemento, getDispositivoFromElemento, isElementoDispositivoAltera
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
+  buscaDispositivoById,
   findDispositivoByUuid,
   getDispositivoAnterior,
   getTiposAgrupadorArtigoOrdenados,
   getUltimoFilho,
   isArticulacaoAlteracao,
+  isSuprimido,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
@@ -19,10 +21,22 @@ import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOr
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
 import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  associarRevisoesAosElementos,
+  existeRevisaoCriadaPorExclusao,
+  findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
+  findRevisaoDeRestauracaoByUuid,
+  findUltimaRevisaoDoGrupo,
+  getElementosFromRevisoes,
+  isRevisaoPrincipal,
+  removeAtributosDoElementoAnteriorNaSequenciaDeLeitura,
+} from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
+import { removeElemento } from '../reducer/removeElemento';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
@@ -37,7 +51,9 @@ const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
-    const artigo = isArticulacaoAlteracao(articulacao) ? articulacao.pai! : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!);
+    const artigo = isArticulacaoAlteracao(articulacao)
+      ? articulacao.pai!
+      : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!) || buscaDispositivoById(articulacao, elemento.hierarquia!.pai!.lexmlId!);
 
     if (artigo) {
       if (!artigo.alteracoes) {
@@ -47,10 +63,10 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
       if (elemento.hierarquia!.pai!.tipo! === TipoDispositivo.articulacao.tipo) {
         return artigo.alteracoes;
       }
-      return findDispositivoByUuid(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!);
+      return findDispositivoByUuid(artigo.alteracoes, elemento.hierarquia!.pai!.uuid!) || buscaDispositivoById(artigo.alteracoes, elemento.hierarquia!.pai!.lexmlId!) || null;
     }
   }
-  return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!);
+  return findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuid!) || buscaDispositivoById(articulacao, elemento.hierarquia!.pai!.lexmlId!) || null;
 };
 
 const isOmissisCaput = (elemento: Elemento): boolean => {
@@ -65,6 +81,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
     elemento.hierarquia!.posicao
   );
   novo.uuid = elemento.uuid;
+  novo.uuid2 = elemento.uuid2;
   novo.id = elemento.lexmlId;
   novo!.texto = elemento?.conteudo?.texto ?? '';
   novo!.numero = elemento?.hierarquia?.numero;
@@ -92,12 +109,17 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
 const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo: string | undefined): Dispositivo[] => {
   const primeiroElemento = elementos.shift();
 
-  const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!);
+  const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!) || buscaDispositivoById(articulacao, primeiroElemento!.hierarquia!.pai!.lexmlId!);
   const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!, modo);
+  const idPrimeiroDispositivo = primeiro.id!;
 
   const novos: Dispositivo[] = [primeiro];
   elementos?.forEach(filho => {
-    const parent = filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai ? primeiro.pai! : getDispositivoPaiFromElemento(articulacao, filho);
+    const parent =
+      filho.hierarquia?.pai === primeiroElemento?.hierarquia?.pai
+        ? primeiro.pai!
+        : getDispositivoPaiFromElemento(articulacao, filho) || buscaDispositivoById(articulacao, idPrimeiroDispositivo);
+
     const novo = redodDispositivoExcluido(filho, parent!, modo);
     novos.push(novo);
   });
@@ -108,6 +130,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo
 export const incluir = (state: State, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const elemento = evento.elementos[0];
+    const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
 
     const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
@@ -130,7 +153,6 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
       novosEvento.referencia = evento.referencia;
     }
 
-    const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
     return novos.map(n => createElemento(n, true, procurarElementoAnterior));
   }
   return [];
@@ -171,7 +193,7 @@ export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestau
   return [];
 };
 
-export const processarModificados = (state: State, evento: StateEvent, isRedo = false): Elemento[] => {
+export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO', revisoes: RevisaoElemento[] = []): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -179,9 +201,10 @@ export const processarModificados = (state: State, evento: StateEvent, isRedo = 
     evento.elementos.forEach(e => {
       const dispositivo = getDispositivoFromElemento(state.articulacao!, e, true);
       if (dispositivo) {
-        if ((isRedo && anterior === dispositivo.uuid) || anterior !== dispositivo.uuid) {
+        const permiteAtualizar = anterior !== dispositivo.uuid || (operacao === 'REDO' && anterior === dispositivo.uuid);
+        if (permiteAtualizar) {
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-            if (dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
+            if (findRevisaoDeRestauracaoByUuid(revisoes, dispositivo.uuid!) || dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
               dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
               dispositivo.situacao = new DispositivoOriginal();
             } else {
@@ -267,11 +290,12 @@ export const processaSituacoesAlteradas = (state: State, eventos: StateEvent[]):
 
 export const isUndoRedoInclusaoExclusaoAgrupador = (eventos: StateEvent[]): boolean => {
   const tiposAgrupadorArtigo = getTiposAgrupadorArtigoOrdenados();
+  const eventosFiltrados = eventos.filter(ev => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada, StateType.RevisaoAdicionalRejeitada].includes(ev.stateType));
   return (
-    eventos.length > 0 &&
-    [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventos[0].stateType) &&
-    eventos[0].elementos!.length > 0 &&
-    tiposAgrupadorArtigo.includes(eventos[0].elementos![0].tipo!)
+    eventosFiltrados.length > 0 &&
+    [StateType.ElementoIncluido, StateType.ElementoRemovido].includes(eventosFiltrados[0].stateType) &&
+    eventosFiltrados[0].elementos!.length > 0 &&
+    tiposAgrupadorArtigo.includes(eventosFiltrados[0].elementos![0].tipo!)
   );
 };
 
@@ -296,10 +320,10 @@ export const processarRestaurados = (state: State, evento: StateEvent, acao: str
 
   if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
     d.situacao = new DispositivoModificado(createElemento(d));
-    stateType = StateType.ElementoModificado;
+    stateType = StateType.ElementoRestaurado;
   } else if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
     d.situacao = new DispositivoSuprimido(createElemento(d));
-    stateType = StateType.ElementoSuprimido;
+    stateType = StateType.ElementoRestaurado;
   } else {
     d.situacao = new DispositivoOriginal();
     stateType = StateType.ElementoRestaurado;
@@ -309,7 +333,7 @@ export const processarRestaurados = (state: State, evento: StateEvent, acao: str
   d.rotulo = elementoDeReferencia.rotulo ?? '';
   d.texto = elementoDeReferencia.conteudo?.texto ?? '';
 
-  const elementos = stateType === StateType.ElementoSuprimido ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
+  const elementos = isSuprimido(d) ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
 
   return { stateType, elementos };
 };
@@ -324,5 +348,58 @@ export const processarSuprimidos = (state: State, evento: StateEvent): StateEven
     result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d!)] });
   });
 
+  return result;
+};
+
+export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
+  const atualizaReferenciaElementoAnteriorSeNecessario = (revisoesRetornadasParaState: RevisaoElemento[]): void => {
+    revisoesRetornadasParaState.filter(isRevisaoPrincipal).forEach(r => {
+      const e = r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura!;
+      const revisaoASerAtualizada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(state.revisoes!, e);
+      if (revisaoASerAtualizada && revisaoASerAtualizada.id !== r.id) {
+        const revisaoRetornada = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoesRetornadasParaState, e);
+        const ultimaRevisaoDoGrupo = findUltimaRevisaoDoGrupo(revisoesRetornadasParaState, revisaoRetornada!);
+
+        const elementoAnterior = JSON.parse(JSON.stringify(ultimaRevisaoDoGrupo.elementoAposRevisao));
+        removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elementoAnterior);
+        revisaoASerAtualizada.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
+        revisaoASerAtualizada.elementoAntesRevisao!.elementoAnteriorNaSequenciaDeLeitura = elementoAnterior;
+      }
+    });
+  };
+
+  const result: StateEvent[] = [];
+  const eventosFiltrados = eventos.filter((se: StateEvent) => se.stateType === stateType);
+  if (eventosFiltrados.length) {
+    eventosFiltrados.forEach((ev: StateEvent) => {
+      const revisoesRetornadasParaState = ev.elementos!.map(e => e.revisao! as RevisaoElemento);
+      state.revisoes!.push(...revisoesRetornadasParaState);
+
+      result.push({ stateType: ev.stateType, elementos: ev.elementos });
+
+      if (existeRevisaoCriadaPorExclusao(revisoesRetornadasParaState)) {
+        const elementos = revisoesRetornadasParaState.map(r => r.elementoAntesRevisao as Elemento);
+        if (stateType === StateType.RevisaoAdicionalRejeitada) {
+          elementos.forEach(e => removeElemento({ ...state, emRevisao: false }, { atual: e }));
+        }
+
+        // Reapresenta, no editor, os dispositivos removidos em modo de revisão
+        if (stateType === StateType.RevisaoAceita) {
+          result.push({ stateType: StateType.ElementoIncluido, elementos: elementos });
+          result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+        }
+
+        atualizaReferenciaElementoAnteriorSeNecessario(revisoesRetornadasParaState);
+      } else {
+        const elementos = getElementosFromRevisoes(revisoesRetornadasParaState, state).map(e => JSON.parse(JSON.stringify(e)));
+        associarRevisoesAosElementos(state.revisoes, elementos);
+        result.push({ stateType: StateType.SituacaoElementoModificada, elementos: elementos });
+
+        if (stateType === StateType.RevisaoAceita) {
+          result.push({ stateType: StateType.ElementoMarcado, elementos: [elementos[0]] });
+        }
+      }
+    });
+  }
   return result;
 };

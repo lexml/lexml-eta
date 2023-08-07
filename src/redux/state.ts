@@ -2,6 +2,8 @@ import { Alerta } from '../model/alerta/alerta';
 import { Articulacao } from '../model/dispositivo/dispositivo';
 import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
+import { Revisao } from '../model/revisao/revisao';
+import { Usuario } from '../model/revisao/usuario';
 
 export enum StateType {
   ArticulacaoAtualizada = 'ArticulacaoAtualizada',
@@ -21,6 +23,12 @@ export enum StateType {
   SituacaoElementoModificada = 'SituacaoElementoModificada',
   AtualizacaoAlertas = 'AtualizacaoAlertas',
   ElementoReferenciado = 'ElementoReferenciado',
+  RevisaoAtivada = 'RevisaoAtivada',
+  RevisaoDesativada = 'RevisaoDesativada',
+  AtualizaUsuario = 'AtualizaUsuario',
+  RevisaoAceita = 'RevisaoAceita',
+  RevisaoRejeitada = 'RevisaoRejeitada',
+  RevisaoAdicionalRejeitada = 'RevisaoAdicionalRejeitada',
 }
 export interface StateEvent {
   stateType: StateType;
@@ -41,6 +49,10 @@ export interface State {
     message?: Mensagem;
     alertas?: Alerta[];
   };
+  emRevisao?: boolean;
+  usuario?: Usuario;
+  revisoes?: Revisao[];
+  numEventosPassadosAntesDaRevisao?: number;
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {

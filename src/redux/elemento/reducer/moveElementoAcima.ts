@@ -6,6 +6,7 @@ import {
   isArticulacaoAlteracao,
   irmaosMesmoTipo,
   isDispositivoAlteracao,
+  getDispositivoAndFilhosAsLista,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isEmenta } from './../../../model/dispositivo/tipo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -17,8 +18,11 @@ import { buildListaDispositivos } from '../../../model/lexml/hierarquia/hierarqu
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { buildId } from '../../../model/lexml/util/idUtil';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
 export const moveElementoAcima = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -32,6 +36,13 @@ export const moveElementoAcima = (state: any, action: any): State => {
     return montaEMostraMensagensErro(atual, state);
   }
 
+  if (state.emRevisao && existeFilhoExcluidoDuranteRevisao(state, atual) && !action.isRejeitandoRevisao) {
+    return retornaEstadoAtualComMensagem(state, {
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Não é possível mover dispositivo que possua dispositivo subordinado já removido ou alterado em modo de revisão.',
+    });
+  }
+
   // Dispositivo cuja posição será trocada com o atual
   const emAlteracao = isDispositivoAlteracao(atual);
   const anterior = isArtigo(atual)
@@ -42,7 +53,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
     return state;
   }
 
-  const removidos = getElementos(atual);
+  const removidos = getElementos(atual, false, true);
   const renumerados = irmaosMesmoTipo(atual).filter(d => d !== atual && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL);
 
   resetUuidTodaArvore(atual);
@@ -83,6 +94,10 @@ export const moveElementoAcima = (state: any, action: any): State => {
   if (paiAntigo !== novoPai) {
     paiAntigo.renumeraFilhos();
   }
+
+  getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
+  const dPosterior = atual.pai!.filhos[atual.pai!.indexOf(atual) + 1];
+  dPosterior && getDispositivoAndFilhosAsLista(dPosterior).forEach(d => (d.id = buildId(d)));
 
   const referencia = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d) && !isArticulacaoAlteracao(d))!;
 

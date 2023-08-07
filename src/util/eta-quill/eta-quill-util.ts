@@ -1,3 +1,4 @@
+import { EtaContainerRevisao } from './eta-container-revisao';
 import { DescricaoSituacao } from './../../model/dispositivo/situacao';
 import { EtaBlotQuebraLinha } from './eta-blot-quebra-linha';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
@@ -16,6 +17,12 @@ import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { AlinhamentoMenu } from './eta-blot-menu';
+import { EtaBlotRevisao } from './eta-blot-revisao';
+import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
+import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
+import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
+// import { EtaContainerOpcoes } from './eta-container-opcoes';
+// import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -57,6 +64,14 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
+    if (elemento.revisao && isRevisaoPrincipal(elemento.revisao)) {
+      EtaQuillUtil.criarContainerRevisao(elemento).insertInto(etaTrContainer);
+    }
+
+    // if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao)) {
+    //   EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
+    // }
+
     etaTdTexto.insertInto(etaTrContainer);
     etaTdEspaco.insertInto(etaTrContainer);
 
@@ -64,6 +79,20 @@ export class EtaQuillUtil {
 
     return etaTable;
   }
+
+  static criarContainerRevisao(elemento: Elemento): EtaContainerRevisao {
+    const etaContainerRevisao: EtaContainerRevisao = new EtaContainerRevisao(elemento);
+    new EtaBlotRevisaoAceitar(elemento).insertInto(etaContainerRevisao);
+    new EtaBlotRevisaoRecusar(elemento).insertInto(etaContainerRevisao);
+    new EtaBlotRevisao(elemento).insertInto(etaContainerRevisao);
+    return etaContainerRevisao;
+  }
+
+  // static criarContainerOpcoes(elemento: Elemento): EtaContainerOpcoes {
+  //   const etaContainerOpcoes: EtaContainerOpcoes = new EtaContainerOpcoes(elemento);
+  //   new EtaBlotOpcoesDiff(elemento).insertInto(etaContainerOpcoes);
+  //   return etaContainerOpcoes;
+  // }
 
   static criarContainerMensagens(elemento: Elemento): EtaContainerTr {
     const etaTrContainer: EtaContainerTr = new EtaContainerTr(false, this.alinhamentoMenu);

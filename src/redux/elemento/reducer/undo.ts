@@ -6,14 +6,16 @@ import {
   processaSituacoesAlteradas,
   processarRestaurados,
   processarSuprimidos,
+  processarRevisoesAceitasOuRejeitadas,
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
+import { getElementosRemovidosEIncluidos, getEvento, unificarEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { getRevisoesFromElementos } from '../util/revisaoUtil';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -34,6 +36,10 @@ export const undo = (state: any): State => {
       events: [],
       alertas: state.ui?.alertas,
     },
+    emRevisao: state.emRevisao,
+    usuario: state.usuario,
+    revisoes: state.revisoes,
+    numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
   };
 
   if (isUndoRedoInclusaoExclusaoAgrupador(eventos)) {
@@ -43,20 +49,29 @@ export const undo = (state: any): State => {
     tempState.present = [];
     tempState.future = [];
 
-    if (eventos[0].stateType === StateType.ElementoIncluido) {
-      tempState = removeElemento(tempState, { atual: eventos[0].elementos[0] });
+    const eventosFiltrados = eventos.filter((ev: StateEvent) => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada, StateType.RevisaoAdicionalRejeitada].includes(ev.stateType));
+
+    if (eventosFiltrados[0].stateType === StateType.ElementoIncluido) {
+      tempState = removeElemento(tempState, { atual: eventosFiltrados[0].elementos[0] });
     } else {
-      const ref = eventos.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
-      const elementoASerIncluido = eventos[0].elementos[0];
+      const ref = eventosFiltrados.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
+      const elementoASerIncluido = eventosFiltrados[0].elementos[0];
       tempState = agrupaElemento(tempState, {
         atual: ref,
         novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
       });
-      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventos, tempState.ui!.events);
+      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventosFiltrados, tempState.ui!.events);
     }
 
-    retorno.present = tempState.ui!.events;
-    retorno.ui!.events = tempState.ui!.events;
+    const eventosRevisao = [
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
+    ].filter(ev => ev.elementos?.length);
+
+    retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+
     return retorno;
   }
 
@@ -69,9 +84,18 @@ export const undo = (state: any): State => {
 
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));
 
+  const revisoesDeRejeicaoDeRestauracaoASeremRetornadas = getRevisoesFromElementos(
+    eventos
+      .filter((ev: StateEvent) => ev.stateType === StateType.RevisaoRejeitada)
+      .map((ev: StateEvent) => ev.elementos || [])
+      .flat()
+  );
+
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev) }));
+    .forEach((ev: StateEvent) =>
+      events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO', revisoesDeRejeicaoDeRestauracaoASeremRetornadas) })
+    );
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
@@ -89,11 +113,22 @@ export const undo = (state: any): State => {
     }
   }
 
+  events.add(StateType.SituacaoElementoModificada, events.get(StateType.ElementoIncluido).elementos || []);
   events.add(StateType.SituacaoElementoModificada, getElementosAlteracaoASeremAtualizados(state.articulacao, getElementosRemovidosEIncluidos(events.eventos)));
-  events.eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: processaSituacoesAlteradas(state, eventos) });
+  events.add(StateType.SituacaoElementoModificada, processaSituacoesAlteradas(state, eventos));
 
-  retorno.ui!.events = events.build();
-  retorno.present = events.build();
+  let eventosRevisao = [
+    ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
+    ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
+    ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
+  ].filter(ev => ev.elementos?.length);
+
+  eventosRevisao = unificarEvento(retorno, eventosRevisao, StateType.ElementoIncluido);
+  eventosRevisao = unificarEvento(retorno, eventosRevisao, StateType.SituacaoElementoModificada);
+  eventosRevisao = unificarEvento(retorno, eventosRevisao, StateType.ElementoMarcado);
+
+  retorno.ui!.events = [...eventosRevisao, ...events.build()];
+  retorno.present = [...eventosRevisao, ...events.build()];
 
   return retorno;
 };

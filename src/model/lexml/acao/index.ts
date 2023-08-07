@@ -67,6 +67,8 @@ import { validarArticulacaAction } from './validarArticulacaoAction';
 import { validarElementoAction } from './validarElementoAction';
 import { adicionarTextoOmissisAction } from './adicionarTextoOmissisAction';
 import { removerTextoOmissisAction } from './removerTextoOmissisAction';
+import { aceitarRevisaoAction } from './aceitarRevisaoAction';
+import { rejeitarRevisaoAction } from './rejeitarRevisaoAction';
 
 export interface ElementoAction {
   descricao?: string;
@@ -146,6 +148,9 @@ acoesMenu.push(adicionarAgrupadorArtigoAction);
 acoesMenu.push(adicionarAgrupadorArtigoAntesAction);
 acoesMenu.push(adicionarTextoOmissisAction);
 acoesMenu.push(removerTextoOmissisAction);
+
+acoesMenu.push(aceitarRevisaoAction);
+acoesMenu.push(rejeitarRevisaoAction);
 
 export const acoesExclusivasEdicao: ElementoAction[] = [];
 acoesExclusivasEdicao.push(adicionarElementoAction);

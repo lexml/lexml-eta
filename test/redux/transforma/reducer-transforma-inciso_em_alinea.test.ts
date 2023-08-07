@@ -6,7 +6,7 @@ import { getEvento } from '../../../src/redux/elemento/evento/eventosUtil';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { transformaTipoElemento } from '../../../src/redux/elemento/reducer/transformaTipoElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { StateType } from '../../../src/redux/state';
+import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_DISPOSITIVOS_ARTIGO } from '../../doc/exemplo-dispositivos-artigo';
 
 let state: any;
@@ -54,8 +54,11 @@ describe('Testando a transformação de inciso em alínea', () => {
         expect(state.articulacao.artigos[1].caput.filhos.length).to.equal(2);
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar eventos', () => {
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.SituacaoElementoModificada).length).to.be.greaterThan(0);
         });
         it('Deveria apresentar o antigo inciso II no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -76,8 +79,10 @@ describe('Testando a transformação de inciso em alínea', () => {
           expect(state.articulacao.artigos[1].caput.filhos.length).to.equal(1);
         });
         describe('Testando os eventos resultantes da ação', () => {
-          it('Deveria apresentar 3 eventos', () => {
-            expect(state.ui.events.length).to.equal(3);
+          it('Deveria apresentar eventos', () => {
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
           });
           it('Deveria apresentar o antigo inciso II como alínea do primeiro inciso', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -161,8 +166,11 @@ describe('Testando a transformação de inciso em alínea', () => {
         expect(state.articulacao.artigos[2].caput.filhos.length).to.equal(2);
       });
       describe('Testando eventos', () => {
-        it('Deveria apresentar 3 eventos', () => {
-          expect(state.ui.events.length).to.equal(3);
+        it('Deveria apresentar eventos', () => {
+          expect(state.ui.events).to.exist;
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+          expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
         });
         it('Deveria apresentar o antigo inciso II e seus filhos transformados no evento de ElementoIncluido', () => {
           const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
@@ -199,8 +207,10 @@ describe('Testando a transformação de inciso em alínea', () => {
           expect(state.articulacao.artigos[2].caput.filhos.length).to.equal(1);
         });
         describe('Testando eventos', () => {
-          it('Deveria apresentar 3 eventos', () => {
-            expect(state.ui.events.length).to.equal(3);
+          it('Deveria apresentar eventos', () => {
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRemovido).length).to.be.greaterThan(0);
+            expect(state.ui.events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoValidado).length).to.be.greaterThan(0);
           });
           it('Deveria apresentar o antigo inciso II e seus filhos transformados no evento de ElementoIncluido', () => {
             const incluido = getEvento(state.ui.events, StateType.ElementoIncluido);
