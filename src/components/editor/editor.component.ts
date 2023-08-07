@@ -1127,7 +1127,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
         diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
       } else {
-        diff.textoOriginal = diff.textoAntesRevisao;
+        diff.textoOriginal = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ? diff.textoAtual : diff.textoAntesRevisao;
         diff.adicionado = true;
       }
 
