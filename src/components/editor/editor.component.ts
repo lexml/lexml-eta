@@ -72,6 +72,7 @@ import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao'
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
+import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -762,6 +763,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
       rootStore.dispatch(itemMenu.execute(elemento, elementoLinhaAnterior));
+    } else if (itemMenu === exibirDiferencaAction) {
+      this.exibirDiferencas(this.quill.linhaAtual.elemento);
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
@@ -1522,6 +1525,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     uuidsElementosComModificacao.forEach(uuid => {
       const linha = this.quill.getLinha(uuid);
       if (linha) {
+        this.adicionaRemoveOpcaoDiffMenu(linha.elemento, uuidsElementosComModificacao);
+
+        events?.forEach((event: StateEvent): void => {
+          this.montarMenuContexto(event);
+        });
+
         if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
           linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
         } else {
@@ -1534,6 +1543,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+  }
+
+  private adicionaRemoveOpcaoDiffMenu(elemento: Elemento, uuidsElementosComModificacao: any): void {
+    if (uuidsElementosComModificacao.includes(elemento.uuid)) {
+      elemento.acoesPossiveis?.push(exibirDiferencaAction);
+    }
   }
 
   private indicadorMarcaRevisao(events: StateEvent[]): void {
