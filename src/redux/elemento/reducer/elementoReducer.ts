@@ -221,8 +221,8 @@ export const elementoReducer = (state = {}, action: any): any => {
 
   tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
 
-  tempState = adicionaDiffMenuOpcoes(tempState);
-  return atualizaRevisao(tempState, actionType);
+  tempState = atualizaRevisao(tempState, actionType);
+  return adicionaDiffMenuOpcoes(tempState);
 };
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {
