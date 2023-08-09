@@ -74,6 +74,7 @@ import { ACEITAR_REVISAO } from '../../../model/lexml/acao/aceitarRevisaoAction'
 import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 import { aceitaRevisao } from './aceitaRevisao';
 import { rejeitaRevisao } from './rejeitaRevisao';
+import { adicionaDiffMenuOpcoes } from './adicionaDiffMenuOpcoes';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -220,6 +221,7 @@ export const elementoReducer = (state = {}, action: any): any => {
 
   tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
 
+  tempState = adicionaDiffMenuOpcoes(tempState);
   return atualizaRevisao(tempState, actionType);
 };
 

@@ -1527,10 +1527,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (linha) {
         this.adicionaRemoveOpcaoDiffMenu(linha.elemento, uuidsElementosComModificacao);
 
-        events?.forEach((event: StateEvent): void => {
-          this.montarMenuContexto(event);
-        });
-
         if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
           linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
         } else {
