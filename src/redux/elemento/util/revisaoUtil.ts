@@ -111,7 +111,7 @@ const mapperActionTypeToDescricao = {
 };
 
 const mapperStateTypeToDescricao = {
-  [StateType.ElementoIncluido]: (): string => 'Dispositivo incluído',
+  [StateType.ElementoIncluido]: (): string => 'Dispositivo adicionado',
   [StateType.ElementoRemovido]: (): string => 'Dispositivo removido',
   [StateType.ElementoRestaurado]: (): string => 'Dispositivo restaurado',
   [StateType.ElementoModificado]: (): string => 'Texto do dispositivo foi alterado',
@@ -145,7 +145,9 @@ const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): num
 
 const getUuidPai = (state: State, elemento?: Partial<Elemento>): number | undefined => {
   const d = getDispositivoFromElemento(state.articulacao!, elemento!)!;
-  if (isDispositivoAlteracao(d)) {
+  if (!d) {
+    return undefined;
+  } else if (isDispositivoAlteracao(d)) {
     return isArticulacaoAlteracao(d.pai!) || isCaput(d.pai!) ? d.pai?.pai?.uuid : d.pai?.uuid;
   } else {
     return isCaput(d.pai!) ? d.pai?.pai?.uuid : d.pai?.uuid;
