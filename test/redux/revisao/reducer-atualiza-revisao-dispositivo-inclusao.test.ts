@@ -71,6 +71,30 @@ describe('Carregando texto da MPV 905/2019', () => {
       expect(state.emRevisao).to.be.true;
     });
 
+    describe('Adicionando, em modo de revisão, parágrafo em dispositivo de alteração de norma', () => {
+      beforeEach(function () {
+        let d = buscaDispositivoById(state.articulacao!, 'art50_cpt_alt1_art15')!;
+        state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Paragrafo' } });
+
+        d = buscaDispositivoById(state.articulacao!, 'art50_cpt_alt1_art15')!;
+        const e = createElemento(d.filhos[3]);
+        e.conteudo!.texto = 'Texto novo parágrafo.';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+      });
+
+      it('Deveria possuir novo parágrafo', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art50_cpt_alt1_art15')!;
+        expect(d.filhos.length).to.be.equal(4);
+        expect(d.filhos[3].tipo).to.be.equal('Paragrafo');
+        expect(d.filhos[3].id).to.be.equal(`art50_cpt_alt1_art15_par[sn:${d.filhos[3].uuid}]`);
+        expect(d.filhos[3].texto).to.be.equal('Texto novo parágrafo.');
+      });
+
+      it('Deveria possuir 1 revisão', () => {
+        expect(state.revisoes?.length).to.be.equal(1);
+      });
+    });
+
     describe('Adicionando dispositivo', () => {
       it('Deveria possuir uma revisão', () => {
         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
