@@ -7,6 +7,7 @@ import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositi
 import {
   buscaDispositivoById,
   findDispositivoByUuid2,
+  getArticulacao,
   getDispositivoCabecaAlteracao,
   getTiposAgrupadorArtigoOrdenados,
   hasEmenta,
@@ -379,17 +380,29 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
       revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
       revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
     }
+
+    if (e.dispositivoAlteracao) {
+      revisao.elementoAposRevisao.hierarquia!.pai!.uuidAlteracao = e.hierarquia?.pai?.uuidAlteracao;
+      revisao.elementoAposRevisao.hierarquia!.pai!.uuid2Alteracao = e.hierarquia?.pai?.uuid2Alteracao;
+    }
   }
 };
 
 const atualizarUuidDoPaiDoElementoRemovido = (state: State, revisao: RevisaoElemento): void => {
   let uuid: number | undefined = 0;
   let uuid2: string | undefined = '';
+  let uuidAlteracao: number | undefined = undefined;
+  let uuid2Alteracao: string | undefined = undefined;
 
   if (isRevisaoPrincipal(revisao)) {
     const pai = buscaDispositivoById(state.articulacao!, revisao.elementoAposRevisao.hierarquia!.pai!.lexmlId!);
     uuid = pai?.uuid;
     uuid2 = pai?.uuid2;
+    if (pai && isDispositivoAlteracao(pai)) {
+      const articulacaoAlteracao = getArticulacao(pai);
+      uuidAlteracao = articulacaoAlteracao?.uuid;
+      uuid2Alteracao = articulacaoAlteracao?.uuid2;
+    }
   } else {
     const revisaoPai = findRevisaoById(state.revisoes!, revisao.idRevisaoElementoPai!) as RevisaoElemento;
     uuid = revisaoPai!.elementoAposRevisao.uuid;
@@ -400,4 +413,9 @@ const atualizarUuidDoPaiDoElementoRemovido = (state: State, revisao: RevisaoElem
   revisao.elementoAposRevisao.hierarquia!.pai!.uuid2 = uuid2;
   revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = uuid;
   revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = uuid2;
+
+  revisao.elementoAposRevisao.hierarquia!.pai!.uuidAlteracao = uuidAlteracao;
+  revisao.elementoAposRevisao.hierarquia!.pai!.uuid2Alteracao = uuid2Alteracao;
+  revisao.elementoAntesRevisao!.hierarquia!.pai!.uuidAlteracao = uuidAlteracao;
+  revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2Alteracao = uuid2Alteracao;
 };

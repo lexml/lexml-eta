@@ -24,11 +24,163 @@ import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { elementoSelecionadoAction } from '../../../src/model/lexml/acao/elementoSelecionadoAction';
 import { EMENDA_006 } from '../../doc/emendas/emenda-006';
+import { MPV_1171_2023 } from '../../doc/mpv_1171_2023';
+import { EMENDA_009 } from '../../doc/emendas/emenda-009';
 
 let state: State;
 let aux: any;
 let uuid2_alineaA: string;
 let uuid2_alineaB: string;
+
+describe('Testando rejeição de múltiplas revisões da EMENDA_009', () => {
+  beforeEach(function () {
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_1171_2023, true);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+    state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_009.componentes[0].dispositivos, revisoes: EMENDA_009.revisoes });
+  });
+
+  it('Deveria estar em revisão', () => {
+    expect(state.emRevisao).to.be.true;
+  });
+
+  it('Deveria ter 7 revisões', () => {
+    expect(state.revisoes?.length).to.be.equal(7);
+  });
+
+  it('Deveria possuir 2 dispositivos modificados e 5 adicionados', () => {
+    const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!).slice(1);
+    expect(dispositivos.filter(isModificado).length).to.be.equal(2);
+    expect(dispositivos.filter(isAdicionado).length).to.be.equal(5);
+  });
+
+  describe('Testando dados dos dispositivos modificados e adicionados', () => {
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[0] como original', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[0];
+      expect(isOriginal(dispositivo)).to.be.true;
+      expect(dispositivo.tipo).to.be.equal('Omissis');
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[1] como modificado', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[1];
+      expect(isModificado(dispositivo)).to.be.true;
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[2] como adicionado', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[2];
+      expect(isAdicionado(dispositivo)).to.be.true;
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[3] como adicionado', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[3];
+      expect(isAdicionado(dispositivo)).to.be.true;
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[4] como modificado', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[4];
+      expect(isModificado(dispositivo)).to.be.true;
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[5] como adicionado', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[5];
+      expect(isAdicionado(dispositivo)).to.be.true;
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[2].texto como "Outro novo parágrafo."', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[2];
+      expect(dispositivo.texto).to.be.equal('Outro novo parágrafo.');
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[3].texto como "Mais um parágrafo."', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[3];
+      expect(dispositivo.texto).to.be.equal('Mais um parágrafo.');
+    });
+
+    it('Deveria possuir "art14_cpt_alt1_art4".filhos[5].texto como "E mais um parágrafo."', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[5];
+      expect(dispositivo.texto).to.be.equal('E mais um parágrafo.');
+    });
+  });
+
+  describe('Rejeitando todas as revisões', () => {
+    beforeEach(function () {
+      state = elementoReducer(state, { type: REJEITAR_REVISAO });
+    });
+
+    it('Deveria possuir 0 revisões', () => {
+      expect(state.revisoes?.length).to.be.equal(0);
+    });
+
+    it('Deveria possuir 0 dispositivos modificados e 0 adicionados', () => {
+      const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!).slice(1);
+      expect(dispositivos.filter(isModificado).length).to.be.equal(0);
+      expect(dispositivos.filter(isAdicionado).length).to.be.equal(0);
+    });
+
+    describe('Desfazendo a rejeição', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: UNDO });
+      });
+
+      it('Deveria possuir 7 revisões', () => {
+        expect(state.revisoes?.length).to.be.equal(7);
+      });
+
+      it('Deveria possuir 2 dispositivos modificados e 5 adicionados', () => {
+        const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!).slice(1);
+        expect(dispositivos.filter(isModificado).length).to.be.equal(2);
+        expect(dispositivos.filter(isAdicionado).length).to.be.equal(5);
+      });
+
+      // describe('Testando dados dos dispositivos modificados e adicionados (deveriam ter voltado ao estado de antes da rejeição)', () => {
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[0] como original', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[0];
+      //     expect(isOriginal(dispositivo)).to.be.true;
+      //     expect(dispositivo.tipo).to.be.equal('Omissis');
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[1] como modificado', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[1];
+      //     expect(isModificado(dispositivo)).to.be.true;
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[2] como adicionado', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[2];
+      //     expect(isAdicionado(dispositivo)).to.be.true;
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[3] como adicionado', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[3];
+      //     expect(isAdicionado(dispositivo)).to.be.true;
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[4] como modificado', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[4];
+      //     expect(isModificado(dispositivo)).to.be.true;
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[5] como adicionado', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[5];
+      //     expect(isAdicionado(dispositivo)).to.be.true;
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[2].texto como "Outro novo parágrafo."', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[2];
+      //     expect(dispositivo.texto).to.be.equal('Outro novo parágrafo.');
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[3].texto como "Mais um parágrafo."', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[3];
+      //     expect(dispositivo.texto).to.be.equal('Mais um parágrafo.');
+      //   });
+
+      //   it('Deveria possuir "art14_cpt_alt1_art4".filhos[5].texto como "E mais um parágrafo."', () => {
+      //     const dispositivo = buscaDispositivoById(state.articulacao!, 'art14_cpt_alt1_art4')!.filhos[5];
+      //     expect(dispositivo.texto).to.be.equal('E mais um parágrafo.');
+      //   });
+      // });
+    });
+  });
+});
 
 describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {

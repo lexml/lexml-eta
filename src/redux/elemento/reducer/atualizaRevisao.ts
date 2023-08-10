@@ -32,6 +32,7 @@ import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAct
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
 import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulacaoAction';
 import { getEvento } from '../evento/eventosUtil';
+import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
@@ -130,13 +131,26 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
     } else {
       const eAux = getElementoAntesModificacao(state, e);
-      result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
+      // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
+      if (!isAjusteTextoOmitido(eAux, e)) {
+        result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
+      }
     }
   });
 
   state.revisoes = state.revisoes?.filter(r => !revisoesParaRemover.includes(r));
 
   return result;
+};
+
+const isAjusteTextoOmitido = (eAntesRevisao: Elemento | undefined, eAposRevisao: Elemento): boolean => {
+  // O texto omitido do dispositivo original pode possuir um span com a classe texto__omissis, que não deve ser considerado para fins de comparação de modificação.
+  return !!(
+    eAposRevisao.tipo === eAntesRevisao?.tipo &&
+    eAposRevisao.conteudo?.texto?.includes(TEXTO_OMISSIS) &&
+    eAntesRevisao?.conteudo?.texto?.includes(TEXTO_OMISSIS) &&
+    eAposRevisao.conteudo?.texto?.replace('<span class="texto__omissis">', '').replace('</span>', '') === eAntesRevisao?.conteudo?.texto
+  );
 };
 
 const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Revisao[] => {
