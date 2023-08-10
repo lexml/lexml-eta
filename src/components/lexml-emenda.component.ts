@@ -8,6 +8,10 @@ import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
+import { editorStyles } from '../assets/css/editor.css';
+import { quillSnowStyles } from '../assets/css/quill.snow.css';
+import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
+
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
@@ -19,6 +23,7 @@ import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
+import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
 import { isRevisaoElemento, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
@@ -32,15 +37,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
+  @property({ type: String })
   private modo: any = ClassificacaoDocumento.EMENDA;
+
+  @property({ type: String })
+  private motivo = '';
+
   private projetoNorma = {};
 
   @state()
   autoria = new Autoria();
 
   @query('lexml-eta')
-  _lexmlEta!: LexmlEtaComponent;
-  @query('lexml-emenda-justificativa')
+  _lexmlEta?: LexmlEtaComponent;
+  @query('#editor-texto-rico-emenda')
+  _lexmlEmendaTextoRico;
+  @query('#editor-texto-rico-justificativa')
   _lexmlJustificativa;
   @query('lexml-autoria')
   _lexmlAutoria;
@@ -117,8 +129,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   getEmenda(): Emenda {
     const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
-    emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
-    emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    if (this._lexmlEta) {
+      emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
+      emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    } else {
+      emenda.comandoEmendaTextoLivre.motivo = this.motivo;
+      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
+    }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
@@ -144,15 +161,26 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, usuario?: Usuario): void {
+  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, motivo = '', usuario?: Usuario): void {
     this._lexmlEmendaComando.emenda = [];
     this.modo = modo;
     this.projetoNorma = projetoNorma;
-    this._lexmlEta.setProjetoNorma(modo, projetoNorma, !!emenda);
+    this.motivo = motivo;
+
+    if (this.modo !== 'emendaTextoLivre') {
+      this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
+    }
+
     if (emenda) {
       this.setEmenda(emenda);
     } else {
       this.resetaEmenda(modo as ModoEdicaoEmenda);
+    }
+
+    this.limparAlertas();
+
+    if (this.modo === 'emendaTextoLivre' && !this._lexmlEmendaTextoRico.texto) {
+      this.showAlertaEmendaTextoLivre();
     }
     this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
@@ -163,10 +191,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private setEmenda(emenda: Emenda): void {
-    this._lexmlEta.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
+    if (this._lexmlEta) {
+      this._lexmlEta.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
+    }
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
+    if (this._lexmlEmendaTextoRico) {
+      this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
+    }
     this._lexmlData.data = emenda.data;
   }
 
@@ -190,9 +223,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
-    if (this.modo.startsWith('emenda')) {
+    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
       if (this.sizeMode === 'desktop') {
-        this.splitPanelPosition = this.slSplitPanel.position;
+        this.slSplitPanel.position = this.splitPanelPosition;
       }
 
       if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
@@ -204,7 +237,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.slSplitPanel.position = this.splitPanelPosition;
         this.slSplitPanel.removeAttribute('disabled');
       }
-    } else if (this.modo === 'edicao') {
+    } else {
       this.slSplitPanel.position = 100;
     }
   }
@@ -265,7 +298,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    if (this.modo.startsWith('emenda')) {
+    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
       this.slSplitPanel.removeAttribute('disabled');
       this.slSplitPanel.position = this.splitPanelPosition;
     } else {
@@ -305,8 +338,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(): void {
-    if (this.modo.startsWith('emenda')) {
-      const comandoEmenda = this._lexmlEta.getComandoEmenda();
+    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
+      const comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
 
@@ -321,11 +354,32 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
       }
+    } else if (this.modo === 'emendaTextoLivre') {
+      if (!this._lexmlEmendaTextoRico.texto) {
+        this.showAlertaEmendaTextoLivre();
+      } else {
+        rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
+      }
     }
+  }
+
+  limparAlertas(): void {
+    rootStore.dispatch(limparAlertas());
+  }
+
+  showAlertaEmendaTextoLivre(): void {
+    const alerta = {
+      id: 'alerta-global-emenda-texto-livre',
+      tipo: 'error',
+      mensagem: 'O comando de emenda deve ser preenchido.',
+      podeFechar: false,
+    };
+    rootStore.dispatch(adicionarAlerta(alerta));
   }
 
   render(): TemplateResult {
     return html`
+      ${shoelaceLightThemeStyles} ${quillSnowStyles} ${editorStyles}
       <style>
         :root {
           --height: 100%;
@@ -345,14 +399,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         lexml-emenda-comando {
           font-family: var(--eta-font-serif);
-          display: ${this.modo.startsWith('emenda') ? 'block' : 'none'};
+          display: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? 'block' : 'none'};
           height: 100%;
         }
         lexml-eta {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        lexml-emenda-justificativa #editor-justificativa {
+        #editor-texto-rico-justificativa #editor-texto-rico {
           height: calc(var(--height) - 44px);
           overflow: var(--overflow);
         }
@@ -374,7 +428,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
 
         sl-split-panel {
-          --divider-width: ${this.modo.startsWith('emenda') ? '15px' : '0px'};
+          --divider-width: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? '15px' : '0px'};
         }
         sl-tab sl-icon {
           margin-right: 5px;
@@ -402,10 +456,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              <lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>
+              ${this.modo && this.modo !== 'emendaTextoLivre'
+                ? html`<lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>`
+                : html`<editor-texto-rico id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
-              <lexml-emenda-justificativa @onchange=${this.onChange}></lexml-emenda-justificativa>
+              <editor-texto-rico id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">

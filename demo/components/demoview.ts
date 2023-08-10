@@ -125,9 +125,14 @@ export class DemoView extends LitElement {
       this.modo = elmAcao.value;
       setTimeout(() => {
         this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
-        this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
-        this.atualizarProposicaoCorrente(this.projetoNorma);
-        this.elLexmlEmenda.style.display = 'block';
+
+        if (this.elLexmlEmenda) {
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, undefined, 'Motivo da emenda de texto livre');
+          this.atualizarProposicaoCorrente(this.projetoNorma);
+          this.elLexmlEmenda.style.display = 'block';
+        } else {
+          this.atualizarProposicaoCorrente(this.projetoNorma);
+        }
       }, 0);
     }
   }
@@ -140,7 +145,6 @@ export class DemoView extends LitElement {
     const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
-
     a.href = objectUrl;
     a.download = fileName;
     document.body.appendChild(a);
@@ -174,7 +178,7 @@ export class DemoView extends LitElement {
           const emenda = 'emenda' in result ? result.emenda : result;
           this.modo = emenda.modoEdicao;
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda);
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda, emenda.comandoEmendaTextoLivre.motivo);
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
@@ -303,6 +307,7 @@ export class DemoView extends LitElement {
             <option value="edicao" id="optEdicao">Edição</option>
             <option value="emenda" id="optEmenda" selected>Emenda</option>
             <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
+            <option value="emendaTextoLivre" id="optemendaTextoLivre">Emenda Texto Livre</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
         </div>

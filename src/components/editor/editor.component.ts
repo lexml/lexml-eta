@@ -7,8 +7,6 @@ import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
-import { editorStyles } from '../../assets/css/editor.css';
-import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { CmdEmdUtil } from '../../emenda/comando-emenda-util';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
@@ -152,8 +150,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${quillSnowStyles}
-      ${editorStyles}
       <style>
         :host {
           --lx-eta-editor-height: 100%;

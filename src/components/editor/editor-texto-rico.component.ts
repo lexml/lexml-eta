@@ -1,6 +1,6 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { negrito, sublinhado } from '../../../assets/icons/icons';
+import { negrito, sublinhado, controleDropdown } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
@@ -9,9 +9,10 @@ import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
 
-@customElement('lexml-emenda-justificativa')
-export class JustificativaEmendaComponent extends connect(rootStore)(LitElement) {
+@customElement('editor-texto-rico')
+export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
+  @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
 
   onChange: Observable<string> = new Observable<string>();
   private timerOnChange?: any;
@@ -41,11 +42,11 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           bubbles: true,
           composed: true,
           detail: {
-            origemEvento: 'justificativa',
+            origemEvento: this.registroEvento,
           },
         })
       );
-      this.onChange.notify('justificativa');
+      this.onChange.notify(this.registroEvento);
     }, 1000);
   }
 
@@ -79,15 +80,27 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
   render(): TemplateResult {
     return html`
       <style>
-        #editor-justificativa {
+        .editor-texto-rico {
           height: 375px;
         }
-        #editor-justificativa p:not(.ql-align-rigth, .ql-align-center) {
+        .editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
           text-indent: 3em;
         }
         .ql-toolbar.ql-snow .ql-formats {
           margin-right: 8px;
         }
+        .editor-texto-rico .estilo-artigo-subordinados {
+          text-indent: 0 !important;
+          text-align: justify;
+        }
+        .editor-texto-rico .estilo-agrupador-artigo {
+          text-indent: 0 !important;
+          text-align: center;
+        }
+        .editor-texto-rico .estilo-emenda {
+          text-indent: 0 !important;
+          text-align: justify;
+          margin-left: 40%;
 
         #revisoes-justificativa-icon sl-icon,
         #aceita-revisao-justificativa {
@@ -135,7 +148,15 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           }
         }
       </style>
-      <div id="toolbar">
+      <div id="${`toolbar${this.id}`}">
+        <span class="ql-formats">
+          <select id="select-estilo" class="ql-estilo" title="Estilo">
+            <option value="estilo-normal">Texto normal</option>
+            <option value="estilo-artigo-subordinados">Artigo e subordinados</option>
+            <option value="estilo-agrupador-artigo">Agrupador de artigo</option>
+            <option value="estilo-emenda">Ementa</option>
+          </select>
+        </span>
         <span class="ql-formats">
           <button type="button" class="ql-bold" title="Negrito (Ctrl+b)"></button>
           <button type="button" class="ql-italic" title="Itálico (Ctrl+i)"></button>
@@ -198,7 +219,7 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
           <sl-icon name="check-lg"></sl-icon>
         </sl-button>
       </div>
-      <div id="editor-justificativa"></div>
+      <div id="${this.id}-inner" class="editor-texto-rico"></div>
     `;
   }
 
@@ -221,16 +242,17 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
   }
 
   init = (): void => {
-    this.container = document.querySelector('#editor-justificativa');
+    this.container = document.querySelector(`#${this.id}-inner`);
     if (this.container) {
       this.quill = new Quill(this.container as HTMLElement, {
-        formats: ['bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
+        formats: ['estilo', 'bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote'],
         modules: {
           toolbar: {
-            container: '#toolbar',
+            container: '#toolbar' + this.id,
             handlers: {
               undo: this.undo,
               redo: this.redo,
+              estilo: this.changeEstilo,
             },
           },
           history: {
@@ -247,11 +269,12 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
       this.setContent(this.texto);
 
       this.quill?.on('text-change', this.updateTexto);
+      this.loadDropDownEstilo();
     }
   };
 
   setContent = (texto: string): void => {
-    if (!this.quill) {
+    if (!this.quill || !this.quill.root) {
       return;
     }
     this.quill.root.innerHTML = texto
@@ -283,6 +306,28 @@ export class JustificativaEmendaComponent extends connect(rootStore)(LitElement)
 
   redo = (): any => {
     return this.quill?.history.redo();
+  };
+
+  changeEstilo = (value): void => {
+    const label = document.querySelector(`#toolbar${this.id} .ql-estilo .ql-picker-label`);
+    const itens = document.querySelectorAll(`#toolbar${this.id} .ql-estilo .ql-picker-item`);
+    const placeholderPickerItems = Array.prototype.slice.call(itens);
+    const item = placeholderPickerItems.filter(item => item.dataset.value === value)[0];
+    label!.innerHTML = item.dataset.label + '&nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
+    const range = this.quill?.getSelection();
+    if (range) {
+      this.quill?.getLines(range.index)[0].domNode.setAttribute('class', value);
+    }
+  };
+
+  loadDropDownEstilo = (): void => {
+    const label = document.querySelector(`#toolbar${this.id} .ql-estilo .ql-picker-label`);
+    const itens = document.querySelectorAll(`#toolbar${this.id} .ql-estilo .ql-picker-item`);
+    if (this.container && label) {
+      const placeholderPickerItems = Array.prototype.slice.call(itens);
+      placeholderPickerItems.forEach(item => (item.textContent = item.dataset.label));
+      label!.innerHTML = 'Texto Normal &nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
+    }
   };
 
   private atualiazaRevisaoJusutificativaIcon = (): void => {
