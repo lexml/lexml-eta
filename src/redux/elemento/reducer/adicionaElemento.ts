@@ -134,7 +134,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     }
   } else if (atual.hasAlteracao()) {
     novo = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, atual.alteracoes!, undefined, 0);
-  } else if (isEmenta(atual)) {
+  } else if (isEmenta(atual) && action.novo.tipo) {
     novo = criaDispositivo(state.articulacao, action.novo.tipo, undefined, 0);
   } else if (action.novo.tipo && atual.tipo !== action.novo.tipo) {
     novo = criaDispositivo(atual, action.novo.tipo, refUltimoFilho);
