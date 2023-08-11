@@ -129,6 +129,8 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
         revisoesParaRemover.push(revisao);
       }
       revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
+      state.usuario && (revisao.usuario = state.usuario);
+      revisao.dataHora = formatDateTime(new Date());
     } else {
       const eAux = getElementoAntesModificacao(state, e);
       // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
