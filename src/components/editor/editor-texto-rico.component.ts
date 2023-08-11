@@ -101,7 +101,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           text-indent: 0 !important;
           text-align: justify;
           margin-left: 40%;
-
+        }
         #revisoes-justificativa-icon sl-icon,
         #aceita-revisao-justificativa {
           margin-right: 0.1rem;
