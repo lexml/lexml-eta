@@ -208,6 +208,10 @@ export enum RevisaoJustificativaEnum {
   JustificativaAlterada = 'Justificativa Alterada',
 }
 
+export enum RevisaoTextoLivreEnum {
+  TextoLivreAlterado = 'Texto Livre Alterado',
+}
+
 export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
   const result: Revisao[] = revisoes.filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento));
   result.push(...getRevisoesDeExclusaoOrdenadasPorUuid(revisoes));
@@ -261,6 +265,10 @@ const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number =>
   return revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
 };
 
+const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): number => {
+  return revisoes.filter(e => e.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado).length;
+};
+
 const mostrarDialogDisclaimerRevisao = (rootStore: any): void => {
   if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !rootStore.getState().elementoReducer.emRevisao) {
     const dialog = document.createElement('sl-dialog');
@@ -307,7 +315,8 @@ export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
 };
 
 export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {
-  const quantidade = modo === 'justificativa' ? getQuantidadeRevisoesJustificativa(revisoes) : getQuantidadeRevisoes(revisoes);
+  const quantidade =
+    modo === 'justificativa' ? getQuantidadeRevisoesJustificativa(revisoes) : modo === 'textoLivre' ? getQuantidadeRevisoesTextoLivre(revisoes) : getQuantidadeRevisoes(revisoes);
   if (element) {
     element.innerHTML = quantidade;
   }

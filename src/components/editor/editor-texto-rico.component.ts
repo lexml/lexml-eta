@@ -8,6 +8,7 @@ import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil'
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
+import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
@@ -305,10 +306,18 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       : '';
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
-    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
-    this.atualiazaRevisaoJusutificativaIcon();
-    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
+    this.buildRevisoes();
     //this.atualizaQuantidadeRevisao();
+  };
+
+  buildRevisoes = (): void => {
+    if (this.modo === 'justificativa') {
+      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
+      this.atualiazaRevisaoJusutificativaIcon();
+      this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
+    } else {
+      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
+    }
   };
 
   undo = (): any => {
