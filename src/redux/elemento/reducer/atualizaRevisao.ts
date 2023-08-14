@@ -44,10 +44,12 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   }
 
   if (UNDO === actionType && (state.past?.length || 0) < state.numEventosPassadosAntesDaRevisao!) {
+    associarRevisoesAosElementosDosEventos(state);
     return state;
   }
 
   if (REDO === actionType && (state.past?.length || 0) <= state.numEventosPassadosAntesDaRevisao!) {
+    associarRevisoesAosElementosDosEventos(state);
     return state;
   }
 
