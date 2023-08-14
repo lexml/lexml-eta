@@ -19,8 +19,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   onChange: Observable<string> = new Observable<string>();
   private timerOnChange?: any;
-  private _idSwitchRevisao = 'chk-em-revisao-justificativa';
-  private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao-justificativa';
 
   quill?: Quill;
   container;
@@ -132,11 +130,28 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         #chk-em-revisao-justificativa[checked] {
           background-color: var(--sl-color-blue-100);
         }
+
+        #chk-em-revisao-texto-livre {
+          border: 1px solid #ccc !important;
+          padding: 5px 10px !important;
+          border-radius: 20px !important;
+          margin-left: auto;
+          margin-right: 5px;
+          font-weight: bold;
+          background-color: #eee;
+        }
+        #chk-em-revisao-texto-livre[checked] {
+          background-color: var(--sl-color-blue-100);
+        }
         #toolbar {
           padding: 1.5px 0 1.5px 8px;
         }
 
         #badge-marca-alteracao-justificativa::part(base) {
+          min-width: 1.4rem;
+        }
+
+        #badge-marca-alteracao-texto-livre::part(base) {
           min-width: 1.4rem;
         }
         revisao-container {
@@ -193,7 +208,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
 
-        <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this._idSwitchRevisao}" .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}">
+        <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
         </lexml-switch-revisao>
 
         <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
@@ -324,6 +339,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       placeholderPickerItems.forEach(item => (item.textContent = item.dataset.label));
       label!.innerHTML = 'Texto Normal &nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
     }
+  };
+
+  private getNomeSwitch = (): string => {
+    return this.modo === 'justificativa' ? 'chk-em-revisao-justificativa' : 'chk-em-revisao-texto-livre';
+  };
+
+  private getNomeBadge = (): string => {
+    return this.modo === 'justificativa' ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
   };
 
   private atualiazaRevisaoJusutificativaIcon = (): void => {
