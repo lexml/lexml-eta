@@ -1,3 +1,4 @@
+import { ATUALIZAR_USUARIO } from './../../../src/model/lexml/acao/atualizarUsuarioAction';
 import { StateType } from './../../../src/redux/state';
 import { State } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
@@ -25,6 +26,56 @@ describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+  });
+
+  describe('Testando atualização do nome do usuário em revisão já existente', () => {
+    beforeEach(function () {
+      state = elementoReducer(state, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Anônimo' } });
+      state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      const e = createElemento(d);
+      e.conteudo!.texto = 'texto modificado;';
+      state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+    });
+
+    it('Deveria possuir 1 revisão', () => {
+      expect(state.revisoes?.length).to.be.equal(1);
+    });
+
+    it('Dispositivo "art1_par1u_inc1" deveria estar modificado', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+      expect(isModificado(d)).to.be.true;
+      expect(d.texto).to.be.equal('texto modificado;');
+    });
+
+    it('Nome do usuário da revisão deveria ser "Anônimo"', () => {
+      expect(state.revisoes![0].usuario.nome).to.be.equal('Anônimo');
+    });
+
+    describe('Alterando nome do usuário e alterando texto do dispositivo novamente', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Usuário1' } });
+
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+        const e = createElemento(d);
+        e.conteudo!.texto = 'texto modificado novamente;';
+        state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
+      });
+
+      it('Deveria possuir 1 revisão', () => {
+        expect(state.revisoes?.length).to.be.equal(1);
+      });
+
+      it('Dispositivo "art1_par1u_inc1" deveria estar modificado', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+        expect(isModificado(d)).to.be.true;
+        expect(d.texto).to.be.equal('texto modificado novamente;');
+      });
+
+      it('Nome do usuário da revisão deveria ser "Usuário1"', () => {
+        expect(state.revisoes![0].usuario.nome).to.be.equal('Usuário1');
+      });
+    });
   });
 
   describe('Alterar dispositivo, ativar revisão, alterar dispositivo novamente, rejeitar revisão, fazer UNDO da rejeição', () => {
