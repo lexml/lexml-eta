@@ -458,10 +458,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
               ${this.modo && this.modo !== 'emendaTextoLivre'
                 ? html`<lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>`
-                : html`<editor-texto-rico id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
+                : html`<editor-texto-rico modo="textoLivre" id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
-              <editor-texto-rico id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
+              <editor-texto-rico modo="justificativa" id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">

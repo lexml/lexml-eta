@@ -62,7 +62,7 @@ import { informarNormaDialog } from './informarNormaDialog';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
-import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
@@ -90,6 +90,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('#btnRejeitarTodasRevisoes')
   private btnRejeitarTodasRevisoes!: HTMLButtonElement;
+
+  private modo = ClassificacaoDocumento.EMENDA;
 
   private _quill?: EtaQuill;
   private get quill(): EtaQuill {
@@ -203,6 +205,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+          modo="${this.modo}"
           >
           </lexml-switch-revisao>
 
@@ -675,7 +678,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     this.indicadorMarcaRevisao(events);
     this.indicadorTextoModificado(events);
-    this.atualizaQuantidadeRevisao();
+    //this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
@@ -1585,9 +1588,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
-  };
+  // private atualizaQuantidadeRevisao = (): void => {
+  //   atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
+  // };
 
   private atualizarStatusBotoesRevisao(): void {
     const numRevisoes = getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes);

@@ -306,8 +306,8 @@ export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
   rootStore.dispatch(ativarDesativarRevisaoAction.execute());
 };
 
-export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, justificativa = false): void => {
-  const quantidade = justificativa ? getQuantidadeRevisoesJustificativa(revisoes) : getQuantidadeRevisoes(revisoes);
+export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {
+  const quantidade = modo === 'justificativa' ? getQuantidadeRevisoesJustificativa(revisoes) : getQuantidadeRevisoes(revisoes);
   if (element) {
     element.innerHTML = quantidade;
   }

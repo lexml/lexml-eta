@@ -4,7 +4,7 @@ import { negrito, sublinhado, controleDropdown } from '../../../assets/icons/ico
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
-import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, RevisaoJustificativaEnum, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { RevisaoJustificativaEnum } from '../../redux/elemento/util/revisaoUtil';
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
@@ -13,6 +13,9 @@ import { StateEvent, StateType } from '../../redux/state';
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
+
+  @property({ type: String })
+  modo = '';
 
   onChange: Observable<string> = new Observable<string>();
   private timerOnChange?: any;
@@ -69,10 +72,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       switch (event.stateType) {
         case StateType.RevisaoAtivada:
         case StateType.RevisaoDesativada:
-          this.checkedSwitchMarcaAlteracao();
+          //this.checkedSwitchMarcaAlteracao();
           break;
       }
-      this.atualizaQuantidadeRevisao();
+      //this.atualizaQuantidadeRevisao();
       this.atualiazaRevisaoJusutificativaIcon();
     });
   }
@@ -101,6 +104,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           text-indent: 0 !important;
           text-align: justify;
           margin-left: 40%;
+        }
 
         #revisoes-justificativa-icon sl-icon,
         #aceita-revisao-justificativa {
@@ -189,15 +193,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
 
-        <!-- <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon> -->
-
-        <!--
-        <sl-switch id="chk-em-revisao-justificativa" size="small" @sl-change=${(): void =>
-          this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao-justificativa" variant="warning" pill>0</sl-badge>
-        </sl-switch>
-        -->
-
-        <lexml-switch-revisao class="revisao-container" .nomeSwitch="${this._idSwitchRevisao}" .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}">
+        <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this._idSwitchRevisao}" .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}">
         </lexml-switch-revisao>
 
         <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
@@ -297,7 +293,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
     this.atualiazaRevisaoJusutificativaIcon();
     this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
-    this.atualizaQuantidadeRevisao();
+    //this.atualizaQuantidadeRevisao();
   };
 
   undo = (): any => {
@@ -363,7 +359,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
     this.atualiazaRevisaoJusutificativaIcon();
     this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
-    this.atualizaQuantidadeRevisao();
+    //this.atualizaQuantidadeRevisao();
   };
 
   private getRevisoesJustificativa = (): Revisao[] => {
@@ -380,17 +376,17 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  private ativarDesativarMarcaDeRevisao(): void {
-    ativarDesativarMarcaDeRevisao(rootStore);
-    this.checkedSwitchMarcaAlteracao();
-  }
+  // private ativarDesativarMarcaDeRevisao(): void {
+  //   ativarDesativarMarcaDeRevisao(rootStore);
+  //   this.checkedSwitchMarcaAlteracao();
+  // }
 
-  private checkedSwitchMarcaAlteracao = (): void => {
-    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao-justificativa') as any;
-    setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
-  };
+  // private checkedSwitchMarcaAlteracao = (): void => {
+  //   const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao-justificativa') as any;
+  //   setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
+  // };
 
-  private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
-  };
+  // private atualizaQuantidadeRevisao = (): void => {
+  //   atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
+  // };
 }

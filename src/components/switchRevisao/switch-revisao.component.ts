@@ -1,9 +1,10 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Observable } from '../../util/observable';
-import { ativarDesativarMarcaDeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
+import { StateEvent, StateType } from '../../redux/state';
 
 @customElement('lexml-switch-revisao')
 export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
@@ -19,6 +20,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean, reflect: true })
   checkedRevisao = false;
 
+  @property({ type: String })
+  modo = '';
+
   onChange: Observable<string> = new Observable<string>();
 
   update(changedProperties: PropertyValues): void {
@@ -27,6 +31,25 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
 
   createRenderRoot(): LitElement {
     return this;
+  }
+
+  stateChanged(state: any): void {
+    if (state.elementoReducer.ui?.events) {
+      this.processarStateEvents(state.elementoReducer.ui.events);
+    }
+  }
+
+  private processarStateEvents(events: StateEvent[]): void {
+    events?.forEach((event: StateEvent): void => {
+      switch (event.stateType) {
+        case StateType.RevisaoAtivada:
+        case StateType.RevisaoDesativada:
+          this.checkedSwitchMarcaAlteracao();
+          break;
+      }
+      this.atualizaQuantidadeRevisao();
+      // this.atualiazaRevisaoJusutificativaIcon();
+    });
   }
 
   render(): TemplateResult {
@@ -85,5 +108,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   private checkedSwitchMarcaAlteracao = (): void => {
     const switchMarcaAlteracaoView = document.getElementById(this.nomeSwitch) as any;
     setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
+  };
+
+  private atualizaQuantidadeRevisao = (): void => {
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
   };
 }
