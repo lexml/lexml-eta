@@ -4,7 +4,7 @@ import { negrito, sublinhado, controleDropdown } from '../../../assets/icons/ico
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
-import { RevisaoJustificativaEnum, RevisaoTextoLivreEnum } from '../../redux/elemento/util/revisaoUtil';
+import { atualizaQuantidadeRevisao, RevisaoJustificativaEnum, RevisaoTextoLivreEnum } from '../../redux/elemento/util/revisaoUtil';
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
@@ -74,7 +74,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           //this.checkedSwitchMarcaAlteracao();
           break;
       }
-      //this.atualizaQuantidadeRevisao();
+      this.atualizaQuantidadeRevisao();
       this.atualizaRevisaoIcon();
     });
   }
@@ -414,14 +414,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
     this.atualizaRevisaoIcon();
     this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
-    //this.atualizaQuantidadeRevisao();
+    this.atualizaQuantidadeRevisao();
   };
 
   private aceitaRevisoesTextoLivre = (): void => {
     atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
     this.atualizaRevisaoIcon();
     this.desabilitaBtnAceitarRevisoes(this.getRevisoesTextoLivre().length === 0, 'aceita-revisao-texto-livre');
-    //this.atualizaQuantidadeRevisao();
+    this.atualizaQuantidadeRevisao();
   };
 
   private getRevisoes = (): Revisao[] => {
@@ -457,7 +457,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   //   setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
   // };
 
-  // private atualizaQuantidadeRevisao = (): void => {
-  //   atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
-  // };
+  private atualizaQuantidadeRevisao = (): void => {
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.getNomeBadge()) as any, this.modo);
+  };
 }
