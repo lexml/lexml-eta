@@ -420,7 +420,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           height: calc(var(--height) - 57px);
           overflow: var(--overflow);
         }
-
         .badge-pulse {
           margin-left: 7px;
           height: 16px;
