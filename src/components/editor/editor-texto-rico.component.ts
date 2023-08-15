@@ -74,7 +74,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           //this.checkedSwitchMarcaAlteracao();
           break;
       }
-      this.atualizaQuantidadeRevisao();
+      //this.atualizaQuantidadeRevisao();
       this.atualizaRevisaoIcon();
     });
   }
