@@ -406,10 +406,21 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        #editor-texto-rico-justificativa #editor-texto-rico {
+        /* #editor-texto-rico-justificativa #editor-texto-rico {
           height: calc(var(--height) - 44px);
           overflow: var(--overflow);
+        } */
+
+        #editor-texto-rico-emenda-inner {
+          height: calc(var(--height) - 57px);
+          overflow: var(--overflow);
         }
+
+        #editor-texto-rico-justificativa-inner {
+          height: calc(var(--height) - 57px);
+          overflow: var(--overflow);
+        }
+
         .badge-pulse {
           margin-left: 7px;
           height: 16px;
