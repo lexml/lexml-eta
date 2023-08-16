@@ -375,11 +375,15 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         iconRevisoes.classList.add(idIcon + '__ativo');
         iconRevisoes.removeAttribute('disabled');
       } else {
-        contentRevisoes.innerHTML = 'Revisões na justificativa';
+        contentRevisoes.innerHTML = this.getTitle();
         iconRevisoes.classList.remove(idIcon + '__ativo');
         this.desabilitaBtnAceitarRevisoes(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
       }
     }
+  };
+
+  private getTitle = (): string => {
+    return this.modo === 'justificativa' ? 'Revisões na justificativa' : 'Revisões no texto livre';
   };
 
   private getMensagemRevisoes = (): string => {

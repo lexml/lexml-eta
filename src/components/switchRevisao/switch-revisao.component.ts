@@ -63,6 +63,15 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
           background-color: #eee;
           cursor: pointer;
         }
+
+        #revisoes-texto-livre-icon sl-icon {
+          border: 1px solid #ccc !important;
+          padding: 0.4rem 0.4rem !important;
+          border-radius: 15px !important;
+          font-weight: bold;
+          background-color: #eee;
+          cursor: pointer;
+        }
         #chk-em-revisao {
           border: 1px solid #ccc !important;
           padding: 5px 10px !important;
