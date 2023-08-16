@@ -9,6 +9,7 @@ import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
+import { Modo } from '../../redux/elemento/enum/enumUtil';
 
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
@@ -220,7 +221,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
         <sl-tooltip id="${this.getIdTooltip()}" placement="bottom-end">
           <div slot="content">
-            <div>${this.modo === 'justificativa' ? 'Revisões na justificativa' : 'Revisões no texto livre'}</div>
+            <div>${this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificativa' : 'Revisões no texto livre'}</div>
           </div>
           <sl-icon name="person-check-fill"></sl-icon>
         </sl-tooltip>
@@ -248,11 +249,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   private getIdTooltip = (): string => {
-    return this.modo === 'justificativa' ? 'revisoes-justificativa-icon' : 'revisoes-texto-livre-icon';
+    return this.modo === Modo.JUSTIFICATIVA ? 'revisoes-justificativa-icon' : 'revisoes-texto-livre-icon';
   };
 
   private getIdButtonAceitarRevisoes = () => {
-    return this.modo === 'justificativa' ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
+    return this.modo === Modo.JUSTIFICATIVA ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
   };
 
   firstUpdated(): void {
@@ -317,7 +318,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   buildRevisoes = (): void => {
-    if (this.modo === 'justificativa') {
+    if (this.modo === Modo.JUSTIFICATIVA) {
       atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
     } else {
       atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
@@ -357,11 +358,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private getNomeSwitch = (): string => {
-    return this.modo === 'justificativa' ? 'chk-em-revisao-justificativa' : 'chk-em-revisao-texto-livre';
+    return this.modo === Modo.JUSTIFICATIVA ? 'chk-em-revisao-justificativa' : 'chk-em-revisao-texto-livre';
   };
 
   private getNomeBadge = (): string => {
-    return this.modo === 'justificativa' ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
+    return this.modo === Modo.JUSTIFICATIVA ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
   };
 
   private atualizaRevisaoIcon = (): void => {
@@ -383,13 +384,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private getTitle = (): string => {
-    return this.modo === 'justificativa' ? 'Revisões na justificativa' : 'Revisões no texto livre';
+    return this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificativa' : 'Revisões no texto livre';
   };
 
   private getMensagemRevisoes = (): string => {
     let revisoes: any;
 
-    if (this.modo === 'justificativa') {
+    if (this.modo === Modo.JUSTIFICATIVA) {
       revisoes = this.getRevisoesJustificativa();
     } else {
       revisoes = this.getRevisoesTextoLivre();
@@ -407,7 +408,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private aceitarRevisoes = (): void => {
-    if (this.modo === 'justificativa') {
+    if (this.modo === Modo.JUSTIFICATIVA) {
       this.aceitaRevisoesJustificativa();
     } else {
       this.aceitaRevisoesTextoLivre();
@@ -429,7 +430,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private getRevisoes = (): Revisao[] => {
-    return this.modo === 'justificativa' ? this.getRevisoesJustificativa() : this.getRevisoesTextoLivre();
+    return this.modo === Modo.JUSTIFICATIVA ? this.getRevisoesJustificativa() : this.getRevisoesTextoLivre();
   };
 
   private getRevisoesJustificativa = (): Revisao[] => {
