@@ -135,6 +135,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } else {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
+      emenda.anexos = this._lexmlEmendaTextoRico.anexos;
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();

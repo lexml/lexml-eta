@@ -20,7 +20,7 @@ export class Emenda {
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
-
+  anexos: Anexo[] = [];
   revisoes: Revisao[] = [];
 }
 
@@ -153,4 +153,9 @@ export class OpcoesImpressao {
   textoCabecalho = '';
   reduzirEspacoEntreLinhas = false;
   tamanhoFonte = 14;
+}
+
+export class Anexo {
+  nomeArquivo = '';
+  base64 = '';
 }
