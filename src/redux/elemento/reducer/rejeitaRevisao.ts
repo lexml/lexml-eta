@@ -44,7 +44,9 @@ export const rejeitarRevisaoEmLote = (state: State, revisoes: Revisao[] = []): S
     const tempState = { ...state, past: [], present: [], future: [], ui: { ...state.ui, events: [] } };
     tempStates.push(rejeitarRevisao(tempState, { revisao }));
   });
-  return mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'rejeitar');
+  const tempState = mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'rejeitar');
+  tempState.revisoes = state.revisoes?.filter(r => !isRevisaoPrincipal(r));
+  return tempState;
 };
 
 export const rejeitarRevisao = (state: any, action: any): State => {

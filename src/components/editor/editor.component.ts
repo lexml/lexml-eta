@@ -148,7 +148,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   @property({ type: Boolean })
-  exibirBotoesParaTratarTodas = true;
+  exibirBotoesParaTratarTodas = false;
 
   render(): TemplateResult {
     return html`

@@ -214,12 +214,11 @@ export const elementoReducer = (state = {}, action: any): any => {
     !isRedoDeRevisaoRejeitada(actionType, tempState)
   ) {
     tempState.revisoes = revisoes;
+    tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
   }
 
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
-
-  tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
 
   tempState = atualizaRevisao(tempState, actionType);
   return adicionaDiffMenuOpcoes(tempState);

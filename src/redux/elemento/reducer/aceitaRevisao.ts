@@ -21,7 +21,9 @@ export const aceitarRevisaoEmLote = (state: State, revisoes: Revisao[] = []): St
     tempStates.push(aceitarRevisao(tempState, { revisao }));
   });
 
-  return mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'aceitar');
+  const tempState = mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'aceitar');
+  tempState.revisoes = state.revisoes?.filter(r => !isRevisaoPrincipal(r));
+  return tempState;
 };
 
 const aceitarRevisao = (state: any, action: any): State => {
