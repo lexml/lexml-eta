@@ -261,8 +261,8 @@ const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number =>
   return revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
 };
 
-const mostrarDialogDisclaimerRevisao = (rootStore: any): void => {
-  if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !rootStore.getState().elementoReducer.emRevisao) {
+const mostrarDialogDisclaimerRevisao = (emRevisao: boolean): void => {
+  if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !emRevisao) {
     const dialog = document.createElement('sl-dialog');
     dialog.label = 'Marcas de revisão';
     const botoesHtml = ` <sl-button slot="footer" variant="primary" id="closeButton">Fechar</sl-button>`;
@@ -302,7 +302,7 @@ const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
 };
 
 export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
-  mostrarDialogDisclaimerRevisao(rootStore);
+  mostrarDialogDisclaimerRevisao(rootStore.getState().elementoReducer.emRevisao);
   rootStore.dispatch(ativarDesativarRevisaoAction.execute());
 };
 

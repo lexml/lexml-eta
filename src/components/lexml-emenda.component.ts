@@ -172,7 +172,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
     }
 
-    this.desativarMarcaRevisao();
+    if (!emenda?.revisoes?.length) {
+      this.desativarMarcaRevisao();
+    }
 
     if (emenda) {
       this.setEmenda(emenda);
