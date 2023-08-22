@@ -373,11 +373,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     if (contentRevisoes && iconRevisoes) {
       if (this.getRevisoes().length !== 0) {
         contentRevisoes.innerHTML = this.getMensagemRevisoes();
-        iconRevisoes.classList.add(idIcon + '__ativo');
+        iconRevisoes.classList.add(this.getIdTooltip() + '__ativo');
         iconRevisoes.removeAttribute('disabled');
       } else {
         contentRevisoes.innerHTML = this.getTitle();
-        iconRevisoes.classList.remove(idIcon + '__ativo');
+        iconRevisoes.classList.remove(this.getIdTooltip() + '__ativo');
         this.desabilitaBtnAceitarRevisoes(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
       }
     }
