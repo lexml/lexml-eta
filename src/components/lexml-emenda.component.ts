@@ -26,9 +26,10 @@ import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { isRevisaoElemento, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
 import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
+import { StateEvent, StateType } from '../redux/state';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -172,7 +173,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
     }
 
-    this.desativarMarcaRevisao();
+    if (!emenda?.revisoes?.length) {
+      this.desativarMarcaRevisao();
+    }
 
     if (emenda) {
       this.setEmenda(emenda);
@@ -187,6 +190,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
     this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
+  }
+
+  stateChanged(state: any): void {
+    const revisaoAtivada = state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.RevisaoAtivada);
+    revisaoAtivada && this.mostrarDialogDisclaimerRevisao();
   }
 
   private desativarMarcaRevisao = (): void => {
@@ -384,6 +392,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       podeFechar: false,
     };
     rootStore.dispatch(adicionarAlerta(alerta));
+  }
+
+  mostrarDialogDisclaimerRevisao(): void {
+    mostrarDialogDisclaimerRevisao();
   }
 
   render(): TemplateResult {

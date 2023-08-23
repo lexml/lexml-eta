@@ -178,7 +178,7 @@ export class DemoView extends LitElement {
           const emenda = 'emenda' in result ? result.emenda : result;
           this.modo = emenda.modoEdicao;
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda, emenda.comandoEmendaTextoLivre.motivo);
+          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda, emenda.comandoEmendaTextoLivre?.motivo);
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
@@ -320,6 +320,7 @@ export class DemoView extends LitElement {
   private onRevisao(e: CustomEvent): void {
     if (e.detail.emRevisao) {
       console.log('Revisão ativada');
+      !this.nomeUsuario && this.usuario();
     } else {
       console.log('Revisão desativada');
     }

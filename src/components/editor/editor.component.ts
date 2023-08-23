@@ -1142,6 +1142,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   aceitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
+    this.alertaGlobalRevisao();
   }
 
   rejeitarRevisao(elemento: Elemento): void {
@@ -1217,6 +1218,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private alertaGlobalRevisao(): void {
+    const id = 'alerta-global-revisao';
+    const revisoesElementos = document.getElementsByClassName('blot__revisao');
+
+    if (revisoesElementos.length > 0) {
+      const alerta = {
+        id: id,
+        tipo: 'info',
+        mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
+        podeFechar: true,
+        exibirComandoEmenda: true,
+      };
+      rootStore.dispatch(adicionarAlerta(alerta));
+    } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
+      rootStore.dispatch(removerAlerta(id));
+    }
+  }
+
   private emitiEventoOnRevisao(emRevisao: boolean): void {
     this.dispatchEvent(
       new CustomEvent('onrevisao', {
@@ -1248,6 +1267,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
 
     this.alertaGlobalVerificaCorrelacao();
+    this.alertaGlobalRevisao();
     this.eventosOnChange = [];
     this.timerOnChange = null;
   }
