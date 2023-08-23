@@ -319,7 +319,7 @@ export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any
   const quantidade =
     modo === Modo.JUSTIFICATIVA
       ? getQuantidadeRevisoesJustificativa(revisoes)
-      : Modo.TEXTO_LIVRE === 'textoLivre'
+      : modo === 'textoLivre'
       ? getQuantidadeRevisoesTextoLivre(revisoes)
       : getQuantidadeRevisoes(revisoes);
   if (element) {
