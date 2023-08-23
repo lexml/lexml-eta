@@ -71,6 +71,7 @@ import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
+import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -134,7 +135,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (state.elementoReducer.ui) {
       if (state.elementoReducer.ui.message) {
-        this.alertar(state.elementoReducer.ui.message.descricao);
+        //this.alertar(state.elementoReducer.ui.message.descricao);
+        alertarInfo(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
       }

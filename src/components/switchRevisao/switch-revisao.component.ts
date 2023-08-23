@@ -5,6 +5,7 @@ import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, setCheckedEle
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
+import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
 @customElement('lexml-switch-revisao')
 export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
@@ -34,8 +35,13 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   }
 
   stateChanged(state: any): void {
-    if (state.elementoReducer.ui?.events) {
-      this.processarStateEvents(state.elementoReducer.ui.events);
+    if (state.elementoReducer.ui) {
+      if (state.elementoReducer.ui.events) {
+        if (state.elementoReducer.ui.message && state.elementoReducer.ui.events[0]?.stateType === 'AtualizacaoAlertas') {
+          alertarInfo(state.elementoReducer.ui.message.descricao);
+        }
+        this.processarStateEvents(state.elementoReducer.ui.events);
+      }
     }
   }
 
@@ -86,6 +92,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
         }
         .revisao-container {
           margin-left: auto;
+        }
+        .sl-toast-stack sl-alert::part(base) {
+          background-color: var(--sl-color-danger-100);
         }
         @media (max-width: 992px) {
           .mobile-buttons {
