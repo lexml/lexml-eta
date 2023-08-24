@@ -91,7 +91,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
           <sl-card class="card-header texto-alterado">
             <div slot="header">
-              ${diff.textoAposRevisao === diff.textoOriginal ? 'Texto original' : 'Texto após revisão (atual)'} 
+              ${diff.textoAposRevisao === diff.textoOriginal ? 'Texto original' : 'Texto após revisão (atual)'}
             </div>
             ${diff.textoAposRevisao}
           </sl-card>
@@ -129,6 +129,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
     sl-card {
       box-shadow: var(--sl-shadow-x-large) !important;
+      width: 100%;
     }
 
     sl-card::part(base){
