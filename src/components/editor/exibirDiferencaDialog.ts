@@ -10,6 +10,8 @@ export class TextoDiff {
   adicionado = false;
 }
 
+const OMISSIS = '....................';
+
 export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   Array.from(document.querySelectorAll('#slDialogExibirDiferencas')).forEach(el => document.body.removeChild(el));
 
@@ -32,6 +34,8 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   dialogElem.addEventListener('sl-after-hide', () => {
     setTimeout(() => fnDestroy(), 0);
   });
+
+  diff = trataOmissisDiff(diff);
 
   const diferencaModificado = textoDiffAsHtml(diff.textoOriginal, diff.textoAntesRevisao !== undefined ? diff.textoAntesRevisao : diff.textoAtual, 'diffWords');
 
@@ -172,4 +176,15 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   diff.quill && diff.quill.blur();
   dialogElem.appendChild(content);
   dialogElem.show();
+};
+
+const trataOmissisDiff = (diff: TextoDiff): TextoDiff => {
+  if (diff.textoAtual.match('....')) {
+    diff.textoAtual = OMISSIS;
+  }
+
+  if (diff.textoAposRevisao && diff.textoAposRevisao.match('....')) {
+    diff.textoAposRevisao = OMISSIS;
+  }
+  return diff;
 };
