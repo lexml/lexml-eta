@@ -12,14 +12,40 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   });
 
   const content = document.createRange().createContextualFragment(`
+  <style>
+    .anexo-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-bottom: 1em;
+    }
+
+    sl-icon[name="paperclip"] {
+      width: 1.5em;
+      height: 1.5em;
+    }
+
+    sl-button sl-icon {
+      font-size: 1.5em;
+      pointer-events: none;
+      vertical-align: -4px;
+    }
+
+    #input-upload::part(form-control) {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1em;
+    }
+  </style>
   <div id="wp-upload">
-    <sl-input id="input-upload" type="file" size="small" label="Selecione abaixo o arquivo com o qual gostaria de referenciar em seu texto"></sl-input>
+    <sl-input id="input-upload" type="file" size="small" label="Selecione abaixo o arquivo a ser anexado à emenda"></sl-input>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
   <br/>
   <sl-button class="controls" slot="footer" variant="primary">Confirmar</sl-button>
-  <sl-button class="controls" slot="footer" variant="default">Fechar</sl-button>
+  <sl-button class="controls" slot="footer" variant="default">Cancelar</sl-button>
   `);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -29,14 +55,47 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     conteudoDinamico();
   };
 
+  // cria função para exibir anexo em nova aba
+  const exibirAnexo = (e: MouseEvent) => {
+    const nomeArquivo = (e.target as SlButton).getAttribute('nomeArquivo');
+    const anexo = anexos.find(a => a.nomeArquivo === nomeArquivo);
+    const win = window.open();
+
+    if (anexo?.nomeArquivo?.match(/\.(pdf)$/)) {
+      win?.document.write(`<embed src="${anexo?.base64}" width="100%" height="100%" type="application/pdf"></embed>`);
+      return;
+    }
+    if (anexo?.nomeArquivo?.match(/\.(jpeg|jpg|gif|png|svg)$/)) {
+      win?.document.write(`<img src="${anexo?.base64}" style="width:100%; height:auto;">`);
+      return;
+    }
+    win?.document.write(`<a href="${anexo?.base64}" download="${anexo?.nomeArquivo}">Download do arquivo anexo</a>`);
+  };
+
   const conteudoDinamico = (): void => {
     let htmlConteudo = '';
     wpUpload.hidden = anexos.length ? true : false;
 
-    anexos.forEach(a => (htmlConteudo += `<p><span>${a.nomeArquivo}</span><sl-button class="btn-remove-anexo" size="small" nomeArquivo="${a.nomeArquivo}">X</sl-button></p>`));
+    anexos.forEach(
+      a =>
+        (htmlConteudo += `<span class="anexo-item">
+                            <sl-icon name="paperclip"></sl-icon>
+                            <span>${a.nomeArquivo}</span>
+                            <!--
+                            <sl-button class="btn-preview-anexo" size="small" title="Visualizar o anexo em uma nova janela" nomeArquivo="${a.nomeArquivo}">
+                              <sl-icon name="eye"></sl-icon>
+                            </sl-button>
+                            -->
+                            <sl-button class="btn-remove-anexo" size="small" title="Remover anexo" nomeArquivo="${a.nomeArquivo}">
+                              <sl-icon name="x"></sl-icon>
+                            </sl-button>
+                          </span>`)
+    );
     form!.innerHTML = htmlConteudo;
     const btns = form?.querySelectorAll('.btn-remove-anexo');
     (btns || []).forEach(btn => (btn.onclick = removerAnexo));
+    const btns_preview = form?.querySelectorAll('.btn-preview-anexo');
+    (btns_preview || []).forEach(btn_preview => (btn_preview.onclick = exibirAnexo));
   };
 
   const wpUpload = content.querySelector('#wp-upload') as HTMLDivElement;
