@@ -4,6 +4,7 @@ import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis,
 import {
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
+  getDispositivoPosteriorNaSequenciaDeLeitura,
   hasFilhoGenerico,
   hasFilhos,
   isDispositivoAlteracao,
@@ -14,6 +15,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
   hasIndicativoContinuacaoSequencia,
@@ -283,12 +285,23 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     !isUltimaAlteracao(dispositivo) &&
-    isUltimaEnumeracao(dispositivo)
+    isUltimaEnumeracao(dispositivo) &&
+    !isSeguidoDeOmissis(dispositivo)
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
   }
 
   return [...new Set(mensagens)];
+};
+
+const isSeguidoDeOmissis = (dispositivo: Dispositivo): boolean => {
+  const proximo = getDispositivoPosteriorNaSequenciaDeLeitura(dispositivo);
+
+  if (proximo !== undefined) {
+    return proximo.tipo === TipoDispositivo.omissis.name;
+  }
+
+  return false;
 };
 
 const addMensagem = (mensagens: Mensagem[], tipo: TipoMensagem, descricao: string | AutoFix, fix?: boolean): void => {
