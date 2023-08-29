@@ -30,10 +30,10 @@ const getMensagemTipoRevisoes = (state: State): string => {
   const contemRevisoesJustificativa = state.revisoes!.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length > 0;
 
   return contemRevisoesDispositivos && contemRevisoesJustificativa
-    ? ' (TEXTO | JUSTIFICATIVA) '
+    ? ' das abas texto e justificativa '
     : contemRevisoesDispositivos
-    ? ' (TEXTO) '
+    ? ' da aba texto '
     : contemRevisoesJustificativa
-    ? ' (JUSTIFICATIVA) '
+    ? ' da aba justificativa '
     : ' ';
 };

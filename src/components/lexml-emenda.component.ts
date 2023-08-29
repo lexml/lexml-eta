@@ -26,8 +26,10 @@ import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { isRevisaoElemento, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
 import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
+import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
+import { StateEvent, StateType } from '../redux/state';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -172,6 +174,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
     }
 
+    if (!emenda?.revisoes?.length) {
+      this.desativarMarcaRevisao();
+    }
+
     if (emenda) {
       this.setEmenda(emenda);
     } else {
@@ -186,6 +192,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
   }
+
+  stateChanged(state: any): void {
+    const revisaoAtivada = state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.RevisaoAtivada);
+    revisaoAtivada && this.mostrarDialogDisclaimerRevisao();
+  }
+
+  private desativarMarcaRevisao = (): void => {
+    if (rootStore.getState().elementoReducer.emRevisao) {
+      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+    }
+  };
 
   public setUsuario(usuario = new Usuario()): void {
     rootStore.dispatch(atualizarUsuarioAction.execute(usuario));
@@ -378,6 +395,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(adicionarAlerta(alerta));
   }
 
+  mostrarDialogDisclaimerRevisao(): void {
+    mostrarDialogDisclaimerRevisao();
+  }
+
   render(): TemplateResult {
     return html`
       ${shoelaceLightThemeStyles} ${quillSnowStyles} ${editorStyles}
@@ -407,8 +428,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        #editor-texto-rico-justificativa #editor-texto-rico {
+        /* #editor-texto-rico-justificativa #editor-texto-rico {
           height: calc(var(--height) - 44px);
+          overflow: var(--overflow);
+        } */
+
+        #editor-texto-rico-emenda-inner {
+          height: calc(var(--height) - 57px);
+          overflow: var(--overflow);
+        }
+
+        #editor-texto-rico-justificativa-inner {
+          height: calc(var(--height) - 57px);
           overflow: var(--overflow);
         }
         .badge-pulse {
@@ -459,10 +490,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
               ${this.modo && this.modo !== 'emendaTextoLivre'
                 ? html`<lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>`
-                : html`<editor-texto-rico id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
+                : html`<editor-texto-rico modo="textoLivre" id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
-              <editor-texto-rico id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
+              <editor-texto-rico modo="justificativa" id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">

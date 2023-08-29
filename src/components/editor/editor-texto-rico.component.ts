@@ -4,12 +4,14 @@ import { negrito, sublinhado, controleDropdown } from '../../../assets/icons/ico
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
-import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, RevisaoJustificativaEnum, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { atualizaQuantidadeRevisao, RevisaoJustificativaEnum, RevisaoTextoLivreEnum } from '../../redux/elemento/util/revisaoUtil';
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { Anexo } from '../../model/emenda/emenda';
+import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
+import { Modo } from '../../redux/elemento/enum/enumUtil';
 
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
@@ -17,10 +19,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) anexos: Anexo[] = [];
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
 
+  @property({ type: String })
+  modo = '';
+
   onChange: Observable<string> = new Observable<string>();
   private timerOnChange?: any;
-  private _idSwitchRevisao = 'chk-em-revisao-justificativa';
-  private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao-justificativa';
 
   quill?: Quill;
   container;
@@ -72,10 +75,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       switch (event.stateType) {
         case StateType.RevisaoAtivada:
         case StateType.RevisaoDesativada:
-          this.checkedSwitchMarcaAlteracao();
+          //this.checkedSwitchMarcaAlteracao();
           break;
       }
-      this.atualizaQuantidadeRevisao();
+      //this.atualizaQuantidadeRevisao();
+      this.atualizaRevisaoIcon();
     });
   }
 
@@ -108,13 +112,20 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           text-indent: 0 !important;
           text-align: justify;
           margin-left: 40%;
+        }
 
         #revisoes-justificativa-icon sl-icon,
+        #revisoes-texto-livre-icon sl-icon,
         #aceita-revisao-justificativa {
           margin-right: 0.1rem;
         }
 
         .revisoes-justificativa-icon__ativo {
+          color: white;
+          background-color: var(--sl-color-warning-600) !important;
+          border-color: white !important;
+        }
+        .revisoes-texto-livre-icon__ativo {
           color: white;
           background-color: var(--sl-color-warning-600) !important;
           border-color: white !important;
@@ -135,11 +146,28 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         #chk-em-revisao-justificativa[checked] {
           background-color: var(--sl-color-blue-100);
         }
+
+        #chk-em-revisao-texto-livre {
+          border: 1px solid #ccc !important;
+          padding: 5px 10px !important;
+          border-radius: 20px !important;
+          margin-left: auto;
+          margin-right: 5px;
+          font-weight: bold;
+          background-color: #eee;
+        }
+        #chk-em-revisao-texto-livre[checked] {
+          background-color: var(--sl-color-blue-100);
+        }
         #toolbar {
           padding: 1.5px 0 1.5px 8px;
         }
 
         #badge-marca-alteracao-justificativa::part(base) {
+          min-width: 1.4rem;
+        }
+
+        #badge-marca-alteracao-texto-livre::part(base) {
           min-width: 1.4rem;
         }
         revisao-container {
@@ -208,33 +236,17 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           </button>
         </span>
 
-        <!-- <sl-icon id="revisoes-justificativa-icon" name="exclamation-octagon" label="Settings" title=""></sl-icon> -->
-
-        <!--
-        <sl-switch id="chk-em-revisao-justificativa" size="small" @sl-change=${(): void =>
-          this.ativarDesativarMarcaDeRevisao()}><span>Marcas de revisão</span> <sl-badge id="badge-marca-alteracao-justificativa" variant="warning" pill>0</sl-badge>
-        </sl-switch>
-        -->
-
-        <lexml-switch-revisao class="revisao-container" .nomeSwitch="${this._idSwitchRevisao}" .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}">
+        <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
         </lexml-switch-revisao>
 
-        <sl-tooltip id="revisoes-justificativa-icon" placement="bottom-end">
+        <sl-tooltip id="${this.getIdTooltip()}" placement="bottom-end">
           <div slot="content">
-            <div>Revisões na justificativa</div>
+            <div>${this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificativa' : 'Revisões no texto livre'}</div>
           </div>
           <sl-icon name="person-check-fill"></sl-icon>
         </sl-tooltip>
 
-        <sl-button
-          id="aceita-revisao-justificativa"
-          variant="default"
-          size="small"
-          title="Limpar revisões na justificativa"
-          @click=${(): void => this.aceitaRevisoesJustificativa()}
-          disabled
-          circle
-        >
+        <sl-button id="${this.getIdButtonAceitarRevisoes()}" variant="default" size="small" title="Limpar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
           <sl-icon name="check-lg"></sl-icon>
         </sl-button>
       </div>
@@ -256,6 +268,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.icons['bold'] = negrito;
     this.icons['underline'] = sublinhado;
   }
+
+  private getIdTooltip = (): string => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'revisoes-justificativa-icon' : 'revisoes-texto-livre-icon';
+  };
+
+  private getIdButtonAceitarRevisoes = () => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
+  };
 
   firstUpdated(): void {
     this.init();
@@ -315,10 +335,18 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       : '';
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
-    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
-    this.atualiazaRevisaoJusutificativaIcon();
-    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
-    this.atualizaQuantidadeRevisao();
+    this.buildRevisoes();
+    //this.atualizaQuantidadeRevisao();
+  };
+
+  buildRevisoes = (): void => {
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
+    } else {
+      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
+    }
+    this.atualizaRevisaoIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
   };
 
   undo = (): any => {
@@ -355,26 +383,49 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.anexos = [...anexo];
   };
 
-  private atualiazaRevisaoJusutificativaIcon = (): void => {
-    // const contadorView = document.getElementById('revisoes-justificativa-icon') as any;
-    // contadorView.setAttribute('title', this.getMensagemRevisaoJustificativa());
-    const contentRevisoes = document.querySelector('#revisoes-justificativa-icon > div[slot=content]') as any;
-    const iconRevisoes = document.querySelector('#revisoes-justificativa-icon > sl-icon') as any;
-    if (this.getRevisoesJustificativa().length !== 0) {
-      contentRevisoes.innerHTML = this.getMensagemRevisaoJustificativa();
-      iconRevisoes.classList.add('revisoes-justificativa-icon__ativo');
-    } else {
-      contentRevisoes.innerHTML = 'Revisões na justificativa';
-      iconRevisoes.classList.remove('revisoes-justificativa-icon__ativo');
+  private getNomeSwitch = (): string => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'chk-em-revisao-justificativa' : 'chk-em-revisao-texto-livre';
+  };
+
+  private getNomeBadge = (): string => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
+  };
+
+  private atualizaRevisaoIcon = (): void => {
+    const idIcon = '#' + this.getIdTooltip() + '>';
+    const contentRevisoes = document.querySelector(idIcon + 'div[slot=content]') as any;
+    const iconRevisoes = document.querySelector(idIcon + 'sl-icon') as any;
+
+    if (contentRevisoes && iconRevisoes) {
+      if (this.getRevisoes().length !== 0) {
+        contentRevisoes.innerHTML = this.getMensagemRevisoes();
+        iconRevisoes.classList.add(this.getIdTooltip() + '__ativo');
+        iconRevisoes.removeAttribute('disabled');
+      } else {
+        contentRevisoes.innerHTML = this.getTitle();
+        iconRevisoes.classList.remove(this.getIdTooltip() + '__ativo');
+        this.desabilitaBtnAceitarRevisoes(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+      }
     }
   };
 
-  private getMensagemRevisaoJustificativa = (): string => {
-    const revisoesJustificativa = this.getRevisoesJustificativa();
+  private getTitle = (): string => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificativa' : 'Revisões no texto livre';
+  };
+
+  private getMensagemRevisoes = (): string => {
+    let revisoes: any;
+
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      revisoes = this.getRevisoesJustificativa();
+    } else {
+      revisoes = this.getRevisoesTextoLivre();
+    }
+
     let mensagem = '<ul class="lista-revisoes-justificativa">';
 
-    if (revisoesJustificativa.length > 0) {
-      revisoesJustificativa!.forEach((revisao: Revisao) => {
+    if (revisoes.length > 0) {
+      revisoes!.forEach((revisao: Revisao) => {
         const pipe = ' | ';
         mensagem = mensagem + '<li>' + revisao.usuario.nome + pipe + revisao.dataHora + '</li>';
       });
@@ -382,11 +433,30 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     return mensagem + '</ul>';
   };
 
+  private aceitarRevisoes = (): void => {
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      this.aceitaRevisoesJustificativa();
+    } else {
+      this.aceitaRevisoesTextoLivre();
+    }
+  };
+
   private aceitaRevisoesJustificativa = (): void => {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
-    this.atualiazaRevisaoJusutificativaIcon();
-    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0);
+    this.atualizaRevisaoIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
     this.atualizaQuantidadeRevisao();
+  };
+
+  private aceitaRevisoesTextoLivre = (): void => {
+    atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
+    this.atualizaRevisaoIcon();
+    this.desabilitaBtnAceitarRevisoes(this.getRevisoesTextoLivre().length === 0, 'aceita-revisao-texto-livre');
+    this.atualizaQuantidadeRevisao();
+  };
+
+  private getRevisoes = (): Revisao[] => {
+    return this.modo === Modo.JUSTIFICATIVA ? this.getRevisoesJustificativa() : this.getRevisoesTextoLivre();
   };
 
   private getRevisoesJustificativa = (): Revisao[] => {
@@ -394,8 +464,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     return revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
   };
 
-  private desabilitaBtnAceitarRevisoes = (desabilita: boolean): void => {
-    const contadorView = document.getElementById('aceita-revisao-justificativa') as any;
+  private getRevisoesTextoLivre = (): Revisao[] => {
+    const revisoes = rootStore.getState().elementoReducer.revisoes;
+    return revisoes.filter(r => r.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado);
+  };
+
+  private desabilitaBtnAceitarRevisoes = (desabilita: boolean, button: string): void => {
+    const contadorView = document.getElementById(button) as any;
     if (desabilita) {
       contadorView.setAttribute('disabled', desabilita);
     } else {
@@ -403,17 +478,17 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  private ativarDesativarMarcaDeRevisao(): void {
-    ativarDesativarMarcaDeRevisao(rootStore);
-    this.checkedSwitchMarcaAlteracao();
-  }
+  // private ativarDesativarMarcaDeRevisao(): void {
+  //   ativarDesativarMarcaDeRevisao(rootStore);
+  //   this.checkedSwitchMarcaAlteracao();
+  // }
 
-  private checkedSwitchMarcaAlteracao = (): void => {
-    const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao-justificativa') as any;
-    setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
-  };
+  // private checkedSwitchMarcaAlteracao = (): void => {
+  //   const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao-justificativa') as any;
+  //   setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
+  // };
 
   private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any, true);
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.getNomeBadge()) as any, this.modo);
   };
 }

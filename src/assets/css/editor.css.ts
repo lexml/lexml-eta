@@ -606,6 +606,7 @@ export const editorStyles = html`
       top: -1px;
       background: url('assets/icons/plus-minus.svg') no-repeat center, white;
       background-size: 0.8rem;
+      margin-right: 1.2px;
     }
 
     .blot__opcoes_diff:hover {

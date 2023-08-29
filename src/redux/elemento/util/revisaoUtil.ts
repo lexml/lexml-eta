@@ -16,6 +16,7 @@ import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
+import { Modo } from '../enum/enumUtil';
 import { unificarEvento } from '../evento/eventosUtil';
 import { buildPast } from './stateReducerUtil';
 
@@ -111,7 +112,7 @@ const mapperActionTypeToDescricao = {
 };
 
 const mapperStateTypeToDescricao = {
-  [StateType.ElementoIncluido]: (): string => 'Dispositivo incluído',
+  [StateType.ElementoIncluido]: (): string => 'Dispositivo adicionado',
   [StateType.ElementoRemovido]: (): string => 'Dispositivo removido',
   [StateType.ElementoRestaurado]: (): string => 'Dispositivo restaurado',
   [StateType.ElementoModificado]: (): string => 'Texto do dispositivo foi alterado',
@@ -145,7 +146,9 @@ const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): num
 
 const getUuidPai = (state: State, elemento?: Partial<Elemento>): number | undefined => {
   const d = getDispositivoFromElemento(state.articulacao!, elemento!)!;
-  if (isDispositivoAlteracao(d)) {
+  if (!d) {
+    return undefined;
+  } else if (isDispositivoAlteracao(d)) {
     return isArticulacaoAlteracao(d.pai!) || isCaput(d.pai!) ? d.pai?.pai?.uuid : d.pai?.uuid;
   } else {
     return isCaput(d.pai!) ? d.pai?.pai?.uuid : d.pai?.uuid;
@@ -206,6 +209,10 @@ export enum RevisaoJustificativaEnum {
   JustificativaAlterada = 'Justificativa Alterada',
 }
 
+export enum RevisaoTextoLivreEnum {
+  TextoLivreAlterado = 'Texto Livre Alterado',
+}
+
 export const ordernarRevisoes = (revisoes: Revisao[] = []): Revisao[] => {
   const result: Revisao[] = revisoes.filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento));
   result.push(...getRevisoesDeExclusaoOrdenadasPorUuid(revisoes));
@@ -259,8 +266,8 @@ const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number =>
   return revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
 };
 
-const mostrarDialogDisclaimerRevisao = (rootStore: any): void => {
-  if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true' && !rootStore.getState().elementoReducer.emRevisao) {
+export const mostrarDialogDisclaimerRevisao = (): void => {
+  if (localStorage.getItem('naoMostrarNovamenteDisclaimerMarcaAlteracao') !== 'true') {
     const dialog = document.createElement('sl-dialog');
     dialog.label = 'Marcas de revisão';
     const botoesHtml = ` <sl-button slot="footer" variant="primary" id="closeButton">Fechar</sl-button>`;
@@ -292,6 +299,10 @@ const mostrarDialogDisclaimerRevisao = (rootStore: any): void => {
   }
 };
 
+const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): number => {
+  return revisoes.filter(e => e.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado).length;
+};
+
 const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
   const checkbox = document.getElementById('chk-nao-mostrar-modal-novamente') as any;
   if (checkbox) {
@@ -300,12 +311,16 @@ const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
 };
 
 export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
-  mostrarDialogDisclaimerRevisao(rootStore);
   rootStore.dispatch(ativarDesativarRevisaoAction.execute());
 };
 
-export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, justificativa = false): void => {
-  const quantidade = justificativa ? getQuantidadeRevisoesJustificativa(revisoes) : getQuantidadeRevisoes(revisoes);
+export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {
+  const quantidade =
+    modo === Modo.JUSTIFICATIVA
+      ? getQuantidadeRevisoesJustificativa(revisoes)
+      : modo === 'textoLivre'
+      ? getQuantidadeRevisoesTextoLivre(revisoes)
+      : getQuantidadeRevisoes(revisoes);
   if (element) {
     element.innerHTML = quantidade;
   }

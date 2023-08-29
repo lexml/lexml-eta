@@ -62,14 +62,16 @@ import { informarNormaDialog } from './informarNormaDialog';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
-import { atualizaQuantidadeRevisao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
-// import { DescricaoSituacao } from '../../model/dispositivo/situacao';
-// import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
+import { DescricaoSituacao } from '../../model/dispositivo/situacao';
+import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
+import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
+import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -89,6 +91,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('#btnRejeitarTodasRevisoes')
   private btnRejeitarTodasRevisoes!: HTMLButtonElement;
+
+  private modo = ClassificacaoDocumento.EMENDA;
 
   private _quill?: EtaQuill;
   private get quill(): EtaQuill {
@@ -131,7 +135,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (state.elementoReducer.ui) {
       if (state.elementoReducer.ui.message) {
-        this.alertar(state.elementoReducer.ui.message.descricao);
+        //this.alertar(state.elementoReducer.ui.message.descricao);
+        alertarInfo(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
       }
@@ -145,7 +150,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   @property({ type: Boolean })
-  exibirBotoesParaTratarTodas = true;
+  exibirBotoesParaTratarTodas = false;
 
   render(): TemplateResult {
     return html`
@@ -202,6 +207,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+          modo="${this.modo}"
           >
           </lexml-switch-revisao>
 
@@ -672,9 +678,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.limparHistory();
     });
 
-    //this.indicadorTextoModificado(events);
     this.indicadorMarcaRevisao(events);
-    this.atualizaQuantidadeRevisao();
+    this.indicadorTextoModificado(events);
+    //this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
@@ -758,6 +764,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
       rootStore.dispatch(itemMenu.execute(elemento, elementoLinhaAnterior));
+    } else if (itemMenu === exibirDiferencaAction) {
+      this.exibirDiferencas(this.quill.linhaAtual.elemento);
     } else {
       const linha: EtaContainerTable = this.quill.linhaAtual;
       const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
@@ -1061,29 +1069,85 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(onChangeColarDialog.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(this.quill.clipboard.onPasteTextoArticulado.subscribe(this.onPasteTextoArticulado.bind(this)));
 
+    editorHtml.addEventListener('rotulo', (event: any) => {
+      event.stopImmediatePropagation();
+      this.renumerarElemento();
+    });
+
+    editorHtml.addEventListener('nota-alteracao', (event: any) => {
+      event.stopImmediatePropagation();
+      this.editarNotaAlteracao(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('toggle-existencia', (event: any) => {
+      event.stopImmediatePropagation();
+      this.toggleExistenciaElemento(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('mensagem', (event: any) => {
+      event.stopImmediatePropagation();
+
+      const linha: EtaContainerTable = this.quill.linhaAtual;
+
+      if (linha) {
+        if (AutoFix.RENUMERAR_DISPOSITIVO === event.detail?.mensagem?.descricao) {
+          this.renumerarElemento();
+        } else {
+          const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
+          const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, blotConteudo.html, linha.numero, linha.hierarquia);
+          rootStore.dispatch(autofixAction.execute(elemento, event.detail.mensagem));
+        }
+      }
+    });
+
+    editorHtml.addEventListener('aceitar-revisao', (event: any) => {
+      event.stopImmediatePropagation();
+      this.aceitarRevisao(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('rejeitar-revisao', (event: any) => {
+      event.stopImmediatePropagation();
+      this.rejeitarRevisao(event.detail.elemento);
+    });
+
+    editorHtml.addEventListener('exibir-diferencas', (event: any) => {
+      event.stopImmediatePropagation();
+      this.exibirDiferencas(event.detail.elemento);
+    });
     this.configListenersEta();
   }
 
   exibirDiferencas(elemento: Elemento): void {
-    const revisao = elemento.revisao as RevisaoElemento;
-    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
-
     const diff: TextoDiff = new TextoDiff();
-    diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
     diff.textoAtual = elemento.conteudo!.texto!;
     diff.quill = this.quill;
 
+    const revisao = elemento.revisao as RevisaoElemento;
+    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
+
     if (revisao) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
+
+      if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
+      } else {
+        diff.textoOriginal = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ? diff.textoAtual : diff.textoAntesRevisao;
+        diff.adicionado = true;
+      }
+
       diff.textoAposRevisao = revisao.elementoAposRevisao.conteudo!.texto!;
       exibirDiferencasDialog(diff);
     } else {
+      if (d && d!.situacao.dispositivoOriginal?.conteudo !== undefined) {
+        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
+      }
       exibirDiferencasDialog(diff);
     }
   }
 
   aceitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
+    this.alertaGlobalRevisao();
   }
 
   rejeitarRevisao(elemento: Elemento): void {
@@ -1159,6 +1223,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private alertaGlobalRevisao(): void {
+    const id = 'alerta-global-revisao';
+    const revisoesElementos = document.getElementsByClassName('blot__revisao');
+
+    if (revisoesElementos.length > 0) {
+      const alerta = {
+        id: id,
+        tipo: 'info',
+        mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
+        podeFechar: true,
+        exibirComandoEmenda: true,
+      };
+      rootStore.dispatch(adicionarAlerta(alerta));
+    } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
+      rootStore.dispatch(removerAlerta(id));
+    }
+  }
+
   private emitiEventoOnRevisao(emRevisao: boolean): void {
     this.dispatchEvent(
       new CustomEvent('onrevisao', {
@@ -1190,6 +1272,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
 
     this.alertaGlobalVerificaCorrelacao();
+    this.alertaGlobalRevisao();
     this.eventosOnChange = [];
     this.timerOnChange = null;
   }
@@ -1420,53 +1503,70 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
   }
 
-  // private indicadorTextoModificado(events: StateEvent[]): void {
-  //   const ignorarStateTypes: StateType[] = [
-  //     StateType.DocumentoCarregado,
-  //     StateType.ElementoIncluido,
-  //     StateType.ElementoValidado,
-  //     StateType.AtualizaUsuario,
-  //     StateType.AtualizacaoAlertas,
-  //   ];
-  //   const mapElementos: Map<number, Elemento> = new Map();
+  private indicadorTextoModificado(events: StateEvent[]): void {
+    const ignorarStateTypes: StateType[] = [
+      StateType.DocumentoCarregado,
+      StateType.ElementoIncluido,
+      StateType.ElementoValidado,
+      StateType.AtualizaUsuario,
+      StateType.AtualizacaoAlertas,
+    ];
+    const mapElementos: Map<number, Elemento> = new Map();
 
-  //   events
-  //     .filter(ev => !ignorarStateTypes.includes(ev.stateType))
-  //     .map(ev => ev.elementos || [])
-  //     .flat()
-  //     .forEach(e => mapElementos.set(e.uuid!, e));
+    events
+      .filter(ev => !ignorarStateTypes.includes(ev.stateType))
+      .map(ev => ev.elementos || [])
+      .flat()
+      .forEach(e => mapElementos.set(e.uuid!, e));
 
-  //   const elementos: Elemento[] = [...mapElementos.values()];
-  //   const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
-  //   const uuidsElementosComModificacao = elementos
-  //     .filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao))
-  //     .map(e => e.uuid!);
+    const elementos: Elemento[] = [...mapElementos.values()];
+    const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos
+      .filter(
+        e =>
+          e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado') ||
+          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
+            e.revisao &&
+            (e.revisao as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto !== e.conteudo?.texto)
+        // || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao
+        //   && (e.revisao.descricao === 'Dispositivo restaurado' || e.revisao.descricao === 'Texto do dispositivo foi alterado'))
+      )
+      .map(e => e.uuid!);
 
-  //   uuidsElementosSemModificacao.forEach(uuid => {
-  //     const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
-  //     if (containerOpcoes) {
-  //       const linha = this.quill.getLinha(uuid);
-  //       linha?.containerOpcoes?.remove();
-  //       containerOpcoes.remove();
-  //     }
-  //   });
+    uuidsElementosSemModificacao.forEach(uuid => {
+      const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
+      if (containerOpcoes) {
+        const linha = this.quill.getLinha(uuid);
+        linha?.containerOpcoes?.remove();
+        containerOpcoes.remove();
+      }
+    });
 
-  //   uuidsElementosComModificacao.forEach(uuid => {
-  //     const linha = this.quill.getLinha(uuid);
-  //     if (linha) {
-  //       if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
-  //         linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
-  //       } else {
-  //         const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
-  //         if (containerOpcoes) {
-  //           containerOpcoes.remove();
-  //         }
-  //         const containerTr = linha.children.head;
-  //         containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
-  //       }
-  //     }
-  //   });
-  // }
+    uuidsElementosComModificacao.forEach(uuid => {
+      const linha = this.quill.getLinha(uuid);
+      if (linha) {
+        this.adicionaRemoveOpcaoDiffMenu(linha.elemento, uuidsElementosComModificacao);
+
+        if (linha.containerOpcoes?.blotBotaoExibirDiferencas) {
+          linha.containerOpcoes.atualizarElemento(mapElementos.get(uuid)!);
+        } else {
+          const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
+          if (containerOpcoes) {
+            containerOpcoes.remove();
+          }
+          const containerTr = linha.children.head;
+          containerTr.insertBefore(EtaQuillUtil.criarContainerOpcoes(mapElementos.get(uuid)!), linha.containerDireito.prev);
+        }
+      }
+    });
+  }
+
+  private adicionaRemoveOpcaoDiffMenu(elemento: Elemento, uuidsElementosComModificacao: any): void {
+    if (uuidsElementosComModificacao.includes(elemento.uuid)) {
+      elemento.acoesPossiveis?.push(exibirDiferencaAction);
+    }
+  }
 
   private indicadorMarcaRevisao(events: StateEvent[]): void {
     const ignorarStateTypes: StateType[] = [
@@ -1510,9 +1610,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
-  };
+  // private atualizaQuantidadeRevisao = (): void => {
+  //   atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
+  // };
 
   private atualizarStatusBotoesRevisao(): void {
     const numRevisoes = getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes);

@@ -1,9 +1,11 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Observable } from '../../util/observable';
-import { ativarDesativarMarcaDeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
+import { StateEvent, StateType } from '../../redux/state';
+import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
 @customElement('lexml-switch-revisao')
 export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
@@ -19,6 +21,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean, reflect: true })
   checkedRevisao = false;
 
+  @property({ type: String })
+  modo = '';
+
   onChange: Observable<string> = new Observable<string>();
 
   update(changedProperties: PropertyValues): void {
@@ -29,10 +34,43 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
+  stateChanged(state: any): void {
+    if (state.elementoReducer.ui) {
+      if (state.elementoReducer.ui.events) {
+        if (state.elementoReducer.ui.message && state.elementoReducer.ui.events[0]?.stateType === 'AtualizacaoAlertas') {
+          alertarInfo(state.elementoReducer.ui.message.descricao);
+        }
+        this.processarStateEvents(state.elementoReducer.ui.events);
+      }
+    }
+  }
+
+  private processarStateEvents(events: StateEvent[]): void {
+    events?.forEach((event: StateEvent): void => {
+      switch (event.stateType) {
+        case StateType.RevisaoAtivada:
+        case StateType.RevisaoDesativada:
+          this.checkedSwitchMarcaAlteracao();
+          break;
+      }
+      this.atualizaQuantidadeRevisao();
+      // this.atualiazaRevisaoJusutificativaIcon();
+    });
+  }
+
   render(): TemplateResult {
     return html`
       <style>
         #revisoes-justificativa-icon sl-icon {
+          border: 1px solid #ccc !important;
+          padding: 0.4rem 0.4rem !important;
+          border-radius: 15px !important;
+          font-weight: bold;
+          background-color: #eee;
+          cursor: pointer;
+        }
+
+        #revisoes-texto-livre-icon sl-icon {
           border: 1px solid #ccc !important;
           padding: 0.4rem 0.4rem !important;
           border-radius: 15px !important;
@@ -54,6 +92,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
         }
         .revisao-container {
           margin-left: auto;
+        }
+        .sl-toast-stack sl-alert::part(base) {
+          background-color: var(--sl-color-danger-100);
         }
         @media (max-width: 992px) {
           .mobile-buttons {
@@ -85,5 +126,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   private checkedSwitchMarcaAlteracao = (): void => {
     const switchMarcaAlteracaoView = document.getElementById(this.nomeSwitch) as any;
     setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
+  };
+
+  private atualizaQuantidadeRevisao = (): void => {
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
   };
 }

@@ -6,9 +6,93 @@ import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/ele
 import { adicionaElemento } from '../../../src/redux/elemento/reducer/adicionaElemento';
 import { StateEvent, StateType } from '../../../src/redux/state';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
+import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
+import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
+import { MPV_885_2019 } from '../../doc/mpv_885_2019';
+import { buscaDispositivoById, isAdicionado } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { createElemento } from '../../../src/model/elemento/elementoUtil';
 
 let state: any;
 let eventos: StateEvent[];
+
+describe('Testando inclusão de artigo no início da articulação', () => {
+  beforeEach(function () {
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+  });
+
+  describe('Testando inclusão de artigo após a ementa', () => {
+    beforeEach(function () {
+      const e = createElemento(buscaDispositivoById(state.articulacao, 'ementa')!);
+      state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'depois' });
+    });
+
+    it('Deveria possuir novo artigo como primeiro artigo', () => {
+      const d = state.articulacao.artigos[0];
+      expect(d.id).to.be.equal('art0');
+      expect(isAdicionado(d)).to.be.true;
+    });
+
+    describe('Testando eventos', () => {
+      it('Deveria possuir evento ElementoIncluido com 1 elemento', () => {
+        const ev = getEvento(state.ui.events, StateType.ElementoIncluido);
+        expect(ev.elementos!.length).to.equal(1);
+      });
+
+      it('Referência do evento ElementoIncluido deveria apontar para ementa', () => {
+        const ev = getEvento(state.ui.events, StateType.ElementoIncluido);
+        expect(ev.referencia?.tipo).to.equal('Ementa');
+      });
+
+      it('Elemento incluído deveria possuir lexmlId = art0', () => {
+        const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
+        expect(e.lexmlId).to.equal('art0');
+      });
+
+      it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para ementa', () => {
+        const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
+        expect(e.elementoAnteriorNaSequenciaDeLeitura?.tipo).to.equal('Ementa');
+      });
+    });
+  });
+
+  describe('Testando inclusão de artigo antes do primeiro artigo', () => {
+    beforeEach(function () {
+      const e = createElemento(buscaDispositivoById(state.articulacao, 'art1')!);
+      state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'antes' });
+    });
+
+    it('Deveria possuir novo artigo como primeiro artigo', () => {
+      const d = state.articulacao.artigos[0];
+      expect(d.id).to.be.equal('art0');
+      expect(isAdicionado(d)).to.be.true;
+    });
+
+    describe('Testando eventos', () => {
+      it('Deveria possuir evento ElementoIncluido com 1 elemento', () => {
+        const ev = getEvento(state.ui.events, StateType.ElementoIncluido);
+        expect(ev.elementos!.length).to.equal(1);
+      });
+
+      it('Referência do evento ElementoIncluido deveria apontar para ementa', () => {
+        const ev = getEvento(state.ui.events, StateType.ElementoIncluido);
+        expect(ev.referencia?.tipo).to.equal('Ementa');
+      });
+
+      it('Elemento incluído deveria possuir lexmlId = art0', () => {
+        const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
+        expect(e.lexmlId).to.equal('art0');
+      });
+
+      it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para ementa', () => {
+        const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
+        expect(e.elementoAnteriorNaSequenciaDeLeitura?.tipo).to.equal('Ementa');
+      });
+    });
+  });
+});
 
 describe('Testando a inclusão de artigos', () => {
   beforeEach(function () {

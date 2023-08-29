@@ -74,6 +74,7 @@ import { ACEITAR_REVISAO } from '../../../model/lexml/acao/aceitarRevisaoAction'
 import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoAction';
 import { aceitaRevisao } from './aceitaRevisao';
 import { rejeitaRevisao } from './rejeitaRevisao';
+import { adicionaDiffMenuOpcoes } from './adicionaDiffMenuOpcoes';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -213,14 +214,14 @@ export const elementoReducer = (state = {}, action: any): any => {
     !isRedoDeRevisaoRejeitada(actionType, tempState)
   ) {
     tempState.revisoes = revisoes;
+    tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
   }
 
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
 
-  tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
-
-  return atualizaRevisao(tempState, actionType);
+  tempState = atualizaRevisao(tempState, actionType);
+  return adicionaDiffMenuOpcoes(tempState);
 };
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {

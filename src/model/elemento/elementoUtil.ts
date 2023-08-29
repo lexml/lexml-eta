@@ -81,8 +81,16 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
   let elementoAnteriorNaSequenciaDeLeitura: Elemento | undefined;
 
   if (procurarElementoAnterior) {
-    const dispositivoAnteriorNaSequenciaDeLeitura = getDispositivoAnteriorNaSequenciaDeLeitura(dispositivo);
+    let dispositivoAnteriorNaSequenciaDeLeitura = getDispositivoAnteriorNaSequenciaDeLeitura(dispositivo);
     if (dispositivoAnteriorNaSequenciaDeLeitura) {
+      if (
+        isArticulacao(dispositivoAnteriorNaSequenciaDeLeitura) &&
+        !isArticulacaoAlteracao(dispositivoAnteriorNaSequenciaDeLeitura) &&
+        hasEmenta(dispositivoAnteriorNaSequenciaDeLeitura)
+      ) {
+        dispositivoAnteriorNaSequenciaDeLeitura = (dispositivoAnteriorNaSequenciaDeLeitura as Articulacao).projetoNorma!.ementa!;
+      }
+
       elementoAnteriorNaSequenciaDeLeitura = createElemento(
         isCaput(dispositivoAnteriorNaSequenciaDeLeitura) || isArticulacaoAlteracao(dispositivoAnteriorNaSequenciaDeLeitura)
           ? dispositivoAnteriorNaSequenciaDeLeitura.pai!

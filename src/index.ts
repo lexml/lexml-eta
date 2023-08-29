@@ -25,6 +25,8 @@ import '@shoelace-style/shoelace/dist/components/details/details';
 import '@shoelace-style/shoelace/dist/components/checkbox/checkbox';
 import '@shoelace-style/shoelace/dist/components/switch/switch';
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
+import '@shoelace-style/shoelace/dist/components/card/card';
+
 // ---------------------------------------------------
 
 export { ArticulacaoComponent } from './components/articulacao.component';

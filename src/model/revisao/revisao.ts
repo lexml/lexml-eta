@@ -26,6 +26,13 @@ export class RevisaoJustificativa extends Revisao {
   }
 }
 
+export class RevisaoTextoLivre extends Revisao {
+  type = 'RevisaoTextoLivre';
+  constructor(usuario: Usuario, dataHora: string, descricao: string) {
+    super(usuario, dataHora, descricao);
+  }
+}
+
 export class RevisaoElemento extends Revisao {
   type = 'RevisaoElemento';
   actionType: string;
