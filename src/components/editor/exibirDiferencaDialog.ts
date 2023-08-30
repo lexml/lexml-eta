@@ -179,11 +179,11 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 };
 
 const trataOmissisDiff = (diff: TextoDiff): TextoDiff => {
-  if (diff.textoAtual.match('....')) {
+  if (diff.textoAtual.includes('....')) {
     diff.textoAtual = OMISSIS;
   }
 
-  if (diff.textoAposRevisao && diff.textoAposRevisao.match('....')) {
+  if (diff.textoAposRevisao && diff.textoAposRevisao.includes('....')) {
     diff.textoAposRevisao = OMISSIS;
   }
   return diff;
