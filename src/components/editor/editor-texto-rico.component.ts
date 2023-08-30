@@ -224,6 +224,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           <button type="button" class="ql-clean" title="Limpar formatação"></button>
         </span>
         <span class="ql-formats">
+          <button type="button" class="ql-image" title="Adicionar Imagem"></button>
+        </span>
+        <span class="ql-formats">
           <button type="button" class="ql-anexo" style="width:auto" title="Enviar anexo">
             <span>
               <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
@@ -285,7 +288,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.container = document.querySelector(`#${this.id}-inner`);
     if (this.container) {
       this.quill = new Quill(this.container as HTMLElement, {
-        formats: ['estilo', 'bold', 'italic', 'underline', 'align', 'list', 'script', 'blockquote', 'anexo'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'anexo'],
         modules: {
           toolbar: {
             container: '#toolbar' + this.id,
