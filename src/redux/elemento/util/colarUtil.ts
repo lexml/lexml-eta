@@ -558,7 +558,9 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .replace(/^["“']/g, '')
     .replace(/<\/?body[^>]*>/gi, '')
     .replace(/\r/g, '')
-    .replace(/\n+/g, '\n');
+    .replace(/\n+/g, '\n')
+    .replace(/&ldquo; |&ldquo;/g, '“')
+    .replace(/&rdquo;/g, '”');
 
   const allowedTags = ['B', 'STRONG', 'I', 'EM', 'SUP', 'SUB', 'P'];
 
