@@ -1,4 +1,4 @@
-import { SlButton, SlInput } from '@shoelace-style/shoelace';
+import { SlButton } from '@shoelace-style/shoelace';
 import { Anexo } from '../../model/emenda/emenda';
 
 export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any): Promise<any> {
@@ -39,7 +39,8 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     }
   </style>
   <div id="wp-upload">
-    <sl-input id="input-upload" type="file" size="small" label="Selecione abaixo o arquivo a ser anexado à emenda"></sl-input>
+    <label for="input-upload">Selecione abaixo o arquivo com o qual gostaria de referenciar em seu texto</label>
+    <input id="input-upload" type="file" accept="application/pdf" size="small"></input>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
@@ -99,7 +100,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   };
 
   const wpUpload = content.querySelector('#wp-upload') as HTMLDivElement;
-  const inputUpload = content.querySelector('#input-upload') as SlInput;
+  const inputUpload = content.querySelector('#input-upload') as HTMLInputElement;
   const form = content.querySelector('#form');
   const botoes = content.querySelectorAll('.controls');
   const confirmar = botoes[0] as SlButton;
@@ -123,11 +124,11 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   };
 
   const addAnexo = async () => {
-    if (inputUpload?.input?.files) {
-      const file = inputUpload.input.files[0];
+    if (inputUpload?.files) {
+      const file = inputUpload.files[0];
       const anexo = await convertAnexo(file);
       anexos.push(anexo);
-      inputUpload.input.files = null;
+      inputUpload.files = null;
       conteudoDinamico();
     }
   };
@@ -141,7 +142,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
       fileReader.onload = () => {
         confirmar.disabled = false;
         fechar.disabled = false;
-        resolve({ nomeArquivo: file.name, base64: fileReader.result?.toString() || '' });
+        resolve({ nomeArquivo: file.name, base64: (fileReader.result?.toString() || '').replace(/.*;base64,/, '') });
       };
       fileReader.onerror = error => reject(error);
     });
