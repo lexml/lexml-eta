@@ -19,7 +19,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   dialogElem.id = 'slDialogExibirDiferencas';
 
   document.body.appendChild(dialogElem);
-  dialogElem.label = 'Texto alterado';
+  dialogElem.label = 'Exibir diferenças do texto atual com';
 
   const fnDestroy = (): void => {
     try {
