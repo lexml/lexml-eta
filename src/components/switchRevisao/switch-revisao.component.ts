@@ -55,10 +55,7 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
         .revisao-container {
           margin-left: auto;
         }
-        @media (max-width: 992px) {
-          .mobile-buttons {
-            display: inline-block !important;
-          }
+        @media (max-width: 798px) {
           #chk-em-revisao span {
             display: none;
           }
