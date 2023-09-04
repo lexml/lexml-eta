@@ -19,7 +19,7 @@ export const editorTextoRicoCss = html`
       text-indent: 0 !important;
       text-align: center;
     }
-    .editor-texto-rico .estilo-emenda {
+    .editor-texto-rico .estilo-ementa {
       text-indent: 0 !important;
       text-align: justify;
       margin-left: 40%;
@@ -83,6 +83,39 @@ export const editorTextoRicoCss = html`
     }
     revisao-container {
       margin-left: auto;
+    }
+
+    .ql-toolbar .panel-revisao {
+      display: flex;
+      flex-grow: 1;
+    }
+
+    .ql-picker.ql-estilo .ql-picker-label {
+      width: 160px;
+    }
+
+    .ql-picker.ql-estilo .ql-picker-label::before,
+    .ql-picker.ql-estilo .ql-picker-item::before {
+      content: 'Texto normal';
+    }
+
+    .ql-picker.ql-estilo .ql-picker-label[data-value='artigo-subordinados']:before,
+    .ql-picker.ql-estilo .ql-picker-item[data-value='artigo-subordinados']:before {
+      content: 'Artigo e subordinados';
+    }
+
+    .ql-picker.ql-estilo .ql-picker-label[data-value='agrupador-artigo']:before,
+    .ql-picker.ql-estilo .ql-picker-item[data-value='agrupador-artigo']:before {
+      content: 'Agrupador de artigo';
+    }
+
+    .ql-picker.ql-estilo .ql-picker-label[data-value='ementa']:before,
+    .ql-picker.ql-estilo .ql-picker-item[data-value='ementa']:before {
+      content: 'Ementa';
+    }
+
+    .ql-estilo span.ql-picker-label {
+      border-color: #ccc !important;
     }
 
     @media (max-width: 768px) {

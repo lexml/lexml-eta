@@ -1,6 +1,6 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import { negrito, sublinhado, controleDropdown } from '../../../assets/icons/icons';
+import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
@@ -12,6 +12,10 @@ import { Anexo } from '../../model/emenda/emenda';
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
+import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
+
+const DefaultKeyboardModule = Quill.import('modules/keyboard');
+const DefaultClipboardModule = Quill.import('modules/clipboard');
 
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
@@ -26,7 +30,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private timerOnChange?: any;
 
   quill?: Quill;
-  container: any;
 
   icons = Quill.import('ui/icons');
 
@@ -67,63 +70,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${editorTextoRicoCss}
-      <div id="${`toolbar${this.id}`}">
-        <span class="ql-formats">
-          <select id="select-estilo" class="ql-estilo" title="Estilo">
-            <option value="estilo-normal">Texto normal</option>
-            <option value="estilo-artigo-subordinados">Artigo e subordinados</option>
-            <option value="estilo-agrupador-artigo">Agrupador de artigo</option>
-            <option value="estilo-emenda">Ementa</option>
-          </select>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-bold" title="Negrito (Ctrl+b)"></button>
-          <button type="button" class="ql-italic" title="Itálico (Ctrl+i)"></button>
-          <button type="button" class="ql-underline" title="Sublinhado (Ctrl+u)"></button>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-list" value="ordered" title="Lista ordenada"></button>
-          <button type="button" class="ql-list" value="bullet" title="Lista não ordenada"></button>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-script" value="sub" title="Subscrito"></button>
-          <button type="button" class="ql-script" value="super" title="Sobrescrito"></button>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-blockquote" title="Bloco de citação"></button>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-undo" title="Desfazer (Ctrl+z)"></button>
-          <button type="button" class="ql-redo" title="Refazer (Ctrl+Shift+z)"></button>
-        </span>
-        <span class="ql-formats">
-          <select class="ql-align" title="Alinhar">
-            <option value=""></option>
-            <option value="center"></option>
-            <option value="right"></option>
-            <option value="justify"></option>
-          </select>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-clean" title="Limpar formatação"></button>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-image" title="Adicionar Imagem"></button>
-        </span>
-        <span class="ql-formats">
-          <button type="button" class="ql-anexo" style="width:auto" title="Enviar anexo">
-            <span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
-                <path
-                  d="M18,34.75A11.32,11.32,0,0,1,6.69,23.45V8A7.78,7.78,0,0,1,22.25,8V22.49a4.58,4.58,0,1,1-9.15,0V9.29a1.25,1.25,0,0,1,2.5,0v13.2a2.08,2.08,0,1,0,4.15,0V8A5.28,5.28,0,0,0,9.19,8V23.45A8.82,8.82,0,0,0,18,32.25c4.6,0,7.81-3.62,7.81-8.8V9.66a1.25,1.25,0,0,1,2.5,0V23.45C28.31,30,24,34.75,18,34.75Z"
-                />
-              </svg>
-              ${this.labelAnexo()}
-            </span>
-          </button>
-        </span>
+      ${editorTextoRicoCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
 
+      <div class="panel-revisao">
         <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
         </lexml-switch-revisao>
 
@@ -157,11 +106,28 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.icons['underline'] = sublinhado;
   }
 
+  private renderBotaoAnexo(): TemplateResult {
+    return html`
+      <div class="panel-anexo">
+        <button type="button" style="width:auto" title="Enviar anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo)}>
+          <span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
+              <path
+                d="M18,34.75A11.32,11.32,0,0,1,6.69,23.45V8A7.78,7.78,0,0,1,22.25,8V22.49a4.58,4.58,0,1,1-9.15,0V9.29a1.25,1.25,0,0,1,2.5,0v13.2a2.08,2.08,0,1,0,4.15,0V8A5.28,5.28,0,0,0,9.19,8V23.45A8.82,8.82,0,0,0,18,32.25c4.6,0,7.81-3.62,7.81-8.8V9.66a1.25,1.25,0,0,1,2.5,0V23.45C28.31,30,24,34.75,18,34.75Z"
+              />
+            </svg>
+            ${this.labelAnexo()}
+          </span>
+        </button>
+      </div>
+    `;
+  }
+
   private getIdTooltip = (): string => {
     return this.modo === Modo.JUSTIFICATIVA ? 'revisoes-justificativa-icon' : 'revisoes-texto-livre-icon';
   };
 
-  private getIdButtonAceitarRevisoes = () => {
+  private getIdButtonAceitarRevisoes = (): string => {
     return this.modo === Modo.JUSTIFICATIVA ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
   };
 
@@ -170,18 +136,19 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   init = (): void => {
-    this.container = document.querySelector(`#${this.id}-inner`);
-    if (this.container) {
-      this.quill = new Quill(this.container as HTMLElement, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'anexo'],
+    const quillContainer = document.querySelector(`#${this.id}-inner`) as HTMLElement;
+    if (quillContainer) {
+      Quill.register('modules/keyboard', DefaultKeyboardModule, true);
+      Quill.register('modules/clipboard', DefaultClipboardModule, true);
+      Quill.register('formats/estilo-texto', EstiloTextoClass, true);
+      this.quill = new Quill(quillContainer, {
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image'],
         modules: {
           toolbar: {
-            container: '#toolbar' + this.id,
+            container: toolbarOptions,
             handlers: {
               undo: this.undo,
               redo: this.redo,
-              estilo: this.changeEstilo,
-              anexo: () => uploadAnexoDialog(this.anexos, this.atualizaAnexo),
             },
           },
           history: {
@@ -196,11 +163,47 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       });
 
       this.setContent(this.texto);
-
+      this.addBotoesExtra();
+      this.configureTooltip();
       this.quill?.on('text-change', this.updateTexto);
-      this.loadDropDownEstilo();
     }
   };
+
+  addBotoesExtra = (): void => {
+    const toolbarContainer = this.quill!.getModule('toolbar').container;
+    const elAnexo = this.querySelector('.panel-anexo');
+    const elRevisao = this.querySelector('.panel-revisao')!;
+
+    if (elAnexo) {
+      elAnexo.parentNode!.removeChild(elAnexo);
+      toolbarContainer.appendChild(elAnexo);
+    }
+
+    elRevisao.parentNode!.removeChild(elRevisao);
+    toolbarContainer.appendChild(elRevisao);
+  };
+
+  configureTooltip = (): void => {
+    const toolbarContainer = this.quill!.getModule('toolbar').container;
+    this.setTitle(toolbarContainer, 'button.ql-bold', 'Negrito (Ctrl+b)');
+    this.setTitle(toolbarContainer, 'button.ql-italic', 'Itálico (Ctrl+i)');
+    this.setTitle(toolbarContainer, 'button.ql-underline', 'Sublinhado (Ctrl+u)');
+    this.setTitle(toolbarContainer, 'button.ql-list[value="ordered"]', 'Lista ordenada');
+    this.setTitle(toolbarContainer, 'button.ql-list[value="bullet"]', 'Lista não ordenada');
+    this.setTitle(toolbarContainer, 'button.ql-blockquote', 'Bloco de citação');
+    this.setTitle(toolbarContainer, 'button.ql-script[value="sub"]', 'Subscrito');
+    this.setTitle(toolbarContainer, 'button.ql-script[value="super"]', 'Sobrescrito');
+    this.setTitle(toolbarContainer, '.ql-align .ql-picker-options > span:nth-child(1)', 'Alinhar à esquerda');
+    this.setTitle(toolbarContainer, '.ql-align .ql-picker-options > span:nth-child(2)', 'Centralizar');
+    this.setTitle(toolbarContainer, '.ql-align .ql-picker-options > span:nth-child(3)', 'Alinhar à direita');
+    this.setTitle(toolbarContainer, '.ql-align .ql-picker-options > span:nth-child(4)', 'Justificar');
+    this.setTitle(toolbarContainer, 'button.ql-clean', 'Limpar formatação');
+    this.setTitle(toolbarContainer, 'button.ql-image', 'Inserir imagem');
+    this.setTitle(toolbarContainer, 'button.ql-undo', 'Desfazer (Ctrl+z)');
+    this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
+  };
+
+  setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
 
   setContent = (texto: string): void => {
     if (!this.quill || !this.quill.root) {
@@ -224,7 +227,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
     this.buildRevisoes();
-    //this.atualizaQuantidadeRevisao();
   };
 
   buildRevisoes = (): void => {
@@ -243,28 +245,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   redo = (): any => {
     return this.quill?.history.redo();
-  };
-
-  changeEstilo = (value): void => {
-    const label = document.querySelector(`#toolbar${this.id} .ql-estilo .ql-picker-label`);
-    const itens = document.querySelectorAll(`#toolbar${this.id} .ql-estilo .ql-picker-item`);
-    const placeholderPickerItems = Array.prototype.slice.call(itens);
-    const item = placeholderPickerItems.filter(item => item.dataset.value === value)[0];
-    label!.innerHTML = item.dataset.label + '&nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
-    const range = this.quill?.getSelection();
-    if (range) {
-      this.quill?.getLines(range.index)[0].domNode.setAttribute('class', value);
-    }
-  };
-
-  loadDropDownEstilo = (): void => {
-    const label = document.querySelector(`#toolbar${this.id} .ql-estilo .ql-picker-label`);
-    const itens = document.querySelectorAll(`#toolbar${this.id} .ql-estilo .ql-picker-item`);
-    if (this.container && label) {
-      const placeholderPickerItems = Array.prototype.slice.call(itens);
-      placeholderPickerItems.forEach(item => (item.textContent = item.dataset.label));
-      label!.innerHTML = 'Texto Normal &nbsp;&nbsp;&nbsp;&nbsp;' + controleDropdown;
-    }
   };
 
   atualizaAnexo = (anexo: Anexo[]): void => {
@@ -366,17 +346,19 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  // private ativarDesativarMarcaDeRevisao(): void {
-  //   ativarDesativarMarcaDeRevisao(rootStore);
-  //   this.checkedSwitchMarcaAlteracao();
-  // }
-
-  // private checkedSwitchMarcaAlteracao = (): void => {
-  //   const switchMarcaAlteracaoView = document.getElementById('chk-em-revisao-justificativa') as any;
-  //   setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
-  // };
-
   private atualizaQuantidadeRevisao = (): void => {
     atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.getNomeBadge()) as any, this.modo);
   };
 }
+
+const toolbarOptions = [
+  [{ estilo: [false, 'artigo-subordinados', 'agrupador-artigo', 'ementa'] }],
+  ['bold', 'italic', 'underline'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  [{ script: 'sub' }, { script: 'super' }],
+  ['blockquote'],
+  ['undo', 'redo'],
+  [{ align: [] }],
+  ['clean'],
+  ['image'],
+];
