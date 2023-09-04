@@ -19,7 +19,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   dialogElem.id = 'slDialogExibirDiferencas';
 
   document.body.appendChild(dialogElem);
-  dialogElem.label = 'Texto alterado';
+  dialogElem.label = 'Exibir diferenças do texto atual com';
 
   const fnDestroy = (): void => {
     try {
@@ -179,11 +179,11 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 };
 
 const trataOmissisDiff = (diff: TextoDiff): TextoDiff => {
-  if (diff.textoAtual.match('....')) {
+  if (diff.textoAtual.includes('....')) {
     diff.textoAtual = OMISSIS;
   }
 
-  if (diff.textoAposRevisao && diff.textoAposRevisao.match('....')) {
+  if (diff.textoAposRevisao && diff.textoAposRevisao.includes('....')) {
     diff.textoAposRevisao = OMISSIS;
   }
   return diff;

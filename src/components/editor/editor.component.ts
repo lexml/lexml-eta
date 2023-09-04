@@ -211,11 +211,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           >
           </lexml-switch-revisao>
 
-          <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
+          <sl-button class="button-navegacao-marca" variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
             <sl-icon-button name="arrow-down"></sl-icon-button>
           </sl-button>
 
-          <sl-button variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
+          <sl-button class="button-navegacao-marca" variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
             <sl-icon-button name="arrow-up"></sl-icon-button>
           </sl-button>
 
@@ -223,11 +223,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
-            <button class="mobile-button" title="Comando" @click=${this.showComandoEmendaModal}>
+            <button class="mobile-button btn-comando" title="Comando" @click=${this.showComandoEmendaModal}>
               <sl-icon name="code"></sl-icon>
               <span>Comando</span>
             </button>
-            <button class="mobile-button" title="Dicas" @click=${this.showAjudaModal}>
+            <button class="mobile-button btn-dicas" title="Dicas" @click=${this.showAjudaModal}>
               <sl-icon name="lightbulb"></sl-icon>
               <span>Dicas</span>
             </button>

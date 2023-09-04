@@ -122,6 +122,16 @@ export class EtaQuill extends Quill {
     const icons = Quill.import('ui/icons');
     icons['bold'] = negrito;
 
+    // set Quill to use <b> and <i>, not <strong> and <em>
+
+    const bold = Quill.import('formats/bold');
+    bold.tagName = 'b'; // Quill uses <strong> by default
+    Quill.register(bold, true);
+
+    const italic = Quill.import('formats/italic');
+    italic.tagName = 'i'; // Quill uses <em> by default
+    Quill.register(italic, true);
+
     EtaQuill.register('modules/clipboard', EtaClipboard, true);
     EtaQuill.register('modules/keyboard', EtaKeyboard, true);
     EtaQuill.register(EtaBlotConteudoOmissis, true);

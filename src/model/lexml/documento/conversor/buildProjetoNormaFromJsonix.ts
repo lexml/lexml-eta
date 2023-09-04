@@ -207,9 +207,9 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
   return dispositivo;
 };
 
-const montaReferencia = (value: any): string => {
-  return `<a href="${value.href}"> ${value.content[0]} </a>`;
-};
+// const montaReferencia = (value: any): string => {
+//   return `<a href="${value.href}"> ${value.content[0]} </a>`;
+// };
 
 const buildContentDispositivo = (el: any): string => {
   let texto = '';
@@ -242,7 +242,7 @@ export const buildContent = (content: any): string => {
   let texto = '';
   content?.forEach((element: any) => {
     if (element.value) {
-      texto += montaReferencia(element.value);
+      texto += montaTag(element.name, element.value);
     } else {
       let elementTexto = element;
       elementTexto = elementTexto.replace(/"(?=\w|$)/g, '&#8220;');
@@ -251,4 +251,15 @@ export const buildContent = (content: any): string => {
     }
   });
   return texto;
+};
+
+const montaTag = (name: any, value: any): string => {
+  const localPart = name.localPart;
+  if (localPart === 'span' && value.href) {
+    return `<a href="${value.href}">${buildContent(value.content)}</a>`;
+  }
+  if (localPart === 'b' || localPart === 'i' || localPart === 'sub' || localPart === 'sup') {
+    return `<${localPart}>${buildContent(value.content)}</${localPart}>`;
+  }
+  return '';
 };
