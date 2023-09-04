@@ -182,6 +182,10 @@ export const editorTextoRicoCss = html`
       content: 'Remover tabela';
     }
 
+    .ql-editor td > p {
+      text-indent: 0 !important;
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
