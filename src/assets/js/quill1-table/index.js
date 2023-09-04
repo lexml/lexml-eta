@@ -29,10 +29,10 @@ Container.order = [
 
 export default class TableModule {
   static register() {
-    Quill.register(TableCell);
-    Quill.register(TableRow);
-    Quill.register(Table);
-    Quill.register(Contain);
+    Quill.register(TableCell, true);
+    Quill.register(TableRow, true);
+    Quill.register(Table, true);
+    Quill.register(Contain, true);
   }
 
   constructor(quill, options) {
