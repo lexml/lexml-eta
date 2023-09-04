@@ -7,7 +7,6 @@ import { rootStore } from '../../redux/store';
 import { atualizaQuantidadeRevisao, RevisaoJustificativaEnum, RevisaoTextoLivreEnum } from '../../redux/elemento/util/revisaoUtil';
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
-import { StateEvent, StateType } from '../../redux/state';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { Anexo } from '../../model/emenda/emenda';
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
@@ -57,21 +56,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   stateChanged(state: any): void {
     if (state.elementoReducer.ui?.events) {
-      this.processarStateEvents(state.elementoReducer.ui.events);
-    }
-  }
-
-  private processarStateEvents(events: StateEvent[]): void {
-    events?.forEach((event: StateEvent): void => {
-      switch (event.stateType) {
-        case StateType.RevisaoAtivada:
-        case StateType.RevisaoDesativada:
-          //this.checkedSwitchMarcaAlteracao();
-          break;
-      }
-      //this.atualizaQuantidadeRevisao();
       this.atualizaRevisaoIcon();
-    });
+    }
   }
 
   labelAnexo = (): string => {
