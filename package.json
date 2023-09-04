@@ -25,11 +25,12 @@
     "dist"
   ],
   "scripts": {
-    "start": "npm run build && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "start": "rimraf out-tsc && npm run build && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
     "build": "tsc",
     "clean": "rimraf out-tsc && rimraf prod",
     "prepublish": "rimraf dist && rollup -c rollup.config.dist.js",
     "copy:assets": "cp -r ./assets ./dist/assets || xcopy assets dist\\assets /E /I /Y",
+    "copy:quill1table": "cp -r ./src/assets/js ./out-tsc/src/assets/js || xcopy .\\src\\assets\\js .\\out-tsc\\src\\assets\\js /E /I /Y",
     "css:concat": "concat -o assets/css/editor.css ./node_modules/quill/dist/quill.snow.css",
     "css:minify": "minify assets/css/editor.css > assets/css/editor.min.css",
     "css:build": "npm run css:concat",

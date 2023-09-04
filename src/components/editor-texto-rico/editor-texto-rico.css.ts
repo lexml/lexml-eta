@@ -118,6 +118,70 @@ export const editorTextoRicoCss = html`
       border-color: #ccc !important;
     }
 
+    .ql-picker-item[data-value='insert']::after {
+      content: 'Inserir tabela';
+    }
+
+    .ql-picker-item[data-value='append-col']::after {
+      content: 'Inserir coluna';
+    }
+
+    .ql-picker-item[data-value='append-col-before']::after {
+      content: 'Inserir coluna à esquerda';
+    }
+
+    .ql-picker-item[data-value='append-col-after']::after {
+      content: 'Inserir coluna à direita';
+    }
+
+    .ql-picker-item[data-value='remove-col']::after {
+      content: 'Remover coluna';
+    }
+
+    .ql-picker-item[data-value='append-row']::after {
+      content: 'Inserir linha';
+    }
+
+    .ql-picker-item[data-value='append-row-above']::after {
+      content: 'Inserir linha acima';
+    }
+
+    .ql-picker-item[data-value='append-row-below']::after {
+      content: 'Inserir linha abaixo';
+    }
+
+    .ql-picker-item[data-value='remove-row']::after {
+      content: 'Remover linha';
+    }
+
+    .ql-picker-item[data-value='split-cell']::after {
+      content: 'Dividir célula';
+    }
+
+    .ql-picker-item[data-value='merge-selection']::after {
+      content: 'Mesclar células';
+    }
+
+    .ql-picker-item[data-value='remove-cell']::after {
+      content: 'Remover célula';
+    }
+
+    .ql-picker-item[data-value='remove-selection']::after {
+      content: 'Remover seleção';
+    }
+
+    .ql-picker-item[data-value='undo']::after {
+      content: 'Desfazer';
+    }
+
+    .ql-picker-item[data-value='redo']::after {
+      content: 'Refazer';
+    }
+
+    .ql-picker-item[data-value='remove-table']:before {
+      content: 'Remover tabela';
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;

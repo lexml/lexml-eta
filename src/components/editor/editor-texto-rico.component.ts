@@ -13,6 +13,8 @@ import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualiza
 import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
+import { quillTableCss } from '../editor-texto-rico/quill.table.css';
+import TableModule from '../../assets/js/quill1-table/index.js';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -70,7 +72,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${editorTextoRicoCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
+      ${quillTableCss} ${editorTextoRicoCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
 
       <div class="panel-revisao">
         <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
@@ -140,9 +142,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     if (quillContainer) {
       Quill.register('modules/keyboard', DefaultKeyboardModule, true);
       Quill.register('modules/clipboard', DefaultClipboardModule, true);
+      Quill.register('modules/table', TableModule, true);
       Quill.register('formats/estilo-texto', EstiloTextoClass, true);
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'table', 'tr', 'td'],
         modules: {
           toolbar: {
             container: toolbarOptions,
@@ -151,12 +154,83 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               redo: this.redo,
             },
           },
+          table: {
+            cellSelectionOnClick: false,
+          },
           history: {
             delay: 0,
             maxStack: 500,
             userOnly: true,
           },
           clipboard: {},
+          keyboard: {
+            // Since Quill’s default handlers are added at initialization, the only way to prevent them is to add yours in the configuration.
+            bindings: {
+              tab: {
+                key: 'tab',
+                handler: (range: any, keycontext: any): any => {
+                  const Delta = Quill.import('delta');
+                  const outSideOfTable = TableModule.keyboardHandler(this.quill, 'tab', range, keycontext);
+                  if (outSideOfTable && this.quill) {
+                    //for some reason when you return true as quill says it should hand it to the default like the other bindings... for tab it doesnt.
+                    this.quill.history.cutoff(); //mimic the exact same thing quill does
+                    const delta = new Delta().retain(range.index).delete(range.length).insert('\t');
+                    this.quill.updateContents(delta as any, Quill.sources.USER);
+                    this.quill.history.cutoff();
+                    this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+                  }
+                },
+              },
+              shiftTab: {
+                key: 'tab',
+                shiftKey: true,
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'shiftTab', range, keycontext);
+                },
+              },
+              selectAll: {
+                key: 'a',
+                ctrlKey: true,
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'selectAll', range, keycontext);
+                },
+              },
+              backspace: {
+                key: 'backspace',
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'backspace', range, keycontext);
+                },
+              },
+              delete: {
+                key: 'delete',
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'delete', range, keycontext);
+                },
+              },
+              undo: {
+                ctrlKey: true,
+                key: 'z',
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'undo', range, keycontext);
+                },
+              },
+              redo: {
+                ctrlKey: true,
+                shiftKey: true,
+                key: 'z',
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'redo', range, keycontext);
+                },
+              },
+              copy: {
+                ctrlKey: true,
+                key: 'c',
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'copy', range, keycontext);
+                },
+              },
+            },
+          },
         },
         placeholder: '',
         theme: 'snow',
@@ -240,11 +314,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   undo = (): any => {
-    return this.quill?.history.undo();
+    // return this.quill?.history.undo();
+    return TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(), undefined);
   };
 
   redo = (): any => {
-    return this.quill?.history.redo();
+    // return this.quill?.history.redo();
+    return TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(), undefined);
   };
 
   atualizaAnexo = (anexo: Anexo[]): void => {
@@ -353,6 +429,27 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
 const toolbarOptions = [
   [{ estilo: [false, 'artigo-subordinados', 'agrupador-artigo', 'ementa'] }],
+  [
+    {
+      table: TableModule.tableOptions(),
+    },
+    {
+      table: [
+        // 'insert',
+        'append-row-above',
+        'append-row-below',
+        'append-col-before',
+        'append-col-after',
+        'remove-col',
+        'remove-row',
+        'remove-table',
+        'split-cell',
+        'merge-selection',
+        // 'remove-cell',
+        // 'remove-selection',
+      ],
+    },
+  ],
   ['bold', 'italic', 'underline'],
   [{ list: 'ordered' }, { list: 'bullet' }],
   [{ script: 'sub' }, { script: 'super' }],
@@ -362,3 +459,74 @@ const toolbarOptions = [
   ['clean'],
   ['image'],
 ];
+
+// const keyboardOptions = (quill: Quill): any => {
+//   return {
+//     // Since Quill’s default handlers are added at initialization, the only way to prevent them is to add yours in the configuration.
+//     bindings: {
+//       tab: {
+//         key: 'tab',
+//         handler: (range: any, keycontext: any): any => {
+//           const Delta = Quill.import('delta');
+//           const outSideOfTable = TableModule.keyboardHandler(quill, 'tab', range, keycontext);
+//           if (outSideOfTable && quill) {
+//             //for some reason when you return true as quill says it should hand it to the default like the other bindings... for tab it doesnt.
+//             quill.history.cutoff(); //mimic the exact same thing quill does
+//             const delta = new Delta().retain(range.index).delete(range.length).insert('\t');
+//             quill.updateContents(delta as any, Quill.sources.USER);
+//             quill.history.cutoff();
+//             quill.setSelection(range.index + 1, Quill.sources.SILENT);
+//           }
+//         },
+//       },
+//       shiftTab: {
+//         key: 'tab',
+//         shiftKey: true,
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'shiftTab', range, keycontext);
+//         },
+//       },
+//       selectAll: {
+//         key: 'a',
+//         ctrlKey: true,
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'selectAll', range, keycontext);
+//         },
+//       },
+//       backspace: {
+//         key: 'backspace',
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'backspace', range, keycontext);
+//         },
+//       },
+//       delete: {
+//         key: 'delete',
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'delete', range, keycontext);
+//         },
+//       },
+//       undo: {
+//         ctrlKey: true,
+//         key: 'z',
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'undo', range, keycontext);
+//         },
+//       },
+//       redo: {
+//         ctrlKey: true,
+//         shiftKey: true,
+//         key: 'z',
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'redo', range, keycontext);
+//         },
+//       },
+//       copy: {
+//         ctrlKey: true,
+//         key: 'c',
+//         handler: (range: any, keycontext: any): any => {
+//           return TableModule.keyboardHandler(quill, 'copy', range, keycontext);
+//         },
+//       },
+//     },
+//   };
+// };
