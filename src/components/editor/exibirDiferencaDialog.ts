@@ -19,7 +19,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   dialogElem.id = 'slDialogExibirDiferencas';
 
   document.body.appendChild(dialogElem);
-  dialogElem.label = 'Texto alterado';
+  dialogElem.label = 'Exibir diferenças do texto atual com';
 
   const fnDestroy = (): void => {
     try {
@@ -42,10 +42,8 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   const contemRevisao = diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined;
 
   const tabModificado =
-    !diff.adicionado && diferencaModificado !== diff.textoOriginal
-      ? `<sl-tab slot="nav" panel="modificado"> ${contemRevisao ? 'Modificado sem revisão' : 'Modificado'} </sl-tab>`
-      : '';
-  const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Modificado com revisão</sl-tab>` : '';
+    !diff.adicionado && diferencaModificado !== diff.textoOriginal ? `<sl-tab slot="nav" panel="modificado"> ${contemRevisao ? 'Texto original' : 'Texto original'} </sl-tab>` : '';
+  const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Texto antes da revisão</sl-tab>` : '';
 
   const tabPanelModificado =
     !diff.adicionado && diferencaModificado !== diff.textoOriginal
