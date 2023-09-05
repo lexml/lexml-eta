@@ -34,7 +34,7 @@ export { ComandoEmendaComponent } from './components/comandoEmenda/comandoEmenda
 export { EditorComponent } from './components/editor/editor.component';
 export { ElementoComponent } from './components/elemento/elemento.component';
 export { AtalhosComponent as HelpComponent } from './components/ajuda/atalhos.component';
-export { EditorTextoRicoComponent } from './components/editor/editor-texto-rico.component';
+export { EditorTextoRicoComponent } from './components/editor-texto-rico/editor-texto-rico.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
 export { LexmlAutocomplete } from './components/autoria/lexml-autocomplete';
