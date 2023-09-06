@@ -310,11 +310,15 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     if (!this.quill || !this.quill.root) {
       return;
     }
-    this.quill.root.innerHTML = texto
+
+    const textoAjustado = texto
       .replace(/indent/g, 'ql-indent')
       .replace(/align-justify/g, 'ql-align-justify')
       .replace(/align-center/g, 'ql-align-center')
       .replace(/align-right/g, 'ql-align-right');
+
+    this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
+    this.quill.history.clear();
   };
 
   updateTexto = (): void => {
