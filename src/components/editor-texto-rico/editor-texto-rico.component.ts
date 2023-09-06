@@ -311,14 +311,19 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    const textoAjustado = texto
+    const textoAjustado = (texto || '')
       .replace(/indent/g, 'ql-indent')
       .replace(/align-justify/g, 'ql-align-justify')
       .replace(/align-center/g, 'ql-align-center')
       .replace(/align-right/g, 'ql-align-right');
 
-    this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
-    this.quill.history.clear();
+    if (textoAjustado) {
+      this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
+      setTimeout(() => this.quill!.history.clear(), 100);
+      console.log(11111, 'TABLE', (this.quill as any).table.tables);
+    } else {
+      this.quill.setText('');
+    }
   };
 
   updateTexto = (): void => {
