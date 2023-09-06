@@ -27,6 +27,15 @@ Container.order = [
   'td', 'tr', 'table'  // Must be higher
 ];
 
+const emitirEventoTableInTable = (quill) => {
+  quill.container.dispatchEvent(
+    new CustomEvent('onTableInTable', {
+      bubbles: true,
+      composed: true,
+    })
+  );
+};
+
 export default class TableModule {
   static register() {
     Quill.register(TableCell, true);
@@ -50,12 +59,20 @@ export default class TableModule {
 
     const toolbar = quill.getModule('toolbar');
     toolbar.addHandler('table', function (value) {
+      if (isInsertTable(value) && isInTable(quill)) {
+        emitirEventoTableInTable(quill);
+        return false;
+      }
       return TableTrick.table_handler(value, quill);
     });
 
     const clipboard = quill.getModule('clipboard');
     clipboard.addMatcher('TABLE', function (node, delta) {
-      // console.log(11111, 'ADDMATCHER TABLE', JSON.stringify(delta));
+      if (isInTable(quill)) {
+        emitirEventoTableInTable(quill);
+        return new Delta();
+      }
+
       const is_pasted_data = node.closest('.ql-editor') === null;
       const table_id = node.getAttribute('table_id');
       if (table_id) {
@@ -65,15 +82,20 @@ export default class TableModule {
           cell_counter: node.querySelectorAll('td').length
         };
       }
-      // console.log(11111, 'DELTA TABLE', delta);
       return delta;
     });
     clipboard.addMatcher('TR', function (node, delta) {
-      // console.log(11111, 'DELTA TR', delta);
+      if (isInTable(quill)) {
+        emitirEventoTableInTable(quill);
+        return new Delta();
+      }
       return delta;
     });
     clipboard.addMatcher('TD, TH', function (node, delta) {
-      // console.log(11111, 'ADDMATCHER TD TH', JSON.stringify(delta));
+      if (isInTable(quill)) {
+        emitirEventoTableInTable(quill);
+        return new Delta();
+      }
       if (delta.length() === 0) {
         // fix https://github.com/dclement8/quill1-table/issues/7 (empty td removed)
         delta.ops = [
@@ -119,7 +141,6 @@ export default class TableModule {
           node.getAttribute('rowspan')
         ].join('|')
       }));
-      // console.log(11111, 'DELTA TD TH', newDelta);
       return newDelta;
     });
 
@@ -319,3 +340,7 @@ export default class TableModule {
     }
   }
 }
+
+const isInsertTable = (value = '') => value.includes('newtable_');
+
+const isInTable = (quill) => quill && quill.getSelection(true) && quill.getFormat(quill.getSelection(true)).td;

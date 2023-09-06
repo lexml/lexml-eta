@@ -89,7 +89,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           <sl-icon name="check-lg"></sl-icon>
         </sl-button>
       </div>
-      <div id="${this.id}-inner" class="editor-texto-rico"></div>
+      <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
     `;
   }
 
@@ -123,6 +123,26 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         </button>
       </div>
     `;
+  }
+
+  private timerAlerta?: any;
+  private onTableInTable = (): void => {
+    clearTimeout(this.timerAlerta);
+    this.timerAlerta = setTimeout(() => this.alertar('Não é possível inserir uma tabela dentro de outra tabela.'), 100);
+  };
+
+  private alertar(mensagem: string): void {
+    const alert = Object.assign(document.createElement('sl-alert'), {
+      variant: 'danger',
+      closable: true,
+      duration: 4000,
+      innerHTML: `
+        <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
+        ${mensagem}
+      `,
+    });
+    document.body.append(alert);
+    alert.toast();
   }
 
   private getIdTooltip = (): string => {
