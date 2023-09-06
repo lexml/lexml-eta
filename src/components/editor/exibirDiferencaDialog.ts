@@ -37,9 +37,9 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
   diff = trataOmissisDiff(diff);
 
-  const diferencaModificado = textoDiffAsHtml(diff.textoOriginal, diff.textoAntesRevisao !== undefined ? diff.textoAntesRevisao : diff.textoAtual, 'diffWords');
-
   const contemRevisao = diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined;
+
+  const diferencaModificado = textoDiffAsHtml(diff.textoOriginal, contemRevisao ? diff.textoAposRevisao : diff.textoAtual, 'diffWords');
 
   const tabModificado = !diff.adicionado && diferencaModificado !== diff.textoOriginal ? `<sl-tab slot="nav" panel="modificado"> Texto original </sl-tab>` : '';
   const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Texto antes da revisão</sl-tab>` : '';
@@ -66,7 +66,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
           <div slot="header">
           Texto atual
           </div>
-          ${!contemRevisao ? diff.textoAtual : diff.textoAntesRevisao}
+          ${!contemRevisao ? diff.textoAtual : diff.textoAposRevisao}
         </sl-card>
 
       </sl-tab-panel>`
