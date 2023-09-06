@@ -87,7 +87,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Diferença
             </div>
-            ${textoDiffAsHtml(diff.textoOriginal, diff.textoAposRevisao, 'diffWords')}
+            ${textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAposRevisao, 'diffWords')}
           </sl-card>
 
           <sl-card class="card-header texto-alterado">
