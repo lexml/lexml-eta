@@ -85,17 +85,9 @@ export default class TableModule {
       return delta;
     });
     clipboard.addMatcher('TR', function (node, delta) {
-      if (isInTable(quill)) {
-        emitirEventoTableInTable(quill);
-        return new Delta();
-      }
       return delta;
     });
     clipboard.addMatcher('TD, TH', function (node, delta) {
-      if (isInTable(quill)) {
-        emitirEventoTableInTable(quill);
-        return new Delta();
-      }
       if (delta.length() === 0) {
         // fix https://github.com/dclement8/quill1-table/issues/7 (empty td removed)
         delta.ops = [
