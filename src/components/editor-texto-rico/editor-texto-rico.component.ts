@@ -128,7 +128,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private timerAlerta?: any;
   private onTableInTable = (): void => {
     clearTimeout(this.timerAlerta);
-    this.timerAlerta = setTimeout(() => this.alertar('Não é possível inserir uma tabela dentro de outra tabela.'), 100);
+    this.timerAlerta = setTimeout(() => this.alertar('Não é permitido inserir uma tabela dentro de outra tabela.'), 100);
   };
 
   private alertar(mensagem: string): void {
@@ -235,6 +235,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
                 },
               },
               redo: {
+                ctrlKey: true,
+                key: 'y',
+                handler: (range: any, keycontext: any): any => {
+                  return TableModule.keyboardHandler(this.quill, 'redo', range, keycontext);
+                },
+              },
+              redo2: {
                 ctrlKey: true,
                 shiftKey: true,
                 key: 'z',
