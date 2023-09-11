@@ -64,7 +64,7 @@ export class EtaQuill extends Quill {
   }
 
   get textoSelecionado(): TextoSelecionado {
-    const range: RangeStatic = this.getSelection(true) ?? { index: 0, length: 0 };
+    const range = this.getSelection() ?? { index: 0, length: 0 };
     const texto: string = this.getText().substr(range.index, range.length);
     return {
       conteudo: texto,
@@ -458,7 +458,7 @@ export class EtaQuill extends Quill {
   }
 
   cursorDeTextoEstaSobreLink(deslocamento = 0): boolean {
-    const range: RangeStatic = this.getSelection(true);
+    const range = this.getSelection();
     if (range) {
       const ops = this.getContents(range.index + deslocamento, 1).ops;
       return !ops || !ops[0] ? false : ops[0].attributes?.link;
@@ -467,7 +467,7 @@ export class EtaQuill extends Quill {
   }
 
   cursorDeTextoEstaSobreOmissis(): boolean {
-    const range: RangeStatic = this.getSelection(true);
+    const range = this.getSelection();
     if (range) {
       const textBlot = this.getLeaf(range.index);
       return textBlot[0].text === TEXTO_OMISSIS;

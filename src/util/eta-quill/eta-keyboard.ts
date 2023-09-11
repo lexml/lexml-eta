@@ -209,8 +209,8 @@ export class EtaKeyboard extends Keyboard {
     if (textoSelec.conteudo) {
       if (textoSelec.quantidadeCR > 0) {
         if (textoSelec.quantidadeCR === 1 && /\n$/gi.test(textoSelec.conteudo)) {
-          const range: RangeStatic = this.quill.getSelection(true);
-          this.quill.setSelection(range.index, range.length - 1, Quill.sources.API);
+          const range = this.quill.getSelection();
+          range && this.quill.setSelection(range.index, range.length - 1, Quill.sources.API);
           return true;
         } else {
           this.operacaoTecladoInvalida.notify();
@@ -423,7 +423,7 @@ export class EtaKeyboard extends Keyboard {
   }
 
   private verificaSelecaoComLink(): boolean {
-    const range: RangeStatic = this.quill.getSelection(true);
+    const range = this.quill.getSelection();
     if (!range) {
       return false;
     }
