@@ -311,19 +311,17 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
+    this.texto = texto;
+
     const textoAjustado = (texto || '')
       .replace(/indent/g, 'ql-indent')
       .replace(/align-justify/g, 'ql-align-justify')
       .replace(/align-center/g, 'ql-align-center')
       .replace(/align-right/g, 'ql-align-right');
 
-    if (textoAjustado) {
-      this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
-      setTimeout(() => this.quill!.history.clear(), 100);
-      console.log(11111, 'TABLE', (this.quill as any).table.tables);
-    } else {
-      this.quill.setText('');
-    }
+    this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
+    this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
+    setTimeout(() => this.quill!.history.clear(), 100); // A linha anterior gera um history, então é necessário limpar novamente.
   };
 
   updateTexto = (): void => {
