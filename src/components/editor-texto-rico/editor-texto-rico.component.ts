@@ -15,6 +15,7 @@ import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
+import { removeElementosTDOcultos } from './texto-rico-util';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -345,16 +346,21 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   updateTexto = (): void => {
-    const texto = (this.quill?.root.innerHTML || '')
+    const texto = this.ajustaHtml(this.quill?.root.innerHTML);
+    this.texto = texto === '<p><br></p>' ? '' : texto;
+    this.agendarEmissaoEventoOnChange();
+    this.buildRevisoes();
+    this.onSelectionChange(this.quill?.getSelection());
+  };
+
+  ajustaHtml = (html = ''): string => {
+    const result = html
       .replace(/ql-indent/g, 'indent')
       .replace(/ql-align-justify/g, 'align-justify')
       .replace(/ql-align-center/g, 'align-center')
       .replace(/ql-align-right/g, 'align-right');
 
-    this.texto = texto === '<p><br></p>' ? '' : texto;
-    this.agendarEmissaoEventoOnChange();
-    this.buildRevisoes();
-    this.onSelectionChange(this.quill?.getSelection());
+    return removeElementosTDOcultos(result);
   };
 
   buildRevisoes = (): void => {
