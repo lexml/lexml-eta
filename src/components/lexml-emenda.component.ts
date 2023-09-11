@@ -309,6 +309,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     });
 
+    this.slSplitPanel.addEventListener('sl-reposition', () => {
+      this.ajustarAltura();
+    });
+
     const badgeAtalhos = this._tabsDireita?.querySelector('#badgeAtalhos');
     if (badgeAtalhos) {
       const naoPulsarBadgeAtalhos = localStorage.getItem('naoPulsarBadgeAtalhos');
@@ -358,11 +362,33 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private ajustarAltura(altura?: number): boolean {
     let alturaElemento = altura !== undefined ? altura : this.pesquisarAlturaParentElement(this);
     const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
+
     // altura dos tabs
     const alturaLexmlEtaTabs = lexmlEtaTabs?.clientHeight;
+
     if (alturaLexmlEtaTabs) {
       alturaElemento = alturaElemento - alturaLexmlEtaTabs - 12;
       if (alturaElemento > 0) {
+        const justificativaTabPanel = document.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement;
+        const qlToolbar = document.querySelector('#editor-texto-rico-justificativa .ql-toolbar') as HTMLElement;
+
+        const estiloOriginalTabPanel = {
+          display: justificativaTabPanel.style.display,
+          opacity: justificativaTabPanel.style.opacity,
+          pointerEvents: justificativaTabPanel.style.pointerEvents,
+        };
+
+        justificativaTabPanel?.style.setProperty('opacity', '0');
+        justificativaTabPanel?.style.setProperty('pointer-events', 'none');
+        justificativaTabPanel?.style.setProperty('display', 'block');
+
+        const alturaToolBarJustificativa = qlToolbar?.clientHeight + 5;
+
+        justificativaTabPanel?.style.setProperty('opacity', estiloOriginalTabPanel.opacity);
+        justificativaTabPanel?.style.setProperty('pointer-events', estiloOriginalTabPanel.pointerEvents);
+        justificativaTabPanel?.style.setProperty('display', estiloOriginalTabPanel.display);
+
+        this?.style.setProperty('--heightJustificativa', alturaElemento - alturaToolBarJustificativa + 'px');
         this?.style.setProperty('--height', alturaElemento + 'px');
         this?.style.setProperty('--overflow', 'hidden');
         return true;
@@ -423,6 +449,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           --height: 100%;
           --overflow: visible;
           --min-height: 300px;
+          --heightJustificativa: 100%;
         }
         sl-tab-panel {
           --padding: 0px;
@@ -450,12 +477,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         } */
 
         #editor-texto-rico-emenda-inner {
-          height: calc(var(--height) - 57px);
+          height: calc(var(--heightJustificativa));
           overflow: var(--overflow);
         }
-
         #editor-texto-rico-justificativa-inner {
-          height: calc(var(--height) - 57px);
+          height: calc(var(--heightJustificativa));
           overflow: var(--overflow);
         }
         .badge-pulse {
