@@ -39,7 +39,9 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     }
   </style>
   <div id="wp-upload">
-    <label for="input-upload">Selecione abaixo o arquivo com o qual gostaria de referenciar em seu texto</label>
+    <label for="input-upload">Selecione o arquivo a ser anexado à emenda</label>
+    <br/>
+    <br/>
     <input id="input-upload" type="file" accept="application/pdf" size="small"></input>
   </div>
   <br/>
