@@ -195,7 +195,23 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   stateChanged(state: any): void {
     const revisaoAtivada = state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.RevisaoAtivada);
+    const revisaoDesativada = state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.RevisaoDesativada);
     revisaoAtivada && this.mostrarDialogDisclaimerRevisao();
+    if (revisaoAtivada || revisaoDesativada) {
+      this.emitiEventoOnRevisao(rootStore.getState().elementoReducer.emRevisao);
+    }
+  }
+
+  private emitiEventoOnRevisao(emRevisao: boolean): void {
+    this.dispatchEvent(
+      new CustomEvent('onrevisao', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          emRevisao,
+        },
+      })
+    );
   }
 
   private desativarMarcaRevisao = (): void => {
