@@ -11,6 +11,7 @@ class Table extends ContainBlot {
     const tagName = 'table';
     let node = super.create(tagName);
     node.setAttribute('table_id', value ? value : TableTrick.random_id());
+    node.setAttribute('border', '1');
     return node;
   }
 
