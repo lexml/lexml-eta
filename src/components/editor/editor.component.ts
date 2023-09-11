@@ -696,10 +696,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
-
-    if (events?.some(ev => [StateType.RevisaoAtivada, StateType.RevisaoDesativada].includes(ev.stateType))) {
-      this.emitiEventoOnRevisao(rootStore.getState().elementoReducer.emRevisao);
-    }
   }
 
   private processaRevisoesAceitas(events: StateEvent[], event: StateEvent): void {
@@ -1236,18 +1232,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private emitiEventoOnRevisao(emRevisao: boolean): void {
-    this.dispatchEvent(
-      new CustomEvent('onrevisao', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          emRevisao,
-        },
-      })
-    );
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private emitirEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
     this.atualizarTextoElemento(this.quill.linhaAtual);
@@ -1486,16 +1470,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (botaoRevisao) {
       botaoRevisao.classList.toggle('revisao-ativa', rootStore.getState().elementoReducer.emRevisao);
     }
-
-    this.dispatchEvent(
-      new CustomEvent('onRevisao', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          emRevisao: rootStore.getState().elementoReducer.emRevisao,
-        },
-      })
-    );
   }
 
   private indicadorTextoModificado(events: StateEvent[]): void {
