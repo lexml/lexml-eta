@@ -368,13 +368,15 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   undo = (): any => {
-    // return this.quill?.history.undo();
-    return TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(), undefined);
+    if (TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(true), undefined)) {
+      this.quill?.history.undo();
+    }
   };
 
   redo = (): any => {
-    // return this.quill?.history.redo();
-    return TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(), undefined);
+    if (TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(true), undefined)) {
+      this.quill?.history.redo();
+    }
   };
 
   atualizaAnexo = (anexo: Anexo[]): void => {
