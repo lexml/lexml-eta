@@ -1,5 +1,5 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
@@ -23,7 +23,7 @@ const DefaultClipboardModule = Quill.import('modules/clipboard');
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
-  @property({ type: Array }) anexos: Anexo[] = [];
+  @state() @property({ type: Array }) anexos: Anexo[] = [];
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
 
   @property({ type: String })
