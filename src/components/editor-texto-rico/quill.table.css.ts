@@ -265,4 +265,9 @@ export const quillTableCss = html`<style>
   .ql-picker-item[data-value='newtable_5_5']:before {
     content: '5x5';
   }
+
+  p:has(img) {
+    text-align: center !important;
+    text-indent: 0 !important;
+  }
 </style>`;
