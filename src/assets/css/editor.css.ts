@@ -27,7 +27,9 @@ export const editorStyles = html`
       font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
       /* padding: 8px; */
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
+      min-height: 55px;
     }
     #lx-eta-box .ql-snow.ql-toolbar button,
     .ql-snow .ql-toolbar button {
