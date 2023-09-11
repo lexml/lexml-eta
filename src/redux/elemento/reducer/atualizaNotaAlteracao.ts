@@ -30,7 +30,7 @@ export const atualizaNotaAlteracao = (state: any, action: any): State => {
   }
 
   const original = createElemento(dispositivo);
-  cabecaAlteracao.notaAlteracao = action.notaAlteracao;
+  cabecaAlteracao.notaAlteracao = action.notaAlteracao || undefined;
   const alterado = createElemento(dispositivo);
 
   const eventos: StateEvent[] = [];
