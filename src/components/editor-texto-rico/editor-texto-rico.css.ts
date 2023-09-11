@@ -186,6 +186,11 @@ export const editorTextoRicoCss = html`
       text-indent: 0 !important;
     }
 
+    .table-selected {
+      border: 1px solid #87ceeb; /* Define a borda sólida em tom azul claro */
+      box-shadow: 0 0 10px rgba(135, 206, 235, 0.5); /* Adiciona sombra com tom azul claro */
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;

@@ -157,6 +157,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.init();
   }
 
+  disconnectedCallback(): void {
+    this.quill?.off('text-change', this.updateTexto);
+    this.quill?.off('selection-change', this.onSelectionChange);
+    super.disconnectedCallback();
+  }
+
   init = (): void => {
     const quillContainer = document.querySelector(`#${this.id}-inner`) as HTMLElement;
     if (quillContainer) {
@@ -266,8 +272,22 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.setContent(this.texto);
       this.addBotoesExtra();
       this.configureTooltip();
+      this.elTableManagerButton = this.querySelectorAll('span.ql-table')[1] as HTMLSpanElement;
       this.quill?.on('text-change', this.updateTexto);
+      this.quill?.on('selection-change', this.onSelectionChange);
     }
+  };
+
+  private elTableManagerButton?: HTMLSpanElement;
+  onSelectionChange = (range: any): void => {
+    setTimeout(() => {
+      const format = range && this.quill?.getFormat(range);
+      this.highLightBotaoGerenciarTabela(format);
+    }, 0);
+  };
+
+  highLightBotaoGerenciarTabela = (format: any): void => {
+    format?.td ? this.elTableManagerButton?.classList.add('table-selected') : this.elTableManagerButton?.classList.remove('table-selected');
   };
 
   addBotoesExtra = (): void => {
@@ -325,16 +345,16 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   updateTexto = (): void => {
-    const texto = this.quill?.root.innerHTML
-      ? this.quill?.root.innerHTML
-          .replace(/ql-indent/g, 'indent')
-          .replace(/ql-align-justify/g, 'align-justify')
-          .replace(/ql-align-center/g, 'align-center')
-          .replace(/ql-align-right/g, 'align-right')
-      : '';
+    const texto = (this.quill?.root.innerHTML || '')
+      .replace(/ql-indent/g, 'indent')
+      .replace(/ql-align-justify/g, 'align-justify')
+      .replace(/ql-align-center/g, 'align-center')
+      .replace(/ql-align-right/g, 'align-right');
+
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
     this.buildRevisoes();
+    this.onSelectionChange(this.quill?.getSelection());
   };
 
   buildRevisoes = (): void => {
