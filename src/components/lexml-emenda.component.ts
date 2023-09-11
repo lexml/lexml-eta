@@ -233,6 +233,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlJustificativa.setContent(emenda.justificativa);
     if (this._lexmlEmendaTextoRico) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
+      this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
     }
     this._lexmlData.data = emenda.data;
   }
