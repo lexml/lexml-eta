@@ -1,6 +1,6 @@
 export default class TableToolbar {
   static get(quill) {
-    if (quill.container.previousSibling && quill.container.previousSibling.classList?.contains('ql-toolbar')) {
+    if (quill.container.previousSibling && quill.container.previousSibling.classList && quill.container.previousSibling.classList.contains('ql-toolbar')) {
       return quill.container.previousSibling;
     }
     return null;

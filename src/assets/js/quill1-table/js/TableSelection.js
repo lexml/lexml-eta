@@ -1,17 +1,6 @@
 import TableToolbar from './TableToolbar';
 
 class TableSelection {
-  static focusedCell = null;
-  static isMouseDown = false;
-  static selectionStartElement = null;
-  static selectionEndElement = null;
-  static previousSelection = [];
-
-  static dblClickTimeout = null;
-  static clickedCellTimeout = null;
-  static preventMouseDown = true;
-  static cellSelectionOnClick = true
-
   static mouseDown(quill, e, inCellSelectionOnClick) {
     if (inCellSelectionOnClick !== undefined){ //we may have no options set for onClick
       TableSelection.cellSelectionOnClick = inCellSelectionOnClick;
@@ -37,26 +26,26 @@ class TableSelection {
         TableSelection.focusedCell = null;
         return;
       }
-  
+
       if ((!TableSelection.preventMouseDown && targetCell === TableSelection.clickedCellTimeout) || TableSelection.focusedCell === targetCell) {
         // default mouse down event when multiple click in less than 500ms in the same cell or if the cell is already focused
         TableSelection.focusedCell = targetCell;
         return;
       }
-  
+
       // single mouse left click = start selection
       e.preventDefault();
       TableSelection.focusedCell = null;
-  
+
       clearTimeout(TableSelection.dblClickTimeout);
       TableSelection.dblClickTimeout = setTimeout(() => {
         TableSelection.preventMouseDown = true;
         TableSelection.clickedCellTimeout = null;
       }, 500);
       TableSelection.preventMouseDown = false;
-  
+
       TableSelection.selectionStartElement = TableSelection.clickedCellTimeout = targetCell;
-  
+
       if (TableSelection.selectionStartElement) {
         TableSelection.selectionStartElement.classList.add('ql-cell-selected');
       }
@@ -208,5 +197,16 @@ class TableSelection {
     });
   }
 }
+
+TableSelection.focusedCell = null;
+TableSelection.isMouseDown = false;
+TableSelection.selectionStartElement = null;
+TableSelection.selectionEndElement = null;
+TableSelection.previousSelection = [];
+
+TableSelection.dblClickTimeout = null;
+TableSelection.clickedCellTimeout = null;
+TableSelection.preventMouseDown = true;
+TableSelection.cellSelectionOnClick = true
 
 export default TableSelection;

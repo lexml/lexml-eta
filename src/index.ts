@@ -47,3 +47,4 @@ export { ComandoEmendaModalComponent } from './components/comandoEmenda/comandoE
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
 export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';
+export { Usuario } from './model/revisao/usuario';

@@ -4,8 +4,6 @@ import TableTrick from './TableTrick';
 const Parchment = Quill.import('parchment');
 
 class TableHistory {
-  static changes = [];
-
   // Register DOM change into current table history entry
   static register(type, change) {
     TableHistory.changes.push({ type, ...change });
@@ -198,4 +196,5 @@ class TableHistory {
   }
 }
 
+TableHistory.changes = [];
 export default TableHistory;
