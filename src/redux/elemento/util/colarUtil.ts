@@ -342,7 +342,7 @@ const isArticulacaoInconsistente = (articulacao: Articulacao): boolean => {
 };
 
 const isDispositivoInconsistente = (dispositivo: Dispositivo): boolean => {
-  return !dispositivo.pai?.tiposPermitidosFilhos?.includes(dispositivo.tipo) && !isOmissis(dispositivo) && !isArticulacao(dispositivo.pai!);
+  return !dispositivo.pai?.tiposPermitidosFilhos?.includes(dispositivo.tipo) && !isOmissis(dispositivo) && !!dispositivo.pai && !isArticulacao(dispositivo.pai!);
 };
 
 const getTextoInconsistencia = (dispositivos: Dispositivo[]): string => {
