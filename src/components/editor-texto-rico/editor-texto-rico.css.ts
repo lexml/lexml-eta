@@ -4,25 +4,26 @@ export const editorTextoRicoCss = html`
   <style>
     .editor-texto-rico {
       height: 375px;
+      font-size: 18px !important;
+    }
+    .editor-texto-rico p,
+    .editor-texto-rico ol,
+    .editor-texto-rico ul {
+      margin-bottom: 0.7rem;
     }
     .editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
-      text-indent: 3em;
+      text-indent: 3rem;
     }
     .ql-toolbar.ql-snow .ql-formats {
       margin-right: 8px;
-    }
-    .editor-texto-rico .estilo-artigo-subordinados {
-      text-indent: 0 !important;
-      text-align: justify;
-    }
-    .editor-texto-rico .estilo-agrupador-artigo {
-      text-indent: 0 !important;
-      text-align: center;
     }
     .editor-texto-rico .estilo-ementa {
       text-indent: 0 !important;
       text-align: justify;
       margin-left: 40%;
+    }
+    .editor-texto-rico .estilo-norma-alterada {
+      margin-left: 3rem;
     }
 
     #revisoes-justificativa-icon sl-icon,
@@ -99,19 +100,14 @@ export const editorTextoRicoCss = html`
       content: 'Texto normal';
     }
 
-    .ql-picker.ql-estilo .ql-picker-label[data-value='artigo-subordinados']:before,
-    .ql-picker.ql-estilo .ql-picker-item[data-value='artigo-subordinados']:before {
-      content: 'Artigo e subordinados';
-    }
-
-    .ql-picker.ql-estilo .ql-picker-label[data-value='agrupador-artigo']:before,
-    .ql-picker.ql-estilo .ql-picker-item[data-value='agrupador-artigo']:before {
-      content: 'Agrupador de artigo';
-    }
-
     .ql-picker.ql-estilo .ql-picker-label[data-value='ementa']:before,
     .ql-picker.ql-estilo .ql-picker-item[data-value='ementa']:before {
       content: 'Ementa';
+    }
+
+    .ql-picker.ql-estilo .ql-picker-label[data-value='norma-alterada']:before,
+    .ql-picker.ql-estilo .ql-picker-item[data-value='norma-alterada']:before {
+      content: 'Norma alterada';
     }
 
     .ql-estilo span.ql-picker-label {
@@ -184,6 +180,7 @@ export const editorTextoRicoCss = html`
 
     .ql-editor td > p {
       text-indent: 0 !important;
+      margin-bottom: 0 !important;
     }
 
     .table-selected {

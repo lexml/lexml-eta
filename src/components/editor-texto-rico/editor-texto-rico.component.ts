@@ -490,7 +490,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 }
 
 const toolbarOptions = [
-  [{ estilo: [false, 'artigo-subordinados', 'agrupador-artigo', 'ementa'] }],
+  [{ estilo: [false, 'ementa', 'norma-alterada'] }],
   [
     {
       table: TableModule.tableOptions(),
@@ -515,7 +515,7 @@ const toolbarOptions = [
   ['bold', 'italic', 'underline'],
   [{ list: 'ordered' }, { list: 'bullet' }],
   [{ script: 'sub' }, { script: 'super' }],
-  ['blockquote'],
+  // ['blockquote'],
   ['undo', 'redo'],
   [{ align: [] }],
   ['clean'],

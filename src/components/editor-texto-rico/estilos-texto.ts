@@ -2,7 +2,7 @@ const Parchment: any = Quill.import('parchment');
 
 const config = {
   scope: Parchment.Scope.BLOCK,
-  whitelist: ['artigo-subordinados', 'agrupador-artigo', 'ementa'],
+  whitelist: ['ementa', 'norma-alterada'],
 };
 
 const EstiloTextoClass = new Parchment.Attributor.Class('estilo', 'estilo', config);
