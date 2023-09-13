@@ -520,6 +520,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
 const toolbarOptions = [
   [{ estilo: [false, 'ementa', 'norma-alterada'] }],
+  ['bold', 'italic', 'underline'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  [{ script: 'sub' }, { script: 'super' }],
+  // ['blockquote'],
+  ['undo', 'redo'],
+  [{ align: [] }],
+  ['clean'],
   [
     {
       table: TableModule.tableOptions(),
@@ -541,12 +548,5 @@ const toolbarOptions = [
       ],
     },
   ],
-  ['bold', 'italic', 'underline'],
-  [{ list: 'ordered' }, { list: 'bullet' }],
-  [{ script: 'sub' }, { script: 'super' }],
-  // ['blockquote'],
-  ['undo', 'redo'],
-  [{ align: [] }],
-  ['clean'],
   ['image'],
 ];
