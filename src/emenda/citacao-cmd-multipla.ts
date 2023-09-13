@@ -150,8 +150,15 @@ export class CitacaoComandoMultipla {
       return;
     }
 
-    // Busca último nó à direita
     let d = cabeca as Dispositivo;
+
+    // Trata caso específico de alteração de caput de artigo com alteração de norma
+    if (isArtigo(d) && (d as Artigo).hasAlteracao()) {
+      sb.append(this.tagOmissisSemRotulo().toString());
+      return;
+    }
+
+    // Busca último nó à direita
     while (d.filhos.length) {
       d = d.filhos[d.filhos.length - 1];
     }
