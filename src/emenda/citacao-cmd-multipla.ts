@@ -153,7 +153,7 @@ export class CitacaoComandoMultipla {
     let d = cabeca as Dispositivo;
 
     // Trata caso específico de alteração de caput de artigo com alteração de norma
-    if (isArtigo(d) && (d as Artigo).hasAlteracao()) {
+    if (cabeca.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO && isArtigo(d) && (d as Artigo).hasAlteracao()) {
       sb.append(this.tagOmissisSemRotulo().toString());
       return;
     }
