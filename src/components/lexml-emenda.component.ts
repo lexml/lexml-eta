@@ -30,6 +30,7 @@ import { isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, re
 import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
+import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
@@ -174,10 +175,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
     }
 
-    if (!emenda?.revisoes?.length) {
-      this.desativarMarcaRevisao();
-    }
-
     if (emenda) {
       this.setEmenda(emenda);
     } else {
@@ -191,6 +188,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
     this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
+
+    if (!emenda?.revisoes?.length) {
+      this.desativarMarcaRevisao();
+    }
   }
 
   stateChanged(state: any): void {
@@ -243,6 +244,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.modoEdicao = modoEdicao;
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
+    rootStore.dispatch(limparRevisaoAction.execute());
   }
 
   constructor() {

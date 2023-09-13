@@ -75,6 +75,8 @@ import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoActio
 import { aceitaRevisao } from './aceitaRevisao';
 import { rejeitaRevisao } from './rejeitaRevisao';
 import { adicionaDiffMenuOpcoes } from './adicionaDiffMenuOpcoes';
+import { LIMPAR_REVISAO } from '../../../model/lexml/acao/limparRevisoes';
+import { limpaRevisao } from './limpaRevisao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -82,7 +84,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   let usuario = (state as State).usuario;
   let actionType = action.type;
   let emRevisao = (state as State).emRevisao;
-  const revisoes = (state as State).revisoes || [];
+  let revisoes = (state as State).revisoes || [];
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
 
   switch (action.type) {
@@ -202,10 +204,18 @@ export const elementoReducer = (state = {}, action: any): any => {
     case REJEITAR_REVISAO:
       tempState = rejeitaRevisao(state, action);
       break;
+    case LIMPAR_REVISAO:
+      tempState = limpaRevisao(state);
+      break;
     default:
       actionType = undefined;
       tempState = state as State;
       break;
+  }
+
+  if ([LIMPAR_REVISAO].includes(actionType)) {
+    //tempState.revisoes = [];
+    revisoes = [];
   }
 
   if (
