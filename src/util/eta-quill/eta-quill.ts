@@ -179,9 +179,26 @@ export class EtaQuill extends Quill {
     this.root.addEventListener('drop', (e: Event) => {
       e.preventDefault();
     });
+    this.root.addEventListener('click', this.customClickHandler);
   }
 
+  customClickHandler = (ev: MouseEvent): void => {
+    try {
+      let blot = EtaQuill.find(ev.target as HTMLElement);
+      if (['EtaBlotOpcoesDiff'].includes(blot.instanceBlotName)) {
+        return;
+      }
+      while (blot && blot.instanceBlotName !== 'EtaContainerTable') {
+        blot = blot.parent;
+      }
+      blot && blot === this.linhaAtual && blot.blotConteudo.domNode.focus();
+    } catch (error) {
+      // não faz nada
+    }
+  };
+
   destroi(): void {
+    this.root?.removeEventListener('click', this.customClickHandler);
     this.off('text-change', this.onTextChange);
     this.off('selection-change', this.onSelectionChange);
     this.keyboard?.operacaoTecladoInvalida.clean();
