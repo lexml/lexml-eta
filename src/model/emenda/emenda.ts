@@ -16,6 +16,7 @@ export class Emenda {
   comandoEmenda = new ComandoEmenda();
   comandoEmendaTextoLivre = new ComandoEmendaTextoLivre();
   justificativa = '';
+  justificativaAntesRevisao?: string;
   local = '';
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
@@ -106,6 +107,7 @@ export class ComandoEmenda {
 export class ComandoEmendaTextoLivre {
   motivo?: string;
   texto?: string;
+  textoAntesRevisao?: string;
 }
 
 export class ItemComandoEmenda {

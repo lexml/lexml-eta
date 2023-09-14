@@ -16,6 +16,7 @@ import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
+import { StateEvent, StateType } from '../../redux/state';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -37,6 +38,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   icons = Quill.import('ui/icons');
 
   private MAX_WIDTH_IMAGEM = 400;
+
+  _textoAntesRevisao?: string;
+  get textoAntesRevisao(): string | undefined {
+    // TODO: se contém revisão e texto antes da revisão for igual ao texto atual, ainda assim retorna texto antes da revisão
+    return this._textoAntesRevisao === this.texto || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
+  }
 
   public limparRedimencionamentoImagens(): void {
     const imagens = document.querySelectorAll('#editor-texto-rico-emenda-inner img');
@@ -90,8 +97,15 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   stateChanged(state: any): void {
-    if (state.elementoReducer.ui?.events) {
+    const events: StateEvent[] = state.elementoReducer.ui?.events;
+    if (events) {
       this.atualizaRevisaoIcon();
+
+      if (events.some(ev => ev.stateType === StateType.RevisaoAtivada)) {
+        this._textoAntesRevisao = this.texto;
+      } else if (events.some(ev => ev.stateType === StateType.RevisaoDesativada)) {
+        this._textoAntesRevisao = undefined;
+      }
     }
   }
 

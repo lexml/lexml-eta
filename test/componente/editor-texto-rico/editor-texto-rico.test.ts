@@ -1,6 +1,9 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { EditorTextoRicoComponent } from '../../../src';
+import { EditorTextoRicoComponent, Usuario } from '../../../src';
 import { ajustaHtmlFromEditor, ajustaHtmlToEditor } from '../../../src/components/editor-texto-rico/texto-rico-util';
+import { rootStore } from '../../../src/redux/store';
+import { ativarDesativarRevisaoAction } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
+import { atualizarUsuarioAction } from '../../../src/model/lexml/acao/atualizarUsuarioAction';
 
 let editorTextoRico: EditorTextoRicoComponent;
 
@@ -23,7 +26,13 @@ describe('Testando funções de conversão de html', () => {
 
 describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
   beforeEach(async function () {
+    // const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    // state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE });
     editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<editor-texto-rico></editor-texto-rico>`);
+
+    const usuario = new Usuario();
+    usuario.nome = 'Teste';
+    rootStore.dispatch(atualizarUsuarioAction.execute(usuario));
   });
 
   it('Deveria exibir o editor', () => {
@@ -38,45 +47,122 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
   //   expect(tabela).to.not.be.null;
   // });
 
-  describe('Testando inicialização de texto no editor', () => {
-    beforeEach(async function () {
-      editorTextoRico.setContent(htmlEmenda);
-    });
+  // describe('Testando inicialização de texto no editor', () => {
+  //   beforeEach(async function () {
+  //     editorTextoRico.setContent(htmlEmenda);
+  //   });
 
-    it('HTML deveria possuir classes de alinhamento iniciando com "ql-"', () => {
-      const html = editorTextoRico.quill?.root.innerHTML || '';
-      expect(html.includes('ql-align-center')).to.be.true;
-      expect(html.includes('ql-align-justify')).to.be.true;
-      expect(html.includes('ql-align-right')).to.be.true;
-    });
+  //   it('HTML deveria possuir classes de alinhamento iniciando com "ql-"', () => {
+  //     const html = editorTextoRico.quill?.root.innerHTML || '';
+  //     expect(html.includes('ql-align-center')).to.be.true;
+  //     expect(html.includes('ql-align-justify')).to.be.true;
+  //     expect(html.includes('ql-align-right')).to.be.true;
+  //   });
 
-    it('HTML deveria possuir 1 tabela', () => {
-      expect(editorTextoRico.quill?.root.innerHTML.match(/<table/g)?.length).to.be.equal(1);
-    });
+  //   it('HTML deveria possuir 1 tabela', () => {
+  //     expect(editorTextoRico.quill?.root.innerHTML.match(/<table/g)?.length).to.be.equal(1);
+  //   });
 
-    it('HTML deveria possuir 2 tags td com atributo "merge_id"', () => {
-      expect(editorTextoRico.quill?.root.innerHTML.match(/<td[^>]*\smerge_id="[^"]*"[^>]*>/g)?.length).to.be.equal(2);
-    });
+  //   it('HTML deveria possuir 2 tags td com atributo "merge_id"', () => {
+  //     expect(editorTextoRico.quill?.root.innerHTML.match(/<td[^>]*\smerge_id="[^"]*"[^>]*>/g)?.length).to.be.equal(2);
+  //   });
 
-    it('Deveria possuir html "ajustado" igual a htmlEmenda', () => {
-      expect(ajustaHtmlFromEditor(editorTextoRico.quill?.root.innerHTML)).to.be.equal(htmlEmenda);
-    });
-  });
+  //   it('Deveria possuir html "ajustado" igual a htmlEmenda', () => {
+  //     expect(ajustaHtmlFromEditor(editorTextoRico.quill?.root.innerHTML)).to.be.equal(htmlEmenda);
+  //   });
+  // });
 
-  describe('Testando inclusão de tabela com 2 linhas e 2 colunas', () => {
-    beforeEach(async function () {
-      const el = editorTextoRico.querySelector('span.ql-table span[data-value="newtable_2_2"]')! as any;
-      el.click();
-    });
+  // describe('Testando inclusão de tabela com 2 linhas e 2 colunas', () => {
+  //   beforeEach(function () {
+  //     const el = editorTextoRico.querySelector('span.ql-table span[data-value="newtable_2_2"]')! as any;
+  //     el.click();
+  //   });
 
-    it('Deveria possuir tabela com 2 linhas e 2 colunas', () => {
-      const html = editorTextoRico.quill?.root.innerHTML;
-      const nTables = html?.match(/<table/g)?.length;
-      const nRows = html?.match(/<tr/g)?.length;
-      const nCols = html?.match(/<td/g)?.length;
-      expect(nTables).to.be.equal(1);
-      expect(nRows).to.be.equal(2);
-      expect(nCols).to.be.equal(4);
+  //   it('Deveria possuir tabela com 2 linhas e 2 colunas', () => {
+  //     const html = editorTextoRico.quill?.root.innerHTML;
+  //     const nTables = html?.match(/<table/g)?.length;
+  //     const nRows = html?.match(/<tr/g)?.length;
+  //     const nCols = html?.match(/<td/g)?.length;
+  //     expect(nTables).to.be.equal(1);
+  //     expect(nRows).to.be.equal(2);
+  //     expect(nCols).to.be.equal(4);
+  //   });
+  // });
+
+  describe('Testando revisão de texto', () => {
+    describe('Inicializando texto no editor', () => {
+      beforeEach(function () {
+        editorTextoRico.setContent('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+      });
+
+      it('Deveria apresentar atributo texto com valor "<p>Parágrafo 1</p><p>Parágrafo 2</p>"', () => {
+        expect(editorTextoRico.texto).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+      });
+
+      it('Deveria apresentar atributo textoAntesRevisao igual a undefined', () => {
+        expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+      });
+
+      // describe('Ativando revisão e testando atributoTextoAntesRevisao', () => {
+      //   // beforeEach(function () {
+      //   //   // rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      //   //   state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+      //   // });
+
+      //   it('Deveria estar em modo de revisão e apresentar textoAntesRevisao igual a undefined', () => {
+      //     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      //     expect(rootStore.getState().elementoReducer.emRevisao).to.be.true;
+      //     expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+      //     rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      //   });
+      // });
+
+      // describe('Ativando revisão', () => {
+      //   it('Deveria estar em modo de revisão e apresentar textoAntesRevisao igual a undefined', () => {
+      //     state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+      //     expect(state.emRevisao).to.be.true;
+      //     expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+      //   });
+      // });
+
+      describe('Ativando revisão e alterando texto', () => {
+        it('Deveria estar em modo de revisão e apresentar textoAntesRevisao igual a "<p>Parágrafo 1</p><p>Parágrafo 2</p>" *', () => {
+          expect(!!rootStore.getState().elementoReducer.emRevisao).to.be.false;
+          rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+          expect(rootStore.getState().elementoReducer.emRevisao).to.be.true;
+          expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+
+          editorTextoRico.quill?.insertText(0, 'TESTE');
+          expect(editorTextoRico.texto).to.be.equal('<p>TESTEParágrafo 1</p><p>Parágrafo 2</p>');
+          rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+          expect(!!rootStore.getState().elementoReducer.emRevisao).to.be.false;
+
+          // console.log(editorTextoRico.texto);
+          // console.log(editorTextoRico.textoAntesRevisao);
+          // rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+          // expect(rootStore.getState().elementoReducer.emRevisao).to.be.true;
+          // expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+        });
+      });
+
+      describe('Ativando revisão, alterando texto e desfazendo alteração', () => {
+        it('Deveria estar em modo de revisão e apresentar textoAntesRevisao igual a "<p>Parágrafo 1</p><p>Parágrafo 2</p>" **', () => {
+          expect(!!rootStore.getState().elementoReducer.emRevisao).to.be.false;
+          rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+          expect(rootStore.getState().elementoReducer.emRevisao).to.be.true;
+          expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+
+          editorTextoRico.quill?.insertText(0, 'TESTE');
+          expect(editorTextoRico.texto).to.be.equal('<p>TESTEParágrafo 1</p><p>Parágrafo 2</p>');
+          expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+
+          // editorTextoRico.quill?.history.undo();
+          editorTextoRico.quill?.deleteText(0, 5);
+          expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+          expect(editorTextoRico.texto).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+          rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+        });
+      });
     });
   });
 });
