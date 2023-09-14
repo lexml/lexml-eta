@@ -65,7 +65,7 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
   });
 
   describe('Testando inicialização de texto no editor', () => {
-    beforeEach(async function () {
+    beforeEach(function () {
       editorTextoRico.setContent(htmlEmenda);
     });
 
@@ -106,17 +106,18 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
     });
   });
 
-  describe('Teste 1', () => {
-    it('Teste 1.1', () => {
-      editorTextoRico.setContent('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
-    });
-  });
-
   describe('Testando revisão de texto', () => {
     describe('Inicializando texto no editor', () => {
       beforeEach(function () {
         editorTextoRico.setContent('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
         rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      });
+
+      afterEach(function () {
+        atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+        expect(rootStore.getState().elementoReducer.emRevisao).to.be.false;
+        expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
       });
 
       it('Deveria apresentar atributo texto com valor "<p>Parágrafo 1</p><p>Parágrafo 2</p>"', () => {
@@ -136,7 +137,6 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
           editorTextoRico.quill?.insertText(0, 'TESTE');
           expect(editorTextoRico.texto).to.be.equal('<p>TESTEParágrafo 1</p><p>Parágrafo 2</p>');
           expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
-          limparRevisoesEDesativarRevisao();
         });
       });
 
@@ -147,17 +147,10 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
           expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
 
           editorTextoRico.quill?.deleteText(0, 5);
-          expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+          expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>'); // Continua igual porque as revisões ainda não foram aceitas
           expect(editorTextoRico.texto).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
-          limparRevisoesEDesativarRevisao();
         });
       });
     });
   });
 });
-
-const limparRevisoesEDesativarRevisao = (): void => {
-  atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
-  rootStore.dispatch(ativarDesativarRevisaoAction.execute());
-  expect(rootStore.getState().elementoReducer.emRevisao).to.be.false;
-};
