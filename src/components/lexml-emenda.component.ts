@@ -364,43 +364,68 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
   }
-  // procura por uma altura definida e ajusta componente
-  private ajustarAltura(altura?: number): boolean {
-    let alturaElemento = altura !== undefined ? altura : this.pesquisarAlturaParentElement(this);
-    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
 
-    // altura dos tabs
+  private ajustarAltura(altura?: number): boolean {
+    const alturaElementoBase = altura ?? this.pesquisarAlturaParentElement(this);
+    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
     const alturaLexmlEtaTabs = lexmlEtaTabs?.clientHeight;
 
-    if (alturaLexmlEtaTabs) {
-      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 12;
-      if (alturaElemento > 0) {
-        const justificativaTabPanel = document.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement;
-        const qlToolbar = document.querySelector('#editor-texto-rico-justificativa .ql-toolbar') as HTMLElement;
+    if (!alturaLexmlEtaTabs) return false;
 
-        const estiloOriginalTabPanel = {
-          display: justificativaTabPanel.style.display,
-          opacity: justificativaTabPanel.style.opacity,
-          pointerEvents: justificativaTabPanel.style.pointerEvents,
-        };
+    const alturaElemento = alturaElementoBase - alturaLexmlEtaTabs - 12;
+    if (alturaElemento <= 0) return false;
 
-        justificativaTabPanel?.style.setProperty('opacity', '0');
-        justificativaTabPanel?.style.setProperty('pointer-events', 'none');
-        justificativaTabPanel?.style.setProperty('display', 'block');
+    const getElement = (selector: string) => document.querySelector(selector) as HTMLElement;
 
-        const alturaToolBarJustificativa = qlToolbar?.clientHeight + 5;
+    const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
+    const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta"]');
+    const qlToolbarJustificativa = getElement('#editor-texto-rico-justificativa .ql-toolbar');
+    const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
 
-        justificativaTabPanel?.style.setProperty('opacity', estiloOriginalTabPanel.opacity);
-        justificativaTabPanel?.style.setProperty('pointer-events', estiloOriginalTabPanel.pointerEvents);
-        justificativaTabPanel?.style.setProperty('display', estiloOriginalTabPanel.display);
+    const estilosOriginais = {
+      justificativa: {
+        display: justificativaTabPanel.style.display,
+        opacity: justificativaTabPanel.style.opacity,
+        pointerEvents: justificativaTabPanel.style.pointerEvents,
+      },
+      emenda: {
+        display: emendaTabPanel.style.display,
+        opacity: emendaTabPanel.style.opacity,
+        pointerEvents: emendaTabPanel.style.pointerEvents,
+      },
+    };
 
-        this?.style.setProperty('--heightJustificativa', alturaElemento - alturaToolBarJustificativa + 'px');
-        this?.style.setProperty('--height', alturaElemento + 'px');
-        this?.style.setProperty('--overflow', 'hidden');
-        return true;
+    const setTabPanelStyles = (tabPanel: HTMLElement, estilos: any, isTemporary = false) => {
+      if (isTemporary) {
+        tabPanel.style.opacity = '0';
+        tabPanel.style.pointerEvents = 'none';
+        tabPanel.style.display = 'block';
+      } else {
+        tabPanel.style.opacity = estilos.opacity;
+        tabPanel.style.pointerEvents = estilos.pointerEvents;
+        tabPanel.style.display = estilos.display;
       }
+    };
+
+    if (estilosOriginais.justificativa.display === 'none') {
+      setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa, true);
     }
-    return false;
+    if (estilosOriginais.emenda.display === 'none') {
+      setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda, true);
+    }
+
+    const alturaToolBarJustificativa = qlToolbarJustificativa.clientHeight + 5;
+    const alturaToolBarEmenda = qlToolbarEmenda.clientHeight + 5;
+
+    setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
+    setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda);
+
+    this.style.setProperty('--heightJustificativa', `${alturaElemento - alturaToolBarJustificativa}px`);
+    this.style.setProperty('--heightEmenda', `${alturaElemento - alturaToolBarEmenda}px`);
+    this.style.setProperty('--height', `${alturaElemento}px`);
+    this.style.setProperty('--overflow', 'hidden');
+
+    return true;
   }
 
   private onChange(): void {
@@ -456,6 +481,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           --overflow: visible;
           --min-height: 300px;
           --heightJustificativa: 100%;
+          --heightEmenda: 100%;
         }
         sl-tab-panel {
           --padding: 0px;
