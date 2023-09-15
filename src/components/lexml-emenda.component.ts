@@ -414,8 +414,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda, true);
     }
 
-    const alturaToolBarJustificativa = qlToolbarJustificativa.clientHeight + 5;
-    const alturaToolBarEmenda = qlToolbarEmenda.clientHeight + 5;
+    const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 5;
+    const alturaToolBarEmenda = qlToolbarEmenda?.clientHeight + 5;
 
     setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
     setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda);
@@ -488,8 +488,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         sl-tab-panel::part(base) {
           height: var(--height);
-          /* overflow: var(--overflow); */
-          /* overflow-y: auto; */
         }
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
