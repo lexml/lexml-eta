@@ -121,7 +121,7 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
           <div slot="header">
             Diferença
           </div>
-          ${diff.textoAntesRevisao !== diff.textoAtual ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : 'Não existe diferença'}
+          ${diff.textoAntesRevisao !== diff.textoAtual ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : `<p>Não existe diferença</p>`}
         </sl-card>
 
         <sl-card class="card-header texto-alterado">
