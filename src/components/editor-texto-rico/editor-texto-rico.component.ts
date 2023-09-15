@@ -201,7 +201,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('modules/table', TableModule, true);
       Quill.register('formats/estilo-texto', EstiloTextoClass, true);
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'table', 'tr', 'td'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'table', 'tr', 'td', 'textindent', 'linespacing'],
         modules: {
           toolbar: {
             container: toolbarOptions,
@@ -352,6 +352,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-image', 'Inserir imagem');
     this.setTitle(toolbarContainer, 'button.ql-undo', 'Desfazer (Ctrl+z)');
     this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
+    this.setTitle(toolbarContainer, 'button.ql-linespacing', 'Distância entre parágrafos');
+    this.setTitle(toolbarContainer, 'button.ql-textindent', 'Recuo de parágrafo');
   };
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
@@ -549,4 +551,6 @@ const toolbarOptions = [
     },
   ],
   ['image'],
+  ['textindent'],
+  ['linespacing'],
 ];
