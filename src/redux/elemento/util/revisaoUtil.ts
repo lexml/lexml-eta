@@ -467,3 +467,7 @@ export const mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes = (state: 
 
   return tempState;
 };
+
+export const countRevisoesByType = (revisoes: Revisao[] = [], type: string): number => {
+  return revisoes.filter(r => r.type === type).length;
+};
