@@ -478,7 +478,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         contentRevisoes.innerHTML = this.getTitle();
         iconRevisoes.classList.remove(this.getIdTooltip() + '__ativo');
         this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
-        this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, this.getIdButtonDiff());
+        this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
       }
     }
   };
@@ -533,7 +533,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
     this.atualizaRevisaoIcon();
     this.desabilitaBtn(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
-    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, this.getIdButtonDiff());
+    this.desabilitaBtn(this.getRevisoesJustificativa().length === 0, this.getIdButtonDiff());
     this.atualizaQuantidadeRevisao();
   };
 
