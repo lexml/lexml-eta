@@ -262,7 +262,7 @@ export const getQuantidadeRevisoes = (revisoes: Revisao[] = []): number => {
   return revisoes.filter(isRevisaoPrincipal).length;
 };
 
-const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number => {
+export const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number => {
   return revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
 };
 
@@ -299,7 +299,7 @@ export const mostrarDialogDisclaimerRevisao = (): void => {
   }
 };
 
-const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): number => {
+export const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): number => {
   return revisoes.filter(e => e.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado).length;
 };
 

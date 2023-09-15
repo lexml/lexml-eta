@@ -71,6 +71,7 @@ export const editorTextoRicoCss = html`
     #chk-em-revisao-texto-livre[checked] {
       background-color: var(--sl-color-blue-100);
     }
+
     #toolbar {
       padding: 1.5px 0 1.5px 8px;
     }

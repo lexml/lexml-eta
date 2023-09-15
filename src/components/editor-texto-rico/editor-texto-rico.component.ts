@@ -4,7 +4,13 @@ import { negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
-import { atualizaQuantidadeRevisao, RevisaoJustificativaEnum, RevisaoTextoLivreEnum } from '../../redux/elemento/util/revisaoUtil';
+import {
+  atualizaQuantidadeRevisao,
+  getQuantidadeRevisoesJustificativa,
+  getQuantidadeRevisoesTextoLivre,
+  RevisaoJustificativaEnum,
+  RevisaoTextoLivreEnum,
+} from '../../redux/elemento/util/revisaoUtil';
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
@@ -17,6 +23,7 @@ import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
 import { StateEvent, StateType } from '../../redux/state';
+import { exibirDiferencasTextoRicoDialog, TextoRicoDiff } from '../editor/exibirDiferencaTextoRicoDialog';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -42,8 +49,16 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   _textoAntesRevisao?: string;
   get textoAntesRevisao(): string | undefined {
     // TODO: se contém revisão e texto antes da revisão for igual ao texto atual, ainda assim retorna texto antes da revisão
-    return this._textoAntesRevisao === this.texto || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
+    return (!this.existeRevisaoByModo() && this._textoAntesRevisao === this.texto) || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
   }
+
+  private existeRevisaoByModo = (): boolean => {
+    if (this.modo === Modo.TEXTO_LIVRE) {
+      return getQuantidadeRevisoesTextoLivre(rootStore.getState().elementoReducer.revisoes) > 0;
+    } else {
+      return getQuantidadeRevisoesJustificativa(rootStore.getState().elementoReducer.revisoes) > 0;
+    }
+  };
 
   public limparRedimencionamentoImagens(): void {
     const imagens = document.querySelectorAll('#editor-texto-rico-emenda-inner img');
@@ -132,6 +147,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         <sl-button id="${this.getIdButtonAceitarRevisoes()}" variant="default" size="small" title="Limpar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
           <sl-icon name="check-lg"></sl-icon>
         </sl-button>
+
+        <sl-button id="${this.getIdButtonDiff()}" variant="default" size="small" title="Exibir diferenças" @click=${(): void => this.exibirDiferencas()} disabled circle>
+          <sl-icon name="file-diff"></sl-icon>
+        </sl-button>
       </div>
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
     `;
@@ -195,6 +214,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private getIdButtonAceitarRevisoes = (): string => {
     return this.modo === Modo.JUSTIFICATIVA ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
+  };
+
+  private getIdButtonDiff = (): string => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'btn-diff-justificativa' : 'btn-diff-texto-livre';
   };
 
   firstUpdated(): void {
@@ -413,7 +436,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
     }
     this.atualizaRevisaoIcon();
-    this.desabilitaBtnAceitarRevisoes(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+    this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+    this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
   };
 
   undo = (): any => {
@@ -453,7 +477,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       } else {
         contentRevisoes.innerHTML = this.getTitle();
         iconRevisoes.classList.remove(this.getIdTooltip() + '__ativo');
-        this.desabilitaBtnAceitarRevisoes(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+        this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+        this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, this.getIdButtonDiff());
       }
     }
   };
@@ -490,17 +515,33 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
+  private exibirDiferencas = (): void => {
+    const textoRico = new TextoRicoDiff();
+    textoRico.textoAntesRevisao = this.textoAntesRevisao || '';
+    textoRico.textoAtual = this.texto;
+
+    exibirDiferencasTextoRicoDialog(textoRico);
+
+    // if (this.modo === Modo.JUSTIFICATIVA) {
+    //   console.log('Diff justificativa')
+    // } else {
+    //   console.log('Diff texto livre')
+    // }
+  };
+
   private aceitaRevisoesJustificativa = (): void => {
     atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
     this.atualizaRevisaoIcon();
-    this.desabilitaBtnAceitarRevisoes(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
+    this.desabilitaBtn(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
+    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, this.getIdButtonDiff());
     this.atualizaQuantidadeRevisao();
   };
 
   private aceitaRevisoesTextoLivre = (): void => {
     atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
     this.atualizaRevisaoIcon();
-    this.desabilitaBtnAceitarRevisoes(this.getRevisoesTextoLivre().length === 0, 'aceita-revisao-texto-livre');
+    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, 'aceita-revisao-texto-livre');
+    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, this.getIdButtonDiff());
     this.atualizaQuantidadeRevisao();
   };
 
@@ -518,7 +559,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     return revisoes.filter(r => r.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado);
   };
 
-  private desabilitaBtnAceitarRevisoes = (desabilita: boolean, button: string): void => {
+  private desabilitaBtn = (desabilita: boolean, button: string): void => {
     const contadorView = document.getElementById(button) as any;
     if (desabilita) {
       contadorView.setAttribute('disabled', desabilita);
