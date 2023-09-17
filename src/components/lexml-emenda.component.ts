@@ -131,11 +131,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   getEmenda(): Emenda {
+    // Para evitar erros de referência nula quando chamado antes da inicialização do componente
+    if (!this.projetoNorma['value']) {
+      return new Emenda();
+    }
+
     const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
     if (this._lexmlEta) {
       emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+      emenda.comandoEmendaTextoLivre.motivo = undefined;
+      emenda.comandoEmendaTextoLivre.texto = undefined;
     } else {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
       this._lexmlEmendaTextoRico.redimencionarImagens();
