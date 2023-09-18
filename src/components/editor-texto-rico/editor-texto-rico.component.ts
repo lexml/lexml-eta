@@ -16,6 +16,8 @@ import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
+import { NoIndentClass } from './text-indent';
+import { MarginBottomClass } from './margin-bottom';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -200,8 +202,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('modules/clipboard', DefaultClipboardModule, true);
       Quill.register('modules/table', TableModule, true);
       Quill.register('formats/estilo-texto', EstiloTextoClass, true);
+      Quill.register('formats/text-indent', NoIndentClass, true);
+      Quill.register('formats/margin-bottom', MarginBottomClass, true);
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'table', 'tr', 'td'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom'],
         modules: {
           toolbar: {
             container: toolbarOptions,
@@ -352,6 +356,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-image', 'Inserir imagem');
     this.setTitle(toolbarContainer, 'button.ql-undo', 'Desfazer (Ctrl+z)');
     this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
+    this.setTitle(toolbarContainer, 'button.ql-margin-bottom', 'Distância entre parágrafos');
+    this.setTitle(toolbarContainer, 'button.ql-text-indent', 'Recuo de parágrafo');
   };
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
@@ -526,6 +532,8 @@ const toolbarOptions = [
   // ['blockquote'],
   ['undo', 'redo'],
   [{ align: [] }],
+  [{ 'text-indent': '0px' }],
+  [{ 'margin-bottom': '0px' }],
   ['clean'],
   [
     {

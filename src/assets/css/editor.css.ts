@@ -9,10 +9,12 @@ export const editorStyles = html`
     }
 
     #lx-eta-box {
-      display: grid;
+      /* display: grid;
       grid-template-columns: 1fr;
-      grid-template-rows: 42px calc(100% - 30px);
-      height: 100%;
+      grid-template-rows: 42px calc(100% - 30px); */
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* #lx-eta-box .ql-toolbar.ql-snow {
@@ -67,7 +69,7 @@ export const editorStyles = html`
     }
 
     #lx-eta-editor {
-      overflow-y: auto;
+      overflow-y: hidden;
     }
 
     #lx-eta-editor .ql-editor {

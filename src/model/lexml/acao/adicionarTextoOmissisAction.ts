@@ -9,7 +9,7 @@ export class AdicionarTextoOmissisAction implements ElementoAction {
   descricao: string;
 
   constructor() {
-    this.descricao = 'Omitir texto do dispositivo';
+    this.descricao = 'Linha pontilhada';
   }
 
   execute(atual: Referencia): any {
