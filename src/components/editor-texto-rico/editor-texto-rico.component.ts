@@ -296,6 +296,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
                   return TableModule.keyboardHandler(this.quill, 'copy', range, keycontext);
                 },
               },
+              // Desabilita autoformatação de listas
+              // Referência: https://github.com/quilljs/quill/blob/1.3.7/modules/keyboard.js (linha 249)
+              'list autofill': {
+                key: ' ',
+                handler: (): boolean => true,
+              },
             },
           },
         },
