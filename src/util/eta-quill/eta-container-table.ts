@@ -34,7 +34,7 @@ export class EtaContainerTable extends EtaContainer {
     const node: HTMLElement = super.create();
     const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();
 
-    node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
+    // node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
     node.setAttribute('id', EtaContainerTable.criarId(elemento.uuid));
 

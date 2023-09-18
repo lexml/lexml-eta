@@ -44,7 +44,7 @@ export const quillSnowStyles = html`
       tab-size: 4;
       -moz-tab-size: 4;
       text-align: left;
-      /* white-space: pre-wrap; */
+      white-space: pre-wrap;
       word-wrap: break-word;
     }
     .ql-editor > * {
@@ -208,7 +208,6 @@ export const quillSnowStyles = html`
       content: counter(list-9, decimal) '. ';
     }
     .ql-editor .ql-indent-1:not(.ql-direction-rtl) {
-      text-indent: 6em;
       padding-left: 3em;
     }
     .ql-editor li.ql-indent-1:not(.ql-direction-rtl) {
