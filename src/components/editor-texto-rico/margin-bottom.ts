@@ -3,7 +3,7 @@ import { AttributorOptions } from 'parchment/dist/src/attributor/attributor';
 //import Parchment from 'parchment';
 const Parchment: any = Quill.import('parchment');
 
-class NoIndentAttributor extends Parchment.Attributor.Style {
+class MarginBottomAttributor extends Parchment.Attributor.Style {
   constructor(attrName: string, keyName: string, options?: AttributorOptions) {
     super(attrName, keyName, options);
   }
@@ -22,5 +22,5 @@ const config = {
   whitelist: ['0px'],
 };
 
-const NoIndentClass = new NoIndentAttributor('text-indent', 'text-indent', config);
-export { NoIndentClass };
+const MarginBottomClass = new MarginBottomAttributor('margin-bottom', 'margin-bottom', config);
+export { MarginBottomClass };
