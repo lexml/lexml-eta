@@ -8,7 +8,7 @@ export const editorTextoRicoCss = html`
         white;
       background-size: 16px;
     }
-    .ql-snow.ql-toolbar .ql-textindent {
+    .ql-snow.ql-toolbar .ql-text-indent {
       background: url('data:image/svg+xml;utf8, <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path class="ql-fill" d="M 1.65,2.3 0.9,3.05 2.65,4.95 0.9,6.9 1.65,7.65 4.15,4.95 1.65,2.3 M 2.5,12.45 v 1.1 h 11.25 v -1.1 H 2.5 m 11.25,-2.1 V 9.25 H 2.5 v 1.1 h 11.25 m 0,-4.3 H 6.25 V 7.1 h 7.5 V 6.05 m 0,-3.25 h -7.5 v 1.1 h 7.5 z"></path></svg>')
           no-repeat center,
         white;
