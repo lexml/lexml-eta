@@ -14,7 +14,7 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
   dialogElem.id = 'slDialogExibirDiferencasTextoRico';
 
   document.body.appendChild(dialogElem);
-  dialogElem.label = 'Exibir diferenças do texto atual com';
+  dialogElem.label = 'Exibir diferenças após revisão';
 
   const fnDestroy = (): void => {
     try {
@@ -108,27 +108,14 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
   </style>
   <div class="texto-alterado-texto-rico">
     <sl-tab-group>
-    <sl-tab slot="nav" panel="general">Texto antes da revisão</sl-tab>
+    <sl-tab slot="nav" panel="general">Alterações durante a revisão</sl-tab>
       <sl-tab-panel name="general">
-        <sl-card class="card-header texto-alterado">
-          <div slot="header">
-            Texto antes da revisão
-          </div>
-          ${diff.textoAntesRevisao}
-        </sl-card>
-
+        
         <sl-card class="card-header texto-alterado">
           <div slot="header">
             Diferença
           </div>
           ${diff.textoAntesRevisao !== diff.textoAtual ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : `<p>Não existe diferença</p>`}
-        </sl-card>
-
-        <sl-card class="card-header texto-alterado">
-          <div slot="header">
-          Texto atual
-          </div>
-          ${diff.textoAtual}
         </sl-card>
       
       </sl-tab-panel>

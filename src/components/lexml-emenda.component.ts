@@ -141,6 +141,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaTextoRico.redimencionarImagens();
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
+      emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
@@ -152,6 +153,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
+    emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     return emenda;
   }
 
