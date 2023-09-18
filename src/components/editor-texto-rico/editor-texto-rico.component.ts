@@ -1,6 +1,6 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { negrito, sublinhado } from '../../../assets/icons/icons';
+import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
@@ -138,6 +138,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     //this.icons['anexo'] = anexo + ;
     this.icons['bold'] = negrito;
     this.icons['underline'] = sublinhado;
+    this.icons['text-indent'] = iconeTextIndent;
+    this.icons['margin-bottom'] = iconeMarginBottom;
   }
 
   private renderBotaoAnexo(): TemplateResult {
