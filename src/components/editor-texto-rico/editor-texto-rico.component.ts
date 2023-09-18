@@ -143,7 +143,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private renderBotaoAnexo(): TemplateResult {
     return html`
       <div class="panel-anexo">
-        <button type="button" style="width:auto" title="Enviar anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo)}>
+        <button type="button" style="width:auto" title="Enviar anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
           <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
               <path

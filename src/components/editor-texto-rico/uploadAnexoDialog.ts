@@ -1,9 +1,9 @@
 import { SlButton } from '@shoelace-style/shoelace';
 import { Anexo } from '../../model/emenda/emenda';
 
-export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any): Promise<any> {
+export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any, editorTextoRico: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
-  document.body.appendChild(dialogElem);
+  editorTextoRico.appendChild(dialogElem);
   dialogElem.label = 'Enviar Anexo';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
@@ -114,6 +114,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
 
   confirmar.onclick = (): void => {
     atualizaAnexo(anexos);
+    agendarEmissaoEventoOnChange(dialogElem);
     dialogElem?.hide();
     dialogElem?.remove();
     anexos = [];
@@ -123,6 +124,18 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     dialogElem?.hide();
     dialogElem?.remove();
     anexos = [];
+  };
+
+  const agendarEmissaoEventoOnChange = (elemento: HTMLElement): void => {
+    elemento.dispatchEvent(
+      new CustomEvent('onchange', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          origemEvento: 'anexo',
+        },
+      })
+    );
   };
 
   const addAnexo = async () => {
