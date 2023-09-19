@@ -122,11 +122,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.atualizaRevisaoIcon();
 
       if (events.some(ev => ev.stateType === StateType.RevisaoAtivada)) {
-        this._textoAntesRevisao = this.texto;
+        if (!this._textoAntesRevisao) {
+          this._textoAntesRevisao = this.texto;
+        }
       } else if (events.some(ev => ev.stateType === StateType.RevisaoDesativada)) {
         this._textoAntesRevisao = undefined;
       }
     }
+    this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
   }
 
   labelAnexo = (): string => {
@@ -566,10 +569,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private desabilitaBtn = (desabilita: boolean, button: string): void => {
     const contadorView = document.getElementById(button) as any;
-    if (desabilita) {
-      contadorView.setAttribute('disabled', desabilita);
-    } else {
-      contadorView.removeAttribute('disabled');
+    if (contadorView) {
+      if (desabilita) {
+        contadorView.setAttribute('disabled', desabilita);
+      } else {
+        contadorView.removeAttribute('disabled');
+      }
     }
   };
 
