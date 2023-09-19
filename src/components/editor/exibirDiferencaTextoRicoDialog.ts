@@ -1,3 +1,4 @@
+import { ajustaHtmlParaColagem } from '../../redux/elemento/util/colarUtil';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { textoDiffAsHtml } from '../../util/string-util';
 
@@ -16,6 +17,9 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Exibir diferenças após revisão';
 
+  diff.textoAntesRevisao = ajustaHtmlParaColagem(diff.textoAntesRevisao);
+  diff.textoAtual = ajustaHtmlParaColagem(diff.textoAtual);
+
   const fnDestroy = (): void => {
     try {
       diff.quill && diff.quill.focus();
@@ -29,31 +33,6 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
   dialogElem.addEventListener('sl-after-hide', () => {
     setTimeout(() => fnDestroy(), 0);
   });
-
-  // const tabModificado =
-  //   `<sl-tab-panel name="modificado">
-  //     <sl-card class="card-header texto-alterado">
-  //       <div slot="header">
-  //         Texto original
-  //       </div>
-  //       ${diff.textoAntesRevisao}
-  //     </sl-card>
-
-  //     <sl-card class="card-header texto-alterado">
-  //       <div slot="header">
-  //         Diferença
-  //       </div>
-  //       ${textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords')}
-  //     </sl-card>
-
-  //     <sl-card class="card-header texto-alterado">
-  //       <div slot="header">
-  //       Texto atual
-  //       </div>
-  //       ${diff.textoAtual}
-  //     </sl-card>
-
-  //   </sl-tab-panel>`;
 
   const content = document.createRange().createContextualFragment(`
   <style>
