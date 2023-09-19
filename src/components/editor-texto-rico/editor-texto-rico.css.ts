@@ -188,12 +188,19 @@ export const editorTextoRicoCss = html`
       box-shadow: 0 0 10px rgba(135, 206, 235, 0.5); /* Adiciona sombra com tom azul claro */
     }
 
+    .ql-snow .ql-editor img {
+      max-width: 60%;
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
       }
       #chk-em-revisao-justificativa span {
         display: none;
+      }
+      .ql-snow .ql-editor img {
+        max-width: 100%;
       }
     }
   </style>

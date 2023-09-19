@@ -145,7 +145,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = undefined;
     } else {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      this._lexmlEmendaTextoRico.redimencionarImagens();
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
     }

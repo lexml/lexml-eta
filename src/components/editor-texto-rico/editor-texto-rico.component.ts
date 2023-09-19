@@ -38,35 +38,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   icons = Quill.import('ui/icons');
 
-  private MAX_WIDTH_IMAGEM = 400;
-
-  public limparRedimencionamentoImagens(): void {
-    const imagens = document.querySelectorAll('#editor-texto-rico-emenda-inner img');
-    if (imagens?.length) {
-      imagens.forEach(img => {
-        img.removeAttribute('width');
-        img.removeAttribute('height');
-      });
-    }
-  }
-
-  public redimencionarImagens(): void {
-    const imagens = document.querySelectorAll('#editor-texto-rico-emenda-inner img');
-    if (imagens?.length) {
-      imagens.forEach(img => this.redimencionarImagem(img as HTMLImageElement));
-    }
-  }
-
-  private redimencionarImagem(img: HTMLImageElement): void {
-    const imgWidth = img.width;
-    const imgHeight = img.height;
-    if (imgWidth > this.MAX_WIDTH_IMAGEM) {
-      const porcentagem = (imgWidth - this.MAX_WIDTH_IMAGEM) / imgWidth;
-      img.width = imgWidth - imgWidth * porcentagem;
-      img.height = imgHeight - imgHeight * porcentagem;
-    }
-  }
-
   private agendarEmissaoEventoOnChange(): void {
     clearTimeout(this.timerOnChange);
     this.timerOnChange = setTimeout(() => {
@@ -145,7 +116,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private renderBotaoAnexo(): TemplateResult {
     return html`
       <div class="panel-anexo">
-        <button type="button" style="width:auto" title="Enviar anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
+        <button type="button" style="width:auto" title="Anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
           <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
               <path
