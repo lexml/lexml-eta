@@ -49,7 +49,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   _textoAntesRevisao?: string;
   get textoAntesRevisao(): string | undefined {
     // TODO: se contém revisão e texto antes da revisão for igual ao texto atual, ainda assim retorna texto antes da revisão
-    return (!this.existeRevisaoByModo() && this._textoAntesRevisao === this.texto) || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
+    //return (!this.existeRevisaoByModo() && this._textoAntesRevisao === this.texto) || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
+    return !this.existeRevisaoByModo() ? undefined : this._textoAntesRevisao;
+  }
+
+  public setTextoAntesRevisao(texto: string | undefined) {
+    this._textoAntesRevisao = texto;
   }
 
   private existeRevisaoByModo = (): boolean => {

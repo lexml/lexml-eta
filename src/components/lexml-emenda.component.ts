@@ -236,9 +236,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
+    this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
     if (this._lexmlEmendaTextoRico) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
       this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
+      this._lexmlEmendaTextoRico.setTextoAntesRevisao(emenda.comandoEmendaTextoLivre.textoAntesRevisao);
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
     }
     this._lexmlData.data = emenda.data;
