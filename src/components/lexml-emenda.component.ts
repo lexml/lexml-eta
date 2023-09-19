@@ -179,6 +179,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.projetoNorma = projetoNorma;
     this.motivo = motivo;
 
+    // Aguarda carga de this._lexmlEta ou this._lexmlEmendaTextoRico (necessário para o LexEdit)
+    // const retryFuncion = (): void => {
+    //   console.log('Retry inicializarEdicao');
+    //   this.inicializarEdicao(modo, projetoNorma, emenda, motivo, usuario);
+    // };
+
+    // if (this.modo === 'emendaTextoLivre' && !this._lexmlEmendaTextoRico) {
+    //   setTimeout(retryFuncion, 500);
+    //   return;
+    // } else if (!this._lexmlEta) {
+    //   setTimeout(retryFuncion, 500);
+    //   return;
+    // }
+
     if (this.modo !== 'emendaTextoLivre') {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
     }
