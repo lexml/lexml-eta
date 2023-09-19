@@ -86,19 +86,9 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
 
   </style>
   <div class="texto-alterado-texto-rico">
-    <sl-tab-group>
-    <sl-tab slot="nav" panel="general">Alterações durante a revisão</sl-tab>
-      <sl-tab-panel name="general">
-        
-        <sl-card class="card-header texto-alterado">
-          <div slot="header">
-            Diferença
-          </div>
-          ${diff.textoAntesRevisao !== diff.textoAtual ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : `<p>Não existe diferença</p>`}
-        </sl-card>
-      
-      </sl-tab-panel>
-    </sl-tab-group>
+    <div class="texto-alterado">
+    ${diff.textoAntesRevisao !== diff.textoAtual ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : `<p>Não existe diferença</p>`}
+    </div>
   </div>
 
 
