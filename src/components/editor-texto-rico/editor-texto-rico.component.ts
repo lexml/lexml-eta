@@ -521,6 +521,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     } else {
       this.aceitaRevisoesTextoLivre();
     }
+    this.setTextoAntesRevisao(undefined);
   };
 
   private exibirDiferencas = (): void => {
