@@ -157,9 +157,9 @@ export const quillTableCss = html`<style>
     color: #444;
   }
 
-  .ql-picker-label.ql-active .ql-stroke {
+  /* .ql-picker-label.ql-active .ql-stroke {
     stroke: #444 !important;
-  }
+  } */
 
   .ql-picker-item[data-value='remove-table'] {
     border: none !important;

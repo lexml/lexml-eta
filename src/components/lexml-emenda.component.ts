@@ -131,14 +131,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   getEmenda(): Emenda {
+    // Para evitar erros de referência nula quando chamado antes da inicialização do componente
+    if (!this.projetoNorma['value']) {
+      return new Emenda();
+    }
+
     const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
-    if (this._lexmlEta) {
-      emenda.componentes[0].dispositivos = this._lexmlEta.getDispositivosEmenda()!;
-      emenda.comandoEmenda = this._lexmlEta.getComandoEmenda();
+    if (!this.isEmendaTextoLivre()) {
+      emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
+      emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
+      emenda.comandoEmendaTextoLivre.motivo = undefined;
+      emenda.comandoEmendaTextoLivre.texto = undefined;
     } else {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      this._lexmlEmendaTextoRico.redimencionarImagens();
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
       emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
@@ -175,7 +181,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.projetoNorma = projetoNorma;
     this.motivo = motivo;
 
-    if (this.modo !== 'emendaTextoLivre') {
+    if (!this.isEmendaTextoLivre()) {
       this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
     }
 
@@ -187,7 +193,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     this.limparAlertas();
 
-    if (this.modo === 'emendaTextoLivre' && !this._lexmlEmendaTextoRico.texto) {
+    if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
       this.showAlertaEmendaTextoLivre();
     }
     this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
@@ -195,6 +201,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     if (!emenda?.revisoes?.length) {
       this.desativarMarcaRevisao();
+    }
+
+    this._tabsEsquerda.show('lexml-eta');
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+      this._tabsDireita.show('comando');
     }
   }
 
@@ -230,14 +241,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private setEmenda(emenda: Emenda): void {
-    if (this._lexmlEta) {
-      this._lexmlEta.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
+    if (!this.isEmendaTextoLivre()) {
+      this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     }
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setContent(emenda.justificativa);
     this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
-    if (this._lexmlEmendaTextoRico) {
+    if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
       this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
       this._lexmlEmendaTextoRico.setTextoAntesRevisao(emenda.comandoEmendaTextoLivre.textoAntesRevisao);
@@ -267,7 +278,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
-    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       if (this.sizeMode === 'desktop') {
         this.slSplitPanel.position = this.splitPanelPosition;
       }
@@ -346,7 +357,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       this.slSplitPanel.removeAttribute('disabled');
       this.slSplitPanel.position = this.splitPanelPosition;
     } else {
@@ -368,47 +379,72 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
   }
-  // procura por uma altura definida e ajusta componente
-  private ajustarAltura(altura?: number): boolean {
-    let alturaElemento = altura !== undefined ? altura : this.pesquisarAlturaParentElement(this);
-    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
 
-    // altura dos tabs
+  private ajustarAltura(altura?: number): boolean {
+    const alturaElementoBase = altura ?? this.pesquisarAlturaParentElement(this);
+    const lexmlEtaTabs = document.querySelector('sl-tab-group')?.shadowRoot?.querySelector('.tab-group__nav-container');
     const alturaLexmlEtaTabs = lexmlEtaTabs?.clientHeight;
 
-    if (alturaLexmlEtaTabs) {
-      alturaElemento = alturaElemento - alturaLexmlEtaTabs - 12;
-      if (alturaElemento > 0) {
-        const justificativaTabPanel = document.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement;
-        const qlToolbar = document.querySelector('#editor-texto-rico-justificativa .ql-toolbar') as HTMLElement;
+    if (!alturaLexmlEtaTabs) return false;
 
-        const estiloOriginalTabPanel = {
-          display: justificativaTabPanel.style.display,
-          opacity: justificativaTabPanel.style.opacity,
-          pointerEvents: justificativaTabPanel.style.pointerEvents,
-        };
+    const alturaElemento = alturaElementoBase - alturaLexmlEtaTabs - 12;
+    if (alturaElemento <= 0) return false;
 
-        justificativaTabPanel?.style.setProperty('opacity', '0');
-        justificativaTabPanel?.style.setProperty('pointer-events', 'none');
-        justificativaTabPanel?.style.setProperty('display', 'block');
+    const getElement = (selector: string) => document.querySelector(selector) as HTMLElement;
 
-        const alturaToolBarJustificativa = qlToolbar?.clientHeight + 5;
+    const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
+    const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta"]');
+    const qlToolbarJustificativa = getElement('#editor-texto-rico-justificativa .ql-toolbar');
+    const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
 
-        justificativaTabPanel?.style.setProperty('opacity', estiloOriginalTabPanel.opacity);
-        justificativaTabPanel?.style.setProperty('pointer-events', estiloOriginalTabPanel.pointerEvents);
-        justificativaTabPanel?.style.setProperty('display', estiloOriginalTabPanel.display);
+    const estilosOriginais = {
+      justificativa: {
+        display: justificativaTabPanel.style.display,
+        opacity: justificativaTabPanel.style.opacity,
+        pointerEvents: justificativaTabPanel.style.pointerEvents,
+      },
+      emenda: {
+        display: emendaTabPanel.style.display,
+        opacity: emendaTabPanel.style.opacity,
+        pointerEvents: emendaTabPanel.style.pointerEvents,
+      },
+    };
 
-        this?.style.setProperty('--heightJustificativa', alturaElemento - alturaToolBarJustificativa + 'px');
-        this?.style.setProperty('--height', alturaElemento + 'px');
-        this?.style.setProperty('--overflow', 'hidden');
-        return true;
+    const setTabPanelStyles = (tabPanel: HTMLElement, estilos: any, isTemporary = false) => {
+      if (isTemporary) {
+        tabPanel.style.opacity = '0';
+        tabPanel.style.pointerEvents = 'none';
+        tabPanel.style.display = 'block';
+      } else {
+        tabPanel.style.opacity = estilos.opacity;
+        tabPanel.style.pointerEvents = estilos.pointerEvents;
+        tabPanel.style.display = estilos.display;
       }
+    };
+
+    if (estilosOriginais.justificativa.display === 'none') {
+      setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa, true);
     }
-    return false;
+    if (estilosOriginais.emenda.display === 'none') {
+      setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda, true);
+    }
+
+    const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 5;
+    const alturaToolBarEmenda = qlToolbarEmenda?.clientHeight + 5;
+
+    setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
+    setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda);
+
+    this.style.setProperty('--heightJustificativa', `${alturaElemento - alturaToolBarJustificativa}px`);
+    this.style.setProperty('--heightEmenda', `${alturaElemento - alturaToolBarEmenda}px`);
+    this.style.setProperty('--height', `${alturaElemento}px`);
+    this.style.setProperty('--overflow', 'hidden');
+
+    return true;
   }
 
   private onChange(): void {
-    if (this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre') {
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       const comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
@@ -424,7 +460,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
       }
-    } else if (this.modo === 'emendaTextoLivre') {
+    } else if (this.isEmendaTextoLivre()) {
       if (!this._lexmlEmendaTextoRico.texto) {
         this.showAlertaEmendaTextoLivre();
       } else {
@@ -451,6 +487,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     mostrarDialogDisclaimerRevisao();
   }
 
+  isEmendaTextoLivre(): boolean {
+    return this.modo && this.modo === 'emendaTextoLivre';
+  }
+
   render(): TemplateResult {
     return html`
       ${shoelaceLightThemeStyles} ${quillSnowStyles} ${editorStyles}
@@ -460,21 +500,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           --overflow: visible;
           --min-height: 300px;
           --heightJustificativa: 100%;
+          --heightEmenda: 100%;
         }
         sl-tab-panel {
           --padding: 0px;
         }
         sl-tab-panel::part(base) {
           height: var(--height);
-          /* overflow: var(--overflow); */
-          /* overflow-y: auto; */
         }
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
         lexml-emenda-comando {
           font-family: var(--eta-font-serif);
-          display: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? 'block' : 'none'};
+          display: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? 'block' : 'none'};
           height: 100%;
         }
         lexml-eta {
@@ -512,7 +551,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
 
         sl-split-panel {
-          --divider-width: ${this.modo.startsWith('emenda') && this.modo !== 'emendaTextoLivre' ? '15px' : '0px'};
+          --divider-width: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? '15px' : '0px'};
         }
         sl-tab sl-icon {
           margin-right: 5px;
@@ -540,9 +579,19 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              ${this.modo && this.modo !== 'emendaTextoLivre'
-                ? html`<lexml-eta id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta>`
-                : html`<editor-texto-rico modo="textoLivre" id="editor-texto-rico-emenda" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>`}
+              <lexml-eta
+                style="display: ${!this.isEmendaTextoLivre() ? 'block' : 'none'}"
+                id="lexmlEta"
+                .lexmlEtaConfig=${this.lexmlEmendaConfig}
+                @onchange=${this.onChange}
+              ></lexml-eta>
+              <editor-texto-rico
+                style="display: ${this.isEmendaTextoLivre() ? 'block' : 'none'}"
+                modo="textoLivre"
+                id="editor-texto-rico-emenda"
+                registroEvento="justificativa"
+                @onchange=${this.onChange}
+              ></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
               <editor-texto-rico modo="justificativa" id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>

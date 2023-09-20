@@ -159,10 +159,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           --lx-eta-editor-height: 100%;
           --lx-eta-editor-overflow: display;
         }
+
+        lexml-eta-editor .ql-editor {
+          white-space: normal;
+        }
+
         #lx-eta-editor {
           overflow: var(--lx-eta-editor-overflow);
           display: block;
-          height: calc(100% - 12px);
+          height: var(--heightEmenda);
         }
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);

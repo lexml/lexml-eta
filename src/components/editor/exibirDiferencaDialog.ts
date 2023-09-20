@@ -130,7 +130,15 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
     sl-card {
       box-shadow: var(--sl-shadow-x-large) !important;
-      width: 100%;
+      width: 33%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    @media (max-width: 768px) {
+      sl-card {
+        width: 100%;
+      }
     }
 
     sl-card::part(base){

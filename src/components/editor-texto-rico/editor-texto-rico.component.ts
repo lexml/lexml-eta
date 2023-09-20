@@ -1,6 +1,6 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { negrito, sublinhado } from '../../../assets/icons/icons';
+import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
@@ -22,6 +22,8 @@ import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
+import { NoIndentClass } from './text-indent';
+import { MarginBottomClass } from './margin-bottom';
 import { StateEvent, StateType } from '../../redux/state';
 import { exibirDiferencasTextoRicoDialog, TextoRicoDiff } from '../editor/exibirDiferencaTextoRicoDialog';
 
@@ -177,12 +179,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     //this.icons['anexo'] = anexo + ;
     this.icons['bold'] = negrito;
     this.icons['underline'] = sublinhado;
+    this.icons['text-indent'] = iconeTextIndent;
+    this.icons['margin-bottom'] = iconeMarginBottom;
   }
 
   private renderBotaoAnexo(): TemplateResult {
     return html`
       <div class="panel-anexo">
-        <button type="button" style="width:auto" title="Enviar anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo)}>
+        <button type="button" style="width:auto" title="Anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
           <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
               <path
@@ -245,8 +249,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('modules/clipboard', DefaultClipboardModule, true);
       Quill.register('modules/table', TableModule, true);
       Quill.register('formats/estilo-texto', EstiloTextoClass, true);
+      Quill.register('formats/text-indent', NoIndentClass, true);
+      Quill.register('formats/margin-bottom', MarginBottomClass, true);
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'blockquote', 'image', 'table', 'tr', 'td'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom'],
         modules: {
           toolbar: {
             container: toolbarOptions,
@@ -337,6 +343,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
                   return TableModule.keyboardHandler(this.quill, 'copy', range, keycontext);
                 },
               },
+              // Desabilita autoformatação de listas
+              // Referência: https://github.com/quilljs/quill/blob/1.3.7/modules/keyboard.js (linha 249)
+              'list autofill': {
+                key: ' ',
+                handler: (): boolean => true,
+              },
             },
           },
         },
@@ -397,6 +409,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-image', 'Inserir imagem');
     this.setTitle(toolbarContainer, 'button.ql-undo', 'Desfazer (Ctrl+z)');
     this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
+    this.setTitle(toolbarContainer, 'button.ql-margin-bottom', 'Distância entre parágrafos');
+    this.setTitle(toolbarContainer, 'button.ql-text-indent', 'Recuo de parágrafo');
   };
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
@@ -592,6 +606,8 @@ const toolbarOptions = [
   // ['blockquote'],
   ['undo', 'redo'],
   [{ align: [] }],
+  [{ 'text-indent': '0px' }],
+  [{ 'margin-bottom': '0px' }],
   ['clean'],
   [
     {
