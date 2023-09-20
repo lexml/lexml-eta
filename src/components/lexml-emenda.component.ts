@@ -425,8 +425,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda, true);
     }
 
-    const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 5;
-    const alturaToolBarEmenda = qlToolbarEmenda?.clientHeight + 5;
+    const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 10;
+    const alturaToolBarEmenda = qlToolbarEmenda?.clientHeight + 10;
 
     setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
     setTabPanelStyles(emendaTabPanel, estilosOriginais.emenda);
