@@ -221,7 +221,7 @@ const buildContentDispositivo = (el: any): string => {
       ?.map((a: any) => a.content)
       .forEach((content: any) => (texto += buildContent(content)));
   }
-  return substituiAspasRetasPorCurvas(texto.replace(/b>/gi, 'strong>').replace(/i>/gi, 'em>'));
+  return substituiAspasRetasPorCurvas(texto);
 };
 
 const substituiAspasRetasPorCurvas = (html: string): string => {
