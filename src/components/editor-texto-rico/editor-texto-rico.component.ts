@@ -350,7 +350,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.texto = texto;
 
     const textoAjustado = (texto || '')
-      .replace(/indent/g, 'ql-indent')
       .replace(/align-justify/g, 'ql-align-justify')
       .replace(/align-center/g, 'ql-align-center')
       .replace(/align-right/g, 'ql-align-right');
