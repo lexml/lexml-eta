@@ -3,7 +3,7 @@
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   files: [
     // 'out-tsc/test/**/*.test.js',
-    // '!out-tsc/test/emenda/**/*.test.js',
+    'out-tsc/test/emenda/**/*.test.js',
     //'out-tsc/test/redux/colar/**/*.test.js',
     //'out-tsc/test/redux/aplicaEmenda/**/*.test.js',
     'out-tsc/test/componente/editor-texto-rico/**/*.test.js',

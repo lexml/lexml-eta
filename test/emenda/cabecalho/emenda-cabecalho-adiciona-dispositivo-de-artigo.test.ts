@@ -53,7 +53,7 @@ describe('Cabeçalho de comando de emenda com inclusão de dispositivos de artig
 
   it('acrescimoDoisParagrafosEmDoisArtigos', () => {
     TesteCmdEmdUtil.incluiParagrafo(state, 'art8_par1u', false, 'art8_par2');
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7_inc2', false, 'art9_par8');
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7', false, 'art9_par8');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescentem-se § 2º ao art. 8º e § 8º ao art. 9º do Projeto, com a seguinte redação:');
   });

@@ -32,6 +32,6 @@ describe('Citação envolvendo alterações de agrupadores de artigo', () => {
      */
     TesteCmdEmdUtil.modificaDispositivo(state, 'cap1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p class="agrupador">“<Rotulo>CAPÍTULO I</Rotulo></p><p class="agrupador"> Texto”</p>');
+    expect(cit).to.equal('<p class="capitulo agrupador">“<Rotulo>CAPÍTULO I</Rotulo></p><p class="capitulo agrupador"> TEXTO”</p>');
   });
 });
