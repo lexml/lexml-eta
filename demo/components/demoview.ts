@@ -1,7 +1,7 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import '../../src';
-import { LexmlEmendaComponent } from '../../src/components/lexml-emenda.component';
+import { LexmlEmendaComponent, LexmlEmendaParametrosEdicao } from '../../src/components/lexml-emenda.component';
 import { RefProposicaoEmendada } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
@@ -104,7 +104,12 @@ export class DemoView extends LitElement {
     this.elLexmlEmenda.style.display = 'none';
     this.elLexmlEmendaComando.style.display = 'none';
     this.projetoNorma = {};
-    this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
+
+    const params = new LexmlEmendaParametrosEdicao();
+    params.modo = this.modo;
+    params.projetoNorma = this.projetoNorma;
+    this.elLexmlEmenda.inicializarEdicao(params);
+
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
     this.proposicaoCorrente.ano = '';
@@ -127,7 +132,12 @@ export class DemoView extends LitElement {
         this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
 
         if (this.elLexmlEmenda) {
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, undefined, 'Motivo da emenda de texto livre');
+          const params = new LexmlEmendaParametrosEdicao();
+          params.modo = this.modo;
+          params.projetoNorma = this.projetoNorma;
+          params.motivo = 'Motivo da emenda de texto livre';
+          this.elLexmlEmenda.inicializarEdicao(params);
+
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.elLexmlEmenda.style.display = 'block';
         } else {
@@ -178,7 +188,13 @@ export class DemoView extends LitElement {
           const emenda = 'emenda' in result ? result.emenda : result;
           this.modo = emenda.modoEdicao;
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda, emenda.comandoEmendaTextoLivre?.motivo);
+
+          const params = new LexmlEmendaParametrosEdicao();
+          params.modo = this.modo;
+          params.projetoNorma = this.projetoNorma;
+          params.emenda = emenda;
+          this.elLexmlEmenda.inicializarEdicao(params);
+
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;

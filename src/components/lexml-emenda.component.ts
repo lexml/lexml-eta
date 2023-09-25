@@ -33,6 +33,27 @@ import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 
+/**
+ * Parâmetros de inicialização de edição de documento
+ */
+export class LexmlEmendaParametrosEdicao {
+  modo = 'Emenda';
+
+  // Texto json da proposição para emenda ou edição estruturada (modo 'emenda' ou 'edicao')
+  // Obrigatório para modo 'emenda'
+  // Opcional para modo 'edicao'
+  projetoNorma?: ProjetoNorma;
+
+  // Emenda a ser aberta para edição
+  emenda?: Emenda;
+
+  // Motivo de uma nova emenda de texto livre
+  motivo = '';
+
+  // Identificação do usuário para registro de marcas de revisão
+  usuario?: Usuario;
+}
+
 @customElement('lexml-emenda')
 export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) existeObserverEmenda = false;
@@ -173,20 +194,24 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  inicializarEdicao(modo: string, projetoNorma: ProjetoNorma, emenda?: Emenda, motivo = '', usuario?: Usuario): void {
+  inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
     this._lexmlEmendaComando.emenda = [];
-    this.modo = modo;
-    this.projetoNorma = projetoNorma;
-    this.motivo = motivo;
+    this.modo = params.modo;
+    this.projetoNorma = params.projetoNorma!;
 
-    if (!this.isEmendaTextoLivre()) {
-      this._lexmlEta!.setProjetoNorma(modo, projetoNorma, !!emenda);
+    this.motivo = params.motivo;
+    if (this.isEmendaTextoLivre() && params.emenda) {
+      this.motivo = params.emenda.comandoEmendaTextoLivre.motivo!;
     }
 
-    if (emenda) {
-      this.setEmenda(emenda);
+    if (!this.isEmendaTextoLivre()) {
+      this._lexmlEta!.setProjetoNorma(this.modo, params.projetoNorma!, !!params.emenda);
+    }
+
+    if (params.emenda) {
+      this.setEmenda(params.emenda);
     } else {
-      this.resetaEmenda(modo as ModoEdicaoEmenda);
+      this.resetaEmenda(this.modo as ModoEdicaoEmenda);
     }
 
     this.limparAlertas();
@@ -194,10 +219,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
       this.showAlertaEmendaTextoLivre();
     }
-    this.setUsuario(usuario ?? rootStore.getState().elementoReducer.usuario);
+    this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
 
-    if (!emenda?.revisoes?.length) {
+    if (!params.emenda?.revisoes?.length) {
       this.desativarMarcaRevisao();
     }
 
