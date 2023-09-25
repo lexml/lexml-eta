@@ -2,7 +2,8 @@ import { expect } from '@open-wc/testing';
 
 import { Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
-import { ADICIONAR_ELEMENTO, adicionarArtigoAntes, AdicionarElemento } from '../../src/model/lexml/acao/adicionarElementoAction';
+import { ADICIONAR_ELEMENTO, AdicionarElemento, adicionarArtigoAntes } from '../../src/model/lexml/acao/adicionarElementoAction';
+import { SUPRIMIR_AGRUPADOR } from '../../src/model/lexml/acao/suprimirAgrupador';
 import { buscaDispositivoById, getDispositivoPosteriorMesmoTipo, isDispositivoAlteracao } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { adicionaElemento } from '../../src/redux/elemento/reducer/adicionaElemento';
@@ -10,7 +11,7 @@ import { suprimeElemento } from '../../src/redux/elemento/reducer/suprimeElement
 import { transformaTipoElemento } from '../../src/redux/elemento/reducer/transformaTipoElemento';
 import { State } from '../../src/redux/state';
 import { CmdEmdUtil } from './../../src/emenda/comando-emenda-util';
-import { Tipo } from './../../src/model/dispositivo/tipo';
+import { Tipo, isAgrupadorNaoArticulacao } from './../../src/model/dispositivo/tipo';
 import { adicionarAgrupadorArtigoAction } from './../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarArtigoDepois } from './../../src/model/lexml/acao/adicionarElementoAction';
 import { atualizarTextoElementoAction } from './../../src/model/lexml/acao/atualizarTextoElementoAction';
@@ -27,6 +28,7 @@ import { getDispositivoAnteriorMesmoTipo, getDispositivoPosteriorNaSequenciaDeLe
 import { DispositivoAdicionado } from './../../src/model/lexml/situacao/dispositivoAdicionado';
 import { agrupaElemento } from './../../src/redux/elemento/reducer/agrupaElemento';
 import { atualizaTextoElemento } from './../../src/redux/elemento/reducer/atualizaTextoElemento';
+import { suprimeAgrupador } from '../../src/redux/elemento/reducer/suprimeAgrupador';
 
 export class TesteCmdEmdUtil {
   static readonly URN_LEI = 'urn:lex:br:federal:lei:2006-08-07;11340';
@@ -40,10 +42,18 @@ export class TesteCmdEmdUtil {
   static suprimeDispositivo(state: State, id: string): void {
     const disp = buscaDispositivoById(state.articulacao!, id);
     expect(disp, `Dispositivo não encontrado para o id ${id}.`).not.be.undefined;
-    state = suprimeElemento(state, {
-      type: SUPRIMIR_ELEMENTO,
-      atual: { tipo: disp!.tipo, uuid: disp!.uuid },
-    });
+
+    if (isAgrupadorNaoArticulacao(disp!) && isDispositivoAlteracao(disp!)) {
+      state = suprimeAgrupador(state, {
+        type: SUPRIMIR_AGRUPADOR,
+        atual: { tipo: disp!.tipo, uuid: disp!.uuid },
+      });
+    } else {
+      state = suprimeElemento(state, {
+        type: SUPRIMIR_ELEMENTO,
+        atual: { tipo: disp!.tipo, uuid: disp!.uuid },
+      });
+    }
   }
 
   // protected void suprimePrimeiroArtigoDoSeparador(final String idSeparador, final int indiceArtigo) {
