@@ -201,7 +201,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     this.motivo = params.motivo;
     if (this.isEmendaTextoLivre() && params.emenda) {
-      this.motivo = params.emenda.comandoEmendaTextoLivre.motivo!;
+      this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
     }
 
     if (!this.isEmendaTextoLivre()) {
