@@ -594,6 +594,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private processarStateEvents(events: StateEvent[]): void {
+    const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.DocumentoCarregado:
@@ -646,7 +647,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
         case StateType.ElementoSelecionado:
           this.atualizarAtributos(event);
-          if (events[events.length - 1] === event) {
+          if (ultimoEventoElementoSelecionado === event) {
             this.montarMenuContexto(event);
           }
           this.atualizarMensagemQuill(event);
