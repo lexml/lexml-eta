@@ -1137,7 +1137,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         diff.adicionado = true;
       }
 
-      diff.textoAposRevisao = revisao.elementoAposRevisao.conteudo!.texto!;
       exibirDiferencasDialog(diff);
     } else {
       if (d && d!.situacao.dispositivoOriginal?.conteudo !== undefined) {
