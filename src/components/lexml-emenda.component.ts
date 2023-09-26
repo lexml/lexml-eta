@@ -15,7 +15,6 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
@@ -32,12 +31,21 @@ import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativa
 import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
+import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 
 /**
  * Parâmetros de inicialização de edição de documento
  */
 export class LexmlEmendaParametrosEdicao {
   modo = 'Emenda';
+
+  // Identificação da proposição (texto) emendado.
+  // Preenchido automaticamente se for informada a emenda ou o projetoNorma
+  urn = '';
+
+  // Ementa da proposição.
+  // Preenchido automaticamente se for informada a emenda ou o projetoNorma
+  ementa = '';
 
   // Texto json da proposição para emenda ou edição estruturada (modo 'emenda' ou 'edicao')
   // Obrigatório para modo 'emenda'
@@ -48,6 +56,7 @@ export class LexmlEmendaParametrosEdicao {
   emenda?: Emenda;
 
   // Motivo de uma nova emenda de texto livre
+  // Preenchido automaticamente se for informada a emenda
   motivo = '';
 
   // Identificação do usuário para registro de marcas de revisão
@@ -62,13 +71,19 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
-  @property({ type: String })
   private modo: any = ClassificacaoDocumento.EMENDA;
 
-  @property({ type: String })
+  private urn = '';
+
+  private ementa = '';
+
+  private projetoNorma: any;
+
   private motivo = '';
 
-  private projetoNorma = {};
+  // Para forçar atualização da interface
+  @state()
+  private updateState: any;
 
   @state()
   autoria = new Autoria();
@@ -133,19 +148,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return colegiado.tipoColegiado === 'Comissão' ? 'Sala da comissão' : 'Sala das sessões';
   }
 
-  private montarEmendaBasicaFromProjetoNorma(projetoNorma: any, modoEdicao: ModoEdicaoEmenda): Emenda {
+  private montarEmendaBasica(): Emenda {
     const emenda = new Emenda();
-    emenda.modoEdicao = modoEdicao;
-    const urn = getUrn(this.projetoNorma);
-    emenda.componentes[0].urn = urn;
-    if (urn) {
+    emenda.modoEdicao = this.modo;
+    emenda.componentes[0].urn = this.urn;
+    if (this.urn) {
       emenda.proposicao = {
-        urn,
-        sigla: getSigla(urn),
-        numero: getNumero(urn),
-        ano: getAno(urn),
-        ementa: buildContent(projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.ementa.content),
-        identificacaoTexto: 'Texto da MPV',
+        urn: this.urn,
+        sigla: getSigla(this.urn),
+        numero: getNumero(this.urn),
+        ano: getAno(this.urn),
+        ementa: this.ementa,
+        identificacaoTexto: 'Texto inicial',
       };
     }
     return emenda;
@@ -153,11 +167,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   getEmenda(): Emenda {
     // Para evitar erros de referência nula quando chamado antes da inicialização do componente
-    if (!this.projetoNorma['value']) {
+    if (!this.urn) {
       return new Emenda();
     }
 
-    const emenda = this.montarEmendaBasicaFromProjetoNorma(this.projetoNorma, this.modo as ModoEdicaoEmenda);
+    const emenda = this.montarEmendaBasica();
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
     if (!this.isEmendaTextoLivre()) {
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
@@ -197,7 +211,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
     this._lexmlEmendaComando.emenda = [];
     this.modo = params.modo;
-    this.projetoNorma = params.projetoNorma!;
+    this.projetoNorma = params.projetoNorma;
+
+    this.inicializaProposicao(params);
 
     this.motivo = params.motivo;
     if (this.isEmendaTextoLivre() && params.emenda) {
@@ -205,7 +221,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (!this.isEmendaTextoLivre()) {
-      this._lexmlEta!.setProjetoNorma(this.modo, params.projetoNorma!, !!params.emenda);
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
     }
 
     if (params.emenda) {
@@ -230,6 +246,37 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       this._tabsDireita.show('comando');
     }
+
+    this.updateView();
+  }
+
+  private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
+    this.urn = params.urn; // Preferência para a URN informada
+    this.ementa = params.ementa; // Preferência para a ementa informada
+
+    // Se não forem informados, utilizar da Emenda
+    if (params.emenda) {
+      if (!this.urn) {
+        this.urn = params.emenda.proposicao.urn;
+      }
+      if (!this.ementa) {
+        this.ementa = params.emenda.proposicao.ementa;
+      }
+    }
+
+    // Por último do ProjetoNorma
+    if (this.projetoNorma) {
+      if (!this.urn) {
+        this.urn = getUrn(this.projetoNorma);
+      }
+      if (!this.ementa) {
+        this.ementa = this.getEmentaFromProjetoNorma(this.projetoNorma);
+      }
+    }
+  }
+
+  getEmentaFromProjetoNorma(projetoNorma: any): string {
+    return buildContent(projetoNorma.value?.projetoNorma?.norma?.parteInicial?.ementa.content);
   }
 
   stateChanged(state: any): void {
@@ -508,8 +555,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     mostrarDialogDisclaimerRevisao();
   }
 
-  isEmendaTextoLivre(): boolean {
+  private isEmendaTextoLivre(): boolean {
     return this.modo && this.modo === 'emendaTextoLivre';
+  }
+
+  private updateView(): void {
+    this.updateState = new Date();
   }
 
   render(): TemplateResult {
