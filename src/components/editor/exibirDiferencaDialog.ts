@@ -1,16 +1,17 @@
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
-import { textoDiffAsHtml } from '../../util/string-util';
+import { substituiEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
 
 export class TextoDiff {
   quill!: EtaQuill;
   textoOriginal!: string;
   textoAntesRevisao!: string;
-  textoAposRevisao!: string;
   textoAtual!: string;
   adicionado = false;
 }
 
 const OMISSIS = '....................';
+
+const possuiInsOuDel = (texto: string): boolean => /<ins>|<del>/.test(texto);
 
 export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   Array.from(document.querySelectorAll('#slDialogExibirDiferencas')).forEach(el => document.body.removeChild(el));
@@ -37,12 +38,20 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
   diff = trataOmissisDiff(diff);
 
-  const contemRevisao = diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined;
+  const contemRevisao = !!diff.textoAntesRevisao;
 
-  const diferencaModificado = textoDiffAsHtml(diff.textoOriginal, contemRevisao ? diff.textoAposRevisao : diff.textoAtual, 'diffWords');
+  let diferencaModificado = textoDiffAsHtml(diff.textoOriginal, diff.textoAtual, 'diffWords');
+  if (!possuiInsOuDel(diferencaModificado)) {
+    diferencaModificado = substituiEspacosPorNbsp(textoDiffAsHtml(diff.textoOriginal, diff.textoAtual, 'diffChars'), ['ins', 'del']);
+  }
 
   const tabModificado = !diff.adicionado && diferencaModificado !== diff.textoOriginal ? `<sl-tab slot="nav" panel="modificado"> Texto original </sl-tab>` : '';
   const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Texto antes da revisão</sl-tab>` : '';
+
+  let diferencaEntreTextoAtualETextoAntesRevisao = contemRevisao ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : undefined;
+  if (contemRevisao && !possuiInsOuDel(diferencaEntreTextoAtualETextoAntesRevisao!)) {
+    diferencaEntreTextoAtualETextoAntesRevisao = substituiEspacosPorNbsp(textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffChars'), ['ins', 'del']);
+  }
 
   const tabPanelModificado =
     !diff.adicionado && diferencaModificado !== diff.textoOriginal
@@ -52,53 +61,64 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
           <div slot="header">
             Texto original
           </div>
-          ${diff.textoOriginal}
+          <p class="texto-quill">
+            ${diff.textoOriginal}
+          </p>
         </sl-card>
 
         <sl-card class="card-header texto-alterado">
           <div slot="header">
             Diferença
           </div>
-          ${diferencaModificado}
+          <p class="texto-quill">
+            ${diferencaModificado}
+          </p>
         </sl-card>
 
         <sl-card class="card-header texto-alterado">
           <div slot="header">
           Texto atual
           </div>
-          ${!contemRevisao ? diff.textoAtual : diff.textoAposRevisao}
+          <p class="texto-quill">
+            ${diff.textoAtual}
+          </p>
         </sl-card>
 
       </sl-tab-panel>`
       : '';
 
-  const tabPanelModificadoRevisao =
-    diff.textoAntesRevisao !== undefined && diff.textoAposRevisao !== undefined
-      ? `<sl-tab-panel name="modificadoRevisao">
+  const tabPanelModificadoRevisao = contemRevisao
+    ? `<sl-tab-panel name="modificadoRevisao">
 
           <sl-card class="card-header texto-alterado">
             <div slot="header">
               Texto antes da revisão
             </div>
-            ${diff.textoAntesRevisao}
+            <p class="texto-quill">
+              ${diff.textoAntesRevisao}
+            </p>
           </sl-card>
 
           <sl-card class="card-header texto-alterado">
             <div slot="header">
               Diferença
             </div>
-            ${textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAposRevisao, 'diffWords')}
+            <p class="texto-quill">
+              ${diferencaEntreTextoAtualETextoAntesRevisao!}
+            </p>
           </sl-card>
 
           <sl-card class="card-header texto-alterado">
             <div slot="header">
-              ${diff.textoAposRevisao === diff.textoOriginal ? 'Texto original' : 'Texto após revisão (atual)'}
+              Texto atual
             </div>
-            ${diff.textoAposRevisao}
+            <p class="texto-quill">
+              ${diff.textoAtual}
+            </p>
           </sl-card>
 
         </sl-tab-panel>`
-      : '';
+    : '';
 
   const content = document.createRange().createContextualFragment(`
   <style>
@@ -113,10 +133,17 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
     .texto-alterado ins {
       background-color: #c6ffc6;
+      text-decoration: none;
     }
 
     .texto-alterado del {
       background-color: #ffc6c6;
+    }
+
+    p .texto-quill {
+      white-space: pre-wrap;
+      text-align: justify;
+      text-indent: 0 !important;
     }
 
     sl-tab-panel::part(base) {
@@ -186,10 +213,6 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 const trataOmissisDiff = (diff: TextoDiff): TextoDiff => {
   if (diff.textoAtual.includes('....')) {
     diff.textoAtual = OMISSIS;
-  }
-
-  if (diff.textoAposRevisao && diff.textoAposRevisao.includes('....')) {
-    diff.textoAposRevisao = OMISSIS;
   }
   return diff;
 };
