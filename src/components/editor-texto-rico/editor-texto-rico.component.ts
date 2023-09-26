@@ -194,7 +194,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             cellSelectionOnClick: false,
           },
           history: {
-            delay: 0,
+            delay: 1000,
             maxStack: 500,
             userOnly: true,
           },
