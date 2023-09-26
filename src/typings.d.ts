@@ -1,7 +1,7 @@
 declare type Sources = 'api' | 'user' | 'silent';
 
 declare interface Key {
-  key: string;
+  key: string | number;
   shortKey?: boolean;
 }
 
