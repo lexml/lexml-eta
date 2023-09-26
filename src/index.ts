@@ -26,6 +26,7 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox';
 import '@shoelace-style/shoelace/dist/components/switch/switch';
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
 import '@shoelace-style/shoelace/dist/components/card/card';
+import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
 
 // ---------------------------------------------------
 
@@ -48,3 +49,5 @@ export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.componen
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
 export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';
 export { Usuario } from './model/revisao/usuario';
+
+Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);

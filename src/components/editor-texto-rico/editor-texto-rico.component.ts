@@ -189,6 +189,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               redo: this.redo,
             },
           },
+          aspasCurvas: true,
           table: {
             cellSelectionOnClick: false,
           },
