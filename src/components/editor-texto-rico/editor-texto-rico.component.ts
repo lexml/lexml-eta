@@ -21,6 +21,7 @@ import { MarginBottomClass } from './margin-bottom';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
+const Delta = Quill.import('delta');
 
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
@@ -203,7 +204,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               tab: {
                 key: 'tab',
                 handler: (range: any, keycontext: any): any => {
-                  const Delta = Quill.import('delta');
                   const outSideOfTable = TableModule.keyboardHandler(this.quill, 'tab', range, keycontext);
                   if (outSideOfTable && this.quill) {
                     //for some reason when you return true as quill says it should hand it to the default like the other bindings... for tab it doesnt.
