@@ -51,7 +51,7 @@ export class DemoView extends LitElement {
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
-  private nomeUsuario?: string;
+  private nomeUsuario?: string = 'Fulano';
 
   constructor() {
     super();
@@ -63,6 +63,7 @@ export class DemoView extends LitElement {
 
   protected firstUpdated(): void {
     this.elNomeProposicao.style.display = 'none';
+    this.elLexmlEmenda.setUsuario(new Usuario(this.nomeUsuario));
   }
 
   private getElement(selector: string): any {
