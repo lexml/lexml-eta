@@ -10,7 +10,7 @@ import { ComandoEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
-import { buildProjetoNormaFromJsonix, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivosEmenda } from './../model/emenda/emenda';
@@ -25,7 +25,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   private modo: any = '';
 
-  private projetoNorma = {};
+  private urn = '';
+
+  private projetoNorma?: any;
 
   private dispositivosEmenda: DispositivosEmenda | undefined;
   private revisoes: Revisao[] | undefined;
@@ -34,9 +36,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  setProjetoNorma(modo: string, projetoNorma: ProjetoNorma, preparaAberturaEmenda = false): void {
+  inicializarEdicao(modo: string, urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false): void {
     this.modo = modo;
-    this.projetoNorma = projetoNorma;
+    this.urn = urn;
+    if (projetoNorma) {
+      this.projetoNorma = projetoNorma;
+    }
     this.loadProjetoNorma(preparaAberturaEmenda);
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
@@ -45,9 +50,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     if (this.modo !== ClassificacaoDocumento.EMENDA && this.modo !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER) {
       return undefined;
     }
-    const urn = (this.projetoNorma as any).value.metadado.identificacao.urn!;
     const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return new DispositivosEmendaBuilder(this.modo, urn, articulacao).getDispositivosEmenda();
+    return new DispositivosEmendaBuilder(this.modo, this.urn, articulacao).getDispositivosEmenda();
   }
 
   setDispositivosERevisoesEmenda(dispositivosEmenda: DispositivosEmenda | undefined, revisoes?: Revisao[]): void {
@@ -59,9 +63,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   getComandoEmenda(): ComandoEmenda {
-    const urn = (this.projetoNorma as any).value.metadado.identificacao.urn!;
     const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return new ComandoEmendaBuilder(urn, articulacao).getComandoEmenda();
+    return new ComandoEmendaBuilder(this.urn, articulacao).getComandoEmenda();
   }
 
   getProjetoAtualizado(): any {
@@ -74,14 +77,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private loadProjetoNorma(preparaAberturaEmenda: boolean): void {
     let documento;
 
-    if (!this.projetoNorma || !(this.projetoNorma as any).value) {
+    if (!this.projetoNorma) {
       this.projetoNorma = DOCUMENTO_PADRAO;
     }
 
     if (this.modo === ModoEdicaoEmenda.EMENDA_ARTIGO_ONDE_COUBER) {
-      const urn = getUrn(this.projetoNorma) ?? '';
       documento = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
-      documento.urn = urn;
       const artigo = documento.articulacao!.artigos[0]!;
       artigo.rotulo = 'Art.';
       artigo.numero = '1';
@@ -97,6 +98,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     } else {
       documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
     }
+
+    documento.urn = this.urn;
 
     document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));

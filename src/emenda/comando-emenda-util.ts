@@ -75,10 +75,11 @@ export class CmdEmdUtil {
     // Verifica alteração integral de caput
     if (isCaput(pai) && pai.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
       if (pai.filhos.find(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL)) {
+        // Não é alteração integral de caput
         return d;
       }
-      //pai = pai.pai!;
-      return pai.pai!;
+      // É alteração integral de caput
+      return CmdEmdUtil.getDispositivoAfetado(pai.pai!);
     }
 
     // O caso de artigos adicionados junto com seu agrupador já foi tratado antes. Ver uso de retiraPrimeirosFilhosAdicionadosAgrupador

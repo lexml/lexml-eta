@@ -260,6 +260,7 @@ export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] =
     addRestauracao(dispositivo);
   }
 
+  result.push({ stateType: StateType.ElementoSelecionado, elementos: [createElemento(dispositivo, true)] });
   return result;
 };
 

@@ -26,6 +26,7 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox';
 import '@shoelace-style/shoelace/dist/components/switch/switch';
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
 import '@shoelace-style/shoelace/dist/components/card/card';
+import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
 
 // ---------------------------------------------------
 
@@ -39,7 +40,8 @@ export { LexmlEtaComponent } from './components/lexml-eta.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
 export { LexmlAutocomplete } from './components/autoria/lexml-autocomplete';
 export { DataComponent } from './components/data/data.component';
-export { LexmlEmendaComponent } from './components/lexml-emenda.component';
+export { LexmlEmendaComponent, LexmlEmendaParametrosEdicao } from './components/lexml-emenda.component';
+export { LexmlEmendaConfig } from './model/lexmlEmendaConfig';
 export { AlertasComponent } from './components/alertas/alertas.component';
 export { AjudaComponent } from './components/ajuda/ajuda.component';
 export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
@@ -48,3 +50,5 @@ export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.componen
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
 export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';
 export { Usuario } from './model/revisao/usuario';
+
+Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);

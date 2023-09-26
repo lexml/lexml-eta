@@ -190,6 +190,8 @@ export class DispositivosWriterCmdEmd {
   private getRotuloPais(disp: Dispositivo, localizarEmAgrupador: boolean): string {
     let pai: Dispositivo | undefined;
 
+    const dispOrig = disp;
+
     if (isAgrupador(disp)) {
       return DispositivosWriterCmdEmd.getRotuloPaisAgrupador(disp);
     }
@@ -213,7 +215,7 @@ export class DispositivosWriterCmdEmd {
         break;
       }
 
-      if (pai && !isDispositivoRaiz(pai) && (!isAgrupador(pai) || (isArtigo(disp) && localizarEmAgrupador))) {
+      if (pai && !isDispositivoRaiz(pai) && (!isAgrupador(pai) || (isArtigo(dispOrig) && localizarEmAgrupador))) {
         const dispAlteracao = isDispositivoAlteracao(disp);
         const dispositivoNovoForaDeAlteracao = !dispAlteracao && disp.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
         const dispositivoNovoEmAlteracao =

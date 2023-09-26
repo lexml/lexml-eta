@@ -24,7 +24,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
   it('acrescimoParagrafo', () => {
     TesteCmdEmdUtil.incluiParagrafo(state, 'art1', false, 'art1_par1u');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo> <Omissis/></p><p><Rotulo>Parágrafo único.</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 1º</Rotulo> <Omissis/></p><p class="paragrafo"><Rotulo>Parágrafo único.</Rotulo> Texto”</p>');
   });
 
   it('acrescimoInciso', () => {
@@ -33,7 +33,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
      */
     TesteCmdEmdUtil.incluiInciso(state, 'art1_cpt', false, 'art1_cpt_inc1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo> <Omissis/></p><p><Rotulo>I –</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 1º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo>I –</Rotulo> Texto”</p>');
   });
 
   it('acrescimoAlinea', () => {
@@ -43,7 +43,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
     TesteCmdEmdUtil.incluiAlinea(state, 'art9_par7_inc1', false, 'art9_par7_inc1_ali1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 7º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> <Omissis/></p><p><Rotulo>a)</Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 7º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> <Omissis/></p><p class="alinea"><Rotulo>a)</Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -54,7 +54,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
     TesteCmdEmdUtil.incluiItem(state, 'art9_par6_inc1_ali2', false, 'art9_par6_inc1_ali2_ite1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo> b) </Rotulo> <Omissis/></p><p><Rotulo>1.</Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="alinea"><Rotulo> b) </Rotulo> <Omissis/></p><p class="item"><Rotulo>1.</Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -67,7 +67,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
      */
     TesteCmdEmdUtil.modificaDispositivo(state, 'art1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 1º</Rotulo> Texto”</p>');
   });
 
   it('modificacaoParagrafo', () => {
@@ -76,7 +76,9 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
      */
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> Texto</p><p><Omissis/>”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
+    );
   });
 
   it('modificacaoInciso', () => {
@@ -86,7 +88,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -97,7 +99,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> <Omissis/></p><p><Rotulo> a) </Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> <Omissis/></p><p class="alinea"><Rotulo> a) </Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -108,7 +110,7 @@ describe('Citação em comando de emenda com apenas um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali1_ite1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> <Omissis/></p><p><Rotulo> a) </Rotulo> <Omissis/></p><p><Rotulo> 1. </Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> <Omissis/></p><p class="alinea"><Rotulo> a) </Rotulo> <Omissis/></p><p class="item"><Rotulo> 1. </Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 

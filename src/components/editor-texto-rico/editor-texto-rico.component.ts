@@ -29,6 +29,7 @@ import { exibirDiferencasTextoRicoDialog, TextoRicoDiff } from '../editor/exibir
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
+const Delta = Quill.import('delta');
 
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
@@ -130,6 +131,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       } else if (events.some(ev => ev.stateType === StateType.RevisaoDesativada)) {
         this._textoAntesRevisao = undefined;
       }
+      this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
     }
     this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
   }
@@ -261,6 +263,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               redo: this.redo,
             },
           },
+          aspasCurvas: true,
           table: {
             cellSelectionOnClick: false,
           },
@@ -276,7 +279,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               tab: {
                 key: 'tab',
                 handler: (range: any, keycontext: any): any => {
-                  const Delta = Quill.import('delta');
                   const outSideOfTable = TableModule.keyboardHandler(this.quill, 'tab', range, keycontext);
                   if (outSideOfTable && this.quill) {
                     //for some reason when you return true as quill says it should hand it to the default like the other bindings... for tab it doesnt.
@@ -423,7 +425,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.texto = texto;
 
     const textoAjustado = (texto || '')
-      .replace(/indent/g, 'ql-indent')
       .replace(/align-justify/g, 'ql-align-justify')
       .replace(/align-center/g, 'ql-align-center')
       .replace(/align-right/g, 'ql-align-right');

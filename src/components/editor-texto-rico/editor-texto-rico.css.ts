@@ -193,6 +193,14 @@ export const editorTextoRicoCss = html`
       max-width: 60%;
     }
 
+    .editor-texto-rico p.ql-text-indent-0px {
+      text-indent: 0;
+    }
+
+    .editor-texto-rico p.ql-margin-bottom-0px {
+      margin-bottom: 0;
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;

@@ -32,7 +32,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
      */
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º-1.</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 1º-1.</Rotulo> Texto”</p>');
   });
 
   it('acrescimoParagrafoEIncisoNoMesmoArtigo', () => {
@@ -45,7 +45,9 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.incluiParagrafo(state, 'art1', false, 'art1_par1u'); // parágrafo único do art. 1º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     // eslint-disable-next-line prettier/prettier
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo> <Omissis/></p>' + '<p><Rotulo>I –</Rotulo> Texto</p>' + '<p><Rotulo>Parágrafo único.</Rotulo> Texto”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 1º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo>I –</Rotulo> Texto</p><p class="paragrafo"><Rotulo>Parágrafo único.</Rotulo> Texto”</p>'
+    );
   });
 
   it('acrescimoParagrafoEIncisoEmArtigosDistintos', () => {
@@ -62,12 +64,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     // eslint-disable-next-line prettier/prettier
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 1º</Rotulo> <Omissis/></p>' +
-        '<p><Rotulo>Parágrafo único.</Rotulo> Texto”</p>' +
-        '<p>“<Rotulo>Art. 2º</Rotulo> <Omissis/></p>' +
-        '<p><Omissis/></p>' +
-        '<p><Rotulo>I-1 –</Rotulo> Texto</p>' +
-        '<p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 1º</Rotulo> <Omissis/></p><p class="paragrafo"><Rotulo>Parágrafo único.</Rotulo> Texto”</p><p class="artigo">“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="inciso"><Rotulo>I-1 –</Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -86,13 +83,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par4-1', false, 'art9_par4-2'); // § 4º-2 do art. 9º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p>' +
-        '<p><Omissis/></p>' +
-        '<p><Rotulo>§ 2º-1.</Rotulo> Texto</p>' +
-        '<p><Omissis/></p>' +
-        '<p><Rotulo>§ 4º-1.</Rotulo> Texto</p>' +
-        '<p><Rotulo>§ 4º-2.</Rotulo> Texto</p>' +
-        '<p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 2º-1.</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 4º-1.</Rotulo> Texto</p><p class="paragrafo"><Rotulo>§ 4º-2.</Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -104,9 +95,11 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
      * § 8º nononono'
      */
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par1'); // § 1º do art. 9º
-    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7_inc2', false, 'art9_par8'); // § 8º do art. 9º
+    TesteCmdEmdUtil.incluiParagrafo(state, 'art9_par7', false, 'art9_par8'); // § 8º do art. 9º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Rotulo>§ 1º</Rotulo> Texto</p><p><Omissis/></p><p><Rotulo>§ 8º</Rotulo> Texto”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="paragrafo"><Rotulo>§ 1º</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 8º</Rotulo> Texto”</p>'
+    );
   });
 
   // // --------------------------------------------------------------------------------
@@ -121,7 +114,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_cpt'); // caput do art. 8º
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_par1u'); // parágrafo único do art. 8º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 8º</Rotulo> Texto</p><p><Omissis/></p><p><Rotulo>Parágrafo único.</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 8º</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>Parágrafo único.</Rotulo> Texto”</p>');
   });
 
   it('modificacaoIncisosEsparsosNoMesmoCaput', () => {
@@ -139,7 +132,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc5'); // inciso V do caput do art. 2º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo> II – </Rotulo> Texto</p><p><Omissis/></p><p><Rotulo> IV – </Rotulo> Texto</p><p><Rotulo> V – </Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="inciso"><Rotulo> II – </Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="inciso"><Rotulo> IV – </Rotulo> Texto</p><p class="inciso"><Rotulo> V – </Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -153,7 +146,9 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc1'); // inciso I do caput do art. 2º
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt_inc13'); // inciso XIII do caput do art. 2º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> Texto</p><p><Omissis/></p><p><Rotulo> XIII – </Rotulo> Texto”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="inciso"><Rotulo> XIII – </Rotulo> Texto”</p>'
+    );
   });
 
   // // --------------------------------------------------------------------------------
@@ -168,7 +163,9 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_cpt');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_par1u');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 8º</Rotulo> Texto</p><p><Omissis/></p><p><Rotulo>Parágrafo único.</Rotulo> (Suprimir)”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 8º</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>Parágrafo único.</Rotulo> (Suprimir)”</p>'
+    );
   });
 
   it('modificacaoCaputESupressaoInciso', () => {
@@ -180,7 +177,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art8_cpt');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art8_cpt_inc1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 8º</Rotulo> Texto</p><p><Rotulo> I – </Rotulo> (Suprimir)</p><p><Omissis/>”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 8º</Rotulo> Texto</p><p class="inciso"><Rotulo> I – </Rotulo> (Suprimir)</p><p class="omissis"><Omissis/>”</p>');
   });
 
   it('modificacaoCaputESupressaoDeParagrafosSemOmissisParaIncisos', () => {
@@ -194,7 +191,9 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par6');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art9_par7');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 9º</Rotulo> Texto</p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> (Suprimir)</p><p><Rotulo>§ 7º</Rotulo> (Suprimir)”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> (Suprimir)</p><p class="paragrafo"><Rotulo>§ 7º</Rotulo> (Suprimir)”</p>'
+    );
   });
 
   it('modificacaoCaputESupressaoDoSegundoInciso', () => {
@@ -207,7 +206,9 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art2_cpt');
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art2_cpt_inc2');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 2º</Rotulo> Texto</p><p><Omissis/></p><p><Rotulo> II – </Rotulo> (Suprimir)</p><p><Omissis/>”</p>');
+    expect(cit).to.equal(
+      '<p class="artigo">“<Rotulo>Art. 2º</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="inciso"><Rotulo> II – </Rotulo> (Suprimir)</p><p class="omissis"><Omissis/>”</p>'
+    );
   });
 
   it('acrescimoItemEModificacaoAlinea', () => {
@@ -227,7 +228,7 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.modificaDispositivo(state, 'art9_par6_inc1_ali2'); // alínea 'b' do inciso I do § 6º do art. 9º
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal(
-      '<p>“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>§ 6º</Rotulo> <Omissis/></p><p><Rotulo> I – </Rotulo> <Omissis/></p><p><Rotulo> a) </Rotulo> <Omissis/></p><p><Omissis/></p><p><Rotulo>1-1.</Rotulo> Texto</p><p><Omissis/></p><p><Rotulo> b) </Rotulo> Texto</p><p><Omissis/>”</p>'
+      '<p class="artigo">“<Rotulo>Art. 9º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="paragrafo"><Rotulo>§ 6º</Rotulo> <Omissis/></p><p class="inciso"><Rotulo> I – </Rotulo> <Omissis/></p><p class="alinea"><Rotulo> a) </Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p class="item"><Rotulo>1-1.</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p class="alinea"><Rotulo> b) </Rotulo> Texto</p><p class="omissis"><Omissis/>”</p>'
     );
   });
 
@@ -239,6 +240,6 @@ describe('Citação em comando de emenda com mais de um dispositivo', () => {
     TesteCmdEmdUtil.suprimeDispositivo(state, 'art1');
     TesteCmdEmdUtil.modificaDispositivo(state, 'art5_cpt');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
-    expect(cit).to.equal('<p>“<Rotulo>Art. 1º</Rotulo> (Suprimir)”</p><p>“<Rotulo>Art. 5º</Rotulo> Texto”</p>');
+    expect(cit).to.equal('<p class="artigo">“<Rotulo>Art. 1º</Rotulo> (Suprimir)”</p><p class="artigo">“<Rotulo>Art. 5º</Rotulo> Texto”</p>');
   });
 });

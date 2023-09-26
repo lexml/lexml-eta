@@ -1,7 +1,7 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import '../../src';
-import { LexmlEmendaComponent } from '../../src/components/lexml-emenda.component';
+import { LexmlEmendaComponent, LexmlEmendaParametrosEdicao } from '../../src/components/lexml-emenda.component';
 import { RefProposicaoEmendada } from '../../src/model/emenda/emenda';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
@@ -51,7 +51,7 @@ export class DemoView extends LitElement {
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
-  private nomeUsuario?: string;
+  private nomeUsuario?: string = 'Fulano';
 
   constructor() {
     super();
@@ -63,6 +63,7 @@ export class DemoView extends LitElement {
 
   protected firstUpdated(): void {
     this.elNomeProposicao.style.display = 'none';
+    this.elLexmlEmenda.setUsuario(new Usuario(this.nomeUsuario));
   }
 
   private getElement(selector: string): any {
@@ -90,13 +91,23 @@ export class DemoView extends LitElement {
   }
 
   onChangeDocumento(): void {
+    this.getElement('#optEdicao').disabled = true;
+    this.getElement('#optEmenda').disabled = true;
+    this.getElement('#optEmendaArtigoOndeCouber').disabled = true;
+    this.getElement('#optEmendaTextoLivre').disabled = true;
     if (this.elDocumento.value === 'novo') {
-      this.getElement('#optEmenda').disabled = true;
-      this.getElement('#optEmendaArtigoOndeCouber').disabled = true;
+      this.getElement('#optEdicao').disabled = false;
       this.getElement('#optEdicao').selected = true;
+    } else if (this.elDocumento.value === 'sem_texto') {
+      this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
+      this.getElement('#optEmendaTextoLivre').disabled = false;
+      this.getElement('#optEmendaArtigoOndeCouber').selected = true;
     } else {
+      this.getElement('#optEdicao').disabled = false;
       this.getElement('#optEmenda').disabled = false;
       this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
+      this.getElement('#optEmendaTextoLivre').disabled = false;
+      this.getElement('#optEmenda').selected = true;
     }
   }
 
@@ -104,7 +115,12 @@ export class DemoView extends LitElement {
     this.elLexmlEmenda.style.display = 'none';
     this.elLexmlEmendaComando.style.display = 'none';
     this.projetoNorma = {};
-    this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma);
+
+    const params = new LexmlEmendaParametrosEdicao();
+    params.modo = this.modo;
+    params.projetoNorma = this.projetoNorma;
+    this.elLexmlEmenda.inicializarEdicao(params);
+
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
     this.proposicaoCorrente.ano = '';
@@ -124,10 +140,21 @@ export class DemoView extends LitElement {
     if (this.elDocumento && elmAcao) {
       this.modo = elmAcao.value;
       setTimeout(() => {
-        this.projetoNorma = { ...mapProjetosNormas[this.elDocumento.value] };
+        this.projetoNorma = this.elDocumento.value === 'sem_texto' ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
         if (this.elLexmlEmenda) {
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, undefined, 'Motivo da emenda de texto livre');
+          const params = new LexmlEmendaParametrosEdicao();
+          params.modo = this.modo;
+          if (this.projetoNorma) {
+            params.projetoNorma = this.projetoNorma;
+          } else {
+            params.urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2023;3';
+            params.ementa =
+              'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).';
+          }
+          params.motivo = 'Motivo da emenda de texto livre';
+          this.elLexmlEmenda.inicializarEdicao(params);
+
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.elLexmlEmenda.style.display = 'block';
         } else {
@@ -138,11 +165,10 @@ export class DemoView extends LitElement {
   }
 
   salvar(): void {
-    const projetoNorma = this.projetoNorma;
     const emenda = this.elLexmlEmenda.getEmenda();
     const emendaJson = JSON.stringify(emenda, null, '\t');
     const blob = new Blob([emendaJson], { type: 'application/json' });
-    const fileName = `${projetoNorma?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0]}.json`;
+    const fileName = `${this.modo} - ${emenda.proposicao.sigla} nº ${emenda.proposicao.numero}, de ${emenda.proposicao.ano}.json`;
     const objectUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = objectUrl;
@@ -178,13 +204,21 @@ export class DemoView extends LitElement {
           const emenda = 'emenda' in result ? result.emenda : result;
           this.modo = emenda.modoEdicao;
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
-          this.elLexmlEmenda.inicializarEdicao(this.modo, this.projetoNorma, emenda, emenda.comandoEmendaTextoLivre?.motivo);
+
+          const params = new LexmlEmendaParametrosEdicao();
+          params.modo = this.modo;
+          params.projetoNorma = this.projetoNorma;
+          params.emenda = emenda;
+          this.elLexmlEmenda.inicializarEdicao(params);
+
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
           this.elLexmlEmendaComando.style.display = 'block';
           // this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
           this.elLexmlEmenda.style.display = 'block';
+
+          this.onChangeDocumento();
         }
       };
     }
@@ -289,7 +323,6 @@ export class DemoView extends LitElement {
 
         <div class="lexml-eta-main-header--selecao">
           <select id="projetoNorma" @change=${this.onChangeDocumento}>
-            <option value=""></option>
             <option value="novo">Nova articulação</option>
             <option value="mpv_885_2019">MP 885, de 2019</option>
             <option value="mpv_905_2019" selected>MP 905, de 2019</option>
@@ -302,12 +335,13 @@ export class DemoView extends LitElement {
             <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="plc_artigos_agrupados">PLC artigos agrupados</option>
+            <option value="sem_texto">PL 3/2023 (sem texto LexML)</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>
             <option value="emenda" id="optEmenda" selected>Emenda</option>
             <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
-            <option value="emendaTextoLivre" id="optemendaTextoLivre">Emenda Texto Livre</option>
+            <option value="emendaTextoLivre" id="optEmendaTextoLivre">Emenda Texto Livre</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
