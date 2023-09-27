@@ -26,7 +26,6 @@ class ModuloAspasCurvas {
   }
 
   // Imita autoformação de aspas curvas do Word
-  // Observação: o ctrl + z não transforma as aspas de volta para aspas retas
   tratarAspas(range: any, caracter: string): boolean {
     if (!this.enabled) return true;
 
@@ -38,8 +37,17 @@ class ModuloAspasCurvas {
 
     const aspasTransformada = !texto || texto?.match(/\s$/g) ? abreAspas : fechaAspas;
 
-    const delta = new Delta().retain(range.index).delete(range.length).insert(aspasTransformada, this.quill?.getFormat(range));
+    const format = this.quill?.getFormat(range);
+
+    // Insere o caracter normalmente
+    let delta = new Delta().retain(range.index).delete(range.length).insert(caracter, format);
     this.quill?.updateContents(delta as any, Quill.sources.USER);
+    this.quill?.history.cutoff();
+
+    // Troca por aspas curvas
+    delta = new Delta().retain(range.index).delete(1).insert(aspasTransformada, format);
+    this.quill?.updateContents(delta as any, Quill.sources.USER);
+
     this.quill?.setSelection(range.index + 1, Quill.sources.SILENT);
 
     return false;
