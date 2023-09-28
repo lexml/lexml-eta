@@ -1,0 +1,248 @@
+{
+  "name": {
+      "namespaceURI": "http://www.lexml.gov.br/1.0",
+      "localPart": "LexML",
+      "prefix": "",
+      "key": "{http://www.lexml.gov.br/1.0}LexML",
+      "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+      "TYPE_NAME": "br_gov_lexml__1.LexML",
+      "metadado": {
+          "TYPE_NAME": "br_gov_lexml__1.Metadado",
+          "identificacao": {
+              "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+              "urn": "urn:lex:br:senado.federal:proposta.emenda.constitucional;pec:2023;00048"
+          }
+      },
+      "projetoNorma": {
+          "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+          "norma": {
+              "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+              "parteInicial": {
+                  "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+                  "epigrafe": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "id": "epigrafe",
+                      "content": [
+                          "PROPOSTA DE EMENDA CONSTITUCIONAL Nº 00048 de 2023 "
+                      ]
+                  },
+                  "ementa": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "id": "ementa",
+                      "content": [
+                          "Altera o ",
+                          {
+                              "name": {
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "localPart": "span",
+                                  "prefix": "",
+                                  "key": "{http://www.lexml.gov.br/1.0}span",
+                                  "string": "{http://www.lexml.gov.br/1.0}span"
+                              },
+                              "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "href": "urn:lex:br:federal:constituicao:1988-10-05;1988!art231_par1",
+                                  "content": [
+                                      "§1º do art. 231 da Constituição Federal"
+                                  ]
+                              }
+                          },
+                          " para definir marco temporal de demarcação das terras tradicionalmente ocupadas pelos povos indígenas.  . \n"
+                      ]
+                  },
+                  "preambulo": {
+                      "TYPE_NAME": "br_gov_lexml__1.TextoType",
+                      "id": "preambulo",
+                      "p": [
+                          {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                  "\n    As Mesas da Câmara dos Deputados e do Senado Federal, nos termos do § 3º do art. 60 da Constituição Federal, promulgam a seguinte Emenda ao texto constitucional: \n  "
+                              ]
+                          },
+                          {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline"
+                          }
+                      ]
+                  }
+              },
+              "articulacao": {
+                  "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+                  "lXhier": [
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art1",
+                              "rotulo": "Art. 1º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art1_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    O ",
+                                                      {
+                                                          "name": {
+                                                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                              "localPart": "span",
+                                                              "prefix": "",
+                                                              "key": "{http://www.lexml.gov.br/1.0}span",
+                                                              "string": "{http://www.lexml.gov.br/1.0}span"
+                                                          },
+                                                          "value": {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "href": "urn:lex:br:federal:constituicao:1988-10-05;1988!art231",
+                                                              "content": [
+                                                                  "art. 231 da Constituição Federal"
+                                                              ]
+                                                          }
+                                                      },
+                                                      " passa a vigorar com a seguinte redação: \n\n  "
+                                                  ]
+                                              }
+                                          ],
+                                          "alteracao": {
+                                              "TYPE_NAME": "br_gov_lexml__1.Alteracao",
+                                              "base": "urn:lex:br:federal:constituicao:1988-10-05;1988",
+                                              "id": "art1_cpt_alt1",
+                                              "content": [
+                                                  {
+                                                      "name": {
+                                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                          "localPart": "Artigo",
+                                                          "prefix": "",
+                                                          "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                                                          "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                                                      },
+                                                      "value": {
+                                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                          "href": "art231",
+                                                          "id": "art1_cpt_alt1_art231",
+                                                          "abreAspas": "s",
+                                                          "rotulo": "Art. 231.",
+                                                          "lXcontainersOmissis": [
+                                                              {
+                                                                  "name": {
+                                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                      "localPart": "Caput",
+                                                                      "prefix": "",
+                                                                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                                                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                                                  },
+                                                                  "value": {
+                                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                      "href": "art231_cpt",
+                                                                      "id": "art1_cpt_alt1_art231_cpt",
+                                                                      "textoOmitido": "s"
+                                                                  }
+                                                              },
+                                                              {
+                                                                  "name": {
+                                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                      "localPart": "Omissis",
+                                                                      "prefix": "",
+                                                                      "key": "{http://www.lexml.gov.br/1.0}Omissis",
+                                                                      "string": "{http://www.lexml.gov.br/1.0}Omissis"
+                                                                  },
+                                                                  "value": {
+                                                                      "TYPE_NAME": "br_gov_lexml__1.Omissis",
+                                                                      "id": "art1_cpt_alt1_art231_omi1"
+                                                                  }
+                                                              },
+                                                              {
+                                                                  "name": {
+                                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                      "localPart": "Paragrafo",
+                                                                      "prefix": "",
+                                                                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                                                                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                                                                  },
+                                                                  "value": {
+                                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                      "href": "art231_par1",
+                                                                      "id": "art1_cpt_alt1_art231_par1",
+                                                                      "fechaAspas": "s",
+                                                                      "notaAlteracao": "NR",
+                                                                      "rotulo": "§ 1º",
+                                                                      "p": [
+                                                                          {
+                                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                              "content": [
+                                                                                  "\n    São terras tradicionalmente ocupadas pelos índios as por eles habitadas em caráter permanente, as utilizadas para suas atividades produtivas, as imprescindíveis à preservação dos recursos ambientais necessários a seu bem-estar e as necessárias a sua reprodução física e cultural, segundo seus usos, costumes e tradições, sendo-lhes garantida a sua posse permanente, estabelecido o marco temporal em 05 de outubro de 1988.\n\n  "
+                                                                              ]
+                                                                          }
+                                                                      ]
+                                                                  }
+                                                              }
+                                                          ]
+                                                      }
+                                                  }
+                                              ]
+                                          }
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art2",
+                              "rotulo": "Art. 2º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art2_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Esta Emenda Constitucional entra em vigor na data de sua publicação. \n\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      }
+                  ]
+              }
+          }
+      }
+  }
+}

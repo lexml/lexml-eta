@@ -15,7 +15,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
+import { getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
@@ -32,6 +32,7 @@ import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { generoFromLetra } from '../model/dispositivo/genero';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -136,11 +137,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
   }
 
-  private montarColegiadoApreciador(numero: string, ano: string): ColegiadoApreciador {
+  private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
+    if (sigla.toUpperCase() === 'MPV') {
+      return {
+        siglaCasaLegislativa: 'CN',
+        tipoColegiado: 'Comissão',
+        siglaComissao: `CMMPV ${numero}/${ano}`,
+      };
+    }
+    // Inicialmente registra destino plenário do SF para demais matérias
     return {
-      siglaCasaLegislativa: 'CN',
-      tipoColegiado: 'Comissão',
-      siglaComissao: `CMMPV ${numero}/${ano}`,
+      siglaCasaLegislativa: 'SF',
+      tipoColegiado: 'Plenário',
     };
   }
 
@@ -188,10 +196,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
-    emenda.colegiadoApreciador = this.montarColegiadoApreciador(numeroProposicao, emenda.proposicao.ano);
+    emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
-    emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
+    const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
+    emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;

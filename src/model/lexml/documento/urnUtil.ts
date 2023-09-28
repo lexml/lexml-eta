@@ -110,6 +110,10 @@ export const getNomeExtenso = (urn: string): string => {
 };
 
 export const getNomeExtensoComDataExtenso = (urn: string): string => {
+  const atalho = VOCABULARIO.atalhosUrn.find(a => a.urn === urn);
+  if (atalho) {
+    return atalho.nome;
+  }
   const u = retiraFragmento(urn);
   const numero = getNumero(u);
   const tipo = getTipo(u)?.descricao;
