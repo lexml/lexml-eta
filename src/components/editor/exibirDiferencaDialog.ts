@@ -1,5 +1,5 @@
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
-import { substituiEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
+import { substituiEspacosEntreTagsPorNbsp, substituiMultiplosEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
 
 export class TextoDiff {
   quill!: EtaQuill;
@@ -40,7 +40,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
   let diferencaModificado = textoDiffAsHtml(diff.textoOriginal, diff.textoAtual, 'diffWords');
   let diferencaSemEspacosDuplicados = diferencaModificado.replace(/\s+/g, ' ');
-  diferencaModificado = substituiEspacosPorNbsp(textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaModificado, 'diffChars'), ['ins', 'del']);
+  diferencaModificado = substituiEspacosEntreTagsPorNbsp(textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaModificado, 'diffChars'), ['ins', 'del']);
 
   const tabModificado = !diff.adicionado && diferencaModificado !== diff.textoOriginal ? `<sl-tab slot="nav" panel="modificado"> Texto original </sl-tab>` : '';
   const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Texto antes da revisão</sl-tab>` : '';
@@ -48,12 +48,17 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   let diferencaEntreTextoAtualETextoAntesRevisao = contemRevisao ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : undefined;
   if (contemRevisao) {
     diferencaSemEspacosDuplicados = diferencaEntreTextoAtualETextoAntesRevisao!.replace(/\s+/g, ' ');
-    diferencaEntreTextoAtualETextoAntesRevisao = substituiEspacosPorNbsp(textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaEntreTextoAtualETextoAntesRevisao!, 'diffChars'), [
-      'ins',
-      'del',
-    ]);
+    diferencaEntreTextoAtualETextoAntesRevisao = substituiEspacosEntreTagsPorNbsp(
+      textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaEntreTextoAtualETextoAntesRevisao!, 'diffChars'),
+      ['ins', 'del']
+    );
   }
 
+  diff.textoOriginal = substituiMultiplosEspacosPorNbsp(diff.textoOriginal);
+  diff.textoAtual = substituiMultiplosEspacosPorNbsp(diff.textoAtual);
+  if (contemRevisao) {
+    diff.textoAntesRevisao = substituiMultiplosEspacosPorNbsp(diff.textoAntesRevisao);
+  }
   const tabPanelModificado =
     !diff.adicionado && diferencaModificado !== diff.textoOriginal
       ? `<sl-tab-panel name="modificado">

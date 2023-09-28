@@ -138,11 +138,15 @@ export const textoDiffAsHtml = (texto1: string, texto2: string, typeDiff: 'diffC
   return diff.map(part => (part.added ? buildPartAdded(part.value) : part.removed ? buildPartRemoved(part.value) : part.value)).join('');
 };
 
-export const substituiEspacosPorNbsp = (texto: string, tags?: string[]): string => {
+export const substituiEspacosEntreTagsPorNbsp = (texto: string, tags?: string[]): string => {
   if (tags) {
     const regex = new RegExp(`(?<=<(${tags.join('|')})>) +(?=</\\1>)`, 'gi');
     return texto.replace(regex, texto => texto.replace(/ /g, '&nbsp;'));
   } else {
     return texto.replace(/ /g, '&nbsp;');
   }
+};
+
+export const substituiMultiplosEspacosPorNbsp = (texto: string): string => {
+  return texto.replace(/ +/g, texto => texto.replace(/ /g, '&nbsp;'));
 };
