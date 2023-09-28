@@ -1,0 +1,136 @@
+{
+  "name": {
+      "namespaceURI": "http://www.lexml.gov.br/1.0",
+      "localPart": "LexML",
+      "prefix": "",
+      "key": "{http://www.lexml.gov.br/1.0}LexML",
+      "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+      "TYPE_NAME": "br_gov_lexml__1.LexML",
+      "metadado": {
+          "TYPE_NAME": "br_gov_lexml__1.Metadado",
+          "identificacao": {
+              "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+              "urn": "urn:lex:br:senado.federal:projeto.decreto.legislativo;pdl:2018;183"
+          }
+      },
+      "projetoNorma": {
+          "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+          "norma": {
+              "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+              "parteInicial": {
+                  "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+                  "epigrafe": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "id": "epigrafe",
+                      "content": [
+                          "PROJETO DE DECRETO LEGISLATIVO Nº 183 DE 2018"
+                      ]
+                  },
+                  "ementa": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "id": "ementa",
+                      "content": [
+                          "Aprova o ato que outorga autorização à Associação Comunitária de Santa Rosa para executar serviço de radiodifusão comunitária no Município de Apodi, Estado do Rio Grande do Norte."
+                      ]
+                  },
+                  "preambulo": {
+                      "TYPE_NAME": "br_gov_lexml__1.TextoType",
+                      "id": "preambulo",
+                      "p": [
+                          {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                  "\n    O CONGRESSO NACIONAL decreta:\n  "
+                              ]
+                          },
+                          {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline"
+                          }
+                      ]
+                  }
+              },
+              "articulacao": {
+                  "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+                  "lXhier": [
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art1",
+                              "rotulo": "Art. 1º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art1_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Fica aprovado o ato previsto na Portaria nº 1.927, de 10 de maio de 2016, do Ministério da Ciência, Tecnologia, Inovações e Comunicações, que outorga autorização à Associação Comunitária de Santa Rosa para executar, por 10 (dez) anos, sem direito de exclusividade, serviço de radiodifusão comunitária no Município de Apodi, Estado do Rio Grande do Norte.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art2",
+                              "rotulo": "Art. 2º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art2_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Este Decreto Legislativo entra em vigor na data de sua publicação.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      }
+                  ]
+              }
+          }
+      }
+  }
+}

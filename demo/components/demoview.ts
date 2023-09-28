@@ -17,9 +17,16 @@ import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
 import { Usuario } from '../../src/model/revisao/usuario';
+import { PDL_343_2023 } from '../doc/pdl_343_2023';
+import { PEC_48_2023 } from '../doc/pec_48_2023';
+import { PLC_142_2028 } from '../doc/plc_142_2028';
+import { PLP_197_2023 } from '../doc/plp_197_2023';
+import { PRS_92_2023 } from '../doc/prs_92_2023';
+import { PL_4687_2023 } from '../doc/pl_4687_2023';
+import { PDS_183_2018 } from '../doc/pds_183_2018';
+import { PLS_547_2018 } from '../doc/pls_547_2018';
 
 const mapProjetosNormas = {
-  novo: {},
   mpv_885_2019: MPV_885_2019,
   mpv_905_2019: MPV_905_2019,
   mpv_930_2020: MPV_930_2020,
@@ -27,10 +34,18 @@ const mapProjetosNormas = {
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
   mpv_1160_2023: MPV_1160_2023,
-  codcivil_completo: COD_CIVIL_COMPLETO,
-  codcivil_parcial1: COD_CIVIL_PARCIAL1,
-  codcivil_parcial2: COD_CIVIL_PARCIAL2,
-  plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
+  pdl_343_2023: PDL_343_2023,
+  pec_48_2023: PEC_48_2023,
+  plc_142_2028: PLC_142_2028,
+  plp_197_2023: PLP_197_2023,
+  prs_92_2023: PRS_92_2023,
+  pds_183_2018: PDS_183_2018,
+  pl_4687_2023: PL_4687_2023,
+  pls_547_2018: PLS_547_2018,
+  _codcivil_completo: COD_CIVIL_COMPLETO,
+  _codcivil_parcial1: COD_CIVIL_PARCIAL1,
+  _codcivil_parcial2: COD_CIVIL_PARCIAL2,
+  _plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
 };
 
 @customElement('demo-view')
@@ -98,7 +113,7 @@ export class DemoView extends LitElement {
     if (this.elDocumento.value === 'novo') {
       this.getElement('#optEdicao').disabled = false;
       this.getElement('#optEdicao').selected = true;
-    } else if (this.elDocumento.value === 'sem_texto') {
+    } else if (this.elDocumento.value.indexOf('sem_texto') >= 0) {
       this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
       this.getElement('#optEmendaTextoLivre').disabled = false;
       this.getElement('#optEmendaArtigoOndeCouber').selected = true;
@@ -324,18 +339,15 @@ export class DemoView extends LitElement {
         <div class="lexml-eta-main-header--selecao">
           <select id="projetoNorma" @change=${this.onChangeDocumento}>
             <option value="novo">Nova articulação</option>
-            <option value="mpv_885_2019">MP 885, de 2019</option>
-            <option value="mpv_905_2019" selected>MP 905, de 2019</option>
-            <option value="mpv_930_2020">MP 930, de 2020</option>
-            <option value="mpv_1078_2021">MP 1078, de 2021</option>
-            <option value="mpv_1089_2021">MP 1089, de 2021</option>
-            <option value="mpv_1100_2022">MP 1100, de 2022</option>
-            <option value="mpv_1160_2023">MP 1160, de 2022</option>
-            <option value="codcivil_completo">Código Civil Completo</option>
-            <option value="codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
-            <option value="codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
-            <option value="plc_artigos_agrupados">PLC artigos agrupados</option>
-            <option value="sem_texto">PL 3/2023 (sem texto LexML)</option>
+            ${Object.keys(mapProjetosNormas)
+              .filter(k => !k.startsWith('_'))
+              .map(k => html`<option value="${k}">${k.toUpperCase().replace(/_/, ' ').replace(/_/, ', de ')}</option>`)}
+            <option value="_codcivil_completo">Código Civil Completo</option>
+            <option value="_codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
+            <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
+            <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
+            <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
+            <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>

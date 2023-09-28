@@ -1,0 +1,1493 @@
+{
+  "name": {
+      "namespaceURI": "http://www.lexml.gov.br/1.0",
+      "localPart": "LexML",
+      "prefix": "",
+      "key": "{http://www.lexml.gov.br/1.0}LexML",
+      "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+      "TYPE_NAME": "br_gov_lexml__1.LexML",
+      "metadado": {
+          "TYPE_NAME": "br_gov_lexml__1.Metadado",
+          "identificacao": {
+              "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+              "urn": "urn:lex:br:senado.federal:projeto.lei;pl:2018;142"
+          }
+      },
+      "projetoNorma": {
+          "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+          "norma": {
+              "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+              "parteInicial": {
+                  "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+                  "epigrafe": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "id": "epigrafe",
+                      "content": [
+                          "PROJETO DE LEI Nº 142 DE 2018"
+                      ]
+                  },
+                  "ementa": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "id": "ementa",
+                      "content": [
+                          "Institui a Política de Inovação Educação Conectada; e altera a ",
+                          {
+                              "name": {
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "localPart": "span",
+                                  "prefix": "",
+                                  "key": "{http://www.lexml.gov.br/1.0}span",
+                                  "string": "{http://www.lexml.gov.br/1.0}span"
+                              },
+                              "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "href": "urn:lex:br:federal:lei:2000-08-17;9998",
+                                  "content": [
+                                      "Lei nº 9.998, de 17 de agosto de 2000"
+                                  ]
+                              }
+                          },
+                          "."
+                      ]
+                  },
+                  "preambulo": {
+                      "TYPE_NAME": "br_gov_lexml__1.TextoType",
+                      "id": "preambulo",
+                      "p": [
+                          {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                  "\n    O CONGRESSO NACIONAL decreta:\n  "
+                              ]
+                          },
+                          {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline"
+                          }
+                      ]
+                  }
+              },
+              "articulacao": {
+                  "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+                  "lXhier": [
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art1",
+                              "rotulo": "Art. 1º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art1_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Fica instituída a Política de Inovação Educação Conectada, em consonância com a estratégia 7.15 do Plano Nacional de Educação, aprovado pela ",
+                                                      {
+                                                          "name": {
+                                                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                              "localPart": "span",
+                                                              "prefix": "",
+                                                              "key": "{http://www.lexml.gov.br/1.0}span",
+                                                              "string": "{http://www.lexml.gov.br/1.0}span"
+                                                          },
+                                                          "value": {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "href": "urn:lex:br:federal:lei:2014-06-25;13005",
+                                                              "content": [
+                                                                  "Lei nº 13.005, de 25 de junho de 2014"
+                                                              ]
+                                                          }
+                                                      },
+                                                      ", com o objetivo de apoiar a universalização do acesso à internet em alta velocidade e fomentar o uso pedagógico de tecnologias digitais na educação básica.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art2",
+                              "rotulo": "Art. 2º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art2_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada visa a conjugar esforços entre órgãos e entidades da União, dos Estados, do Distrito Federal, dos Municípios, escolas, setor empresarial e sociedade civil para assegurar as condições necessárias à inserção da tecnologia como ferramenta pedagógica de uso cotidiano nas escolas públicas de educação básica.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  },
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Paragrafo",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                                          "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art2_par1u",
+                                          "rotulo": "Parágrafo único.",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada será executada em articulação com outros programas destinados à inovação e à tecnologia na educação que tenham apoio técnico ou financeiro do governo federal.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art3",
+                              "rotulo": "Art. 3º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art3_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    São princípios da Política de Inovação Educação Conectada:\n  "
+                                                  ]
+                                              }
+                                          ],
+                                          "lXcontainersOmissis": [
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc1",
+                                                      "rotulo": "I –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    equidade das condições entre as escolas públicas da educação básica para uso pedagógico da tecnologia;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc2",
+                                                      "rotulo": "II –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    promoção do acesso à inovação e à tecnologia em escolas situadas em regiões de maior vulnerabilidade socioeconômica e de baixo desempenho em indicadores educacionais;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc3",
+                                                      "rotulo": "III –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    colaboração entre os entes federativos;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc4",
+                                                      "rotulo": "IV –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    autonomia dos professores quanto à adoção da tecnologia para a educação;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc5",
+                                                      "rotulo": "V –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    estímulo ao protagonismo do aluno;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc6",
+                                                      "rotulo": "VI –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    acesso à internet com qualidade e velocidade compatíveis com as necessidades de uso pedagógico dos professores e dos alunos;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc7",
+                                                      "rotulo": "VII –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    amplo acesso aos recursos educacionais digitais de qualidade; e\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art3_cpt_inc8",
+                                                      "rotulo": "VIII –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    incentivo à formação dos professores e gestores em práticas pedagógicas com tecnologia e para uso de tecnologia.\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art4",
+                              "rotulo": "Art. 4º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art4_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada abrangerá, nos termos a serem definidos em regulamento, as seguintes ações:\n  "
+                                                  ]
+                                              }
+                                          ],
+                                          "lXcontainersOmissis": [
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc1",
+                                                      "rotulo": "I –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    apoio técnico às escolas e às redes de educação básica para a elaboração de diagnósticos e planos locais para a inclusão da inovação e da tecnologia na prática pedagógica das escolas;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc2",
+                                                      "rotulo": "II –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    apoio técnico, financeiro, ou ambos, às escolas e às redes de educação básica para:\n  "
+                                                              ]
+                                                          }
+                                                      ],
+                                                      "lXcontainersOmissis": [
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc2_ali1",
+                                                                  "rotulo": "a)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    contratação de serviço de acesso à internet;\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          },
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc2_ali2",
+                                                                  "rotulo": "b)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    implantação de infraestrutura para distribuição do sinal da internet nas escolas;\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          },
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc2_ali3",
+                                                                  "rotulo": "c)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    aquisição ou contratação de dispositivos eletrônicos; e\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          },
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc2_ali4",
+                                                                  "rotulo": "d)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    aquisição de recursos educacionais digitais ou de suas licenças;\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc3",
+                                                      "rotulo": "III –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    oferta de cursos de formação de professores para o uso da tecnologia em sala de aula;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc4",
+                                                      "rotulo": "IV –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    oferta de cursos de formação de profissionais da educação para apoiar a implementação da Política;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc5",
+                                                      "rotulo": "V –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    publicação de:\n  "
+                                                              ]
+                                                          }
+                                                      ],
+                                                      "lXcontainersOmissis": [
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc5_ali1",
+                                                                  "rotulo": "a)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    parâmetros para a contratação do serviço de acesso à internet;\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          },
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc5_ali2",
+                                                                  "rotulo": "b)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    referenciais técnicos sobre a infraestrutura interna para distribuição do sinal de internet nas escolas;\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          },
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc5_ali3",
+                                                                  "rotulo": "c)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    parâmetros sobre dispositivos eletrônicos para o uso da internet, a fim de permitir diferentes tipos de uso pedagógico da tecnologia; e\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          },
+                                                          {
+                                                              "name": {
+                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                  "localPart": "Alinea",
+                                                                  "prefix": "",
+                                                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                                              },
+                                                              "value": {
+                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                  "id": "art4_cpt_inc5_ali4",
+                                                                  "rotulo": "d)",
+                                                                  "p": [
+                                                                      {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "content": [
+                                                                              "\n    referenciais para o uso pedagógico da tecnologia;\n  "
+                                                                          ]
+                                                                      }
+                                                                  ]
+                                                              }
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc6",
+                                                      "rotulo": "VI –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    disponibilização de materiais pedagógicos digitais gratuitos, preferencialmente abertos, de domínio público e licença livre, que contem com a efetiva participação de profissionais da educação em sua elaboração;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art4_cpt_inc7",
+                                                      "rotulo": "VII –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    fomento ao desenvolvimento e à disseminação de recursos didáticos digitais, preferencialmente em formato aberto.\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art5",
+                              "rotulo": "Art. 5º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art5_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada será implementada a partir da adesão das redes e das escolas de educação básica, nos termos a serem definidos em regulamento.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art6",
+                              "rotulo": "Art. 6º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art6_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    As redes de educação básica que tenham iniciativas próprias de conectividade, inovação e tecnologia nas escolas poderão aderir à Política de Inovação Educação Conectada em caráter complementar às ações que desenvolvam.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art7",
+                              "rotulo": "Art. 7º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art7_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    As redes de educação básica que optarem por aderir à Política de Inovação Educação Conectada deverão adequar-se à proposta de monitoramento da Política em todas as suas dimensões.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art8",
+                              "rotulo": "Art. 8º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art8_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada contará com Comitê Consultivo, composto por órgãos e entidades da administração pública federal, representação dos trabalhadores em educação e de universidades públicas e representantes da sociedade civil, destinado a acompanhar e propor aprimoramentos à sua implementação, além de outras funções que lhe sejam atribuídas, nos termos a serem definidos em regulamento.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  },
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Paragrafo",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                                          "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art8_par1u",
+                                          "rotulo": "Parágrafo único.",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Na composição do Comitê de que trata o caput deste artigo, serão consultadas, ao menos, as entidades representativas oficiais de instituições públicas de ensino superior e confederações nacionais dos trabalhadores em educação.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art9",
+                              "rotulo": "Art. 9º",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art9_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada é complementar em relação a outras políticas nacionais, estaduais, distritais ou municipais de expansão do acesso à internet e de uso de tecnologia em escolas e não implica encerramento ou substituição dessas políticas.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art10",
+                              "rotulo": "Art. 10.",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art10_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Para a execução da Política de Inovação Educação Conectada, poderão ser firmados convênios, termos de compromisso, acordos de cooperação, termos de execução descentralizada, ajustes ou instrumentos congêneres com órgãos e entidades da administração pública federal, estadual, distrital e municipal.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art11",
+                              "rotulo": "Art. 11.",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art11_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    O apoio financeiro de que trata o inciso II do caput do art. 4º desta Lei, nos termos a serem definidos em regulamento, poderá ocorrer por meio do repasse de recursos para:\n  "
+                                                  ]
+                                              }
+                                          ],
+                                          "lXcontainersOmissis": [
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art11_cpt_inc1",
+                                                      "rotulo": "I –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    os Estados, o Distrito Federal e os Municípios, nos termos da ",
+                                                                  {
+                                                                      "name": {
+                                                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                          "localPart": "span",
+                                                                          "prefix": "",
+                                                                          "key": "{http://www.lexml.gov.br/1.0}span",
+                                                                          "string": "{http://www.lexml.gov.br/1.0}span"
+                                                                      },
+                                                                      "value": {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "href": "urn:lex:br:federal:lei:2012-07-25;12695",
+                                                                          "content": [
+                                                                              "Lei nº 12.695, de 25 de julho de 2012"
+                                                                          ]
+                                                                      }
+                                                                  },
+                                                                  "; e\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art11_cpt_inc2",
+                                                      "rotulo": "II –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    as escolas, nos termos da ",
+                                                                  {
+                                                                      "name": {
+                                                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                          "localPart": "span",
+                                                                          "prefix": "",
+                                                                          "key": "{http://www.lexml.gov.br/1.0}span",
+                                                                          "string": "{http://www.lexml.gov.br/1.0}span"
+                                                                      },
+                                                                      "value": {
+                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                          "href": "urn:lex:br:federal:lei:2009-06-16;11947",
+                                                                          "content": [
+                                                                              "Lei nº 11.947, de 16 de junho de 2009"
+                                                                          ]
+                                                                      }
+                                                                  },
+                                                                  ".\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art12",
+                              "rotulo": "Art. 12.",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art12_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    A Política de Inovação Educação Conectada será custeada por:\n  "
+                                                  ]
+                                              }
+                                          ],
+                                          "lXcontainersOmissis": [
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art12_cpt_inc1",
+                                                      "rotulo": "I –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    dotações orçamentárias da União consignadas anualmente aos órgãos e às entidades envolvidos na Política, observados os limites de movimentação, empenho e pagamento fixados anualmente;\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art12_cpt_inc2",
+                                                      "rotulo": "II –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    recursos do Fundo de Universalização dos Serviços de Telecomunicações (Fust);\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              },
+                                              {
+                                                  "name": {
+                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                      "localPart": "Inciso",
+                                                      "prefix": "",
+                                                      "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                      "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                  },
+                                                  "value": {
+                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                      "id": "art12_cpt_inc3",
+                                                      "rotulo": "III –",
+                                                      "p": [
+                                                          {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "content": [
+                                                                  "\n    outras fontes de recursos, provenientes de entidades públicas e privadas.\n  "
+                                                              ]
+                                                          }
+                                                      ]
+                                                  }
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art13",
+                              "rotulo": "Art. 13.",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art13_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Os ",
+                                                      {
+                                                          "name": {
+                                                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                              "localPart": "span",
+                                                              "prefix": "",
+                                                              "key": "{http://www.lexml.gov.br/1.0}span",
+                                                              "string": "{http://www.lexml.gov.br/1.0}span"
+                                                          },
+                                                          "value": {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "href": "urn:lex:br:federal:lei:2000-08-17;9998!art1",
+                                                              "content": [
+                                                                  "arts. 1º"
+                                                              ]
+                                                          }
+                                                      },
+                                                      " e ",
+                                                      {
+                                                          "name": {
+                                                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                              "localPart": "span",
+                                                              "prefix": "",
+                                                              "key": "{http://www.lexml.gov.br/1.0}span",
+                                                              "string": "{http://www.lexml.gov.br/1.0}span"
+                                                          },
+                                                          "value": {
+                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                              "href": "urn:lex:br:federal:lei:2000-08-17;9998!art5",
+                                                              "content": [
+                                                                  "5º da Lei nº 9.998, de 17 de agosto de 2000"
+                                                              ]
+                                                          }
+                                                      },
+                                                      ", passam a vigorar com a seguinte redação:\n  "
+                                                  ]
+                                              }
+                                          ],
+                                          "alteracao": {
+                                              "TYPE_NAME": "br_gov_lexml__1.Alteracao",
+                                              "base": "urn:lex:br:federal:lei:2000-08-17;9998",
+                                              "id": "art13_cpt_alt1",
+                                              "content": [
+                                                  {
+                                                      "name": {
+                                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                          "localPart": "Artigo",
+                                                          "prefix": "",
+                                                          "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                                                          "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                                                      },
+                                                      "value": {
+                                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                          "href": "art1",
+                                                          "id": "art13_cpt_alt1_art1",
+                                                          "abreAspas": "s",
+                                                          "rotulo": "Art. 1º",
+                                                          "lXcontainersOmissis": [
+                                                              {
+                                                                  "name": {
+                                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                      "localPart": "Caput",
+                                                                      "prefix": "",
+                                                                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                                                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                                                  },
+                                                                  "value": {
+                                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                      "href": "art1_cpt",
+                                                                      "id": "art13_cpt_alt1_art1_cpt",
+                                                                      "fechaAspas": "s",
+                                                                      "notaAlteracao": "NR",
+                                                                      "p": [
+                                                                          {
+                                                                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                              "content": [
+                                                                                  "\n    Fica instituído o Fundo de Universalização dos Serviços de Telecomunicações (Fust), que tem por finalidade proporcionar recursos destinados a cobrir a parcela de custo exclusivamente atribuível ao cumprimento das obrigações de universalização de serviços de telecomunicações, que não possa ser recuperada com a exploração eficiente do serviço, nos termos do ",
+                                                                                  {
+                                                                                      "name": {
+                                                                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                                          "localPart": "span",
+                                                                                          "prefix": "",
+                                                                                          "key": "{http://www.lexml.gov.br/1.0}span",
+                                                                                          "string": "{http://www.lexml.gov.br/1.0}span"
+                                                                                      },
+                                                                                      "value": {
+                                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                                          "href": "urn:lex:br:federal:lei:1997-07-16;9472!art81_cpt_inc2",
+                                                                                          "content": [
+                                                                                              "inciso II do caput do art. 81 da Lei nº 9.472, de 16 de julho de 1997"
+                                                                                          ]
+                                                                                      }
+                                                                                  },
+                                                                                  ", e a cobrir as despesas de programas, projetos e atividades governamentais direcionados à política de inovação educação conectada.\n  "
+                                                                              ]
+                                                                          }
+                                                                      ]
+                                                                  }
+                                                              }
+                                                          ]
+                                                      }
+                                                  },
+                                                  {
+                                                      "name": {
+                                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                          "localPart": "Artigo",
+                                                          "prefix": "",
+                                                          "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                                                          "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                                                      },
+                                                      "value": {
+                                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                          "href": "art5",
+                                                          "id": "art13_cpt_alt1_art5",
+                                                          "abreAspas": "s",
+                                                          "rotulo": "Art. 5º",
+                                                          "lXcontainersOmissis": [
+                                                              {
+                                                                  "name": {
+                                                                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                      "localPart": "Caput",
+                                                                      "prefix": "",
+                                                                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                                                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                                                  },
+                                                                  "value": {
+                                                                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                      "href": "art5_cpt",
+                                                                      "id": "art13_cpt_alt1_art5_cpt",
+                                                                      "textoOmitido": "s",
+                                                                      "lXcontainersOmissis": [
+                                                                          {
+                                                                              "name": {
+                                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                                  "localPart": "Omissis",
+                                                                                  "prefix": "",
+                                                                                  "key": "{http://www.lexml.gov.br/1.0}Omissis",
+                                                                                  "string": "{http://www.lexml.gov.br/1.0}Omissis"
+                                                                              },
+                                                                              "value": {
+                                                                                  "TYPE_NAME": "br_gov_lexml__1.Omissis",
+                                                                                  "id": "art13_cpt_alt1_art5_cpt_omi1"
+                                                                              }
+                                                                          },
+                                                                          {
+                                                                              "name": {
+                                                                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                                  "localPart": "Inciso",
+                                                                                  "prefix": "",
+                                                                                  "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                                                                                  "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                                                                              },
+                                                                              "value": {
+                                                                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                                                  "href": "art5_cpt_inc15",
+                                                                                  "id": "art13_cpt_alt1_art5_cpt_inc15",
+                                                                                  "fechaAspas": "s",
+                                                                                  "notaAlteracao": "NR",
+                                                                                  "rotulo": "XV –",
+                                                                                  "p": [
+                                                                                      {
+                                                                                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                                          "content": [
+                                                                                              "\n    instalação, ampliação ou atualização de redes destinadas à comunicação de voz e de dados e, em especial, de redes de alta velocidade que possibilitem o acesso à internet em escolas públicas, a fim de promover o acesso à inovação e à tecnologia nas escolas situadas em regiões de maior vulnerabilidade socioeconômica e de baixo desempenho em indicadores educacionais.\n  "
+                                                                                          ]
+                                                                                      }
+                                                                                  ]
+                                                                              }
+                                                                          }
+                                                                      ]
+                                                                  }
+                                                              }
+                                                          ]
+                                                      }
+                                                  }
+                                              ]
+                                          }
+                                      }
+                                  }
+                              ]
+                          }
+                      },
+                      {
+                          "name": {
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "localPart": "Artigo",
+                              "prefix": "",
+                              "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                              "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                          },
+                          "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "art14",
+                              "rotulo": "Art. 14.",
+                              "lXcontainersOmissis": [
+                                  {
+                                      "name": {
+                                          "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                          "localPart": "Caput",
+                                          "prefix": "",
+                                          "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                          "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                      },
+                                      "value": {
+                                          "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                          "id": "art14_cpt",
+                                          "p": [
+                                              {
+                                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                  "content": [
+                                                      "\n    Esta Lei entra em vigor na data de sua publicação.\n  "
+                                                  ]
+                                              }
+                                          ]
+                                      }
+                                  }
+                              ]
+                          }
+                      }
+                  ]
+              }
+          }
+      }
+  }
+}

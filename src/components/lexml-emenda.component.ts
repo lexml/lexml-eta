@@ -136,11 +136,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
   }
 
-  private montarColegiadoApreciador(numero: string, ano: string): ColegiadoApreciador {
+  private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
+    if (sigla.toUpperCase() === 'MPV') {
+      return {
+        siglaCasaLegislativa: 'CN',
+        tipoColegiado: 'Comissão',
+        siglaComissao: `CMMPV ${numero}/${ano}`,
+      };
+    }
+    // Inicialmente registra destino plenário do SF para demais matérias
     return {
-      siglaCasaLegislativa: 'CN',
-      tipoColegiado: 'Comissão',
-      siglaComissao: `CMMPV ${numero}/${ano}`,
+      siglaCasaLegislativa: 'SF',
+      tipoColegiado: 'Plenário',
     };
   }
 
@@ -187,7 +194,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
-    emenda.colegiadoApreciador = this.montarColegiadoApreciador(numeroProposicao, emenda.proposicao.ano);
+    emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
     emenda.epigrafe.complemento = `(à ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
