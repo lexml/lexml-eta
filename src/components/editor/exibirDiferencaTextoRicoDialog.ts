@@ -1,5 +1,5 @@
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
-import { substituiEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
+import { substituiEspacosEntreTagsPorNbsp, textoDiffAsHtml } from '../../util/string-util';
 
 export class TextoRicoDiff {
   quill!: EtaQuill;
@@ -135,7 +135,7 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
   // Calcula a diferença entre os textos
   let diferencas = textoDiffAsHtml(textoAntesRevisao, textoAtual, 'diffWords');
   if (!/<ins>|<del>/.test(diferencas)) {
-    diferencas = substituiEspacosPorNbsp(textoDiffAsHtml(textoAntesRevisao, textoAtual, 'diffChars'), ['ins', 'del']);
+    diferencas = substituiEspacosEntreTagsPorNbsp(textoDiffAsHtml(textoAntesRevisao, textoAtual, 'diffChars'), ['ins', 'del']);
   }
 
   // Ajusta as tags <ins> e <del> para que fiquem "dentro" das tags <p>
