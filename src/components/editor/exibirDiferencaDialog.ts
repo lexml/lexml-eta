@@ -11,8 +11,6 @@ export class TextoDiff {
 
 const OMISSIS = '....................';
 
-const possuiInsOuDel = (texto: string): boolean => /<ins>|<del>/.test(texto);
-
 export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   Array.from(document.querySelectorAll('#slDialogExibirDiferencas')).forEach(el => document.body.removeChild(el));
 
@@ -41,16 +39,19 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   const contemRevisao = !!diff.textoAntesRevisao;
 
   let diferencaModificado = textoDiffAsHtml(diff.textoOriginal, diff.textoAtual, 'diffWords');
-  if (!possuiInsOuDel(diferencaModificado)) {
-    diferencaModificado = substituiEspacosPorNbsp(textoDiffAsHtml(diff.textoOriginal, diff.textoAtual, 'diffChars'), ['ins', 'del']);
-  }
+  let diferencaSemEspacosDuplicados = diferencaModificado.replace(/\s+/g, ' ');
+  diferencaModificado = substituiEspacosPorNbsp(textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaModificado, 'diffChars'), ['ins', 'del']);
 
   const tabModificado = !diff.adicionado && diferencaModificado !== diff.textoOriginal ? `<sl-tab slot="nav" panel="modificado"> Texto original </sl-tab>` : '';
   const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Texto antes da revisão</sl-tab>` : '';
 
   let diferencaEntreTextoAtualETextoAntesRevisao = contemRevisao ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : undefined;
-  if (contemRevisao && !possuiInsOuDel(diferencaEntreTextoAtualETextoAntesRevisao!)) {
-    diferencaEntreTextoAtualETextoAntesRevisao = substituiEspacosPorNbsp(textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffChars'), ['ins', 'del']);
+  if (contemRevisao) {
+    diferencaSemEspacosDuplicados = diferencaEntreTextoAtualETextoAntesRevisao!.replace(/\s+/g, ' ');
+    diferencaEntreTextoAtualETextoAntesRevisao = substituiEspacosPorNbsp(textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaEntreTextoAtualETextoAntesRevisao!, 'diffChars'), [
+      'ins',
+      'del',
+    ]);
   }
 
   const tabPanelModificado =
