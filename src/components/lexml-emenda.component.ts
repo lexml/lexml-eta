@@ -209,7 +209,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
     emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
-    emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
+    emenda.epigrafe.texto = 'EMENDA Nº         ';
+    if (emenda.colegiadoApreciador.siglaComissao) {
+      emenda.epigrafe.texto += `- ${emenda.colegiadoApreciador.siglaComissao}`;
+    }
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
