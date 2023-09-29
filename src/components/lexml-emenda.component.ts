@@ -538,7 +538,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         const alerta = {
           id: 'alerta-global-justificativa',
           tipo: 'error',
-          mensagem: 'A emenda não possui uma justificativa',
+          mensagem: 'A emenda não possui uma justificação',
           podeFechar: false,
         };
         rootStore.dispatch(adicionarAlerta(alerta));
@@ -661,7 +661,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
-            <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
+            <sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>
             <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
