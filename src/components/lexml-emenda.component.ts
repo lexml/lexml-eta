@@ -62,6 +62,14 @@ export class LexmlEmendaParametrosEdicao {
 
   // Identificação do usuário para registro de marcas de revisão
   usuario?: Usuario;
+
+  // Preferências de usuário ----
+
+  // Autoria padrão
+  autoriaPadrao?: { identificacao: string; siglaCasaLegislativa: 'SF' | 'CD' };
+
+  // Opções de impressão padrão
+  opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 }
 
 @customElement('lexml-emenda')
