@@ -267,8 +267,17 @@ export const montarListaDispositivosExistentes = (articulacao: Articulacao, arti
 
   const idsColados = getDispositivoAndFilhosAsLista(articulacaoColada)
     .filter(d => d.tipo !== 'Articulacao')
-    .map(d => d.id);
-  return getDispositivoAndFilhosAsLista(articulacao).filter(d => isOriginal(d) && idsColados.includes(d.id));
+    .map(d => d.id)
+    .reduce((acc, cur) => {
+      if (cur) {
+        acc.push(cur);
+        if (cur.endsWith('_par1')) {
+          acc.push(cur.replace('_par1', '_par1u'));
+        }
+      }
+      return acc;
+    }, [] as string[]);
+  return getDispositivoAndFilhosAsLista(articulacao).filter(d => isOriginal(d) && idsColados.includes(d.id!));
 };
 
 export const montarListaDispositivosNovos = (articulacao: Articulacao, articulacaoColada: Articulacao, referencia?: Dispositivo): Dispositivo[] => {
