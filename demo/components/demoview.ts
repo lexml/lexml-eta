@@ -155,7 +155,7 @@ export class DemoView extends LitElement {
     if (this.elDocumento && elmAcao) {
       this.modo = elmAcao.value;
       setTimeout(() => {
-        this.projetoNorma = this.elDocumento.value === 'sem_texto' ? null : { ...mapProjetosNormas[this.elDocumento.value] };
+        this.projetoNorma = this.elDocumento.value.indexOf('sem_texto') >= 0 ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
@@ -163,9 +163,13 @@ export class DemoView extends LitElement {
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
           } else {
-            params.urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2023;3';
-            params.ementa =
-              'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).';
+            params.proposicao = {
+              sigla: 'PL',
+              numero: '3',
+              ano: '2023',
+              ementa:
+                'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).',
+            };
           }
           params.motivo = 'Motivo da emenda de texto livre';
           this.elLexmlEmenda.inicializarEdicao(params);

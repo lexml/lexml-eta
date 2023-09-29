@@ -15,7 +15,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
+import { buildFakeUrn, getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
@@ -41,10 +41,14 @@ export class LexmlEmendaParametrosEdicao {
   modo = 'Emenda';
 
   // Identificação da proposição (texto) emendado.
-  // Preenchido automaticamente se for informada a emenda ou o projetoNorma
-  urn = '';
+  // Opcional se for informada a emenda ou o projetoNorma
+  proposicao?: {
+    sigla: string;
+    numero: string;
+    ano: string;
+    ementa: string;
+  };
 
-  // Ementa da proposição.
   // Preenchido automaticamente se for informada a emenda ou o projetoNorma
   ementa = '';
 
@@ -268,8 +272,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
-    this.urn = params.urn; // Preferência para a URN informada
-    this.ementa = params.ementa; // Preferência para a ementa informada
+    if (params.proposicao) {
+      // Preferência para a proposição informada
+      this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
+      this.ementa = params.proposicao.ementa; // Preferência para a ementa informada
+    }
 
     // Se não forem informados, utilizar da Emenda
     if (params.emenda) {

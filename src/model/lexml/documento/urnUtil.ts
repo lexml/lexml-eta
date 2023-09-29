@@ -93,6 +93,15 @@ export const buildUrn = (autoridade: string, tipo: string, numero: string, data:
   return `urn:lex:br:${autoridade}:${tipo}:${dataPadrao};${numero}`;
 };
 
+// Para inicialização de edição de emenda sem texto lexml
+export const buildFakeUrn = (sigla: string, numero: string, ano: string): string => {
+  const fake = VOCABULARIO.fakeUrns.find(f => f.sigla === sigla.toUpperCase());
+  if (fake) {
+    return buildUrn(fake.urnAutoridade, fake.urnTipoDocumento, numero, ano);
+  }
+  throw `Sigla '${sigla}' não encontrada no vocabulário para montagem da urn.`;
+};
+
 export const validaUrn = (urn: string): boolean => {
   const autoridade = getAutoridade(urn)?.urn;
   const tipo = getTipo(urn)?.urn;
