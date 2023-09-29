@@ -43,15 +43,6 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
       margin: 0 auto;
     }
 
-    .texto-alterado ins {
-      background-color: #c6ffc6;
-      text-decoration: none;
-    }
-
-    .texto-alterado del {
-      background-color: #ffc6c6;
-    }
-
     .texto-alterado table {
       border-collapse: collapse;
       width: 100%;
@@ -88,6 +79,14 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
       }
     }
 
+    ins, ins > * {
+      background-color: #c6ffc6 !important;
+      text-decoration: none;
+    }
+
+    del, del > * {
+      background-color: #ffc6c6;
+    }
   </style>
   <div class="texto-alterado-texto-rico">
     <div class="texto-alterado">
@@ -116,7 +115,7 @@ const getOcorrenciasAberturaTag = (tag: string, texto: string): string[] => {
 const transformatTagP = (texto: string): string => {
   const regexAberturaTag = new RegExp('<p\\b[^>]*>', 'gi');
   const regexFechamentoTag = new RegExp('</p>', 'gi');
-  return texto.replace(regexAberturaTag, () => `\n`).replace(regexFechamentoTag, ``);
+  return texto.replace(regexAberturaTag, () => `\n`).replace(regexFechamentoTag, `[[fimP]]`);
 };
 
 export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOriginal: string): string => {
@@ -138,15 +137,9 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
     diferencas = substituiEspacosEntreTagsPorNbsp(textoDiffAsHtml(textoAntesRevisao, textoAtual, 'diffChars'), ['ins', 'del']);
   }
 
-  // Ajusta as tags <ins> e <del> para que fiquem "dentro" das tags <p>
-  diferencas = diferencas
-    .replace(/\n<\/ins>/g, '</ins>\n')
-    .replace(/<ins>\n/g, '\n<ins>')
-    .replace(/\n<\/del>/g, '</del>\n')
-    .replace(/<del>\n/g, '\n<del>');
-
-  // Substitui "\n" pelas ocorrencias de abertura de tags <p>
-  diferencas = ocorrenciasTagPTextoAtual.reduce((acc, p, index) => acc.replace(/\n/, index ? '</p>' + p : p), diferencas) + '</p>';
+  // Substitui "\n" pelas ocorrencias de abertura de tags <p> e "[[fimP]]" por "</p>
+  diferencas = ocorrenciasTagPTextoAtual.reduce((acc, p) => acc.replace(/\n/, p), diferencas).replace(/\[\[fimP\]\]/g, '</p>');
+  diferencas = diferencas.replace(/(<p\b[^>]*>)(<\/p>)/g, '$1<br>$2');
 
   // Substitui inconsistências no fechamento de tags
   return diferencas.replace(/>>/g, '>');
