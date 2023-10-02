@@ -118,11 +118,52 @@ const transformatTagP = (texto: string): string => {
   return texto.replace(regexAberturaTag, () => `\n`).replace(regexFechamentoTag, `[[fimP]]`);
 };
 
+const transformaTagImg = (texto: string, tags: any[]): string => {
+  const regexTagImg = new RegExp('(<img\\b[^>]*>)', 'g');
+  texto = texto.replace(regexTagImg, TAG_TRANSFORMED_AUX);
+
+  while (texto.indexOf(TAG_TRANSFORMED_AUX) !== -1) {
+    tags.forEach(tag => {
+      texto = texto.replace(TAG_TRANSFORMED_AUX, TAG_TRANSFORMED + tag.index);
+    });
+  }
+
+  return texto;
+};
+
+const replaceTagImg = (texto: string, listaTagsEncontradas: any[]): string => {
+  listaTagsEncontradas.forEach(tag => {
+    texto = texto.replace(TAG_TRANSFORMED + tag.index, tag[0]);
+  });
+  return texto;
+};
+
+const TAG_TRANSFORMED = 'tagImgTransformed';
+const TAG_TRANSFORMED_AUX = 'tagImgTransformedAux';
+
+const contemImagem = (texto: string): boolean => {
+  const regexImg = /<img\b[^>]*>/g;
+  return regexImg.test(texto);
+};
+
+const getAllTagsImg = (texto: string): any[] => {
+  const regexImg = /<img\b[^>]*>/g;
+
+  const listaTagsEncontradas = [] as any;
+  let match;
+  while ((match = regexImg.exec(texto))) {
+    listaTagsEncontradas.push(match);
+  }
+
+  return listaTagsEncontradas;
+};
+
 export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOriginal: string): string => {
   // Remove as tags <br> do texto
   const regexMatchBR = /<br\b[^>]*>/gi;
   let textoAntesRevisao = textoAntesRevisaoOriginal.replace(regexMatchBR, '');
   let textoAtual = textoAtualOriginal.replace(regexMatchBR, '');
+  let replacedTagImg = false;
 
   // Identifica as aberturas de tags <p>
   const ocorrenciasTagPTextoAtual = getOcorrenciasAberturaTag('p', textoAtual);
@@ -131,10 +172,27 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
   textoAntesRevisao = transformatTagP(textoAntesRevisao);
   textoAtual = transformatTagP(textoAtual);
 
+  let tagsImgTextoAntesRevisao;
+  let tagsImgTextoAtual;
+
+  if (contemImagem(textoAtual) || contemImagem(textoAntesRevisao)) {
+    tagsImgTextoAntesRevisao = getAllTagsImg(textoAntesRevisao);
+    tagsImgTextoAtual = getAllTagsImg(textoAtual);
+
+    textoAntesRevisao = transformaTagImg(textoAntesRevisao, tagsImgTextoAntesRevisao);
+    textoAtual = transformaTagImg(textoAtual, tagsImgTextoAtual);
+    replacedTagImg = true;
+  }
+
   // Calcula a diferença entre os textos
   let diferencas = textoDiffAsHtml(textoAntesRevisao, textoAtual, 'diffWords');
   if (!/<ins>|<del>/.test(diferencas)) {
     diferencas = substituiEspacosEntreTagsPorNbsp(textoDiffAsHtml(textoAntesRevisao, textoAtual, 'diffChars'), ['ins', 'del']);
+  }
+
+  if (replacedTagImg) {
+    diferencas = replaceTagImg(diferencas, tagsImgTextoAntesRevisao);
+    diferencas = replaceTagImg(diferencas, tagsImgTextoAtual);
   }
 
   // Substitui "\n" pelas ocorrencias de abertura de tags <p> e "[[fimP]]" por "</p>
