@@ -529,18 +529,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private removerElemento(): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
-    const mensagem = `Você realmente deseja remover o dispositivo ${linha.blotRotulo?.rotulo}?`;
-
     const elementoLinhaAnterior = this.quill.linhaAtual.prev?.elemento;
-
-    this.confirmar(mensagem, ['Sim', 'Não'], (event: CustomEvent) => {
-      const choice: any = event.detail.closeResult;
-      if (choice === 'Sim') {
-        const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
-        rootStore.dispatch(removerElementoAction.execute(elemento, elementoLinhaAnterior));
-      }
-      this.quill.focus();
-    });
+    const elemento: Elemento = this.criarElemento(linha!.uuid ?? 0, linha!.uuid2, linha.lexmlId, linha!.tipo ?? '', '', linha.numero, linha.hierarquia);
+    rootStore.dispatch(removerElementoAction.execute(elemento, elementoLinhaAnterior));
   }
 
   private moverElemento(ev: KeyboardEvent): void {
