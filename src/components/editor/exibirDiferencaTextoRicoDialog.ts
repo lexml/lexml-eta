@@ -158,6 +158,16 @@ const getAllTagsImg = (texto: string): any[] => {
   return listaTagsEncontradas;
 };
 
+const adicionaQuebraDeLinhaInicioTabela = (texto: string): string => {
+  //const regexExisteParagrafoAntesDeTabela = /<\/p>+<table\b[^>]*>/g;
+  const regexExisteParagrafoAntesDeTabela = /<p\b[^>]*>+<\/p>+<table\b[^>]*>/g;
+
+  if (!regexExisteParagrafoAntesDeTabela.test(texto)) {
+    texto = texto.replace(/(<table\b[^>]*>)/g, '<p></p>$1');
+  }
+  return texto;
+};
+
 export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOriginal: string): string => {
   // Remove as tags <br> do texto
   const regexMatchBR = /<br\b[^>]*>/gi;
@@ -168,12 +178,16 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
   // Identifica as aberturas de tags <p>
   const ocorrenciasTagPTextoAtual = getOcorrenciasAberturaTag('p', textoAtual);
 
+  //adiciona parágrafo antes da tag table
+  textoAntesRevisao = adicionaQuebraDeLinhaInicioTabela(textoAntesRevisao);
+  textoAtual = adicionaQuebraDeLinhaInicioTabela(textoAtual);
+
   // Substitui as tags <p> por "\n" para que "textoDiffAsHtml (diffWords)" funcione corretamente
   textoAntesRevisao = transformatTagP(textoAntesRevisao);
   textoAtual = transformatTagP(textoAtual);
 
-  let tagsImgTextoAntesRevisao;
-  let tagsImgTextoAtual;
+  let tagsImgTextoAntesRevisao = [] as any;
+  let tagsImgTextoAtual = [] as any;
 
   if (contemImagem(textoAtual) || contemImagem(textoAntesRevisao)) {
     tagsImgTextoAntesRevisao = getAllTagsImg(textoAntesRevisao);
