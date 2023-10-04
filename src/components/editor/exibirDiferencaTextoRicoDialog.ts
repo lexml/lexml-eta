@@ -158,12 +158,13 @@ const getAllTagsImg = (texto: string): any[] => {
   return listaTagsEncontradas;
 };
 
-const adicionaQuebraDeLinhaInicioTabela = (texto: string): string => {
+const adicionaParagrafoInicioTabela = (texto: string): string => {
   //const regexExisteParagrafoAntesDeTabela = /<\/p>+<table\b[^>]*>/g;
-  const regexExisteParagrafoAntesDeTabela = /<p\b[^>]*>+<\/p>+<table\b[^>]*>/g;
+  //const regexExisteParagrafoAntesDeTabela = /<p\b[^>]*>+<\/p>+<table\b[^>]*>/g;
+  const regexExisteParagrafoAntesDeTabela = /(<p\b[^>]*>(?!<\/p>).*?<\/p>)(<table\b[^>]*>)/gim;
 
-  if (!regexExisteParagrafoAntesDeTabela.test(texto)) {
-    texto = texto.replace(/(<table\b[^>]*>)/g, '<p></p>$1');
+  if (regexExisteParagrafoAntesDeTabela.test(texto)) {
+    texto = texto.replace(regexExisteParagrafoAntesDeTabela, '$1<p></p>$2');
   }
   return texto;
 };
@@ -179,8 +180,8 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
   const ocorrenciasTagPTextoAtual = getOcorrenciasAberturaTag('p', textoAtual);
 
   //adiciona parágrafo antes da tag table
-  textoAntesRevisao = adicionaQuebraDeLinhaInicioTabela(textoAntesRevisao);
-  textoAtual = adicionaQuebraDeLinhaInicioTabela(textoAtual);
+  textoAntesRevisao = adicionaParagrafoInicioTabela(textoAntesRevisao);
+  textoAtual = adicionaParagrafoInicioTabela(textoAtual);
 
   // Substitui as tags <p> por "\n" para que "textoDiffAsHtml (diffWords)" funcione corretamente
   textoAntesRevisao = transformatTagP(textoAntesRevisao);
