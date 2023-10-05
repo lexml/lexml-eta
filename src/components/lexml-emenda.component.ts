@@ -33,6 +33,7 @@ import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { generoFromLetra } from '../model/dispositivo/genero';
+import { Comissao } from './destino/comissao';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -70,6 +71,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
+  @property({ type: Array }) comissoes: Comissao[] = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = ClassificacaoDocumento.EMENDA;
@@ -95,6 +97,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlEmendaTextoRico;
   @query('#editor-texto-rico-justificativa')
   _lexmlJustificativa;
+  @query('lexml-destino')
+  _lexmlDestino;
   @query('lexml-autoria')
   _lexmlAutoria;
   @query('lexml-data')
@@ -133,8 +137,37 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
+  async getComissoes(): Promise<Comissao[]> {
+    if (!this.lexmlEmendaConfig.urlComissoes) {
+      return Promise.resolve([
+        { siglaCasaLegislativa: 'SF', sigla: 'CMA', nome: 'Comissão de Meio Ambiente' },
+        { siglaCasaLegislativa: 'SF', sigla: 'CAS', nome: 'Comissão de Assuntos Sociais' },
+        { siglaCasaLegislativa: 'SF', sigla: 'CCT', nome: 'Comissão de Ciência, Tecnologia, Inovação e Informática' },
+        { siglaCasaLegislativa: 'SF', sigla: 'CCJ', nome: 'Comissão de Constituição, Justiça e Cidadania' },
+      ]);
+    }
+
+    try {
+      const _response = await fetch(this.lexmlEmendaConfig.urlComissoes);
+      const _comissoes = await _response.json();
+      return _comissoes.map(c => ({
+        siglaCasaLegislativa: c.siglaCasaLegislativa,
+        sigla: c.sigla,
+        nome: c.nome,
+      }));
+    } catch (err) {
+      console.log('Erro inesperado ao carregar lista de comissões');
+      console.log(err);
+    }
+    return Promise.resolve([]);
+  }
+
   atualizaListaParlamentares(): void {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
+  }
+
+  atualizaListaComissoes(): void {
+    this.getComissoes().then(comissoes => (this.comissoes = comissoes));
   }
 
   private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
@@ -195,7 +228,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
-    emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
+    emenda.colegiadoApreciador = this._lexmlDestino.colegiadoApreciador;
+    //emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
@@ -325,6 +359,19 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
+    this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
+    this._lexmlDestino.proposicao = emenda.proposicao;
+    console.log(emenda);
+    // this._lexmlDestino.comissoes = [
+    //   { siglaCasaLegislativa: 'CD', sigla: 'CCJ', nome: 'Nome de Comissão: CCJ' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'ABCD', nome: 'Nome de Comissão: ABCD' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'ZWY', nome: 'Nome de Comissão: ZWY' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'MNH', nome: 'Nome de Comissão: MNH' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'LOP', nome: 'Nome de Comissão: LOP' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'RTZK', nome: 'Nome de Comissão: RTZK' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'AAS', nome: 'Nome de Comissão: AAS' },
+    //   { siglaCasaLegislativa: 'CD', sigla: 'AAAD', nome: 'Nome de Comissão: AAAD' },
+    // ];
     this._lexmlJustificativa.setContent(emenda.justificativa);
     if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
@@ -394,6 +441,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   protected firstUpdated(): void {
     setTimeout(() => this.atualizaListaParlamentares(), 5000);
+    setTimeout(() => this.atualizaListaComissoes(), 5000);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
@@ -404,6 +452,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       } else if (tabName === 'autoria') {
         this.parlamentares.length === 0 && this.atualizaListaParlamentares();
+        this.comissoes.length === 0 && this.atualizaListaComissoes();
       }
     });
 
@@ -654,7 +703,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
-            <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
+            <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -679,6 +728,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">
+                <lexml-destino .comissoes=${this.comissoes}></lexml-destino>
+                <br />
                 <lexml-data></lexml-data>
                 <br />
                 <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>

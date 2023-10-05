@@ -38,7 +38,8 @@ export { AtalhosComponent as HelpComponent } from './components/ajuda/atalhos.co
 export { EditorTextoRicoComponent } from './components/editor-texto-rico/editor-texto-rico.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
-export { LexmlAutocomplete } from './components/autoria/lexml-autocomplete';
+export { DestinoComponent } from './components/destino/destino.component';
+export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { DataComponent } from './components/data/data.component';
 export { LexmlEmendaComponent, LexmlEmendaParametrosEdicao } from './components/lexml-emenda.component';
 export { LexmlEmendaConfig } from './model/lexmlEmendaConfig';

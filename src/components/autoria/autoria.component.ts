@@ -5,7 +5,7 @@ import { REGEX_ACCENTS } from './../../util/string-util';
 import { Parlamentar, Autoria } from '../../model/emenda/emenda';
 import { incluirParlamentar, excluirParlamentar, moverParlamentar } from '../../model/autoria/parlamentarUtil';
 import { autoriaCss } from '../../assets/css/autoria.css';
-import { LexmlAutocomplete } from './lexml-autocomplete';
+import { LexmlAutocomplete } from '../lexml-autocomplete';
 
 const parlamentarVazio = new Parlamentar();
 
