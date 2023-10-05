@@ -1,5 +1,6 @@
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { substituiEspacosEntreTagsPorNbsp, textoDiffAsHtml } from '../../util/string-util';
+//import diff from 'html-diff-ts';
 
 export class TextoRicoDiff {
   quill!: EtaQuill;
@@ -7,7 +8,7 @@ export class TextoRicoDiff {
   textoAtual!: string;
 }
 
-export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
+export const exibirDiferencasTextoRicoDialog = (diffTextoRico: TextoRicoDiff): void => {
   Array.from(document.querySelectorAll('#slDialogExibirDiferencasTextoRico')).forEach(el => document.body.removeChild(el));
 
   const dialogElem = document.createElement('sl-dialog');
@@ -16,11 +17,13 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
   document.body.appendChild(dialogElem);
   dialogElem.label = 'Exibir diferenças após revisão';
 
-  const diferencas = diff.textoAntesRevisao !== diff.textoAtual ? calcDiferenca(diff.textoAntesRevisao, diff.textoAtual) : `<p>Não existe diferença</p>`;
+  const diferencas =
+    diffTextoRico.textoAntesRevisao !== diffTextoRico.textoAtual ? calcDiferenca(diffTextoRico.textoAntesRevisao, diffTextoRico.textoAtual) : `<p>Não existe diferença</p>`;
+  //const diferencas = diff(diffTextoRico.textoAntesRevisao, diffTextoRico.textoAtual);
 
   const fnDestroy = (): void => {
     try {
-      diff.quill && diff.quill.focus();
+      diffTextoRico.quill && diffTextoRico.quill.focus();
       dialogElem?.hide();
       document.body.removeChild(dialogElem);
     } catch (error) {
@@ -102,7 +105,7 @@ export const exibirDiferencasTextoRicoDialog = (diff: TextoRicoDiff): void => {
 
   fechar.onclick = (): Promise<void> => dialogElem?.hide();
 
-  diff.quill && diff.quill.blur();
+  diffTextoRico.quill && diffTextoRico.quill.blur();
   dialogElem.appendChild(content);
   dialogElem.show();
 };
@@ -115,43 +118,51 @@ const getOcorrenciasAberturaTag = (tag: string, texto: string): string[] => {
 const transformatTagP = (texto: string): string => {
   const regexAberturaTag = new RegExp('<p\\b[^>]*>', 'gi');
   const regexFechamentoTag = new RegExp('</p>', 'gi');
-  return texto.replace(regexAberturaTag, () => `\n`).replace(regexFechamentoTag, `[[fimP]]`);
+  return texto.replace(regexAberturaTag, () => `\n`).replace(regexFechamentoTag, `tagPFim`);
 };
 
-const transformaTagImg = (texto: string, tags: any[]): string => {
-  const regexTagImg = new RegExp('(<img\\b[^>]*>)', 'g');
-  texto = texto.replace(regexTagImg, TAG_TRANSFORMED_AUX);
+const transformaTag = (texto: string, tags: any[], regex: any, padrao: string, padraoAux: string): string => {
+  texto = texto.replace(regex, padraoAux);
 
-  while (texto.indexOf(TAG_TRANSFORMED_AUX) !== -1) {
+  while (texto.indexOf(padraoAux) !== -1) {
     tags.forEach(tag => {
-      texto = texto.replace(TAG_TRANSFORMED_AUX, TAG_TRANSFORMED + tag.index);
+      texto = texto.replace(padraoAux, padrao + tag.index);
     });
   }
 
   return texto;
 };
 
-const replaceTagImg = (texto: string, listaTagsEncontradas: any[]): string => {
+const replaceTag = (texto: string, listaTagsEncontradas: any[], padrao: string): string => {
   listaTagsEncontradas.forEach(tag => {
-    texto = texto.replace(TAG_TRANSFORMED + tag.index, tag[0]);
+    texto = texto.replace(padrao + tag.index, tag[0]);
   });
   return texto;
 };
 
-const TAG_TRANSFORMED = 'tagImgTransformed';
-const TAG_TRANSFORMED_AUX = 'tagImgTransformedAux';
+const TAG_IMG_TRANSFORMED = 'tagImgTransformed';
+const TAG_IMG_TRANSFORMED_AUX = 'tagImgTransformedAux';
+
+const TAG_TD_TRANSFORMED = 'tagTdTransformed';
+const TAG_TD_TRANSFORMED_END = 'tagTdTransformedEnd';
+const TAG_TD_TRANSFORMED_AUX = 'tagTdTransformedAux';
 
 const contemImagem = (texto: string): boolean => {
   const regexImg = /<img\b[^>]*>/g;
   return regexImg.test(texto);
 };
 
-const getAllTagsImg = (texto: string): any[] => {
-  const regexImg = /<img\b[^>]*>/g;
+const contemTd = (texto: string): boolean => {
+  const regexTd = /<td\b[^>]*>/g;
+  return regexTd.test(texto);
+};
+
+const getAllTags = (texto: string, regex: any): any[] => {
+  //const regexImg = /<img\b[^>]*>/g;
 
   const listaTagsEncontradas = [] as any;
   let match;
-  while ((match = regexImg.exec(texto))) {
+  while ((match = regex.exec(texto))) {
     listaTagsEncontradas.push(match);
   }
 
@@ -172,9 +183,16 @@ const adicionaParagrafoInicioTabela = (texto: string): string => {
 export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOriginal: string): string => {
   // Remove as tags <br> do texto
   const regexMatchBR = /<br\b[^>]*>/gi;
+  const regexFimTd = /<\/td>/g;
+
   let textoAntesRevisao = textoAntesRevisaoOriginal.replace(regexMatchBR, '');
   let textoAtual = textoAtualOriginal.replace(regexMatchBR, '');
+
+  textoAntesRevisao = textoAntesRevisao.replace(regexFimTd, TAG_TD_TRANSFORMED_END);
+  textoAtual = textoAtual.replace(regexFimTd, TAG_TD_TRANSFORMED_END);
+
   let replacedTagImg = false;
+  let replacedTagTd = false;
 
   // Identifica as aberturas de tags <p>
   const ocorrenciasTagPTextoAtual = getOcorrenciasAberturaTag('p', textoAtual);
@@ -190,13 +208,27 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
   let tagsImgTextoAntesRevisao = [] as any;
   let tagsImgTextoAtual = [] as any;
 
-  if (contemImagem(textoAtual) || contemImagem(textoAntesRevisao)) {
-    tagsImgTextoAntesRevisao = getAllTagsImg(textoAntesRevisao);
-    tagsImgTextoAtual = getAllTagsImg(textoAtual);
+  let tagsTdTextoAntesRevisao = [] as any;
+  let tagsTdTextoAtual = [] as any;
 
-    textoAntesRevisao = transformaTagImg(textoAntesRevisao, tagsImgTextoAntesRevisao);
-    textoAtual = transformaTagImg(textoAtual, tagsImgTextoAtual);
+  if (contemImagem(textoAtual) || contemImagem(textoAntesRevisao)) {
+    const regex = /<img\b[^>]*>/g;
+    tagsImgTextoAntesRevisao = getAllTags(textoAntesRevisao, regex);
+    tagsImgTextoAtual = getAllTags(textoAtual, regex);
+
+    textoAntesRevisao = transformaTag(textoAntesRevisao, tagsImgTextoAntesRevisao, regex, TAG_IMG_TRANSFORMED, TAG_IMG_TRANSFORMED_AUX);
+    textoAtual = transformaTag(textoAtual, tagsImgTextoAtual, regex, TAG_IMG_TRANSFORMED, TAG_IMG_TRANSFORMED_AUX);
     replacedTagImg = true;
+  }
+
+  if (contemTd(textoAtual) || contemTd(textoAntesRevisao)) {
+    const regex = /<td\b[^>]*>/g;
+    tagsTdTextoAntesRevisao = getAllTags(textoAntesRevisao, regex);
+    tagsTdTextoAtual = getAllTags(textoAtual, regex);
+
+    textoAntesRevisao = transformaTag(textoAntesRevisao, tagsTdTextoAntesRevisao, regex, TAG_TD_TRANSFORMED, TAG_TD_TRANSFORMED_AUX);
+    textoAtual = transformaTag(textoAtual, tagsTdTextoAtual, regex, TAG_TD_TRANSFORMED, TAG_TD_TRANSFORMED_AUX);
+    replacedTagTd = true;
   }
 
   // Calcula a diferença entre os textos
@@ -206,12 +238,27 @@ export const calcDiferenca = (textoAntesRevisaoOriginal: string, textoAtualOrigi
   }
 
   if (replacedTagImg) {
-    diferencas = replaceTagImg(diferencas, tagsImgTextoAntesRevisao);
-    diferencas = replaceTagImg(diferencas, tagsImgTextoAtual);
+    diferencas = replaceTag(diferencas, tagsImgTextoAntesRevisao, TAG_IMG_TRANSFORMED);
+    diferencas = replaceTag(diferencas, tagsImgTextoAtual, TAG_IMG_TRANSFORMED);
+  }
+
+  if (replacedTagTd) {
+    diferencas = replaceTag(diferencas, tagsTdTextoAntesRevisao, TAG_TD_TRANSFORMED);
+    diferencas = replaceTag(diferencas, tagsTdTextoAtual, TAG_TD_TRANSFORMED);
+    diferencas = diferencas.replace(/<del>tagTdTransformedEnd/g, 'tagTdTransformedEnd<del>');
+    diferencas = diferencas.replace(/<\/del>tagTdTransformedEnd/g, 'tagTdTransformedEnd</del>');
+
+    diferencas = diferencas.replace(/<ins>tagTdTransformedEnd/g, 'tagTdTransformedEnd<ins>');
+    diferencas = diferencas.replace(/<\/ins>tagTdTransformedEnd/g, 'tagTdTransformedEnd</ins>');
+
+    diferencas = diferencas.replace(/<\/del>tagTdTransformedEnd/g, 'tagTdTransformedEnd</del>');
+
+    // diferencas = diferencas.replace(/(<\/ins>)(\/n)(tagPFim)(tagTdTransformedEnd)/g, '$2$3$4$1');
+    diferencas = diferencas.replace(/tagTdTransformedEnd/g, '</td>');
   }
 
   // Substitui "\n" pelas ocorrencias de abertura de tags <p> e "[[fimP]]" por "</p>
-  diferencas = ocorrenciasTagPTextoAtual.reduce((acc, p) => acc.replace(/\n/, p), diferencas).replace(/\[\[fimP\]\]/g, '</p>');
+  diferencas = ocorrenciasTagPTextoAtual.reduce((acc, p) => acc.replace(/\n/, p), diferencas).replace(/tagPFim/g, '</p>');
   diferencas = diferencas.replace(/(<p\b[^>]*>)(<\/p>)/g, '$1<br>$2');
 
   // Substitui inconsistências no fechamento de tags
