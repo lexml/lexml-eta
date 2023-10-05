@@ -15,7 +15,6 @@ export const editarNotaAlteracaoDialog = (elemento: Elemento, quill: any, store:
     const content = document.createRange().createContextualFragment(`
     <sl-radio-group fieldset label="Selecione o tipo de nota de alteração:">
       <sl-radio class="nota" id="nota-nr" value="NR">Nova redação '(NR)'</sl-radio>
-      <sl-radio class="nota" id="nota-ac" value="AC">Acréscimo '(AC)'</sl-radio>
       <sl-radio class="nota" id="nota-vazia" value="">Sem nota de alteração</sl-radio>
     </sl-radio-group>
     <sl-button slot="footer" variant="default">Cancelar</sl-button>
@@ -24,11 +23,11 @@ export const editarNotaAlteracaoDialog = (elemento: Elemento, quill: any, store:
 
     const opcoes = {
       NR: content.querySelector('#nota-nr'),
-      AC: content.querySelector('#nota-ac'),
       VZ: content.querySelector('#nota-vazia'),
     };
 
-    opcoes[elemento.notaAlteracao || 'VZ'].checked = true;
+    const notaAlteracao = elemento.notaAlteracao === 'AC' ? undefined : elemento.notaAlteracao;
+    opcoes[notaAlteracao || 'VZ'].checked = true;
 
     const botoes = content.querySelectorAll('sl-button');
     const cancelar = botoes[0];

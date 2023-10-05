@@ -4,6 +4,7 @@ import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
 import { ClassificacaoDocumento } from '../../../documento/classificacao';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispositivo/dispositivoLexmlFactory';
+import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
 import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
 import { getTipo } from '../urnUtil';
@@ -11,6 +12,35 @@ import { isArtigo } from './../../../dispositivo/tipo';
 
 export let isEmendamento = false;
 let ultimoDispositivoCriado: Dispositivo;
+
+// Workaround para o problema de textos que possuam tags <b> ou <i> contendo <a> no meio
+// O Quill faz um tratamento para que as tags <b> e <i> fiquem dentro da tag <a>
+// Nesse caso, é necessário fazer esse ajuste antecipadamente para que o editor não trate a transformação como uma alteração
+const ajustarTextosParaQuill = (projetoNorma: ProjetoNorma): void => {
+  if (window.process.env.testMode) return;
+
+  const fnAjustaFormatoQuill = (texto: string, container: any, quill: Quill): string => {
+    const regexMatchTagsBoldOuItalicContendoTagAnchorDentro = /<(b|i)>(?:(?!(<\/\1>)).)*<a[^>]*>.*<\/a>.*<\/\1>/gi;
+    if (texto?.match(regexMatchTagsBoldOuItalicContendoTagAnchorDentro)) {
+      quill.setContents(quill.clipboard.convert(texto));
+      return container.querySelector('.ql-editor p')!.innerHTML;
+    }
+    return texto;
+  };
+
+  const tempContainer = document.createElement('div');
+  const tempQuill = new Quill(tempContainer, {});
+
+  if (projetoNorma.ementa) {
+    projetoNorma.ementa.texto = fnAjustaFormatoQuill(projetoNorma.ementa.texto, tempContainer, tempQuill);
+  }
+
+  if (projetoNorma.articulacao) {
+    getDispositivoAndFilhosAsLista(projetoNorma.articulacao).forEach(d => {
+      d.texto = fnAjustaFormatoQuill(d.texto, tempContainer, tempQuill);
+    });
+  }
+};
 
 export const buildProjetoNormaFromJsonix = (documentoLexml: any, emendamento = false): ProjetoNorma => {
   isEmendamento = emendamento;
@@ -33,6 +63,8 @@ export const buildProjetoNormaFromJsonix = (documentoLexml: any, emendamento = f
       projetoNorma.ementa.pai = projetoNorma.articulacao;
     }
   }
+
+  ajustarTextosParaQuill(projetoNorma);
 
   return projetoNorma;
 };

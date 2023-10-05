@@ -151,7 +151,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
         <sl-tooltip id="${this.getIdTooltip()}" placement="bottom-end">
           <div slot="content">
-            <div>${this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificativa' : 'Revisões no texto livre'}</div>
+            <div>${this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificação' : 'Revisões no texto livre'}</div>
           </div>
           <sl-icon name="person-check-fill"></sl-icon>
         </sl-tooltip>
@@ -507,7 +507,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private getTitle = (): string => {
-    return this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificativa' : 'Revisões no texto livre';
+    return this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificação' : 'Revisões no texto livre';
   };
 
   private getMensagemRevisoes = (): string => {

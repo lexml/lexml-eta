@@ -15,7 +15,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
-import { getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
+import { buildFakeUrn, getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
@@ -41,10 +41,14 @@ export class LexmlEmendaParametrosEdicao {
   modo = 'Emenda';
 
   // Identificação da proposição (texto) emendado.
-  // Preenchido automaticamente se for informada a emenda ou o projetoNorma
-  urn = '';
+  // Opcional se for informada a emenda ou o projetoNorma
+  proposicao?: {
+    sigla: string;
+    numero: string;
+    ano: string;
+    ementa: string;
+  };
 
-  // Ementa da proposição.
   // Preenchido automaticamente se for informada a emenda ou o projetoNorma
   ementa = '';
 
@@ -62,6 +66,14 @@ export class LexmlEmendaParametrosEdicao {
 
   // Identificação do usuário para registro de marcas de revisão
   usuario?: Usuario;
+
+  // Preferências de usuário ----
+
+  // Autoria padrão
+  autoriaPadrao?: { identificacao: string; siglaCasaLegislativa: 'SF' | 'CD' };
+
+  // Opções de impressão padrão
+  opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 }
 
 @customElement('lexml-emenda')
@@ -198,7 +210,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
     emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
-    emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
+    emenda.epigrafe.texto = 'EMENDA Nº         ';
+    if (emenda.colegiadoApreciador.siglaComissao) {
+      emenda.epigrafe.texto += `- ${emenda.colegiadoApreciador.siglaComissao}`;
+    }
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
@@ -262,8 +277,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
-    this.urn = params.urn; // Preferência para a URN informada
-    this.ementa = params.ementa; // Preferência para a ementa informada
+    if (params.proposicao) {
+      // Preferência para a proposição informada
+      this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
+      this.ementa = params.proposicao.ementa; // Preferência para a ementa informada
+    }
 
     // Se não forem informados, utilizar da Emenda
     if (params.emenda) {
@@ -534,7 +552,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         const alerta = {
           id: 'alerta-global-justificativa',
           tipo: 'error',
-          mensagem: 'A emenda não possui uma justificativa',
+          mensagem: 'A emenda não possui uma justificação',
           podeFechar: false,
         };
         rootStore.dispatch(adicionarAlerta(alerta));
@@ -657,7 +675,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
-            <sl-tab slot="nav" panel="justificativa">Justificativa</sl-tab>
+            <sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>
             <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos

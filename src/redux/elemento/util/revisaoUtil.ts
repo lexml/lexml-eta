@@ -206,7 +206,7 @@ export const isRevisaoPrincipal = (revisao: Revisao): boolean => isRevisaoElemen
 export const existeRevisaoCriadaPorExclusao = (revisoes: Revisao[] = []): boolean => revisoes.some(r => isRevisaoDeExclusao(r as RevisaoElemento));
 
 export enum RevisaoJustificativaEnum {
-  JustificativaAlterada = 'Justificativa Alterada',
+  JustificativaAlterada = 'Justificação Alterada',
 }
 
 export enum RevisaoTextoLivreEnum {
