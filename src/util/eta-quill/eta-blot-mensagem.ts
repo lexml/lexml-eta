@@ -35,7 +35,7 @@ export class EtaBlotMensagem extends EtaBlot {
       node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('mensagem', { bubbles: true, cancelable: true, detail: { mensagem } }));
     }
 
-    if (mensagem.nomeEvento !== '') {
+    if (mensagem.nomeEvento && mensagem.nomeEvento !== '') {
       node.innerHTML += `. <span class="mensagem__fix">Link.</span>`;
       node.onclick = (): boolean => node.dispatchEvent(new CustomEvent(mensagem.nomeEvento!, { bubbles: true, cancelable: true, detail: { mensagem } }));
     }
