@@ -17,6 +17,7 @@ export interface Mensagem {
   descricao?: string;
   detalhe?: any;
   fix?: any;
+  nomeEvento?: string;
 }
 
 export interface MensagemErro extends Mensagem {

@@ -102,7 +102,14 @@ export class EtaQuillUtil {
 
     if (elemento.mensagens && elemento.mensagens.length > 0) {
       elemento.mensagens.forEach((mensagem: Mensagem): void => {
-        new EtaBlotMensagem(mensagem).insertInto(etaTdMensagens);
+        if (mensagem.nomeEvento === '') {
+          new EtaBlotMensagem(mensagem).insertInto(etaTdMensagens);
+        } else {
+          const avisoJaExiste = document.getElementById('onmodalsufixos');
+          if (mensagem.nomeEvento !== '' && !avisoJaExiste) {
+            new EtaBlotMensagem(mensagem).insertInto(etaTdMensagens);
+          }
+        }
       });
     }
     new EtaBlotEspaco().insertInto(etaTdEspaco);

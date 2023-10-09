@@ -14,6 +14,10 @@ export class EtaBlotMensagem extends EtaBlot {
     const node: HTMLElement = super.create();
     let classe = '';
 
+    if (mensagem.nomeEvento !== '') {
+      node.setAttribute('id', mensagem.nomeEvento!);
+    }
+
     if (mensagem.tipo === TipoMensagem.INFO) {
       classe = 'mensagem--info';
     } else if (mensagem.tipo === TipoMensagem.WARNING) {
@@ -23,11 +27,17 @@ export class EtaBlotMensagem extends EtaBlot {
     }
 
     node.setAttribute('contenteditable', 'false');
+
     node.classList.add(classe);
     node.innerHTML = mensagem.descricao ? mensagem.descricao : '';
     if (mensagem.fix) {
       node.innerHTML += `. <span class="mensagem__fix">Corrigir agora.</span>`;
       node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('mensagem', { bubbles: true, cancelable: true, detail: { mensagem } }));
+    }
+
+    if (mensagem.nomeEvento !== '') {
+      node.innerHTML += `. <span class="mensagem__fix">Link.</span>`;
+      node.onclick = (): boolean => node.dispatchEvent(new CustomEvent(mensagem.nomeEvento!, { bubbles: true, cancelable: true, detail: { mensagem } }));
     }
     return node;
   }

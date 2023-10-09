@@ -1,6 +1,9 @@
+import { CmdEmdUtil } from '../../../emenda/comando-emenda-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { ClassificacaoDocumento } from '../../documento/classificacao';
 import {
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
@@ -15,6 +18,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
+import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
@@ -291,6 +295,19 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
   }
 
+  if (
+    !isDispositivoAlteracao(dispositivo) &&
+    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+    (dispositivo.situacao as DispositivoAdicionado).tipoEmenda !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
+    dispositivo.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+  ) {
+    const dispositivos = [] as any;
+    dispositivos.push(dispositivo);
+    if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(dispositivos)) {
+      addMensagem(mensagens, TipoMensagem.WARNING, `Entenda os sufixos de posicionamento (Ex: -0, 1, -2...)`, undefined, 'onmodalsufixos');
+    }
+  }
+
   return [...new Set(mensagens)];
 };
 
@@ -304,11 +321,11 @@ const isSeguidoDeOmissis = (dispositivo: Dispositivo): boolean => {
   return false;
 };
 
-const addMensagem = (mensagens: Mensagem[], tipo: TipoMensagem, descricao: string | AutoFix, fix?: boolean): void => {
+const addMensagem = (mensagens: Mensagem[], tipo: TipoMensagem, descricao: string | AutoFix, fix?: boolean, nomeEvento = ''): void => {
   const existe = mensagens.filter(m => m.descricao === descricao).length > 0;
   if (!existe) {
     if (fix === undefined) {
-      mensagens.push({ tipo, descricao });
+      mensagens.push({ tipo, descricao, nomeEvento });
     } else {
       mensagens.push({ tipo, descricao, fix });
     }
