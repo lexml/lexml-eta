@@ -84,6 +84,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private motivo = '';
 
+  private parlamentaresCarregados = false;
+  private comissoesCarregadas = false;
+
   // Para forçar atualização da interface
   @state()
   private updateState: any;
@@ -133,6 +136,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de parlamentares');
       console.log(err);
+    } finally {
+      this.parlamentaresCarregados = true;
+      this.habilitarBotaoAbrir();
     }
     return Promise.resolve([]);
   }
@@ -153,8 +159,21 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de comissões');
       console.log(err);
+    } finally {
+      this.comissoesCarregadas = true;
+      this.habilitarBotaoAbrir();
     }
     return Promise.resolve([]);
+  }
+
+  private habilitarBotaoAbrir(): void {
+    const btnAbrir = document.querySelector('input[type=button][value=Abrir]') as HTMLInputElement;
+
+    if (this.parlamentaresCarregados && this.comissoesCarregadas) {
+      btnAbrir.disabled = false;
+    } else {
+      btnAbrir.disabled = true;
+    }
   }
 
   atualizaListaParlamentares(): void {
@@ -230,11 +249,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
     emenda.colegiadoApreciador = this._lexmlDestino.colegiadoApreciador;
     emenda.epigrafe = new Epigrafe();
-    if (emenda.proposicao.sigla === 'MPV') {
+    if (emenda.colegiadoApreciador.tipoColegiado === 'Comissão') {
       emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
+    } else if (emenda.colegiadoApreciador.tipoColegiado === 'Plenário') {
+      emenda.epigrafe.texto = 'EMENDA Nº         ';
     } else {
       emenda.epigrafe.texto = `EMENDA Nº         - ${emenda.colegiadoApreciador.siglaComissao}`;
     }
+
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
@@ -434,6 +456,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   };
 
   protected firstUpdated(): void {
+    this.habilitarBotaoAbrir();
     setTimeout(() => this.atualizaListaParlamentares(), 5000);
     setTimeout(() => this.atualizaListaComissoes(), 5000);
 
