@@ -14,7 +14,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
+import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada } from '../model/emenda/emenda';
 import { getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
@@ -139,12 +139,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   async getComissoes(): Promise<Comissao[]> {
     if (!this.lexmlEmendaConfig.urlComissoes) {
-      return Promise.resolve([
-        { siglaCasaLegislativa: 'SF', sigla: 'CMA', nome: 'Comissão de Meio Ambiente' },
-        { siglaCasaLegislativa: 'SF', sigla: 'CAS', nome: 'Comissão de Assuntos Sociais' },
-        { siglaCasaLegislativa: 'SF', sigla: 'CCT', nome: 'Comissão de Ciência, Tecnologia, Inovação e Informática' },
-        { siglaCasaLegislativa: 'SF', sigla: 'CCJ', nome: 'Comissão de Constituição, Justiça e Cidadania' },
-      ]);
+      return Promise.resolve([]);
     }
 
     try {
@@ -193,17 +188,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const emenda = new Emenda();
     emenda.modoEdicao = this.modo;
     emenda.componentes[0].urn = this.urn;
-    if (this.urn) {
-      emenda.proposicao = {
-        urn: this.urn,
-        sigla: getSigla(this.urn),
-        numero: getNumero(this.urn),
-        ano: getAno(this.urn),
-        ementa: this.ementa,
+    emenda.proposicao = this.montarProposicaoPorUrn(this.urn, this.ementa);
+    return emenda;
+  }
+
+  private montarProposicaoPorUrn(urn: string, ementa: string): RefProposicaoEmendada {
+    if (urn) {
+      return {
+        urn: urn,
+        sigla: getSigla(urn),
+        numero: getNumero(urn),
+        ano: getAno(urn),
+        ementa: ementa,
         identificacaoTexto: 'Texto inicial',
       };
     }
-    return emenda;
+    return new RefProposicaoEmendada();
   }
 
   getEmenda(): Emenda {
@@ -229,9 +229,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
     emenda.colegiadoApreciador = this._lexmlDestino.colegiadoApreciador;
-    //emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
     emenda.epigrafe = new Epigrafe();
-    emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
+    if (emenda.proposicao.sigla === 'MPV') {
+      emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
+    } else {
+      emenda.epigrafe.texto = `EMENDA Nº         - ${emenda.colegiadoApreciador.siglaComissao}`;
+    }
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
@@ -361,17 +364,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
     this._lexmlDestino.proposicao = emenda.proposicao;
-    console.log(emenda);
-    // this._lexmlDestino.comissoes = [
-    //   { siglaCasaLegislativa: 'CD', sigla: 'CCJ', nome: 'Nome de Comissão: CCJ' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'ABCD', nome: 'Nome de Comissão: ABCD' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'ZWY', nome: 'Nome de Comissão: ZWY' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'MNH', nome: 'Nome de Comissão: MNH' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'LOP', nome: 'Nome de Comissão: LOP' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'RTZK', nome: 'Nome de Comissão: RTZK' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'AAS', nome: 'Nome de Comissão: AAS' },
-    //   { siglaCasaLegislativa: 'CD', sigla: 'AAAD', nome: 'Nome de Comissão: AAAD' },
-    // ];
+
     this._lexmlJustificativa.setContent(emenda.justificativa);
     if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
@@ -384,6 +377,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private resetaEmenda(modoEdicao = ModoEdicaoEmenda.EMENDA): void {
     const emenda = new Emenda();
     emenda.modoEdicao = modoEdicao;
+    emenda.proposicao = this.montarProposicaoPorUrn(this.urn, this.ementa);
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());

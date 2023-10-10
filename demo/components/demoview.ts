@@ -160,8 +160,10 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
+
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
+            params.urn = this.projetoNorma?.value?.metadado?.identificacao?.urn;
           } else {
             params.urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2023;3';
             params.ementa =

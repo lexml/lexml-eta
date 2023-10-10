@@ -29,6 +29,7 @@ export class DestinoComponent extends LitElement {
       this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
       this.isMPV = true;
     }
+
     this.requestUpdate();
   }
 
@@ -40,7 +41,7 @@ export class DestinoComponent extends LitElement {
   @property({ type: Array })
   set comissoes(value: Comissao[] | undefined) {
     this._comissoes = value ? value : [];
-    this._comissoesOptions = this.comissoes.map(comissao => new Option(`${comissao.sigla} - ${comissao.nome}`, `${comissao.sigla} - ${comissao.nome}`));
+    this._comissoesOptions = this.comissoes.map(comissao => new Option(comissao.sigla, `${comissao.sigla} - ${comissao.nome}`));
     this.requestUpdate();
   }
 
@@ -51,9 +52,13 @@ export class DestinoComponent extends LitElement {
   private _comissoesOptions: Option[] = [];
 
   private _colegiadoApreciador!: ColegiadoApreciador;
-  @property({ type: Object })
+  @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
+    if (this._colegiadoApreciador.siglaComissao) {
+      const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
+      this._autocomplete.value = option.description;
+    }
     this.requestUpdate();
   }
 
@@ -148,7 +153,6 @@ export class DestinoComponent extends LitElement {
             ?readonly=${this.isMPV}
             placeholder="ex: Comissão"
             .items=${this._comissoesAutocomplete}
-            value=${this._colegiadoApreciador?.siglaComissao || ''}
             .onSearch=${value => this._filtroComissao(value)}
             .onSelect=${value => this._selecionarComissao(value)}
             @blur=${this._blurAutoComplete}
@@ -168,7 +172,7 @@ export class DestinoComponent extends LitElement {
   }
 
   private _filtroComissao(query: string): void {
-    const regex = new RegExp('^' + query, 'i');
+    const regex = new RegExp(query, 'i');
     this._comissoesAutocomplete = this._comissoesOptions.filter(comissao => comissao.description.match(regex));
   }
 
