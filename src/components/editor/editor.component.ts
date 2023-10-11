@@ -929,7 +929,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
 
         if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
-          EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+          const avisoJaExiste = document.getElementById('onmodalsufixos');
+
+          if (this.isMensagemSufixos(elemento)) {
+            if (avisoJaExiste === null) {
+              EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+            }
+          } else {
+            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+          }
         }
       }
     });
@@ -994,10 +1002,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
 
         if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
-          EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+          const avisoJaExiste = document.getElementById('onmodalsufixos');
+
+          if (this.isMensagemSufixos(elemento)) {
+            if (avisoJaExiste === null) {
+              EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+            }
+          } else {
+            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+          }
         }
       }
     });
+  }
+
+  private isMensagemSufixos(elemento: Elemento): boolean | undefined {
+    return elemento.mensagens && elemento.mensagens.length === 1 && elemento.mensagens[0].nomeEvento === 'onmodalsufixos';
   }
 
   private montarMenuContexto(event: StateEvent): void {
