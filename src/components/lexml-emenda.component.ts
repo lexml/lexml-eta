@@ -14,7 +14,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada } from '../model/emenda/emenda';
+import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada, OpcoesImpressao } from '../model/emenda/emenda';
 import { getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
@@ -63,6 +63,17 @@ export class LexmlEmendaParametrosEdicao {
 
   // Identificação do usuário para registro de marcas de revisão
   usuario?: Usuario;
+
+  autoriaPadrao?: {
+    identificacao: string;
+    siglaCasaLegislativa: 'SF' | 'CD';
+  };
+
+  opcoesImpressaoPadrao?: {
+    imprimirBrasao: boolean;
+    textoCabecalho: string;
+    tamanhoFonte: number;
+  };
 }
 
 @customElement('lexml-emenda')
@@ -138,7 +149,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       console.log(err);
     } finally {
       this.parlamentaresCarregados = true;
-      this.habilitarBotaoAbrir();
+      this.habilitarBotoes();
     }
     return Promise.resolve([]);
   }
@@ -161,18 +172,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       console.log(err);
     } finally {
       this.comissoesCarregadas = true;
-      this.habilitarBotaoAbrir();
+      this.habilitarBotoes();
     }
     return Promise.resolve([]);
   }
 
-  private habilitarBotaoAbrir(): void {
-    const btnAbrir = document.querySelector('input[type=button][value=Abrir]') as HTMLInputElement;
+  private habilitarBotoes(): void {
+    const botoes = document.querySelectorAll('.lexml-eta-main-header input[type=button]');
 
     if (this.parlamentaresCarregados && this.comissoesCarregadas) {
-      btnAbrir.disabled = false;
+      botoes.forEach(btn => ((btn as HTMLInputElement).disabled = false));
     } else {
-      btnAbrir.disabled = true;
+      botoes.forEach(btn => ((btn as HTMLInputElement).disabled = true));
     }
   }
 
@@ -295,7 +306,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (params.emenda) {
       this.setEmenda(params.emenda);
     } else {
-      this.resetaEmenda(this.modo as ModoEdicaoEmenda);
+      this.resetaEmenda(params);
     }
 
     this.limparAlertas();
@@ -396,13 +407,37 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlData.data = emenda.data;
   }
 
-  private resetaEmenda(modoEdicao = ModoEdicaoEmenda.EMENDA): void {
+  private resetaEmenda(params: LexmlEmendaParametrosEdicao): void {
     const emenda = new Emenda();
-    emenda.modoEdicao = modoEdicao;
-    emenda.proposicao = this.montarProposicaoPorUrn(this.urn, this.ementa);
+    emenda.modoEdicao = params.modo as ModoEdicaoEmenda;
+    emenda.proposicao = this.montarProposicaoPorUrn(params.urn, params.ementa);
+    emenda.autoria = this.montarAutoriaPadrao(params);
+    emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
+    console.log('emenda.opcoesImpressao', emenda.opcoesImpressao);
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
+  }
+
+  private montarAutoriaPadrao(params: LexmlEmendaParametrosEdicao): Autoria {
+    const autoria = new Autoria();
+    const autoriaPadrao = params.autoriaPadrao;
+    const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao?.identificacao && par.siglaCasaLegislativa === autoriaPadrao?.siglaCasaLegislativa);
+
+    if (parlamentarAutor) {
+      autoria.parlamentares = [parlamentarAutor];
+    }
+    return autoria;
+  }
+
+  private montarOpcoesImpressaoPadrao(params: LexmlEmendaParametrosEdicao): OpcoesImpressao {
+    const opcoesImpressao = new OpcoesImpressao();
+    if (params.opcoesImpressaoPadrao) {
+      opcoesImpressao.imprimirBrasao = params.opcoesImpressaoPadrao.imprimirBrasao;
+      opcoesImpressao.textoCabecalho = params.opcoesImpressaoPadrao.textoCabecalho;
+      opcoesImpressao.tamanhoFonte = params.opcoesImpressaoPadrao.tamanhoFonte;
+    }
+    return opcoesImpressao;
   }
 
   constructor() {
@@ -456,7 +491,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   };
 
   protected firstUpdated(): void {
-    this.habilitarBotaoAbrir();
+    this.habilitarBotoes();
     setTimeout(() => this.atualizaListaParlamentares(), 5000);
     setTimeout(() => this.atualizaListaComissoes(), 5000);
 

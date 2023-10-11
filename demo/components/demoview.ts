@@ -164,6 +164,8 @@ export class DemoView extends LitElement {
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
             params.urn = this.projetoNorma?.value?.metadado?.identificacao?.urn;
+            //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
+            //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
           } else {
             params.urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2023;3';
             params.ementa =
