@@ -2,8 +2,8 @@
 import { customElement, property, query } from 'lit/decorators.js';
 import { LitElement, html, css, TemplateResult } from 'lit';
 
-@customElement('edt-modal-sufixos')
-export class EdtModalSufixos extends LitElement {
+@customElement('lexml-sufixos-modal')
+export class SufixosModalComponent extends LitElement {
   @property({ type: Number }) private step = 1;
   @query('sl-dialog') private slDialog!: any;
 
@@ -66,6 +66,6 @@ export class EdtModalSufixos extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'edt-modal-sufixos': EdtModalSufixos;
+    'lexml-sufixos-modal': SufixosModalComponent;
   }
 }
