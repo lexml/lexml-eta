@@ -328,8 +328,7 @@ const buscarDispositivoByIdTratandoParagrafoUnico = (articulacao: Articulacao, i
   if (d) {
     return d;
   } else {
-    const idSemConsiderarAlteracaoEmNorma = id.split('alt')[0];
-    if (idSemConsiderarAlteracaoEmNorma.split('_').includes('par1')) {
+    if (id.endsWith('par1') || id.split('_').includes('par1')) {
       return buscaDispositivoById(articulacao, id.replace('_par1_', '_par1u_').replace(/par1$/, 'par1u'));
     } else {
       return;
