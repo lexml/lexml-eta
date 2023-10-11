@@ -59,4 +59,36 @@ describe('Testando carregamento da MPV 905/2019', () => {
       expect(d.filhos[1].id).to.equal('art3_par2');
     });
   });
+
+  describe('Testando colagem de parágrafos §§1º e 2º sobre parágrafo único do Art. 3º da Lei 10735, alterado no Art. 26 da MP 905', () => {
+    beforeEach(function () {
+      const disp = buscaDispositivoById(state.articulacao!, 'art26_cpt_alt1_art3_par1u')!;
+      const atual = createElemento(disp);
+      const isColarSubstituindo = true;
+      state = adicionaElementosNaProposicaoFromClipboard(state, {
+        type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+        atual,
+        novo: {
+          isDispositivoAlteracao: isDispositivoAlteracao(disp),
+          conteudo: {
+            texto: TEXTO_008,
+          },
+        },
+        isColarSubstituindo,
+        posicao: 'depois',
+      });
+    });
+
+    it('Deveria apresentar Art. 3º da Lei 10735 (alterado pelo Art. 26 da MP) com 2 parágrafos', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art26_cpt_alt1_art3')!;
+      expect(d.filhos.length).to.equal(2);
+      expect(d.filhos.every(f => f.tipo === 'Paragrafo')).to.be.true;
+    });
+
+    it('Deveria apresentar ids art3_par1u e art3_par2 nos parágrafos', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art26_cpt_alt1_art3')!;
+      expect(d.filhos[0].id).to.equal('art26_cpt_alt1_art3_par1u'); // assume que apenas o texto foi alterado
+      expect(d.filhos[1].id).to.equal('art26_cpt_alt1_art3_par2');
+    });
+  });
 });
