@@ -33,6 +33,7 @@ import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { generoFromLetra } from '../model/dispositivo/genero';
+import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -125,6 +126,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @query('sl-split-panel')
   private slSplitPanel!: any;
+
+  @query('lexml-sufixos-modal')
+  private sufixosModal!: SufixosModalComponent;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
@@ -230,6 +234,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     });
 
     return revisoes;
+  }
+
+  openModalSufixos(): void {
+    if (this.sufixosModal !== null) {
+      this.sufixosModal.show();
+    }
   }
 
   inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
@@ -736,6 +746,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           </sl-tab-group>
         </div>
       </sl-split-panel>
+      <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
   }
 }

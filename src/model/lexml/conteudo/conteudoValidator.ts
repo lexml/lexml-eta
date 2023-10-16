@@ -303,8 +303,11 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   ) {
     const dispositivos = [] as any;
     dispositivos.push(dispositivo);
+
     if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(dispositivos)) {
-      addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-0, -1, -2,...)?`, undefined, 'onmodalsufixos');
+      if (localStorage.getItem('naoMostrarExplicacaoSufixo') === null) {
+        addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-0, -1, -2,...)?`, undefined, 'onmodalsufixos');
+      }
     }
   }
 
