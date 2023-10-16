@@ -107,7 +107,6 @@ export class EtaQuill extends Quill {
   elementoSelecionado: Observable<number> = new Observable<number>();
 
   private buffer: EtaQuillBuffer;
-  private aspasAberta = false;
 
   static configurar(): void {
     const Parchment: any = EtaQuill.import('parchment');
@@ -387,7 +386,6 @@ export class EtaQuill extends Quill {
 
     if (this._mudouDeLinha) {
       this.observableSelectionChange.notify(linhaAtualAux);
-      this.aspasAberta = false;
       this.limparHistory();
     }
   };
@@ -413,10 +411,10 @@ export class EtaQuill extends Quill {
       if (texto.indexOf('"') > -1) {
         for (let i = 0; i < texto.length; i++) {
           if (texto[i] === '"') {
+            const novaAspas = i === 0 || texto[i - 1].match(/\s/) ? '“' : '”';
             posicaoTexto += i;
             this.deleteText(posicaoTexto, 1, Quill.sources.SILENT);
-            this.insertText(posicaoTexto, this.aspasAberta ? '”' : '“', Quill.sources.SILENT);
-            this.aspasAberta = !this.aspasAberta;
+            this.insertText(posicaoTexto, novaAspas, Quill.sources.SILENT);
             posicaoTexto = index;
           }
         }
