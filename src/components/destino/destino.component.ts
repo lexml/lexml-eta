@@ -42,9 +42,11 @@ export class DestinoComponent extends LitElement {
   private _comissoes!: Comissao[];
   @property({ type: Array, state: true })
   set comissoes(value: Comissao[] | undefined) {
-    this._comissoes = value ? value : [];
-    this._comissoesOptions = this.comissoes.map(comissao => new Option(comissao.sigla, `${comissao.sigla} - ${comissao.nome}`));
-    this.requestUpdate();
+    if (!this._comissoes || this._comissoes.length === 0) {
+      this._comissoes = value ? value : [];
+      this._comissoesOptions = this.comissoes.map(comissao => new Option(comissao.sigla, `${comissao.sigla} - ${comissao.nome}`));
+      this.requestUpdate();
+    }
   }
 
   get comissoes(): Array<Comissao> {
@@ -188,6 +190,7 @@ export class DestinoComponent extends LitElement {
 
       if (!comissaoSelecionada) {
         this._autocomplete.value = '';
+        this.comissaoSelecionada = '';
       }
     }, 200);
   }

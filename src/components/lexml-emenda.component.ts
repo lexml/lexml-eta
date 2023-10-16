@@ -413,7 +413,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.proposicao = this.montarProposicaoPorUrn(params.urn, params.ementa);
     emenda.autoria = this.montarAutoriaPadrao(params);
     emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
-    console.log('emenda.opcoesImpressao', emenda.opcoesImpressao);
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
