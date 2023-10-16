@@ -75,8 +75,8 @@ export default class TableTrick {
       blot = blot.parent;
     }
     blot.insertBefore(table, top_branch);
-    TableHistory.register('insert', { node: table.domNode, nextNode: top_branch.domNode });
-    TableHistory.add(quill);
+    // TableHistory.register('insert', { node: table.domNode, nextNode: top_branch.domNode });
+    // TableHistory.add(quill);
   }
 
   static removeTable(quill) {

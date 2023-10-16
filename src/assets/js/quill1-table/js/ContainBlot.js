@@ -10,12 +10,12 @@ class ContainBlot extends Container {
     return super.create(value);
   }
 
-  formats(domNode) {
-    if (domNode) {
-      return domNode.tagName;
-    }
-    return this.domNode.tagName;
-  }
+  // formats(domNode) {
+  //   if (domNode) {
+  //     return domNode.tagName;
+  //   }
+  //   return this.domNode.tagName;
+  // }
 }
 
 ContainBlot.blotName = 'contain';

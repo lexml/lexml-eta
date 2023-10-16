@@ -212,6 +212,10 @@ export class DemoView extends LitElement {
     }
   }
 
+  abrirModalSufixos(): void {
+    this.elLexmlEmenda.openModalSufixos();
+  }
+
   selecionaArquivo(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     if (fileInput && fileInput.files) {
@@ -337,6 +341,7 @@ export class DemoView extends LitElement {
           <input type="button" value="Salvar" @click=${this.salvar} />
           <input type="button" value="Abrir" @click=${this.abrir} />
           <input type="button" value="Usuário" @click=${this.usuario} />
+          <!-- <input type="button" value="Sufixos" @click=${this.abrirModalSufixos} /> -->
           <input type="file" id="fileUpload" accept="application/json" @change="${this.selecionaArquivo}" style="display: none" />
         </div>
 
