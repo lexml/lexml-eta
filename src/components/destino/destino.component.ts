@@ -16,10 +16,12 @@ export class DestinoComponent extends LitElement {
   @state()
   private comissaoSelecionada = '';
   private isMPV = false;
+  private tipoColegiadoPlenario = false;
 
   private _proposicao!: RefProposicaoEmendada;
   @property({ type: RefProposicaoEmendada })
   set proposicao(value: RefProposicaoEmendada) {
+    this._autocomplete.value = '';
     this._proposicao = value;
     this.isMPV = false;
     if (this._proposicao.sigla === 'MPV') {
@@ -55,6 +57,7 @@ export class DestinoComponent extends LitElement {
   @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
+    this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
     if (this._colegiadoApreciador.siglaComissao) {
       const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
       this._autocomplete.value = option.description;
@@ -156,7 +159,7 @@ export class DestinoComponent extends LitElement {
             .onSearch=${value => this._filtroComissao(value)}
             .onSelect=${value => this._selecionarComissao(value)}
             @blur=${this._blurAutoComplete}
-            ?disabled=${this.isMPV}
+            ?disabled=${this.isMPV || this.tipoColegiadoPlenario}
           ></autocomplete-async>
         </div>
       </sl-radio-group>
@@ -165,6 +168,8 @@ export class DestinoComponent extends LitElement {
 
   private clickTipoColegiado(value: any): void {
     this._colegiadoApreciador.tipoColegiado = value;
+    this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
+    this.requestUpdate();
   }
 
   private _selecionarComissao(item: Option): void {
