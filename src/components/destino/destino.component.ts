@@ -16,6 +16,7 @@ export class DestinoComponent extends LitElement {
   @state()
   private comissaoSelecionada = '';
   private isMPV = false;
+  private isPlenario = false;
   private tipoColegiadoPlenario = false;
 
   private _proposicao!: RefProposicaoEmendada;
@@ -42,10 +43,14 @@ export class DestinoComponent extends LitElement {
   private _comissoes!: Comissao[];
   @property({ type: Array, state: true })
   set comissoes(value: Comissao[] | undefined) {
+    this.isPlenario = false;
     if (!this._comissoes || this._comissoes.length === 0) {
       this._comissoes = value ? value : [];
       this._comissoesOptions = this.comissoes.map(comissao => new Option(comissao.sigla, `${comissao.sigla} - ${comissao.nome}`));
       this.requestUpdate();
+    }
+    if (typeof value === 'undefined') {
+      this.isPlenario = true;
     }
   }
 
@@ -129,7 +134,7 @@ export class DestinoComponent extends LitElement {
               @click=${() => this.clickTipoColegiado('Plenário')}
               ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Plenário'}
               value="Plenário"
-              ?disabled=${this.isMPV}
+              ?disabled=${this.isMPV || this.isPlenario}
               >Plenário</sl-radio
             >
             <sl-radio
@@ -137,7 +142,7 @@ export class DestinoComponent extends LitElement {
               @click=${() => this.clickTipoColegiado('Comissão')}
               ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Comissão'}
               value="Comissão"
-              ?disabled=${this.isMPV}
+              ?disabled=${this.isMPV || this.isPlenario}
               >Comissão</sl-radio
             >
             <sl-radio
@@ -145,7 +150,7 @@ export class DestinoComponent extends LitElement {
               @click=${() => this.clickTipoColegiado('Plenário via Comissão')}
               ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Plenário via Comissão'}
               value="Plenário via Comissão"
-              ?disabled=${this.isMPV}
+              ?disabled=${this.isMPV || this.isPlenario}
               >Plenário via Comissão</sl-radio
             >
           </sl-radio-group>
@@ -155,13 +160,13 @@ export class DestinoComponent extends LitElement {
             id="auto-complete-async"
             label="Comissão"
             .async=${false}
-            ?readonly=${this.isMPV}
+            ?readonly=${this.isMPV || this.isPlenario}
             placeholder="ex: Comissão"
             .items=${this._comissoesAutocomplete}
             .onSearch=${value => this._filtroComissao(value)}
             .onSelect=${value => this._selecionarComissao(value)}
             @blur=${this._blurAutoComplete}
-            ?disabled=${this.isMPV || this.tipoColegiadoPlenario}
+            ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario}
           ></autocomplete-async>
         </div>
       </sl-radio-group>
@@ -169,9 +174,11 @@ export class DestinoComponent extends LitElement {
   }
 
   private clickTipoColegiado(value: any): void {
-    this._colegiadoApreciador.tipoColegiado = value;
-    this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
-    this.requestUpdate();
+    if (!this.isMPV && !this.isPlenario) {
+      this._colegiadoApreciador.tipoColegiado = value;
+      this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
+      this.requestUpdate();
+    }
   }
 
   private _selecionarComissao(item: Option): void {

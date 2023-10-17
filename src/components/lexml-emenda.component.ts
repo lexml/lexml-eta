@@ -82,7 +82,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
-  @property({ type: Array }) comissoes: Comissao[] = [];
+  @property({ type: Array }) comissoes: Comissao[] | undefined = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = ClassificacaoDocumento.EMENDA;
@@ -154,12 +154,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
-  async getComissoes(): Promise<Comissao[]> {
-    if (!this.lexmlEmendaConfig.urlComissoes) {
-      return Promise.resolve([]);
-    }
-
+  async getComissoes(): Promise<Comissao[] | undefined> {
     try {
+      if (!this.lexmlEmendaConfig.urlComissoes) {
+        return Promise.resolve(undefined);
+      }
       const _response = await fetch(this.lexmlEmendaConfig.urlComissoes);
       const _comissoes = await _response.json();
       return _comissoes.map(c => ({
@@ -503,7 +502,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       } else if (tabName === 'autoria') {
         this.parlamentares.length === 0 && this.atualizaListaParlamentares();
-        this.comissoes.length === 0 && this.atualizaListaComissoes();
+        this.comissoes?.length === 0 && this.atualizaListaComissoes();
       }
     });
 
