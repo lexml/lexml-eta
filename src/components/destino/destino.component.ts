@@ -22,7 +22,7 @@ export class DestinoComponent extends LitElement {
   private _proposicao!: RefProposicaoEmendada;
   @property({ type: RefProposicaoEmendada })
   set proposicao(value: RefProposicaoEmendada) {
-    this._autocomplete.value = '';
+    // this._autocomplete.value = '';
     this._proposicao = value;
     this.isMPV = false;
     if (this._proposicao.sigla === 'MPV') {
@@ -67,7 +67,9 @@ export class DestinoComponent extends LitElement {
     this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
     if (this._colegiadoApreciador.siglaComissao) {
       const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
-      this._autocomplete.value = option.description;
+      this._autocomplete.value = option.description || this._colegiadoApreciador.siglaComissao;
+    } else {
+      this._autocomplete.value = '';
     }
     this.requestUpdate();
   }
@@ -166,7 +168,7 @@ export class DestinoComponent extends LitElement {
             .onSearch=${value => this._filtroComissao(value)}
             .onSelect=${value => this._selecionarComissao(value)}
             @blur=${this._blurAutoComplete}
-            ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario}
+            ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
           ></autocomplete-async>
         </div>
       </sl-radio-group>
@@ -191,6 +193,7 @@ export class DestinoComponent extends LitElement {
   }
 
   private _blurAutoComplete(): void {
+    if (!this.comissoes?.length) return;
     setTimeout(() => {
       const comissao = this._autocomplete.value ?? '';
       const comissaoSelecionada = this._comissoesOptions.find(comissaoOp => comissao === comissaoOp.description);
