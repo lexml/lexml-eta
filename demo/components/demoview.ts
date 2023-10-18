@@ -1,3 +1,4 @@
+import { LexmlEmendaConfig } from './../../src/model/lexmlEmendaConfig';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import '../../src';
@@ -67,9 +68,12 @@ export class DemoView extends LitElement {
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
   private nomeUsuario?: string = 'Fulano';
+  emendaConfig: LexmlEmendaConfig;
 
   constructor() {
     super();
+    this.emendaConfig = new LexmlEmendaConfig();
+    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/18146f46-003c-4f6f-b00f-6e290de175dd';
   }
 
   createRenderRoot(): LitElement {
@@ -160,8 +164,12 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
+
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
+            // params.urn = this.projetoNorma?.value?.metadado?.identificacao?.urn;
+            //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
+            //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
           } else {
             params.proposicao = {
               sigla: 'PL',
@@ -368,7 +376,7 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-emenda modo=${this.modo} @onrevisao=${this.onRevisao} @onchange=${() => console.log('chegou evento')}></lexml-emenda>
+      <lexml-emenda .lexmlEmendaConfig=${this.emendaConfig} modo=${this.modo} @onrevisao=${this.onRevisao} @onchange=${() => console.log('chegou evento')}></lexml-emenda>
     `;
   }
 

@@ -14,7 +14,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar } from '../model/emenda/emenda';
+import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada, OpcoesImpressao } from '../model/emenda/emenda';
 import { buildFakeUrn, getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
@@ -34,6 +34,7 @@ import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAltera
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { generoFromLetra } from '../model/dispositivo/genero';
 import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
+import { Comissao } from './destino/comissao';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -83,6 +84,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
+  @property({ type: Array }) comissoes: Comissao[] | undefined = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = ClassificacaoDocumento.EMENDA;
@@ -94,6 +96,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private projetoNorma: any;
 
   private motivo = '';
+
+  private parlamentaresCarregados = false;
+  private comissoesCarregadas = false;
 
   // Para forçar atualização da interface
   @state()
@@ -108,6 +113,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _lexmlEmendaTextoRico;
   @query('#editor-texto-rico-justificativa')
   _lexmlJustificativa;
+  @query('lexml-destino')
+  _lexmlDestino;
   @query('lexml-autoria')
   _lexmlAutoria;
   @query('lexml-data')
@@ -145,12 +152,51 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de parlamentares');
       console.log(err);
+    } finally {
+      this.parlamentaresCarregados = true;
+      // this.habilitarBotoes();
     }
     return Promise.resolve([]);
   }
 
+  async getComissoes(): Promise<Comissao[] | undefined> {
+    try {
+      if (!this.lexmlEmendaConfig.urlComissoes) {
+        return Promise.resolve(undefined);
+      }
+      const _response = await fetch(this.lexmlEmendaConfig.urlComissoes);
+      const _comissoes = await _response.json();
+      return _comissoes.map(c => ({
+        siglaCasaLegislativa: c.siglaCasaLegislativa,
+        sigla: c.sigla,
+        nome: c.nome,
+      }));
+    } catch (err) {
+      console.log('Erro inesperado ao carregar lista de comissões');
+      console.log(err);
+    } finally {
+      this.comissoesCarregadas = true;
+      // this.habilitarBotoes();
+    }
+    return Promise.resolve([]);
+  }
+
+  // private habilitarBotoes(): void {
+  //   const botoes = document.querySelectorAll('.lexml-eta-main-header input[type=button]');
+
+  //   if (this.parlamentaresCarregados && this.comissoesCarregadas) {
+  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = false));
+  //   } else {
+  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = true));
+  //   }
+  // }
+
   atualizaListaParlamentares(): void {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
+  }
+
+  atualizaListaComissoes(): void {
+    this.getComissoes().then(comissoes => (this.comissoes = comissoes));
   }
 
   private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
@@ -176,17 +222,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const emenda = new Emenda();
     emenda.modoEdicao = this.modo;
     emenda.componentes[0].urn = this.urn;
-    if (this.urn) {
-      emenda.proposicao = {
-        urn: this.urn,
-        sigla: getSigla(this.urn),
-        numero: getNumero(this.urn),
-        ano: getAno(this.urn),
-        ementa: this.ementa,
+    emenda.proposicao = this.montarProposicaoPorUrn(this.urn, this.ementa);
+    return emenda;
+  }
+
+  private montarProposicaoPorUrn(urn: string, ementa: string): RefProposicaoEmendada {
+    if (urn) {
+      return {
+        urn: urn,
+        sigla: getSigla(urn),
+        numero: getNumero(urn),
+        ano: getAno(urn),
+        ementa: ementa,
         identificacaoTexto: 'Texto inicial',
       };
     }
-    return emenda;
+    return new RefProposicaoEmendada();
   }
 
   getEmenda(): Emenda {
@@ -211,12 +262,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
-    emenda.colegiadoApreciador = this.montarColegiadoApreciador(emenda.proposicao.sigla, numeroProposicao, emenda.proposicao.ano);
+    emenda.colegiadoApreciador = this._lexmlDestino.colegiadoApreciador;
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = 'EMENDA Nº         ';
-    if (emenda.colegiadoApreciador.siglaComissao) {
+    if (emenda.colegiadoApreciador.tipoColegiado !== 'Plenário' && emenda.colegiadoApreciador.siglaComissao) {
       emenda.epigrafe.texto += `- ${emenda.colegiadoApreciador.siglaComissao}`;
     }
+
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
@@ -261,7 +313,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (params.emenda) {
       this.setEmenda(params.emenda);
     } else {
-      this.resetaEmenda(this.modo as ModoEdicaoEmenda);
+      this.resetaEmenda(params);
     }
 
     this.limparAlertas();
@@ -285,6 +337,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
+    this.urn = '';
+    this.ementa = '';
+
     if (params.proposicao) {
       // Preferência para a proposição informada
       this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
@@ -353,6 +408,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
+    this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
+    this._lexmlDestino.proposicao = emenda.proposicao;
+
     this._lexmlJustificativa.setContent(emenda.justificativa);
     if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
@@ -362,12 +420,36 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlData.data = emenda.data;
   }
 
-  private resetaEmenda(modoEdicao = ModoEdicaoEmenda.EMENDA): void {
+  private resetaEmenda(params: LexmlEmendaParametrosEdicao): void {
     const emenda = new Emenda();
-    emenda.modoEdicao = modoEdicao;
+    emenda.modoEdicao = params.modo as ModoEdicaoEmenda;
+    emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
+    emenda.autoria = this.montarAutoriaPadrao(params);
+    emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
+  }
+
+  private montarAutoriaPadrao(params: LexmlEmendaParametrosEdicao): Autoria {
+    const autoria = new Autoria();
+    const autoriaPadrao = params.autoriaPadrao;
+    const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao?.identificacao && par.siglaCasaLegislativa === autoriaPadrao?.siglaCasaLegislativa);
+
+    if (parlamentarAutor) {
+      autoria.parlamentares = [parlamentarAutor];
+    }
+    return autoria;
+  }
+
+  private montarOpcoesImpressaoPadrao(params: LexmlEmendaParametrosEdicao): OpcoesImpressao {
+    const opcoesImpressao = new OpcoesImpressao();
+    if (params.opcoesImpressaoPadrao) {
+      opcoesImpressao.imprimirBrasao = params.opcoesImpressaoPadrao.imprimirBrasao;
+      opcoesImpressao.textoCabecalho = params.opcoesImpressaoPadrao.textoCabecalho;
+      opcoesImpressao.tamanhoFonte = params.opcoesImpressaoPadrao.tamanhoFonte;
+    }
+    return opcoesImpressao;
   }
 
   constructor() {
@@ -421,7 +503,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   };
 
   protected firstUpdated(): void {
-    setTimeout(() => this.atualizaListaParlamentares(), 5000);
+    // this.habilitarBotoes();
+    setTimeout(() => this.atualizaListaParlamentares(), 0);
+    setTimeout(() => this.atualizaListaComissoes(), 0);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
@@ -432,6 +516,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       } else if (tabName === 'autoria') {
         this.parlamentares.length === 0 && this.atualizaListaParlamentares();
+        this.comissoes?.length === 0 && this.atualizaListaComissoes();
       }
     });
 
@@ -682,7 +767,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>
-            <sl-tab slot="nav" panel="autoria">Data, Autoria e Impressão</sl-tab>
+            <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -707,6 +792,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">
+                <lexml-destino .comissoes=${this.comissoes}></lexml-destino>
+                <br />
                 <lexml-data></lexml-data>
                 <br />
                 <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
