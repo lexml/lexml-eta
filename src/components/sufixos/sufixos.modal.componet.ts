@@ -50,7 +50,7 @@ export class SufixosModalComponent extends LitElement {
         <span slot="label">Sufixos de posicionamento</span>
 
         <div>
-          <p>Os sufixos, como -0, -1, -2 e assim por diante, são usados para orientar o posicionamento na redação final. Eles não indicam uma numeração definitiva.</p>
+          <p>Os sufixos, como -1, -2 e assim por diante, são usados para orientar o posicionamento na redação final. Eles não indicam uma numeração definitiva.</p>
           <p>Os dispositivos propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição pela Redação Final.</p>
         </div>
 

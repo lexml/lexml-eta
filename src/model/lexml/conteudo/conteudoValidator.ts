@@ -306,7 +306,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
 
     if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(dispositivos)) {
       if (localStorage.getItem('naoMostrarExplicacaoSufixo') === null) {
-        addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-0, -1, -2,...)?`, undefined, 'onmodalsufixos');
+        addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-1, -2,...)?`, undefined, 'onmodalsufixos');
       }
     }
   }
