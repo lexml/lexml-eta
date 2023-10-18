@@ -149,7 +149,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       console.log(err);
     } finally {
       this.parlamentaresCarregados = true;
-      this.habilitarBotoes();
+      // this.habilitarBotoes();
     }
     return Promise.resolve([]);
   }
@@ -171,20 +171,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       console.log(err);
     } finally {
       this.comissoesCarregadas = true;
-      this.habilitarBotoes();
+      // this.habilitarBotoes();
     }
     return Promise.resolve([]);
   }
 
-  private habilitarBotoes(): void {
-    const botoes = document.querySelectorAll('.lexml-eta-main-header input[type=button]');
+  // private habilitarBotoes(): void {
+  //   const botoes = document.querySelectorAll('.lexml-eta-main-header input[type=button]');
 
-    if (this.parlamentaresCarregados && this.comissoesCarregadas) {
-      botoes.forEach(btn => ((btn as HTMLInputElement).disabled = false));
-    } else {
-      botoes.forEach(btn => ((btn as HTMLInputElement).disabled = true));
-    }
-  }
+  //   if (this.parlamentaresCarregados && this.comissoesCarregadas) {
+  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = false));
+  //   } else {
+  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = true));
+  //   }
+  // }
 
   atualizaListaParlamentares(): void {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
@@ -486,9 +486,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   };
 
   protected firstUpdated(): void {
-    this.habilitarBotoes();
-    setTimeout(() => this.atualizaListaParlamentares(), 5000);
-    setTimeout(() => this.atualizaListaComissoes(), 5000);
+    // this.habilitarBotoes();
+    setTimeout(() => this.atualizaListaParlamentares(), 0);
+    setTimeout(() => this.atualizaListaComissoes(), 0);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
