@@ -259,12 +259,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
     emenda.colegiadoApreciador = this._lexmlDestino.colegiadoApreciador;
     emenda.epigrafe = new Epigrafe();
-    if (emenda.colegiadoApreciador.tipoColegiado === 'Comissão') {
-      emenda.epigrafe.texto = `EMENDA Nº         - CMMPV ${numeroProposicao}/${emenda.proposicao.ano}`;
-    } else if (emenda.colegiadoApreciador.tipoColegiado === 'Plenário') {
-      emenda.epigrafe.texto = 'EMENDA Nº         ';
-    } else {
-      emenda.epigrafe.texto = `EMENDA Nº         - ${emenda.colegiadoApreciador.siglaComissao}`;
+    emenda.epigrafe.texto = 'EMENDA Nº         ';
+    if (emenda.colegiadoApreciador.tipoColegiado !== 'Plenário') {
+      emenda.epigrafe.texto += `- ${emenda.colegiadoApreciador.siglaComissao}`;
     }
 
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
