@@ -1,19 +1,27 @@
-import { LitElement, TemplateResult, html } from 'lit';
+import { LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
 import { ComandoEmenda, SubstituicaoTermo, TipoSubstituicaoTermo } from '../../model/emenda/emenda';
 import { ComandoEmendaBuilder } from '../../emenda/comando-emenda-builder';
-import SlRadioGroup from '@shoelace-style/shoelace/dist/components/radio-group/radio-group.js';
 
 @customElement('lexml-substituicao-termo')
 export class SubstituicaoTermoComponent extends LitElement {
-  @query('#tipoSubstituicaoTermo')
-  private elTipoSubstituicaoTermo!: SlRadioGroup;
+  static styles = css`
+    span.alerta {
+      color: red;
+    }
+  `;
 
   @query('#termoASerSubstituido')
   private elTermoASerSubstituido!: HTMLInputElement;
 
   @query('#novoTermo')
   private elNovoTermo!: HTMLInputElement;
+
+  @query('#alertaTermoASerSubstituido')
+  private elAlertaTermoASerSubstituido!: HTMLSpanElement;
+
+  @query('#alertaNovoTermo')
+  private elAlertaNovoTermo!: HTMLSpanElement;
 
   @query('#flexaoGenero')
   private elFlexaoGenero!: HTMLInputElement;
@@ -24,6 +32,13 @@ export class SubstituicaoTermoComponent extends LitElement {
   private tipoSubstituicaoTermo: TipoSubstituicaoTermo = 'Expressão';
 
   private timerEmitirEventoOnChange = 0;
+
+  private onDadosAlterados(evt?: Event): void {
+    const el = evt?.target as HTMLInputElement;
+    el === this.elTermoASerSubstituido && this.elAlertaTermoASerSubstituido.style.setProperty('visibility', el.value ? 'hidden' : 'unset');
+    el === this.elNovoTermo && this.elAlertaNovoTermo.style.setProperty('visibility', el.value ? 'hidden' : 'unset');
+    this.agendarEmissaoEventoOnChange();
+  }
 
   private agendarEmissaoEventoOnChange(origemEvento = 'substituicao-termo'): void {
     clearInterval(this.timerEmitirEventoOnChange);
@@ -67,7 +82,7 @@ export class SubstituicaoTermoComponent extends LitElement {
 
   private updateTipoSubstituicaoTermo(evt: Event): void {
     this.tipoSubstituicaoTermo = (evt.target as any).value;
-    this.agendarEmissaoEventoOnChange();
+    this.onDadosAlterados();
   }
 
   render(): TemplateResult {
@@ -81,17 +96,17 @@ export class SubstituicaoTermoComponent extends LitElement {
           </sl-radio-group>
         </div>
         <div style="width:100%;margin-top:10px">
-          <sl-input id="termoASerSubstituido" type="text" label="Termo a ser substituído:" required @input=${(): void => this.agendarEmissaoEventoOnChange()}></sl-input>
-          <span class="alerta-preenchimento">Este campo deve ser preenchido</span>
+          <sl-input id="termoASerSubstituido" type="text" required="required" label="Termo a ser substituído:" @input=${this.onDadosAlterados}></sl-input>
+          <span id="alertaTermoASerSubstituido" class="alerta">Este campo deve ser preenchido</span>
         </div>
         <div style="width:100%;margin-top:10px">
-          <sl-input id="novoTermo" type="text" label="Novo termo:" required @input=${(): void => this.agendarEmissaoEventoOnChange()}></sl-input>
-          <span class="alerta-preenchimento">Este campo deve ser preenchido</span>
+          <sl-input id="novoTermo" type="text" required="required" label="Novo termo:" @input=${this.onDadosAlterados}></sl-input>
+          <span id="alertaNovoTermo" class="alerta">Este campo deve ser preenchido</span>
         </div>
         <div style="width:100%;margin-top:10px">
           Propor fazer flexões de:
-          <sl-checkbox id="flexaoGenero" @input=${(): void => this.agendarEmissaoEventoOnChange()}>Gênero</sl-checkbox>
-          <sl-checkbox id="flexaoNumero" @input=${(): void => this.agendarEmissaoEventoOnChange()}>Número</sl-checkbox>
+          <sl-checkbox id="flexaoGenero" @input=${this.onDadosAlterados}>Gênero</sl-checkbox>
+          <sl-checkbox id="flexaoNumero" @input=${this.onDadosAlterados}>Número</sl-checkbox>
         </div>
       </sl-radio-group>
     `;
