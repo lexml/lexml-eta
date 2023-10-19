@@ -371,6 +371,7 @@ export class DemoView extends LitElement {
             <option value="emenda" id="optEmenda" selected>Emenda</option>
             <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
             <option value="emendaTextoLivre" id="optEmendaTextoLivre">Emenda Texto Livre</option>
+            <option value="emendaSubstituicaoTermo" id="optEmendaSubstituicaoTermo">Emenda Substituição de termo</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
