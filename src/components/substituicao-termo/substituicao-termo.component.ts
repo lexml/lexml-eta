@@ -1,6 +1,6 @@
 import { LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
-import { ComandoEmenda, SubstituicaoTermo, TipoSubstituicaoTermo } from '../../model/emenda/emenda';
+import { ComandoEmenda, SubstituicaoTermo } from '../../model/emenda/emenda';
 import { ComandoEmendaBuilder } from '../../emenda/comando-emenda-builder';
 
 @customElement('lexml-substituicao-termo')
@@ -10,6 +10,9 @@ export class SubstituicaoTermoComponent extends LitElement {
       color: red;
     }
   `;
+
+  @query('#tipoSubstituicaoTermo')
+  private elTipoSubstituicaoTermo!: HTMLInputElement;
 
   @query('#termoASerSubstituido')
   private elTermoASerSubstituido!: HTMLInputElement;
@@ -28,8 +31,6 @@ export class SubstituicaoTermoComponent extends LitElement {
 
   @query('#flexaoNumero')
   private elFlexaoNumero!: HTMLInputElement;
-
-  private tipoSubstituicaoTermo: TipoSubstituicaoTermo = 'Expressão';
 
   private timerEmitirEventoOnChange = 0;
 
@@ -63,7 +64,7 @@ export class SubstituicaoTermoComponent extends LitElement {
 
   getSubstituicaoTermo(): SubstituicaoTermo {
     const ret = new SubstituicaoTermo();
-    ret.tipo = this.tipoSubstituicaoTermo;
+    ret.tipo = (this.elTipoSubstituicaoTermo.querySelector('sl-radio[checked]') as any)?.value || 'Expressão';
     ret.termo = this.elTermoASerSubstituido.value || '(termo a ser substituído)';
     ret.novoTermo = this.elNovoTermo.value || '(novo termo)';
     ret.flexaoGenero = this.elFlexaoGenero.checked;
@@ -72,7 +73,7 @@ export class SubstituicaoTermoComponent extends LitElement {
   }
 
   setSubstituicaoTermo(substituicaoTermo: SubstituicaoTermo): void {
-    this.tipoSubstituicaoTermo = substituicaoTermo.tipo;
+    this.elTermoASerSubstituido.value = substituicaoTermo.tipo;
     this.elTermoASerSubstituido.value = substituicaoTermo.termo;
     this.elNovoTermo.value = substituicaoTermo.novoTermo;
     this.elFlexaoGenero.checked = substituicaoTermo.flexaoGenero;
@@ -80,35 +81,29 @@ export class SubstituicaoTermoComponent extends LitElement {
     (this.shadowRoot?.querySelector(`sl-radio[value="${substituicaoTermo.tipo}"]`) as HTMLElement)?.click();
   }
 
-  private updateTipoSubstituicaoTermo(evt: Event): void {
-    this.tipoSubstituicaoTermo = (evt.target as any).value;
-    this.onDadosAlterados();
-  }
-
   render(): TemplateResult {
     return html`
-      <sl-radio-group label="Substituição de termo em todo o texto" fieldset>
-        <div>
-          <sl-radio-group id="tipoSubstituicaoTermo" @click=${this.updateTipoSubstituicaoTermo}>
-            <sl-radio name="tipoTermo" value="Expressão">Expressão</sl-radio>
-            <sl-radio name="tipoTermo" value="Palavra">Palavra</sl-radio>
-            <sl-radio name="tipoTermo" value="Número">Número</sl-radio>
-          </sl-radio-group>
-        </div>
+      <fieldset @input=${this.onDadosAlterados}>
+        <legend>Substituição de termo em todo o texto</legend>
+        <sl-radio-group id="tipoSubstituicaoTermo" name="tipoTermo" value="Expressão" @sl-change=${this.onDadosAlterados}>
+          <sl-radio value="Expressão">Expressão</sl-radio>
+          <sl-radio value="Palavra">Palavra</sl-radio>
+          <sl-radio value="Número">Número</sl-radio>
+        </sl-radio-group>
         <div style="width:100%;margin-top:10px">
-          <sl-input id="termoASerSubstituido" type="text" required="required" label="Termo a ser substituído:" @input=${this.onDadosAlterados}></sl-input>
+          <sl-input id="termoASerSubstituido" type="text" required="required" label="Termo a ser substituído:"></sl-input>
           <span id="alertaTermoASerSubstituido" class="alerta">Este campo deve ser preenchido</span>
         </div>
         <div style="width:100%;margin-top:10px">
-          <sl-input id="novoTermo" type="text" required="required" label="Novo termo:" @input=${this.onDadosAlterados}></sl-input>
+          <sl-input id="novoTermo" type="text" required="required" label="Novo termo:"></sl-input>
           <span id="alertaNovoTermo" class="alerta">Este campo deve ser preenchido</span>
         </div>
         <div style="width:100%;margin-top:10px">
           Propor fazer flexões de:
-          <sl-checkbox id="flexaoGenero" @input=${this.onDadosAlterados}>Gênero</sl-checkbox>
-          <sl-checkbox id="flexaoNumero" @input=${this.onDadosAlterados}>Número</sl-checkbox>
+          <sl-checkbox id="flexaoGenero">Gênero</sl-checkbox>
+          <sl-checkbox id="flexaoNumero">Número</sl-checkbox>
         </div>
-      </sl-radio-group>
+      </fieldset>
     `;
   }
 }
