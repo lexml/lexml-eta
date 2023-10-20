@@ -128,12 +128,14 @@ export class DestinoComponent extends LitElement {
           box-shadow: none;
         }
       </style>
-      <sl-radio-group label="Destino" fieldset class="lexml-destino">
+      <fieldset class="lexml-destino">
+        <legend>Destino</legend>
         <div>
           <sl-radio-group id="tipoColegiado">
             <sl-radio
               name="tipoColegiado"
-              @click=${() => this.clickTipoColegiado('Plenário')}
+              @click=${(): void => this.updateTipoColegiado('Plenário')}
+              @sl-change=${(evt: any): void => evt.target?.checked && this.updateTipoColegiado('Plenário')}
               ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Plenário'}
               value="Plenário"
               ?disabled=${this.isMPV || this.isPlenario}
@@ -141,7 +143,8 @@ export class DestinoComponent extends LitElement {
             >
             <sl-radio
               name="tipoColegiado"
-              @click=${() => this.clickTipoColegiado('Comissão')}
+              @click=${(): void => this.updateTipoColegiado('Comissão')}
+              @sl-change=${(evt: any): void => evt.target?.checked && this.updateTipoColegiado('Comissão')}
               ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Comissão'}
               value="Comissão"
               ?disabled=${this.isMPV || this.isPlenario}
@@ -149,7 +152,8 @@ export class DestinoComponent extends LitElement {
             >
             <sl-radio
               name="tipoColegiado"
-              @click=${() => this.clickTipoColegiado('Plenário via Comissão')}
+              @click=${(): void => this.updateTipoColegiado('Plenário via Comissão')}
+              @sl-change=${(evt: any): void => evt.target?.checked && this.updateTipoColegiado('Plenário via Comissão')}
               ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Plenário via Comissão'}
               value="Plenário via Comissão"
               ?disabled=${this.isMPV || this.isPlenario}
@@ -171,14 +175,14 @@ export class DestinoComponent extends LitElement {
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
           ></autocomplete-async>
         </div>
-      </sl-radio-group>
+      </fieldset>
     `;
   }
 
-  private clickTipoColegiado(value: any): void {
+  private updateTipoColegiado(value: any): void {
     if (!this.isMPV && !this.isPlenario) {
       this._colegiadoApreciador.tipoColegiado = value;
-      this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
+      this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
       this.requestUpdate();
     }
   }
