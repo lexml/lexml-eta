@@ -85,7 +85,7 @@ export class SubstituicaoTermoComponent extends LitElement {
     return html`
       <fieldset @input=${this.onDadosAlterados}>
         <legend>Substituição de termo em todo o texto</legend>
-        <sl-radio-group id="tipoSubstituicaoTermo" name="tipoTermo" value="Expressão" @sl-change=${this.onDadosAlterados}>
+        <sl-radio-group id="tipoSubstituicaoTermo" value="Expressão" @sl-change=${this.onDadosAlterados}>
           <sl-radio value="Expressão">Expressão</sl-radio>
           <sl-radio value="Palavra">Palavra</sl-radio>
           <sl-radio value="Número">Número</sl-radio>
