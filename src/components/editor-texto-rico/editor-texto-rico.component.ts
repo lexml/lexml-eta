@@ -1,5 +1,5 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, state, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
@@ -15,9 +15,11 @@ import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
+import TableTrick from '../../assets/js/quill1-table/js/TableTrick.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
+import { AlterarLarguraColunaModalComponent } from './alterar-largura-coluna-modal';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -37,7 +39,20 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   quill?: Quill;
 
+  lastSelecion?: any;
+
   icons = Quill.import('ui/icons');
+
+  @query('lexml-alterar-largura-coluna-modal')
+  private alterarLarguraColunaModal!: AlterarLarguraColunaModalComponent;
+
+  private showAlterarLarguraColunaModal(width: string): void {
+    this.alterarLarguraColunaModal.show(width);
+  }
+
+  private hideAlterarLarguraColunaModal(): void {
+    this.alterarLarguraColunaModal.hide();
+  }
 
   private agendarEmissaoEventoOnChange(): void {
     clearTimeout(this.timerOnChange);
@@ -95,6 +110,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         </sl-button>
       </div>
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
+      <lexml-alterar-largura-coluna-modal></lexml-alterar-largura-coluna-modal>
     `;
   }
 
@@ -290,7 +306,25 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.elTableManagerButton = this.querySelectorAll('span.ql-table')[1] as HTMLSpanElement;
       this.quill?.on('text-change', this.updateTexto);
       this.quill?.on('selection-change', this.onSelectionChange);
+      this.alterarLarguraColunaModal.callback = this.alterarLarguraDaColuna;
+
+      const toolbar = this.quill.getModule('toolbar');
+      toolbar.addHandler('table', (value: string) => {
+        TableModule.configToolbar(this.quill, value);
+
+        if (value === 'change-width-col-modal') {
+          this.lastSelecion = this.quill?.getSelection();
+          const td = TableTrick.find_td(this.quill).domNode;
+          this.showAlterarLarguraColunaModal(td.width);
+        }
+      });
     }
+  };
+
+  alterarLarguraDaColuna = (valor: number): void => {
+    this.quill!.setSelection(this.lastSelecion);
+    TableTrick.changeWidthCol(this.quill, valor);
+    this.hideAlterarLarguraColunaModal();
   };
 
   private elTableManagerButton?: HTMLSpanElement;
@@ -529,6 +563,7 @@ const toolbarOptions = [
         'append-col-before',
         'append-col-after',
         'remove-col',
+        'change-width-col-modal',
         'remove-row',
         'remove-table',
         'split-cell',

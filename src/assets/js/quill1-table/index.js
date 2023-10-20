@@ -58,12 +58,9 @@ export default class TableModule {
     quill.on('selection-change', (range, oldRange) => TableSelection.selectionChange(quill, range, oldRange));
 
     const toolbar = quill.getModule('toolbar');
+
     toolbar.addHandler('table', function (value) {
-      if (isInsertTable(value) && isInTable(quill)) {
-        emitirEventoTableInTable(quill);
-        return false;
-      }
-      return TableTrick.table_handler(value, quill);
+      TableModule.configToolbar(quill, value);
     });
 
     const clipboard = quill.getModule('clipboard');
@@ -150,6 +147,15 @@ export default class TableModule {
     }
     return tableOptions;
   }
+
+  static configToolbar(quill, value) {
+    if (isInsertTable(value) && isInTable(quill)) {
+      emitirEventoTableInTable(quill);
+      return false;
+    }
+    return TableTrick.table_handler(value, quill);
+  }
+
 
   static removeNodeChildren(node) {
     while (node.firstChild) {

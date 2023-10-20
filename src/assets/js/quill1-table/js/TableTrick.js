@@ -320,6 +320,42 @@ export default class TableTrick {
     }
   }
 
+  static changeWidthCol(quill, width) {
+    const coords = TableSelection.getSelectionCoords();
+    TableSelection.resetSelection(quill.container);
+    let table, colIndex, colsToRemove;
+    if (coords) {
+      // if we have a selection, remove all selected columns
+      const _table = TableSelection.selectionStartElement.closest('table');
+      table = Parchment.find(_table);
+      colIndex = coords.minX;
+      colsToRemove = coords.maxX - coords.minX + 1;
+    } else {
+      // otherwise, remove only the column of current cell
+      colsToRemove = 1;
+      const currentCell = TableTrick.find_td(quill);
+      if (currentCell) {
+        table = currentCell.parent.parent;
+        colIndex = Array.prototype.indexOf.call(currentCell.parent.domNode.children, currentCell.domNode);
+      }
+    }
+
+    if (table && typeof colIndex === 'number' && typeof colsToRemove === 'number') {
+      const widthValue = width + '%';
+      // Remove all TDs with the colIndex and repeat it colsToRemove times if there are multiple columns to delete
+      for (let i = 0; i < colsToRemove; i++) {
+        table.children.forEach(function (tr) {
+          const td = tr.domNode.children[colIndex];
+          if (td) {
+            TableHistory.register('propertyChange', { node: td, property: 'width', oldValue: td.width, newValue: widthValue });
+            td.setAttribute('width', widthValue);
+          }
+        });
+      }
+      TableHistory.add(quill);
+    }
+  }
+
   static removeRow(quill) {
     const coords = TableSelection.getSelectionCoords();
     TableSelection.resetSelection(quill.container);
@@ -634,6 +670,9 @@ export default class TableTrick {
           break;
         case 'remove-col':
           TableTrick.removeCol(quill);
+          break;
+        case 'change-width-col':
+          TableTrick.changeWidthCol(quill);
           break;
         case 'append-row-above':
           append_direction = 'before';

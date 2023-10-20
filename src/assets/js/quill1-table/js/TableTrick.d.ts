@@ -6,6 +6,7 @@ export default class TableTrick {
   static insertTable(quill: any, col_count: any, row_count: any): void;
   static removeTable(quill: any): void;
   static addCol(quill: any, direction?: string): void;
+  static changeWidthCol(quill: any, width: number): void;
   static addRow(quill: any, direction?: string): void;
   static removeCol(quill: any): void;
   static removeRow(quill: any): void;
