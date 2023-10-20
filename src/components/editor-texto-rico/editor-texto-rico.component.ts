@@ -26,6 +26,7 @@ import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
 import { StateEvent, StateType } from '../../redux/state';
 import { exibirDiferencasTextoRicoDialog, TextoRicoDiff } from '../editor/exibirDiferencaTextoRicoDialog';
+import TableTrick from '../../assets/js/quill1-table/js/TableTrick';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -120,16 +121,23 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   stateChanged(state: any): void {
+    const moduloRevisao = (this.quill as any)?.revisao;
     const events: StateEvent[] = state.elementoReducer.ui?.events;
     if (events) {
       this.atualizaRevisaoIcon();
 
       if (events.some(ev => ev.stateType === StateType.RevisaoAtivada)) {
+        moduloRevisao && (moduloRevisao.emRevisao = true);
         if (!this._textoAntesRevisao) {
           this._textoAntesRevisao = this.texto;
         }
       } else if (events.some(ev => ev.stateType === StateType.RevisaoDesativada)) {
+        moduloRevisao && (moduloRevisao.emRevisao = false);
         this._textoAntesRevisao = undefined;
+      }
+
+      if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
+        moduloRevisao.usuario = state.elementoReducer.usuario.nome;
       }
       this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
     }
@@ -254,7 +262,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/text-indent', NoIndentClass, true);
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom', 'added', 'removed'],
         modules: {
           toolbar: {
             container: toolbarOptions,
@@ -266,6 +274,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           aspasCurvas: true,
           table: {
             cellSelectionOnClick: false,
+          },
+          revisao: {
+            usuario: rootStore.getState().elementoReducer.usuario.nome,
+            emRevisao: false,
+            gerenciarKeydown: true,
+            tableModule: TableModule,
+            tableTrick: TableTrick,
           },
           history: {
             delay: 1000,

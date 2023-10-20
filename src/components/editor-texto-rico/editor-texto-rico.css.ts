@@ -201,6 +201,18 @@ export const editorTextoRicoCss = html`
       margin-bottom: 0;
     }
 
+    .ql-editor ins {
+      text-decoration: none;
+      background-color: #b2e6be;
+      /* #d4edda; */
+    }
+
+    .ql-editor del {
+      text-decoration: strikethrough;
+      background-color: #f4a9b0;
+      /* #f8d7da; */
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
