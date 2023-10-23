@@ -51,7 +51,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   <br/>
   <div id="form" class="input-validation-required"></div>
   <br/>
-  <sl-button class="controls" slot="footer" variant="primary">Confirmar</sl-button>
+  <sl-button id="btnConfirmarAnexo" class="controls" slot="footer" variant="primary">Confirmar</sl-button>
   <sl-button class="controls" slot="footer" variant="default">Cancelar</sl-button>
   `);
 
@@ -153,7 +153,10 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
         anexos.push(anexo);
         inputUpload.files = null;
         conteudoDinamico();
+        document.getElementById('btnConfirmarAnexo')?.removeAttribute('disabled');
       } else {
+        document.getElementById('btnConfirmarAnexo')?.setAttribute('disabled', 'true');
+
         listaRestricoes.forEach(restricao => {
           document.getElementById(restricao)?.removeAttribute('hidden');
         });
