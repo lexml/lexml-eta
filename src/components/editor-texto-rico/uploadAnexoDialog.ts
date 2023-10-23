@@ -43,6 +43,9 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     <br/>
     <br/>
     <input id="input-upload" type="file" accept="application/pdf" size="small"></input>
+    <br/>
+    <br/>
+    <label style="color: red;" hidden="true" id="labelErro">Esse tipo de arquivo não pode ser anexado !</label>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
@@ -109,7 +112,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   const fechar = botoes[1] as SlButton;
 
   inputUpload.oninput = (): void => {
-    addAnexo();
+    addAnexo(wpUpload);
   };
 
   confirmar.onclick = (): void => {
@@ -138,13 +141,17 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     );
   };
 
-  const addAnexo = async () => {
+  const addAnexo = async (wpUpload: HTMLDivElement) => {
     if (inputUpload?.files) {
       const file = inputUpload.files[0];
-      const anexo = await convertAnexo(file);
-      anexos.push(anexo);
-      inputUpload.files = null;
-      conteudoDinamico();
+      if (file && file.type === 'application/pdf') {
+        const anexo = await convertAnexo(file);
+        anexos.push(anexo);
+        inputUpload.files = null;
+        conteudoDinamico();
+      } else {
+        wpUpload.lastElementChild?.removeAttribute('hidden');
+      }
     }
   };
 
