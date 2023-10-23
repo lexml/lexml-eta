@@ -44,8 +44,9 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     <br/>
     <input id="input-upload" type="file" accept="application/pdf" size="small"></input>
     <br/>
+    <label class="tipoErrado" style="color: red;" hidden="true" id="tipoErrado">Esse arquivo não é um PDF</label>
     <br/>
-    <label style="color: red;" hidden="true" id="labelErro">Esse tipo de arquivo não pode ser anexado !</label>
+    <label class="tamanhoMaximoAtingido" style="color: red;" hidden="true" id="tamanhoMaximoAtingido">Ultrapassou o tamanho máximo de 5MB</label>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
@@ -112,7 +113,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   const fechar = botoes[1] as SlButton;
 
   inputUpload.oninput = (): void => {
-    addAnexo(wpUpload);
+    addAnexo();
   };
 
   confirmar.onclick = (): void => {
@@ -141,18 +142,51 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     );
   };
 
-  const addAnexo = async (wpUpload: HTMLDivElement) => {
+  const addAnexo = async () => {
     if (inputUpload?.files) {
       const file = inputUpload.files[0];
-      if (file && file.type === 'application/pdf') {
+
+      const listaRestricoes = restricoes(file);
+
+      if (listaRestricoes.length === 0) {
         const anexo = await convertAnexo(file);
         anexos.push(anexo);
         inputUpload.files = null;
         conteudoDinamico();
       } else {
-        wpUpload.lastElementChild?.removeAttribute('hidden');
+        listaRestricoes.forEach(restricao => {
+          document.getElementById(restricao)?.removeAttribute('hidden');
+        });
+
+        listaRestricoesCompleta.forEach(restricaoCompleta => {
+          if (!listaRestricoes.includes(restricaoCompleta)) {
+            document.getElementById(restricaoCompleta)?.setAttribute('hidden', 'true');
+          }
+        });
       }
     }
+  };
+
+  const listaRestricoesCompleta: string[] = ['tamanhoMaximoAtingido', 'tipoErrado'];
+
+  const restricoes = (file: any): string[] => {
+    const restricoes: string[] = [];
+    const size = Math.round(file.size / 1024);
+
+    if (size > 5120) {
+      restricoes.push('tamanhoMaximoAtingido');
+    }
+
+    if (file.type !== 'application/pdf') {
+      restricoes.push('tipoErrado');
+    }
+
+    if (restricoes.length > 0) {
+      restricoes.push('restricao');
+    }
+
+    //const retorno = file && file.type === 'application/pdf' && size <= 4096;
+    return restricoes;
   };
 
   const convertAnexo = (file): Promise<Anexo> => {
