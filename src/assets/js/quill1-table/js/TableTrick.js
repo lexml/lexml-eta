@@ -30,6 +30,28 @@ export default class TableTrick {
     return blot; // return TD or NULL
   }
 
+  static find_td_node(quill) {
+    let td = TableTrick.find_td(quill);
+    if(td) {
+      return td.domNode;
+    }
+  }
+
+  static find_table(quill) {
+    const td = TableTrick.find_td(quill);
+    if (td) {
+      return td.parent.parent;
+    }
+  }
+
+  static find_table_node(quill) {
+    const table = TableTrick.find_table(quill);
+    if (table) {
+      return table.domNode;
+    }
+  }
+
+
   static getQuill(el) {
     // Get Quill instance from node/element or blot
     let quill = null;
@@ -97,6 +119,20 @@ export default class TableTrick {
       TableHistory.register('remove', { node: table.domNode, nextNode: table.next ? table.next.domNode : null, parentNode: table.parent.domNode });
       TableHistory.add(quill);
       table.remove();
+    }
+  }
+
+
+  static changeWidthTable(quill, width) {
+    const widthValue = width + '%';
+    const styleValue = `width:${widthValue}`;
+    const table = TableTrick.find_table(quill);
+
+    if (table) {
+      const tableNode = table.domNode;
+      TableHistory.register('propertyChange',{ node: tableNode, property: 'style', oldValue: tableNode.style, newValue: styleValue });
+      tableNode.setAttribute('style', styleValue);
+      TableHistory.add(quill);
     }
   }
 
@@ -670,9 +706,6 @@ export default class TableTrick {
           break;
         case 'remove-col':
           TableTrick.removeCol(quill);
-          break;
-        case 'change-width-col':
-          TableTrick.changeWidthCol(quill);
           break;
         case 'append-row-above':
           append_direction = 'before';

@@ -19,7 +19,7 @@ import TableTrick from '../../assets/js/quill1-table/js/TableTrick.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
-import { AlterarLarguraColunaModalComponent } from './alterar-largura-coluna-modal';
+import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -43,8 +43,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   icons = Quill.import('ui/icons');
 
-  @query('lexml-alterar-largura-coluna-modal')
-  private alterarLarguraColunaModal!: AlterarLarguraColunaModalComponent;
+  @query('#lexml-alterar-largura-coluna-modal')
+  private alterarLarguraColunaModal!: AlterarLarguraTabelaColunaModalComponent;
+
+  @query('#lexml-alterar-largura-tabela-modal')
+  private alterarLarguraTabelaModal!: AlterarLarguraTabelaColunaModalComponent;
 
   private showAlterarLarguraColunaModal(width: string): void {
     this.alterarLarguraColunaModal.show(width);
@@ -52,6 +55,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private hideAlterarLarguraColunaModal(): void {
     this.alterarLarguraColunaModal.hide();
+  }
+
+  private showAlterarLarguraTabelaModal(width: string): void {
+    this.alterarLarguraTabelaModal.show(width);
+  }
+
+  private hideAlterarLarguraTabelaModal(): void {
+    this.alterarLarguraTabelaModal.hide();
   }
 
   private agendarEmissaoEventoOnChange(): void {
@@ -110,7 +121,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         </sl-button>
       </div>
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
-      <lexml-alterar-largura-coluna-modal></lexml-alterar-largura-coluna-modal>
+      <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-tabela-modal" tipo="tabela"></lexml-alterar-largura-tabela-coluna-modal>
+      <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-coluna-modal" tipo="coluna"></lexml-alterar-largura-tabela-coluna-modal>
     `;
   }
 
@@ -307,6 +319,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.quill?.on('text-change', this.updateTexto);
       this.quill?.on('selection-change', this.onSelectionChange);
       this.alterarLarguraColunaModal.callback = this.alterarLarguraDaColuna;
+      this.alterarLarguraTabelaModal.callback = this.alterarLarguraDaTabela;
 
       const toolbar = this.quill.getModule('toolbar');
       toolbar.addHandler('table', (value: string) => {
@@ -314,8 +327,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
         if (value === 'change-width-col-modal') {
           this.lastSelecion = this.quill?.getSelection();
-          const td = TableTrick.find_td(this.quill).domNode;
+          const td = TableTrick.find_td_node(this.quill);
           this.showAlterarLarguraColunaModal(td.width);
+        } else if (value === 'change-width-table-modal') {
+          this.lastSelecion = this.quill?.getSelection();
+          const table = TableTrick.find_table_node(this.quill);
+          this.showAlterarLarguraTabelaModal(table.width);
         }
       });
     }
@@ -325,6 +342,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill!.setSelection(this.lastSelecion);
     TableTrick.changeWidthCol(this.quill, valor);
     this.hideAlterarLarguraColunaModal();
+  };
+
+  alterarLarguraDaTabela = (valor: number): void => {
+    this.quill!.setSelection(this.lastSelecion);
+    TableTrick.changeWidthTable(this.quill, valor);
+    this.hideAlterarLarguraTabelaModal();
   };
 
   private elTableManagerButton?: HTMLSpanElement;
@@ -564,6 +587,7 @@ const toolbarOptions = [
         'append-col-after',
         'remove-col',
         'change-width-col-modal',
+        'change-width-table-modal',
         'remove-row',
         'remove-table',
         'split-cell',
