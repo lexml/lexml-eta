@@ -788,7 +788,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               ></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
-              <editor-texto-rico modo="justificativa" id="editor-texto-rico-justificativa" registroEvento="justificativa" @onchange=${this.onChange}></editor-texto-rico>
+              <editor-texto-rico
+                .lexmlEtaConfig=${this.lexmlEmendaConfig}
+                modo="justificativa"
+                id="editor-texto-rico-justificativa"
+                registroEvento="justificativa"
+                @onchange=${this.onChange}
+              ></editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">

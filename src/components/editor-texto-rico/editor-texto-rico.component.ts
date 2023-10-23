@@ -18,6 +18,7 @@ import TableModule from '../../assets/js/quill1-table/index.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
+import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -28,6 +29,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
   @state() @property({ type: Array }) anexos: Anexo[] = [];
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
+  @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   @property({ type: String })
   modo = '';

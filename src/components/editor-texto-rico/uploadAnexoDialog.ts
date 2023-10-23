@@ -4,6 +4,7 @@ import { Anexo } from '../../model/emenda/emenda';
 export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any, editorTextoRico: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
   editorTextoRico.appendChild(dialogElem);
+  //tamanhoMaximoAnexo = editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo;
   dialogElem.label = 'Anexo';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
@@ -113,7 +114,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   const fechar = botoes[1] as SlButton;
 
   inputUpload.oninput = (): void => {
-    addAnexo();
+    addAnexo(editorTextoRico);
   };
 
   confirmar.onclick = (): void => {
@@ -142,11 +143,11 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     );
   };
 
-  const addAnexo = async () => {
+  const addAnexo = async (editorTextoRico: any) => {
     if (inputUpload?.files) {
       const file = inputUpload.files[0];
 
-      const listaRestricoes = restricoes(file);
+      const listaRestricoes = restricoes(file, editorTextoRico);
 
       if (listaRestricoes.length === 0) {
         const anexo = await convertAnexo(file);
@@ -172,11 +173,11 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
 
   const listaRestricoesCompleta: string[] = ['tamanhoMaximoAtingido', 'tipoErrado'];
 
-  const restricoes = (file: any): string[] => {
+  const restricoes = (file: any, editorTextoRico: any): string[] => {
     const restricoes: string[] = [];
     const size = Math.round(file.size / 1024);
 
-    if (size > 5120) {
+    if (size > editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo) {
       restricoes.push('tamanhoMaximoAtingido');
     }
 
