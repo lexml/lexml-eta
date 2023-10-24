@@ -19,6 +19,7 @@ import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
+import { erroDialog } from './erroDialog';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -189,6 +190,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             handlers: {
               undo: this.undo,
               redo: this.redo,
+              image: this.imageHandler,
             },
           },
           aspasCurvas: true,
@@ -293,6 +295,39 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.quill?.on('text-change', this.updateTexto);
       this.quill?.on('selection-change', this.onSelectionChange);
     }
+  };
+
+  imageHandler = (): void => {
+    let fileInput = this.querySelector('input.ql-image[type=file]') as any;
+    if (fileInput === null) {
+      fileInput = document.createElement('input');
+      fileInput?.setAttribute('type', 'file');
+      fileInput?.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
+      fileInput?.classList.add('ql-image');
+      fileInput?.addEventListener('change', () => {
+        if (fileInput?.files !== null && fileInput.files[0] !== null) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            if (this.tamanhoPermitido(e)) {
+              const range = this.quill!.getSelection(true);
+              this.quill?.updateContents(new Delta().retain(range!.index!).delete(range!.length!).insert({ image: e.target!.result }), Quill.sources.USER);
+              this.quill?.setSelection(range!.index! + 1, Quill.sources.SILENT);
+              fileInput.value = '';
+            } else {
+              erroDialog(this, 'Essa imagem ultrapassa o tamanho permitido');
+            }
+          };
+          reader.readAsDataURL(fileInput.files[0]);
+        }
+      });
+      this.appendChild(fileInput);
+    }
+    fileInput.click();
+  };
+
+  tamanhoPermitido = (e: any): boolean => {
+    const size = Math.round(e.loaded / 1024);
+    return size < this.lexmlEtaConfig.tamanhoMaximoImagem;
   };
 
   private elTableManagerButton?: HTMLSpanElement;
