@@ -81,12 +81,29 @@ export class DestinoComponent extends LitElement {
   render(): TemplateResult {
     return html`
       <style>
-        .lexml-destino {
-          display: block;
-          font-size: 1em;
-          max-width: 700px;
+        fieldset {
+          display: flex;
+          flex-direction: column;
+          gap: 1em;
+          background-color: var(--sl-color-gray-100);
+          box-shadow: var(--sl-shadow-x-large);
+          flex-wrap: wrap;
+          padding: 20px 20px;
+          border: solid var(--sl-panel-border-width) var(--sl-panel-border-color);
+          border-radius: var(--sl-border-radius-medium);
+          max-width: 655px;
         }
-        sl-radio-group::part(base) {
+
+        legend {
+          background-color: var(--sl-color-gray-200);
+          font-weight: bold;
+          border-radius: 5px;
+          border: 1px solid var(--sl-color-gray-300);
+          padding: 2px 5px;
+          box-shadow: var(--sl-shadow-small);
+        }
+
+        /* sl-radio-group::part(base) {
           display: flex;
           flex-direction: row;
           align-items: center;
@@ -126,7 +143,7 @@ export class DestinoComponent extends LitElement {
 
         sl-radio-group::part(base) {
           box-shadow: none;
-        }
+        } */
       </style>
       <fieldset class="lexml-destino">
         <legend>Destino</legend>
