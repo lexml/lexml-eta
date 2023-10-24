@@ -29,7 +29,7 @@ export async function erroDialog(editorTextoRico: any, mensagem: string): Promis
   </div>
   <br/>
   
-  <sl-button class="controls" slot="footer" variant="default">Fechar</sl-button>
+  <sl-button class="controls" slot="footer" variant="primary">Fechar</sl-button>
   `);
 
   const botoes = content.querySelectorAll('.controls');
