@@ -15,6 +15,7 @@ export class Emenda {
   componentes = [new ComponenteEmendado()];
   comandoEmenda = new ComandoEmenda();
   comandoEmendaTextoLivre = new ComandoEmendaTextoLivre();
+  substituicaoTermo?: SubstituicaoTermo;
   justificativa = '';
   local = '';
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
@@ -32,6 +33,7 @@ export enum ModoEdicaoEmenda {
   EMENDA = 'emenda',
   EMENDA_ARTIGO_ONDE_COUBER = 'emendaArtigoOndeCouber',
   EMENDA_TEXTO_LIVRE = 'emendaTextoLivre',
+  EMENDA_SUBSTITUICAO_TERMO = 'emendaSubstituicaoTermo',
 }
 
 // Dados da proposição ----------------------------
@@ -158,4 +160,13 @@ export class OpcoesImpressao {
 export class Anexo {
   nomeArquivo = '';
   base64 = '';
+}
+
+export type TipoSubstituicaoTermo = 'Expressão' | 'Palavra' | 'Número';
+export class SubstituicaoTermo {
+  tipo: TipoSubstituicaoTermo = 'Expressão';
+  termo = '';
+  novoTermo = '';
+  flexaoGenero = false;
+  flexaoNumero = false;
 }

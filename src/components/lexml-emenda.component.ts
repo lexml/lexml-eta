@@ -14,7 +14,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada, OpcoesImpressao } from '../model/emenda/emenda';
+import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada, OpcoesImpressao, SubstituicaoTermo } from '../model/emenda/emenda';
 import { buildFakeUrn, getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ClassificacaoDocumento } from './../model/documento/classificacao';
@@ -35,6 +35,7 @@ import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildPr
 import { generoFromLetra } from '../model/dispositivo/genero';
 import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
+import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -106,6 +107,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @state()
   autoria = new Autoria();
+
+  @query('lexml-substituicao-termo')
+  _substituicaoTermo?: SubstituicaoTermoComponent;
 
   @query('lexml-eta')
   _lexmlEta?: LexmlEtaComponent;
@@ -248,15 +252,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     const emenda = this.montarEmendaBasica();
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
-    if (!this.isEmendaTextoLivre()) {
+    if (this.isEmendaSubstituicaoTermo()) {
+      emenda.substituicaoTermo = this._substituicaoTermo!.getSubstituicaoTermo();
+      emenda.comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
+    } else if (this.isEmendaTextoLivre()) {
+      emenda.comandoEmendaTextoLivre.motivo = this.motivo;
+      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
+      emenda.anexos = this._lexmlEmendaTextoRico.anexos;
+    } else {
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
       emenda.comandoEmendaTextoLivre.motivo = undefined;
       emenda.comandoEmendaTextoLivre.texto = undefined;
-    } else {
-      emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
-      emenda.anexos = this._lexmlEmendaTextoRico.anexos;
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
@@ -403,7 +410,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private setEmenda(emenda: Emenda): void {
-    if (!this.isEmendaTextoLivre()) {
+    if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
       this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     }
     this._lexmlAutoria.autoria = emenda.autoria;
@@ -416,6 +423,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
       this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
+    } else if (this.isEmendaSubstituicaoTermo()) {
+      this._substituicaoTermo!.setSubstituicaoTermo(emenda.substituicaoTermo || new SubstituicaoTermo());
     }
     this._lexmlData.data = emenda.data;
   }
@@ -634,7 +643,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(): void {
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+    if (this.isEmendaSubstituicaoTermo()) {
+      const comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
+      this._lexmlEmendaComando.emenda = comandoEmenda;
+      this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
+    } else if (this.isEmendaTextoLivre()) {
+      if (!this._lexmlEmendaTextoRico.texto) {
+        this.showAlertaEmendaTextoLivre();
+      } else {
+        rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
+      }
+    } else if (this.modo.startsWith('emenda')) {
       const comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
@@ -649,12 +668,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(adicionarAlerta(alerta));
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-      }
-    } else if (this.isEmendaTextoLivre()) {
-      if (!this._lexmlEmendaTextoRico.texto) {
-        this.showAlertaEmendaTextoLivre();
-      } else {
-        rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
       }
     }
   }
@@ -679,6 +692,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private isEmendaTextoLivre(): boolean {
     return this.modo && this.modo === 'emendaTextoLivre';
+  }
+
+  private isEmendaSubstituicaoTermo(): boolean {
+    return this.modo === 'emendaSubstituicaoTermo';
   }
 
   private updateView(): void {
@@ -774,7 +791,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab>
             <sl-tab-panel name="lexml-eta" class="overflow-hidden">
               <lexml-eta
-                style="display: ${!this.isEmendaTextoLivre() ? 'block' : 'none'}"
+                style="display: ${!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo() ? 'block' : 'none'}"
                 id="lexmlEta"
                 .lexmlEtaConfig=${this.lexmlEmendaConfig}
                 @onchange=${this.onChange}
@@ -786,6 +803,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                 registroEvento="justificativa"
                 @onchange=${this.onChange}
               ></editor-texto-rico>
+              <lexml-substituicao-termo style="display: ${this.isEmendaSubstituicaoTermo() ? 'block' : 'none'}" @onchange=${this.onChange}></lexml-substituicao-termo>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
               <editor-texto-rico
