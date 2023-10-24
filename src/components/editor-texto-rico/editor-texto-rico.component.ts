@@ -57,7 +57,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     return !this.existeRevisaoByModo() ? undefined : this._textoAntesRevisao;
   }
 
-  public setTextoAntesRevisao(texto: string | undefined) {
+  public setTextoAntesRevisao(texto: string | undefined): void {
     this._textoAntesRevisao = texto;
   }
 
@@ -69,7 +69,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  public limparRedimencionamentoImagens(): void {
+  public limparRedimensionamentoImagens(): void {
     const imagens = document.querySelectorAll('#editor-texto-rico-emenda-inner img');
     if (imagens?.length) {
       imagens.forEach(img => {
@@ -79,14 +79,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  public redimencionarImagens(): void {
+  public redimensionarImagens(): void {
     const imagens = document.querySelectorAll('#editor-texto-rico-emenda-inner img');
     if (imagens?.length) {
-      imagens.forEach(img => this.redimencionarImagem(img as HTMLImageElement));
+      imagens.forEach(img => this.redimensionarImagem(img as HTMLImageElement));
     }
   }
 
-  private redimencionarImagem(img: HTMLImageElement): void {
+  private redimensionarImagem(img: HTMLImageElement): void {
     const imgWidth = img.width;
     const imgHeight = img.height;
     if (imgWidth > this.MAX_WIDTH_IMAGEM) {
@@ -479,15 +479,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   undo = (): any => {
-    if (TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(true), undefined)) {
-      this.quill?.history.undo();
-    }
+    return TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(true), undefined);
   };
 
   redo = (): any => {
-    if (TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(true), undefined)) {
-      this.quill?.history.redo();
-    }
+    return TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(true), undefined);
   };
 
   atualizaAnexo = (anexo: Anexo[]): void => {

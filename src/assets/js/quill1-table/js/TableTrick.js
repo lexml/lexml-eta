@@ -669,6 +669,10 @@ export default class TableTrick {
               // Table history entry
               TableHistory.undo(quill, entry.id);
               return false;
+            } else if (entry.undo?.ops.some(op => op.attributes?.td === null)) {
+              // ajusta histórico
+              const index = entry.undo.ops.findIndex(op => op.attributes?.td === null);
+              entry.undo.ops.splice(index, 1);
             }
             // Classic history entry
           }
