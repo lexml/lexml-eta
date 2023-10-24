@@ -9,6 +9,37 @@ export class SubstituicaoTermoComponent extends LitElement {
     span.alerta {
       color: red;
     }
+
+    fieldset {
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+      background-color: var(--sl-color-gray-100);
+      box-shadow: var(--sl-shadow-x-large);
+      flex-wrap: wrap;
+      padding: 20px 20px;
+      margin: 10px;
+      border: solid var(--sl-panel-border-width) var(--sl-panel-border-color);
+      border-radius: var(--sl-border-radius-medium);
+    }
+
+    legend {
+      background-color: var(--sl-color-gray-200);
+      font-weight: bold;
+      border-radius: 5px;
+      border: 1px solid var(--sl-color-gray-300);
+      padding: 2px 5px;
+      box-shadow: var(--sl-shadow-small);
+    }
+
+    sl-radio-group::part(base) {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+    #flexaoGenero {
+      margin-left: 20px;
+    }
   `;
 
   @query('#tipoSubstituicaoTermo')
@@ -90,16 +121,16 @@ export class SubstituicaoTermoComponent extends LitElement {
           <sl-radio value="Palavra">Palavra</sl-radio>
           <sl-radio value="Número">Número</sl-radio>
         </sl-radio-group>
-        <div style="width:100%;margin-top:10px">
-          <sl-input id="termoASerSubstituido" type="text" required="required" label="Termo a ser substituído:"></sl-input>
+        <div>
+          <sl-input id="termoASerSubstituido" type="text" required label="Termo a ser substituído: *"></sl-input>
           <span id="alertaTermoASerSubstituido" class="alerta">Este campo deve ser preenchido</span>
         </div>
-        <div style="width:100%;margin-top:10px">
-          <sl-input id="novoTermo" type="text" required="required" label="Novo termo:"></sl-input>
+        <div>
+          <sl-input id="novoTermo" type="text" required label="Novo termo: *"></sl-input>
           <span id="alertaNovoTermo" class="alerta">Este campo deve ser preenchido</span>
         </div>
-        <div style="width:100%;margin-top:10px">
-          Propor fazer flexões de:
+        <div>
+          <span>Propor fazer flexões de:</span>
           <sl-checkbox id="flexaoGenero">Gênero</sl-checkbox>
           <sl-checkbox id="flexaoNumero">Número</sl-checkbox>
         </div>
