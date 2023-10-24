@@ -31,7 +31,7 @@ export class ComandoEmendaBuilder {
 
   private getComandoEmendaSubstituicaoTermo(): ComandoEmenda {
     const ret = new ComandoEmenda();
-    const cmdEmdSubstituicaoTermo = new CmdEmdSubstituicaoTermo(this.payload as SubstituicaoTermo);
+    const cmdEmdSubstituicaoTermo = new CmdEmdSubstituicaoTermo(this.payload as SubstituicaoTermo, this.urn);
     ret.comandos.push(new ItemComandoEmenda(cmdEmdSubstituicaoTermo.getTexto(), ''));
     return ret;
   }

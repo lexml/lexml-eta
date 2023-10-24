@@ -254,7 +254,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
     if (this.isEmendaSubstituicaoTermo()) {
       emenda.substituicaoTermo = this._substituicaoTermo!.getSubstituicaoTermo();
-      emenda.comandoEmenda = this._substituicaoTermo!.getComandoEmenda();
+      emenda.comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
     } else if (this.isEmendaTextoLivre()) {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
@@ -644,7 +644,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private onChange(): void {
     if (this.isEmendaSubstituicaoTermo()) {
-      const comandoEmenda = this._substituicaoTermo!.getComandoEmenda();
+      const comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     } else if (this.isEmendaTextoLivre()) {

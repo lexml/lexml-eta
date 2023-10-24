@@ -12,25 +12,25 @@ export class SubstituicaoTermoComponent extends LitElement {
   `;
 
   @query('#tipoSubstituicaoTermo')
-  private elTipoSubstituicaoTermo!: HTMLInputElement;
+  elTipoSubstituicaoTermo!: HTMLInputElement;
 
   @query('#termoASerSubstituido')
-  private elTermoASerSubstituido!: HTMLInputElement;
+  elTermoASerSubstituido!: HTMLInputElement;
 
   @query('#novoTermo')
-  private elNovoTermo!: HTMLInputElement;
+  elNovoTermo!: HTMLInputElement;
 
   @query('#alertaTermoASerSubstituido')
-  private elAlertaTermoASerSubstituido!: HTMLSpanElement;
+  elAlertaTermoASerSubstituido!: HTMLSpanElement;
 
   @query('#alertaNovoTermo')
-  private elAlertaNovoTermo!: HTMLSpanElement;
+  elAlertaNovoTermo!: HTMLSpanElement;
 
   @query('#flexaoGenero')
-  private elFlexaoGenero!: HTMLInputElement;
+  elFlexaoGenero!: HTMLInputElement;
 
   @query('#flexaoNumero')
-  private elFlexaoNumero!: HTMLInputElement;
+  elFlexaoNumero!: HTMLInputElement;
 
   private timerEmitirEventoOnChange = 0;
 
@@ -58,8 +58,8 @@ export class SubstituicaoTermoComponent extends LitElement {
     );
   }
 
-  getComandoEmenda(): ComandoEmenda {
-    return new ComandoEmendaBuilder('', this.getSubstituicaoTermo()).getComandoEmenda();
+  getComandoEmenda(urn: string): ComandoEmenda {
+    return new ComandoEmendaBuilder(urn, this.getSubstituicaoTermo()).getComandoEmenda();
   }
 
   getSubstituicaoTermo(): SubstituicaoTermo {

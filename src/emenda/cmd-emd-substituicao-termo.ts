@@ -1,7 +1,8 @@
 import { SubstituicaoTermo } from '../model/emenda/emenda';
+import { getRefGenericaProjeto } from '../model/lexml/documento/urnUtil';
 
 export class CmdEmdSubstituicaoTermo {
-  constructor(private substituicaoTermo: SubstituicaoTermo) {}
+  constructor(private substituicaoTermo: SubstituicaoTermo, private urn: string) {}
 
   private getComplementoFlexoes(flexaoGenero: boolean, flexaoNumero: boolean): string {
     const flexoes: string[] = [];
@@ -12,6 +13,10 @@ export class CmdEmdSubstituicaoTermo {
 
   getTexto(): string {
     const { tipo, termo, novoTermo, flexaoGenero, flexaoNumero } = this.substituicaoTermo;
-    return `Substitua-se na Medida Provisória a/o ${tipo.toLowerCase()} “${termo}” por “${novoTermo}”${this.getComplementoFlexoes(flexaoGenero, flexaoNumero)}.`;
+    const refProjeto = getRefGenericaProjeto(this.urn);
+    return `Substitua-se n${refProjeto.genero.artigoDefinido} ${refProjeto.nome} a/o ${tipo.toLowerCase()} “${termo}” por “${novoTermo}”${this.getComplementoFlexoes(
+      flexaoGenero,
+      flexaoNumero
+    )}.`;
   }
 }
