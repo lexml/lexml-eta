@@ -341,12 +341,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   alterarLarguraDaColuna = (valor: number): void => {
     this.quill!.setSelection(this.lastSelecion);
     TableTrick.changeWidthCol(this.quill, valor);
+    this.updateApenasTexto();
     this.hideAlterarLarguraColunaModal();
   };
 
   alterarLarguraDaTabela = (valor: number): void => {
     this.quill!.setSelection(this.lastSelecion);
     TableTrick.changeWidthTable(this.quill, valor);
+    this.updateApenasTexto();
     this.hideAlterarLarguraTabelaModal();
   };
 
@@ -415,6 +417,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
     setTimeout(() => this.quill!.history.clear(), 100); // A linha anterior gera um history, então é necessário limpar novamente.
+  };
+
+  updateApenasTexto = (): void => {
+    const texto = this.ajustaHtml(this.quill?.root.innerHTML);
+    this.texto = texto === '<p><br></p>' ? '' : texto;
   };
 
   updateTexto = (): void => {
