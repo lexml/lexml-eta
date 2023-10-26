@@ -301,20 +301,22 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     let fileInput = this.querySelector('input.ql-image[type=file]') as any;
     if (fileInput === null) {
       fileInput = document.createElement('input');
-      fileInput?.setAttribute('type', 'file');
-      fileInput?.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
-      fileInput?.classList.add('ql-image');
-      fileInput?.addEventListener('change', () => {
-        if (fileInput?.files !== null && fileInput.files[0] !== null) {
+      fileInput.setAttribute('type', 'file');
+      fileInput.setAttribute('hidden', 'true');
+      fileInput.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
+      fileInput.classList.add('ql-image');
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files !== null && fileInput.files[0] !== null) {
           const reader = new FileReader();
           reader.onload = e => {
             if (this.tamanhoPermitido(e)) {
               const range = this.quill!.getSelection(true);
-              this.quill?.updateContents(new Delta().retain(range!.index!).delete(range!.length!).insert({ image: e.target!.result }), Quill.sources.USER);
-              this.quill?.setSelection(range!.index! + 1, Quill.sources.SILENT);
+              this.quill!.updateContents(new Delta().retain(range.index).delete(range.length).insert({ image: e.target!.result }), Quill.sources.USER);
               fileInput.value = '';
+              fileInput.remove();
             } else {
               erroDialog(this, 'Essa imagem ultrapassa o tamanho permitido');
+              fileInput.remove();
             }
           };
           reader.readAsDataURL(fileInput.files[0]);
