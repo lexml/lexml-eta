@@ -588,13 +588,13 @@ const toolbarOptions = [
     {
       table: [
         // 'insert',
+        'change-width-col-modal',
+        'change-width-table-modal',
         'append-row-above',
         'append-row-below',
         'append-col-before',
         'append-col-after',
         'remove-col',
-        'change-width-col-modal',
-        'change-width-table-modal',
         'remove-row',
         'remove-table',
         'split-cell',
