@@ -626,8 +626,8 @@ const toolbarOptions = [
     {
       table: [
         // 'insert',
-        'change-width-col-modal',
-        'change-width-table-modal',
+        // 'change-width-col-modal',
+        // 'change-width-table-modal',
         'append-row-above',
         'append-row-below',
         'append-col-before',
