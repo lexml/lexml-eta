@@ -359,8 +359,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               fileInput.value = '';
               fileInput.remove();
             } else {
-              //erroDialog(this, 'Essa imagem ultrapassa o tamanho permitido');
-              this.alertar('Essa imagem ultrapassa o tamanho permitido');
+              this.alertar(`Essa imagem ultrapassa o tamanho máximo permitido (${Math.trunc(this.lexmlEtaConfig.tamanhoMaximoImagem / 1024)}MB)`);
               fileInput.remove();
             }
           };

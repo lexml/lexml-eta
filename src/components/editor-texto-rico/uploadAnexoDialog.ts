@@ -47,7 +47,9 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     <br/>
     <label class="tipoErrado" style="color: red;" hidden="true" id="tipoErrado">Esse arquivo não é um PDF</label>
     <br/>
-    <label class="tamanhoMaximoAtingido" style="color: red;" hidden="true" id="tamanhoMaximoAtingido">Ultrapassou o tamanho máximo de 5MB</label>
+    <label class="tamanhoMaximoAtingido" style="color: red;" hidden="true" id="tamanhoMaximoAtingido">Ultrapassou o tamanho máximo permitido (${Math.trunc(
+      editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo / 1024
+    )}MB)</label>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
