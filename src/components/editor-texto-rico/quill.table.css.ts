@@ -7,6 +7,8 @@ export const quillTableCss = html`<style>
     table-layout: fixed;
     overflow: hidden;
     white-space: nowrap;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .ql-editor table td {

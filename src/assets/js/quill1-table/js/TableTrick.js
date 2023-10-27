@@ -30,6 +30,28 @@ export default class TableTrick {
     return blot; // return TD or NULL
   }
 
+  static find_td_node(quill) {
+    let td = TableTrick.find_td(quill);
+    if(td) {
+      return td.domNode;
+    }
+  }
+
+  static find_table(quill) {
+    const td = TableTrick.find_td(quill);
+    if (td) {
+      return td.parent.parent;
+    }
+  }
+
+  static find_table_node(quill) {
+    const table = TableTrick.find_table(quill);
+    if (table) {
+      return table.domNode;
+    }
+  }
+
+
   static getQuill(el) {
     // Get Quill instance from node/element or blot
     let quill = null;
@@ -97,6 +119,20 @@ export default class TableTrick {
       TableHistory.register('remove', { node: table.domNode, nextNode: table.next ? table.next.domNode : null, parentNode: table.parent.domNode });
       TableHistory.add(quill);
       table.remove();
+    }
+  }
+
+
+  static changeWidthTable(quill, width) {
+    const widthValue = width + '%';
+    const styleValue = `width:${widthValue}`;
+    const table = TableTrick.find_table(quill);
+
+    if (table) {
+      const tableNode = table.domNode;
+      TableHistory.register('propertyChange',{ node: tableNode, property: 'style', oldValue: tableNode.style, newValue: styleValue });
+      tableNode.setAttribute('style', styleValue);
+      TableHistory.add(quill);
     }
   }
 
@@ -316,6 +352,42 @@ export default class TableTrick {
         });
       }
       TableSelection.selectionStartElement = TableSelection.selectionEndElement = null;
+      TableHistory.add(quill);
+    }
+  }
+
+  static changeWidthCol(quill, width) {
+    const coords = TableSelection.getSelectionCoords();
+    TableSelection.resetSelection(quill.container);
+    let table, colIndex, colsToRemove;
+    if (coords) {
+      // if we have a selection, remove all selected columns
+      const _table = TableSelection.selectionStartElement.closest('table');
+      table = Parchment.find(_table);
+      colIndex = coords.minX;
+      colsToRemove = coords.maxX - coords.minX + 1;
+    } else {
+      // otherwise, remove only the column of current cell
+      colsToRemove = 1;
+      const currentCell = TableTrick.find_td(quill);
+      if (currentCell) {
+        table = currentCell.parent.parent;
+        colIndex = Array.prototype.indexOf.call(currentCell.parent.domNode.children, currentCell.domNode);
+      }
+    }
+
+    if (table && typeof colIndex === 'number' && typeof colsToRemove === 'number') {
+      const widthValue = width + '%';
+      // Remove all TDs with the colIndex and repeat it colsToRemove times if there are multiple columns to delete
+      for (let i = 0; i < colsToRemove; i++) {
+        table.children.forEach(function (tr) {
+          const td = tr.domNode.children[colIndex];
+          if (td) {
+            TableHistory.register('propertyChange', { node: td, property: 'width', oldValue: td.width, newValue: widthValue });
+            td.setAttribute('width', widthValue);
+          }
+        });
+      }
       TableHistory.add(quill);
     }
   }

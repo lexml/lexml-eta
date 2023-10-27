@@ -134,6 +134,14 @@ export const editorTextoRicoCss = html`
       content: 'Remover coluna';
     }
 
+    .ql-picker-item[data-value='change-width-col-modal']::after {
+      content: 'Alterar a largura da coluna';
+    }
+
+    .ql-picker-item[data-value='change-width-table-modal']::after {
+      content: 'Alterar a largura da tabela';
+    }
+
     .ql-picker-item[data-value='append-row']::after {
       content: 'Inserir linha';
     }

@@ -139,7 +139,7 @@ class TableSelection {
     if (isInTable && !quill.table.isInTable) {
       // enable
       quill.table.isInTable = true;
-      TableToolbar.enable(quill, ['append-row*', 'append-col*', 'remove-cell', 'remove-row', 'remove-col', 'remove-table']);
+      TableToolbar.enable(quill, ['append-row*', 'append-col*', 'remove-cell', 'remove-row', 'remove-col', 'change-width-col-modal', 'change-width-table-modal', 'remove-table']);
     }
   }
 
