@@ -19,7 +19,6 @@ import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
-import { mensagemErroAction } from '../../model/lexml/acao/mensagemErroAction';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -316,7 +315,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               fileInput.remove();
             } else {
               //erroDialog(this, 'Essa imagem ultrapassa o tamanho permitido');
-              this.disparaMensagemErro();
+              this.alertar('Essa imagem ultrapassa o tamanho permitido');
               fileInput.remove();
             }
           };
@@ -326,10 +325,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.appendChild(fileInput);
     }
     fileInput.click();
-  };
-
-  disparaMensagemErro = (): void => {
-    rootStore.dispatch(mensagemErroAction.execute(undefined as any, 'Essa imagem ultrapassa o tamanho permitido'));
   };
 
   tamanhoPermitido = (e: any): boolean => {
