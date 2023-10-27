@@ -175,18 +175,20 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
 
   const restricoes = (file: any, editorTextoRico: any): string[] => {
     const restricoes: string[] = [];
-    const size = Math.round(file.size / 1024);
+    if (file) {
+      const size = Math.round(file.size / 1024);
 
-    if (size > editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo) {
-      restricoes.push('tamanhoMaximoAtingido');
-    }
+      if (size > editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo) {
+        restricoes.push('tamanhoMaximoAtingido');
+      }
 
-    if (file.type !== 'application/pdf') {
-      restricoes.push('tipoErrado');
-    }
+      if (file.type !== 'application/pdf') {
+        restricoes.push('tipoErrado');
+      }
 
-    if (restricoes.length > 0) {
-      restricoes.push('restricao');
+      if (restricoes.length > 0) {
+        restricoes.push('restricao');
+      }
     }
 
     //const retorno = file && file.type === 'application/pdf' && size <= 4096;
