@@ -1,5 +1,5 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { customElement, property, state, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
@@ -15,10 +15,12 @@ import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
+import TableTrick from '../../assets/js/quill1-table/js/TableTrick.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
+import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -39,7 +41,31 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   quill?: Quill;
 
+  lastSelecion?: any;
+
   icons = Quill.import('ui/icons');
+
+  @query('#lexml-alterar-largura-coluna-modal')
+  private alterarLarguraColunaModal!: AlterarLarguraTabelaColunaModalComponent;
+
+  @query('#lexml-alterar-largura-tabela-modal')
+  private alterarLarguraTabelaModal!: AlterarLarguraTabelaColunaModalComponent;
+
+  private showAlterarLarguraColunaModal(width: string): void {
+    this.alterarLarguraColunaModal.show(width);
+  }
+
+  private hideAlterarLarguraColunaModal(): void {
+    this.alterarLarguraColunaModal.hide();
+  }
+
+  private showAlterarLarguraTabelaModal(width: string): void {
+    this.alterarLarguraTabelaModal.show(width);
+  }
+
+  private hideAlterarLarguraTabelaModal(): void {
+    this.alterarLarguraTabelaModal.hide();
+  }
 
   private agendarEmissaoEventoOnChange(): void {
     clearTimeout(this.timerOnChange);
@@ -97,6 +123,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         </sl-button>
       </div>
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
+      <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-tabela-modal" tipo="tabela"></lexml-alterar-largura-tabela-coluna-modal>
+      <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-coluna-modal" tipo="coluna"></lexml-alterar-largura-tabela-coluna-modal>
     `;
   }
 
@@ -293,6 +321,23 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.elTableManagerButton = this.querySelectorAll('span.ql-table')[1] as HTMLSpanElement;
       this.quill?.on('text-change', this.updateTexto);
       this.quill?.on('selection-change', this.onSelectionChange);
+      this.alterarLarguraColunaModal.callback = this.alterarLarguraDaColuna;
+      this.alterarLarguraTabelaModal.callback = this.alterarLarguraDaTabela;
+
+      const toolbar = this.quill.getModule('toolbar');
+      toolbar.addHandler('table', (value: string) => {
+        TableModule.configToolbar(this.quill, value);
+
+        if (value === 'change-width-col-modal') {
+          this.lastSelecion = this.quill?.getSelection();
+          const td = TableTrick.find_td_node(this.quill);
+          this.showAlterarLarguraColunaModal(td.width);
+        } else if (value === 'change-width-table-modal') {
+          this.lastSelecion = this.quill?.getSelection();
+          const table = TableTrick.find_table_node(this.quill);
+          this.showAlterarLarguraTabelaModal(table.width);
+        }
+      });
     }
   };
 
@@ -314,8 +359,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               fileInput.value = '';
               fileInput.remove();
             } else {
-              //erroDialog(this, 'Essa imagem ultrapassa o tamanho permitido');
-              this.alertar('Essa imagem ultrapassa o tamanho permitido');
+              this.alertar(`Essa imagem ultrapassa o tamanho máximo permitido (${Math.trunc(this.lexmlEtaConfig.tamanhoMaximoImagem / 1024)}MB)`);
               fileInput.remove();
             }
           };
@@ -330,6 +374,20 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   tamanhoPermitido = (e: any): boolean => {
     const size = Math.round(e.loaded / 1024);
     return size < this.lexmlEtaConfig.tamanhoMaximoImagem;
+  };
+
+  alterarLarguraDaColuna = (valor: number): void => {
+    this.quill!.setSelection(this.lastSelecion);
+    TableTrick.changeWidthCol(this.quill, valor);
+    this.updateApenasTexto();
+    this.hideAlterarLarguraColunaModal();
+  };
+
+  alterarLarguraDaTabela = (valor: number): void => {
+    this.quill!.setSelection(this.lastSelecion);
+    TableTrick.changeWidthTable(this.quill, valor);
+    this.updateApenasTexto();
+    this.hideAlterarLarguraTabelaModal();
   };
 
   private elTableManagerButton?: HTMLSpanElement;
@@ -397,6 +455,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
     setTimeout(() => this.quill!.history.clear(), 100); // A linha anterior gera um history, então é necessário limpar novamente.
+  };
+
+  updateApenasTexto = (): void => {
+    const texto = this.ajustaHtml(this.quill?.root.innerHTML);
+    this.texto = texto === '<p><br></p>' ? '' : texto;
   };
 
   updateTexto = (): void => {
@@ -563,6 +626,8 @@ const toolbarOptions = [
     {
       table: [
         // 'insert',
+        // 'change-width-col-modal',
+        // 'change-width-table-modal',
         'append-row-above',
         'append-row-below',
         'append-col-before',
