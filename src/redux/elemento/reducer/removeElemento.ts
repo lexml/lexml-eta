@@ -15,7 +15,7 @@ import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction
 import { hasFilhos, isArtigoUnico, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
-import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
+import { getPaiQuePodeReceberFilhoDoTipo, removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
 
@@ -41,10 +41,12 @@ export const removeElemento = (state: any, action: any): State => {
       const dispositivos = getDispositivoAndFilhosAsLista(dispositivo.pai!).filter(isAgrupador);
       const agrupadorAntes = dispositivos[dispositivos.indexOf(dispositivo) - 1] || {};
       const agrupadorDepois = dispositivos[dispositivos.indexOf(dispositivo) + 1] || {};
-      return retornaEstadoAtualComMensagem(state, {
-        tipo: TipoMensagem.ERROR,
-        descricao: `Operação não permitida (o agrupador "${agrupadorDepois.rotulo}" não poder estar diretamente subordinado ao agrupador "${agrupadorAntes.rotulo}")`,
-      });
+      if (agrupadorAntes.tipo !== agrupadorDepois.tipo && !getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, agrupadorDepois.tipo, [])) {
+        return retornaEstadoAtualComMensagem(state, {
+          tipo: TipoMensagem.ERROR,
+          descricao: `Operação não permitida (o agrupador "${agrupadorDepois.rotulo}" não poder estar diretamente subordinado ao agrupador "${agrupadorAntes.rotulo}")`,
+        });
+      }
     }
   }
 
