@@ -1,3 +1,4 @@
+import { EMENDA_010 } from './../../doc/emendas/emenda-010';
 import { TipoMensagem } from './../../../src/model/lexml/util/mensagem';
 import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
@@ -14,8 +15,156 @@ import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoA
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
+import { MPV_905_2019 } from '../../doc/mpv_905_2019';
+import { aplicaAlteracoesEmenda } from '../../../src/redux/elemento/reducer/aplicaAlteracoesEmenda';
 
 let state: State;
+
+describe('Testando inclusão e exclusão de títulos', () => {
+  beforeEach(function () {
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    state = openArticulacaoAction(projetoNorma.articulacao!);
+    state.ui = {} as any;
+  });
+
+  describe('Abrindo emenda 010 e adicionando Título II após Capítulo III ', () => {
+    beforeEach(function () {
+      beforeEach(function () {
+        state = aplicaAlteracoesEmenda(state, { alteracoesEmenda: EMENDA_010.componentes[0].dispositivos });
+        const atual = createElemento(buscaDispositivoById(state.articulacao!, 'cap3')!);
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'depois' } });
+      });
+
+      it('Título II deveria possuir 4 filhos do tipo capítulo e 2 filhos do tipo artigo', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'tit2')!;
+        expect(d?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(4);
+        expect(d?.filhos.filter(f => f.tipo === 'Artigo').length).to.equal(2);
+      });
+
+      it('Artigo 25 deveria ser filho do Título II', () => {
+        const atual = buscaDispositivoById(state.articulacao!, 'art25')!;
+        expect(atual.pai?.id).to.equal('tit2');
+      });
+
+      describe('Removendo Título II', () => {
+        beforeEach(function () {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit2')!;
+          state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.titulo.tipo, uuid: atual.uuid! } });
+        });
+
+        it('Deveria possuir 1 título', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit1');
+          expect(atual).to.be.exist;
+        });
+
+        it('Articulação deveria possuir 1 filho do tipo título', () => {
+          expect(state.articulacao?.filhos.length).to.equal(1);
+          expect(state.articulacao?.filhos.filter(f => f.tipo === 'Titulo').length).to.equal(1);
+        });
+
+        it('Título I deveria possuir 7 filhos do tipo capítulo', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit1')!;
+          expect(atual?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(7);
+        });
+
+        it('Artigo 25 deveria ser filho do Capítulo 3', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'art25')!;
+          expect(atual.pai?.id).to.equal('tit1_cap3');
+        });
+      });
+    });
+  });
+
+  describe('Incluindo Título I e removendo-o', () => {
+    describe('Incluindo', () => {
+      beforeEach(function () {
+        const atual = createElemento(buscaDispositivoById(state.articulacao!, 'cap1')!);
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
+      });
+
+      it('Deveria possuir 1 título', () => {
+        expect(state.articulacao?.filhos.length).to.equal(1);
+        expect(state.articulacao?.filhos[0].tipo).to.equal('Titulo');
+      });
+
+      it('Título I deveria possuir 7 filhos do tipo capítulo', () => {
+        expect(state.articulacao?.filhos[0].filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(7);
+      });
+
+      describe('Removendo', () => {
+        beforeEach(function () {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit1')!;
+          state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.titulo.tipo, uuid: atual.uuid! } });
+        });
+
+        it('Deveria possuir 0 títulos', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit1');
+          expect(atual).to.be.undefined;
+        });
+
+        it('Articulação deveria possuir 7 filhos do tipo capítulo', () => {
+          expect(state.articulacao?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(7);
+        });
+      });
+    });
+  });
+
+  describe('Incluindo Título I e Título II e removendo o Título II', () => {
+    describe('Incluindo', () => {
+      beforeEach(function () {
+        let atual = createElemento(buscaDispositivoById(state.articulacao!, 'cap1')!);
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'antes' } });
+
+        atual = createElemento(buscaDispositivoById(state.articulacao!, 'tit1_cap3')!);
+        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'depois' } });
+      });
+
+      it('Deveria possuir 2 título', () => {
+        expect(state.articulacao?.filhos.length).to.equal(2);
+        expect(state.articulacao?.filhos[0].tipo).to.equal('Titulo');
+        expect(state.articulacao?.filhos[1].tipo).to.equal('Titulo');
+      });
+
+      it('Título I deveria possuir 3 filhos do tipo capítulo', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'tit1')!;
+        expect(d?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(3);
+      });
+
+      it('Título II deveria possuir 4 filhos do tipo capítulo e 2 filhos do tipo artigo', () => {
+        const d = buscaDispositivoById(state.articulacao!, 'tit2')!;
+        expect(d?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(4);
+        expect(d?.filhos.filter(f => f.tipo === 'Artigo').length).to.equal(2);
+      });
+
+      describe('Removendo Título II', () => {
+        beforeEach(function () {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit2')!;
+          state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.titulo.tipo, uuid: atual.uuid! } });
+        });
+
+        it('Deveria possuir 1 título', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit1');
+          expect(atual).to.be.exist;
+        });
+
+        it('Articulação deveria possuir 1 filho do tipo título', () => {
+          expect(state.articulacao?.filhos.length).to.equal(1);
+          expect(state.articulacao?.filhos.filter(f => f.tipo === 'Titulo').length).to.equal(1);
+        });
+
+        it('Título I deveria possuir 7 filhos do tipo capítulo', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'tit1')!;
+          expect(atual?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(7);
+        });
+
+        it('Artigo 25 deveria ser filho do Capítulo 3', () => {
+          const atual = buscaDispositivoById(state.articulacao!, 'art25')!;
+          expect(atual.pai?.id).to.equal('tit1_cap3');
+        });
+      });
+    });
+  });
+});
 
 describe('Testando a inclusão e exclusão de agrupadores', () => {
   beforeEach(function () {
