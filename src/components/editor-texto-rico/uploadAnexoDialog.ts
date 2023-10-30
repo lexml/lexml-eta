@@ -88,7 +88,11 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
       a =>
         (htmlConteudo += `<span class="anexo-item">
                             <sl-icon name="paperclip"></sl-icon>
-                            <span>${a.nomeArquivo}</span>
+                            <a download="${a.nomeArquivo}" href="data:application/pdf;base64,${a.base64}">
+                              <span>
+                                ${a.nomeArquivo}
+                              </span>
+                            </a>
                             <!--
                             <sl-button class="btn-preview-anexo" size="small" title="Visualizar o anexo em uma nova janela" nomeArquivo="${a.nomeArquivo}">
                               <sl-icon name="eye"></sl-icon>
