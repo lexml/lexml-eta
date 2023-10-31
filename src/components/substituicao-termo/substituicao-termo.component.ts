@@ -110,6 +110,7 @@ export class SubstituicaoTermoComponent extends LitElement {
     this.elFlexaoGenero.checked = substituicaoTermo.flexaoGenero;
     this.elFlexaoNumero.checked = substituicaoTermo.flexaoNumero;
     (this.shadowRoot?.querySelector(`sl-radio[value="${substituicaoTermo.tipo}"]`) as HTMLElement)?.click();
+    this.agendarEmissaoEventoOnChange();
   }
 
   render(): TemplateResult {
