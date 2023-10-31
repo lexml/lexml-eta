@@ -313,7 +313,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
     }
 
-    if (!this.isEmendaTextoLivre()) {
+    if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
       this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
     }
 
