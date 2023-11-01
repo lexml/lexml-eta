@@ -653,6 +653,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             this.montarMenuContexto(event);
           }
           this.atualizarMensagemQuill(event);
+          this.marcarLinhaCursorCorrente();
           break;
 
         case StateType.ElementoMarcado:
@@ -708,6 +709,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.eventosOnChange.push(...eventosFiltrados);
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
+    }
+  }
+
+  /**
+   * Força a seleção do dispositivo que está com o cursor
+   */
+  private marcarLinhaCursorCorrente(): void {
+    const range = this.quill.getSelection();
+    if (range) {
+      const linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
+      this.quill.atualizarLinhaCorrente(linhaCursor);
     }
   }
 
