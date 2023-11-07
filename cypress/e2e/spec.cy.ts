@@ -41,7 +41,6 @@ describe('Testando edt-modal-nova-emenda', () => {
       describe('Testando ação de selecionar MPV 930/2020', () => {
         beforeEach(() => {
           dialog.shadow().get('table tbody').contains('td', 'MPV 930/2020').click();
-          console.log('teste');
         });
 
         it('Elemento TR deveria possuir atributo selected igual a true', { includeShadowDom: true }, () => {
