@@ -597,7 +597,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private processarStateEvents(events: StateEvent[]): void {
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
-    //this.selecionaPrimeiroDispositivoEmendaOndeCouber(events);
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.DocumentoCarregado:
@@ -654,7 +653,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             this.montarMenuContexto(event);
           }
           this.atualizarMensagemQuill(event);
-          this.marcarLinhaCursorCorrente();
           break;
 
         case StateType.ElementoMarcado:
@@ -710,38 +708,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.eventosOnChange.push(...eventosFiltrados);
 
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
-    }
-  }
-
-  private selecionaPrimeiroDispositivoEmendaOndeCouber(events: StateEvent[]): void {
-    const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
-
-    if (isEmendaArtigoOndeCouber) {
-      const eventsElementosIncluidos = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido) || [];
-
-      if (eventsElementosIncluidos.length > 0) {
-        const elemento = eventsElementosIncluidos[0].elementos![0];
-
-        if (elemento.carregadoArticulacao) {
-          setTimeout(() => {
-            const el = this.quill.getLinha(elemento.uuid!);
-            if (el?.blotConteudo) {
-              this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
-            }
-          }, 0);
-        }
-      }
-    }
-  }
-
-  /**
-   * Força a seleção do dispositivo que está com o cursor
-   */
-  private marcarLinhaCursorCorrente(): void {
-    const range = this.quill.getSelection();
-    if (range) {
-      const linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
-      this.quill.atualizarLinhaCorrente(linhaCursor);
     }
   }
 

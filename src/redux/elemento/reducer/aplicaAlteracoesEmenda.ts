@@ -197,7 +197,6 @@ const criaEventoElementosIncluidos = (state: any, dispositivo: DispositivoEmenda
       if (!isCaput(d) && !isArticulacaoAlteracao(d)) {
         const novoEl = createElemento(d);
         novoEl.lexmlId = buildId(d);
-        novoEl.carregadoArticulacao = true;
         evento.elementos?.push(novoEl);
       }
     });
