@@ -8,10 +8,14 @@ import {
   buscaDispositivoById,
   findDispositivoByUuid2,
   getArticulacao,
+  getDispositivoAndFilhosAsLista,
   getDispositivoCabecaAlteracao,
   getTiposAgrupadorArtigoOrdenados,
   hasEmenta,
+  isAdicionado,
   isDispositivoAlteracao,
+  isModificado,
+  isSuprimido,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
@@ -98,6 +102,11 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 
   if (retorno.emRevisao) {
     retorno.ui!.events.push({ stateType: StateType.RevisaoAtivada });
+  }
+
+  const d = getDispositivoAndFilhosAsLista(state.articulacao).find(d => !isArticulacao(d) && (isAdicionado(d) || isSuprimido(d) || isModificado(d)));
+  if (d) {
+    retorno.ui!.events.push({ stateType: StateType.ElementoMarcado, elementos: [createElemento(d)] });
   }
 
   return retorno;
