@@ -597,7 +597,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private processarStateEvents(events: StateEvent[]): void {
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
-    this.selecionaPrimeiroDispositivoEmendaOndeCouber(events);
+    //this.selecionaPrimeiroDispositivoEmendaOndeCouber(events);
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.DocumentoCarregado:
