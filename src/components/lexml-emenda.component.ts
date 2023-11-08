@@ -260,10 +260,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
     } else {
+      emenda.comandoEmendaTextoLivre.motivo = undefined;
+      emenda.comandoEmendaTextoLivre.texto = '  ';
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
-      emenda.comandoEmendaTextoLivre.motivo = undefined;
-      emenda.comandoEmendaTextoLivre.texto = undefined;
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();

@@ -60,13 +60,14 @@ export class DispositivosEmendaBuilder {
           const caput = (d as Artigo).caput!;
           dm.tipo = this.getTipoDispositivoParaEmenda(caput);
           dm.id = caput.id!;
+          dm.rotulo = d.rotulo;
           dm.texto = this.trataTexto(caput.texto);
         } else {
           dm.tipo = this.getTipoDispositivoParaEmenda(d);
           dm.id = d.id!;
+          dm.rotulo = d.rotulo;
           dm.texto = this.trataTexto(d.texto);
         }
-        dm.rotulo = d.rotulo;
         if (d.isDispositivoAlteracao) {
           this.preencheAtributosAlteracao(d, dm);
         }

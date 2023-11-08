@@ -8,21 +8,20 @@ export class Emenda {
   modoEdicao = ModoEdicaoEmenda.EMENDA;
   // Metadados específicos de sistemas
   metadados: MetadadosEmenda = {};
-
   proposicao = new RefProposicaoEmendada();
-  colegiadoApreciador = new ColegiadoApreciador();
   epigrafe = new Epigrafe();
   componentes = [new ComponenteEmendado()];
-  comandoEmenda = new ComandoEmenda();
   comandoEmendaTextoLivre = new ComandoEmendaTextoLivre();
+  comandoEmenda = new ComandoEmenda();
   substituicaoTermo?: SubstituicaoTermo;
+  anexos: Anexo[] = [];
   justificativa = '';
   local = '';
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
-  anexos: Anexo[] = [];
   revisoes: Revisao[] = [];
+  colegiadoApreciador = new ColegiadoApreciador();
 }
 
 export type MetadadosEmenda = {
