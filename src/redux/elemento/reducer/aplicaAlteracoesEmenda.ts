@@ -104,9 +104,11 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     retorno.ui!.events.push({ stateType: StateType.RevisaoAtivada });
   }
 
-  const d = getDispositivoAndFilhosAsLista(state.articulacao).find(d => !isArticulacao(d) && (isAdicionado(d) || isSuprimido(d) || isModificado(d)));
-  if (d) {
-    retorno.ui!.events.push({ stateType: StateType.ElementoMarcado, elementos: [createElemento(d)] });
+  if (state.articulacao) {
+    const d = getDispositivoAndFilhosAsLista(state.articulacao).find(d => !isArticulacao(d) && (isAdicionado(d) || isSuprimido(d) || isModificado(d)));
+    if (d) {
+      retorno.ui!.events.push({ stateType: StateType.ElementoMarcado, elementos: [createElemento(d)] });
+    }
   }
 
   return retorno;
