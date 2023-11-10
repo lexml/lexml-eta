@@ -13,7 +13,6 @@ import {
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
   isTodosFilhosTipoEnumeracaoSuprimidos,
-  isUltimaAlteracao,
   isUltimaEnumeracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -287,7 +286,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasFilhoGenerico(dispositivo.pai!) &&
     (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
-    isUltimaAlteracao(dispositivo) &&
+    //isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&
     !isSeguidoDeOmissis(dispositivo)
   ) {
