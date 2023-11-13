@@ -139,7 +139,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private slSplitPanel!: any;
 
   @query('lexml-sufixos-modal')
-  private sufixosModal!: SufixosModalComponent;
+  sufixosModal!: SufixosModalComponent;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
