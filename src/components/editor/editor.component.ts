@@ -1176,10 +1176,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   aceitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
     this.alertaGlobalRevisao();
+    this.setCursorCurrencyLine();
+  }
+
+  setCursorCurrencyLine(): void {
+    const range = this.quill.getSelection();
+    if (range) {
+      const linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
+
+      const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
+
+      this.quill.setSelection(index, 0, Quill.sources.SILENT);
+      this.quill.marcarLinhaAtual(linhaCursor);
+    }
   }
 
   rejeitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
+    this.setCursorCurrencyLine();
   }
 
   aceitarTodasRevisoes(): void {
