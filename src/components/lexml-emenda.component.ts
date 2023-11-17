@@ -643,8 +643,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(): void {
+    let comandoEmenda = null as any;
     if (this.isEmendaSubstituicaoTermo()) {
-      const comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
+      comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     } else if (this.isEmendaTextoLivre()) {
@@ -653,22 +654,30 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
       }
-    } else if (this.modo.startsWith('emenda')) {
-      const comandoEmenda = this._lexmlEta!.getComandoEmenda();
+    }
+
+    if (!this.isEmendaTextoLivre()) {
+      this.buildAlertaJustificativa(comandoEmenda);
+    }
+  }
+
+  buildAlertaJustificativa(comandoEmenda: any): void {
+    if (comandoEmenda === null) {
+      comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
+    }
 
-      if (comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
-        const alerta = {
-          id: 'alerta-global-justificativa',
-          tipo: 'error',
-          mensagem: 'A emenda não possui uma justificação',
-          podeFechar: false,
-        };
-        rootStore.dispatch(adicionarAlerta(alerta));
-      } else {
-        rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-      }
+    if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
+      const alerta = {
+        id: 'alerta-global-justificativa',
+        tipo: 'error',
+        mensagem: 'A emenda não possui uma justificação',
+        podeFechar: false,
+      };
+      rootStore.dispatch(adicionarAlerta(alerta));
+    } else {
+      rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
     }
   }
 
