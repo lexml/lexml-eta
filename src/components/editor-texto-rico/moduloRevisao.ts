@@ -8,7 +8,6 @@ const Module = Quill.import('core/module');
 const Inline = Quill.import('blots/inline');
 // const clipboard = Quill.import("modules/clipboard");
 const Keyboard = Quill.import('modules/keyboard');
-const EmbedBlot = Quill.import('blots/embed');
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -135,6 +134,8 @@ class ModuloRevisao extends Module {
 
     this.quill.on('text-change', this.onTextChange.bind(this));
 
+    this.quill.root.addEventListener('click', this.tratarClick.bind(this));
+
     if (this.tableModule) {
       const toolbar = this.quill?.getModule('toolbar');
 
@@ -150,6 +151,110 @@ class ModuloRevisao extends Module {
         return this.tableTrick.table_handler(value, quill);
       });
     }
+  }
+
+  tratarClick(event: any, delta, oldContent, source) {
+    if (['INS', 'DEL'].includes(event.target.tagName)) {
+      console.log('elemento', event.target);
+      const index = this.quill.getSelection();
+
+      const range = {
+        index: index.index,
+        length: event.target.innerHTML.length,
+      };
+
+      //this.revisa(range, event, true);
+      this.revisar(range, event, false);
+    }
+  }
+
+  revisar(range: any, event: any, aceitar: boolean) {
+    const quill = this.quill;
+
+    if (this.emRevisao) {
+      const delta = quill.getContents(range.index, range.length || 1);
+      const blot = quill.getLeaf(range.index)[0];
+      const isEmbedBlot = ['image'].includes(blot.statics.blotName);
+      const index = (blot.text || isEmbedBlot) && !range.length ? range.index - 1 : range.index;
+      let posicao = index;
+
+      const ops = delta.ops.reduce((acc, op) => {
+        if (op.attributes?.added) {
+          if (aceitar) {
+            acc.push({ retain: op.insert.length, attributes: { added: null } });
+          } else {
+            acc.push({ delete: op.insert.length });
+          }
+        } else {
+          if (aceitar) {
+            acc.push({ delete: op.insert.length });
+          } else {
+            acc.push({ retain: op.insert.length, attributes: { removed: null } });
+          }
+        }
+        return acc;
+      }, []);
+
+      index && ops.unshift({ retain: index });
+
+      this.ignorarEventoTextChange = true;
+      quill.updateContents({ ops }, 'user');
+      quill.setSelection(posicao);
+    }
+  }
+
+  getIndex(event) {
+    const clickedElement = event.target; // Captura o elemento clicado
+    const elements = Array.from(clickedElement.parentElement.children); // Obtém todos os elementos pais
+
+    // Encontra o índice do elemento clicado dentro da lista de elementos pais
+    const index = elements.indexOf(clickedElement);
+
+    return index;
+  }
+
+  createTooltip() {
+    Array.from(this.querySelectorAll('#tooltipAcceptRefuse')).forEach(el => this.removeChild(el));
+
+    const tooltipElem = document.createElement('tooltip');
+    tooltipElem.id = 'tooltipAcceptRefuse';
+
+    document.body.appendChild(tooltipElem);
+
+    const content = document.createRange().createContextualFragment(`
+    <style>
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .tooltip .tooltiptext {
+      display: none;
+      width: 120px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      top: calc(100% + 5px);
+      left: 50%;
+      margin-left: -60px;
+    }
+
+    </style>
+    <div class="tooltip" id="tooltip">
+      Hover sobre mim
+      <span class="tooltiptext" id="tooltipContent">
+        <button onclick="botaoClicado(1)">Botão 1</button>
+        <button onclick="botaoClicado(2)">Botão 2</button>
+      </span>
+    </div>
+
+    <sl-button slot="footer" variant="primary">Fechar</sl-button>
+  `);
   }
 
   handleKeyDown(e) {
@@ -340,7 +445,6 @@ class ModuloRevisao extends Module {
           }
         });
       } else if (op.insert && !op.attributes?.added) {
-        // op.attributes = { ...(op.attributes || {}), added: true, removed: false };
         op.attributes = { ...(op.attributes || {}), added: this.buildAttributes(), removed: false };
         acc.ops.push(op);
         idx += length;
