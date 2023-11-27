@@ -8,6 +8,7 @@ import { atualizaQuantidadeRevisao, RevisaoJustificativaEnum, RevisaoTextoLivreE
 import { Revisao } from '../../model/revisao/revisao';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
+import { showMenuImagem } from './menu-imagem';
 import { Anexo } from '../../model/emenda/emenda';
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 import { Modo } from '../../redux/elemento/enum/enumUtil';
@@ -21,6 +22,7 @@ import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
+import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-modal';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -51,6 +53,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @query('#lexml-alterar-largura-tabela-modal')
   private alterarLarguraTabelaModal!: AlterarLarguraTabelaColunaModalComponent;
 
+  @query('#lexml-alterar-largura-img-modal')
+  private alterarLarguraImagemModal!: AlterarLarguraImagemModalComponent;
+
   private showAlterarLarguraColunaModal(width: string): void {
     this.alterarLarguraColunaModal.show(width);
   }
@@ -61,6 +66,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private showAlterarLarguraTabelaModal(width: string): void {
     this.alterarLarguraTabelaModal.show(width);
+  }
+
+  private showAlterarLarguraImagemModal(img: any, width: string): void {
+    this.alterarLarguraImagemModal.show(img, width);
   }
 
   private hideAlterarLarguraTabelaModal(): void {
@@ -125,6 +134,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
       <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-tabela-modal" tipo="tabela"></lexml-alterar-largura-tabela-coluna-modal>
       <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-coluna-modal" tipo="coluna"></lexml-alterar-largura-tabela-coluna-modal>
+      <lexml-alterar-largura-imagem-modal id="lexml-alterar-largura-img-modal"></lexml-alterar-largura-imagem-modal>
     `;
   }
 
@@ -323,6 +333,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.quill?.on('selection-change', this.onSelectionChange);
       this.alterarLarguraColunaModal.callback = this.alterarLarguraDaColuna;
       this.alterarLarguraTabelaModal.callback = this.alterarLarguraDaTabela;
+      this.alterarLarguraImagemModal.callback = this.alterarLarguraDaImagem;
+
+      quillContainer.addEventListener('contextmenu', this.menuContextImagem);
 
       const toolbar = this.quill.getModule('toolbar');
       toolbar.addHandler('table', (value: string) => {
@@ -338,6 +351,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           this.showAlterarLarguraTabelaModal(table.width);
         }
       });
+    }
+  };
+
+  menuContextImagem = (ev: MouseEvent): void => {
+    const elemento = ev.target as Element;
+    if (elemento.tagName === 'IMG') {
+      ev.preventDefault();
+      showMenuImagem(this, elemento, ev.pageY, ev.pageX);
     }
   };
 
@@ -388,6 +409,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     TableTrick.changeWidthTable(this.quill, valor);
     this.updateApenasTexto();
     this.hideAlterarLarguraTabelaModal();
+  };
+
+  alterarLarguraDaImagem = (img: any, valor: number): void => {
+    img.style.width = `${valor}%`;
   };
 
   private elTableManagerButton?: HTMLSpanElement;
