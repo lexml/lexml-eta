@@ -156,15 +156,18 @@ class ModuloRevisao extends Module {
   tratarClick(event: any, delta, oldContent, source) {
     if (['INS', 'DEL'].includes(event.target.tagName)) {
       console.log('elemento', event.target);
-      const index = this.quill.getSelection();
+      const rangeSelect = this.quill.getSelection();
+
+      const blot = this.quill.getLeaf(rangeSelect.index)[0];
+      //recupera index inicial do blot selecionado e não apenas o index do cursor
+      const index = blot.offset(this.quill.scroll);
 
       const range = {
-        index: index.index,
+        index: index,
         length: event.target.innerHTML.length,
       };
 
-      //this.revisa(range, event, true);
-      this.revisar(range, event, false);
+      this.mostrarTooltipRevisao(event, range);
     }
   }
 
@@ -201,6 +204,173 @@ class ModuloRevisao extends Module {
       quill.updateContents({ ops }, 'user');
       quill.setSelection(posicao);
     }
+  }
+
+  private mostrarTooltipRevisao(eventParam: MouseEvent, range: any): void {
+    //if (this.shadowRoot) {
+    const button = eventParam.currentTarget as HTMLElement;
+    const delta = this.quill.getContents(range.index, range.length || 1);
+
+    let dadosRevisao = '';
+
+    delta.ops.reduce((acc, op) => {
+      if (op.attributes?.added) {
+        dadosRevisao = op.attributes?.added;
+      } else {
+        dadosRevisao = op.attributes?.removed;
+      }
+      return acc;
+    }, []);
+
+    const partes = dadosRevisao.split('|');
+    dadosRevisao = partes[0] + ' | ' + partes[1];
+
+    if (button) {
+      const tooltip = document.createElement('div');
+      tooltip.classList.add('tooltip-revisao');
+
+      tooltip.innerHTML = `
+          <style>
+          .tooltip-revisao {
+            position: absolute;
+            border: 1px solid black;
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 9999;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            max-width: 300px;
+            transition: all 0.3s ease-in-out;
+          }
+          .tooltip-revisao__actions {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+          }
+          .tooltip-revisao__actions button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            background-color: #eee;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+          }
+          .tooltip-revisao__actions svg {
+            fill: currentColor;
+            width: 24px;
+            height: 24px;
+          }
+          .tooltip-revisao button:hover {
+            background-color: #ddd;
+          }
+          .tooltip-revisao button:active {
+            background-color: #ccc;
+          }
+          .tooltip-revisao__body {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+          }
+          .tooltip-revisao__autor {
+            font-weight: bold;
+          }
+          .tooltip-revisao__data {
+            font-size: 0.8rem;
+            color: #666;
+          }
+        </style>
+        <div class="tooltip-revisao__body" role="tooltip">
+          <div>
+            <div class="tooltip-revisao__autor">${dadosRevisao}</div>
+            <!--<div class="tooltip-revisao__data">01/01/2023 08:00</div>-->
+          </div>
+          <div class="tooltip-revisao__actions">
+            <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+              </svg>
+            </button>
+            <button id="button-aceitar-revisao" aria-label="Aceitar revisão" title="Aceitar revisão">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        `;
+
+      tooltip.style.opacity = '0';
+      document.body.appendChild(tooltip);
+
+      document.getElementById('button-rejeitar-revisao')!.addEventListener('click', (event: any) => {
+        this.revisar(range, eventParam, false);
+        closeTooltip(event);
+      });
+
+      document.getElementById('button-aceitar-revisao')!.addEventListener('click', (event: any) => {
+        this.revisar(range, eventParam, true);
+        closeTooltip(event);
+      });
+
+      this.ajustaPosicaoTooltip(tooltip, button, range);
+
+      const closeTooltip = (e: Event) => {
+        //if (e.type === 'click' && !tooltip.contains(e.target as Node) && !button.contains(e.target as Node)) {
+        if (e.type === 'click') {
+          limpaTooltip();
+        } else if (e.type === 'keydown' && (e as KeyboardEvent).key === 'Escape') {
+          limpaTooltip();
+        }
+      };
+
+      const limpaTooltip = () => {
+        tooltip.style.opacity = '0';
+        setTimeout(() => {
+          tooltip.remove();
+          document.removeEventListener('click', closeTooltip);
+          document.removeEventListener('keydown', closeTooltip);
+        }, 300);
+      };
+
+      setTimeout(() => document.addEventListener('click', closeTooltip), 0);
+      setTimeout(() => document.addEventListener('keydown', closeTooltip), 0);
+      setTimeout(() => {
+        tooltip.style.opacity = '1';
+      }, 0);
+
+      window.addEventListener('resize', () => {
+        this.ajustaPosicaoTooltip(tooltip, button, range);
+      });
+    }
+    //}
+  }
+
+  private ajustaPosicaoTooltip(tooltip: HTMLElement, button: HTMLElement, range: any): void {
+    const rect = button.getBoundingClientRect();
+    const offset = 10;
+
+    // Abrir para cima por padrão, a menos que não haja espaço suficiente
+    let topOffset = rect.top - tooltip.clientHeight - offset;
+    if (topOffset < window.scrollY) {
+      topOffset = rect.bottom + offset;
+    }
+    tooltip.style.top = `${topOffset + window.scrollY}px`;
+
+    // Ajustar horizontalmente se estiver muito próximo à borda direita
+    let leftOffset = rect.left + rect.width / 2 - tooltip.clientWidth / 2;
+    if (leftOffset + tooltip.clientWidth > window.innerWidth) {
+      leftOffset = window.innerWidth - tooltip.clientWidth - offset;
+    } else if (leftOffset < 0) {
+      leftOffset = offset;
+    }
+    tooltip.style.left = `${leftOffset + window.scrollX}px`;
   }
 
   getIndex(event) {
