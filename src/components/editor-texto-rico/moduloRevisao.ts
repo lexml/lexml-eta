@@ -167,7 +167,7 @@ class ModuloRevisao extends Module {
         length: event.target.innerHTML.length,
       };
 
-      this.mostrarTooltipRevisao(event, range);
+      this.mostrarTooltipRevisao(event, range, blot);
     }
   }
 
@@ -206,9 +206,9 @@ class ModuloRevisao extends Module {
     }
   }
 
-  private mostrarTooltipRevisao(eventParam: MouseEvent, range: any): void {
+  private mostrarTooltipRevisao(eventParam: MouseEvent, range: any, blot: any): void {
     //if (this.shadowRoot) {
-    const button = eventParam.currentTarget as HTMLElement;
+    const button = eventParam.target as HTMLElement;
     const delta = this.quill.getContents(range.index, range.length || 1);
 
     let dadosRevisao = '';
@@ -354,6 +354,7 @@ class ModuloRevisao extends Module {
 
   private ajustaPosicaoTooltip(tooltip: HTMLElement, button: HTMLElement, range: any): void {
     const rect = button.getBoundingClientRect();
+    console.log(rect);
     const offset = 10;
 
     // Abrir para cima por padrão, a menos que não haja espaço suficiente
