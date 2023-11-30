@@ -145,16 +145,11 @@ export class NotaRodapeModal {
 
   close(): void {
     const textarea = this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
-    if (textarea.value.length > 0) {
-      if (confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.')) {
-        document.removeEventListener('keydown', this.keydownListener);
-        this.modalElement.remove();
-        this.overlayElement.remove();
-      }
-    } else {
-      document.removeEventListener('keydown', this.keydownListener);
-      this.modalElement.remove();
-      this.overlayElement.remove();
+    if (textarea.value.length > 0 && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.')) {
+      return;
     }
+    document.removeEventListener('keydown', this.keydownListener);
+    this.modalElement.remove();
+    this.overlayElement.remove();
   }
 }
