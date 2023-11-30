@@ -220,7 +220,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/text-indent', NoIndentClass, true);
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom'],
+        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom', 'width'],
         modules: {
           toolbar: {
             container: toolbarOptions,
@@ -412,7 +412,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   alterarLarguraDaImagem = (img: any, valor: number): void => {
-    img.style.width = `${valor}%`;
+    const blot = Quill.find(img);
+    blot && blot.format('width', `${valor}%`);
   };
 
   private elTableManagerButton?: HTMLSpanElement;

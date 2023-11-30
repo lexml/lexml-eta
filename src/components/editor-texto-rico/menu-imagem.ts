@@ -23,7 +23,7 @@ export async function showMenuImagem(editorTextoRico: any, img: any, top: number
   const bgWpMenuImagem = content.querySelector('#bg-wp-menu-img') as HTMLDivElement;
 
   itemMenu.onclick = (): void => {
-    const width = img.style.width;
+    const width = img.getAttribute('width');
     editorTextoRico.showAlterarLarguraImagemModal(img, width);
   };
 
