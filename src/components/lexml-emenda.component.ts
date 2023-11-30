@@ -470,7 +470,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private MOBILE_WIDTH = 768;
-  private splitPanelPosition = 68;
+  private splitPanelPosition = 67;
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
@@ -780,6 +780,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         .tab-autoria__container {
           padding: 10px;
         }
+        .notas-rodape {
+          border: 1px solid var(--sl-color-neutral-200);
+          font-family: var(--eta-font-serif);
+        }
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
@@ -844,6 +848,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <sl-icon name="code"></sl-icon>
               Comando
             </sl-tab>
+            <sl-tab slot="nav" panel="notas">
+              <sl-icon name="footnote"></sl-icon>
+              Notas
+            </sl-tab>
             <sl-tab slot="nav" panel="dicas">
               <sl-icon name="lightbulb"></sl-icon>
               Dicas
@@ -856,6 +864,42 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab>
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
+            </sl-tab-panel>
+            <sl-tab-panel name="notas" class="overflow-hidden">
+              <div class="notas-rodape">
+                <ol>
+                  <li>Justificativa baseada na eficiência operacional.</li>
+                  <li>Impacto econômico da medida.</li>
+                  <li>Relevância social da MPV para comunidades.</li>
+                  <li>Dados de pesquisa sobre a mudança legislativa.</li>
+                  <li>Comentários de especialistas sobre implicações legais.</li>
+                  <li>Comparativo com legislações internacionais.</li>
+                  <li>Análise de custo-benefício da proposta.</li>
+                  <li>Casos que exemplificam a necessidade da emenda.</li>
+                  <li>Consequências da não aprovação da MPV.</li>
+                  <li>Feedback público sobre a emenda.</li>
+                  <li>Estudos sobre a eficácia administrativa.</li>
+                  <li>Observações sobre a carga tributária relacionada.</li>
+                  <li>Implicações ambientais da medida proposta.</li>
+                  <li>Aspectos históricos relevantes para a emenda.</li>
+                  <li>Estimativas de impacto no emprego e renda.</li>
+                  <li>Considerações sobre segurança pública.</li>
+                  <li>Opinião de organizações não governamentais.</li>
+                  <li>Efeitos na educação e formação de jovens.</li>
+                  <li>Desdobramentos possíveis no cenário internacional.</li>
+                  <li>Conformidade com padrões de direitos humanos.</li>
+                  <li>Precedentes legais de interesse.</li>
+                  <li>Recomendações de organismos internacionais.</li>
+                  <li>Impactos na saúde pública e bem-estar.</li>
+                  <li>Repercussões na indústria e comércio.</li>
+                  <li>Debate sobre a efetividade da regulamentação.</li>
+                  <li>Contribuições da comunidade acadêmica.</li>
+                  <li>Projeções de longo prazo para a economia.</li>
+                  <li>Discussões sobre igualdade e justiça social.</li>
+                  <li>Relações com políticas públicas existentes.</li>
+                  <li>Análises comparativas com outras iniciativas legislativas.</li>
+                </ol>
+              </div>
             </sl-tab-panel>
             <sl-tab-panel name="dicas" class="overflow-hidden">
               <lexml-ajuda></lexml-ajuda>
