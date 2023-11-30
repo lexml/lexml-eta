@@ -28,6 +28,7 @@ import {
   transformarAlineaEmIncisoCaput,
   transformarAlineaEmIncisoParagrafo,
   transformarArtigoEmParagrafo,
+  transformarEmOmissisArtigo,
   transformarIncisoCaputEmParagrafo,
   transformarIncisoParagrafoEmParagrafo,
 } from '../acao/transformarElementoAction';
@@ -53,7 +54,7 @@ import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { MotivosOperacaoNaoPermitida } from './regrasUtil';
+import { MotivosOperacaoNaoPermitida, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -158,6 +159,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
           ?.filter(() => pos > 0)
           .filter(t => tiposExistentes.includes(t))
           .forEach(t => acoes.push(getAcaoAgrupamento(t)));
+      }
+
+      if (podeConverterEmOmissis(dispositivo) && !isArticulacao(dispositivo.pai!)) {
+        acoes.push(transformarEmOmissisArtigo);
       }
 
       if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {

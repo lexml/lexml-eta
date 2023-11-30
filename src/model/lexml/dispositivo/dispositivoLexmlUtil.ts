@@ -59,6 +59,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformarAlineaEmOmissisAlinea':
     case 'transformarItemEmOmissisItem':
     case 'transformarParagrafoEmOmissisParagrafo':
+    case 'transformarParagrafoEmOmissisArtigo':
     case 'transformarIncisoCaputEmOmissisIncisoCaput':
     case 'transformarIncisoParagrafoEmOmissisIncisoParagrafo':
       paiNovo = paiAtual!;
