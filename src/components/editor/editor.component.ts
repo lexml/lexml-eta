@@ -1176,16 +1176,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   aceitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
     this.alertaGlobalRevisao();
-    this.setCursorCurrencyLine();
+    this.setCursorCurrentLine();
   }
 
-  setCursorCurrencyLine(): void {
+  setCursorCurrentLine(): void {
     this.quill.focus();
   }
 
   rejeitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
-    this.setCursorCurrencyLine();
+    this.setCursorCurrentLine();
   }
 
   aceitarTodasRevisoes(): void {
