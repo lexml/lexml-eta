@@ -781,9 +781,35 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           padding: 10px;
         }
         .notas-rodape {
-          border: 1px solid var(--sl-color-neutral-200);
           font-family: var(--eta-font-serif);
         }
+
+        .notas-rodape ol {
+          /* padding-left: 0; */
+          list-style: none; /* Remove o estilo padrão da lista */
+          counter-reset: item; /* Inicializa um contador */
+        }
+
+        .notas-rodape li {
+          margin-bottom: 8px;
+          position: relative; /* Necessário para posicionar o pseudo-elemento */
+        }
+
+        .notas-rodape li::before {
+          content: counter(item);
+          counter-increment: item;
+          position: absolute;
+          width: 20px;
+          left: -25px;
+          top: 0px;
+          font-size: smaller;
+          vertical-align: super;
+          font-weight: bold;
+          font-size: 12px;
+          color: var(--sl-color-gray-500);
+          text-align: right;
+        }
+
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
