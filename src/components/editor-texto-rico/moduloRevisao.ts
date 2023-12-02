@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable eqeqeq */
+
+import { generateUUID } from '../../util/uuid';
+
 /* eslint-disable prefer-const */
 const Delta = Quill.import('delta');
 const Parchment = Quill.import('parchment');
@@ -19,6 +22,14 @@ class RevisaoUtil {
     domNode.setAttribute('usuario', partes[0]);
     domNode.setAttribute('date', partes[1]);
     domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + partes[1]);
+    //domNode.setAttribute('id', generateUUID())
+    domNode.setAttribute('id', partes[2]);
+
+    if (domNode.tagName === 'DEL') {
+      domNode.setAttribute('class', 'del');
+    } else if (domNode.tagName === 'INS') {
+      domNode.setAttribute('class', 'ins');
+    }
   }
 
   static formats(domNode) {
@@ -155,9 +166,7 @@ class ModuloRevisao extends Module {
 
   tratarClick(event: any, delta, oldContent, source) {
     if (['INS', 'DEL'].includes(event.target.tagName)) {
-      console.log('elemento', event.target);
       const rangeSelect = this.quill.getSelection();
-
       const blot = this.quill.getLeaf(rangeSelect.index)[0];
       //recupera index inicial do blot selecionado e não apenas o index do cursor
       const index = blot.offset(this.quill.scroll);
@@ -174,35 +183,60 @@ class ModuloRevisao extends Module {
   revisar(range: any, event: any, aceitar: boolean) {
     const quill = this.quill;
 
-    if (this.emRevisao) {
-      const delta = quill.getContents(range.index, range.length || 1);
-      const blot = quill.getLeaf(range.index)[0];
-      const isEmbedBlot = ['image'].includes(blot.statics.blotName);
-      const index = (blot.text || isEmbedBlot) && !range.length ? range.index - 1 : range.index;
-      let posicao = index;
+    const id = event.target.id;
+    const className = event.target.className;
+    let elementosEmRevisao = document.getElementsByClassName(className) || [];
+    let elementosEmRevisaoFilterByID = [] as any;
 
-      const ops = delta.ops.reduce((acc, op) => {
-        if (op.attributes?.added) {
-          if (aceitar) {
-            acc.push({ retain: op.insert.length, attributes: { added: null } });
-          } else {
-            acc.push({ delete: op.insert.length });
-          }
-        } else {
-          if (aceitar) {
-            acc.push({ delete: op.insert.length });
-          } else {
-            acc.push({ retain: op.insert.length, attributes: { removed: null } });
-          }
+    if (elementosEmRevisao.length > 0) {
+      for (let index = 0; index < elementosEmRevisao.length; index++) {
+        const element = elementosEmRevisao[index];
+        if (element.id === id) {
+          elementosEmRevisaoFilterByID.push(element);
         }
-        return acc;
-      }, []);
+      }
+    }
 
-      index && ops.unshift({ retain: index });
+    if (this.emRevisao) {
+      for (let indexAux = 0; indexAux < elementosEmRevisaoFilterByID.length; indexAux++) {
+        const indexCurrencyBlot = this.quill.getIndex(Quill.find(elementosEmRevisaoFilterByID[indexAux]));
+        const lengthCurrencyBlot = elementosEmRevisaoFilterByID[indexAux].innerText.length;
 
-      this.ignorarEventoTextChange = true;
-      quill.updateContents({ ops }, 'user');
-      quill.setSelection(posicao);
+        range = {
+          index: indexCurrencyBlot,
+          length: lengthCurrencyBlot,
+        };
+
+        const delta = quill.getContents(range.index, range.length || 1);
+        const blot = quill.getLeaf(range.index)[0];
+
+        const isEmbedBlot = ['image'].includes(blot.statics.blotName);
+        const index = (blot.text || isEmbedBlot) && !range.length ? range.index - 1 : range.index;
+        let posicao = index;
+
+        const ops = delta.ops.reduce((acc, op) => {
+          if (op.attributes?.added) {
+            if (aceitar) {
+              acc.push({ retain: op.insert.length, attributes: { added: null } });
+            } else {
+              acc.push({ delete: op.insert.length });
+            }
+          } else {
+            if (aceitar) {
+              acc.push({ delete: op.insert.length });
+            } else {
+              acc.push({ retain: op.insert.length, attributes: { removed: null } });
+            }
+          }
+          return acc;
+        }, []);
+
+        index && ops.unshift({ retain: index });
+
+        this.ignorarEventoTextChange = true;
+        quill.updateContents({ ops }, 'user');
+        quill.setSelection(posicao);
+      }
     }
   }
 
@@ -222,8 +256,10 @@ class ModuloRevisao extends Module {
       return acc;
     }, []);
 
-    const partes = dadosRevisao.split('|');
-    dadosRevisao = partes[0] + ' | ' + partes[1];
+    if (dadosRevisao) {
+      const partes = dadosRevisao.split('|');
+      dadosRevisao = partes[0] + ' | ' + partes[1];
+    }
 
     if (button) {
       const tooltip = document.createElement('div');
@@ -440,12 +476,13 @@ class ModuloRevisao extends Module {
         return delta;
       }
 
+      const id = generateUUID();
       const ops = delta.ops.reduce((acc, op) => {
         if (op.insert) {
           delete op.attributes.background;
           delete op.attributes.removed;
           if (this.emRevisao) {
-            op.attributes.added = this.buildAttributes();
+            op.attributes.added = this.buildAttributes(id);
           }
           acc.push(op);
         }
@@ -507,8 +544,8 @@ class ModuloRevisao extends Module {
     }
   }
 
-  buildAttributes() {
-    return this.usuario + '|' + RevisaoUtil.formatDate(new Date());
+  buildAttributes(id = '') {
+    return this.usuario + '|' + RevisaoUtil.formatDate(new Date()) + ' |' + id;
   }
 
   handleRemove(range, context, key) {
@@ -522,7 +559,7 @@ class ModuloRevisao extends Module {
 
       if (index < 0 || index >= quill.getLength()) return true;
       const delta = quill.getContents(index, range.length || 1);
-
+      const id = generateUUID();
       const ops = delta.ops.reduce((acc, op) => {
         const numChars = typeof op.insert === 'string' ? op.insert.length : 1;
         if (op.attributes?.added) {
@@ -535,7 +572,7 @@ class ModuloRevisao extends Module {
           } else {
             acc.push({
               retain: numChars,
-              attributes: { ...(op.attributes || {}), removed: this.buildAttributes() },
+              attributes: { ...(op.attributes || {}), removed: this.buildAttributes(id) },
             });
 
             if (deslocamento === 1) {
@@ -588,6 +625,7 @@ class ModuloRevisao extends Module {
 
     let rev = { ops: [] };
     let idx = 0;
+    const id = generateUUID();
     rev = redo.ops.reduce((acc, op) => {
       const length = op.retain || op.delete || (typeof op.insert === 'string' ? op.insert.length : 1);
       if (op.retain && op.attributes?.list) {
@@ -607,16 +645,16 @@ class ModuloRevisao extends Module {
           } else if (op2.insert && !op2.attributes?.added) {
             // Não deixa remover conteúdo adicionado FORA modo de revisão
             // Formata como removido em modo de revisão
-            acc.ops.push({ retain: op2.insert.length, attributes: { removed: this.buildAttributes() } });
+            acc.ops.push({ retain: op2.insert.length, attributes: { removed: this.buildAttributes(id) } });
             idx += op2.insert.length;
             numCaracteresRemovidos += op2.insert.length;
           } else {
-            acc.ops.push({ retain: op2.retain || op2.delete, attributes: { removed: this.buildAttributes() } });
+            acc.ops.push({ retain: op2.retain || op2.delete, attributes: { removed: this.buildAttributes(id) } });
             idx += op2.retain || op2.delete;
           }
         });
       } else if (op.insert && !op.attributes?.added) {
-        op.attributes = { ...(op.attributes || {}), added: this.buildAttributes(), removed: false };
+        op.attributes = { ...(op.attributes || {}), added: this.buildAttributes(id), removed: false };
         acc.ops.push(op);
         idx += length;
       }
@@ -630,12 +668,11 @@ class ModuloRevisao extends Module {
       // TODO: Corrigir setSelection (falhando em vários casos)
       quill.setSelection(idx - numCaracteresRemovidos, 0);
       // quill.format('added', true, 'silent');
-      quill.format('added', this.buildAttributes(), 'silent');
+      quill.format('added', this.buildAttributes(id), 'silent');
       quill.format('removed', false, 'silent');
       this.ignorarEventoTextChange = false;
     }, 0);
   }
-
   setUsuario(usuario) {
     this.usuario = usuario;
   }
