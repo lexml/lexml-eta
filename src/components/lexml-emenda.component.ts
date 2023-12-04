@@ -789,6 +789,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         .notas-rodape {
           font-family: var(--eta-font-serif);
+          padding: 10px;
+        }
+
+        .notas-rodape span {
+          padding-left: 20px;
+          color: var(--sl-color-gray-500);
+          font-style: italic;
         }
 
         .notas-rodape ol {
@@ -899,7 +906,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>
             <sl-tab-panel name="notas" class="overflow-hidden">
-              <div class="notas-rodape">${this.renderNotasRodape()}</div>
+              <div class="notas-rodape">
+                <h3>Notas de rodapé</h3>
+                ${this.renderNotasRodape()}
+              </div>
             </sl-tab-panel>
             <sl-tab-panel name="dicas" class="overflow-hidden">
               <lexml-ajuda></lexml-ajuda>
@@ -920,7 +930,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   renderNotasRodape(): TemplateResult {
     return !this.notasRodape.length
-      ? html``
+      ? html`<span>Não há notas de rodapé registradas.</span>`
       : html`
           <ol>
             ${this._lexmlJustificativa.notasRodape.map((nr: NotaRodape) => html` <li>${nr.texto}</li> `)}
