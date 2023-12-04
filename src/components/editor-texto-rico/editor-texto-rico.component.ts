@@ -1,5 +1,5 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, property, state, query } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
@@ -22,8 +22,9 @@ import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
-import { NotaRodapeModal } from './nota-rodape-modal';
 import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-modal';
+import { notaRodapeCss } from './notaRodape.css';
+import { NOTA_RODAPE_CHANGE_EVENT, NotaRodape } from './notaRodape';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -32,7 +33,8 @@ const Delta = Quill.import('delta');
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
-  @state() @property({ type: Array }) anexos: Anexo[] = [];
+  @property({ type: Array }) anexos: Anexo[] = [];
+  @property({ type: Array }) notasRodape: NotaRodape[] = [];
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
@@ -115,8 +117,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${quillTableCss} ${editorTextoRicoCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
-      ${this.modo === Modo.JUSTIFICATIVA ? this.renderBotaoNotaRodape() : ''}
+      ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
 
       <div class="panel-revisao">
         <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
@@ -157,11 +158,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.icons['margin-bottom'] = iconeMarginBottom;
   }
 
-  private mostrarDialogNotaRodape(): void {
-    const notaRodapeModal = new NotaRodapeModal();
-    notaRodapeModal.open();
-  }
-
   private renderBotaoAnexo(): TemplateResult {
     return html`
       <div class="panel-anexo">
@@ -175,14 +171,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             ${this.labelAnexo()}
           </span>
         </button>
-      </div>
-    `;
-  }
-
-  private renderBotaoNotaRodape(): TemplateResult {
-    return html`
-      <div class="nota-rodape">
-        <button type="button" style="width:auto" title="Anexo" @click=${(): any => this.mostrarDialogNotaRodape()}>Modal nota de rodapé</button>
       </div>
     `;
   }
@@ -234,11 +222,33 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/estilo-texto', EstiloTextoClass, true);
       Quill.register('formats/text-indent', NoIndentClass, true);
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
+
+      const customToolbarOptions = toolbarOptions;
+      this.modo === Modo.JUSTIFICATIVA && customToolbarOptions.push(['nota-rodape']);
+
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom', 'width'],
+        formats: [
+          'estilo',
+          'bold',
+          'italic',
+          'image',
+          'underline',
+          'align',
+          'list',
+          'script',
+          'image',
+          'table',
+          'tr',
+          'td',
+          'text-indent',
+          'margin-bottom',
+          'width',
+          // this.modo === Modo.JUSTIFICATIVA ? 'nota-rodape' : '',
+          'nota-rodape',
+        ],
         modules: {
           toolbar: {
-            container: toolbarOptions,
+            container: customToolbarOptions,
             handlers: {
               undo: this.undo,
               redo: this.redo,
@@ -246,6 +256,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             },
           },
           aspasCurvas: true,
+          notaRodape: true,
           table: {
             cellSelectionOnClick: false,
           },
@@ -340,7 +351,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         theme: 'snow',
       });
 
-      this.setContent(this.texto);
+      this.setContent(this.texto, this.notasRodape);
       this.addBotoesExtra();
       this.configureTooltip();
       this.elTableManagerButton = this.querySelectorAll('span.ql-table')[1] as HTMLSpanElement;
@@ -366,6 +377,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           this.showAlterarLarguraTabelaModal(table.width);
         }
       });
+
+      this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
     }
   };
 
@@ -481,7 +494,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
 
-  setContent = (texto: string): void => {
+  setContent = (texto: string, notasRodape: NotaRodape[] = []): void => {
     if (!this.quill || !this.quill.root) {
       return;
     }
@@ -495,7 +508,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
-    setTimeout(() => this.quill!.history.clear(), 100); // A linha anterior gera um history, então é necessário limpar novamente.
+    setTimeout(() => {
+      this.quill!.history.clear();
+      (this.quill as any).notasRodape.associar(notasRodape);
+    }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
   };
 
   updateApenasTexto = (): void => {
@@ -509,6 +525,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.agendarEmissaoEventoOnChange();
     this.buildRevisoes();
     this.onSelectionChange(this.quill?.getSelection());
+  };
+
+  updateNotasRodape = (): void => {
+    this.notasRodape = (this.quill as any).notasRodape.getNotasRodape();
+    // this.agendarEmissaoEventoOnChange();
   };
 
   ajustaHtml = (html = ''): string => {

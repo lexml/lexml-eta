@@ -1,3 +1,4 @@
+import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { Revisao } from '../revisao/revisao';
 
 export class Emenda {
@@ -22,6 +23,7 @@ export class Emenda {
   opcoesImpressao = new OpcoesImpressao();
   revisoes: Revisao[] = [];
   colegiadoApreciador = new ColegiadoApreciador();
+  notasRodape: NotaRodape[] = [];
 }
 
 export type MetadadosEmenda = {

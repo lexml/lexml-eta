@@ -1,10 +1,22 @@
+import { NOTA_RODAPE_INPUT_EVENT } from './notaRodape';
+
 export class NotaRodapeModal {
   private modalElement: HTMLElement;
   private overlayElement: HTMLElement;
   private shadowRoot: ShadowRoot;
   private keydownListener: (event: KeyboardEvent) => void;
 
-  constructor() {
+  idNotaRodape?: string;
+  textoInicialNotaRodape: string;
+  domNodeNotaRodape: HTMLElement;
+  tituloModal?: string;
+
+  constructor(options: { domNodeNotaRodape: HTMLElement; idNotaRodape?: string; textoInicialNotaRodape?: string; tituloModal?: string }) {
+    this.idNotaRodape = options.idNotaRodape;
+    this.textoInicialNotaRodape = options.textoInicialNotaRodape ?? '';
+    this.domNodeNotaRodape = options.domNodeNotaRodape;
+    this.tituloModal = options.tituloModal;
+
     this.modalElement = document.createElement('div');
     this.modalElement.classList.add('modal');
     this.shadowRoot = this.modalElement.attachShadow({ mode: 'open' });
@@ -124,7 +136,7 @@ export class NotaRodapeModal {
     document.body.appendChild(this.overlayElement);
     document.body.appendChild(this.modalElement);
 
-    this.keydownListener = (event: KeyboardEvent) => {
+    this.keydownListener = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         this.close();
       }
@@ -133,25 +145,34 @@ export class NotaRodapeModal {
     document.addEventListener('keydown', this.keydownListener);
 
     Array.from(this.shadowRoot.querySelectorAll('.modal-close-button')).forEach(element => element.addEventListener('click', () => this.close()));
+
+    this.shadowRoot.querySelector('.modal-save-button')?.addEventListener('click', this.save.bind(this));
   }
 
-  open(content?: string): void {
+  open(): void {
     this.overlayElement.style.display = 'block';
     setTimeout(() => {
       this.overlayElement.style.opacity = '1';
       this.modalElement.style.opacity = '1';
       this.modalElement.style.transform = 'translate(-50%, -50%) scale(1)';
     }, 10);
-    const firstFocusableElement = this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
-    if (firstFocusableElement) firstFocusableElement.focus();
+    const firstFocusableElement = this.getTextArea();
+    if (firstFocusableElement) {
+      firstFocusableElement.focus();
+      firstFocusableElement.value = this.textoInicialNotaRodape ?? '';
+    }
     const modalTitle = this.shadowRoot.querySelector('.modal-title');
     if (modalTitle) {
-      modalTitle.innerHTML = content ? content : modalTitle.innerHTML;
+      modalTitle.innerHTML = this.tituloModal ?? modalTitle.innerHTML;
     }
   }
 
-  close(): void {
-    if (this.shouldClose()) {
+  getTextArea(): HTMLTextAreaElement {
+    return this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
+  }
+
+  close(fromSave = false): void {
+    if (fromSave || this.shouldClose()) {
       this.modalElement.style.opacity = '0';
       this.overlayElement.style.opacity = '0';
       setTimeout(() => this.removeModal(), 300); // Tempo de transição
@@ -159,13 +180,24 @@ export class NotaRodapeModal {
   }
 
   private shouldClose(): boolean {
-    const textarea = this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
-    return !(textarea.value.length > 0 && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.'));
+    const textarea = this.getTextArea();
+    return !(textarea.value !== this.textoInicialNotaRodape && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.'));
   }
 
   private removeModal(): void {
     document.removeEventListener('keydown', this.keydownListener);
     this.modalElement.remove();
     this.overlayElement.remove();
+  }
+
+  save(): void {
+    const textarea = this.getTextArea();
+    if (textarea.value === this.textoInicialNotaRodape || !textarea.value) {
+      this.close(true);
+      return;
+    }
+
+    this.domNodeNotaRodape.dispatchEvent(new CustomEvent(NOTA_RODAPE_INPUT_EVENT, { detail: { id: this.idNotaRodape, texto: textarea.value } }));
+    this.close(true);
   }
 }
