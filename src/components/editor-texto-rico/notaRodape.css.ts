@@ -2,10 +2,6 @@ import { html } from 'lit';
 
 export const notaRodapeCss = html`
   <style>
-    .ql-nota-rodape::after {
-      content: 'R';
-    }
-
     .nota-rodape {
       vertical-align: super; /* Ajusta para sobrescrito */
       font-size: 0.8em; /* Tamanho da fonte pode ser ajustado conforme necessário */

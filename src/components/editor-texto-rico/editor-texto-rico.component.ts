@@ -1,6 +1,6 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
+import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado, iconeNotaDeRodape } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
@@ -156,6 +156,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.icons['underline'] = sublinhado;
     this.icons['text-indent'] = iconeTextIndent;
     this.icons['margin-bottom'] = iconeMarginBottom;
+    this.icons['nota-rodape'] = iconeNotaDeRodape;
   }
 
   private renderBotaoAnexo(): TemplateResult {
@@ -490,6 +491,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
     this.setTitle(toolbarContainer, 'button.ql-margin-bottom', 'Distância entre parágrafos');
     this.setTitle(toolbarContainer, 'button.ql-text-indent', 'Recuo de parágrafo');
+    this.setTitle(toolbarContainer, 'button.ql-table', 'Tabela');
+    this.setTitle(toolbarContainer, 'button.ql-nota-rodape', 'Nota de rodapé');
   };
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
