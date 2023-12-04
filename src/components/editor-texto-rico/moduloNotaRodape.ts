@@ -162,7 +162,7 @@ class ModuloNotaRodape extends Module {
       domNodeNotaRodape: this.quill.root,
       idNotaRodape: notaRodape?.id,
       textoInicialNotaRodape: notaRodape?.texto,
-      tituloModal: typeof notaRodape === 'object' ? 'Editar nota' : 'Adicionar nota',
+      tituloModal: typeof notaRodape === 'object' ? 'Editar nota de rodapé' : 'Adicionar nota de rodapé',
     });
     notaRodapeModal.open();
   }
