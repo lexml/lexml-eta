@@ -16,7 +16,6 @@ export class NotaRodapeModal {
           position: absolute;
           top: 50%;
           left: 50%;
-          transform: translate(-50%, -50%);
           min-width: 400px;
           max-width: 640px;
           background-color: white;
@@ -24,9 +23,12 @@ export class NotaRodapeModal {
           border-radius: 10px;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
           z-index: 1010;
-          display: none;
+          display: flex;
           flex-direction: column;
           gap: 20px;
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(0.95);
+          transition: opacity 0.3s, transform 0.3s;
         }
 
         .modal-header {
@@ -109,7 +111,8 @@ export class NotaRodapeModal {
 
     this.overlayElement = document.createElement('div');
     this.overlayElement.classList.add('overlay');
-    this.overlayElement.style.display = 'none';
+    this.overlayElement.style.opacity = '0';
+    this.overlayElement.style.transition = 'opacity 0.3s';
     this.overlayElement.style.position = 'fixed';
     this.overlayElement.style.top = '0';
     this.overlayElement.style.left = '0';
@@ -133,8 +136,12 @@ export class NotaRodapeModal {
   }
 
   open(content?: string): void {
-    this.modalElement.style.display = 'flex';
     this.overlayElement.style.display = 'block';
+    setTimeout(() => {
+      this.overlayElement.style.opacity = '1';
+      this.modalElement.style.opacity = '1';
+      this.modalElement.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
     const firstFocusableElement = this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
     if (firstFocusableElement) firstFocusableElement.focus();
     const modalTitle = this.shadowRoot.querySelector('.modal-title');
@@ -144,10 +151,19 @@ export class NotaRodapeModal {
   }
 
   close(): void {
-    const textarea = this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
-    if (textarea.value.length > 0 && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.')) {
-      return;
+    if (this.shouldClose()) {
+      this.modalElement.style.opacity = '0';
+      this.overlayElement.style.opacity = '0';
+      setTimeout(() => this.removeModal(), 300); // Tempo de transição
     }
+  }
+
+  private shouldClose(): boolean {
+    const textarea = this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
+    return !(textarea.value.length > 0 && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.'));
+  }
+
+  private removeModal(): void {
     document.removeEventListener('keydown', this.keydownListener);
     this.modalElement.remove();
     this.overlayElement.remove();
