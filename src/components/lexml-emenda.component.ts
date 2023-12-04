@@ -36,6 +36,7 @@ import { generoFromLetra } from '../model/dispositivo/genero';
 import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
+import { NOTA_RODAPE_CHANGE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -104,6 +105,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   // Para forçar atualização da interface
   @state()
   private updateState: any;
+
+  @state()
+  private notasRodape: NotaRodape[] = [];
 
   @state()
   autoria = new Autoria();
@@ -465,6 +469,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   constructor() {
     super();
+    this.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.onChangeNotasRodape);
   }
 
   createRenderRoot(): LitElement {
@@ -894,40 +899,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>
             <sl-tab-panel name="notas" class="overflow-hidden">
-              <div class="notas-rodape">
-                <ol>
-                  <li>Justificativa baseada na eficiência operacional.</li>
-                  <li>Impacto econômico da medida.</li>
-                  <li>Relevância social da MPV para comunidades.</li>
-                  <li>Dados de pesquisa sobre a mudança legislativa.</li>
-                  <li>Comentários de especialistas sobre implicações legais.</li>
-                  <li>Comparativo com legislações internacionais.</li>
-                  <li>Análise de custo-benefício da proposta.</li>
-                  <li>Casos que exemplificam a necessidade da emenda.</li>
-                  <li>Consequências da não aprovação da MPV.</li>
-                  <li>Feedback público sobre a emenda.</li>
-                  <li>Estudos sobre a eficácia administrativa.</li>
-                  <li>Observações sobre a carga tributária relacionada.</li>
-                  <li>Implicações ambientais da medida proposta.</li>
-                  <li>Aspectos históricos relevantes para a emenda.</li>
-                  <li>Estimativas de impacto no emprego e renda.</li>
-                  <li>Considerações sobre segurança pública.</li>
-                  <li>Opinião de organizações não governamentais.</li>
-                  <li>Efeitos na educação e formação de jovens.</li>
-                  <li>Desdobramentos possíveis no cenário internacional.</li>
-                  <li>Conformidade com padrões de direitos humanos.</li>
-                  <li>Precedentes legais de interesse.</li>
-                  <li>Recomendações de organismos internacionais.</li>
-                  <li>Impactos na saúde pública e bem-estar.</li>
-                  <li>Repercussões na indústria e comércio.</li>
-                  <li>Debate sobre a efetividade da regulamentação.</li>
-                  <li>Contribuições da comunidade acadêmica.</li>
-                  <li>Projeções de longo prazo para a economia.</li>
-                  <li>Discussões sobre igualdade e justiça social.</li>
-                  <li>Relações com políticas públicas existentes.</li>
-                  <li>Análises comparativas com outras iniciativas legislativas.</li>
-                </ol>
-              </div>
+              <div class="notas-rodape">${this.renderNotasRodape()}</div>
             </sl-tab-panel>
             <sl-tab-panel name="dicas" class="overflow-hidden">
               <lexml-ajuda></lexml-ajuda>
@@ -940,5 +912,19 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       </sl-split-panel>
       <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
+  }
+
+  onChangeNotasRodape(): void {
+    this.notasRodape = this._lexmlJustificativa.notasRodape;
+  }
+
+  renderNotasRodape(): TemplateResult {
+    return !this.notasRodape.length
+      ? html``
+      : html`
+          <ol>
+            ${this._lexmlJustificativa.notasRodape.map((nr: NotaRodape) => html` <li>${nr.texto}</li> `)}
+          </ol>
+        `;
   }
 }

@@ -128,7 +128,7 @@ class ModuloNotaRodape extends Module {
   emitirEventoNotaRodapeChange() {
     clearTimeout(this.timerEmitirEventoNotaRodapeChange);
     this.timerEmitirEventoNotaRodapeChange = setTimeout(() => {
-      this.quill.root.dispatchEvent(new CustomEvent(NOTA_RODAPE_CHANGE_EVENT));
+      this.quill.root.dispatchEvent(new CustomEvent(NOTA_RODAPE_CHANGE_EVENT, { bubbles: true }));
     }, 100);
   }
 
