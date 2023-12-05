@@ -234,7 +234,9 @@ class ModuloNotaRodape extends Module {
       const node = item.blot.domNode;
       node.innerText = numero;
       node.setAttribute('numero', numero);
-      node.notaRodape.numero = numero;
+      if (node.notaRodape) {
+        node.notaRodape.numero = numero;
+      }
     });
     range && this.quill.setSelection(range.index, range.length);
   }
