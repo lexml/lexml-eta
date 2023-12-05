@@ -105,9 +105,13 @@ class ModuloNotaRodape extends Module {
 
       const ops = delta.ops.reduce((acc, op) => {
         if (op.insert) {
-          const { 'id-nota-rodape': id, numero, title } = op.attributes || {};
-          const notaRodape = new NotaRodape({ id, numero: +numero, texto: title });
-          acc.push({ insert: { 'nota-rodape': notaRodape } });
+          if (op.attributes?.['id-nota-rodape']) {
+            const { 'id-nota-rodape': id, numero, title } = op.attributes || {};
+            const notaRodape = new NotaRodape({ id, numero: +numero, texto: title });
+            acc.push({ insert: { 'nota-rodape': notaRodape } });
+          } else {
+            acc.push(op);
+          }
         }
         return acc;
       }, []);
