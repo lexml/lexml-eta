@@ -511,6 +511,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
+    this.notasRodape = notasRodape;
+
     setTimeout(() => {
       this.quill!.history.clear();
       (this.quill as any).notasRodape.associar(notasRodape);

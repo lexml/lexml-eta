@@ -423,7 +423,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
     this._lexmlDestino.proposicao = emenda.proposicao;
 
-    this._lexmlJustificativa.setContent(emenda.justificativa);
+    this.notasRodape = emenda.notasRodape || [];
     this._lexmlJustificativa.setContent(emenda.justificativa, emenda.notasRodape);
     if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
