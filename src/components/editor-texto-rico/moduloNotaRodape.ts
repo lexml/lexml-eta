@@ -126,6 +126,25 @@ class ModuloNotaRodape extends Module {
       this.renumerarTodasNotas();
       this.emitirEventoNotaRodapeChange();
     }
+
+    if (this.hasNotaRodape(delta)) {
+      this.removerEspacosAoRedorNotaRodape();
+    }
+  }
+
+  removerEspacosAoRedorNotaRodape() {
+    // A operação de colar texto que possua nota de rodapé está adicionando \t antes e depois do número da nota
+    // O código abaixo remove esses espaços
+
+    const notas = this.findBlotsNotaRodape();
+    notas.forEach(item => {
+      if (item.blot.prev?.text?.match(/\s$/)) {
+        // Remove espaço antes da nota de rodapé
+        this.quill.deleteText(item.index - 1, 1, 'silent');
+        // Remove espaço depois da nota de rodapé
+        this.quill.deleteText(item.index, 1, 'silent');
+      }
+    });
   }
 
   timerEmitirEventoNotaRodapeChange;
