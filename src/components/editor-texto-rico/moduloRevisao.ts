@@ -164,11 +164,16 @@ class ModuloRevisao extends Module {
     }
   }
 
-  tratarClick(event: any, delta, oldContent, source) {
-    //if (['INS', 'DEL'].includes(event.target.tagName) || ( ['IMG'].includes(event.target.tagName) && ['INS', 'DEL'].includes(event.target.parentNode.className))) {
-    if (['INS', 'DEL'].includes(event.target.tagName)) {
+  tratarClick(event: any) {
+    if (['INS', 'DEL'].includes(event.target.tagName) || (['IMG'].includes(event.target.tagName) && ['ins', 'del'].includes(event.target.parentNode.className))) {
       const rangeSelect = this.quill.getSelection();
-      const blot = this.quill.getLeaf(rangeSelect.index)[0];
+      let blot;
+
+      if (['IMG'].includes(event.target.tagName)) {
+        blot = this.quill.getLeaf(rangeSelect.index)[0].parent;
+      } else {
+        blot = this.quill.getLeaf(rangeSelect.index)[0];
+      }
       //recupera index inicial do blot selecionado e não apenas o index do cursor
       const index = blot.offset(this.quill.scroll);
 
@@ -183,9 +188,17 @@ class ModuloRevisao extends Module {
 
   revisar(range: any, event: any, aceitar: boolean) {
     const quill = this.quill;
+    let id = '';
+    let className = '';
 
-    const id = event.target.id;
-    const className = event.target.className;
+    if (event.target.tagName === 'IMG') {
+      id = event.target.parentNode.id;
+      className = event.target.parentNode.className;
+    } else {
+      id = event.target.id;
+      className = event.target.className;
+    }
+
     let elementosEmRevisao = document.getElementsByClassName(className) || [];
     let elementosEmRevisaoFilterByID = [] as any;
 
@@ -209,24 +222,38 @@ class ModuloRevisao extends Module {
         };
 
         const delta = quill.getContents(range.index, range.length || 1);
-        const blot = quill.getLeaf(range.index)[0];
+        let blot;
+
+        if (event.target.tagName === 'IMG') {
+          blot = quill.getLeaf(range.index)[0].parent;
+        } else {
+          blot = quill.getLeaf(range.index)[0];
+        }
 
         const isEmbedBlot = ['image'].includes(blot.statics.blotName);
         const index = (blot.text || isEmbedBlot) && !range.length ? range.index - 1 : range.index;
         let posicao = index;
-
         const ops = delta.ops.reduce((acc, op) => {
+          const numChars = typeof op.insert === 'string' ? op.insert.length : 1;
+
           if (op.attributes?.added) {
             if (aceitar) {
-              acc.push({ retain: op.insert.length, attributes: { added: null } });
+              if (op.insert.image) {
+                acc.push({
+                  retain: numChars,
+                  attributes: { ...(op.attributes || {}), added: false },
+                });
+              } else {
+                acc.push({ retain: numChars, attributes: { added: null } });
+              }
             } else {
-              acc.push({ delete: op.insert.length });
+              acc.push({ delete: numChars });
             }
           } else {
             if (aceitar) {
-              acc.push({ delete: op.insert.length });
+              acc.push({ delete: numChars });
             } else {
-              acc.push({ retain: op.insert.length, attributes: { removed: null } });
+              acc.push({ retain: numChars, attributes: { removed: null } });
             }
           }
           return acc;
