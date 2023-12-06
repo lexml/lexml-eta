@@ -165,6 +165,7 @@ class ModuloRevisao extends Module {
   }
 
   tratarClick(event: any, delta, oldContent, source) {
+    //if (['INS', 'DEL'].includes(event.target.tagName) || ( ['IMG'].includes(event.target.tagName) && ['INS', 'DEL'].includes(event.target.parentNode.className))) {
     if (['INS', 'DEL'].includes(event.target.tagName)) {
       const rangeSelect = this.quill.getSelection();
       const blot = this.quill.getLeaf(rangeSelect.index)[0];
@@ -390,7 +391,7 @@ class ModuloRevisao extends Module {
 
   private ajustaPosicaoTooltip(tooltip: HTMLElement, button: HTMLElement, range: any): void {
     const rect = button.getBoundingClientRect();
-    console.log(rect);
+    //console.log(rect);
     const offset = 10;
 
     // Abrir para cima por padrão, a menos que não haja espaço suficiente
@@ -591,6 +592,7 @@ class ModuloRevisao extends Module {
 
       return false;
     }
+
     return true;
   }
 
@@ -673,12 +675,13 @@ class ModuloRevisao extends Module {
       this.ignorarEventoTextChange = false;
     }, 0);
   }
+
   setUsuario(usuario) {
     this.usuario = usuario;
   }
 
   setEmRevisao(emRevisao) {
-    console.log('setEmRevisao', emRevisao);
+    //console.log('setEmRevisao', emRevisao);
     this.emRevisao = emRevisao;
   }
 

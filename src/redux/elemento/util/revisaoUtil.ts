@@ -326,6 +326,12 @@ export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any
   }
 };
 
+export const atualizaQuantidadeRevisaoTextoRico = (quantidade: number, element: any): void => {
+  if (element) {
+    element.innerHTML = quantidade;
+  }
+};
+
 export const setCheckedElement = (element: any, checked: boolean): void => {
   if (element) {
     if (checked) {

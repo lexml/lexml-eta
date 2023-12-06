@@ -1,11 +1,12 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Observable } from '../../util/observable';
-import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisaoTextoRico, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
+import { Modo } from '../../redux/elemento/enum/enumUtil';
 
 @customElement('lexml-switch-revisao')
 export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
@@ -129,6 +130,64 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   };
 
   private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
+    // console.log(qtdIns + qtdDel);
+    //atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
+
+    const revisoesIns = document.getElementsByClassName('ins') || [];
+    const revisoesDel = document.getElementsByClassName('del') || [];
+
+    const revisoesInsEmenda = this.getElementsByContainer('editor-texto-rico-emenda-inner', revisoesIns);
+    const revisoesInsJustificativa = this.getElementsByContainer('editor-texto-rico-justificativa-inner', revisoesIns);
+
+    const revisoesDelEmenda = this.getElementsByContainer('editor-texto-rico-emenda-inner', revisoesDel);
+    const revisoesDelJustificativa = this.getElementsByContainer('editor-texto-rico-justificativa-inner', revisoesDel);
+
+    const qtdInsEmenda = this.getNumberElementsRevision(revisoesInsEmenda);
+    const qtdInsJustificativa = this.getNumberElementsRevision(revisoesInsJustificativa);
+
+    const qtdDelEmenda = this.getNumberElementsRevision(revisoesDelEmenda);
+    const qtdDelJustificativa = this.getNumberElementsRevision(revisoesDelJustificativa);
+
+    const totalEmenda = qtdDelEmenda + qtdInsEmenda;
+    const totalJustificativa = qtdDelJustificativa + qtdInsJustificativa;
+
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      atualizaQuantidadeRevisaoTextoRico(totalJustificativa, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any);
+    } else if (this.modo === Modo.TEXTO_LIVRE) {
+      atualizaQuantidadeRevisaoTextoRico(totalEmenda, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any);
+    }
+
+    //console.log('Revisoes Emenda: ' + totalEmenda);
+    //console.log('Revisoes Justificativa: ' + totalJustificativa);
   };
+
+  getElementsByContainer(nameContainer: string, elements: any) {
+    const listReturn = [] as any;
+
+    for (let index = 0; index < elements.length; index++) {
+      const element = elements[index];
+
+      if (element.parentNode.parentNode.parentNode.id === nameContainer) {
+        listReturn.push(element);
+      }
+    }
+
+    return listReturn;
+  }
+
+  private getNumberElementsRevision(listElements: any) {
+    const revisoesSemDuplicidade = [] as any;
+
+    for (let index = 0; index < listElements.length; index++) {
+      const element = listElements[index];
+      if (revisoesSemDuplicidade.length > 0) {
+        if (revisoesSemDuplicidade.filter(r => r.id === element.id).length === 0) {
+          revisoesSemDuplicidade.push(element);
+        }
+      } else {
+        revisoesSemDuplicidade.push(element);
+      }
+    }
+    return revisoesSemDuplicidade.length;
+  }
 }
