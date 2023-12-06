@@ -1,7 +1,7 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Observable } from '../../util/observable';
-import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisaoTextoRico, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, atualizaQuantidadeRevisaoTextoRico, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
@@ -155,6 +155,8 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
       atualizaQuantidadeRevisaoTextoRico(totalJustificativa, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any);
     } else if (this.modo === Modo.TEXTO_LIVRE) {
       atualizaQuantidadeRevisaoTextoRico(totalEmenda, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any);
+    } else if (this.modo === Modo.EMENDA) {
+      atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
     }
 
     //console.log('Revisoes Emenda: ' + totalEmenda);
