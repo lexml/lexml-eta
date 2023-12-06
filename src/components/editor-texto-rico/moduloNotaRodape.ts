@@ -5,7 +5,7 @@
 import { NotaRodapeModal } from './nota-rodape-modal';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_INPUT_EVENT, NotaRodape } from './notaRodape';
 
-const PREFIXO_ID = 'nr-';
+const PREFIXO_ID = 'nr';
 
 const Delta = Quill.import('delta');
 const Module = Quill.import('core/module');
@@ -18,7 +18,7 @@ const cfgInline = {
 
 const IdNotaRodapeAttribute = new Parchment.Attributor.Attribute('id-nota-rodape', 'id-nota-rodape', cfgInline);
 const NumeroAttribute = new Parchment.Attributor.Attribute('numero', 'numero', cfgInline);
-const TitleAttribute = new Parchment.Attributor.Attribute('title', 'title', cfgInline);
+const TextoAttribute = new Parchment.Attributor.Attribute('texto', 'texto', cfgInline);
 
 class NotaRodapeBlot extends Embed {
   static create(value) {
@@ -44,7 +44,7 @@ class NotaRodapeBlot extends Embed {
   //       // id: domNode.getAttribute('id'),
   //       id: domNode.getAttribute('id-nota-rodape'),
   //       numero: domNode.getAttribute('numero'),
-  //       texto: domNode.getAttribute('title'),
+  //       texto: domNode.getAttribute('texto'),
   //     }
   //   );
   // }
@@ -57,7 +57,7 @@ class NotaRodapeBlot extends Embed {
     domNode.notaRodape = value;
 
     domNode.innerText = value.numero;
-    domNode.setAttribute('title', value.texto);
+    domNode.setAttribute('texto', value.texto);
   }
 }
 
@@ -72,7 +72,7 @@ class ModuloNotaRodape extends Module {
     Quill.register(NotaRodapeBlot);
     Quill.register(IdNotaRodapeAttribute);
     Quill.register(NumeroAttribute);
-    Quill.register(TitleAttribute);
+    Quill.register(TextoAttribute);
   }
 
   constructor(quill, options) {
@@ -106,8 +106,8 @@ class ModuloNotaRodape extends Module {
       const ops = delta.ops.reduce((acc, op) => {
         if (op.insert) {
           if (op.attributes?.['id-nota-rodape']) {
-            const { 'id-nota-rodape': id, numero, title } = op.attributes || {};
-            const notaRodape = new NotaRodape({ id, numero: +numero, texto: title });
+            const { 'id-nota-rodape': id, numero, texto } = op.attributes || {};
+            const notaRodape = new NotaRodape({ id, numero: +numero, texto });
             acc.push({ insert: { 'nota-rodape': notaRodape } });
           } else {
             acc.push(op);
