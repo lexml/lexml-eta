@@ -116,6 +116,7 @@ class ModuloRevisao extends Module {
   usuario;
   tableModule;
   tableTrick;
+  isAbrindoTexto = false;
 
   static register() {
     Quill.register('modules/keyboard', CustomKeyboard, true);
@@ -499,25 +500,30 @@ class ModuloRevisao extends Module {
   addClipboardMatcher() {
     // Handle para tratar colagem de trechos com tag <del>
     this.quill.clipboard.addMatcher('DEL', (node, delta) => {
-      let match = Parchment.query(node);
-      if (match == null || match.blotName !== 'removed') {
+      if (this.isAbrindoTexto) {
+        console.log('abrindo texto');
         return delta;
-      }
-
-      const id = generateUUID();
-      const ops = delta.ops.reduce((acc, op) => {
-        if (op.insert) {
-          delete op.attributes.background;
-          delete op.attributes.removed;
-          if (this.emRevisao) {
-            op.attributes.added = this.buildAttributes(id);
-          }
-          acc.push(op);
+      } else {
+        let match = Parchment.query(node);
+        if (match == null || match.blotName !== 'removed') {
+          return delta;
         }
-        return acc;
-      }, []);
 
-      return new Delta(ops);
+        const id = generateUUID();
+        const ops = delta.ops.reduce((acc, op) => {
+          if (op.insert) {
+            delete op.attributes.background;
+            delete op.attributes.removed;
+            if (this.emRevisao) {
+              op.attributes.added = this.buildAttributes(id);
+            }
+            acc.push(op);
+          }
+          return acc;
+        }, []);
+
+        return new Delta(ops);
+      }
     });
   }
 
