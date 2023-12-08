@@ -174,6 +174,10 @@ class ModuloNotaRodape extends Module {
     const el = id && this.findNodeById(id);
     this.quill.focus();
     el ? this.atualizarTexto(el.notaRodape, texto) : this.adicionar(texto);
+    this.focusOnTab('notas', () => {
+      // Após a aba ser mostrada, foca no texto onde a nota foi incluída
+      this.focusOnTextWhereNotaWasAdded(event.detail.idNotaRodape);
+    });
   }
 
   solicitarTexto(notaRodape) {
@@ -258,6 +262,27 @@ class ModuloNotaRodape extends Module {
       }
     });
     range && this.quill.setSelection(range.index, range.length);
+  }
+  focusOnTab(tabName: string, callback: () => void) {
+    const notasTab = document.querySelector('sl-tab[panel="notas"]') as HTMLElement | null;
+    const badgeElement = notasTab?.querySelector('sl-badge');
+
+    if (notasTab && badgeElement) {
+      if (!notasTab.hasAttribute('active')) {
+        notasTab.click();
+        badgeElement.setAttribute('pulse', '');
+        setTimeout(() => {
+          badgeElement.removeAttribute('pulse');
+        }, 4000);
+      }
+    }
+  }
+
+  focusOnTextWhereNotaWasAdded(idNotaRodape: string) {
+    const element = document.querySelector(`[id-nota-rodape="${idNotaRodape}"]`) as HTMLElement | null;
+    if (element) {
+      element.focus();
+    }
   }
 }
 

@@ -888,9 +888,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <sl-icon name="code"></sl-icon>
               Comando
             </sl-tab>
-            <sl-tab slot="nav" panel="notas">
-              <sl-icon name="footnote"></sl-icon>
-              Notas
+            <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
+              <sl-badge variant="primary" id="badgeAtalhos" pill>
+                <sl-icon name="footnote"></sl-icon>
+                Notas
+              </sl-badge>
             </sl-tab>
             <sl-tab slot="nav" panel="dicas">
               <sl-icon name="lightbulb"></sl-icon>
