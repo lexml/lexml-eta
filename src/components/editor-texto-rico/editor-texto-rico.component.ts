@@ -24,7 +24,7 @@ import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
 import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
 import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-modal';
 import { notaRodapeCss } from './notaRodape.css';
-import { NOTA_RODAPE_CHANGE_EVENT, NotaRodape } from './notaRodape';
+import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -380,6 +380,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       });
 
       this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
+      this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
     }
   };
 
@@ -510,13 +511,21 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       .replace(/align-right/g, 'ql-align-right');
 
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
+
+    this.configAbrindoTexto(true);
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
+    this.configAbrindoTexto(false);
+
     this.notasRodape = notasRodape;
 
     setTimeout(() => {
       this.quill!.history.clear();
       (this.quill as any).notasRodape.associar(notasRodape);
     }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
+  };
+
+  configAbrindoTexto = (valor: boolean): void => {
+    (this.quill as any).notasRodape.isAbrindoTexto = valor;
   };
 
   updateApenasTexto = (): void => {
@@ -538,13 +547,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   ajustaHtml = (html = ''): string => {
-    const result = html
+    let result = html
       .replace(/ql-indent/g, 'indent')
       .replace(/ql-align-justify/g, 'align-justify')
       .replace(/ql-align-center/g, 'align-center')
       .replace(/ql-align-right/g, 'align-right');
 
-    return removeElementosTDOcultos(result);
+    result = removeElementosTDOcultos(result);
+    return (this.quill as any).notasRodape.ajustarConteudoTagsNotaRodape(result);
   };
 
   buildRevisoes = (): void => {
