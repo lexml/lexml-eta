@@ -12,5 +12,6 @@ class NotaRodape {
 
 const NOTA_RODAPE_INPUT_EVENT = 'nota-rodape:input';
 const NOTA_RODAPE_CHANGE_EVENT = 'nota-rodape:change';
+const NOTA_RODAPE_REMOVE_EVENT = 'nota-rodape:remove';
 
-export { NotaRodape, NOTA_RODAPE_INPUT_EVENT, NOTA_RODAPE_CHANGE_EVENT };
+export { NotaRodape, NOTA_RODAPE_INPUT_EVENT, NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT };

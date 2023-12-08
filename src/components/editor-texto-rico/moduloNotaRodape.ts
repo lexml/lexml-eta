@@ -3,13 +3,14 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable prefer-const */
 import { NotaRodapeModal } from './nota-rodape-modal';
-import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_INPUT_EVENT, NotaRodape } from './notaRodape';
+import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_INPUT_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 
 const PREFIXO_ID = 'nr';
 
 const Delta = Quill.import('delta');
 const Module = Quill.import('core/module');
 const Embed = Quill.import('blots/embed'); // Inline Embed
+const Text = Quill.import('blots/text'); // Inline Text
 const Parchment = Quill.import('parchment');
 
 const cfgInline = {
@@ -30,7 +31,7 @@ class NotaRodapeBlot extends Embed {
   }
 
   static value(domNode) {
-    return domNode.notaRodape;
+    return domNode.notaRodape || NotaRodapeBlot.buildNotaRodape(domNode);
   }
 
   format(name, value) {
@@ -39,18 +40,20 @@ class NotaRodapeBlot extends Embed {
   }
 
   // static formats(domNode) {
-  //   return (
-  //     domNode.notaRodape || {
-  //       // id: domNode.getAttribute('id'),
-  //       id: domNode.getAttribute('id-nota-rodape'),
-  //       numero: domNode.getAttribute('numero'),
-  //       texto: domNode.getAttribute('texto'),
-  //     }
-  //   );
+  //   return { 'nota-rodape': domNode.notaRodape || NotaRodapeBlot.buildNotaRodape(domNode) };
   // }
 
+  static buildNotaRodape(domNode) {
+    return {
+      // id: domNode.getAttribute('id'),
+      id: domNode.getAttribute('id-nota-rodape'),
+      numero: domNode.getAttribute('numero'),
+      texto: domNode.getAttribute('texto'),
+    };
+  }
+
   static valueToAttributes(value, domNode) {
-    if (!value) return;
+    if (!value || typeof value === 'boolean') return;
     // value.id && domNode.setAttribute('id', value.id);
     value.id && domNode.setAttribute('id-nota-rodape', value.id);
     value.numero && domNode.setAttribute('numero', value.numero);
@@ -63,10 +66,24 @@ class NotaRodapeBlot extends Embed {
 
 NotaRodapeBlot.blotName = 'nota-rodape';
 NotaRodapeBlot.tagName = 'nota-rodape';
+NotaRodapeBlot.allowedChildren = [Text];
 
 class ModuloNotaRodape extends Module {
   quill;
   options;
+
+  _isAbrindoTexto = false;
+  get isAbrindoTexto() {
+    return this._isAbrindoTexto;
+  }
+  set isAbrindoTexto(value) {
+    this._isAbrindoTexto = value;
+    // if (!value) {
+    //   setTimeout(() => {
+    //     this.quill.root.innerHTML = this.ajustarConteudoTagsNotaRodape(this.quill.root.innerHTML);
+    //   }, 0);
+    // }
+  }
 
   static register() {
     Quill.register(NotaRodapeBlot);
@@ -103,28 +120,32 @@ class ModuloNotaRodape extends Module {
         return delta;
       }
 
-      const ops = delta.ops.reduce((acc, op) => {
-        if (op.insert) {
-          if (op.attributes?.['id-nota-rodape']) {
-            const { 'id-nota-rodape': id, numero, texto } = op.attributes || {};
-            const notaRodape = new NotaRodape({ id, numero: +numero, texto });
-            acc.push({ insert: { 'nota-rodape': notaRodape } });
-          } else {
-            acc.push(op);
-          }
-        }
-        return acc;
-      }, []);
+      const id = this.isAbrindoTexto ? node.getAttribute('id-nota-rodape') : this.gerarId();
+      const numero = node.getAttribute('numero');
+      const texto = node.getAttribute('texto');
+      const notaRodape = new NotaRodape({ id, numero, texto });
 
-      return new Delta(ops);
+      return new Delta().insert({ 'nota-rodape': notaRodape });
+
+      // const ops = delta.ops.reduce((acc, op) => {
+      //   if (op.insert && op.attributes?.['id-nota-rodape']) {
+      //     const { 'id-nota-rodape': id, numero, texto } = op.attributes || {};
+      //     const notaRodape = new NotaRodape({ id, numero: +numero, texto });
+      //     acc.push({ insert: { 'nota-rodape': notaRodape } });
+      //   }
+      //   return acc;
+      // }, []);
+
+      // return new Delta(ops);
     });
   }
 
   onTextChange(delta, oldContent, source) {
     const undo = this.quill.history.stack.undo[this.quill.history.stack.undo.length - 1];
-    if (this.hasNotaRodape(delta) || this.hasNotaRodape(undo?.undo) || this.hasNotaRodape(undo?.redo)) {
+    const redo = this.quill.history.stack.redo[this.quill.history.stack.redo.length - 1];
+    if (this.hasNotaRodape(delta) || this.hasNotaRodape(undo?.undo) || this.hasNotaRodape(undo?.redo) || this.hasNotaRodape(redo?.redo)) {
       this.renumerarTodasNotas();
-      this.emitirEventoNotaRodapeChange();
+      this.emitirEventoNotaRodapeAdicionadaOuRemovida(this.hasNotaRodape(delta));
     }
 
     if (this.hasNotaRodape(delta)) {
@@ -138,20 +159,17 @@ class ModuloNotaRodape extends Module {
 
     const notas = this.findBlotsNotaRodape();
     notas.forEach(item => {
-      if (item.blot.prev?.text?.match(/\s$/)) {
-        // Remove espaço antes da nota de rodapé
-        this.quill.deleteText(item.index - 1, 1, 'silent');
-        // Remove espaço depois da nota de rodapé
-        this.quill.deleteText(item.index, 1, 'silent');
-      }
+      item.blot.next?.text?.match(/^\t/) && this.quill.deleteText(item.index + 1, 1, 'silent');
+      item.blot.prev?.text?.match(/\s$/) && this.quill.deleteText(item.index - 1, 1, 'silent');
     });
   }
 
   timerEmitirEventoNotaRodapeChange;
-  emitirEventoNotaRodapeChange() {
+  emitirEventoNotaRodapeAdicionadaOuRemovida(isAdicionadaOuAtualizada) {
     clearTimeout(this.timerEmitirEventoNotaRodapeChange);
     this.timerEmitirEventoNotaRodapeChange = setTimeout(() => {
-      this.quill.root.dispatchEvent(new CustomEvent(NOTA_RODAPE_CHANGE_EVENT, { bubbles: true }));
+      const eventName = isAdicionadaOuAtualizada ? NOTA_RODAPE_CHANGE_EVENT : NOTA_RODAPE_REMOVE_EVENT;
+      this.quill.root.dispatchEvent(new CustomEvent(eventName, { bubbles: true }));
     }, 100);
   }
 
@@ -253,11 +271,16 @@ class ModuloNotaRodape extends Module {
       const node = item.blot.domNode;
       node.innerText = numero;
       node.setAttribute('numero', numero);
-      if (node.notaRodape) {
+      if (node.notaRodape?.id) {
         node.notaRodape.numero = numero;
       }
     });
     range && this.quill.setSelection(range.index, range.length);
+  }
+
+  ajustarConteudoTagsNotaRodape(html) {
+    // Ajusta o conteúdo das tags <nota-rodape> para que o número da nota fique dentro da tag <nota-rodape>
+    return html.replace(/<nota-rodape.+?<\/nota-rodape>/g, (texto: string) => texto.replace(/>.?<span[^>]*>(\d+)<\/span>.?</g, '>$1<'));
   }
 }
 
