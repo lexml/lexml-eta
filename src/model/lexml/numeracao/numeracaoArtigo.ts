@@ -61,6 +61,8 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
         this.rotulo = dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
+      } else if (isDispositivoAlteracao(dispositivo) && this.numero !== undefined && isNumeracaoValida(this.numero)) {
+        this.rotulo = this.PREFIXO + this.numero + this.SUFIXO;
       } else if (isDispositivoCabecaAlteracao(dispositivo)) {
         this.rotulo = this.informouArtigoUnico ? this.ARTIGO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo);
       } else {

@@ -363,6 +363,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.alterarLarguraImagemModal.callback = this.alterarLarguraDaImagem;
 
       quillContainer.addEventListener('contextmenu', this.menuContextImagem);
+      quillContainer.addEventListener('click', this.onClick);
 
       const toolbar = this.quill.getModule('toolbar');
       toolbar.addHandler('table', (value: string) => {
@@ -390,6 +391,19 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       ev.preventDefault();
       showMenuImagem(this, elemento, ev.pageY, ev.pageX);
     }
+  };
+
+  onClick = (ev: MouseEvent): void => {
+    const elemento = ev.target as Element;
+    if (elemento.tagName === 'IMG') {
+      ev.preventDefault();
+      this.selectImage(elemento);
+    }
+  };
+
+  selectImage = (img: any): void => {
+    const imgBlot = Quill.find(img);
+    imgBlot && this.quill!.setSelection(this.quill!.getIndex(imgBlot), 1);
   };
 
   imageHandler = (): void => {
