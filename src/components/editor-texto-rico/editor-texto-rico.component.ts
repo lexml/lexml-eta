@@ -683,6 +683,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private atualizaQuantidadeRevisao = (): void => {
     atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.getNomeBadge()) as any, this.modo);
   };
+
+  editarNotaRodape(idNotaRodape: string): void {
+    (this.quill as any).notasRodape.editar(idNotaRodape);
+  }
+
+  removerNotaRodape(idNotaRodape: string): void {
+    (this.quill as any).notasRodape.remover(idNotaRodape);
+  }
 }
 
 const toolbarOptions = [

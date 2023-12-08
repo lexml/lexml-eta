@@ -36,7 +36,7 @@ import { generoFromLetra } from '../model/dispositivo/genero';
 import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
-import { NOTA_RODAPE_CHANGE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
+import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -470,6 +470,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   constructor() {
     super();
     this.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.onChangeNotasRodape);
+    this.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.onChangeNotasRodape);
   }
 
   createRenderRoot(): LitElement {
@@ -807,6 +808,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         .notas-rodape li {
           margin-bottom: 8px;
           position: relative; /* Necessário para posicionar o pseudo-elemento */
+          cursor: pointer;
         }
 
         .notas-rodape li::before {
@@ -928,7 +930,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   onChangeNotasRodape(): void {
     this.notasRodape = this._lexmlJustificativa.notasRodape;
-    this.focusOnTabNotas();
+    this.focusOnTab('notas');
   }
 
   renderNotasRodape(): TemplateResult {
@@ -936,23 +938,59 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       ? html`<span>Não há notas de rodapé registradas.</span>`
       : html`
           <ol>
-            ${this._lexmlJustificativa.notasRodape.map((nr: NotaRodape) => html` <li>${nr.texto}</li> `)}
+            ${this._lexmlJustificativa.notasRodape.map((nr: NotaRodape) => html` <li idNotaRodape="${nr.id}" @click=${this.localizarNotaRodape}>${nr.texto}</li> `)}
           </ol>
         `;
   }
 
-  focusOnTabNotas(): void {
-    const notasTab = this.querySelector('sl-tab[panel="notas"]') as HTMLElement | null;
-    const badgeElement = notasTab?.querySelector('sl-badge');
+  focusOnTab(tabName: string): void {
+    const tab = this.querySelector(`sl-tab[panel="${tabName}"]`) as HTMLElement | null;
+    if (!tab) return;
 
-    if (notasTab && badgeElement) {
-      if (!notasTab.hasAttribute('active')) {
-        notasTab.click();
-        badgeElement.setAttribute('pulse', '');
-        setTimeout(() => {
-          badgeElement.removeAttribute('pulse');
-        }, 4000);
+    tab.click();
+
+    if (tabName === 'notas') {
+      const badgeElement = tab?.querySelector('sl-badge');
+      if (!badgeElement) return;
+
+      if (!tab.hasAttribute('active')) {
+        if (tabName === 'notas') {
+          badgeElement.setAttribute('pulse', '');
+          setTimeout(() => {
+            badgeElement.removeAttribute('pulse');
+          }, 4000);
+        }
       }
     }
+  }
+
+  localizarNotaRodape(event: any): void {
+    const idNotaRodape = event.target.getAttribute('idNotaRodape');
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
+    const tab = this.getTabFromElement(notaRodapeElement);
+    this.focusOnTab(tab.getAttribute('name'));
+
+    notaRodapeElement && setTimeout(() => notaRodapeElement.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+
+    // TODO: O código abaixo será associado ao botão de editar nota de rodapé
+    if (event.ctrlKey) {
+      editorTextoRico?.focus();
+      editorTextoRico.editarNotaRodape(idNotaRodape);
+    }
+
+    // TODO: o código abaixo será associado ao botão de remover nota de rodapé
+    if (event.altKey) {
+      editorTextoRico?.focus();
+      editorTextoRico.removerNotaRodape(idNotaRodape);
+    }
+  }
+
+  getEditorTextoRicoFromElement(element: any): any {
+    return element.closest('editor-texto-rico');
+  }
+
+  getTabFromElement(element: any): any {
+    return element.closest('sl-tab-panel');
   }
 }

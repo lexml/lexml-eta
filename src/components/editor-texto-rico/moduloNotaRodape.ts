@@ -231,6 +231,17 @@ class ModuloNotaRodape extends Module {
     return notaRodape;
   }
 
+  remover(idNotaRodape) {
+    const elemento = this.findNodeById(idNotaRodape);
+    const blot = Quill.find(elemento);
+    blot?.remove();
+  }
+
+  editar(idNotaRodape) {
+    const notaRodape = this.findNodeById(idNotaRodape)?.notaRodape;
+    notaRodape && this.solicitarTexto(notaRodape);
+  }
+
   associar(notasRodape) {
     notasRodape.forEach(nota => {
       const elemento = this.findNodeById(nota.id);
