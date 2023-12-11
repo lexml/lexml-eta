@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable eqeqeq */
 
+import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { generateUUID } from '../../util/uuid';
 
 /* eslint-disable prefer-const */
@@ -266,6 +267,7 @@ class ModuloRevisao extends Module {
         quill.updateContents({ ops }, 'user');
         quill.setSelection(posicao);
       }
+      this.setQuantidadeRevisoes();
     }
   }
 
@@ -623,6 +625,7 @@ class ModuloRevisao extends Module {
       // quill.setSelection(deslocamento === 1 ? index + length : index);
       quill.setSelection(posicao);
 
+      this.setQuantidadeRevisoes();
       return false;
     }
 
@@ -698,6 +701,7 @@ class ModuloRevisao extends Module {
 
     quill.history.cutoff();
     quill.updateContents(rev, 'user');
+    this.setQuantidadeRevisoes();
 
     setTimeout(() => {
       // TODO: Corrigir setSelection (falhando em vários casos)
@@ -722,17 +726,36 @@ class ModuloRevisao extends Module {
     this.ignorarEventoTextChange = ignorarEventoTextChange;
   }
 
-  getRevisoes() {
-    const revisoes = Array.from(this.quill.root.querySelectorAll('ins, del')).map(domNode => {
-      const blot = Quill.find(domNode as any);
-      const index = blot.offset(this.quill.scroll);
-      return {
-        index,
-        blot,
-        usuario: blot.domNode.getAttribute('usuario'),
-        data: blot.domNode.getAttribute('date'),
-      };
-    });
+  setQuantidadeRevisoes() {
+    let elementBadge = document.getElementById(this.getNomeBadge()) as any;
+    if (elementBadge) {
+      elementBadge.innerHTML = this.getQuantidadeRevisoes();
+    }
+  }
+
+  private getNomeBadge = (): string => {
+    return this.quill.revisao.modo === Modo.JUSTIFICATIVA ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
+  };
+
+  getQuantidadeRevisoes() {
+    let revisoes = this.quill.root.querySelectorAll('ins, del');
+    return this.getRevisoesSemDuplicidade(revisoes);
+  }
+
+  private getRevisoesSemDuplicidade(listElements: any) {
+    const revisoesSemDuplicidade = [] as any;
+
+    for (let index = 0; index < listElements.length; index++) {
+      const element = listElements[index];
+      if (revisoesSemDuplicidade.length > 0) {
+        if (revisoesSemDuplicidade.filter(r => r.id === element.id).length === 0) {
+          revisoesSemDuplicidade.push(element);
+        }
+      } else {
+        revisoesSemDuplicidade.push(element);
+      }
+    }
+    return revisoesSemDuplicidade.length;
   }
 }
 

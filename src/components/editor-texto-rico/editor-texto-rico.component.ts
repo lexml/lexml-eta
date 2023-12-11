@@ -445,6 +445,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       .replace(/align-right/g, 'ql-align-right');
 
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
+    (this.quill as any).revisao.modo = this.modo;
     (this.quill as any).revisao.isAbrindoTexto = true;
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
     (this.quill as any).revisao.isAbrindoTexto = false;
