@@ -197,7 +197,7 @@ export const editorTextoRicoCss = html`
     }
 
     .ql-snow .ql-editor img {
-      max-width: 60%;
+      max-width: 100%;
     }
 
     .editor-texto-rico p.ql-text-indent-0px {
