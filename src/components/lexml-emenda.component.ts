@@ -311,8 +311,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.modo = params.modo;
     this.projetoNorma = params.projetoNorma;
 
-    this.toggleTabsDireita();
-
     this.inicializaProposicao(params);
 
     this.motivo = params.motivo;
@@ -348,13 +346,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     this.updateView();
-  }
-
-  private toggleTabsDireita(): void {
-    const elementos = this.querySelector('#tabs-direita')?.querySelectorAll('sl-tab, sl-tab-panel');
-    elementos?.forEach(el => {
-      (el as HTMLElement).style.display = this.isEmendaTextoLivre() && el.getAttribute('panel') !== 'notas' && el.getAttribute('name') !== 'notas' ? 'none' : 'block';
-    });
   }
 
   private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
@@ -491,7 +482,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
-    if (this.modo.startsWith('emenda')) {
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       if (this.sizeMode === 'desktop') {
         this.slSplitPanel.position = this.splitPanelPosition;
       }
@@ -573,8 +564,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    this.slSplitPanel.removeAttribute('disabled');
-    this.slSplitPanel.position = this.splitPanelPosition;
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+      this.slSplitPanel.removeAttribute('disabled');
+      this.slSplitPanel.position = this.splitPanelPosition;
+    } else {
+      this.slSplitPanel.setAttribute('disabled', 'true');
+      this.slSplitPanel.position = 100;
+    }
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -797,7 +793,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
 
         sl-split-panel {
-          --divider-width: '15px'};
+          --divider-width: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? '15px' : '0px'};
         }
         sl-tab sl-icon {
           margin-right: 5px;
