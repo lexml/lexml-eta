@@ -729,6 +729,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           --min-height: 300px;
           --heightJustificativa: 100%;
           --heightEmenda: 100%;
+          --visibilityNotasAcao: hidden;
         }
         sl-tab-panel {
           --padding: 0px;
@@ -790,25 +791,41 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
         .notas-rodape {
           font-family: var(--eta-font-serif);
+          font-style: normal;
           padding: 10px;
         }
-
-        .notas-rodape span {
+        .notas-rodape h4 {
+          font-family: var(--eta-font-sans);
+          font-style: normal;
+          padding: 1rem 0px 0.5rem;
+          margin: 0px;
+        }
+        .notas-texto-vazio {
           padding-left: 20px;
           color: var(--sl-color-gray-500);
           font-style: italic;
         }
 
         .notas-rodape ol {
-          /* padding-left: 0; */
-          list-style: none; /* Remove o estilo padrão da lista */
-          counter-reset: item; /* Inicializa um contador */
+          padding-left: 20px;
+          list-style: none;
+          counter-reset: item;
+          margin: 0px;
         }
 
         .notas-rodape li {
-          margin-bottom: 8px;
-          position: relative; /* Necessário para posicionar o pseudo-elemento */
+          padding: 4px;
+          position: relative;
           cursor: pointer;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .notas-rodape li:hover {
+          --visibilityNotasAcao: visible;
+          background-color: var(--sl-color-gray-100);
         }
 
         .notas-rodape li::before {
@@ -816,14 +833,30 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           counter-increment: item;
           position: absolute;
           width: 20px;
-          left: -25px;
-          top: 0px;
+          left: -20px;
+          top: 4px;
           font-size: smaller;
           vertical-align: super;
           font-weight: bold;
           font-size: 12px;
           color: var(--sl-color-gray-500);
           text-align: right;
+        }
+
+        .notas-texto {
+          flex-grow: 1;
+        }
+
+        .notas-acoes {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+        }
+
+        .notas-acao {
+          margin-left: 5px;
+          visibility: var(--visibilityNotasAcao);
+          cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -911,7 +944,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             </sl-tab-panel>
             <sl-tab-panel name="notas" class="overflow-hidden">
               <div class="notas-rodape">
-                <h3>Notas de rodapé</h3>
+                <h4>Notas de rodapé</h4>
                 ${this.renderNotasRodape()}
               </div>
             </sl-tab-panel>
@@ -935,10 +968,25 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   renderNotasRodape(): TemplateResult {
     return !this.notasRodape.length
-      ? html`<span>Não há notas de rodapé registradas.</span>`
+      ? html`<span class="notas-texto-vazio">Não há notas de rodapé registradas.</span>`
       : html`
           <ol>
-            ${this._lexmlJustificativa.notasRodape.map((nr: NotaRodape) => html` <li idNotaRodape="${nr.id}" @click=${this.localizarNotaRodape}>${nr.texto}</li> `)}
+            ${this._lexmlJustificativa.notasRodape.map(
+              (nr: NotaRodape) =>
+                html`
+                  <li idNotaRodape="${nr.id}" @click=${this.localizarNotaRodape}>
+                    <span class="notas-texto">${nr.texto}</span>
+                    <span class="notas-acoes">
+                      <sl-button class="notas-acao" variant="default" size="small" aria-label="Editar nota de rodapé" title="Editar nota de rodapé">
+                        <sl-icon slot="prefix" name="pencil-square"></sl-icon>
+                      </sl-button>
+                      <sl-button class="notas-acao" variant="default" size="small" aria-label="Excluir nota de rodapé" title="Excluir nota de rodapé">
+                        <sl-icon slot="prefix" name="trash"></sl-icon>
+                      </sl-button>
+                    </span>
+                  </li>
+                `
+            )}
           </ol>
         `;
   }

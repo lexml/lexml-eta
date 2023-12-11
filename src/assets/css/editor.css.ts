@@ -6,6 +6,7 @@ export const editorStyles = html`
     :root {
       --elemento-padding-factor: 20;
       --eta-font-serif: 'Times New Roman', Times, serif;
+      --eta-font-sans: var(--sl-font-sans);
     }
 
     #lx-eta-box {
