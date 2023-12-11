@@ -657,6 +657,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     } else if (this.isEmendaTextoLivre()) {
+      if (!this._lexmlJustificativa.texto) {
+        this.disparaAlerta();
+      } else {
+        rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
+      }
       if (!this._lexmlEmendaTextoRico.texto) {
         this.showAlertaEmendaTextoLivre();
       } else {
@@ -677,16 +682,24 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
-      const alerta = {
-        id: 'alerta-global-justificativa',
-        tipo: 'error',
-        mensagem: 'A emenda não possui uma justificação',
-        podeFechar: false,
-      };
-      rootStore.dispatch(adicionarAlerta(alerta));
+      this.disparaAlerta();
     } else {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
     }
+  }
+
+  disparaAlerta(): void {
+    const alerta = {
+      id: 'alerta-global-justificativa',
+      tipo: 'error',
+      mensagem: 'A emenda não possui uma justificação',
+      podeFechar: false,
+    };
+    rootStore.dispatch(adicionarAlerta(alerta));
+  }
+
+  getJustificativa(): string {
+    return '';
   }
 
   limparAlertas(): void {
