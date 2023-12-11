@@ -974,13 +974,29 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             ${this._lexmlJustificativa.notasRodape.map(
               (nr: NotaRodape) =>
                 html`
-                  <li idNotaRodape="${nr.id}" @click=${this.localizarNotaRodape}>
-                    <span class="notas-texto">${nr.texto}</span>
+                  <li>
+                    <span class="notas-texto" idNotaRodape="${nr.id}" @click=${this.localizarNotaRodape}>${nr.texto}</span>
                     <span class="notas-acoes">
-                      <sl-button class="notas-acao" variant="default" size="small" aria-label="Editar nota de rodapé" title="Editar nota de rodapé">
+                      <sl-button
+                        class="notas-acao"
+                        variant="default"
+                        size="small"
+                        aria-label="Editar nota de rodapé"
+                        title="Editar nota de rodapé"
+                        idNotaRodape="${nr.id}"
+                        @click=${this.editarNotaRodape}
+                      >
                         <sl-icon slot="prefix" name="pencil-square"></sl-icon>
                       </sl-button>
-                      <sl-button class="notas-acao" variant="default" size="small" aria-label="Excluir nota de rodapé" title="Excluir nota de rodapé">
+                      <sl-button
+                        class="notas-acao"
+                        variant="default"
+                        size="small"
+                        aria-label="Excluir nota de rodapé"
+                        title="Excluir nota de rodapé"
+                        idNotaRodape="${nr.id}"
+                        @click=${this.removerNotaRodape}
+                      >
                         <sl-icon slot="prefix" name="trash"></sl-icon>
                       </sl-button>
                     </span>
@@ -1015,23 +1031,25 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   localizarNotaRodape(event: any): void {
     const idNotaRodape = event.target.getAttribute('idNotaRodape');
     const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
-    const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
     const tab = this.getTabFromElement(notaRodapeElement);
     this.focusOnTab(tab.getAttribute('name'));
-
     notaRodapeElement && setTimeout(() => notaRodapeElement.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
 
-    // TODO: O código abaixo será associado ao botão de editar nota de rodapé
-    if (event.ctrlKey) {
-      editorTextoRico?.focus();
-      editorTextoRico.editarNotaRodape(idNotaRodape);
-    }
+  editarNotaRodape(event: any): void {
+    const idNotaRodape = event.target.getAttribute('idNotaRodape');
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
+    editorTextoRico?.focus();
+    editorTextoRico.editarNotaRodape(idNotaRodape);
+  }
 
-    // TODO: o código abaixo será associado ao botão de remover nota de rodapé
-    if (event.altKey) {
-      editorTextoRico?.focus();
-      editorTextoRico.removerNotaRodape(idNotaRodape);
-    }
+  removerNotaRodape(event: any): void {
+    const idNotaRodape = event.target.getAttribute('idNotaRodape');
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
+    editorTextoRico?.focus();
+    editorTextoRico.removerNotaRodape(idNotaRodape);
   }
 
   getEditorTextoRicoFromElement(element: any): any {
