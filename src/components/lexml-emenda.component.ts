@@ -482,22 +482,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      if (this.sizeMode === 'desktop') {
-        this.slSplitPanel.position = this.splitPanelPosition;
-      }
+    if (this.sizeMode === 'desktop') {
+      this.slSplitPanel.position = this.splitPanelPosition;
+    }
 
-      if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
-        this.sizeMode = 'mobile';
-        this.slSplitPanel.position = 100;
-        this.slSplitPanel.setAttribute('disabled', 'true');
-      } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
-        this.sizeMode = 'desktop';
-        this.slSplitPanel.position = this.splitPanelPosition;
-        this.slSplitPanel.removeAttribute('disabled');
-      }
-    } else {
+    if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
+      this.sizeMode = 'mobile';
       this.slSplitPanel.position = 100;
+      this.slSplitPanel.setAttribute('disabled', 'true');
+    } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
+      this.sizeMode = 'desktop';
+      this.slSplitPanel.position = this.splitPanelPosition;
+      this.slSplitPanel.removeAttribute('disabled');
     }
   }
 
@@ -564,12 +560,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
+    // if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+    //   this.slSplitPanel.removeAttribute('disabled');
+    //   this.slSplitPanel.position = this.splitPanelPosition;
+    // } else {
+    //   this.slSplitPanel.setAttribute('disabled', 'true');
+    //   this.slSplitPanel.position = 100;
+    // }
     if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      this.slSplitPanel.removeAttribute('disabled');
-      this.slSplitPanel.position = this.splitPanelPosition;
+      this._tabsDireita?.show('comando');
     } else {
-      this.slSplitPanel.setAttribute('disabled', 'true');
-      this.slSplitPanel.position = 100;
+      this._tabsDireita?.show('notas');
     }
   }
 
@@ -793,7 +794,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
 
         sl-split-panel {
-          --divider-width: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? '15px' : '0px'};
+          --divider-width: 15px;
         }
         sl-tab sl-icon {
           margin-right: 5px;
@@ -879,7 +880,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       </style>
 
-      <sl-split-panel>
+      <sl-split-panel position="67">
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
@@ -932,26 +933,38 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         </div>
         <div slot="end">
           <sl-tab-group id="tabs-direita">
-            <sl-tab slot="nav" panel="comando">
-              <sl-icon name="code"></sl-icon>
-              Comando
-            </sl-tab>
+            ${this.tabIsVisible()
+              ? html`
+                  <sl-tab slot="nav" panel="comando">
+                    <sl-icon name="code"></sl-icon>
+                    Comando
+                  </sl-tab>
+                `
+              : ''}
             <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
               <sl-badge variant="primary" id="badgeAtalhos" pill>
                 <sl-icon name="footnote"></sl-icon>
                 Notas
               </sl-badge>
             </sl-tab>
-            <sl-tab slot="nav" panel="dicas">
-              <sl-icon name="lightbulb"></sl-icon>
-              Dicas
-            </sl-tab>
-            <sl-tab slot="nav" panel="atalhos">
-              <sl-badge variant="primary" id="badgeAtalhos" pill>
-                <sl-icon name="keyboard"></sl-icon>
-                Atalhos
-              </sl-badge>
-            </sl-tab>
+            ${this.tabIsVisible()
+              ? html`
+                  <sl-tab slot="nav" panel="dicas">
+                    <sl-icon name="lightbulb"></sl-icon>
+                    Dicas
+                  </sl-tab>
+                `
+              : ''}
+            ${this.tabIsVisible()
+              ? html`
+                  <sl-tab slot="nav" panel="atalhos">
+                    <sl-badge variant="primary" id="badgeAtalhos" pill>
+                      <sl-icon name="keyboard"></sl-icon>
+                      Atalhos
+                    </sl-badge>
+                  </sl-tab>
+                `
+              : ''}
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
             </sl-tab-panel>
@@ -972,6 +985,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       </sl-split-panel>
       <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
+  }
+
+  tabIsVisible() {
+    return this.modo.startsWith('emenda') && !this.isEmendaTextoLivre();
   }
 
   onChangeNotasRodape(): void {
