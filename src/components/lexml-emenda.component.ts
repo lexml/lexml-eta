@@ -345,6 +345,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._tabsDireita.show('comando');
     }
 
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+      setTimeout(() => {
+        this._tabsDireita?.show('comando');
+      });
+    } else {
+      setTimeout(() => {
+        this._tabsDireita?.show('notas');
+      });
+    }
+
     this.updateView();
   }
 
@@ -557,11 +567,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         localStorage.setItem('naoPulsarBadgeAtalhos', 'true');
       }
     });
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      this._tabsDireita?.show('comando');
-    } else {
-      this._tabsDireita?.show('notas');
-    }
   }
 
   updated(): void {
