@@ -341,9 +341,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     this._tabsEsquerda.show('lexml-eta');
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      this._tabsDireita.show('comando');
-    }
 
     if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       setTimeout(() => {
@@ -938,7 +935,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         </div>
         <div slot="end">
           <sl-tab-group id="tabs-direita">
-            ${this.tabIsVisible()
+            ${this.tabIsVisible('comando')
               ? html`
                   <sl-tab slot="nav" panel="comando">
                     <sl-icon name="code"></sl-icon>
@@ -946,13 +943,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                   </sl-tab>
                 `
               : ''}
-            <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
-              <sl-badge variant="primary" id="badgeAtalhos" pill>
-                <sl-icon name="footnote"></sl-icon>
-                Notas
-              </sl-badge>
-            </sl-tab>
-            ${this.tabIsVisible()
+            ${this.tabIsVisible('notas')
+              ? html`
+                  <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
+                    <sl-badge variant="primary" id="badgeAtalhos" pill>
+                      <sl-icon name="footnote"></sl-icon>
+                      Notas
+                    </sl-badge>
+                  </sl-tab>
+                `
+              : ''}
+            ${this.tabIsVisible('dicas')
               ? html`
                   <sl-tab slot="nav" panel="dicas">
                     <sl-icon name="lightbulb"></sl-icon>
@@ -960,7 +961,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                   </sl-tab>
                 `
               : ''}
-            ${this.tabIsVisible()
+            ${this.tabIsVisible('atalhos')
               ? html`
                   <sl-tab slot="nav" panel="atalhos">
                     <sl-badge variant="primary" id="badgeAtalhos" pill>
@@ -992,7 +993,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     `;
   }
 
-  tabIsVisible() {
+  tabIsVisible(tab: string): boolean {
+    if ((tab === 'atalhos' || tab === 'dicas') && this.modo === 'emendaSubstituicaoTermo') {
+      return false;
+    } else if (tab === 'notas' && (this.isEmendaTextoLivre() || this.modo === 'edicao')) {
+      return true;
+    }
     return this.modo.startsWith('emenda') && !this.isEmendaTextoLivre();
   }
 
