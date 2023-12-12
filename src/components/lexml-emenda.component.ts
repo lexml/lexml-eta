@@ -557,6 +557,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         localStorage.setItem('naoPulsarBadgeAtalhos', 'true');
       }
     });
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+      this._tabsDireita?.show('comando');
+    } else {
+      this._tabsDireita?.show('notas');
+    }
   }
 
   updated(): void {
@@ -567,11 +572,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     //   this.slSplitPanel.setAttribute('disabled', 'true');
     //   this.slSplitPanel.position = 100;
     // }
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      this._tabsDireita?.show('comando');
-    } else {
-      this._tabsDireita?.show('notas');
-    }
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -1041,7 +1041,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const tab = this.querySelector(`sl-tab[panel="${tabName}"]`) as HTMLElement | null;
     if (!tab) return;
 
-    tab.click();
+    this._tabsDireita?.show('notas');
 
     if (tabName === 'notas') {
       const badgeElement = tab?.querySelector('sl-badge');
