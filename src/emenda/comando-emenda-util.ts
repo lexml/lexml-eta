@@ -251,7 +251,7 @@ export class CmdEmdUtil {
     hierarquia.push(dispositivo);
 
     let pai = dispositivo.pai;
-    while (pai && !isDispositivoRaiz(pai) && !isAgrupadorNaoArticulacao(pai)) {
+    while (pai && !isDispositivoRaiz(pai)) {
       hierarquia.push(pai);
       pai = pai.pai;
     }
