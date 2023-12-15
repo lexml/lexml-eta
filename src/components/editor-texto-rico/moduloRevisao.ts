@@ -293,8 +293,9 @@ class ModuloRevisao extends Module {
       return acc;
     }, []);
 
+    let partes;
     if (dadosRevisao) {
-      const partes = dadosRevisao.split('|');
+      partes = dadosRevisao.split('|');
       dadosRevisao = partes[0] + ' | ' + partes[1];
     }
 
@@ -361,8 +362,8 @@ class ModuloRevisao extends Module {
         </style>
         <div class="tooltip-revisao__body" role="tooltip">
           <div>
-            <div class="tooltip-revisao__autor">${dadosRevisao}</div>
-            <!--<div class="tooltip-revisao__data">01/01/2023 08:00</div>-->
+            <div class="tooltip-revisao__autor">${partes[0]}</div>
+            <div class="tooltip-revisao__data">${partes[1]}</div>
           </div>
           <div class="tooltip-revisao__actions">
             <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
