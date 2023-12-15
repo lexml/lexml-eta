@@ -5,21 +5,12 @@ import { SlSelect } from '@shoelace-style/shoelace';
 
 @customElement('lexml-opcoes-impressao')
 export class OpcoesImpressaoComponent extends LitElement {
-  @query('#chk-imprimir-brasao')
-  imprimirBrasao!: HTMLInputElement;
-
-  @query('#input-cabecalho')
-  textoCabecalho!: HTMLInputElement;
-
-  @query('#chk-reduzir-espaco')
-  reduzirEspacoEntreLinhas!: HTMLInputElement;
-
   @query('#select-tamanho-fonte')
   tamanhoFonte!: SlSelect;
 
   private _opcoesImpressao!: OpcoesImpressao;
-  @property({ type: Object })
-  set opcoesImpressao(value: OpcoesImpressao | undefined) {
+  @property({ type: Object, state: true })
+  set opcoesImpressao(value: OpcoesImpressao) {
     this._opcoesImpressao = value ? value : new OpcoesImpressao();
     this.requestUpdate();
   }
@@ -42,7 +33,6 @@ export class OpcoesImpressaoComponent extends LitElement {
   protected firstUpdated(): void {
     this.tamanhoFonte.addEventListener('sl-change', (ev: Event) => this._atualizarTamanhoFonte(ev));
   }
-
   render(): TemplateResult {
     return html`
       <style>
@@ -79,7 +69,7 @@ export class OpcoesImpressaoComponent extends LitElement {
 
       <sl-radio-group label="Opções de impressão" fieldset class="lexml-opcoes-impressao">
         <div>
-          <input type="checkbox" id="chk-imprimir-brasao" ?checked=${this._opcoesImpressao?.imprimirBrasao} @input=${(ev: Event): void => this._atualizarImprimirBrasao(ev)} />
+          <sl-checkbox id="chk-imprimir-brasao" ?checked=${this._opcoesImpressao?.imprimirBrasao} @input=${(ev: Event): void => this._atualizarImprimirBrasao(ev)}></sl-checkbox>
           <label for="chk-imprimir-brasao">Imprimir brasão</label>
         </div>
         <sl-input
@@ -98,12 +88,11 @@ export class OpcoesImpressaoComponent extends LitElement {
           </sl-select>
         </div>
         <div>
-          <input
-            type="checkbox"
+          <sl-checkbox
             id="chk-reduzir-espaco"
             ?checked=${this._opcoesImpressao?.reduzirEspacoEntreLinhas}
-            @input=${(ev: Event): void => this._atualizarReduzirEspacoEntreLinhas(ev)}
-          />
+            @click=${(ev: Event): void => this._atualizarReduzirEspacoEntreLinhas(ev)}
+          ></sl-checkbox>
           <label for="chk-reduzir-espaco">Reduzir espaço entre linhas</label>
         </div>
       </sl-radio-group>
@@ -112,19 +101,23 @@ export class OpcoesImpressaoComponent extends LitElement {
 
   private _atualizarTextoCabecalho(ev: Event): void {
     this._opcoesImpressao.textoCabecalho = (ev.target as HTMLInputElement).value;
+    this.requestUpdate();
   }
 
   private _atualizarImprimirBrasao(ev: Event): void {
     this._opcoesImpressao.imprimirBrasao = (ev.target as HTMLInputElement).checked;
+    this.requestUpdate();
   }
 
   private _atualizarTamanhoFonte(ev: Event): void {
     const valorFonte = parseInt((ev.target as SlSelect).value as string);
     this._opcoesImpressao.tamanhoFonte = valorFonte;
+    this.requestUpdate();
   }
 
   private _atualizarReduzirEspacoEntreLinhas(ev: Event): void {
     this._opcoesImpressao.reduzirEspacoEntreLinhas = (ev.target as HTMLInputElement).checked;
+    this.requestUpdate();
   }
 
   private agendarEmissaoEventoOnChange(origemEvento: string): void {

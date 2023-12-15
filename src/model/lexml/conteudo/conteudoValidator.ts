@@ -13,7 +13,6 @@ import {
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
   isTodosFilhosTipoEnumeracaoSuprimidos,
-  isUltimaAlteracao,
   isUltimaEnumeracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -284,11 +283,10 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isDispositivoDeArtigo(dispositivo) &&
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
-    dispositivo.pai!.filhos.filter(d => isOmissis(d)).length === 0 &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
-    !isUltimaAlteracao(dispositivo) &&
+    //isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&
     !isSeguidoDeOmissis(dispositivo)
   ) {
@@ -306,7 +304,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
 
     if (CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(dispositivos)) {
       if (localStorage.getItem('naoMostrarExplicacaoSufixo') === null) {
-        addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-0, -1, -2,...)?`, undefined, 'onmodalsufixos');
+        addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-1, -2,...)?`, undefined, 'onmodalsufixos');
       }
     }
   }

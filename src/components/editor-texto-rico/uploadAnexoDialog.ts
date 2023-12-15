@@ -4,6 +4,7 @@ import { Anexo } from '../../model/emenda/emenda';
 export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any, editorTextoRico: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
   editorTextoRico.appendChild(dialogElem);
+  //tamanhoMaximoAnexo = editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo;
   dialogElem.label = 'Anexo';
   dialogElem.addEventListener('sl-request-close', (event: any) => {
     if (event.detail.source === 'overlay') {
@@ -43,11 +44,17 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     <br/>
     <br/>
     <input id="input-upload" type="file" accept="application/pdf" size="small"></input>
+    <br/>
+    <label class="tipoErrado" style="color: red;" hidden="true" id="tipoErrado">Esse arquivo não é um PDF</label>
+    <br/>
+    <label class="tamanhoMaximoAtingido" style="color: red;" hidden="true" id="tamanhoMaximoAtingido">Ultrapassou o tamanho máximo permitido (${Math.trunc(
+      editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo / 1024
+    )}MB)</label>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
   <br/>
-  <sl-button class="controls" slot="footer" variant="primary">Confirmar</sl-button>
+  <sl-button id="btnConfirmarAnexo" class="controls" slot="footer" variant="primary">Confirmar</sl-button>
   <sl-button class="controls" slot="footer" variant="default">Cancelar</sl-button>
   `);
 
@@ -83,7 +90,11 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
       a =>
         (htmlConteudo += `<span class="anexo-item">
                             <sl-icon name="paperclip"></sl-icon>
-                            <span>${a.nomeArquivo}</span>
+                            <a download="${a.nomeArquivo}" href="data:application/pdf;base64,${a.base64}">
+                              <span>
+                                ${a.nomeArquivo}
+                              </span>
+                            </a>
                             <!--
                             <sl-button class="btn-preview-anexo" size="small" title="Visualizar o anexo em uma nova janela" nomeArquivo="${a.nomeArquivo}">
                               <sl-icon name="eye"></sl-icon>
@@ -109,7 +120,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   const fechar = botoes[1] as SlButton;
 
   inputUpload.oninput = (): void => {
-    addAnexo();
+    addAnexo(editorTextoRico);
   };
 
   confirmar.onclick = (): void => {
@@ -138,14 +149,56 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     );
   };
 
-  const addAnexo = async () => {
+  const addAnexo = async (editorTextoRico: any) => {
     if (inputUpload?.files) {
       const file = inputUpload.files[0];
-      const anexo = await convertAnexo(file);
-      anexos.push(anexo);
-      inputUpload.files = null;
-      conteudoDinamico();
+
+      const listaRestricoes = restricoes(file, editorTextoRico);
+
+      if (listaRestricoes.length === 0) {
+        const anexo = await convertAnexo(file);
+        anexos.push(anexo);
+        inputUpload.files = null;
+        conteudoDinamico();
+        document.getElementById('btnConfirmarAnexo')?.removeAttribute('disabled');
+      } else {
+        document.getElementById('btnConfirmarAnexo')?.setAttribute('disabled', 'true');
+
+        listaRestricoes.forEach(restricao => {
+          document.getElementById(restricao)?.removeAttribute('hidden');
+        });
+
+        listaRestricoesCompleta.forEach(restricaoCompleta => {
+          if (!listaRestricoes.includes(restricaoCompleta)) {
+            document.getElementById(restricaoCompleta)?.setAttribute('hidden', 'true');
+          }
+        });
+      }
     }
+  };
+
+  const listaRestricoesCompleta: string[] = ['tamanhoMaximoAtingido', 'tipoErrado'];
+
+  const restricoes = (file: any, editorTextoRico: any): string[] => {
+    const restricoes: string[] = [];
+    if (file) {
+      const size = Math.round(file.size / 1024);
+
+      if (size > editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo) {
+        restricoes.push('tamanhoMaximoAtingido');
+      }
+
+      if (file.type !== 'application/pdf') {
+        restricoes.push('tipoErrado');
+      }
+
+      if (restricoes.length > 0) {
+        restricoes.push('restricao');
+      }
+    }
+
+    //const retorno = file && file.type === 'application/pdf' && size <= 4096;
+    return restricoes;
   };
 
   const convertAnexo = (file): Promise<Anexo> => {

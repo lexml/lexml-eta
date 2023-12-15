@@ -2,7 +2,7 @@ import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
-import { ComandoEmenda, ItemComandoEmenda } from '../model/emenda/emenda';
+import { ComandoEmenda, ItemComandoEmenda, SubstituicaoTermo } from '../model/emenda/emenda';
 import { getArticulacao } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao, isArticulacao } from './../model/dispositivo/tipo';
@@ -12,16 +12,35 @@ import { CitacaoComandoDeNormaVigente } from './citacao-cmd-de-norma-vigente';
 import { CitacaoComandoDispPrj } from './citacao-cmd-disp-prj';
 import { CmdEmdDispNormaVigente } from './cmd-emd-disp-norma-vigente';
 import { CmdEmdDispPrj } from './cmd-emd-disp-prj';
+import { CmdEmdSubstituicaoTermo } from './cmd-emd-substituicao-termo';
 import { CmdEmdUtil } from './comando-emenda-util';
 import { DispositivoComparator } from './dispositivo-comparator';
 
+const isInstanceOfSubstituicaoTermo = (payload: any = {}): boolean => 'termo' in payload;
+
 export class ComandoEmendaBuilder {
-  constructor(private urn: string, private articulacao: Articulacao) {}
+  constructor(private urn: string, private payload: Articulacao | SubstituicaoTermo) {}
 
   getComandoEmenda(): ComandoEmenda {
+    if (isInstanceOfSubstituicaoTermo(this.payload)) {
+      return this.getComandoEmendaSubstituicaoTermo();
+    } else {
+      return this.getComandoEmendaArticulacao();
+    }
+  }
+
+  private getComandoEmendaSubstituicaoTermo(): ComandoEmenda {
+    const ret = new ComandoEmenda();
+    const cmdEmdSubstituicaoTermo = new CmdEmdSubstituicaoTermo(this.payload as SubstituicaoTermo, this.urn);
+    ret.comandos.push(new ItemComandoEmenda(cmdEmdSubstituicaoTermo.getTexto(), ''));
+    return ret;
+  }
+
+  private getComandoEmendaArticulacao(): ComandoEmenda {
+    const articulacao = this.payload as Articulacao;
     const ret = new ComandoEmenda();
 
-    const dispositivosEmenda = CmdEmdUtil.getDispositivosNaoOriginais(this.articulacao);
+    const dispositivosEmenda = CmdEmdUtil.getDispositivosNaoOriginais(articulacao);
 
     const list = this.getDispositivosRepresentativosDeCadaComando(dispositivosEmenda);
     list.sort(DispositivoComparator.compare);
@@ -49,7 +68,7 @@ export class ComandoEmendaBuilder {
         const cmd = new CmdEmdDispPrj(dispositivosEmenda);
         cabecalho = cmd.getTexto(refProjeto);
 
-        const cit = new CitacaoComandoDispPrj(this.articulacao);
+        const cit = new CitacaoComandoDispPrj(articulacao);
         citacao = cit.getTexto();
 
         complemento = this.getTextoComplementoDispProposicao(dispositivosEmenda);

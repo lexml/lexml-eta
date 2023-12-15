@@ -1,3 +1,4 @@
+import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { Revisao } from '../revisao/revisao';
 
 export class Emenda {
@@ -8,21 +9,22 @@ export class Emenda {
   modoEdicao = ModoEdicaoEmenda.EMENDA;
   // Metadados específicos de sistemas
   metadados: MetadadosEmenda = {};
-
   proposicao = new RefProposicaoEmendada();
-  colegiadoApreciador = new ColegiadoApreciador();
   epigrafe = new Epigrafe();
   componentes = [new ComponenteEmendado()];
-  comandoEmenda = new ComandoEmenda();
   comandoEmendaTextoLivre = new ComandoEmendaTextoLivre();
+  comandoEmenda = new ComandoEmenda();
+  substituicaoTermo?: SubstituicaoTermo;
+  anexos: Anexo[] = [];
   justificativa = '';
   justificativaAntesRevisao?: string;
   local = '';
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
-  anexos: Anexo[] = [];
   revisoes: Revisao[] = [];
+  colegiadoApreciador = new ColegiadoApreciador();
+  notasRodape: NotaRodape[] = [];
 }
 
 export type MetadadosEmenda = {
@@ -33,6 +35,7 @@ export enum ModoEdicaoEmenda {
   EMENDA = 'emenda',
   EMENDA_ARTIGO_ONDE_COUBER = 'emendaArtigoOndeCouber',
   EMENDA_TEXTO_LIVRE = 'emendaTextoLivre',
+  EMENDA_SUBSTITUICAO_TERMO = 'emendaSubstituicaoTermo',
 }
 
 // Dados da proposição ----------------------------
@@ -160,4 +163,13 @@ export class OpcoesImpressao {
 export class Anexo {
   nomeArquivo = '';
   base64 = '';
+}
+
+export type TipoSubstituicaoTermo = 'Expressão' | 'Palavra' | 'Número';
+export class SubstituicaoTermo {
+  tipo: TipoSubstituicaoTermo = 'Expressão';
+  termo = '';
+  novoTermo = '';
+  flexaoGenero = false;
+  flexaoNumero = false;
 }

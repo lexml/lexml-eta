@@ -1,3 +1,4 @@
+import { LexmlEmendaConfig } from './../../src/model/lexmlEmendaConfig';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import '../../src';
@@ -36,12 +37,12 @@ const mapProjetosNormas = {
   mpv_1160_2023: MPV_1160_2023,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
-  plc_142_2028: PLC_142_2028,
+  pl_142_2018: PLC_142_2028,
   plp_197_2023: PLP_197_2023,
   prs_92_2023: PRS_92_2023,
-  pds_183_2018: PDS_183_2018,
+  pdl_183_2018: PDS_183_2018,
   pl_4687_2023: PL_4687_2023,
-  pls_547_2018: PLS_547_2018,
+  pl_547_2018: PLS_547_2018,
   _codcivil_completo: COD_CIVIL_COMPLETO,
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,
@@ -67,9 +68,12 @@ export class DemoView extends LitElement {
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
   private nomeUsuario?: string = 'Fulano';
+  emendaConfig: LexmlEmendaConfig;
 
   constructor() {
     super();
+    this.emendaConfig = new LexmlEmendaConfig();
+    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/18146f46-003c-4f6f-b00f-6e290de175dd';
   }
 
   createRenderRoot(): LitElement {
@@ -160,8 +164,12 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
+
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
+            // params.urn = this.projetoNorma?.value?.metadado?.identificacao?.urn;
+            //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
+            //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
           } else {
             params.proposicao = {
               sigla: 'PL',
@@ -363,12 +371,19 @@ export class DemoView extends LitElement {
             <option value="emenda" id="optEmenda" selected>Emenda</option>
             <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
             <option value="emendaTextoLivre" id="optEmendaTextoLivre">Emenda Texto Livre</option>
+            <option value="emendaSubstituicaoTermo" id="optEmendaSubstituicaoTermo">Emenda Substituição de termo</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-emenda modo=${this.modo} @onrevisao=${this.onRevisao} @onchange=${() => console.log('chegou evento')}></lexml-emenda>
+      <lexml-emenda
+        .lexmlEmendaConfig=${this.emendaConfig}
+        modo=${this.modo}
+        @onrevisao=${this.onRevisao}
+        @onchange=${() => console.log('chegou evento')}
+        @onexibirsufixos=${(): void => this.abrirModalSufixos()}
+      ></lexml-emenda>
     `;
   }
 

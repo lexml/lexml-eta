@@ -1,4 +1,4 @@
-import { REGEX_ACCENTS } from './../../util/string-util';
+import { REGEX_ACCENTS } from '../util/string-util';
 import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
@@ -71,7 +71,7 @@ export class LexmlAutocomplete extends LitElement {
       </style>
       <slot id="dropdown-input">
         <!-- <input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /> -->
-        <sl-input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" size="small" .value=${this.value || ''}></sl-input>
+        <sl-input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="" size="small" .value=${this.value || ''}></sl-input>
       </slot>
       <div class="suggest-container">
         <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>

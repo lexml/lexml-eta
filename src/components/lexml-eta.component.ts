@@ -77,7 +77,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private loadProjetoNorma(preparaAberturaEmenda: boolean): void {
     let documento;
 
-    if (!this.projetoNorma) {
+    if (!this.projetoNorma || !this.projetoNorma.value) {
       this.projetoNorma = DOCUMENTO_PADRAO;
     }
 

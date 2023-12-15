@@ -135,6 +135,14 @@ export const editorTextoRicoCss = html`
       content: 'Remover coluna';
     }
 
+    .ql-picker-item[data-value='change-width-col-modal']::after {
+      content: 'Alterar a largura da coluna';
+    }
+
+    .ql-picker-item[data-value='change-width-table-modal']::after {
+      content: 'Alterar a largura da tabela';
+    }
+
     .ql-picker-item[data-value='append-row']::after {
       content: 'Inserir linha';
     }
@@ -190,7 +198,7 @@ export const editorTextoRicoCss = html`
     }
 
     .ql-snow .ql-editor img {
-      max-width: 60%;
+      max-width: 100%;
     }
 
     .editor-texto-rico p.ql-text-indent-0px {

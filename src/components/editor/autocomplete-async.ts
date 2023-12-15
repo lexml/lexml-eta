@@ -11,7 +11,13 @@ export class AutocompleteAsync extends LitElement {
   items: Option[] = [];
 
   @property({ type: Boolean, reflect: true })
+  disabled = false;
+
+  @property({ type: Boolean, reflect: true })
   opened = false;
+
+  @property({ type: Boolean, reflect: true })
+  async = true;
 
   @property({ type: Number })
   maxSuggestions = 10;
@@ -43,12 +49,18 @@ export class AutocompleteAsync extends LitElement {
 
   _search = (): void => {
     const { value } = this.contentElement;
-    clearTimeout(this._timer);
-
-    if (value.length >= 5) {
-      this._timer = setTimeout(() => {
-        this.onSearch(value);
-      }, this._interval);
+    if (this.async) {
+      clearTimeout(this._timer);
+      if (value.length >= 5 || !this.async) {
+        this._timer = setTimeout(
+          () => {
+            this.onSearch(value);
+          },
+          this.async ? this._interval : 0
+        );
+      }
+    } else {
+      this.onSearch(value);
     }
   };
 
@@ -103,6 +115,7 @@ export class AutocompleteAsync extends LitElement {
           placeholder=${this.placeholder}
           .value=${this.value?.description || ''}
           @change=${e => this._handleChange(e.target.value)}
+          ?disabled=${this.disabled}
         ></sl-input>
       </slot>
       <div class="suggest-container">
