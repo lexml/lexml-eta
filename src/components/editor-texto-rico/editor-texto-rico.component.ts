@@ -5,7 +5,7 @@ import { Observable } from '../../util/observable';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
 import {
-  atualizaQuantidadeRevisao,
+  atualizaQuantidadeRevisaoTextoRico,
   getQuantidadeRevisoesJustificativa,
   getQuantidadeRevisoesTextoLivre,
   RevisaoJustificativaEnum,
@@ -139,9 +139,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
         moduloRevisao.usuario = state.elementoReducer.usuario.nome;
       }
-      this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+      this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonAceitarRevisoes());
+      this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonRejeitarRevisoes());
     }
-    this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
+    this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonDiff());
+    this.atualizaQuantidadeRevisao();
   }
 
   labelAnexo = (): string => {
@@ -157,20 +159,31 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
         </lexml-switch-revisao>
 
-        <sl-tooltip id="${this.getIdTooltip()}" placement="bottom-end">
+        <!-- <sl-tooltip id="${this.getIdTooltip()}" placement="bottom-end">
           <div slot="content">
             <div>${this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificação' : 'Revisões no texto livre'}</div>
           </div>
           <sl-icon name="person-check-fill"></sl-icon>
-        </sl-tooltip>
+        </sl-tooltip> -->
 
-        <sl-button id="${this.getIdButtonAceitarRevisoes()}" variant="default" size="small" title="Limpar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
+        <sl-button id="${this.getIdButtonAceitarRevisoes()}" variant="default" size="small" title="Aceitar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
           <sl-icon name="check-lg"></sl-icon>
         </sl-button>
-
-        <sl-button id="${this.getIdButtonDiff()}" variant="default" size="small" title="Exibir diferenças" @click=${(): void => this.exibirDiferencas()} disabled circle>
-          <sl-icon name="file-diff"></sl-icon>
+        <sl-button
+          id="${this.getIdButtonRejeitarRevisoes()}"
+          variant="default"
+          size="small"
+          title="Rejeitar revisões"
+          @click=${(): void => this.rejeitarRevisoes()}
+          disabled
+          circle
+        >
+          <sl-icon name="x"></sl-icon>
         </sl-button>
+
+        <!-- <sl-button id="${this.getIdButtonDiff()}" variant="default" size="small" title="Exibir diferenças" @click=${(): void => this.exibirDiferencas()} disabled circle>
+          <sl-icon name="file-diff"></sl-icon>
+        </sl-button> -->
       </div>
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
     `;
@@ -236,6 +249,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private getIdButtonAceitarRevisoes = (): string => {
     return this.modo === Modo.JUSTIFICATIVA ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
+  };
+
+  private getIdButtonRejeitarRevisoes = (): string => {
+    return this.modo === Modo.JUSTIFICATIVA ? 'rejeita-revisao-justificativa' : 'rejeita-revisao-texto-livre';
   };
 
   private getIdButtonDiff = (): string => {
@@ -478,6 +495,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
     this.atualizaRevisaoIcon();
     this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+    this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonRejeitarRevisoes());
     this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
   };
 
@@ -515,6 +533,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         contentRevisoes.innerHTML = this.getTitle();
         iconRevisoes.classList.remove(this.getIdTooltip() + '__ativo');
         this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+        this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonRejeitarRevisoes());
         this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonDiff());
       }
     }
@@ -545,12 +564,29 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private aceitarRevisoes = (): void => {
-    if (this.modo === Modo.JUSTIFICATIVA) {
-      this.aceitaRevisoesJustificativa();
-    } else {
-      this.aceitaRevisoesTextoLivre();
-    }
     this.setTextoAntesRevisao(this.texto);
+    (this.quill as any).revisao.revisar(null, null, true, true);
+    this.atualizaRevisaoIcon();
+    this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonAceitarRevisoes());
+    this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonRejeitarRevisoes());
+    this.atualizaQuantidadeRevisao();
+  };
+
+  private getRevisoesModule = (): number => {
+    let quantidade = 0;
+    if (this.quill && (this.quill as any).revisao) {
+      quantidade = (this.quill as any)?.revisao.getQuantidadeRevisoes();
+    }
+    return quantidade;
+  };
+
+  private rejeitarRevisoes = (): void => {
+    this.setTextoAntesRevisao(this.texto);
+    (this.quill as any).revisao.revisar(null, null, false, true);
+    this.atualizaRevisaoIcon();
+    this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonRejeitarRevisoes());
+    this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonAceitarRevisoes());
+    this.atualizaQuantidadeRevisao();
   };
 
   private exibirDiferencas = (): void => {
@@ -567,21 +603,21 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     // }
   };
 
-  private aceitaRevisoesJustificativa = (): void => {
-    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
-    this.atualizaRevisaoIcon();
-    this.desabilitaBtn(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
-    this.desabilitaBtn(this.getRevisoesJustificativa().length === 0, this.getIdButtonDiff());
-    this.atualizaQuantidadeRevisao();
-  };
+  // private aceitaRevisoesJustificativa = (): void => {
+  //   atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+  //   this.atualizaRevisaoIcon();
+  //   this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonAceitarRevisoes());
+  //   this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonDiff());
+  //   this.atualizaQuantidadeRevisao();
+  // };
 
-  private aceitaRevisoesTextoLivre = (): void => {
-    atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
-    this.atualizaRevisaoIcon();
-    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, 'aceita-revisao-texto-livre');
-    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, this.getIdButtonDiff());
-    this.atualizaQuantidadeRevisao();
-  };
+  // private aceitaRevisoesTextoLivre = (): void => {
+  //   atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
+  //   this.atualizaRevisaoIcon();
+  //   this.desabilitaBtn(this.getRevisoesModule() === 0, 'aceita-revisao-texto-livre');
+  //   this.desabilitaBtn(this.getRevisoesModule() === 0, this.getIdButtonDiff());
+  //   this.atualizaQuantidadeRevisao();
+  // };
 
   private getRevisoes = (): Revisao[] => {
     return this.modo === Modo.JUSTIFICATIVA ? this.getRevisoesJustificativa() : this.getRevisoesTextoLivre();
@@ -609,7 +645,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.getNomeBadge()) as any, this.modo);
+    atualizaQuantidadeRevisaoTextoRico(this.getRevisoesModule(), document.getElementById(this.getNomeBadge()) as any);
   };
 }
 

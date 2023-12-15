@@ -35,7 +35,7 @@ class RevisaoUtil {
 
   static formats(domNode) {
     if (domNode?.hasAttribute('usuario') && domNode?.hasAttribute('date')) {
-      return [domNode.getAttribute('usuario'), domNode.getAttribute('date')].join('|');
+      return [domNode.getAttribute('usuario'), domNode.getAttribute('date'), domNode.getAttribute('id')].join('|');
     }
   }
 
@@ -188,29 +188,39 @@ class ModuloRevisao extends Module {
     }
   }
 
-  revisar(range: any, event: any, aceitar: boolean) {
+  revisarTodos(aceitar: boolean) {
+    this.revisar(null, null, true, true);
+  }
+
+  revisar(range: any, event: any, aceitar: boolean, revisarTodos = false) {
     const quill = this.quill;
+    let elementosEmRevisao;
     let id = '';
     let className = '';
+    let elementosEmRevisaoFilterByID;
 
-    if (event.target.tagName === 'IMG') {
-      id = event.target.parentNode.id;
-      className = event.target.parentNode.className;
-    } else {
-      id = event.target.id;
-      className = event.target.className;
-    }
+    if (!revisarTodos) {
+      if (event.target.tagName === 'IMG') {
+        id = event.target.parentNode.id;
+        className = event.target.parentNode.className;
+      } else {
+        id = event.target.id;
+        className = event.target.className;
+      }
 
-    let elementosEmRevisao = document.getElementsByClassName(className) || [];
-    let elementosEmRevisaoFilterByID = [] as any;
+      elementosEmRevisao = document.getElementsByClassName(className) || [];
+      elementosEmRevisaoFilterByID = [] as any;
 
-    if (elementosEmRevisao.length > 0) {
-      for (let index = 0; index < elementosEmRevisao.length; index++) {
-        const element = elementosEmRevisao[index];
-        if (element.id === id) {
-          elementosEmRevisaoFilterByID.push(element);
+      if (elementosEmRevisao.length > 0) {
+        for (let index = 0; index < elementosEmRevisao.length; index++) {
+          const element = elementosEmRevisao[index];
+          if (element.id === id) {
+            elementosEmRevisaoFilterByID.push(element);
+          }
         }
       }
+    } else {
+      elementosEmRevisaoFilterByID = this.getRevisoes();
     }
 
     if (this.emRevisao) {
@@ -226,7 +236,7 @@ class ModuloRevisao extends Module {
         const delta = quill.getContents(range.index, range.length || 1);
         let blot;
 
-        if (event.target.tagName === 'IMG') {
+        if (quill.getLeaf(range.index)[0].domNode.localName === 'img') {
           blot = quill.getLeaf(range.index)[0].parent;
         } else {
           blot = quill.getLeaf(range.index)[0];
@@ -240,14 +250,10 @@ class ModuloRevisao extends Module {
 
           if (op.attributes?.added) {
             if (aceitar) {
-              if (op.insert.image) {
-                acc.push({
-                  retain: numChars,
-                  attributes: { ...(op.attributes || {}), added: false },
-                });
-              } else {
-                acc.push({ retain: numChars, attributes: { added: null } });
-              }
+              acc.push({
+                retain: numChars,
+                attributes: { ...(op.attributes || {}), added: false },
+              });
             } else {
               acc.push({ delete: numChars });
             }
@@ -267,7 +273,7 @@ class ModuloRevisao extends Module {
         quill.updateContents({ ops }, 'user');
         quill.setSelection(posicao);
       }
-      this.setQuantidadeRevisoes();
+      //this.setQuantidadeRevisoes();
     }
   }
 
@@ -378,10 +384,12 @@ class ModuloRevisao extends Module {
 
       document.getElementById('button-rejeitar-revisao')!.addEventListener('click', (event: any) => {
         this.revisar(range, eventParam, false);
+        //this.revisar(null, null, false, true);
         closeTooltip(event);
       });
 
       document.getElementById('button-aceitar-revisao')!.addEventListener('click', (event: any) => {
+        //this.revisar(null, null, true, true);
         this.revisar(range, eventParam, true);
         closeTooltip(event);
       });
@@ -625,7 +633,7 @@ class ModuloRevisao extends Module {
       // quill.setSelection(deslocamento === 1 ? index + length : index);
       quill.setSelection(posicao);
 
-      this.setQuantidadeRevisoes();
+      //this.setQuantidadeRevisoes();
       return false;
     }
 
@@ -637,6 +645,7 @@ class ModuloRevisao extends Module {
     const apenasNovaLinha = delta.ops.length === 2 && delta.ops[0].retain && delta.ops[1].insert === '\n';
     if (this.ignorarEventoTextChange || !this.emRevisao || isInsertJaFormatadoEmModoDeRevisao || !delta.ops.length || apenasNovaLinha) {
       this.ignorarEventoTextChange = false;
+      //this.setQuantidadeRevisoes();
       return;
     }
 
@@ -701,7 +710,7 @@ class ModuloRevisao extends Module {
 
     quill.history.cutoff();
     quill.updateContents(rev, 'user');
-    this.setQuantidadeRevisoes();
+    //this.setQuantidadeRevisoes();
 
     setTimeout(() => {
       // TODO: Corrigir setSelection (falhando em vários casos)
@@ -738,8 +747,12 @@ class ModuloRevisao extends Module {
   };
 
   getQuantidadeRevisoes() {
-    let revisoes = this.quill.root.querySelectorAll('ins, del');
+    let revisoes = this.getRevisoes();
     return this.getRevisoesSemDuplicidade(revisoes);
+  }
+
+  getRevisoes() {
+    return this.quill.root.querySelectorAll('ins, del');
   }
 
   private getRevisoesSemDuplicidade(listElements: any) {
