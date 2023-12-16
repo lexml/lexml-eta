@@ -303,6 +303,15 @@ export const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): numbe
   return revisoes.filter(e => e.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado).length;
 };
 
+export const getQuantidadeRevisoesAll = (): number => {
+  const revisoes = document.querySelectorAll('ins, del');
+  let quantidade = 0;
+  if (revisoes) {
+    quantidade = revisoes.length;
+  }
+  return quantidade;
+};
+
 const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
   const checkbox = document.getElementById('chk-nao-mostrar-modal-novamente') as any;
   if (checkbox) {
@@ -310,8 +319,8 @@ const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
   }
 };
 
-export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
-  rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+export const ativarDesativarMarcaDeRevisao = (rootStore: any, quantidade: number): void => {
+  rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
 };
 
 export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {

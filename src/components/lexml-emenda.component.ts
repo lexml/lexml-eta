@@ -25,7 +25,7 @@ import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { getQuantidadeRevisoesAll, isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
 import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
@@ -415,7 +415,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private desativarMarcaRevisao = (): void => {
     if (rootStore.getState().elementoReducer.emRevisao) {
-      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      const quantidade = getQuantidadeRevisoesAll();
+      rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
     }
   };
 

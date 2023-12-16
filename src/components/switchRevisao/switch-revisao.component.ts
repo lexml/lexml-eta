@@ -1,7 +1,7 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Observable } from '../../util/observable';
-import { ativarDesativarMarcaDeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, getQuantidadeRevisoesAll, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
@@ -117,7 +117,8 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarDesativarMarcaDeRevisao(): void {
-    ativarDesativarMarcaDeRevisao(rootStore);
+    const quantidade = getQuantidadeRevisoesAll();
+    ativarDesativarMarcaDeRevisao(rootStore, quantidade);
     this.checkedSwitchMarcaAlteracao();
   }
 

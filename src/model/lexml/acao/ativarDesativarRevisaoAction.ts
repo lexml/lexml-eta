@@ -1,8 +1,6 @@
-import { ElementoAction } from '.';
-
 export const ATIVAR_DESATIVAR_REVISAO = 'ATIVAR_DESATIVAR_REVISAO';
 
-export class AtivarDesativarRevisao implements ElementoAction {
+export class AtivarDesativarRevisao {
   descricao: string;
   tipo?: string;
 
@@ -10,9 +8,10 @@ export class AtivarDesativarRevisao implements ElementoAction {
     this.descricao = 'Ativar/Desativar revisão';
   }
 
-  execute(): any {
+  execute(quantidade = 0): any {
     return {
       type: ATIVAR_DESATIVAR_REVISAO,
+      quantidade: quantidade,
     };
   }
 }
