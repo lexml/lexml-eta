@@ -836,7 +836,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
 
         .notas-rodape li {
-          padding: 4px;
+          padding: 0px;
           position: relative;
           cursor: pointer;
           display: flex;
@@ -867,6 +867,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
         .notas-texto {
           flex-grow: 1;
+          cursor: pointer;
+          padding: 5px;
+          color: var(--sl-color-gray-500);
         }
 
         .notas-acoes {
@@ -879,6 +882,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           margin-left: 5px;
           visibility: var(--visibilityNotasAcao);
           cursor: pointer;
+        }
+
+        .notas-checkbox {
+          appearance: none;
+          background: transparent;
+          display: none;
+        }
+
+        .notas-checkbox:checked + .notas-texto {
+          color: black;
+          font-style: italic;
         }
 
         @media (max-width: 768px) {
@@ -1022,7 +1036,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               (nr: NotaRodape) =>
                 html`
                   <li>
-                    <span class="notas-texto" idNotaRodape="${nr.id}" @click=${this.localizarNotaRodape}>${nr.texto}</span>
+                    <input type="checkbox" idNotaRodape="${nr.id}" class="notas-checkbox" id="checkbox-${nr.id}" @change=${() => this.selecionarNotaRodape(nr.id)} />
+                    <label for="checkbox-${nr.id}" class="notas-texto">${nr.texto}</label>
                     <span class="notas-acoes">
                       <sl-button
                         class="notas-acao"
@@ -1075,12 +1090,42 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  localizarNotaRodape(event: any): void {
-    const idNotaRodape = event.target.getAttribute('idNotaRodape');
+  localizarNotaRodape(idNotaRodape: any): void {
+    // const idNotaRodape = event.target.getAttribute('idNotaRodape');
     const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
     const tab = this.getTabFromElement(notaRodapeElement);
     this.focusOnTab(tab.getAttribute('name'));
     notaRodapeElement && setTimeout(() => notaRodapeElement.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    const notasRodape = this.querySelectorAll('.ql-editor nota-rodape');
+    notasRodape.forEach(nr => {
+      if (nr.attributes['id-nota-rodape'].value === idNotaRodape) {
+        nr?.classList.add('pulse');
+      } else {
+        nr.classList.remove('pulse');
+      }
+    });
+  }
+
+  selecionarNotaRodape(idNotaRodape: any): void {
+    const checkbox = document.getElementById(`checkbox-${idNotaRodape}`) as HTMLInputElement | null;
+    if (checkbox) {
+      if (checkbox.checked) {
+        const checkboxes = document.querySelectorAll('.notas-checkbox') as NodeListOf<HTMLInputElement>;
+        checkboxes.forEach(cb => {
+          if (cb.id !== checkbox.id) {
+            cb.checked = false;
+          }
+        });
+        this.localizarNotaRodape(idNotaRodape);
+      } else {
+        this.removerPulsarNotaRodape(idNotaRodape);
+      }
+    }
+  }
+
+  removerPulsarNotaRodape(idNotaRodape: any): void {
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    notaRodapeElement?.classList.remove('pulse');
   }
 
   editarNotaRodape(event: any): void {
