@@ -599,19 +599,17 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   undo = (): any => {
-    // return TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(true), undefined);
-    if (TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(true), undefined)) {
+    this.quill?.focus();
+    if ((this.quill as any).revisao.handleUndo(this.quill?.getSelection(), undefined)) {
       this.quill?.history.undo();
     }
-    // (this.quill as any).revisao.handleUndo(this.quill?.getSelection(true), undefined);
   };
 
   redo = (): any => {
-    // return TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(true), undefined);
-    if (TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(true), undefined)) {
+    this.quill?.focus();
+    if ((this.quill as any).revisao.handleRedo(this.quill?.getSelection(), undefined)) {
       this.quill?.history.redo();
     }
-    // (this.quill as any).revisao.handleRedo(this.quill?.getSelection(true), undefined);
   };
 
   atualizaAnexo = (anexo: Anexo[]): void => {
