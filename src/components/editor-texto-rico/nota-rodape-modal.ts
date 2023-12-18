@@ -130,7 +130,7 @@ export class NotaRodapeModal {
     this.overlayElement.style.left = '0';
     this.overlayElement.style.width = '100%';
     this.overlayElement.style.height = '100%';
-    this.overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+    this.overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
     this.overlayElement.style.zIndex = '1000';
 
     document.body.appendChild(this.overlayElement);
