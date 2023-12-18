@@ -23,19 +23,12 @@ class RevisaoUtil {
     domNode.setAttribute('usuario', partes[0]);
     domNode.setAttribute('date', partes[1]);
     domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + partes[1]);
-    //domNode.setAttribute('id', generateUUID())
-    domNode.setAttribute('id', partes[2]);
-
-    if (domNode.tagName === 'DEL') {
-      domNode.setAttribute('class', 'del');
-    } else if (domNode.tagName === 'INS') {
-      domNode.setAttribute('class', 'ins');
-    }
+    domNode.setAttribute('id-revisao', partes[2]);
   }
 
   static formats(domNode) {
     if (domNode?.hasAttribute('usuario') && domNode?.hasAttribute('date')) {
-      return [domNode.getAttribute('usuario'), domNode.getAttribute('date'), domNode.getAttribute('id')].join('|');
+      return [domNode.getAttribute('usuario'), domNode.getAttribute('date'), domNode.getAttribute('id-revisao')].join('|');
     }
   }
 
@@ -121,8 +114,8 @@ class ModuloRevisao extends Module {
 
   static register() {
     Quill.register('modules/keyboard', CustomKeyboard, true);
-    Quill.register(InsBlot);
-    Quill.register(DelBlot);
+    Quill.register(InsBlot, true);
+    Quill.register(DelBlot, true);
   }
 
   constructor(quill, options) {
@@ -166,271 +159,170 @@ class ModuloRevisao extends Module {
     }
   }
 
+  isTagRevisao(param: HTMLElement | string) {
+    const tagName = typeof param === 'string' ? param : param?.tagName;
+    return ['INS', 'DEL'].includes(tagName);
+  }
+
+  getTagRevisaoMaisProxima(elemento: any) {
+    if (!elemento || ['BODY', 'HTML'].includes(elemento.tagName)) return null;
+    if (this.isTagRevisao(elemento)) return elemento;
+    return this.getTagRevisaoMaisProxima(elemento.parentNode);
+  }
+
   tratarClick(event: any) {
-    if (['INS', 'DEL'].includes(event.target.tagName) || (['IMG'].includes(event.target.tagName) && ['ins', 'del'].includes(event.target.parentNode.className))) {
-      const rangeSelect = this.quill.getSelection();
-      let blot;
-
-      if (['IMG'].includes(event.target.tagName)) {
-        blot = this.quill.getLeaf(rangeSelect.index)[0].parent;
-      } else {
-        blot = this.quill.getLeaf(rangeSelect.index)[0];
-      }
-      //recupera index inicial do blot selecionado e não apenas o index do cursor
-      const index = blot.offset(this.quill.scroll);
-
-      const range = {
-        index: index,
-        length: event.target.innerHTML.length,
-      };
-
-      this.mostrarTooltipRevisao(event, range, blot);
-    }
+    const elRevisao = this.getTagRevisaoMaisProxima(event.target);
+    elRevisao && this.mostrarTooltipRevisao(elRevisao);
   }
 
   revisarTodos(aceitar: boolean) {
-    this.revisar(null, null, true, true);
+    this.revisar(this.getRevisoes(), aceitar);
   }
 
-  revisar(range: any, event: any, aceitar: boolean, revisarTodos = false) {
-    const quill = this.quill;
-    let elementosEmRevisao;
-    let id = '';
-    let className = '';
-    let elementosEmRevisaoFilterByID;
-
-    if (!revisarTodos) {
-      if (event.target.tagName === 'IMG') {
-        id = event.target.parentNode.id;
-        className = event.target.parentNode.className;
-      } else {
-        id = event.target.id;
-        className = event.target.className;
-      }
-
-      elementosEmRevisao = document.getElementsByClassName(className) || [];
-      elementosEmRevisaoFilterByID = [] as any;
-
-      if (elementosEmRevisao.length > 0) {
-        for (let index = 0; index < elementosEmRevisao.length; index++) {
-          const element = elementosEmRevisao[index];
-          if (element.id === id) {
-            elementosEmRevisaoFilterByID.push(element);
-          }
-        }
-      }
-    } else {
-      elementosEmRevisaoFilterByID = this.getRevisoes();
-    }
-
-    if (this.emRevisao) {
-      for (let indexAux = 0; indexAux < elementosEmRevisaoFilterByID.length; indexAux++) {
-        const indexCurrencyBlot = this.quill.getIndex(Quill.find(elementosEmRevisaoFilterByID[indexAux]));
-        const lengthCurrencyBlot = elementosEmRevisaoFilterByID[indexAux].innerText.length;
-
-        range = {
-          index: indexCurrencyBlot,
-          length: lengthCurrencyBlot,
-        };
-
-        const delta = quill.getContents(range.index, range.length || 1);
-        let blot;
-
-        if (quill.getLeaf(range.index)[0].domNode.localName === 'img') {
-          blot = quill.getLeaf(range.index)[0].parent;
-        } else {
-          blot = quill.getLeaf(range.index)[0];
-        }
-
-        const isEmbedBlot = ['image'].includes(blot.statics.blotName);
-        const index = (blot.text || isEmbedBlot) && !range.length ? range.index - 1 : range.index;
-        let posicao = index;
-        const ops = delta.ops.reduce((acc, op) => {
-          const numChars = typeof op.insert === 'string' ? op.insert.length : 1;
-
-          if (op.attributes?.added) {
-            if (aceitar) {
-              acc.push({
-                retain: numChars,
-                attributes: { ...(op.attributes || {}), added: false },
-              });
-            } else {
-              acc.push({ delete: numChars });
-            }
-          } else {
-            if (aceitar) {
-              acc.push({ delete: numChars });
-            } else {
-              acc.push({ retain: numChars, attributes: { removed: null } });
-            }
-          }
-          return acc;
-        }, []);
-
-        index && ops.unshift({ retain: index });
-
+  revisar(elementosRevisao: HTMLElement[], aceitar: boolean) {
+    if (!this.emRevisao) return;
+    elementosRevisao
+      .filter(el => this.isTagRevisao(el))
+      .forEach(elRevisao => {
+        const isTagIns = elRevisao.tagName === 'INS';
+        const blot = Quill.find(elRevisao);
         this.ignorarEventoTextChange = true;
-        quill.updateContents({ ops }, 'user');
-        quill.setSelection(posicao);
-      }
-      //this.setQuantidadeRevisoes();
-    }
-  }
-
-  private mostrarTooltipRevisao(eventParam: MouseEvent, range: any, blot: any): void {
-    //if (this.shadowRoot) {
-    const button = eventParam.target as HTMLElement;
-    const delta = this.quill.getContents(range.index, range.length || 1);
-
-    let dadosRevisao = '';
-
-    delta.ops.reduce((acc, op) => {
-      if (op.attributes?.added) {
-        dadosRevisao = op.attributes?.added;
-      } else {
-        dadosRevisao = op.attributes?.removed;
-      }
-      return acc;
-    }, []);
-
-    let partes;
-    if (dadosRevisao) {
-      partes = dadosRevisao.split('|');
-      dadosRevisao = partes[0] + ' | ' + partes[1];
-    }
-
-    if (button) {
-      const tooltip = document.createElement('div');
-      tooltip.classList.add('tooltip-revisao');
-
-      tooltip.innerHTML = `
-          <style>
-          .tooltip-revisao {
-            position: absolute;
-            border: 1px solid black;
-            background-color: white;
-            padding: 10px;
-            border-radius: 4px;
-            z-index: 9999;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            max-width: 300px;
-            transition: all 0.3s ease-in-out;
-          }
-          .tooltip-revisao__actions {
-            display: flex;
-            flex-direction: row;
-            gap: 0.5rem;
-            align-items: center;
-            justify-content: center;
-          }
-          .tooltip-revisao__actions button {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #ccc;
-            border-radius: 15px;
-            background-color: #eee;
-            cursor: pointer;
-            padding: 0;
-            width: 24px;
-            height: 24px;
-          }
-          .tooltip-revisao__actions svg {
-            fill: currentColor;
-            width: 24px;
-            height: 24px;
-          }
-          .tooltip-revisao button:hover {
-            background-color: #ddd;
-          }
-          .tooltip-revisao button:active {
-            background-color: #ccc;
-          }
-          .tooltip-revisao__body {
-            display: flex;
-            flex-direction: row;
-            gap: 1rem;
-          }
-          .tooltip-revisao__autor {
-            font-weight: bold;
-          }
-          .tooltip-revisao__data {
-            font-size: 0.8rem;
-            color: #666;
-          }
-        </style>
-        <div class="tooltip-revisao__body" role="tooltip">
-          <div>
-            <div class="tooltip-revisao__autor">${partes[0]}</div>
-            <div class="tooltip-revisao__data">${partes[1]}</div>
-          </div>
-          <div class="tooltip-revisao__actions">
-            <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-              </svg>
-            </button>
-            <button id="button-aceitar-revisao" aria-label="Aceitar revisão" title="Aceitar revisão">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
-                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-        `;
-
-      tooltip.style.opacity = '0';
-      document.body.appendChild(tooltip);
-
-      document.getElementById('button-rejeitar-revisao')!.addEventListener('click', (event: any) => {
-        this.revisar(range, eventParam, false);
-        //this.revisar(null, null, false, true);
-        closeTooltip(event);
-      });
-
-      document.getElementById('button-aceitar-revisao')!.addEventListener('click', (event: any) => {
-        //this.revisar(null, null, true, true);
-        this.revisar(range, eventParam, true);
-        closeTooltip(event);
-      });
-
-      this.ajustaPosicaoTooltip(tooltip, button, range);
-
-      const closeTooltip = (e: Event) => {
-        //if (e.type === 'click' && !tooltip.contains(e.target as Node) && !button.contains(e.target as Node)) {
-        if (e.type === 'click') {
-          limpaTooltip();
-        } else if (e.type === 'keydown' && (e as KeyboardEvent).key === 'Escape') {
-          limpaTooltip();
+        if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
+          const index = this.quill.getIndex(blot);
+          const length = blot.length();
+          this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
+        } else {
+          blot.format(isTagIns ? 'added' : 'removed', false, 'user');
         }
-      };
-
-      const limpaTooltip = () => {
-        tooltip.style.opacity = '0';
-        setTimeout(() => {
-          tooltip.remove();
-          document.removeEventListener('click', closeTooltip);
-          document.removeEventListener('keydown', closeTooltip);
-        }, 300);
-      };
-
-      setTimeout(() => document.addEventListener('click', closeTooltip), 0);
-      setTimeout(() => document.addEventListener('keydown', closeTooltip), 0);
-      setTimeout(() => {
-        tooltip.style.opacity = '1';
-      }, 0);
-
-      window.addEventListener('resize', () => {
-        this.ajustaPosicaoTooltip(tooltip, button, range);
       });
-    }
-    //}
   }
 
-  private ajustaPosicaoTooltip(tooltip: HTMLElement, button: HTMLElement, range: any): void {
+  private mostrarTooltipRevisao(elRevisao: HTMLElement): void {
+    if (!elRevisao) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip-revisao');
+
+    tooltip.innerHTML = `
+        <style>
+        .tooltip-revisao {
+          position: absolute;
+          border: 1px solid black;
+          background-color: white;
+          padding: 10px;
+          border-radius: 4px;
+          z-index: 9999;
+          font-size: 0.9rem;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          max-width: 300px;
+          transition: all 0.3s ease-in-out;
+        }
+        .tooltip-revisao__actions {
+          display: flex;
+          flex-direction: row;
+          gap: 0.5rem;
+          align-items: center;
+          justify-content: center;
+        }
+        .tooltip-revisao__actions button {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border: 1px solid #ccc;
+          border-radius: 15px;
+          background-color: #eee;
+          cursor: pointer;
+          padding: 0;
+          width: 24px;
+          height: 24px;
+        }
+        .tooltip-revisao__actions svg {
+          fill: currentColor;
+          width: 24px;
+          height: 24px;
+        }
+        .tooltip-revisao button:hover {
+          background-color: #ddd;
+        }
+        .tooltip-revisao button:active {
+          background-color: #ccc;
+        }
+        .tooltip-revisao__body {
+          display: flex;
+          flex-direction: row;
+          gap: 1rem;
+        }
+        .tooltip-revisao__autor {
+          font-weight: bold;
+        }
+        .tooltip-revisao__data {
+          font-size: 0.8rem;
+          color: #666;
+        }
+      </style>
+      <div class="tooltip-revisao__body" role="tooltip">
+        <div>
+          <div class="tooltip-revisao__autor">${elRevisao.getAttribute('usuario')}</div>
+          <div class="tooltip-revisao__data">${elRevisao.getAttribute('date')}</div>
+        </div>
+        <div class="tooltip-revisao__actions">
+          <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+            </svg>
+          </button>
+          <button id="button-aceitar-revisao" aria-label="Aceitar revisão" title="Aceitar revisão">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      `;
+
+    tooltip.style.opacity = '0';
+    document.body.appendChild(tooltip);
+
+    const fnActionRevisao = (event: any, aceitar: boolean) => {
+      const elementos = [...this.quill.root.querySelectorAll(`${elRevisao.tagName}[id-revisao="${elRevisao.getAttribute('id-revisao')}"]`)];
+      this.revisar(elementos, aceitar);
+      closeTooltip(event);
+    };
+
+    tooltip.querySelector('#button-rejeitar-revisao')!.addEventListener('click', (event: any) => fnActionRevisao(event, false));
+    tooltip.querySelector('#button-aceitar-revisao')!.addEventListener('click', (event: any) => fnActionRevisao(event, true));
+
+    this.ajustaPosicaoTooltip(tooltip, elRevisao);
+
+    const closeTooltip = (e: Event) => {
+      if (e.type === 'click') {
+        limpaTooltip();
+      } else if (e.type === 'keydown' && (e as KeyboardEvent).key === 'Escape') {
+        limpaTooltip();
+      }
+      setTimeout(() => this.quill.root.focus(), 0);
+    };
+
+    const limpaTooltip = () => {
+      tooltip.style.opacity = '0';
+      setTimeout(() => {
+        tooltip.remove();
+        document.removeEventListener('click', closeTooltip);
+        document.removeEventListener('keydown', closeTooltip);
+      }, 300);
+    };
+
+    setTimeout(() => {
+      document.addEventListener('click', closeTooltip);
+      document.addEventListener('keydown', closeTooltip);
+      tooltip.style.opacity = '1';
+    }, 0);
+
+    window.addEventListener('resize', () => this.ajustaPosicaoTooltip(tooltip, elRevisao));
+  }
+
+  private ajustaPosicaoTooltip(tooltip: HTMLElement, button: HTMLElement): void {
     const rect = button.getBoundingClientRect();
-    //console.log(rect);
     const offset = 10;
 
     // Abrir para cima por padrão, a menos que não haja espaço suficiente
@@ -448,16 +340,6 @@ class ModuloRevisao extends Module {
       leftOffset = offset;
     }
     tooltip.style.left = `${leftOffset + window.scrollX}px`;
-  }
-
-  getIndex(event) {
-    const clickedElement = event.target; // Captura o elemento clicado
-    const elements = Array.from(clickedElement.parentElement.children); // Obtém todos os elementos pais
-
-    // Encontra o índice do elemento clicado dentro da lista de elementos pais
-    const index = elements.indexOf(clickedElement);
-
-    return index;
   }
 
   createTooltip() {
@@ -634,7 +516,6 @@ class ModuloRevisao extends Module {
       // quill.setSelection(deslocamento === 1 ? index + length : index);
       quill.setSelection(posicao);
 
-      //this.setQuantidadeRevisoes();
       return false;
     }
 
@@ -646,7 +527,6 @@ class ModuloRevisao extends Module {
     const apenasNovaLinha = delta.ops.length === 2 && delta.ops[0].retain && delta.ops[1].insert === '\n';
     if (this.ignorarEventoTextChange || !this.emRevisao || isInsertJaFormatadoEmModoDeRevisao || !delta.ops.length || apenasNovaLinha) {
       this.ignorarEventoTextChange = false;
-      //this.setQuantidadeRevisoes();
       return;
     }
 
@@ -711,7 +591,6 @@ class ModuloRevisao extends Module {
 
     quill.history.cutoff();
     quill.updateContents(rev, 'user');
-    //this.setQuantidadeRevisoes();
 
     setTimeout(() => {
       // TODO: Corrigir setSelection (falhando em vários casos)
@@ -728,7 +607,6 @@ class ModuloRevisao extends Module {
   }
 
   setEmRevisao(emRevisao) {
-    //console.log('setEmRevisao', emRevisao);
     this.emRevisao = emRevisao;
   }
 
@@ -736,40 +614,25 @@ class ModuloRevisao extends Module {
     this.ignorarEventoTextChange = ignorarEventoTextChange;
   }
 
-  setQuantidadeRevisoes() {
-    let elementBadge = document.getElementById(this.getNomeBadge()) as any;
-    if (elementBadge) {
-      elementBadge.innerHTML = this.getQuantidadeRevisoes();
-    }
-  }
-
-  private getNomeBadge = (): string => {
-    return this.quill.revisao.modo === Modo.JUSTIFICATIVA ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
-  };
-
   getQuantidadeRevisoes() {
-    let revisoes = this.getRevisoes();
-    return this.getRevisoesSemDuplicidade(revisoes);
+    return this.getRevisoesSemDuplicidade(this.getRevisoes()).length;
   }
 
   getRevisoes() {
-    return this.quill.root.querySelectorAll('ins, del');
+    const cursorCode = 65279;
+    return [...this.quill.root.querySelectorAll('ins, del')].filter(el => el.innerText?.charCodeAt(0) !== cursorCode);
   }
 
-  private getRevisoesSemDuplicidade(listElements: any) {
+  private getRevisoesSemDuplicidade(listElements: any[]) {
     const revisoesSemDuplicidade = [] as any;
 
-    for (let index = 0; index < listElements.length; index++) {
-      const element = listElements[index];
-      if (revisoesSemDuplicidade.length > 0) {
-        if (revisoesSemDuplicidade.filter(r => r.id === element.id).length === 0) {
-          revisoesSemDuplicidade.push(element);
-        }
-      } else {
+    listElements.forEach(element => {
+      if (!revisoesSemDuplicidade.find(r => r.getAttribute('id-revisao') === element.getAttribute('id-revisao'))) {
         revisoesSemDuplicidade.push(element);
       }
-    }
-    return revisoesSemDuplicidade.length;
+    });
+
+    return revisoesSemDuplicidade;
   }
 }
 
