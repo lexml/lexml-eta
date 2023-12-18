@@ -4,6 +4,7 @@ import {
   getDispositivoAnteriorDireto,
   getDispositivoPosterior,
   getFilhosEstiloLexML,
+  isDispositivoNaNormaAlterada,
   isUltimaAlteracao,
   percorreHierarquiaDispositivos,
 } from '../model/lexml/hierarquia/hierarquiaUtil';
@@ -251,7 +252,7 @@ export class CmdEmdUtil {
     hierarquia.push(dispositivo);
 
     let pai = dispositivo.pai;
-    while (pai && !isDispositivoRaiz(pai)) {
+    while (pai && !isDispositivoRaiz(pai) && (!isAgrupadorNaoArticulacao(pai) || isDispositivoNaNormaAlterada(pai))) {
       hierarquia.push(pai);
       pai = pai.pai;
     }
