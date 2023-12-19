@@ -488,9 +488,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     input.addEventListener('sl-clear', validarInput);
 
     dialogElem.appendChild(content);
-    await dialogElem?.show();
+    dialogElem?.show();
     ok.disabled = Boolean(validar());
-    (input as SlInput).focus();
+    setTimeout(() => (input as SlInput).focus(), 0);
   }
 
   private toggleExistencia(): void {
