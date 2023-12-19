@@ -197,11 +197,23 @@ class ModuloRevisao extends Module {
       });
   }
 
+  formatDDMMYYYYAndTime(date: Date): string {
+    const data = [this.padTo2Digits(date.getDate()), this.padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
+    const hora = [this.padTo2Digits(date.getHours()), this.padTo2Digits(date.getMinutes()), this.padTo2Digits(date.getSeconds())].join(':');
+    return `${data} ${hora}`;
+  }
+
+  padTo2Digits(num: number): string {
+    return num.toString().padStart(2, '0');
+  }
+
   private mostrarTooltipRevisao(elRevisao: HTMLElement): void {
     if (!elRevisao) return;
 
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip-revisao');
+
+    const data = new Date(elRevisao.getAttribute('date') || '');
 
     tooltip.innerHTML = `
         <style>
@@ -263,7 +275,7 @@ class ModuloRevisao extends Module {
       <div class="tooltip-revisao__body" role="tooltip">
         <div>
           <div class="tooltip-revisao__autor">${elRevisao.getAttribute('usuario')}</div>
-          <div class="tooltip-revisao__data">${elRevisao.getAttribute('date')}</div>
+          <div class="tooltip-revisao__data">${this.formatDDMMYYYYAndTime(data)}</div>
         </div>
         <div class="tooltip-revisao__actions">
           <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
