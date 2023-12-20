@@ -25,6 +25,9 @@ export class AlterarLarguraImagemModalComponent extends LitElement {
     this.img = img;
     this.slAlert.hide();
     this.slDialog.show();
+    setTimeout(() => {
+      this.shadowRoot?.querySelector('sl-input')?.focus();
+    }, 0);
   }
 
   public hide(): void {
