@@ -22,6 +22,9 @@ export class AlterarLarguraTabelaColunaModalComponent extends LitElement {
     this.valorLargura = width ? width.replace('%', '') : '';
     this.slAlert.hide();
     this.slDialog.show();
+    setTimeout(() => {
+      this.shadowRoot?.querySelector('sl-input')?.focus();
+    }, 0);
   }
 
   public hide(): void {
