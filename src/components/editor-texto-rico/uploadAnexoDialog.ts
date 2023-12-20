@@ -219,4 +219,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
   conteudoDinamico();
   await dialogElem.appendChild(content);
   await dialogElem.show();
+  setTimeout(() => {
+    inputUpload.focus();
+  }, 0);
 }
