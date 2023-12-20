@@ -51,7 +51,9 @@ export const editarNotaAlteracaoDialog = (elemento: Elemento, quill: any, store:
     quill.blur();
     dialogElem.appendChild(content);
     dialogElem.show();
-    // opcoes[elemento.notaAlteracao || 'VZ'].focus();
+    setTimeout(() => {
+      opcoes[elemento.notaAlteracao || 'VZ'].focus();
+    }, 0);
   }
 };
 
