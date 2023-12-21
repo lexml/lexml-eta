@@ -22,6 +22,11 @@ describe('Testando edt-modal-nova-emenda', () => {
       cy.wait('@getProposicoesEmTramitacao');
     });
 
+    it('Deveria exibir dialog com lista de MPs em tramitação', { includeShadowDom: true }, () => {
+      cy.get('edt-app edt-modal-nova-emenda').shadow().get('sl-dialog').contains('Selecionar texto').should('exist');
+      cy.get('edt-app edt-modal-nova-emenda').shadow().get('sl-dialog').contains('sl-button', 'Pesquisar').should('be.visible');
+    });
+
     it('Primeira MP deveria ser MPV 1180/2023', { includeShadowDom: true }, () => {
       cy.get('edt-app edt-modal-nova-emenda')
         .shadow()
