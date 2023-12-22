@@ -304,11 +304,26 @@ export const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): numbe
 };
 
 export const getQuantidadeRevisoesAll = (): number => {
-  const revisoes = document.querySelectorAll('ins, del');
+  const cursorCode = 65279;
+
+  const listaRevisoes = document.querySelectorAll('ins, del') || [];
+  const revisoes = [] as any;
+
+  for (let index = 0; index < listaRevisoes.length; index++) {
+    const revisao = listaRevisoes[index] as any;
+    if (revisao.innerText?.charCodeAt(0) !== cursorCode) {
+      revisoes.push(revisao);
+    }
+  }
+
   let quantidade = 0;
-  if (revisoes) {
+
+  if (revisoes.length === 1) {
+    quantidade = 0;
+  } else {
     quantidade = revisoes.length;
   }
+
   return quantidade;
 };
 
