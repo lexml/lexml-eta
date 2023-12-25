@@ -23,6 +23,7 @@ import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabe
 import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-modal';
 import { notaRodapeCss } from './notaRodape.css';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
+import { SwitchRevisaoComponent } from '../switchRevisao/switch-revisao.component';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -59,6 +60,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   @query('#lexml-alterar-largura-img-modal')
   private alterarLarguraImagemModal!: AlterarLarguraImagemModalComponent;
+
+  @query('#lexml-switch-revisao-component')
+  private switchRevisaoComponent!: SwitchRevisaoComponent;
 
   _textoAntesRevisao?: string;
   get textoAntesRevisao(): string | undefined {
@@ -149,7 +153,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
 
       <div class="panel-revisao">
-        <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
+        <lexml-switch-revisao
+          id="lexml-switch-revisao-component"
+          modo="${this.modo}"
+          class="revisao-container"
+          .nomeSwitch="${this.getNomeSwitch()}"
+          .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}"
+        >
         </lexml-switch-revisao>
 
         <sl-button class="aceitar-revisao" variant="default" size="small" title="Aceitar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
@@ -554,6 +564,14 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   configAbrindoTexto = (valor: boolean): void => {
     (this.quill as any).revisao.isAbrindoTexto = valor;
     (this.quill as any).notasRodape.isAbrindoTexto = valor;
+    const emRevisao = (this.quill as any).revisao.emRevisao;
+    if (!valor) {
+      if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
+        if (this.switchRevisaoComponent) {
+          this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
+        }
+      }
+    }
   };
 
   updateApenasTexto = (): void => {
@@ -589,6 +607,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill?.focus();
     if ((this.quill as any).revisao.handleUndo(this.quill?.getSelection(), undefined)) {
       this.quill?.history.undo();
+      this.atualizaStatusElementosRevisao();
     }
   };
 
@@ -596,6 +615,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill?.focus();
     if ((this.quill as any).revisao.handleRedo(this.quill?.getSelection(), undefined)) {
       this.quill?.history.redo();
+      this.atualizaStatusElementosRevisao();
     }
   };
 
@@ -631,6 +651,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private atualizaStatusElementosRevisao = (immediate = true): void => {
     const fnUpdate = (): void => {
       const quantidade = this.getQuantidadeDeRevisoes();
+      if (quantidade > 0 && !rootStore.getState().elementoReducer.emRevisao) {
+        if (this.switchRevisaoComponent) {
+          this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
+        }
+      }
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_REJEITAR_REVISAO);
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_ACEITAR_REVISAO);
       this.atualizaQuantidadeRevisao(quantidade);

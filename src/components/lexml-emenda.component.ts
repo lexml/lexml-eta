@@ -416,7 +416,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private desativarMarcaRevisao = (): void => {
     if (rootStore.getState().elementoReducer.emRevisao) {
       const quantidade = getQuantidadeRevisoesAll();
-      rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
+      if (quantidade === 0) {
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
+      }
     }
   };
 

@@ -116,9 +116,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
     super();
   }
 
-  private ativarDesativarMarcaDeRevisao(): void {
+  public ativarDesativarMarcaDeRevisao(consideraQuantidade = true): void {
     const quantidade = getQuantidadeRevisoesAll();
-    ativarDesativarMarcaDeRevisao(rootStore, quantidade);
+    ativarDesativarMarcaDeRevisao(rootStore, consideraQuantidade ? quantidade : 0);
     this.checkedSwitchMarcaAlteracao();
   }
 
