@@ -17,6 +17,23 @@ export const editorTextoRicoCss = html`
     .ql-toolbar.ql-snow .ql-formats {
       margin-right: 8px;
     }
+    .editor-texto-rico.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+      content: 'Salvar';
+    }
+    .editor-texto-rico.ql-snow .ql-tooltip a.ql-action::after {
+      display: inline;
+      content: 'Editar';
+    }
+
+    .editor-texto-rico.ql-snow .ql-tooltip a.ql-remove::before {
+      display: inline;
+      content: 'Remover';
+    }
+
+    .editor-texto-rico.ql-snow .ql-tooltip::before {
+      content: 'Insira o link:';
+    }
+
     .editor-texto-rico .estilo-ementa {
       text-indent: 0 !important;
       text-align: justify;

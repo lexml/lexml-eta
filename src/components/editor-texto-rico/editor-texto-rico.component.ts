@@ -242,29 +242,16 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
 
       const customToolbarOptions = toolbarOptions;
-      this.modo === Modo.JUSTIFICATIVA && customToolbarOptions.push(['nota-rodape']);
+      const customFormatsOptions = formatsOptions;
+      if (this.modo === Modo.JUSTIFICATIVA) {
+        customToolbarOptions.push(['nota-rodape']);
+        customToolbarOptions[1] = ['bold', 'italic', 'underline', 'link'];
+        customFormatsOptions.push('nota-rodape');
+        customFormatsOptions.push('link');
+      }
 
       this.quill = new Quill(quillContainer, {
-        formats: [
-          'estilo',
-          'bold',
-          'italic',
-          'image',
-          'underline',
-          'align',
-          'list',
-          'script',
-          'image',
-          'table',
-          'tr',
-          'td',
-          'text-indent',
-          'margin-bottom',
-          'width',
-          'nota-rodape',
-          'added',
-          'removed',
-        ],
+        formats: customFormatsOptions,
         modules: {
           toolbar: {
             container: customToolbarOptions,
@@ -683,6 +670,27 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     (this.quill as any).notasRodape.remover(idNotaRodape);
   }
 }
+
+const formatsOptions = [
+  'estilo',
+  'bold',
+  'italic',
+  'image',
+  'underline',
+  'align',
+  'list',
+  'script',
+  'image',
+  'table',
+  'tr',
+  'td',
+  'link',
+  'text-indent',
+  'margin-bottom',
+  'width',
+  'added',
+  'removed',
+];
 
 const toolbarOptions = [
   [{ estilo: [false, 'ementa', 'norma-alterada'] }],
