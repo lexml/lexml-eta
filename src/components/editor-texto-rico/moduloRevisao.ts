@@ -176,11 +176,12 @@ class ModuloRevisao extends Module {
   }
 
   revisarTodos(aceitar: boolean) {
-    this.revisar(this.getRevisoes(), aceitar);
+    this.revisar(this.getRevisoes(), aceitar, true);
   }
 
-  revisar(elementosRevisao: HTMLElement[], aceitar: boolean) {
+  revisar(elementosRevisao: HTMLElement[], aceitar: boolean, todos = false) {
     if (!this.emRevisao) return;
+
     elementosRevisao
       .filter(el => this.isTagRevisao(el))
       .forEach(elRevisao => {
@@ -195,6 +196,11 @@ class ModuloRevisao extends Module {
           blot.format(isTagIns ? 'added' : 'removed', false, 'user');
         }
       });
+
+    //força o revisar quando é "todos" e ainda sobrou revisões no quill
+    if (todos && this.getRevisoes().length > 0) {
+      this.revisar(this.getRevisoes(), aceitar);
+    }
   }
 
   formatDDMMYYYYAndTime(date: Date): string {
