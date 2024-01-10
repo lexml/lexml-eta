@@ -3,7 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado, iconeNotaDeRodape } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { rootStore } from '../../redux/store';
-import { getQuantidadeRevisoesJustificativa, getQuantidadeRevisoesTextoLivre } from '../../redux/elemento/util/revisaoUtil';
+import { getQuantidadeRevisoes, getQuantidadeRevisoesJustificativa, getQuantidadeRevisoesTextoLivre } from '../../redux/elemento/util/revisaoUtil';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
@@ -24,6 +24,10 @@ import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-mod
 import { notaRodapeCss } from './notaRodape.css';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 import { SwitchRevisaoComponent } from '../switchRevisao/switch-revisao.component';
+import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
+import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
+import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -598,7 +602,28 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.agendarEmissaoEventoOnChange();
     this.onSelectionChange(this.quill?.getSelection());
     this.atualizaStatusElementosRevisao(false);
+    this.buildRevisoes();
+    this.alertaGlobalRevisao();
   };
+
+  private alertaGlobalRevisao(): void {
+    const id = 'alerta-global-revisao';
+
+    if (this.getQuantidadeDeRevisoes() > 0 || getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes) > 0) {
+      if (rootStore.getState().elementoReducer.ui?.alertas?.filter(a => a.id === id).length === 0) {
+        const alerta = {
+          id: id,
+          tipo: 'info',
+          mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
+          podeFechar: true,
+          exibirComandoEmenda: true,
+        };
+        rootStore.dispatch(adicionarAlerta(alerta));
+      }
+    } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
+      rootStore.dispatch(removerAlerta(id));
+    }
+  }
 
   updateNotasRodape = (): void => {
     this.notasRodape = (this.quill as any).notasRodape.getNotasRodape();
@@ -648,6 +673,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     (this.quill as any).revisao.revisarTodos(true);
     this.setTextoAntesRevisao(undefined);
     this.atualizaStatusElementosRevisao();
+    this.removeRevisoes();
   };
 
   private getQuantidadeDeRevisoes = (): number => {
@@ -658,6 +684,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     (this.quill as any).revisao.revisarTodos(false);
     this.setTextoAntesRevisao(undefined);
     this.atualizaStatusElementosRevisao();
+    this.removeRevisoes();
   };
 
   private timerAtualizaStatusElementosRevisao?: any;
@@ -690,6 +717,22 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       } else {
         contadorView.removeAttribute('disabled');
       }
+    }
+  };
+
+  private buildRevisoes = (): void => {
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
+    } else {
+      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
+    }
+  };
+
+  private removeRevisoes = (): void => {
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+    } else {
+      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
     }
   };
 

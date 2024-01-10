@@ -188,12 +188,15 @@ class ModuloRevisao extends Module {
         const isTagIns = elRevisao.tagName === 'INS';
         const blot = Quill.find(elRevisao);
         this.ignorarEventoTextChange = true;
-        if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
-          const index = this.quill.getIndex(blot);
-          const length = blot.length();
-          this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
-        } else {
-          blot.format(isTagIns ? 'added' : 'removed', false, 'user');
+
+        if (blot !== null) {
+          if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
+            const index = this.quill.getIndex(blot);
+            const length = blot.length();
+            this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
+          } else {
+            blot.format(isTagIns ? 'added' : 'removed', false, 'user');
+          }
         }
       });
 
