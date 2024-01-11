@@ -60,13 +60,14 @@ export class DispositivosEmendaBuilder {
           const caput = (d as Artigo).caput!;
           dm.tipo = this.getTipoDispositivoParaEmenda(caput);
           dm.id = caput.id!;
+          dm.rotulo = d.rotulo;
           dm.texto = this.trataTexto(caput.texto);
         } else {
           dm.tipo = this.getTipoDispositivoParaEmenda(d);
           dm.id = d.id!;
+          dm.rotulo = d.rotulo;
           dm.texto = this.trataTexto(d.texto);
         }
-        dm.rotulo = d.rotulo;
         if (d.isDispositivoAlteracao) {
           this.preencheAtributosAlteracao(d, dm);
         }
@@ -78,6 +79,7 @@ export class DispositivosEmendaBuilder {
     const dispositivosAdicionados = this.separaAgrupadores(
       dispositivos.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !this.isDispositivoFilhoDeAdicionado(d))
     );
+
     if (dispositivosAdicionados.length) {
       for (const d of dispositivosAdicionados) {
         const da = this.criaDispositivoEmendaAdicionado(d);
@@ -151,22 +153,20 @@ export class DispositivosEmendaBuilder {
       this.preencheAtributosAlteracao(d, da);
     }
 
-    if (!isAgrupadorNaoArticulacao(d)) {
-      // Adiciona filhos
-      const filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
-      // TODO - As alterações deveriam estar listadas nos getFilhosEstiloLexML (tem que rever todo o código que usa esse método)
-      if (isCaput(d) && d.pai!.alteracoes) {
-        filhos.push(d.pai!.alteracoes);
-      }
-      if (filhos.length) {
-        da.filhos = [];
-        filhos.forEach(f => {
-          // Pode ocorrer do filho nao ser um dispositivo adicionado no caso de filho de agrupador de artigo.
-          if (isCaput(f) || isArticulacaoAlteracao(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-            da.filhos!.push(this.criaDispositivoEmendaAdicionado(f, false));
-          }
-        });
-      }
+    // Adiciona filhos
+    const filhos = CmdEmdUtil.getFilhosEstiloLexML(d);
+    // TODO - As alterações deveriam estar listadas nos getFilhosEstiloLexML (tem que rever todo o código que usa esse método)
+    if (isCaput(d) && d.pai!.alteracoes) {
+      filhos.push(d.pai!.alteracoes);
+    }
+    if (filhos.length) {
+      da.filhos = [];
+      filhos.forEach(f => {
+        // Pode ocorrer do filho nao ser um dispositivo adicionado no caso de filho de agrupador de artigo.
+        if (isCaput(f) || isArticulacaoAlteracao(f) || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+          da.filhos!.push(this.criaDispositivoEmendaAdicionado(f, false));
+        }
+      });
     }
 
     return da;

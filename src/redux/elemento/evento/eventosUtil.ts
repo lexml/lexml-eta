@@ -221,6 +221,9 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
 };
 
 export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFilho: string, dispositivosPermitidos: Dispositivo[]): Dispositivo | undefined => {
+  if (!dispositivo) {
+    return undefined;
+  }
   return dispositivo.tiposPermitidosFilhos?.includes(tipoFilho)
     ? dispositivosPermitidos.length === 0 || dispositivosPermitidos.includes(dispositivo)
       ? dispositivo

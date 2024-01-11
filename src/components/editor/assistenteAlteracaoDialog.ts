@@ -1,4 +1,3 @@
-import { SlInput } from '@shoelace-style/shoelace';
 import { Elemento } from '../../model/elemento';
 import { Norma } from '../../model/emenda/norma';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
@@ -142,5 +141,10 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
   quill.blur();
   await dialogElem.appendChild(content);
   await dialogElem.show();
-  (autocompleteNorma as SlInput).focus();
+  const elementoFocavel = document
+    .querySelector('#auto-norma')
+    ?.shadowRoot?.querySelector('#auto-complete-async')
+    ?.shadowRoot?.querySelector('#defaultInput')
+    ?.shadowRoot?.querySelector('#input') as HTMLInputElement;
+  elementoFocavel?.focus();
 }

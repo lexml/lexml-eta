@@ -1,34 +1,46 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado } from '../../../assets/icons/icons';
+import { customElement, property, query } from 'lit/decorators.js';
+import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado, iconeNotaDeRodape } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
-import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { rootStore } from '../../redux/store';
-import { atualizaQuantidadeRevisao, RevisaoJustificativaEnum, RevisaoTextoLivreEnum } from '../../redux/elemento/util/revisaoUtil';
-import { Revisao } from '../../model/revisao/revisao';
+import { getQuantidadeRevisoes, getQuantidadeRevisoesJustificativa, getQuantidadeRevisoesTextoLivre } from '../../redux/elemento/util/revisaoUtil';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
+import { showMenuImagem } from './menu-imagem';
 import { Anexo } from '../../model/emenda/emenda';
-import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { EstiloTextoClass } from '../editor-texto-rico/estilos-texto';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
+import TableTrick from '../../assets/js/quill1-table/js/TableTrick.js';
 import { removeElementosTDOcultos } from './texto-rico-util';
 import { NoIndentClass } from './text-indent';
 import { MarginBottomClass } from './margin-bottom';
+import { StateEvent, StateType } from '../../redux/state';
 import { LexmlEmendaConfig } from '../../model/lexmlEmendaConfig';
-import { erroDialog } from './erroDialog';
+import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
+import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-modal';
+import { notaRodapeCss } from './notaRodape.css';
+import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
+import { SwitchRevisaoComponent } from '../switchRevisao/switch-revisao.component';
+import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
+import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
+import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
 const Delta = Quill.import('delta');
 
+const CLASS_BUTTON_ACEITAR_REVISAO = 'aceitar-revisao';
+const CLASS_BUTTON_REJEITAR_REVISAO = 'rejeitar-revisao';
+
 @customElement('editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
-  @state() @property({ type: Array }) anexos: Anexo[] = [];
+  @property({ type: Array }) anexos: Anexo[] = [];
+  @property({ type: Array }) notasRodape: NotaRodape[] = [];
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
@@ -40,7 +52,56 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   quill?: Quill;
 
+  lastSelecion?: any;
+
   icons = Quill.import('ui/icons');
+
+  @query('#lexml-alterar-largura-coluna-modal')
+  private alterarLarguraColunaModal!: AlterarLarguraTabelaColunaModalComponent;
+
+  @query('#lexml-alterar-largura-tabela-modal')
+  private alterarLarguraTabelaModal!: AlterarLarguraTabelaColunaModalComponent;
+
+  @query('#lexml-alterar-largura-img-modal')
+  private alterarLarguraImagemModal!: AlterarLarguraImagemModalComponent;
+
+  @query('#lexml-switch-revisao-component')
+  private switchRevisaoComponent!: SwitchRevisaoComponent;
+
+  _textoAntesRevisao?: string;
+  get textoAntesRevisao(): string | undefined {
+    // TODO: se contém revisão e texto antes da revisão for igual ao texto atual, ainda assim retorna texto antes da revisão
+    //return (!this.existeRevisaoByModo() && this._textoAntesRevisao === this.texto) || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
+    return !this.existeRevisaoByModo() ? undefined : this._textoAntesRevisao;
+  }
+
+  public setTextoAntesRevisao(texto: string | undefined): void {
+    this._textoAntesRevisao = texto;
+  }
+
+  private existeRevisaoByModo = (): boolean => {
+    if (this.modo === Modo.TEXTO_LIVRE) {
+      return getQuantidadeRevisoesTextoLivre(rootStore.getState().elementoReducer.revisoes) > 0;
+    } else {
+      return getQuantidadeRevisoesJustificativa(rootStore.getState().elementoReducer.revisoes) > 0;
+    }
+  };
+
+  private showAlterarLarguraColunaModal(width: string): void {
+    this.alterarLarguraColunaModal.show(width);
+  }
+
+  private hideAlterarLarguraColunaModal(): void {
+    this.alterarLarguraColunaModal.hide();
+  }
+
+  private showAlterarLarguraTabelaModal(width: string): void {
+    this.alterarLarguraTabelaModal.show(width);
+  }
+
+  private hideAlterarLarguraTabelaModal(): void {
+    this.alterarLarguraTabelaModal.hide();
+  }
 
   private agendarEmissaoEventoOnChange(): void {
     clearTimeout(this.timerOnChange);
@@ -67,9 +128,22 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   stateChanged(state: any): void {
-    if (state.elementoReducer.ui?.events) {
-      this.atualizaRevisaoIcon();
-      this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+    const moduloRevisao = (this.quill as any)?.revisao;
+    const events: StateEvent[] = state.elementoReducer.ui?.events;
+    if (events) {
+      if (events.some(ev => ev.stateType === StateType.RevisaoAtivada)) {
+        moduloRevisao && (moduloRevisao.emRevisao = true);
+        if (!this._textoAntesRevisao) {
+          this._textoAntesRevisao = this.texto;
+        }
+      } else if (events.some(ev => ev.stateType === StateType.RevisaoDesativada)) {
+        moduloRevisao && (moduloRevisao.emRevisao = false);
+        this._textoAntesRevisao = undefined;
+      }
+
+      if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
+        moduloRevisao.usuario = state.elementoReducer.usuario.nome;
+      }
     }
   }
 
@@ -80,24 +154,29 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${quillTableCss} ${editorTextoRicoCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
+      ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
 
       <div class="panel-revisao">
-        <lexml-switch-revisao modo="${this.modo}" class="revisao-container" .nomeSwitch="${this.getNomeSwitch()}" .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}">
+        <lexml-switch-revisao
+          id="lexml-switch-revisao-component"
+          modo="${this.modo}"
+          class="revisao-container"
+          .nomeSwitch="${this.getNomeSwitch()}"
+          .nomeBadgeQuantidadeRevisao="${this.getNomeBadge()}"
+        >
         </lexml-switch-revisao>
 
-        <sl-tooltip id="${this.getIdTooltip()}" placement="bottom-end">
-          <div slot="content">
-            <div>${this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificação' : 'Revisões no texto livre'}</div>
-          </div>
-          <sl-icon name="person-check-fill"></sl-icon>
-        </sl-tooltip>
-
-        <sl-button id="${this.getIdButtonAceitarRevisoes()}" variant="default" size="small" title="Limpar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
+        <sl-button class="aceitar-revisao" variant="default" size="small" title="Aceitar revisões" @click=${(): void => this.aceitarRevisoes()} disabled circle>
           <sl-icon name="check-lg"></sl-icon>
+        </sl-button>
+        <sl-button class="rejeitar-revisao" variant="default" size="small" title="Rejeitar revisões" @click=${(): void => this.rejeitarRevisoes()} disabled circle>
+          <sl-icon name="x"></sl-icon>
         </sl-button>
       </div>
       <div id="${this.id}-inner" class="editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
+      <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-tabela-modal" tipo="tabela"></lexml-alterar-largura-tabela-coluna-modal>
+      <lexml-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-coluna-modal" tipo="coluna"></lexml-alterar-largura-tabela-coluna-modal>
+      <lexml-alterar-largura-imagem-modal id="lexml-alterar-largura-img-modal"></lexml-alterar-largura-imagem-modal>
     `;
   }
 
@@ -116,6 +195,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.icons['underline'] = sublinhado;
     this.icons['text-indent'] = iconeTextIndent;
     this.icons['margin-bottom'] = iconeMarginBottom;
+    this.icons['nota-rodape'] = iconeNotaDeRodape;
   }
 
   private renderBotaoAnexo(): TemplateResult {
@@ -155,14 +235,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     alert.toast();
   }
 
-  private getIdTooltip = (): string => {
-    return this.modo === Modo.JUSTIFICATIVA ? 'revisoes-justificativa-icon' : 'revisoes-texto-livre-icon';
-  };
-
-  private getIdButtonAceitarRevisoes = (): string => {
-    return this.modo === Modo.JUSTIFICATIVA ? 'aceita-revisao-justificativa' : 'aceita-revisao-texto-livre';
-  };
-
   firstUpdated(): void {
     this.init();
   }
@@ -174,7 +246,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   init = (): void => {
-    const quillContainer = document.querySelector(`#${this.id}-inner`) as HTMLElement;
+    const quillContainer = this.querySelector(`#${this.id}-inner`) as HTMLElement;
     if (quillContainer) {
       Quill.register('modules/keyboard', DefaultKeyboardModule, true);
       Quill.register('modules/clipboard', DefaultClipboardModule, true);
@@ -182,11 +254,34 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/estilo-texto', EstiloTextoClass, true);
       Quill.register('formats/text-indent', NoIndentClass, true);
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
+
+      const customToolbarOptions = toolbarOptions;
+      this.modo === Modo.JUSTIFICATIVA && customToolbarOptions.push(['nota-rodape']);
+
       this.quill = new Quill(quillContainer, {
-        formats: ['estilo', 'bold', 'italic', 'image', 'underline', 'align', 'list', 'script', 'image', 'table', 'tr', 'td', 'text-indent', 'margin-bottom'],
+        formats: [
+          'estilo',
+          'bold',
+          'italic',
+          'image',
+          'underline',
+          'align',
+          'list',
+          'script',
+          'image',
+          'table',
+          'tr',
+          'td',
+          'text-indent',
+          'margin-bottom',
+          'width',
+          'nota-rodape',
+          'added',
+          'removed',
+        ],
         modules: {
           toolbar: {
-            container: toolbarOptions,
+            container: customToolbarOptions,
             handlers: {
               undo: this.undo,
               redo: this.redo,
@@ -194,8 +289,16 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             },
           },
           aspasCurvas: true,
+          notaRodape: true,
           table: {
             cellSelectionOnClick: false,
+          },
+          revisao: {
+            usuario: rootStore.getState().elementoReducer.usuario.nome,
+            emRevisao: false,
+            gerenciarKeydown: true,
+            tableModule: TableModule,
+            tableTrick: TableTrick,
           },
           history: {
             delay: 1000,
@@ -288,33 +391,80 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         theme: 'snow',
       });
 
-      this.setContent(this.texto);
+      this.setContent(this.texto, this.notasRodape);
       this.addBotoesExtra();
       this.configureTooltip();
       this.elTableManagerButton = this.querySelectorAll('span.ql-table')[1] as HTMLSpanElement;
       this.quill?.on('text-change', this.updateTexto);
       this.quill?.on('selection-change', this.onSelectionChange);
+      this.alterarLarguraColunaModal.callback = this.alterarLarguraDaColuna;
+      this.alterarLarguraTabelaModal.callback = this.alterarLarguraDaTabela;
+      this.alterarLarguraImagemModal.callback = this.alterarLarguraDaImagem;
+
+      quillContainer.addEventListener('contextmenu', this.menuContextImagem);
+      quillContainer.addEventListener('click', this.onClick);
+
+      const toolbar = this.quill.getModule('toolbar');
+      toolbar.addHandler('table', (value: string) => {
+        TableModule.configToolbar(this.quill, value);
+
+        if (value === 'change-width-col-modal') {
+          this.lastSelecion = this.quill?.getSelection();
+          const td = TableTrick.find_td_node(this.quill);
+          this.showAlterarLarguraColunaModal(td.width);
+        } else if (value === 'change-width-table-modal') {
+          this.lastSelecion = this.quill?.getSelection();
+          const table = TableTrick.find_table_node(this.quill);
+          this.showAlterarLarguraTabelaModal(table.width);
+        }
+      });
+
+      this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
+      this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
     }
+  };
+
+  menuContextImagem = (ev: MouseEvent): void => {
+    const elemento = ev.target as Element;
+    if (elemento.tagName === 'IMG') {
+      ev.preventDefault();
+      showMenuImagem(this, elemento, ev.pageY, ev.pageX);
+    }
+  };
+
+  onClick = (ev: MouseEvent): void => {
+    const elemento = ev.target as Element;
+    if (elemento.tagName === 'IMG') {
+      ev.preventDefault();
+      this.selectImage(elemento);
+    }
+  };
+
+  selectImage = (img: any): void => {
+    const imgBlot = Quill.find(img);
+    imgBlot && this.quill!.setSelection(this.quill!.getIndex(imgBlot), 1);
   };
 
   imageHandler = (): void => {
     let fileInput = this.querySelector('input.ql-image[type=file]') as any;
     if (fileInput === null) {
       fileInput = document.createElement('input');
-      fileInput?.setAttribute('type', 'file');
-      fileInput?.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
-      fileInput?.classList.add('ql-image');
-      fileInput?.addEventListener('change', () => {
-        if (fileInput?.files !== null && fileInput.files[0] !== null) {
+      fileInput.setAttribute('type', 'file');
+      fileInput.setAttribute('hidden', 'true');
+      fileInput.setAttribute('accept', 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon');
+      fileInput.classList.add('ql-image');
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files !== null && fileInput.files[0] !== null) {
           const reader = new FileReader();
           reader.onload = e => {
             if (this.tamanhoPermitido(e)) {
               const range = this.quill!.getSelection(true);
-              this.quill?.updateContents(new Delta().retain(range!.index!).delete(range!.length!).insert({ image: e.target!.result }), Quill.sources.USER);
-              this.quill?.setSelection(range!.index! + 1, Quill.sources.SILENT);
+              this.quill!.updateContents(new Delta().retain(range.index).delete(range.length).insert({ image: e.target!.result }), Quill.sources.USER);
               fileInput.value = '';
+              fileInput.remove();
             } else {
-              erroDialog(this, 'Essa imagem ultrapassa o tamanho permitido');
+              this.alertar(`Essa imagem ultrapassa o tamanho máximo permitido (${Math.trunc(this.lexmlEtaConfig.tamanhoMaximoImagem / 1024)}MB)`);
+              fileInput.remove();
             }
           };
           reader.readAsDataURL(fileInput.files[0]);
@@ -328,6 +478,25 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   tamanhoPermitido = (e: any): boolean => {
     const size = Math.round(e.loaded / 1024);
     return size < this.lexmlEtaConfig.tamanhoMaximoImagem;
+  };
+
+  alterarLarguraDaColuna = (valor: number): void => {
+    this.quill!.setSelection(this.lastSelecion);
+    TableTrick.changeWidthCol(this.quill, valor);
+    this.updateApenasTexto();
+    this.hideAlterarLarguraColunaModal();
+  };
+
+  alterarLarguraDaTabela = (valor: number): void => {
+    this.quill!.setSelection(this.lastSelecion);
+    TableTrick.changeWidthTable(this.quill, valor);
+    this.updateApenasTexto();
+    this.hideAlterarLarguraTabelaModal();
+  };
+
+  alterarLarguraDaImagem = (img: any, valor: number): void => {
+    const blot = Quill.find(img);
+    blot && blot.format('width', `${valor}%`);
   };
 
   private elTableManagerButton?: HTMLSpanElement;
@@ -376,11 +545,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
     this.setTitle(toolbarContainer, 'button.ql-margin-bottom', 'Distância entre parágrafos');
     this.setTitle(toolbarContainer, 'button.ql-text-indent', 'Recuo de parágrafo');
+    this.setTitle(toolbarContainer, 'button.ql-table', 'Tabela');
+    this.setTitle(toolbarContainer, 'button.ql-nota-rodape', 'Nota de rodapé');
   };
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
 
-  setContent = (texto: string): void => {
+  setContent = (texto: string, notasRodape: NotaRodape[] = []): void => {
     if (!this.quill || !this.quill.root) {
       return;
     }
@@ -393,47 +564,96 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       .replace(/align-right/g, 'ql-align-right');
 
     this.quill!.history.clear(); // Não remover: isso é um workaround para o bug que ocorre ao limpar conteúdo depois de alguma inserção de tabela
+    (this.quill as any).revisao.modo = this.modo;
+    this.configAbrindoTexto(true);
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
-    setTimeout(() => this.quill!.history.clear(), 100); // A linha anterior gera um history, então é necessário limpar novamente.
+    this.configAbrindoTexto(false);
+    this.notasRodape = notasRodape;
+
+    setTimeout(() => {
+      this.quill!.history.clear();
+      (this.quill as any).notasRodape.associar(notasRodape);
+    }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
+
+    this.atualizaStatusElementosRevisao();
+  };
+
+  configAbrindoTexto = (valor: boolean): void => {
+    (this.quill as any).revisao.isAbrindoTexto = valor;
+    (this.quill as any).notasRodape.isAbrindoTexto = valor;
+    const emRevisao = (this.quill as any).revisao.emRevisao;
+    if (!valor) {
+      if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
+        if (this.switchRevisaoComponent) {
+          this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
+        }
+      }
+    }
+  };
+
+  updateApenasTexto = (): void => {
+    const texto = this.ajustaHtml(this.quill?.root.innerHTML);
+    this.texto = texto === '<p><br></p>' ? '' : texto;
   };
 
   updateTexto = (): void => {
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
-    this.buildRevisoes();
     this.onSelectionChange(this.quill?.getSelection());
+    this.atualizaStatusElementosRevisao(false);
+    this.buildRevisoes();
+    this.alertaGlobalRevisao();
+  };
+
+  private alertaGlobalRevisao(): void {
+    const id = 'alerta-global-revisao';
+
+    if (this.getQuantidadeDeRevisoes() > 0 || getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes) > 0) {
+      if (rootStore.getState().elementoReducer.ui?.alertas?.filter(a => a.id === id).length === 0) {
+        const alerta = {
+          id: id,
+          tipo: 'info',
+          mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
+          podeFechar: true,
+          exibirComandoEmenda: true,
+        };
+        rootStore.dispatch(adicionarAlerta(alerta));
+      }
+    } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
+      rootStore.dispatch(removerAlerta(id));
+    }
+  }
+
+  updateNotasRodape = (): void => {
+    this.notasRodape = (this.quill as any).notasRodape.getNotasRodape();
+    // this.agendarEmissaoEventoOnChange();
   };
 
   ajustaHtml = (html = ''): string => {
-    const result = html
+    let result = html
       .replace(/ql-indent/g, 'indent')
       .replace(/ql-align-justify/g, 'align-justify')
       .replace(/ql-align-center/g, 'align-center')
       .replace(/ql-align-right/g, 'align-right');
 
-    return removeElementosTDOcultos(result);
-  };
-
-  buildRevisoes = (): void => {
-    if (this.modo === Modo.JUSTIFICATIVA) {
-      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
-    } else {
-      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
-    }
-    this.atualizaRevisaoIcon();
-    this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
+    result = removeElementosTDOcultos(result);
+    return (this.quill as any).notasRodape.ajustarConteudoTagsNotaRodape(result);
   };
 
   undo = (): any => {
-    if (TableModule.keyboardHandler(this.quill, 'undo', this.quill?.getSelection(true), undefined)) {
+    this.quill?.focus();
+    if ((this.quill as any).revisao.handleUndo(this.quill?.getSelection(), undefined)) {
       this.quill?.history.undo();
+      this.atualizaStatusElementosRevisao();
     }
   };
 
   redo = (): any => {
-    if (TableModule.keyboardHandler(this.quill, 'redo', this.quill?.getSelection(true), undefined)) {
+    this.quill?.focus();
+    if ((this.quill as any).revisao.handleRedo(this.quill?.getSelection(), undefined)) {
       this.quill?.history.redo();
+      this.atualizaStatusElementosRevisao();
     }
   };
 
@@ -449,86 +669,48 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     return this.modo === Modo.JUSTIFICATIVA ? 'badge-marca-alteracao-justificativa' : 'badge-marca-alteracao-texto-livre';
   };
 
-  private atualizaRevisaoIcon = (): void => {
-    const idIcon = '#' + this.getIdTooltip() + '>';
-    const contentRevisoes = document.querySelector(idIcon + 'div[slot=content]') as any;
-    const iconRevisoes = document.querySelector(idIcon + 'sl-icon') as any;
-
-    if (contentRevisoes && iconRevisoes) {
-      if (this.getRevisoes().length !== 0) {
-        contentRevisoes.innerHTML = this.getMensagemRevisoes();
-        iconRevisoes.classList.add(this.getIdTooltip() + '__ativo');
-        iconRevisoes.removeAttribute('disabled');
-      } else {
-        contentRevisoes.innerHTML = this.getTitle();
-        iconRevisoes.classList.remove(this.getIdTooltip() + '__ativo');
-        this.desabilitaBtn(this.getRevisoes().length === 0, this.getIdButtonAceitarRevisoes());
-      }
-    }
-  };
-
-  private getTitle = (): string => {
-    return this.modo === Modo.JUSTIFICATIVA ? 'Revisões na justificação' : 'Revisões no texto livre';
-  };
-
-  private getMensagemRevisoes = (): string => {
-    let revisoes: any;
-
-    if (this.modo === Modo.JUSTIFICATIVA) {
-      revisoes = this.getRevisoesJustificativa();
-    } else {
-      revisoes = this.getRevisoesTextoLivre();
-    }
-
-    let mensagem = '<ul class="lista-revisoes-justificativa">';
-
-    if (revisoes.length > 0) {
-      revisoes!.forEach((revisao: Revisao) => {
-        const pipe = ' | ';
-        mensagem = mensagem + '<li>' + revisao.usuario.nome + pipe + revisao.dataHora + '</li>';
-      });
-    }
-    return mensagem + '</ul>';
-  };
-
   private aceitarRevisoes = (): void => {
-    if (this.modo === Modo.JUSTIFICATIVA) {
-      this.aceitaRevisoesJustificativa();
+    (this.quill as any).revisao.revisarTodos(true);
+    this.setTextoAntesRevisao(undefined);
+    this.atualizaStatusElementosRevisao();
+    this.removeRevisoes();
+  };
+
+  private getQuantidadeDeRevisoes = (): number => {
+    return (this.quill as any)?.revisao?.getQuantidadeRevisoes() ?? 0;
+  };
+
+  private rejeitarRevisoes = (): void => {
+    (this.quill as any).revisao.revisarTodos(false);
+    this.setTextoAntesRevisao(undefined);
+    this.atualizaStatusElementosRevisao();
+    this.removeRevisoes();
+  };
+
+  private timerAtualizaStatusElementosRevisao?: any;
+  private atualizaStatusElementosRevisao = (immediate = true): void => {
+    const fnUpdate = (): void => {
+      const quantidade = this.getQuantidadeDeRevisoes();
+      if (quantidade > 0 && !rootStore.getState().elementoReducer.emRevisao) {
+        if (this.switchRevisaoComponent) {
+          this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
+        }
+      }
+      this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_REJEITAR_REVISAO);
+      this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_ACEITAR_REVISAO);
+      this.atualizaQuantidadeRevisao(quantidade);
+    };
+
+    if (immediate) {
+      fnUpdate();
     } else {
-      this.aceitaRevisoesTextoLivre();
+      clearTimeout(this.timerAtualizaStatusElementosRevisao);
+      this.timerAtualizaStatusElementosRevisao = setTimeout(fnUpdate, 100);
     }
-  };
-
-  private aceitaRevisoesJustificativa = (): void => {
-    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
-    this.atualizaRevisaoIcon();
-    this.desabilitaBtn(this.getRevisoesJustificativa().length === 0, 'aceita-revisao-justificativa');
-    this.atualizaQuantidadeRevisao();
-  };
-
-  private aceitaRevisoesTextoLivre = (): void => {
-    atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
-    this.atualizaRevisaoIcon();
-    this.desabilitaBtn(this.getRevisoesTextoLivre().length === 0, 'aceita-revisao-texto-livre');
-    this.atualizaQuantidadeRevisao();
-  };
-
-  private getRevisoes = (): Revisao[] => {
-    return this.modo === Modo.JUSTIFICATIVA ? this.getRevisoesJustificativa() : this.getRevisoesTextoLivre();
-  };
-
-  private getRevisoesJustificativa = (): Revisao[] => {
-    const revisoes = rootStore.getState().elementoReducer.revisoes;
-    return revisoes.filter(r => r.descricao === RevisaoJustificativaEnum.JustificativaAlterada);
-  };
-
-  private getRevisoesTextoLivre = (): Revisao[] => {
-    const revisoes = rootStore.getState().elementoReducer.revisoes;
-    return revisoes.filter(r => r.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado);
   };
 
   private desabilitaBtn = (desabilita: boolean, button: string): void => {
-    const contadorView = document.getElementById(button) as any;
+    const contadorView = this.querySelector(`.${button}`) as any;
     if (contadorView) {
       if (desabilita) {
         contadorView.setAttribute('disabled', desabilita);
@@ -538,9 +720,36 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
-  private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.getNomeBadge()) as any, this.modo);
+  private buildRevisoes = (): void => {
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer);
+    } else {
+      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer);
+    }
   };
+
+  private removeRevisoes = (): void => {
+    if (this.modo === Modo.JUSTIFICATIVA) {
+      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+    } else {
+      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
+    }
+  };
+
+  private atualizaQuantidadeRevisao = (quantidade: number): void => {
+    const elemento = this.querySelector(`#${this.getNomeBadge()}`) as any;
+    if (elemento) {
+      elemento.innerHTML = quantidade;
+    }
+  };
+
+  editarNotaRodape(idNotaRodape: string): void {
+    (this.quill as any).notasRodape.editar(idNotaRodape);
+  }
+
+  removerNotaRodape(idNotaRodape: string): void {
+    (this.quill as any).notasRodape.remover(idNotaRodape);
+  }
 }
 
 const toolbarOptions = [
@@ -561,6 +770,8 @@ const toolbarOptions = [
     {
       table: [
         // 'insert',
+        'change-width-col-modal',
+        'change-width-table-modal',
         'append-row-above',
         'append-row-below',
         'append-col-before',

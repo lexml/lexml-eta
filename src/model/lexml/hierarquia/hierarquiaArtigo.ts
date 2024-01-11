@@ -1,3 +1,4 @@
+import { isOmissis } from './../../dispositivo/tipo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
@@ -97,10 +98,19 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
 
     renumeraFilhos(): void {
       if (!podeRenumerarFilhosAutomaticamente(this as any)) {
+        this.ajustaRotuloParagrafoUnicoSeNecessario();
         return;
       }
       this.renumeraIncisos();
       this.renumeraParagrafos();
+    }
+
+    ajustaRotuloParagrafoUnicoSeNecessario(): void {
+      const nParagrafos = this.paragrafos.filter(p => !isOmissis(p)).length;
+      const paragrafoUnico = this.paragrafos.filter(p => !isOmissis(p)).find(p => p.id?.endsWith('par1u'));
+      if (paragrafoUnico) {
+        paragrafoUnico.rotulo = nParagrafos === 1 ? 'Parágrafo único.' : '§ 1º';
+      }
     }
   };
 }

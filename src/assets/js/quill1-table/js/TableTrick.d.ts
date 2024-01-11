@@ -2,10 +2,15 @@ export default class TableTrick {
   static random_id(): string;
   static getBlot(quill: any): any;
   static find_td(quill: any): any;
+  static find_td_node(quill: any): any;
+  static find_table(quill: any): any;
+  static find_table_node(quill: any): any;
   static getQuill(el: any): any;
   static insertTable(quill: any, col_count: any, row_count: any): void;
   static removeTable(quill: any): void;
   static addCol(quill: any, direction?: string): void;
+  static changeWidthCol(quill: any, width: number): void;
+  static changeWidthTable(quill: any, width: number): void;
   static addRow(quill: any, direction?: string): void;
   static removeCol(quill: any): void;
   static removeRow(quill: any): void;

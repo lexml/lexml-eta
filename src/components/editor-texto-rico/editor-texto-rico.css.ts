@@ -71,6 +71,7 @@ export const editorTextoRicoCss = html`
     #chk-em-revisao-texto-livre[checked] {
       background-color: var(--sl-color-blue-100);
     }
+
     #toolbar {
       padding: 1.5px 0 1.5px 8px;
     }
@@ -134,6 +135,14 @@ export const editorTextoRicoCss = html`
       content: 'Remover coluna';
     }
 
+    .ql-picker-item[data-value='change-width-col-modal']::after {
+      content: 'Alterar a largura da coluna';
+    }
+
+    .ql-picker-item[data-value='change-width-table-modal']::after {
+      content: 'Alterar a largura da tabela';
+    }
+
     .ql-picker-item[data-value='append-row']::after {
       content: 'Inserir linha';
     }
@@ -189,7 +198,7 @@ export const editorTextoRicoCss = html`
     }
 
     .ql-snow .ql-editor img {
-      max-width: 60%;
+      max-width: 100%;
     }
 
     .editor-texto-rico p.ql-text-indent-0px {
@@ -198,6 +207,18 @@ export const editorTextoRicoCss = html`
 
     .editor-texto-rico p.ql-margin-bottom-0px {
       margin-bottom: 0;
+    }
+
+    .ql-editor ins {
+      text-decoration: none;
+      background-color: #b2e6be;
+      /* #d4edda; */
+    }
+
+    .ql-editor del {
+      text-decoration: strikethrough;
+      background-color: #f4a9b0;
+      /* #f8d7da; */
     }
 
     @media (max-width: 768px) {

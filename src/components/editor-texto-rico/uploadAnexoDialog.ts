@@ -47,7 +47,9 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     <br/>
     <label class="tipoErrado" style="color: red;" hidden="true" id="tipoErrado">Esse arquivo não é um PDF</label>
     <br/>
-    <label class="tamanhoMaximoAtingido" style="color: red;" hidden="true" id="tamanhoMaximoAtingido">Ultrapassou o tamanho máximo de 5MB</label>
+    <label class="tamanhoMaximoAtingido" style="color: red;" hidden="true" id="tamanhoMaximoAtingido">Ultrapassou o tamanho máximo permitido (${Math.trunc(
+      editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo / 1024
+    )}MB)</label>
   </div>
   <br/>
   <div id="form" class="input-validation-required"></div>
@@ -88,7 +90,11 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
       a =>
         (htmlConteudo += `<span class="anexo-item">
                             <sl-icon name="paperclip"></sl-icon>
-                            <span>${a.nomeArquivo}</span>
+                            <a download="${a.nomeArquivo}" href="data:application/pdf;base64,${a.base64}">
+                              <span>
+                                ${a.nomeArquivo}
+                              </span>
+                            </a>
                             <!--
                             <sl-button class="btn-preview-anexo" size="small" title="Visualizar o anexo em uma nova janela" nomeArquivo="${a.nomeArquivo}">
                               <sl-icon name="eye"></sl-icon>
@@ -175,18 +181,20 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
 
   const restricoes = (file: any, editorTextoRico: any): string[] => {
     const restricoes: string[] = [];
-    const size = Math.round(file.size / 1024);
+    if (file) {
+      const size = Math.round(file.size / 1024);
 
-    if (size > editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo) {
-      restricoes.push('tamanhoMaximoAtingido');
-    }
+      if (size > editorTextoRico.lexmlEtaConfig.tamanhoMaximoAnexo) {
+        restricoes.push('tamanhoMaximoAtingido');
+      }
 
-    if (file.type !== 'application/pdf') {
-      restricoes.push('tipoErrado');
-    }
+      if (file.type !== 'application/pdf') {
+        restricoes.push('tipoErrado');
+      }
 
-    if (restricoes.length > 0) {
-      restricoes.push('restricao');
+      if (restricoes.length > 0) {
+        restricoes.push('restricao');
+      }
     }
 
     //const retorno = file && file.type === 'application/pdf' && size <= 4096;

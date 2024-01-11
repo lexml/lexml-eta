@@ -110,6 +110,15 @@ export class SubstituicaoTermoComponent extends LitElement {
     this.elFlexaoGenero.checked = substituicaoTermo.flexaoGenero;
     this.elFlexaoNumero.checked = substituicaoTermo.flexaoNumero;
     (this.shadowRoot?.querySelector(`sl-radio[value="${substituicaoTermo.tipo}"]`) as HTMLElement)?.click();
+    this.agendarEmissaoEventoOnChange();
+
+    if (this.elTermoASerSubstituido.value !== '') {
+      this.elAlertaTermoASerSubstituido.style.setProperty('visibility', 'hidden');
+    }
+
+    if (this.elNovoTermo.value !== '') {
+      this.elAlertaNovoTermo.style.setProperty('visibility', 'hidden');
+    }
   }
 
   render(): TemplateResult {

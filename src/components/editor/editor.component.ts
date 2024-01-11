@@ -72,7 +72,6 @@ import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
-import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -80,9 +79,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
-
-  @query('lexml-sufixos-modal')
-  private sufixosModal!: SufixosModalComponent;
 
   @query('lexml-atalhos-modal')
   private atalhosModal!: AtalhosModalComponent;
@@ -255,7 +251,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <lexml-ajuda-modal></lexml-ajuda-modal>
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
       <lexml-atalhos-modal></lexml-atalhos-modal>
-      <lexml-sufixos-modal></lexml-sufixos-modal>
+      <!-- <lexml-sufixos-modal></lexml-sufixos-modal> -->
     `;
   }
 
@@ -273,12 +269,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private showAjudaModal(): void {
     this.ajudaModal.show();
-  }
-
-  private showModalSufixos(): void {
-    if (this.sufixosModal !== null) {
-      this.sufixosModal.show();
-    }
   }
 
   private showAtalhosModal(): void {
@@ -1147,8 +1137,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   exibirModalSufixos(): void {
-    //exibirSufixosDialog(this.quill);
-    this.showModalSufixos();
+    this.dispatchEvent(
+      new CustomEvent('onexibirsufixos', {
+        bubbles: true,
+        composed: true,
+        detail: {},
+      })
+    );
   }
 
   exibirDiferencas(elemento: Elemento): void {
@@ -1181,10 +1176,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   aceitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(aceitarRevisaoAction.execute(elemento, undefined));
     this.alertaGlobalRevisao();
+    this.setCursorCurrentLine();
+  }
+
+  setCursorCurrentLine(): void {
+    this.quill.focus();
   }
 
   rejeitarRevisao(elemento: Elemento): void {
     rootStore.dispatch(rejeitarRevisaoAction.execute(elemento, undefined));
+    this.setCursorCurrentLine();
   }
 
   aceitarTodasRevisoes(): void {

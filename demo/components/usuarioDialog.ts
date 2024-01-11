@@ -61,8 +61,8 @@ export const createUsuarioDialog = (rootStore: any): void => {
         <div class="inputUsuario">
           <sl-form class="form-overview">
             <sl-input id="usuario" label="Informe o usuário da revisão"></sl-input>
-          <sl-form class="form-overview">         
-          
+          <sl-form class="form-overview">
+
         </div>
         <div class="usuario-atual">
           <slot >atual: <strong>${usuarioAtual}<strong></slot>
@@ -73,8 +73,8 @@ export const createUsuarioDialog = (rootStore: any): void => {
       <div class="rodape-confirmar" id="rodapeConfirmar">
         <br/>
         <sl-button id="btnConfirmar" slot="footer" variant="primary">Confirmar</sl-button>
-        <sl-button slot="footer" variant="default">Fechar</sl-button>        
-      </div>      
+        <sl-button slot="footer" variant="default">Fechar</sl-button>
+      </div>
   `);
 
   buildButtons(content, dialogElem, rootStore);
@@ -82,6 +82,13 @@ export const createUsuarioDialog = (rootStore: any): void => {
   dialogElem.show();
 
   setTimeout(() => addIconBeforeTitle(), 0);
+
+  const elementoFocavel = dialogElem.querySelector('#usuario') as any;
+  if (elementoFocavel) {
+    setTimeout(() => {
+      elementoFocavel.focus();
+    }, 0);
+  }
 };
 
 const buildButtons = (content: DocumentFragment, dialogElem: SlDialog, rootStore: any): void => {
