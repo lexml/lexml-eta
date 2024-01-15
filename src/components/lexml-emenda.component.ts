@@ -37,6 +37,7 @@ import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -1039,7 +1040,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                 html`
                   <li>
                     <input type="checkbox" idNotaRodape="${nr.id}" class="notas-checkbox" id="checkbox-${nr.id}" @change=${() => this.selecionarNotaRodape(nr.id)} />
-                    <label for="checkbox-${nr.id}" class="notas-texto">${nr.texto}</label>
+                    <label for="checkbox-${nr.id}" class="notas-texto">${unsafeHTML(nr.texto)}</label>
                     <span class="notas-acoes">
                       <sl-button
                         class="notas-acao"
