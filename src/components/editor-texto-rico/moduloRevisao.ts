@@ -176,25 +176,34 @@ class ModuloRevisao extends Module {
   }
 
   revisarTodos(aceitar: boolean) {
-    this.revisar(this.getRevisoes(), aceitar);
+    this.revisar(this.getRevisoes(), aceitar, true);
   }
 
-  revisar(elementosRevisao: HTMLElement[], aceitar: boolean) {
+  revisar(elementosRevisao: HTMLElement[], aceitar: boolean, todos = false) {
     if (!this.emRevisao) return;
+
     elementosRevisao
       .filter(el => this.isTagRevisao(el))
       .forEach(elRevisao => {
         const isTagIns = elRevisao.tagName === 'INS';
         const blot = Quill.find(elRevisao);
         this.ignorarEventoTextChange = true;
-        if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
-          const index = this.quill.getIndex(blot);
-          const length = blot.length();
-          this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
-        } else {
-          blot.format(isTagIns ? 'added' : 'removed', false, 'user');
+
+        if (blot !== null) {
+          if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
+            const index = this.quill.getIndex(blot);
+            const length = blot.length();
+            this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
+          } else {
+            blot.format(isTagIns ? 'added' : 'removed', false, 'user');
+          }
         }
       });
+
+    //força o revisar quando é "todos" e ainda sobrou revisões no quill
+    if (todos && this.getRevisoes().length > 0) {
+      this.revisar(this.getRevisoes(), aceitar);
+    }
   }
 
   formatDDMMYYYYAndTime(date: Date): string {
