@@ -1,7 +1,7 @@
 import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { Observable } from '../../util/observable';
-import { ativarDesativarMarcaDeRevisao, atualizaQuantidadeRevisao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import { ativarDesativarMarcaDeRevisao, getQuantidadeRevisoesAll, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
 import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
@@ -53,8 +53,6 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
           this.checkedSwitchMarcaAlteracao();
           break;
       }
-      this.atualizaQuantidadeRevisao();
-      // this.atualiazaRevisaoJusutificativaIcon();
     });
   }
 
@@ -118,17 +116,14 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
     super();
   }
 
-  private ativarDesativarMarcaDeRevisao(): void {
-    ativarDesativarMarcaDeRevisao(rootStore);
+  public ativarDesativarMarcaDeRevisao(consideraQuantidade = true): void {
+    const quantidade = getQuantidadeRevisoesAll();
+    ativarDesativarMarcaDeRevisao(rootStore, consideraQuantidade ? quantidade : 0);
     this.checkedSwitchMarcaAlteracao();
   }
 
   private checkedSwitchMarcaAlteracao = (): void => {
     const switchMarcaAlteracaoView = document.getElementById(this.nomeSwitch) as any;
     setCheckedElement(switchMarcaAlteracaoView, rootStore.getState().elementoReducer.emRevisao);
-  };
-
-  private atualizaQuantidadeRevisao = (): void => {
-    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
   };
 }

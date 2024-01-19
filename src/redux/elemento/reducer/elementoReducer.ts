@@ -190,7 +190,7 @@ export const elementoReducer = (state = {}, action: any): any => {
       tempState = limparAlertas(state);
       break;
     case ATIVAR_DESATIVAR_REVISAO:
-      tempState = ativaDesativaRevisao(state);
+      tempState = ativaDesativaRevisao(state, action);
       emRevisao = tempState.emRevisao;
       numEventosPassadosAntesDaRevisao = tempState.past?.length || 0;
       break;

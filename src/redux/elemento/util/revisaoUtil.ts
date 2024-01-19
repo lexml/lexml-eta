@@ -262,7 +262,7 @@ export const getQuantidadeRevisoes = (revisoes: Revisao[] = []): number => {
   return revisoes.filter(isRevisaoPrincipal).length;
 };
 
-const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number => {
+export const getQuantidadeRevisoesJustificativa = (revisoes: Revisao[] = []): number => {
   return revisoes.filter(e => e.descricao === RevisaoJustificativaEnum.JustificativaAlterada).length;
 };
 
@@ -299,8 +299,32 @@ export const mostrarDialogDisclaimerRevisao = (): void => {
   }
 };
 
-const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): number => {
+export const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): number => {
   return revisoes.filter(e => e.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado).length;
+};
+
+export const getQuantidadeRevisoesAll = (): number => {
+  const cursorCode = 65279;
+
+  const listaRevisoes = document.querySelectorAll('ins, del') || [];
+  const revisoes = [] as any;
+
+  for (let index = 0; index < listaRevisoes.length; index++) {
+    const revisao = listaRevisoes[index] as any;
+    if (revisao.innerText?.charCodeAt(0) !== cursorCode) {
+      revisoes.push(revisao);
+    }
+  }
+
+  let quantidade = 0;
+
+  if (revisoes.length === 1) {
+    quantidade = 0;
+  } else {
+    quantidade = revisoes.length;
+  }
+
+  return quantidade;
 };
 
 const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
@@ -310,8 +334,8 @@ const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
   }
 };
 
-export const ativarDesativarMarcaDeRevisao = (rootStore: any): void => {
-  rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+export const ativarDesativarMarcaDeRevisao = (rootStore: any, quantidade: number): void => {
+  rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
 };
 
 export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {
@@ -321,6 +345,12 @@ export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any
       : modo === 'textoLivre'
       ? getQuantidadeRevisoesTextoLivre(revisoes)
       : getQuantidadeRevisoes(revisoes);
+  if (element) {
+    element.innerHTML = quantidade;
+  }
+};
+
+export const atualizaQuantidadeRevisaoTextoRico = (quantidade: number, element: any): void => {
   if (element) {
     element.innerHTML = quantidade;
   }
@@ -466,4 +496,8 @@ export const mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes = (state: 
   tempState.revisoes = state.revisoes?.filter((r: Revisao) => !idsRevisoes.includes(r.id));
 
   return tempState;
+};
+
+export const countRevisoesByType = (revisoes: Revisao[] = [], type: string): number => {
+  return revisoes.filter(r => r.type === type).length;
 };

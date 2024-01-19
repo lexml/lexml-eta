@@ -49,6 +49,7 @@
     "diff": "^5.1.0",
     "elix": "^14.1.2",
     "font-awesome": "^4.7.0",
+    "html-diff-ts": "^1.4.2",
     "lit": "^2.2.1",
     "pwa-helpers": "^0.9.1",
     "quill": "^1.3.7",
