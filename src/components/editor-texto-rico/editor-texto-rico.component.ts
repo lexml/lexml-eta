@@ -142,7 +142,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       }
 
       if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
-        moduloRevisao.usuario = state.elementoReducer.usuario.nome;
+        moduloRevisao.usuario = state.elementoReducer.usuario?.nome || 'Anônimo';
       }
     }
   }
@@ -281,7 +281,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             cellSelectionOnClick: false,
           },
           revisao: {
-            usuario: rootStore.getState().elementoReducer.usuario.nome,
+            usuario: rootStore.getState().elementoReducer.usuario?.nome || 'Anônimo',
             emRevisao: false,
             gerenciarKeydown: true,
             tableModule: TableModule,
