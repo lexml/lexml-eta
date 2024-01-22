@@ -43,8 +43,7 @@
     "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
     "build:demo": "npm run clean && npm run build && rollup -c",
     "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force",
-    "cy:open": "cypress open --browser chrome --config baseUrl=https://www6ghml.senado.leg.br/editor-emendas/",
-    "cy:run": "cypress run --headless --browser chrome"
+    "cy:open:local": "cypress open --config baseUrl=http://localhost:8000"
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.0.0-beta.73",
