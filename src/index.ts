@@ -27,6 +27,7 @@ import '@shoelace-style/shoelace/dist/components/switch/switch';
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
 import '@shoelace-style/shoelace/dist/components/card/card';
 import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
+import { ModuloRevisao } from './components/editor-texto-rico/moduloRevisao';
 import { ModuloNotaRodape } from './components/editor-texto-rico/moduloNotaRodape';
 
 // ---------------------------------------------------
@@ -58,4 +59,5 @@ export { SubstituicaoTermoComponent } from './components/substituicao-termo/subs
 export { Usuario } from './model/revisao/usuario';
 
 Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
+Quill.register('modules/revisao', ModuloRevisao, true);
 Quill.register('modules/notaRodape', ModuloNotaRodape, true);

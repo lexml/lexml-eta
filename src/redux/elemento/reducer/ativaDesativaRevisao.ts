@@ -3,9 +3,9 @@ import { State, StateType } from '../../state';
 import { RevisaoJustificativaEnum } from '../util/revisaoUtil';
 import { retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
-export const ativaDesativaRevisao = (state: any): State => {
+export const ativaDesativaRevisao = (state: any, action: any): State => {
   const isActive = !state.emRevisao;
-  if (!isActive && state.revisoes?.length) {
+  if (!isActive && action.quantidade > 0) {
     return {
       ...retornaEstadoAtualComMensagem(state, {
         tipo: TipoMensagem.INFO,

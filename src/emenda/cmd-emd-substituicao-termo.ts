@@ -14,7 +14,8 @@ export class CmdEmdSubstituicaoTermo {
   getTexto(): string {
     const { tipo, termo, novoTermo, flexaoGenero, flexaoNumero } = this.substituicaoTermo;
     const refProjeto = getRefGenericaProjeto(this.urn);
-    return `Substitua-se n${refProjeto.genero.artigoDefinido} ${refProjeto.nome} a/o ${tipo.toLowerCase()} “${termo}” por “${novoTermo}”${this.getComplementoFlexoes(
+    const artigoDefinido = tipo.toLowerCase() == 'número' ? 'o' : 'a';
+    return `Substitua-se n${refProjeto.genero.artigoDefinido} ${refProjeto.nome} ${artigoDefinido} ${tipo.toLowerCase()} “${termo}” por “${novoTermo}”${this.getComplementoFlexoes(
       flexaoGenero,
       flexaoNumero
     )}.`;

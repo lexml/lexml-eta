@@ -25,7 +25,7 @@ import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { getQuantidadeRevisoesAll, isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
 import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
@@ -37,6 +37,7 @@ import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -264,6 +265,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
       emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
+      emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
     } else {
       emenda.comandoEmendaTextoLivre.texto = '';
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
@@ -285,6 +287,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
+    emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     return emenda;
   }
 
@@ -413,7 +416,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private desativarMarcaRevisao = (): void => {
     if (rootStore.getState().elementoReducer.emRevisao) {
-      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      const quantidade = getQuantidadeRevisoesAll();
+      if (quantidade === 0) {
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
+      }
     }
   };
 
@@ -425,16 +431,19 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
       this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     }
+
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
+    this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
     this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
     this._lexmlDestino.proposicao = emenda.proposicao;
-
     this.notasRodape = emenda.notasRodape || [];
     this._lexmlJustificativa.setContent(emenda.justificativa, emenda.notasRodape);
+
     if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
       this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
+      this._lexmlEmendaTextoRico.setTextoAntesRevisao(emenda.comandoEmendaTextoLivre.textoAntesRevisao);
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
     } else if (this.isEmendaSubstituicaoTermo()) {
       this._substituicaoTermo!.setSubstituicaoTermo(emenda.substituicaoTermo || new SubstituicaoTermo());
@@ -1031,7 +1040,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                 html`
                   <li>
                     <input type="checkbox" idNotaRodape="${nr.id}" class="notas-checkbox" id="checkbox-${nr.id}" @change=${() => this.selecionarNotaRodape(nr.id)} />
-                    <label for="checkbox-${nr.id}" class="notas-texto">${nr.texto}</label>
+                    <label for="checkbox-${nr.id}" class="notas-texto">${unsafeHTML(nr.texto)}</label>
                     <span class="notas-acoes">
                       <sl-button
                         class="notas-acao"

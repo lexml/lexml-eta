@@ -1,4 +1,12 @@
+import { quillSnowStyles } from '../../assets/css/quill.snow.css';
+import { EstiloTextoClass } from './estilos-texto';
+import { MarginBottomClass } from './margin-bottom';
 import { NOTA_RODAPE_INPUT_EVENT } from './notaRodape';
+import { NoIndentClass } from './text-indent';
+import { getRange } from 'shadow-selection-polyfill';
+
+const DefaultKeyboardModule = Quill.import('modules/keyboard');
+const DefaultClipboardModule = Quill.import('modules/clipboard');
 
 export class NotaRodapeModal {
   private modalElement: HTMLElement;
@@ -6,6 +14,7 @@ export class NotaRodapeModal {
   private shadowRoot: ShadowRoot;
   private keydownListener: (event: KeyboardEvent) => void;
 
+  quill: any;
   idNotaRodape?: string;
   textoInicialNotaRodape: string;
   domNodeNotaRodape: HTMLElement;
@@ -22,6 +31,7 @@ export class NotaRodapeModal {
     this.shadowRoot = this.modalElement.attachShadow({ mode: 'open' });
 
     this.shadowRoot.innerHTML = `
+      ${quillSnowStyles.strings.join('')}
       <style>
 
         :host {
@@ -43,6 +53,9 @@ export class NotaRodapeModal {
           transition: opacity 0.3s, transform 0.3s;
         }
 
+        .modal-body .ql-editor {
+          min-height: 400px;
+        }
         .modal-header {
           display: flex;
           justify-content: space-between;
@@ -107,13 +120,33 @@ export class NotaRodapeModal {
             min-width: 0;
           }
         }
+        .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+          content: 'Salvar';
+        }
+        .ql-snow .ql-tooltip a.ql-action::after {
+          display: inline;
+          content: 'Editar';
+        }
+
+        .ql-snow .ql-tooltip a.ql-remove::before {
+          display: inline;
+          content: 'Remover';
+        }
+
+        .ql-snow .ql-tooltip[data-mode='link']::before  {
+          content: 'Insira o link:';
+        }
+
+        .ql-snow .ql-tooltip::before {
+          content: 'Visite a URL:';
+        }
       </style>
       <div class="modal-header">
         <h1 id="modalTitle" class="modal-title">Editar nota de rodapé</h1>
         <button class="modal-close-button header-close-button" aria-label="Fechar" title="Fechar">&times;</button>
       </div>
       <div class="modal-body">
-        <textarea class="modal-textarea" placeholder="Digite a nota de rodapé aqui..."></textarea>
+        <div id="editor-nota-rodape-container"></div>
       </div>
       <div class="modal-footer">
         <button class="modal-save-button" aria-label="Salvar">Salvar</button>
@@ -147,7 +180,85 @@ export class NotaRodapeModal {
     Array.from(this.shadowRoot.querySelectorAll('.modal-close-button')).forEach(element => element.addEventListener('click', () => this.close()));
 
     this.shadowRoot.querySelector('.modal-save-button')?.addEventListener('click', this.save.bind(this));
+
+    const quillContainer = this.shadowRoot.querySelector('#editor-nota-rodape-container') as HTMLElement;
+    Quill.register('modules/keyboard', DefaultKeyboardModule, true);
+    Quill.register('modules/clipboard', DefaultClipboardModule, true);
+    Quill.register('formats/estilo-texto', EstiloTextoClass, true);
+    Quill.register('formats/text-indent', NoIndentClass, true);
+    Quill.register('formats/margin-bottom', MarginBottomClass, true);
+
+    this.quill = new Quill(quillContainer, {
+      formats: ['bold', 'italic', 'underline', 'link'],
+      modules: {
+        toolbar: {
+          container: [['bold', 'italic', 'underline'], ['link']],
+        },
+      },
+      placeholder: 'Digite a nota de rodapé aqui...',
+      theme: 'snow',
+    });
+
+    const normalizeNative = nativeRange => {
+      // document.getSelection model has properties startContainer and endContainer
+      // shadow.getSelection model has baseNode and focusNode
+      // Unify formats to always look like document.getSelection
+
+      if (nativeRange) {
+        const range = nativeRange;
+
+        if (range.baseNode) {
+          range.startContainer = nativeRange.baseNode;
+          range.endContainer = nativeRange.focusNode;
+          range.startOffset = nativeRange.baseOffset;
+          range.endOffset = nativeRange.focusOffset;
+
+          if (range.endOffset < range.startOffset) {
+            range.startContainer = nativeRange.focusNode;
+            range.endContainer = nativeRange.baseNode;
+            range.startOffset = nativeRange.focusOffset;
+            range.endOffset = nativeRange.baseOffset;
+          }
+        }
+
+        if (range.startContainer) {
+          return {
+            start: { node: range.startContainer, offset: range.startOffset },
+            end: { node: range.endContainer, offset: range.endOffset },
+            native: range,
+          };
+        }
+      }
+      console.log('asd', nativeRange);
+      return null;
+    };
+
+    // Hack Quill and replace document.getSelection with shadow.getSelection
+    this.quill.selection.getNativeRange = () => {
+      const dom = this.quill.root.getRootNode();
+      // const selection = dom.getSelection instanceof Function ? dom.getSelection() : document.getSelection();
+      const selection = getRange(dom);
+      const range = normalizeNative(selection);
+
+      return range;
+    };
+
+    // Subscribe to selection change separately,
+    // because emitter in Quill doesn't catch this event in Shadow DOM
+
+    document.addEventListener('selectionchange', () => {
+      // Update selection and some other properties
+      this.quill.selection.update();
+    });
   }
+
+  ajustaHtml = (html = ''): string => {
+    return html
+      .replace(/ql-indent/g, 'indent')
+      .replace(/ql-align-justify/g, 'align-justify')
+      .replace(/ql-align-center/g, 'align-center')
+      .replace(/ql-align-right/g, 'align-right');
+  };
 
   open(): void {
     this.overlayElement.style.display = 'block';
@@ -156,19 +267,13 @@ export class NotaRodapeModal {
       this.modalElement.style.opacity = '1';
       this.modalElement.style.transform = 'translate(-50%, -50%) scale(1)';
     }, 10);
-    const firstFocusableElement = this.getTextArea();
-    if (firstFocusableElement) {
-      firstFocusableElement.focus();
-      firstFocusableElement.value = this.textoInicialNotaRodape ?? '';
-    }
+
+    this.quill.root.innerHTML = this.textoInicialNotaRodape ?? '';
+
     const modalTitle = this.shadowRoot.querySelector('.modal-title');
     if (modalTitle) {
       modalTitle.innerHTML = this.tituloModal ?? modalTitle.innerHTML;
     }
-  }
-
-  getTextArea(): HTMLTextAreaElement {
-    return this.shadowRoot.querySelector('.modal-textarea') as HTMLTextAreaElement;
   }
 
   close(fromSave = false): void {
@@ -180,8 +285,8 @@ export class NotaRodapeModal {
   }
 
   private shouldClose(): boolean {
-    const textarea = this.getTextArea();
-    return !(textarea.value !== this.textoInicialNotaRodape && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.'));
+    const texto = this.quill.getText();
+    return !(texto !== this.textoInicialNotaRodape && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.'));
   }
 
   private removeModal(): void {
@@ -191,13 +296,13 @@ export class NotaRodapeModal {
   }
 
   save(): void {
-    const textarea = this.getTextArea();
-    if (textarea.value === this.textoInicialNotaRodape || !textarea.value) {
+    const texto = this.quill.getText();
+    if (texto === this.textoInicialNotaRodape || !texto) {
       this.close(true);
       return;
     }
 
-    this.domNodeNotaRodape.dispatchEvent(new CustomEvent(NOTA_RODAPE_INPUT_EVENT, { detail: { id: this.idNotaRodape, texto: textarea.value } }));
+    this.domNodeNotaRodape.dispatchEvent(new CustomEvent(NOTA_RODAPE_INPUT_EVENT, { detail: { id: this.idNotaRodape, texto: this.quill.root.innerHTML } }));
     this.close(true);
   }
 }

@@ -17,6 +17,23 @@ export const editorTextoRicoCss = html`
     .ql-toolbar.ql-snow .ql-formats {
       margin-right: 8px;
     }
+    .editor-texto-rico.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+      content: 'Salvar';
+    }
+    .editor-texto-rico.ql-snow .ql-tooltip a.ql-action::after {
+      display: inline;
+      content: 'Editar';
+    }
+
+    .editor-texto-rico.ql-snow .ql-tooltip a.ql-remove::before {
+      display: inline;
+      content: 'Remover';
+    }
+
+    .editor-texto-rico.ql-snow .ql-tooltip::before {
+      content: 'Insira o link:';
+    }
+
     .editor-texto-rico .estilo-ementa {
       text-indent: 0 !important;
       text-align: justify;
@@ -71,6 +88,7 @@ export const editorTextoRicoCss = html`
     #chk-em-revisao-texto-livre[checked] {
       background-color: var(--sl-color-blue-100);
     }
+
     #toolbar {
       padding: 1.5px 0 1.5px 8px;
     }
@@ -206,6 +224,18 @@ export const editorTextoRicoCss = html`
 
     .editor-texto-rico p.ql-margin-bottom-0px {
       margin-bottom: 0;
+    }
+
+    .ql-editor ins {
+      text-decoration: none;
+      background-color: #b2e6be;
+      /* #d4edda; */
+    }
+
+    .ql-editor del {
+      text-decoration: strikethrough;
+      background-color: #f4a9b0;
+      /* #f8d7da; */
     }
 
     @media (max-width: 768px) {
