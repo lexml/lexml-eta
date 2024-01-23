@@ -22,7 +22,7 @@ class RevisaoUtil {
     const partes = value.split('|');
     domNode.setAttribute('usuario', partes[0]);
     domNode.setAttribute('date', partes[1]);
-    domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + partes[1]);
+    domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + this.formatDDMMYYYYAndTime(new Date(partes[1])));
     domNode.setAttribute('id-revisao', partes[2]);
   }
 
@@ -47,6 +47,12 @@ class RevisaoUtil {
         '00',
       ].join(':')
     );
+  }
+
+  static formatDDMMYYYYAndTime(date: Date): string {
+    const data = [this.padTo2Digits(date.getDate()), this.padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
+    const hora = [this.padTo2Digits(date.getHours()), this.padTo2Digits(date.getMinutes())].join(':');
+    return `${data} ${hora}`;
   }
 }
 
@@ -206,12 +212,6 @@ class ModuloRevisao extends Module {
     }
   }
 
-  formatDDMMYYYYAndTime(date: Date): string {
-    const data = [this.padTo2Digits(date.getDate()), this.padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
-    const hora = [this.padTo2Digits(date.getHours()), this.padTo2Digits(date.getMinutes()), this.padTo2Digits(date.getSeconds())].join(':');
-    return `${data} ${hora}`;
-  }
-
   padTo2Digits(num: number): string {
     return num.toString().padStart(2, '0');
   }
@@ -284,7 +284,7 @@ class ModuloRevisao extends Module {
       <div class="tooltip-revisao__body" role="tooltip">
         <div>
           <div class="tooltip-revisao__autor">${elRevisao.getAttribute('usuario')}</div>
-          <div class="tooltip-revisao__data">${this.formatDDMMYYYYAndTime(data)}</div>
+          <div class="tooltip-revisao__data">${RevisaoUtil.formatDDMMYYYYAndTime(data)}</div>
         </div>
         <div class="tooltip-revisao__actions">
           <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
