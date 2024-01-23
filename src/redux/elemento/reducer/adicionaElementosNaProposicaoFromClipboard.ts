@@ -210,7 +210,19 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
 };
 
 const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[], suprimidos: Dispositivo[]): void => {
-  const dispositivosProcessar = modificados.length > 0 ? modificados : suprimidos;
+  const dispositivosProcessar = [] as any;
+
+  // if(modificados.length > 0){
+  //   modificados.forEach(m => {
+  //     dispositivosProcessar.push(m);
+  //   });
+  // }
+
+  if (suprimidos.length > 0) {
+    suprimidos.forEach(s => {
+      dispositivosProcessar.push(s);
+    });
+  }
 
   if (dispositivosProcessar.length > 0) {
     const suprimidos: Dispositivo[] = [];
