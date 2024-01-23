@@ -683,6 +683,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
         }
       }
+
+      if (quantidade === 0) {
+        this.removeRevisoes();
+      }
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_REJEITAR_REVISAO);
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_ACEITAR_REVISAO);
       this.atualizaQuantidadeRevisao(quantidade);
@@ -716,11 +720,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private removeRevisoes = (): void => {
-    if (this.modo === Modo.JUSTIFICATIVA) {
-      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
-    } else {
-      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
-    }
+    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+    atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
   };
 
   private atualizaQuantidadeRevisao = (quantidade: number): void => {
