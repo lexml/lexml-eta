@@ -35,6 +35,11 @@ import { isArticulacaoAlteracao, percorreHierarquiaDispositivos, getIrmaoAnterio
 import { agrupaElemento } from './agrupaElemento';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
+  let alertas = [];
+  if (state && state.ui && state.ui.alertas.length > 0) {
+    alertas = state.ui.alertas;
+  }
+
   const retorno: State = {
     articulacao: state.articulacao,
     modo: state.modo,
@@ -43,7 +48,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     future: [],
     ui: {
       events: [],
-      alertas: [],
+      alertas: alertas,
     },
     revisoes: [],
     emRevisao: state.emRevisao,

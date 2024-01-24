@@ -408,6 +408,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
       this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
       this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
+      this.buildRevisoes();
     }
   };
 
@@ -573,6 +574,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
         if (this.switchRevisaoComponent) {
           this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
+          setTimeout(() => {
+            this.alertaGlobalRevisao();
+          }, 0);
         }
       }
     }
@@ -593,7 +597,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.alertaGlobalRevisao();
   };
 
-  private alertaGlobalRevisao(): void {
+  public alertaGlobalRevisao(): void {
     const id = 'alerta-global-revisao';
 
     if (this.getQuantidadeDeRevisoes() > 0 || getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes) > 0) {
@@ -686,6 +690,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
       if (quantidade === 0) {
         this.removeRevisoes();
+      } else if (quantidade > 0) {
+        this.buildRevisoes();
       }
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_REJEITAR_REVISAO);
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_ACEITAR_REVISAO);
