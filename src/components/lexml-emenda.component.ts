@@ -249,7 +249,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return new RefProposicaoEmendada();
   }
 
-  getEmenda(): Emenda {
+  getEmenda(visualizar = false): Emenda {
     // Para evitar erros de referência nula quando chamado antes da inicialização do componente
     if (!this.urn) {
       return new Emenda();
@@ -263,7 +263,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = '';
     } else if (this.isEmendaTextoLivre()) {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
+      emenda.comandoEmendaTextoLivre.texto = visualizar ? this.removeRevisaoFormat(this._lexmlEmendaTextoRico.texto) : this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
       emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
     } else {
@@ -271,7 +271,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
     }
-    emenda.justificativa = this._lexmlJustificativa.texto;
+    emenda.justificativa = visualizar ? this.removeRevisaoFormat(this._lexmlJustificativa.texto) : this._lexmlJustificativa.texto;
     emenda.notasRodape = this._lexmlJustificativa.notasRodape;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
@@ -289,6 +289,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     return emenda;
+  }
+
+  private removeRevisaoFormat(texto: string): string {
+    let novoTexto = '';
+
+    if (texto !== '') {
+      texto = texto.replace(/<ins\b[^>]*>(.*?)<\/ins>/s, '');
+      texto = texto.replace(/<del\b[^>]*>(.*?)<\/del>/s, '');
+      novoTexto = texto;
+    }
+
+    return novoTexto;
   }
 
   private getRevisoes(): Revisao[] {
