@@ -12,7 +12,7 @@ import { transformarEmOmissisIncisoParagrafo } from './../../../src/model/lexml/
 let documento: ProjetoNorma;
 const state: State = new DefaultState();
 
-describe('Cabeçalho de comando de emenda com manipulação de omissis em alteração de norma vigente', () => {
+describe('Cabeçalho de comando de emenda com manipulação de linha pontilhada em alteração de norma vigente', () => {
   beforeEach(function () {
     documento = buildProjetoNormaFromJsonix(MPV_885_2019, true);
     state.articulacao = documento.articulacao;

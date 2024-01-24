@@ -7,8 +7,8 @@ export enum TipoMensagem {
 
 export enum AutoFix {
   INFORMAR_NORMA = 'É necessário informar a norma a ser alterada',
-  OMISSIS_ANTES = `É necessário um omissis antes deste dispositivo`,
-  OMISSIS_SEQUENCIAIS = `Não pode haver mais de um omissis sequencialmente`,
+  OMISSIS_ANTES = `É necessário uma linha pontilhada antes deste dispositivo`,
+  OMISSIS_SEQUENCIAIS = `Não pode haver mais de uma linha pontilhada sequencialmente`,
   RENUMERAR_DISPOSITIVO = 'Numere o dispositivo',
 }
 

@@ -81,7 +81,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não pode haver mais de um omissis sequencialmente',
+      descricao: 'Não pode haver mais de uma linha pontilhada sequencialmente',
     });
   }
 
@@ -143,7 +143,7 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
-      descricao: 'Não pode haver omissis entre dispositivos originais sequenciais',
+      descricao: 'Não pode haver linha pontilhada entre dispositivos originais sequenciais',
     });
   }
 
