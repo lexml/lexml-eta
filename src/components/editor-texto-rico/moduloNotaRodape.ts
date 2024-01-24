@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable eqeqeq */
 /* eslint-disable prefer-const */
+import { decodeHtml, encodeHtml } from '../../util/string-util';
 import { NotaRodapeModal } from './nota-rodape-modal';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_INPUT_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 
@@ -48,7 +49,7 @@ class NotaRodapeBlot extends Embed {
       // id: domNode.getAttribute('id'),
       id: domNode.getAttribute('id-nota-rodape'),
       numero: domNode.getAttribute('numero'),
-      texto: domNode.getAttribute('texto'),
+      texto: decodeHtml(domNode.getAttribute('texto')),
     };
   }
 
@@ -60,7 +61,7 @@ class NotaRodapeBlot extends Embed {
     domNode.notaRodape = value;
 
     domNode.innerText = value.numero;
-    domNode.setAttribute('texto', value.texto);
+    domNode.setAttribute('texto', encodeHtml(value.texto));
   }
 }
 
@@ -122,7 +123,7 @@ class ModuloNotaRodape extends Module {
 
       const id = this.isAbrindoTexto ? node.getAttribute('id-nota-rodape') : this.gerarId();
       const numero = node.getAttribute('numero');
-      const texto = node.getAttribute('texto');
+      const texto = decodeHtml(node.getAttribute('texto'));
       const notaRodape = new NotaRodape({ id, numero, texto });
 
       return new Delta().insert({ 'nota-rodape': notaRodape });

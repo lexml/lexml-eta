@@ -150,3 +150,25 @@ export const substituiEspacosEntreTagsPorNbsp = (texto: string, tags?: string[])
 export const substituiMultiplosEspacosPorNbsp = (texto: string): string => {
   return texto.replace(/ +/g, texto => texto.replace(/ /g, '&nbsp;'));
 };
+
+/**
+ * Faz escape de caracteres especiais do html
+ *
+ * @param texto
+ */
+export const encodeHtml = (texto: string): string => {
+  const p = document.createElement('p');
+  p.textContent = texto;
+  return p.innerHTML || '';
+};
+
+/**
+ * Desfaz escape de caracteres especiais do html
+ *
+ * @param texto
+ */
+export const decodeHtml = (texto: string): string => {
+  const txt = document.createElement('textarea');
+  txt.innerHTML = texto;
+  return txt.value;
+};

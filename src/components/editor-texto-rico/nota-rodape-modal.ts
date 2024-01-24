@@ -229,7 +229,7 @@ export class NotaRodapeModal {
           };
         }
       }
-      console.log('asd', nativeRange);
+      // console.log('asd', nativeRange);
       return null;
     };
 
@@ -285,8 +285,12 @@ export class NotaRodapeModal {
   }
 
   private shouldClose(): boolean {
-    const texto = this.quill.getText();
-    return !(texto !== this.textoInicialNotaRodape && !confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.'));
+    const texto = this.quill.root.innerHTML;
+    console.log(texto, this.textoInicialNotaRodape);
+    if (texto !== this.textoInicialNotaRodape) {
+      return confirm('Tem certeza que deseja fechar? As alterações não salvas serão perdidas.');
+    }
+    return true;
   }
 
   private removeModal(): void {
@@ -296,7 +300,7 @@ export class NotaRodapeModal {
   }
 
   save(): void {
-    const texto = this.quill.getText();
+    const texto = this.quill.root.innerHTML;
     if (texto === this.textoInicialNotaRodape || !texto) {
       this.close(true);
       return;
