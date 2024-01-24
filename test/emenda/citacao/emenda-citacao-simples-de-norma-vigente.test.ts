@@ -174,7 +174,7 @@ describe('Citação em comando de emenda com apenas um dispositivo de norma vige
     const cit = new CitacaoComandoDeNormaVigente().getTexto(getArticulacao(d));
     expect(cit).to.equal(
       // eslint-disable-next-line prettier/prettier
-      '<p class="artigo">“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p classe="inciso"><Rotulo>VII –</Rotulo> Texto</p><p class="omissis"><Omissis/>” (NR)</p><p class="artigo">“<Rotulo>Art. 5º</Rotulo> <Omissis/></p><p classe="omissis"> (Suprimir omissis)</p><p classe="paragrafo"><Rotulo>§ 1º</Rotulo><Omissis/></p><p classe="inciso"><Rotulo>I –</Rotulo> (Suprimir)</p><p classe="inciso"><Rotulo>I-A –</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p classe="paragrafo"><Rotulo>§ 4º</Rotulo> Texto” (NR)</p>'
+      '<p class="artigo">“<Rotulo>Art. 2º</Rotulo> <Omissis/></p><p class="omissis"><Omissis/></p><p classe="inciso"><Rotulo>VII –</Rotulo> Texto</p><p class="omissis"><Omissis/>” (NR)</p><p class="artigo">“<Rotulo>Art. 5º</Rotulo> <Omissis/></p><p classe="omissis"> (Suprimir linha pontilhada)</p><p classe="paragrafo"><Rotulo>§ 1º</Rotulo><Omissis/></p><p classe="inciso"><Rotulo>I –</Rotulo> (Suprimir)</p><p classe="inciso"><Rotulo>I-A –</Rotulo> Texto</p><p class="omissis"><Omissis/></p><p classe="paragrafo"><Rotulo>§ 4º</Rotulo> Texto” (NR)</p>'
     );
   });
 });

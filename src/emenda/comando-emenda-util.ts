@@ -506,7 +506,7 @@ export class CmdEmdUtil {
     if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO || isCaput(d)) {
       return ' ' + CmdEmdUtil.trataTextoParaCitacao(d, alteracaoNormaVigente);
     } else if (d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return isOmissis(d) ? ' (Suprimir omissis)' : ' (Suprimir)';
+      return isOmissis(d) ? ' (Suprimir linha pontilhada)' : ' (Suprimir)';
     } else {
       return ' ' + new TagNode('Omissis');
     }
