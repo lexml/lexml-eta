@@ -76,6 +76,10 @@ export class AutocompleteNorma extends LitElement {
     if (this.urnInicial) {
       this._getNormaByURN(this.urnInicial);
     }
+    this.focusAutoComplete();
+  }
+
+  focusAutoComplete(): void {
     setTimeout(() => {
       this._autoCompleteAsync.focus();
     }, 100);
