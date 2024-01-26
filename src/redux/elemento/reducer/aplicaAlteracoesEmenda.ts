@@ -163,7 +163,7 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
 
     const atual = createElemento(ref);
 
-    const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas;
+    const manterNoMesmoGrupoDeAspas = dea.abreAspas ? false : !dea.fechaAspas;
     const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao, manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo }, isAbrindoEmenda: true });
     const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
 
