@@ -609,7 +609,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           podeFechar: true,
           exibirComandoEmenda: true,
         };
-        rootStore.dispatch(adicionarAlerta(alerta));
+        setTimeout(() => {
+          rootStore.dispatch(adicionarAlerta(alerta));
+        }, 0);
       }
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
       rootStore.dispatch(removerAlerta(id));
