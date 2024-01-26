@@ -316,15 +316,7 @@ export const getQuantidadeRevisoesAll = (): number => {
     }
   }
 
-  let quantidade = 0;
-
-  if (revisoes.length === 1) {
-    quantidade = 0;
-  } else {
-    quantidade = revisoes.length;
-  }
-
-  return quantidade;
+  return revisoes.length + getQuantidadeRevisoes();
 };
 
 const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
