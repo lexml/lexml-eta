@@ -580,6 +580,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         }
       }
     }
+    this.atualizaQuantidadeRevisao(this.getQuantidadeDeRevisoes());
   };
 
   updateApenasTexto = (): void => {

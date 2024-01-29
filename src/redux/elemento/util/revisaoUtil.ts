@@ -303,7 +303,7 @@ export const getQuantidadeRevisoesTextoLivre = (revisoes: Revisao[] = []): numbe
   return revisoes.filter(e => e.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado).length;
 };
 
-export const getQuantidadeRevisoesAll = (): number => {
+export const getQuantidadeRevisoesAll = (revisoesDispositivos: Revisao[] = []): number => {
   const cursorCode = 65279;
 
   const listaRevisoes = document.querySelectorAll('ins, del') || [];
@@ -316,7 +316,7 @@ export const getQuantidadeRevisoesAll = (): number => {
     }
   }
 
-  return revisoes.length + getQuantidadeRevisoes();
+  return revisoes.length + getQuantidadeRevisoes(revisoesDispositivos);
 };
 
 const salvaNoNavegadorOpcaoNaoMostrarNovamente = (): void => {
@@ -331,12 +331,7 @@ export const ativarDesativarMarcaDeRevisao = (rootStore: any, quantidade: number
 };
 
 export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {
-  const quantidade =
-    modo === Modo.JUSTIFICATIVA
-      ? getQuantidadeRevisoesJustificativa(revisoes)
-      : modo === 'textoLivre'
-      ? getQuantidadeRevisoesTextoLivre(revisoes)
-      : getQuantidadeRevisoes(revisoes);
+  const quantidade = modo === Modo.EMENDA ? getQuantidadeRevisoes(revisoes) : 0;
   if (element) {
     element.innerHTML = quantidade;
   }
