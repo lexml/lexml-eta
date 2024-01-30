@@ -854,10 +854,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       if (elemento.dispositivoAlteracao) {
         linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
-        if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
-          linha.blotConteudo.html = '';
-          const index = this.quill.getIndex(linha.blotConteudo);
-          this.quill.insertText(index, TEXTO_OMISSIS, { EtaBlotConteudoOmissis: true });
+        if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0 && elemento.tipo === 'Omissis') {
+          linha.blotConteudo.html = EtaQuillUtil.montarSpanOmissisAsString();
         }
         if (elemento.conteudo?.texto !== linha?.blotConteudo.html) {
           const texto = normalizaSeForOmissis(elemento.conteudo?.texto ?? '');
@@ -904,7 +902,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         // Substituir o texto apenas quando precisa evita retorno do cursor para o início da linha.
         const novoTexto = elemento.conteudo?.texto ?? '';
         if (linha.blotConteudo.html !== novoTexto) {
-          linha.blotConteudo.html = novoTexto;
+          linha.blotConteudo.html = elemento.tipo === 'Omissis' ? EtaQuillUtil.montarSpanOmissisAsString() : novoTexto;
         }
 
         if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
