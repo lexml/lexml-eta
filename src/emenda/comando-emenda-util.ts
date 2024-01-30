@@ -4,20 +4,19 @@ import {
   getDispositivoAnteriorDireto,
   getDispositivoPosterior,
   getFilhosEstiloLexML,
-  isDispositivoNaNormaAlterada,
   isUltimaAlteracao,
-  percorreHierarquiaDispositivos,
+  percorreHierarquiaDispositivos
 } from '../model/lexml/hierarquia/hierarquiaUtil';
-import { removeEspacosDuplicados, StringBuilder } from '../util/string-util';
+import { StringBuilder, removeEspacosDuplicados } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorNaoArticulacao, isArtigo, isCaput, isOmissis, isParagrafo } from './../model/dispositivo/tipo';
 import {
+  buscaNaHierarquiaDispositivos,
+  getIrmaoPosteriorIndependenteDeTipo,
   irmaosMesmoTipo,
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
   isDispositivoRaiz,
-  buscaNaHierarquiaDispositivos,
-  getIrmaoPosteriorIndependenteDeTipo,
 } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { TagNode } from './../util/tag-node';
 import { DispositivoComparator } from './dispositivo-comparator';
@@ -252,7 +251,7 @@ export class CmdEmdUtil {
     hierarquia.push(dispositivo);
 
     let pai = dispositivo.pai;
-    while (pai && !isDispositivoRaiz(pai) && (!isAgrupadorNaoArticulacao(pai) || isDispositivoNaNormaAlterada(pai))) {
+    while (pai && !isDispositivoRaiz(pai) && !isAgrupadorNaoArticulacao(pai)) {
       hierarquia.push(pai);
       pai = pai.pai;
     }
@@ -292,7 +291,6 @@ export class CmdEmdUtil {
         mapaAtual = novoMapa;
       }
     }
-    mapa = mapaAtual;
   }
 
   // public static List<Dispositivo> filtraDispositivosModificados(final List<Dispositivo> dispositivos) {
