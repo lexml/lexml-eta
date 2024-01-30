@@ -36,7 +36,7 @@ import { agrupaElemento } from './agrupaElemento';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   let alertas = [];
-  if (state && state.ui && state.ui.alertas.length > 0) {
+  if (state.ui?.alertas?.length > 0) {
     alertas = state.ui.alertas;
   }
 
