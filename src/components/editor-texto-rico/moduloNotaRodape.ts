@@ -180,7 +180,8 @@ class ModuloNotaRodape extends Module {
 
   onClick(e) {
     const el = e.target;
-    if (el?.tagName === 'NOTA-RODAPE' || el?.parentElement?.tagName === 'NOTA-RODAPE') {
+    const elRev = el?.closest('ins, del');
+    if (!elRev && (el?.tagName === 'NOTA-RODAPE' || el?.parentElement?.tagName === 'NOTA-RODAPE')) {
       e.preventDefault();
       e.stopPropagation();
       this.solicitarTexto(el.notaRodape || el.parentElement.notaRodape);
