@@ -23,6 +23,7 @@ import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
+import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -118,5 +119,9 @@ export class EtaQuillUtil {
     etaTdEspaco.insertInto(etaTrContainer);
 
     return etaTrContainer;
+  }
+
+  static montarSpanOmissisAsString(): string {
+    return '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>';
   }
 }
