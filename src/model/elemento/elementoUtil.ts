@@ -341,8 +341,6 @@ export const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean =
     elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
   ) {
     return false;
-  } else if (elemento.tipo === 'Artigo') {
-    return true;
   } else {
     return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;
   }
