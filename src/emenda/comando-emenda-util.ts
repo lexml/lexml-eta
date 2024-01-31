@@ -206,8 +206,8 @@ export class CmdEmdUtil {
       return false;
     }
 
-    if (isAgrupadorNaoArticulacao(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return false;
+    if (isAgrupadorNaoArticulacao(d)) {
+      return this.getDescricaoSituacaoParaComandoEmenda(d) === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
     }
 
     return (
