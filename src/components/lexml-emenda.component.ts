@@ -1168,4 +1168,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   getTabFromElement(element: any): any {
     return element.closest('sl-tab-panel');
   }
+
+  getRestricoesConhecidas(): string[] {
+    return [
+      'Emendamento ou adição de anexos.',
+      'Emendamento ou adição de pena, penalidade etc.',
+      'Emendamento ou adição de especificação temática do dispositivo (usado para nome do tipo penal e outros).',
+      'Alteração de anexo de MP de crédito extraordinário.',
+      'Alteração do texto da proposição e proposta de adição de dispositivos onde couber na mesma emenda.',
+      'Alteração de norma que não segue a LC nº 95 de 98 (ex: norma com alíneas em parágrafos).',
+      'Casos especiais de numeração de parte (PARTE GERAL, PARTE ESPECIAL e uso de numeral ordinal por extenso).',
+      'Tabelas e imagens no texto da proposição.',
+    ];
+  }
 }
