@@ -2,6 +2,7 @@ import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { EstiloTextoClass } from './estilos-texto';
 import { MarginBottomClass } from './margin-bottom';
 import { NOTA_RODAPE_INPUT_EVENT } from './notaRodape';
+import { QuillUtil } from './quill-util';
 import { NoIndentClass } from './text-indent';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
@@ -142,6 +143,27 @@ export class NotaRodapeModal {
         .ql-snow .ql-tooltip::before {
           content: 'Visite a URL:';
         }
+
+
+        .modal-nota-rodape .ql-tooltip input:invalid {
+          color: red;
+        }
+
+        .modal-nota-rodape .ql-tooltip div.tooltip-invalid-message {
+          color: red;
+          display: none;
+          font-family: Helvetica, sans-serif;
+          font-size: 0.9rem;
+        }
+
+        .modal-nota-rodape .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
+          content: 'Por favor, digite uma URL válida.';
+        }
+
+        .modal-nota-rodape .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
+          display: block;
+        }
+
       </style>
       <div class="modal-header">
         <h1 id="modalTitle" class="modal-title">Editar nota de rodapé</h1>
@@ -200,6 +222,8 @@ export class NotaRodapeModal {
       placeholder: 'Digite a nota de rodapé aqui...',
       theme: 'snow',
     });
+
+    QuillUtil.configurarAcoesLink(this.quill!);
   }
 
   ajustaHtml = (html = ''): string => {
