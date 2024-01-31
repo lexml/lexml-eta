@@ -18,8 +18,8 @@ export class DispositivoSuprimido implements TipoSituacao {
     const a: ElementoAction[] = [];
 
     if ((isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!).situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      a.push(restaurarElementoAction);
       a.push(...acoes.filter(acao => acao.descricao.startsWith('Adicionar') && dispositivo.tipo === acao.tipo));
+      a.push(restaurarElementoAction);
     }
 
     return a;
