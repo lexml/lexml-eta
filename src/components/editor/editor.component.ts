@@ -854,7 +854,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       if (elemento.dispositivoAlteracao) {
         linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
-        if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0 && elemento.tipo === 'Omissis') {
+        if (linha && normalizaSeForOmissis(linha.blotConteudo?.html).indexOf(TEXTO_OMISSIS) >= 0) {
           linha.blotConteudo.html = EtaQuillUtil.montarSpanOmissisAsString();
         }
         if (elemento.conteudo?.texto !== linha?.blotConteudo.html) {
