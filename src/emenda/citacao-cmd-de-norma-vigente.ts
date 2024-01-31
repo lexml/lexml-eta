@@ -58,13 +58,10 @@ export class CitacaoComandoDeNormaVigente {
   }
 
   private getCabeca(d: Dispositivo): Dispositivo {
-    if (isArticulacaoAlteracao(d.pai!)) {
+    if (isArticulacaoAlteracao(d.pai!) || isArtigo(d) || isAgrupadorNaoArticulacao(d) || (isOmissis(d) && isAgrupadorNaoArticulacao(d.pai!))) {
       return d;
     }
-    if (isArtigo(d) || isAgrupadorNaoArticulacao(d) || (isOmissis(d) && isAgrupadorNaoArticulacao(d.pai!))) {
-      return this.getCabeca(d.pai!);
-    }
-    return this.getCabeca(getArtigo(d));
+    return getArtigo(d);
   }
 
   private getCitacaoMultipla(sb: StringBuilder, dispositivos: Dispositivo[]): void {

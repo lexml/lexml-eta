@@ -40,7 +40,7 @@ export class CitacaoComandoMultiplaAlteracaoNormaVigente {
     const ret = new Array<Dispositivo>();
 
     for (const d of dispositivos) {
-      if (isOmissis(d)) {
+      if (isOmissis(d) && !isAgrupadorNaoArticulacao(d.pai!)) {
         // TODO - Verificar necessidade de tratamento de bloco de alteração com omissis como primeiro elemento.
         //    if (!d.isAbreAspas()) {
         const anterior = CmdEmdUtil.getDispositivoAnteriorDireto(d);
