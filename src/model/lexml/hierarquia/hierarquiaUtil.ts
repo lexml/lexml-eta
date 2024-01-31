@@ -785,10 +785,6 @@ export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | und
   return dispositivo.pai ? buscaProximoOmissis(dispositivo.pai!) : undefined;
 };
 
-export const isDispositivoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
-  return (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
-};
-
 export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
   const value = (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
   if (!isDispositivoAlteracao(dispositivo) || value === undefined) {

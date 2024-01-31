@@ -38,6 +38,7 @@
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "test": "rimraf out-tsc && tsc && npm run copy:quill1table && wtr --coverage",
     "test:watch": "rimraf out-tsc && tsc && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
+    "test:watch:comando-emenda": "rimraf out-tsc && tsc && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr ./out-tsc/test/emenda/**/*.test.js --watch\"",
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
     "storybook:build": "tsc && build-storybook",
     "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
