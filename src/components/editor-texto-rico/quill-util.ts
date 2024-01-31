@@ -16,7 +16,7 @@ export class QuillUtil {
     // Sobrescreve o método de salvamento do tooltip para adicionar a validação do link
     const originalSaveTooltip = theme.tooltip.save.bind(theme.tooltip);
     theme.tooltip.save = (): void => {
-      const el = quill.root.querySelector('.ql-tooltip[data-mode="link"]');
+      const el = quill.root.querySelector('.ql-tooltip[data-mode="link"]') || quill.root.parentNode?.querySelector('.ql-tooltip[data-mode="link"]');
       const url = theme.tooltip.textbox?.value ?? '';
       if (el && !url.match(/https?:\/\//)) {
         el.classList.add('ql-tooltip-invalid');

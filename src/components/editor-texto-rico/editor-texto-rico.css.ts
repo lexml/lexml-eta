@@ -250,7 +250,7 @@ export const editorTextoRicoCss = html`
     }
 
     .editor-texto-rico .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
-      content: 'Por favor, digite uma URL válida.';
+      content: 'Digite uma URL válida, iniciando com http:// ou https://';
     }
 
     .editor-texto-rico .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
