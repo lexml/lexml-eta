@@ -5,6 +5,7 @@ import { isAgrupador, isDispositivoGenerico, isOmissis, isParagrafo } from '../.
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
+  getDispositivoAnteriorNaSequenciaDeLeitura,
   getDispositivoPosteriorMesmoTipo,
   getDispositivosAnterioresMesmoTipo,
   getDispositivosPosteriores,
@@ -130,6 +131,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
     !isOmissis(getDispositivoAnterior(dispositivo)!) &&
+    !isOmissis(getDispositivoAnteriorNaSequenciaDeLeitura(dispositivo)!) &&
     !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo) &&
     dispositivo.numero !== getDispositivoAnteriorMesmoTipo(dispositivo)?.numero
   ) {
