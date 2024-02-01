@@ -3,7 +3,12 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado, iconeNotaDeRodape } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { rootStore } from '../../redux/store';
-import { getQuantidadeRevisoes, getQuantidadeRevisoesJustificativa, getQuantidadeRevisoesTextoLivre } from '../../redux/elemento/util/revisaoUtil';
+import {
+  atualizaQuantidadeRevisaoTextoRico,
+  getQuantidadeRevisoes,
+  getQuantidadeRevisoesJustificativa,
+  getQuantidadeRevisoesTextoLivre,
+} from '../../redux/elemento/util/revisaoUtil';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
@@ -580,7 +585,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         }
       }
     }
-    this.atualizaQuantidadeRevisao(this.getQuantidadeDeRevisoes());
+    // setTimeout(() => {
+    //   this.atualizaQuantidadeRevisao(this.getQuantidadeDeRevisoes());
+    // }, 0);
   };
 
   updateApenasTexto = (): void => {
@@ -735,9 +742,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private atualizaQuantidadeRevisao = (quantidade: number): void => {
     const elemento = this.querySelector(`#${this.getNomeBadge()}`) as any;
-    if (elemento) {
-      elemento.innerHTML = quantidade;
-    }
+    atualizaQuantidadeRevisaoTextoRico(quantidade, elemento);
+
+    // if (elemento) {
+    //   elemento.innerHTML = quantidade;
+    // }
   };
 
   editarNotaRodape(idNotaRodape: string): void {
