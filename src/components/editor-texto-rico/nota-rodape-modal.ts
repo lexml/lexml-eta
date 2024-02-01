@@ -269,6 +269,7 @@ export class NotaRodapeModal {
     }, 10);
 
     this.quill.root.innerHTML = this.textoInicialNotaRodape ?? '';
+    this.quill.root.focus();
 
     const modalTitle = this.shadowRoot.querySelector('.modal-title');
     if (modalTitle) {
