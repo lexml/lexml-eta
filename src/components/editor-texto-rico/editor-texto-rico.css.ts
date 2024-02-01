@@ -17,21 +17,56 @@ export const editorTextoRicoCss = html`
     .ql-toolbar.ql-snow .ql-formats {
       margin-right: 8px;
     }
+    .editor-texto-rico.ql-snow .ql-tooltip {
+      font-family: var(--eta-font-sans);
+      font-size: 0.9rem;
+    }
+    .ql-tooltip .ql-action,
+    .ql-tooltip .ql-remove {
+      background-color: var(--sl-color-gray-100);
+      border: 1px solid var(--sl-color-gray-500);
+      border-radius: 3px;
+      color: var(--sl-color-gray-900);
+      width: fit-content !important;
+      padding: 0 15px;
+      margin: 0 0 0 10px;
+    }
     .editor-texto-rico.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
       content: 'Salvar';
+      margin: 0 !important;
+      padding: 0 !important;
     }
     .editor-texto-rico.ql-snow .ql-tooltip a.ql-action::after {
       display: inline;
       content: 'Editar';
+      margin: 0 !important;
+      padding: 0 !important;
     }
-
     .editor-texto-rico.ql-snow .ql-tooltip a.ql-remove::before {
       display: inline;
       content: 'Remover';
+      margin: 0 !important;
+      padding: 0 !important;
     }
-
-    .editor-texto-rico.ql-snow .ql-tooltip::before {
+    .editor-texto-rico.ql-snow .ql-tooltip[data-mode='link']::before {
       content: 'Insira o link:';
+    }
+    .editor-texto-rico.ql-snow .ql-tooltip::before {
+      content: 'Visite o link:';
+    }
+    @media (max-width: 600px) {
+      .editor-texto-rico.ql-snow .ql-tooltip {
+        display: flex;
+        gap: 5px;
+        flex-direction: column;
+      }
+      .ql-tooltip .ql-action,
+      .ql-tooltip .ql-remove {
+        margin: 0;
+      }
+      .editor-texto-rico.ql-snow .ql-tooltip.ql-hidden {
+        display: none;
+      }
     }
 
     .editor-texto-rico .estilo-ementa {
@@ -245,12 +280,12 @@ export const editorTextoRicoCss = html`
     .editor-texto-rico .ql-tooltip div.tooltip-invalid-message {
       color: red;
       display: none;
-      font-family: Helvetica, sans-serif;
+      font-family: var(--eta-font-sans);
       font-size: 0.9rem;
     }
 
     .editor-texto-rico .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
-      content: 'Digite uma URL válida, iniciando com http:// ou https://';
+      content: 'A URL deve iniciar com http:// ou https://';
     }
 
     .editor-texto-rico .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
