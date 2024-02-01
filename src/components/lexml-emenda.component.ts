@@ -889,6 +889,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           color: var(--sl-color-gray-500);
         }
 
+        .notas-texto p {
+          margin-block-start: 0;
+          margin-block-end: 0;
+        }
+
         .notas-acoes {
           display: flex;
           flex-direction: row;
