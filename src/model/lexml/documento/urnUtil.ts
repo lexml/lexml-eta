@@ -20,8 +20,11 @@ export const getTipo = (urn: string): any => {
 };
 
 export const getNumero = (urn: string): string => {
+  // urn:lex:br:federal:medida.provisoria:2019-11-11;905
+  // urn:lex:br:senado.federal:proposta.emenda.constitucional;pec:2019;16@data.evento;leitura;2019-03-19t14.00
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return partes[2]?.indexOf(';') > -1 ? partes[2]?.substring(partes[2].indexOf(';') + 1) : '';
+  const anoNumero = partes[2].replace(/@.+$/, '').split(';');
+  return anoNumero.length > 1 ? anoNumero[1] : '';
 };
 
 export const formataNumero = (numero: string): string => {
