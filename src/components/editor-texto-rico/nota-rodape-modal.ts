@@ -2,8 +2,8 @@ import { quillSnowStyles } from '../../assets/css/quill.snow.css';
 import { EstiloTextoClass } from './estilos-texto';
 import { MarginBottomClass } from './margin-bottom';
 import { NOTA_RODAPE_INPUT_EVENT } from './notaRodape';
+import { QuillUtil } from './quill-util';
 import { NoIndentClass } from './text-indent';
-import { getRange } from 'shadow-selection-polyfill';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -11,7 +11,7 @@ const DefaultClipboardModule = Quill.import('modules/clipboard');
 export class NotaRodapeModal {
   private modalElement: HTMLElement;
   private overlayElement: HTMLElement;
-  private shadowRoot: ShadowRoot;
+  private shadowRoot: HTMLElement;
   private keydownListener: (event: KeyboardEvent) => void;
 
   quill: any;
@@ -28,13 +28,16 @@ export class NotaRodapeModal {
 
     this.modalElement = document.createElement('div');
     this.modalElement.classList.add('modal');
-    this.shadowRoot = this.modalElement.attachShadow({ mode: 'open' });
+    this.modalElement.classList.add('modal-nota-rodape');
+
+    this.shadowRoot = document.createElement('div');
+    this.modalElement.appendChild(this.shadowRoot);
 
     this.shadowRoot.innerHTML = `
       ${quillSnowStyles.strings.join('')}
       <style>
 
-        :host {
+        .modal-nota-rodape {
           position: absolute;
           top: 50%;
           left: 50%;
@@ -140,6 +143,27 @@ export class NotaRodapeModal {
         .ql-snow .ql-tooltip::before {
           content: 'Visite a URL:';
         }
+
+
+        .modal-nota-rodape .ql-tooltip input:invalid {
+          color: red;
+        }
+
+        .modal-nota-rodape .ql-tooltip div.tooltip-invalid-message {
+          color: red;
+          display: none;
+          font-family: Helvetica, sans-serif;
+          font-size: 0.9rem;
+        }
+
+        .modal-nota-rodape .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
+          content: 'Digite uma URL válida, iniciando com http:// ou https://';
+        }
+
+        .modal-nota-rodape .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
+          display: block;
+        }
+
       </style>
       <div class="modal-header">
         <h1 id="modalTitle" class="modal-title">Editar nota de rodapé</h1>
@@ -199,57 +223,7 @@ export class NotaRodapeModal {
       theme: 'snow',
     });
 
-    const normalizeNative = nativeRange => {
-      // document.getSelection model has properties startContainer and endContainer
-      // shadow.getSelection model has baseNode and focusNode
-      // Unify formats to always look like document.getSelection
-
-      if (nativeRange) {
-        const range = nativeRange;
-
-        if (range.baseNode) {
-          range.startContainer = nativeRange.baseNode;
-          range.endContainer = nativeRange.focusNode;
-          range.startOffset = nativeRange.baseOffset;
-          range.endOffset = nativeRange.focusOffset;
-
-          if (range.endOffset < range.startOffset) {
-            range.startContainer = nativeRange.focusNode;
-            range.endContainer = nativeRange.baseNode;
-            range.startOffset = nativeRange.focusOffset;
-            range.endOffset = nativeRange.baseOffset;
-          }
-        }
-
-        if (range.startContainer) {
-          return {
-            start: { node: range.startContainer, offset: range.startOffset },
-            end: { node: range.endContainer, offset: range.endOffset },
-            native: range,
-          };
-        }
-      }
-      // console.log('asd', nativeRange);
-      return null;
-    };
-
-    // Hack Quill and replace document.getSelection with shadow.getSelection
-    this.quill.selection.getNativeRange = () => {
-      const dom = this.quill.root.getRootNode();
-      // const selection = dom.getSelection instanceof Function ? dom.getSelection() : document.getSelection();
-      const selection = getRange(dom);
-      const range = normalizeNative(selection);
-
-      return range;
-    };
-
-    // Subscribe to selection change separately,
-    // because emitter in Quill doesn't catch this event in Shadow DOM
-
-    document.addEventListener('selectionchange', () => {
-      // Update selection and some other properties
-      this.quill.selection.update();
-    });
+    QuillUtil.configurarAcoesLink(this.quill!);
   }
 
   ajustaHtml = (html = ''): string => {

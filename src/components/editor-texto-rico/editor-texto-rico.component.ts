@@ -33,6 +33,7 @@ import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atual
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
+import { QuillUtil } from './quill-util';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -414,6 +415,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
       this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
       this.buildRevisoes();
+
+      QuillUtil.configurarAcoesLink(this.quill!);
     }
   };
 

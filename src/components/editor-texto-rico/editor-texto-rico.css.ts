@@ -238,6 +238,25 @@ export const editorTextoRicoCss = html`
       /* #f8d7da; */
     }
 
+    .editor-texto-rico .ql-tooltip input:invalid {
+      color: red;
+    }
+
+    .editor-texto-rico .ql-tooltip div.tooltip-invalid-message {
+      color: red;
+      display: none;
+      font-family: Helvetica, sans-serif;
+      font-size: 0.9rem;
+    }
+
+    .editor-texto-rico .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
+      content: 'Digite uma URL válida, iniciando com http:// ou https://';
+    }
+
+    .editor-texto-rico .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
+      display: block;
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
