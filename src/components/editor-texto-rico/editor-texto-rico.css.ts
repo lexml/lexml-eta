@@ -41,6 +41,7 @@ export const editorTextoRicoCss = html`
       content: 'Editar';
       margin: 0 !important;
       padding: 0 !important;
+      border: 0;
     }
     .editor-texto-rico.ql-snow .ql-tooltip a.ql-remove::before {
       display: inline;
