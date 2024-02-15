@@ -142,7 +142,9 @@ export class InfoTextoColado {
     articulacaoProposicao: Articulacao,
     atual: Elemento
   ): Promise<InfoTextoColado> {
-    let textoColadoAjustadoParaParser = removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado);
+    let textoColadoAjustadoParaParser = ajustarRotuloArtigo(
+      removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado)
+    );
     let jsonix = await getJsonixFromTexto(textoColadoAjustadoParaParser);
     let projetoNorma = buildDispositivoFromJsonix(jsonix);
 
@@ -231,6 +233,12 @@ export const removeAspasENRSeNecessario = (texto: string): string => {
   // Grupo 1 do regex abaixo corresponde ao texto do artigo sem aspas iniciais e finais e sem o (NR)
   const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘']?(art(?:\.|\s|\d)(?:.|\n)+?)(["”’]\s*(?:\(NR\))?[\s]*)?(?:(?=\n\s*["“‘']?art(?:\.|\s|\d))|$)/gi;
   return textoAux.replace(regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo, '\n$1').trim();
+};
+
+export const ajustarRotuloArtigo = (texto: string): string => removeEspacosExcendentesEntreRotuloENumeracao(texto, 'Art');
+
+const removeEspacosExcendentesEntreRotuloENumeracao = (texto: string, rotulo: string, newChar = ' '): string => {
+  return texto.replace(new RegExp(`(^${rotulo}\\.?)([^\\S\\n\\r]+)`, 'gim'), `$1${newChar}`);
 };
 
 export const comecaComAspas = (texto: string): boolean => !!texto.match(/^["“‘']/);
@@ -533,6 +541,7 @@ const hasArtigoOndeCouber = (texto: string): boolean => {
   const t = removeAllHtmlTags(texto)
     ?.replace(/&nbsp;/g, ' ')
     .replace(/["“']/g, '')
+    .replace(/(^Art\.?)([^\S\n\r]+)/gim, '$1 ')
     .trim();
 
   return getRegexRotuloArtigoOndeCouber().test(t);
