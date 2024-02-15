@@ -33,6 +33,7 @@ export const textoFoiModificado = (atual: Dispositivo, action: any, state?: any)
 export const resetUuidTodaArvore = (dispositivo: Dispositivo): void => {
   dispositivo.uuid = Counter.next();
   dispositivo.filhos?.forEach(f => resetUuidTodaArvore(f));
+  dispositivo.alteracoes?.filhos?.forEach(f => resetUuidTodaArvore(f));
 };
 
 export const copiaDispositivosParaOutroPai = (pai: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
