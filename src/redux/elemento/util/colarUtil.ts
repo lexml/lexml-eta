@@ -142,8 +142,8 @@ export class InfoTextoColado {
     articulacaoProposicao: Articulacao,
     atual: Elemento
   ): Promise<InfoTextoColado> {
-    let textoColadoAjustadoParaParser = ajustarRotuloArtigo(
-      removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado)
+    let textoColadoAjustadoParaParser = converterSufixoDosRotulos(
+      ajustarRotuloArtigo(removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado))
     );
     let jsonix = await getJsonixFromTexto(textoColadoAjustadoParaParser);
     let projetoNorma = buildDispositivoFromJsonix(jsonix);
@@ -603,4 +603,24 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .trim();
 
   return html;
+};
+
+export const converterSufixoDosRotulos = (texto: string): string => {
+  const regexRotulo = /^((?:(?:art\.?|§|par[aá]grafo [uú]nico)\s*\d+)|(?:[IVXMDC]{1,3}|[a-z]{1,2}|\d{1,3}))-(\d+)/gim;
+
+  const fnSubstituicao = (match: string, grupo1: string, grupo2: string): string => {
+    const numero = parseInt(grupo2);
+    let letra = '';
+    if (numero <= 26) {
+      letra = String.fromCharCode(65 + numero - 1);
+    } else {
+      const primeiraLetra = String.fromCharCode(65 + Math.floor((numero - 1) / 26) - 1);
+      const segundaLetra = String.fromCharCode(65 + ((numero - 1) % 26));
+      letra = primeiraLetra + segundaLetra;
+    }
+
+    return `${grupo1}-${letra}`;
+  };
+
+  return texto.replace(regexRotulo, fnSubstituicao);
 };
