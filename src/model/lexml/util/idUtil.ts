@@ -1,5 +1,5 @@
 import { DescricaoSituacao } from './../../dispositivo/situacao';
-import { Dispositivo } from '../../dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
 import { getDispositivosAnterioresMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
@@ -82,6 +82,12 @@ export const buildIdAlteracao = (dispositivo: Dispositivo): string => {
   buildHierarquia(dispositivo, idArray);
 
   return idArray.join('_') + '_alt1';
+};
+
+export const buildIdCaputEAlteracao = (dispositivo: Dispositivo): void => {
+  const caput = (dispositivo as Artigo).caput;
+  caput && (caput.id = buildId(caput));
+  dispositivo.alteracoes && (dispositivo.alteracoes.id = buildId(dispositivo.alteracoes));
 };
 
 /* export const gHref = (dispositivo: Dispositivo): string => {

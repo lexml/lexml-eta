@@ -21,6 +21,7 @@ import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicar
 import { EMENDA_006 } from '../../doc/emendas/emenda-006';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
+import { EMENDA_012 } from '../../doc/emendas/emenda-012';
 
 let state: State;
 
@@ -28,6 +29,103 @@ describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+  });
+
+  describe('Movendo artigo, com alteração de norma, adicionado fora de revisão', () => {
+    beforeEach(function () {
+      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_012.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+      state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1-1')!) });
+    });
+
+    it('Deveria não encontra Art. 1º-1', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art1-1');
+      expect(dispositivo).to.be.undefined;
+    });
+
+    it('Deveria encontrar Art. 0', () => {
+      const dispositivo = buscaDispositivoById(state.articulacao!, 'art0');
+      expect(dispositivo).to.not.be.undefined;
+    });
+
+    it('Artigo 0 deveria possuir alteração de norma', () => {
+      const alteracoes = buscaDispositivoById(state.articulacao!, 'art0')!.alteracoes!;
+      expect(alteracoes).to.not.be.undefined;
+      expect(alteracoes.filhos.length).to.be.equal(1);
+    });
+
+    it('Todos os dispositivos movidos deveriam possuir id iniciando com "art0"', () => {
+      const dispositivos = buscaDispositivoById(state.articulacao!, 'art0')!.filhos;
+      dispositivos.forEach(d => {
+        expect(d.id).to.match(/^art0/);
+      });
+    });
+
+    it('Deveria possuir 5 revisões sendo 1 principal', () => {
+      expect(state.revisoes?.length).to.be.equal(5);
+      expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+    });
+
+    describe('Fazendo UNDO', () => {
+      beforeEach(function () {
+        state = elementoReducer(state, { type: UNDO });
+      });
+
+      it('Deveria encontrar Art. 1º-1', () => {
+        const dispositivo = buscaDispositivoById(state.articulacao!, 'art1-1');
+        expect(dispositivo).to.not.be.undefined;
+      });
+
+      it('Deveria não encontrar Art. 0', () => {
+        const dispositivo = buscaDispositivoById(state.articulacao!, 'art0');
+        expect(dispositivo).to.be.undefined;
+      });
+
+      it('Todos os dispositivos movidos deveriam possuir id iniciando com "art1-1"', () => {
+        const dispositivos = buscaDispositivoById(state.articulacao!, 'art1-1')!.filhos;
+        dispositivos.forEach(d => {
+          expect(d.id).to.match(/^art1-1/);
+        });
+      });
+
+      it('Deveria não possuir revisões', () => {
+        expect(state.revisoes?.length).to.be.equal(0);
+      });
+
+      describe('Fazendo REDO', () => {
+        beforeEach(function () {
+          state = elementoReducer(state, { type: REDO });
+        });
+
+        it('Deveria não encontra Art. 1º-1', () => {
+          const dispositivo = buscaDispositivoById(state.articulacao!, 'art1-1');
+          expect(dispositivo).to.be.undefined;
+        });
+
+        it('Deveria encontrar Art. 0', () => {
+          const dispositivo = buscaDispositivoById(state.articulacao!, 'art0');
+          expect(dispositivo).to.not.be.undefined;
+        });
+
+        it('Artigo 0 deveria possuir alteração de norma', () => {
+          const alteracoes = buscaDispositivoById(state.articulacao!, 'art0')!.alteracoes!;
+          expect(alteracoes).to.not.be.undefined;
+          expect(alteracoes.filhos.length).to.be.equal(1);
+        });
+
+        it('Todos os dispositivos movidos deveriam possuir id iniciando com "art0"', () => {
+          const dispositivos = buscaDispositivoById(state.articulacao!, 'art0')!.filhos;
+          dispositivos.forEach(d => {
+            expect(d.id).to.match(/^art0/);
+          });
+        });
+
+        it('Deveria possuir 5 revisões sendo 1 principal', () => {
+          expect(state.revisoes?.length).to.be.equal(5);
+          expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
+        });
+      });
+    });
   });
 
   describe('Movendo (2 vezes para baixo) dispositivo adicionado fora de revisão', () => {
