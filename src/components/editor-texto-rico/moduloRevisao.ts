@@ -77,6 +77,17 @@ class InlineRevisionBaseFormat extends Inline {
     if (name !== this.statics.blotName || !value) return super.format(name, value);
     RevisaoUtil.valueToAttributes(value, this.domNode);
   }
+
+  optimize(context) {
+    const blotName = this.statics.blotName;
+
+    if (blotName === this.next?.statics?.blotName) {
+      const formatoAtual = this.formats();
+      this.next.format(blotName, formatoAtual[blotName]);
+    }
+
+    super.optimize(context);
+  }
 }
 
 class InsBlot extends InlineRevisionBaseFormat {}
@@ -614,11 +625,7 @@ class ModuloRevisao extends Module {
     quill.updateContents(rev, 'user');
 
     setTimeout(() => {
-      // TODO: Corrigir setSelection (falhando em vários casos)
       quill.setSelection(idx - numCaracteresRemovidos, 0);
-      // quill.format('added', true, 'silent');
-      quill.format('added', this.buildAttributes(id), 'silent');
-      quill.format('removed', false, 'silent');
       this.ignorarEventoTextChange = false;
     }, 0);
   }
