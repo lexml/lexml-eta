@@ -83,6 +83,8 @@ class InlineRevisionBaseFormat extends Inline {
 
     if (blotName === this.next?.statics?.blotName) {
       const formatoAtual = this.formats();
+      this.next.domNode.setAttribute('date', this.domNode.getAttribute('date'));
+      this.next.domNode.setAttribute('usuario', this.domNode.getAttribute('usuario'));
       this.next.format(blotName, formatoAtual[blotName]);
     }
 
