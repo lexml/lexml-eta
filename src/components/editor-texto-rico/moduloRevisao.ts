@@ -657,7 +657,7 @@ class ModuloRevisao extends Module {
     const revisoesSemDuplicidade = [] as any;
 
     listElements.forEach(element => {
-      if (!revisoesSemDuplicidade.find(r => r.getAttribute('id-revisao') === element.getAttribute('id-revisao'))) {
+      if (!revisoesSemDuplicidade.find(r => r.getAttribute('id-revisao') === element.getAttribute('id-revisao') && r.nodeName === element.nodeName)) {
         revisoesSemDuplicidade.push(element);
       }
     });
