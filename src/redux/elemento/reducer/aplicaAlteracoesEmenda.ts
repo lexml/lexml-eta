@@ -1,5 +1,5 @@
 import { isRevisaoDeMovimentacao, isRevisaoDeTransformacao } from './../util/revisaoUtil';
-import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
@@ -130,6 +130,16 @@ const processaDispositivosAdicionados = (state: any, alteracoesEmenda: Dispositi
       eventos.push(criaEventoElementosIncluidos(state, da));
     }
   }
+
+  // Trata renumeração de parágrafo único
+  const adicionados = getDispositivoAndFilhosAsLista(state.articulacao)
+    .filter(d => isAdicionado(d) && isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
+    .map(d => d.pai!.filhos.find(f => f.id?.endsWith('par1u'))!);
+
+  const pais = new Set(adicionados.map(d => d.pai!));
+  [...pais].forEach(d => d.renumeraFilhos());
+
+  eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: Array.from(new Set(adicionados)).map(d => createElemento(d)) });
 
   return eventos;
 };
