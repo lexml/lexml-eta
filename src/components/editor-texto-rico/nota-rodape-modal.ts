@@ -31,6 +31,8 @@ export class NotaRodapeModal {
     this.modalElement.classList.add('modal-nota-rodape');
 
     this.shadowRoot = document.createElement('div');
+    this.shadowRoot.classList.add('d-flex');
+
     this.modalElement.appendChild(this.shadowRoot);
 
     this.shadowRoot.innerHTML = `
@@ -41,16 +43,14 @@ export class NotaRodapeModal {
           position: absolute;
           top: 50%;
           left: 50%;
-          min-width: 400px;
+          min-width: 100px;
           max-width: 640px;
+          width: 80%;
           background-color: white;
           padding: 20px;
           border-radius: 10px;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
           z-index: 1010;
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
           opacity: 0;
           transform: translate(-50%, -50%) scale(0.95);
           transition: opacity 0.3s, transform 0.3s;
@@ -67,7 +67,7 @@ export class NotaRodapeModal {
 
         .modal-title {
           margin: 0;
-          font-size: 20px;
+          font-size: var(--sl-font-size-large);
         }
 
         .modal-footer {
@@ -176,8 +176,6 @@ export class NotaRodapeModal {
           }
         }
 
-
-
         .modal-nota-rodape .ql-tooltip input:invalid {
           color: red;
         }
@@ -195,6 +193,11 @@ export class NotaRodapeModal {
 
         .modal-nota-rodape .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
           display: block;
+        }
+        .d-flex {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
         }
 
       </style>
