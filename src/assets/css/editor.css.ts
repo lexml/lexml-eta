@@ -550,6 +550,9 @@ export const editorStyles = html`
       sl-dialog {
         --sl-font-size-large: 1rem;
       }
+      .modal {
+        --sl-font-size-large: 1rem;
+      }
     }
 
     @media (max-width: 640px) {
