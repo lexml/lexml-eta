@@ -547,6 +547,9 @@ export const editorStyles = html`
       .button-navegacao-marca {
         display: none;
       }
+      sl-dialog {
+        --sl-font-size-large: 1rem;
+      }
     }
 
     @media (max-width: 640px) {
