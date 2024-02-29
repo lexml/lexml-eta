@@ -34,13 +34,15 @@ export class EtaQuillUtil {
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
-    if (elemento.abreAspas) {
+    const isDispositivoAlteracaoAdicionado = elemento.dispositivoAlteracao && elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+
+    if (elemento.abreAspas || isDispositivoAlteracaoAdicionado) {
       new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
     }
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
 
-    if (elemento.dispositivoAlteracao === true && elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+    if (isDispositivoAlteracaoAdicionado) {
       new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     }
 
