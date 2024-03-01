@@ -29,20 +29,27 @@ const remove = (state: State): void => {
 const criaRevisaoTextoLivre = (state: State): Revisao[] => {
   const result: Revisao[] = [];
 
-  if (!jaExisteRevisaoUsuarioAtual(state)) {
+  //if (!jaExisteRevisaoUsuarioAtual(state)) {
+  if (!jaExisteRevisao(state)) {
     result.push(new RevisaoTextoLivre(state.usuario!, formatDateTime(new Date()), RevisaoTextoLivreEnum.TextoLivreAlterado));
   }
 
   return result;
 };
 
-const jaExisteRevisaoUsuarioAtual = (state: State): boolean => {
-  const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome && r.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado);
+const jaExisteRevisao = (state: State): boolean => {
+  const revisaoUtil = state.revisoes?.filter(r => r.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado) || [];
 
-  if (revisoesUsuarioAtual!.length > 0) {
-    const revisaoDataHoraModificada = revisoesUsuarioAtual![0];
-    revisaoDataHoraModificada.dataHora = formatDateTime(new Date());
-    return true;
-  }
-  return false;
+  return revisaoUtil.length > 0;
 };
+
+// const jaExisteRevisaoUsuarioAtual = (state: State): boolean => {
+//   const revisoesUsuarioAtual = state.revisoes?.filter(r => r.usuario.nome === state.usuario?.nome && r.descricao === RevisaoTextoLivreEnum.TextoLivreAlterado);
+
+//   if (revisoesUsuarioAtual!.length > 0) {
+//     const revisaoDataHoraModificada = revisoesUsuarioAtual![0];
+//     revisaoDataHoraModificada.dataHora = formatDateTime(new Date());
+//     return true;
+//   }
+//   return false;
+// };

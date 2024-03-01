@@ -26,6 +26,7 @@ export const retornaEstadoAtualComMensagem = (state: any, mensagem: Mensagem): S
     future: state.future,
     ui: {
       events: state.ui?.events,
+      alertas: state.ui?.alertas,
       message: mensagem,
     },
     emRevisao: state.emRevisao,

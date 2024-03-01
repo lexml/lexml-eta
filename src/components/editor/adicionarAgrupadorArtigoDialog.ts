@@ -68,8 +68,14 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   elTipoAgrupadorDefault.checked = true;
 
   opcoes.forEach(el => {
-    (el as any).disabled = !tiposPermitidos.includes((el as any).value);
-    (el as any).checked = (el as any).disabled ? false : (el as any).checked;
+    const element = el as HTMLInputElement;
+    element.disabled = !tiposPermitidos.includes(element.value);
+    element.checked = element.disabled ? false : element.checked;
+    if (element.checked) {
+      setTimeout(() => {
+        element.focus();
+      }, 0);
+    }
   });
 
   const botoes = content.querySelectorAll('sl-button');

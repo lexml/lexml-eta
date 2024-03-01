@@ -1,3 +1,4 @@
+import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { Revisao } from '../revisao/revisao';
 
 export class Emenda {
@@ -16,12 +17,14 @@ export class Emenda {
   substituicaoTermo?: SubstituicaoTermo;
   anexos: Anexo[] = [];
   justificativa = '';
+  justificativaAntesRevisao?: string;
   local = '';
   data?: string = new Date().toISOString().replace(/T.*/, ''); // formato “YYYY-MM-DD”
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
   revisoes: Revisao[] = [];
   colegiadoApreciador = new ColegiadoApreciador();
+  notasRodape: NotaRodape[] = [];
 }
 
 export type MetadadosEmenda = {
@@ -107,6 +110,7 @@ export class ComandoEmenda {
 export class ComandoEmendaTextoLivre {
   motivo?: string;
   texto?: string;
+  textoAntesRevisao?: string;
 }
 
 export class ItemComandoEmenda {

@@ -27,6 +27,8 @@ import '@shoelace-style/shoelace/dist/components/switch/switch';
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
 import '@shoelace-style/shoelace/dist/components/card/card';
 import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
+import { ModuloRevisao } from './components/editor-texto-rico/moduloRevisao';
+import { ModuloNotaRodape } from './components/editor-texto-rico/moduloNotaRodape';
 
 // ---------------------------------------------------
 
@@ -37,6 +39,7 @@ export { ElementoComponent } from './components/elemento/elemento.component';
 export { AtalhosComponent as HelpComponent } from './components/ajuda/atalhos.component';
 export { EditorTextoRicoComponent } from './components/editor-texto-rico/editor-texto-rico.component';
 export { AlterarLarguraTabelaColunaModalComponent } from './components/editor-texto-rico/alterar-largura-tabela-coluna-modal';
+export { AlterarLarguraImagemModalComponent } from './components/editor-texto-rico/alterar-largura-imagem-modal';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
 export { DestinoComponent } from './components/destino/destino.component';
@@ -56,3 +59,5 @@ export { SubstituicaoTermoComponent } from './components/substituicao-termo/subs
 export { Usuario } from './model/revisao/usuario';
 
 Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
+Quill.register('modules/revisao', ModuloRevisao, true);
+Quill.register('modules/notaRodape', ModuloNotaRodape, true);

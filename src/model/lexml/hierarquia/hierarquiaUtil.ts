@@ -20,6 +20,16 @@ export function getArticulacao(dispositivo: Dispositivo): Articulacao {
   return getArticulacao(dispositivo.pai);
 }
 
+export function getArticulacaoAlteracao(dispositivo: Dispositivo): Articulacao {
+  if (isArticulacaoAlteracao(dispositivo)) {
+    return dispositivo as Articulacao;
+  }
+  if (dispositivo.pai === undefined) {
+    throw new Error('Não foi encontrada a articulação alteração');
+  }
+  return getArticulacaoAlteracao(dispositivo.pai);
+}
+
 export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articulacao): Dispositivo | Articulacao | null {
   if (dispositivo.uuid === uuid) {
     return dispositivo;
@@ -783,10 +793,6 @@ export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | und
   }
 
   return dispositivo.pai ? buscaProximoOmissis(dispositivo.pai!) : undefined;
-};
-
-export const isDispositivoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
-  return (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
 };
 
 export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {

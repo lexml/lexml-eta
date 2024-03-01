@@ -25,7 +25,7 @@ import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { atualizarUsuarioAction } from '../model/lexml/acao/atualizarUsuarioAction';
-import { isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
+import { getQuantidadeRevisoesAll, isRevisaoElemento, mostrarDialogDisclaimerRevisao, ordernarRevisoes, removeAtributosDoElemento } from '../redux/elemento/util/revisaoUtil';
 import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
@@ -36,6 +36,8 @@ import { generoFromLetra } from '../model/dispositivo/genero';
 import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
+import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -104,6 +106,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   // Para forçar atualização da interface
   @state()
   private updateState: any;
+
+  @state()
+  private notasRodape: NotaRodape[] = [];
 
   @state()
   autoria = new Autoria();
@@ -258,14 +263,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = '';
     } else if (this.isEmendaTextoLivre()) {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
+      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto; // visualizar ? this.removeRevisaoFormat(this._lexmlEmendaTextoRico.texto) : this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
+      emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
     } else {
       emenda.comandoEmendaTextoLivre.texto = '';
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
     }
-    emenda.justificativa = this._lexmlJustificativa.texto;
+    emenda.justificativa = this._lexmlJustificativa.texto; // visualizar ? this.removeRevisaoFormat(this._lexmlJustificativa.texto) : this._lexmlJustificativa.texto;
+    emenda.notasRodape = this._lexmlJustificativa.notasRodape;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
@@ -280,7 +287,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
+    emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     return emenda;
+  }
+
+  private removeRevisaoFormat(texto: string): string {
+    let novoTexto = '';
+
+    if (texto !== '') {
+      texto = texto.replace(/<ins\b[^>]*>(.*?)<\/ins>/s, '');
+      texto = texto.replace(/<del\b[^>]*>(.*?)<\/del>/s, '');
+      novoTexto = texto;
+    }
+
+    return novoTexto;
   }
 
   private getRevisoes(): Revisao[] {
@@ -336,8 +356,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     this._tabsEsquerda.show('lexml-eta');
+
     if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      this._tabsDireita.show('comando');
+      setTimeout(() => {
+        this._tabsDireita?.show('comando');
+      });
+    } else {
+      setTimeout(() => {
+        this._tabsDireita?.show('notas');
+      });
     }
 
     this.updateView();
@@ -401,7 +428,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private desativarMarcaRevisao = (): void => {
     if (rootStore.getState().elementoReducer.emRevisao) {
-      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      const quantidade = getQuantidadeRevisoesAll(rootStore.getState().elementoReducer.revisoes);
+      if (quantidade === 0) {
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
+      }
     }
   };
 
@@ -410,18 +440,24 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private setEmenda(emenda: Emenda): void {
+    rootStore.dispatch(limparAlertas());
+
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
       this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     }
+
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
+    this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
     this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
     this._lexmlDestino.proposicao = emenda.proposicao;
+    this.notasRodape = emenda.notasRodape || [];
+    this._lexmlJustificativa.setContent(emenda.justificativa, emenda.notasRodape);
 
-    this._lexmlJustificativa.setContent(emenda.justificativa);
     if (this.isEmendaTextoLivre()) {
       this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
       this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
+      this._lexmlEmendaTextoRico.setTextoAntesRevisao(emenda.comandoEmendaTextoLivre.textoAntesRevisao);
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
     } else if (this.isEmendaSubstituicaoTermo()) {
       this._substituicaoTermo!.setSubstituicaoTermo(emenda.substituicaoTermo || new SubstituicaoTermo());
@@ -463,6 +499,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   constructor() {
     super();
+    this.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.onChangeNotasRodape);
+    this.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.onChangeNotasRodape);
   }
 
   createRenderRoot(): LitElement {
@@ -470,26 +508,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private MOBILE_WIDTH = 768;
-  private splitPanelPosition = 68;
+  private splitPanelPosition = 67;
   private sizeMode = '';
 
   private updateLayoutSplitPanel(forceUpdate = false): void {
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      if (this.sizeMode === 'desktop') {
-        this.slSplitPanel.position = this.splitPanelPosition;
-      }
+    if (this.sizeMode === 'desktop') {
+      this.slSplitPanel.position = this.splitPanelPosition;
+    }
 
-      if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
-        this.sizeMode = 'mobile';
-        this.slSplitPanel.position = 100;
-        this.slSplitPanel.setAttribute('disabled', 'true');
-      } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
-        this.sizeMode = 'desktop';
-        this.slSplitPanel.position = this.splitPanelPosition;
-        this.slSplitPanel.removeAttribute('disabled');
-      }
-    } else {
+    if (window.innerWidth <= this.MOBILE_WIDTH && (this.sizeMode !== 'mobile' || forceUpdate)) {
+      this.sizeMode = 'mobile';
       this.slSplitPanel.position = 100;
+      this.slSplitPanel.setAttribute('disabled', 'true');
+    } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
+      this.sizeMode = 'desktop';
+      this.slSplitPanel.position = this.splitPanelPosition;
+      this.slSplitPanel.removeAttribute('disabled');
     }
   }
 
@@ -556,13 +590,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   updated(): void {
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      this.slSplitPanel.removeAttribute('disabled');
-      this.slSplitPanel.position = this.splitPanelPosition;
-    } else {
-      this.slSplitPanel.setAttribute('disabled', 'true');
-      this.slSplitPanel.position = 100;
-    }
+    // if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+    //   this.slSplitPanel.removeAttribute('disabled');
+    //   this.slSplitPanel.position = this.splitPanelPosition;
+    // } else {
+    //   this.slSplitPanel.setAttribute('disabled', 'true');
+    //   this.slSplitPanel.position = 100;
+    // }
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -649,6 +683,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     } else if (this.isEmendaTextoLivre()) {
+      if (!this._lexmlJustificativa.texto) {
+        this.disparaAlerta();
+      } else {
+        rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
+      }
       if (!this._lexmlEmendaTextoRico.texto) {
         this.showAlertaEmendaTextoLivre();
       } else {
@@ -669,16 +708,24 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
-      const alerta = {
-        id: 'alerta-global-justificativa',
-        tipo: 'error',
-        mensagem: 'A emenda não possui uma justificação',
-        podeFechar: false,
-      };
-      rootStore.dispatch(adicionarAlerta(alerta));
+      this.disparaAlerta();
     } else {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
     }
+  }
+
+  disparaAlerta(): void {
+    const alerta = {
+      id: 'alerta-global-justificativa',
+      tipo: 'error',
+      mensagem: 'A emenda não possui uma justificação',
+      podeFechar: false,
+    };
+    rootStore.dispatch(adicionarAlerta(alerta));
+  }
+
+  getJustificativa(): string {
+    return '';
   }
 
   limparAlertas(): void {
@@ -721,6 +768,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           --min-height: 300px;
           --heightJustificativa: 100%;
           --heightEmenda: 100%;
+          --visibilityNotasAcao: hidden;
         }
         sl-tab-panel {
           --padding: 0px;
@@ -771,7 +819,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
 
         sl-split-panel {
-          --divider-width: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? '15px' : '0px'};
+          --divider-width: 15px;
         }
         sl-tab sl-icon {
           margin-right: 5px;
@@ -780,6 +828,95 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         .tab-autoria__container {
           padding: 10px;
         }
+        .notas-rodape {
+          font-family: var(--eta-font-serif);
+          font-style: normal;
+          padding: 10px;
+        }
+        .notas-rodape h4 {
+          font-family: var(--eta-font-sans);
+          font-style: normal;
+          padding: 1rem 0px 0.5rem;
+          margin: 0px;
+        }
+        .notas-texto-vazio {
+          padding-left: 20px;
+          color: var(--sl-color-gray-500);
+          font-style: italic;
+        }
+
+        .notas-rodape ol {
+          padding-left: 20px;
+          list-style: none;
+          counter-reset: item;
+          margin: 0px;
+        }
+
+        .notas-rodape li {
+          padding: 0px;
+          position: relative;
+          cursor: pointer;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .notas-rodape li:hover {
+          --visibilityNotasAcao: visible;
+          background-color: var(--sl-color-gray-100);
+        }
+
+        .notas-rodape li::before {
+          content: counter(item);
+          counter-increment: item;
+          position: absolute;
+          width: 20px;
+          left: -20px;
+          top: 4px;
+          font-size: smaller;
+          vertical-align: super;
+          font-weight: bold;
+          font-size: 12px;
+          color: var(--sl-color-gray-500);
+          text-align: right;
+        }
+
+        .notas-texto {
+          flex-grow: 1;
+          cursor: pointer;
+          padding: 5px;
+          color: var(--sl-color-gray-500);
+        }
+
+        .notas-texto p {
+          margin-block-start: 0;
+          margin-block-end: 0;
+        }
+
+        .notas-acoes {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+        }
+
+        .notas-acao {
+          margin-left: 5px;
+          visibility: var(--visibilityNotasAcao);
+          cursor: pointer;
+        }
+
+        .notas-checkbox {
+          appearance: none;
+          background: transparent;
+          display: none;
+        }
+
+        .notas-checkbox:checked + .notas-texto {
+          color: black;
+          font-style: italic;
+        }
+
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
@@ -787,7 +924,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       </style>
 
-      <sl-split-panel>
+      <sl-split-panel position="67">
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
@@ -840,22 +977,50 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         </div>
         <div slot="end">
           <sl-tab-group id="tabs-direita">
-            <sl-tab slot="nav" panel="comando">
-              <sl-icon name="code"></sl-icon>
-              Comando
-            </sl-tab>
-            <sl-tab slot="nav" panel="dicas">
-              <sl-icon name="lightbulb"></sl-icon>
-              Dicas
-            </sl-tab>
-            <sl-tab slot="nav" panel="atalhos">
-              <sl-badge variant="primary" id="badgeAtalhos" pill>
-                <sl-icon name="keyboard"></sl-icon>
-                Atalhos
-              </sl-badge>
-            </sl-tab>
+            ${this.tabIsVisible('comando')
+              ? html`
+                  <sl-tab slot="nav" panel="comando">
+                    <sl-icon name="code"></sl-icon>
+                    Comando
+                  </sl-tab>
+                `
+              : ''}
+            ${this.tabIsVisible('notas')
+              ? html`
+                  <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
+                    <sl-badge variant="primary" id="badgeAtalhos" pill>
+                      <sl-icon name="footnote"></sl-icon>
+                      Notas
+                    </sl-badge>
+                  </sl-tab>
+                `
+              : ''}
+            ${this.tabIsVisible('dicas')
+              ? html`
+                  <sl-tab slot="nav" panel="dicas">
+                    <sl-icon name="lightbulb"></sl-icon>
+                    Dicas
+                  </sl-tab>
+                `
+              : ''}
+            ${this.tabIsVisible('atalhos')
+              ? html`
+                  <sl-tab slot="nav" panel="atalhos">
+                    <sl-badge variant="primary" id="badgeAtalhos" pill>
+                      <sl-icon name="keyboard"></sl-icon>
+                      Atalhos
+                    </sl-badge>
+                  </sl-tab>
+                `
+              : ''}
             <sl-tab-panel name="comando" class="overflow-hidden">
               <lexml-emenda-comando></lexml-emenda-comando>
+            </sl-tab-panel>
+            <sl-tab-panel name="notas" class="overflow-hidden">
+              <div class="notas-rodape">
+                <h4>Notas de rodapé</h4>
+                ${this.renderNotasRodape()}
+              </div>
             </sl-tab-panel>
             <sl-tab-panel name="dicas" class="overflow-hidden">
               <lexml-ajuda></lexml-ajuda>
@@ -868,5 +1033,157 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       </sl-split-panel>
       <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
+  }
+
+  tabIsVisible(tab: string): boolean {
+    if ((tab === 'atalhos' || tab === 'dicas') && this.modo === 'emendaSubstituicaoTermo') {
+      return false;
+    } else if (tab === 'notas' && (this.isEmendaTextoLivre() || this.modo === 'edicao')) {
+      return true;
+    }
+    return this.modo.startsWith('emenda') && !this.isEmendaTextoLivre();
+  }
+
+  onChangeNotasRodape(): void {
+    this.notasRodape = this._lexmlJustificativa.notasRodape;
+    this.focusOnTab('notas');
+  }
+
+  renderNotasRodape(): TemplateResult {
+    return !this.notasRodape.length
+      ? html`<span class="notas-texto-vazio">Não há notas de rodapé registradas.</span>`
+      : html`
+          <ol>
+            ${this._lexmlJustificativa.notasRodape.map(
+              (nr: NotaRodape) =>
+                html`
+                  <li>
+                    <input type="checkbox" idNotaRodape="${nr.id}" class="notas-checkbox" id="checkbox-${nr.id}" @change=${() => this.selecionarNotaRodape(nr.id)} />
+                    <label for="checkbox-${nr.id}" class="notas-texto">${unsafeHTML(nr.texto)}</label>
+                    <span class="notas-acoes">
+                      <sl-button
+                        class="notas-acao"
+                        variant="default"
+                        size="small"
+                        aria-label="Editar nota de rodapé"
+                        title="Editar nota de rodapé"
+                        idNotaRodape="${nr.id}"
+                        @click=${this.editarNotaRodape}
+                      >
+                        <sl-icon slot="prefix" name="pencil-square"></sl-icon>
+                      </sl-button>
+                      <sl-button
+                        class="notas-acao"
+                        variant="default"
+                        size="small"
+                        aria-label="Excluir nota de rodapé"
+                        title="Excluir nota de rodapé"
+                        idNotaRodape="${nr.id}"
+                        @click=${this.removerNotaRodape}
+                      >
+                        <sl-icon slot="prefix" name="trash"></sl-icon>
+                      </sl-button>
+                    </span>
+                  </li>
+                `
+            )}
+          </ol>
+        `;
+  }
+
+  focusOnTab(tabName: string): void {
+    const tab = this.querySelector(`sl-tab[panel="${tabName}"]`) as HTMLElement | null;
+    if (!tab) return;
+
+    this._tabsDireita?.show('notas');
+
+    if (tabName === 'notas') {
+      const badgeElement = tab?.querySelector('sl-badge');
+      if (!badgeElement) return;
+
+      if (!tab.hasAttribute('active')) {
+        if (tabName === 'notas') {
+          badgeElement.setAttribute('pulse', '');
+          setTimeout(() => {
+            badgeElement.removeAttribute('pulse');
+          }, 4000);
+        }
+      }
+    }
+  }
+
+  localizarNotaRodape(idNotaRodape: any): void {
+    // const idNotaRodape = event.target.getAttribute('idNotaRodape');
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const tab = this.getTabFromElement(notaRodapeElement);
+    this.focusOnTab(tab.getAttribute('name'));
+    notaRodapeElement && setTimeout(() => notaRodapeElement.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    const notasRodape = this.querySelectorAll('.ql-editor nota-rodape');
+    notasRodape.forEach(nr => {
+      if (nr.attributes['id-nota-rodape'].value === idNotaRodape) {
+        nr?.classList.add('pulse');
+      } else {
+        nr.classList.remove('pulse');
+      }
+    });
+  }
+
+  selecionarNotaRodape(idNotaRodape: any): void {
+    const checkbox = document.getElementById(`checkbox-${idNotaRodape}`) as HTMLInputElement | null;
+    if (checkbox) {
+      if (checkbox.checked) {
+        const checkboxes = document.querySelectorAll('.notas-checkbox') as NodeListOf<HTMLInputElement>;
+        checkboxes.forEach(cb => {
+          if (cb.id !== checkbox.id) {
+            cb.checked = false;
+          }
+        });
+        this.localizarNotaRodape(idNotaRodape);
+      } else {
+        this.removerPulsarNotaRodape(idNotaRodape);
+      }
+    }
+  }
+
+  removerPulsarNotaRodape(idNotaRodape: any): void {
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    notaRodapeElement?.classList.remove('pulse');
+  }
+
+  editarNotaRodape(event: any): void {
+    const idNotaRodape = event.target.getAttribute('idNotaRodape');
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
+    editorTextoRico?.focus();
+    editorTextoRico.editarNotaRodape(idNotaRodape);
+  }
+
+  removerNotaRodape(event: any): void {
+    const idNotaRodape = event.target.getAttribute('idNotaRodape');
+    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
+    editorTextoRico?.focus();
+    editorTextoRico.removerNotaRodape(idNotaRodape);
+  }
+
+  getEditorTextoRicoFromElement(element: any): any {
+    return element.closest('editor-texto-rico');
+  }
+
+  getTabFromElement(element: any): any {
+    return element.closest('sl-tab-panel');
+  }
+
+  getRestricoesConhecidas(): string[] {
+    return [
+      'Emendamento ou adição de anexos.',
+      'Emendamento ou adição de pena, penalidade etc.',
+      'Emendamento ou adição de especificação temática do dispositivo (usado para nome do tipo penal e outros).',
+      'Alteração de anexo de MP de crédito extraordinário.',
+      'Alteração do texto da proposição e proposta de adição de dispositivos onde couber na mesma emenda.',
+      'Alteração de norma que não segue a LC nº 95 de 98 (ex: norma com alíneas em parágrafos).',
+      'Casos especiais de numeração de parte (PARTE GERAL, PARTE ESPECIAL e uso de numeral ordinal por extenso).',
+      'Tabelas e imagens no texto da proposição.',
+    ];
   }
 }

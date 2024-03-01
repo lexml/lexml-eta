@@ -1,6 +1,11 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { EditorTextoRicoComponent } from '../../../src';
+import { EditorTextoRicoComponent, Usuario } from '../../../src';
 import { ajustaHtmlFromEditor, ajustaHtmlToEditor } from '../../../src/components/editor-texto-rico/texto-rico-util';
+import { rootStore } from '../../../src/redux/store';
+import { ativarDesativarRevisaoAction } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
+import { atualizarUsuarioAction } from '../../../src/model/lexml/acao/atualizarUsuarioAction';
+import { ModoEdicaoEmenda } from '../../../src/model/emenda/emenda';
+import { atualizaRevisaoTextoLivre } from '../../../src/redux/elemento/reducer/atualizaRevisaoTextoLivre';
 
 let editorTextoRico: EditorTextoRicoComponent;
 
@@ -23,7 +28,28 @@ describe('Testando funções de conversão de html', () => {
 
 describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
   beforeEach(async function () {
+    // const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    // state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE });
     editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<editor-texto-rico></editor-texto-rico>`);
+
+    rootStore.getState().elementoReducer = {
+      articulacao: undefined,
+      modo: ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE,
+      past: [],
+      present: [],
+      future: [],
+      ui: {
+        events: [],
+        alertas: [],
+      },
+      revisoes: [],
+      emRevisao: undefined,
+      numEventosPassadosAntesDaRevisao: 0,
+    };
+
+    const usuario = new Usuario();
+    usuario.nome = 'Teste';
+    rootStore.dispatch(atualizarUsuarioAction.execute(usuario));
   });
 
   it('Deveria exibir o editor', () => {
@@ -32,14 +58,14 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
     expect(editorTextoRico).to.be.an.instanceOf(EditorTextoRicoComponent);
   });
 
-  // it('Deveria simular o click no botão de inserir tabela', async () => {
-  //   const tabela = editorTextoRico.querySelector('.ql-table .ql-picker-label');
-  //   tabela?.dispatchEvent(new Event('mousedown'));
-  //   expect(tabela).to.not.be.null;
-  // });
+  it('Deveria simular o click no botão de inserir tabela', async () => {
+    const tabela = editorTextoRico.querySelector('.ql-table .ql-picker-label');
+    tabela?.dispatchEvent(new Event('mousedown'));
+    expect(tabela).to.not.be.null;
+  });
 
   describe('Testando inicialização de texto no editor', () => {
-    beforeEach(async function () {
+    beforeEach(function () {
       editorTextoRico.setContent(htmlEmenda);
     });
 
@@ -64,7 +90,7 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
   });
 
   describe('Testando inclusão de tabela com 2 linhas e 2 colunas', () => {
-    beforeEach(async function () {
+    beforeEach(function () {
       const el = editorTextoRico.querySelector('span.ql-table span[data-value="newtable_2_2"]')! as any;
       el.click();
     });
@@ -77,6 +103,54 @@ describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
       expect(nTables).to.be.equal(1);
       expect(nRows).to.be.equal(2);
       expect(nCols).to.be.equal(4);
+    });
+  });
+
+  describe('Testando revisão de texto', () => {
+    describe('Inicializando texto no editor', () => {
+      beforeEach(function () {
+        editorTextoRico.setContent('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      });
+
+      afterEach(function () {
+        atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+        expect(rootStore.getState().elementoReducer.emRevisao).to.be.false;
+        expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+      });
+
+      it('Deveria apresentar atributo texto com valor "<p>Parágrafo 1</p><p>Parágrafo 2</p>"', () => {
+        expect(editorTextoRico.texto).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+      });
+
+      it('Deveria apresentar atributo textoAntesRevisao igual a undefined', () => {
+        expect(editorTextoRico.textoAntesRevisao).to.be.undefined;
+      });
+
+      it('Atributo "emRevisao" deveria ser true', () => {
+        expect(rootStore.getState().elementoReducer.emRevisao).to.be.true;
+      });
+
+      describe('Ativando revisão e alterando texto', () => {
+        it('Deveria estar em modo de revisão e apresentar textoAntesRevisao igual a "<p>Parágrafo 1</p><p>Parágrafo 2</p>" *', () => {
+          editorTextoRico.quill?.insertText(0, 'TESTE');
+          expect(editorTextoRico.texto).to.be.equal('<p>TESTEParágrafo 1</p><p>Parágrafo 2</p>');
+          // expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+        });
+      });
+
+      describe('Ativando revisão, alterando texto e desfazendo alteração', () => {
+        it('Deveria estar em modo de revisão e apresentar textoAntesRevisao igual a "<p>Parágrafo 1</p><p>Parágrafo 2</p>" **', () => {
+          editorTextoRico.quill?.insertText(0, 'TESTE');
+          expect(editorTextoRico.texto).to.be.equal('<p>TESTEParágrafo 1</p><p>Parágrafo 2</p>');
+          // expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+
+          editorTextoRico.quill?.deleteText(0, 5);
+          // expect(editorTextoRico.textoAntesRevisao).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>'); // Continua igual porque as revisões ainda não foram aceitas
+          expect(editorTextoRico.texto).to.be.equal('<p>Parágrafo 1</p><p>Parágrafo 2</p>');
+        });
+      });
     });
   });
 });

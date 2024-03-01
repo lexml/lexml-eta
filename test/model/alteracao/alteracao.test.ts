@@ -36,7 +36,7 @@ describe('Bloco de Alteração', () => {
         artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!, TipoDispositivo.paragrafo.tipo));
         artigo.alteracoes!.addFilho(criaDispositivo(artigoBloco!, TipoDispositivo.omissis.tipo));
       });
-      it('O bloco de alteração tem um artigo e um omissis', () => {
+      it('O bloco de alteração tem um artigo e uma linha pontilhada', () => {
         expect(artigo.alteracoes!.filhos.length).to.equal(6);
         expect(artigo.alteracoes!.filhos[0].tipo).to.equal(TipoDispositivo.artigo.name);
         expect(artigo.alteracoes!.filhos[1].tipo).to.equal(TipoDispositivo.omissis.name);

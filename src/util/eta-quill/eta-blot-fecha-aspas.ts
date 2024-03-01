@@ -22,7 +22,7 @@ export class EtaBlotFechaAspas extends EtaBlot {
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotFechaAspas.className);
 
-    node.innerHTML = EtaBlotFechaAspas.montarHTML(elemento);
+    EtaBlotFechaAspas.__atualizarAtributos(elemento, node);
 
     return node;
   }
@@ -33,7 +33,16 @@ export class EtaBlotFechaAspas extends EtaBlot {
 
   public atualizarAtributos(elemento: Elemento): void {
     this.elemento = elemento;
-    this.domNode.innerHTML = EtaBlotFechaAspas.montarHTML(elemento);
+    EtaBlotFechaAspas.__atualizarAtributos(elemento, this.domNode);
+  }
+
+  private static __atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
+    if (elemento.fechaAspas) {
+      node.setAttribute('exibir', '');
+    } else {
+      node.removeAttribute('exibir');
+    }
+    node.innerHTML = EtaBlotFechaAspas.montarHTML(elemento);
   }
 
   private static montarHTML(elemento: Elemento): string {

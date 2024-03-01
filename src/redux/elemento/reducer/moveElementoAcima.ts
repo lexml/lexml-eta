@@ -20,7 +20,7 @@ import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { buildId } from '../../../model/lexml/util/idUtil';
+import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
@@ -95,9 +95,16 @@ export const moveElementoAcima = (state: any, action: any): State => {
     paiAntigo.renumeraFilhos();
   }
 
-  getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
+  getDispositivoAndFilhosAsLista(atual).forEach(d => {
+    d.id = buildId(d);
+    isArtigo(d) && buildIdCaputEAlteracao(d);
+  });
   const dPosterior = atual.pai!.filhos[atual.pai!.indexOf(atual) + 1];
-  dPosterior && getDispositivoAndFilhosAsLista(dPosterior).forEach(d => (d.id = buildId(d)));
+  dPosterior &&
+    getDispositivoAndFilhosAsLista(dPosterior).forEach(d => {
+      d.id = buildId(d);
+      isArtigo(d) && buildIdCaputEAlteracao(d);
+    });
 
   const referencia = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d) && !isArticulacaoAlteracao(d))!;
 

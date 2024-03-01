@@ -8,7 +8,7 @@ export class RestaurarElemento implements ElementoAction {
   tipo?: string;
 
   constructor() {
-    this.descricao = 'Abandonar modificações';
+    this.descricao = 'Restaurar texto original';
   }
 
   execute(atual: Referencia): any {

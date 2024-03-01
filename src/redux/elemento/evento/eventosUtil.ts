@@ -1,7 +1,7 @@
 import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { Artigo } from './../../../model/dispositivo/dispositivo';
-import { hasFilhos, getAgrupadorAntes } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -157,6 +157,8 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   const removido = createElemento(atual, false, true);
   const irmaoAnterior = getDispositivoAnteriorMesmoTipo(atual);
 
+  const notaAlteracao = isDispositivoAlteracao(atual) && isDispositivoCabecaAlteracao(atual) ? atual.notaAlteracao : undefined;
+
   const agrupadorAntes = getAgrupadorAntes(atual);
 
   const pai = agrupadoresAnteriorMesmoTipo?.length > 0 ? agrupadoresAnteriorMesmoTipo.reverse()[0] : atual.pai!;
@@ -170,7 +172,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   atual.filhos.forEach(d => {
     let novoPai: Dispositivo;
     if (isArtigo(d)) {
-      novoPai = agrupadorAntes ?? articulacao;
+      novoPai = agrupadorAntes ?? (isDispositivoAlteracao(d) ? getArticulacaoAlteracao(d) : articulacao);
     } else if (pai.tiposPermitidosFilhos?.includes(d.tipo)) {
       novoPai = pai;
     } else if (dispositivoAnterior.tiposPermitidosFilhos?.includes(d.tipo)) {
@@ -180,6 +182,9 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     }
 
     d.pai = novoPai;
+    if (isDispositivoAlteracao(d) && isArtigo(d) && isArticulacaoAlteracao(d.pai!)) {
+      d.notaAlteracao = notaAlteracao;
+    }
     atual.removeFilho(d);
 
     if (agrupadoresAnteriorMesmoTipo?.length > 0) {

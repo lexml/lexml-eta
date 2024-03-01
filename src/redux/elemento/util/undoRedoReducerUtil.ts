@@ -37,6 +37,7 @@ import {
 } from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
+import { buildId } from '../../../model/lexml/util/idUtil';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
@@ -101,6 +102,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
       (novo as Artigo).alteracoes!.base = elemento.norma;
       novo.alteracoes!.situacao = new DispositivoAdicionado();
       (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+      novo.alteracoes!.id = buildId(novo.alteracoes!);
     }
   }
   return novo;

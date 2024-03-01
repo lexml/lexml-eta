@@ -76,6 +76,13 @@ export class AutocompleteNorma extends LitElement {
     if (this.urnInicial) {
       this._getNormaByURN(this.urnInicial);
     }
+    this.focusAutoComplete();
+  }
+
+  focusAutoComplete(): void {
+    setTimeout(() => {
+      this._autoCompleteAsync.focus();
+    }, 100);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -96,6 +103,10 @@ export class AutocompleteNorma extends LitElement {
           height: 85px;
           margin-top: 10px;
           overflow-y: auto;
+          border: 1px solid var(--sl-color-gray-300);
+          padding: 5px;
+          border-radius: var(--sl-border-radius-small);
+          background-color: var(--sl-color-gray-100);
         }
         .wp-ementa p {
           margin: 0;

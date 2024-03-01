@@ -1,6 +1,6 @@
 {
   "name": "@lexml/lexml-eta",
-  "version": "1.4.0",
+  "version": "1.5.1",
   "description": "Webcomponent lexml-eta following open-wc recommendations",
   "author": "lexml-eta",
   "license": "GPL-2.0-only",
@@ -38,6 +38,7 @@
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "test": "rimraf out-tsc && tsc && npm run copy:quill1table && wtr --coverage",
     "test:watch": "rimraf out-tsc && tsc && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
+    "test:watch:comando-emenda": "rimraf out-tsc && tsc && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr ./out-tsc/test/emenda/**/*.test.js --watch\"",
     "storybook": "tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds -c .storybook/server.mjs\"",
     "storybook:build": "tsc && build-storybook",
     "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
@@ -49,12 +50,14 @@
     "diff": "^5.1.0",
     "elix": "^14.1.2",
     "font-awesome": "^4.7.0",
+    "html-diff-ts": "^1.4.2",
     "lit": "^2.2.1",
     "pwa-helpers": "^0.9.1",
     "quill": "^1.3.7",
     "redux": "^4.0.5",
     "redux-devtools-extension": "^2.13.8",
     "reselect": "^4.0.0",
+    "shadow-selection-polyfill": "^1.1.0",
     "sinon": "^9.2.4"
   },
   "devDependencies": {
