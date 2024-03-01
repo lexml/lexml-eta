@@ -93,6 +93,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
+  showAlterarLarguraImagemModal(img: any, width: string): void {
+    this.alterarLarguraImagemModal.show(img, width);
+  }
+
   private showAlterarLarguraColunaModal(width: string): void {
     this.alterarLarguraColunaModal.show(width);
   }
