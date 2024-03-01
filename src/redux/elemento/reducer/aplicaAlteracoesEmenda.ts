@@ -97,6 +97,8 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 
   retorno.ui!.events = eventos.build();
 
+  renumeraParagrafosUnicos(retorno);
+
   const elementosInseridos: Elemento[] = [];
   retorno.ui!.events.filter(stateEvent => stateEvent.stateType === StateType.ElementoIncluido).forEach(se => elementosInseridos.push(...se.elementos!));
 
@@ -119,6 +121,16 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   return retorno;
 };
 
+const renumeraParagrafosUnicos = (state: any): Dispositivo[] => {
+  // Trata renumeração de parágrafo único
+  let paragrafosUnicos = getDispositivoAndFilhosAsLista(state.articulacao)
+    .filter(d => isAdicionado(d) && isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
+    .map(d => d.pai!.filhos.find(f => f.id?.endsWith('par1u'))!);
+  paragrafosUnicos = [...new Set(paragrafosUnicos)];
+  paragrafosUnicos.map(d => d.pai!).forEach(d => d.renumeraFilhos());
+  return paragrafosUnicos;
+};
+
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
   const tiposAgrupadorArtigo = getTiposAgrupadorArtigoOrdenados();
   const eventos: StateEvent[] = [];
@@ -130,15 +142,6 @@ const processaDispositivosAdicionados = (state: any, alteracoesEmenda: Dispositi
       eventos.push(criaEventoElementosIncluidos(state, da));
     }
   }
-
-  // Trata renumeração de parágrafo único
-  let paragrafosUnicos = getDispositivoAndFilhosAsLista(state.articulacao)
-    .filter(d => isAdicionado(d) && isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
-    .map(d => d.pai!.filhos.find(f => f.id?.endsWith('par1u'))!);
-  paragrafosUnicos = [...new Set(paragrafosUnicos)];
-  paragrafosUnicos.map(d => d.pai!).forEach(d => d.renumeraFilhos());
-
-  paragrafosUnicos.length && eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: paragrafosUnicos.map(d => createElemento(d)) });
 
   return eventos;
 };
