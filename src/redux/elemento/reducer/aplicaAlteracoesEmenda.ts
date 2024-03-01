@@ -132,14 +132,13 @@ const processaDispositivosAdicionados = (state: any, alteracoesEmenda: Dispositi
   }
 
   // Trata renumeração de parágrafo único
-  const adicionados = getDispositivoAndFilhosAsLista(state.articulacao)
+  let paragrafosUnicos = getDispositivoAndFilhosAsLista(state.articulacao)
     .filter(d => isAdicionado(d) && isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
     .map(d => d.pai!.filhos.find(f => f.id?.endsWith('par1u'))!);
+  paragrafosUnicos = [...new Set(paragrafosUnicos)];
+  paragrafosUnicos.map(d => d.pai!).forEach(d => d.renumeraFilhos());
 
-  const pais = new Set(adicionados.map(d => d.pai!));
-  [...pais].forEach(d => d.renumeraFilhos());
-
-  eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: Array.from(new Set(adicionados)).map(d => createElemento(d)) });
+  paragrafosUnicos.length && eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: paragrafosUnicos.map(d => createElemento(d)) });
 
   return eventos;
 };
