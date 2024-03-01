@@ -41,6 +41,7 @@ export const autoFixElemento = (state: any, action: any): State => {
 
       const novo = criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
       novo.situacao = new DispositivoAdicionado();
+      (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
       novo.mensagens = validaDispositivo(novo);
       const elementoNovo = createElemento(novo, true);
 
