@@ -32,7 +32,6 @@ export class EtaContainerTable extends EtaContainer {
 
   static create(elemento: Elemento): any {
     const node: HTMLElement = super.create();
-    const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();
 
     // node.setAttribute('contenteditable', 'false'); //elemento?.editavel ? 'true' : 'false');
     node.setAttribute('class', EtaContainerTable.className + ' ' + EtaContainerTable.getClasseCSS(elemento));
@@ -40,10 +39,8 @@ export class EtaContainerTable extends EtaContainer {
 
     EtaContainerTable.atualizarAtributoRevisao(elemento, node);
     EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, node);
+    EtaContainerTable.atualizarAtributoOmissis(elemento, node);
 
-    if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
-      node.classList.add('container_elemento--omissis');
-    }
     return node;
   }
 
@@ -292,9 +289,19 @@ export class EtaContainerTable extends EtaContainer {
     }
   }
 
+  static atualizarAtributoOmissis(elemento: Elemento, node: HTMLElement): void {
+    const conteudo: string = normalizaSeForOmissis(elemento.conteudo?.texto ?? '').trim();
+    if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
+      node.classList.add('container_elemento--omissis');
+    } else {
+      node.classList.remove('container_elemento--omissis');
+    }
+  }
+
   atualizarAtributos(elemento: Elemento): void {
     EtaContainerTable.atualizarAtributoRevisao(elemento, this.domNode);
     EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, this.domNode);
+    EtaContainerTable.atualizarAtributoOmissis(elemento, this.domNode);
 
     this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);
