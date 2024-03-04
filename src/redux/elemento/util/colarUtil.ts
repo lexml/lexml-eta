@@ -606,7 +606,7 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
 };
 
 export const converterSufixoDosRotulos = (texto: string): string => {
-  const regexRotulo = /^((?:(?:art\.?|§|par[aá]grafo [uú]nico)\s*\d+)|(?:[IVXMDC]{1,3}|[a-z]{1,2}|\d{1,3}))-(\d+)/gim;
+  const regexRotulo = /^((?:(?:art\.?|§|par[aá]grafo [uú]nico)\s*\d+º?)|(?:[IVXMDC]{1,3}|[a-z]{1,2}|\d{1,3}))-(\d+)/gim;
 
   const fnSubstituicao = (match: string, grupo1: string, grupo2: string): string => {
     const numero = parseInt(grupo2);
