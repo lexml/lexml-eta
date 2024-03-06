@@ -97,7 +97,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 
   retorno.ui!.events = eventos.build();
 
-  renumeraParagrafosUnicos(retorno);
+  state.articulacao && renumeraParagrafosUnicos(retorno);
 
   const elementosInseridos: Elemento[] = [];
   retorno.ui!.events.filter(stateEvent => stateEvent.stateType === StateType.ElementoIncluido).forEach(se => elementosInseridos.push(...se.elementos!));
