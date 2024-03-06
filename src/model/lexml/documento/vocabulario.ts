@@ -110,6 +110,11 @@ export const VOCABULARIO = {
       genero: 'M',
     },
     {
+      urn: 'projeto.lei.complementar;pl',
+      descricao: 'Projeto de Lei Complementar',
+      genero: 'M',
+    },
+    {
       urn: 'projeto.lei.complementar;pls',
       descricao: 'Projeto de Lei Complementar do Senado',
       genero: 'M',
