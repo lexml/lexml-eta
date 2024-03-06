@@ -84,9 +84,10 @@ const getMetadado = (documento: any): Metadado => {
 };
 
 const getParteInicial = (documento: any): ParteInicial => {
-  const epigrafe = documento?.value?.projetoNorma?.norma?.parteInicial?.epigrafe?.content[0] ?? '';
-  const ementa = buildContent(documento?.value?.projetoNorma?.norma?.parteInicial?.ementa.content);
-  const preambulo = documento?.value?.projetoNorma?.norma?.parteInicial?.preambulo?.p[0].content[0] ?? '';
+  const parteInicial = documento?.value?.projetoNorma?.norma?.parteInicial;
+  const epigrafe = parteInicial?.epigrafe?.content[0] ?? '';
+  const ementa = buildContent(parteInicial?.ementa.content);
+  const preambulo = parteInicial?.preambulo?.p?.length ? parteInicial?.preambulo?.p[0].content[0] : '';
 
   return {
     epigrafe: retiraCaracteresDesnecessarios(epigrafe),
