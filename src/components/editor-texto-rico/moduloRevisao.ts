@@ -96,7 +96,13 @@ class InsBlot extends InlineRevisionBaseFormat {}
 InsBlot.blotName = 'added';
 InsBlot.tagName = 'ins';
 
-class DelBlot extends InlineRevisionBaseFormat {}
+class DelBlot extends InlineRevisionBaseFormat {
+  static create(value) {
+    let node = super.create(value);
+    node.setAttribute('contenteditable', 'false');
+    return node;
+  }
+}
 DelBlot.blotName = 'removed';
 DelBlot.tagName = 'del';
 
@@ -549,6 +555,7 @@ class ModuloRevisao extends Module {
       quill.updateContents({ ops }, 'user');
       // quill.setSelection(deslocamento === 1 ? index + length : index);
       quill.setSelection(posicao);
+      //quill.setSelection(0);
 
       return false;
     }
