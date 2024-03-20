@@ -1,4 +1,9 @@
-import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador, processarRestaurados } from './../util/undoRedoReducerUtil';
+import {
+  ajustarAtributosAgrupadorIncluidoPorUndoRedo,
+  ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
+  isUndoRedoInclusaoExclusaoAgrupador,
+  processarRestaurados,
+} from './../util/undoRedoReducerUtil';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -44,16 +49,21 @@ export const redo = (state: any): State => {
     tempState.present = [];
     tempState.future = [];
 
-    if (eventos[0].stateType === StateType.ElementoIncluido) {
-      const ref = eventos.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
-      const elementoASerIncluido = eventos[0].elementos[0];
+    const listaSemEventosDeRevisao = eventos.filter(
+      (se: StateEvent) => ![StateType.RevisaoAceita, StateType.RevisaoRejeitada, StateType.RevisaoAdicionalRejeitada].includes(se.stateType)
+    );
+
+    if (listaSemEventosDeRevisao[0].stateType === StateType.ElementoIncluido) {
+      const ref = listaSemEventosDeRevisao.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
+      const elementoASerIncluido = listaSemEventosDeRevisao[0].elementos[0];
       tempState = agrupaElemento(tempState, {
         atual: ref,
         novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
       });
-      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventos, tempState.ui!.events);
+      ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, listaSemEventosDeRevisao, tempState.ui!.events);
+      ajustarHierarquivoAgrupadorIncluidoPorUndoRedo(state.articulacao, listaSemEventosDeRevisao, tempState.ui!.events);
     } else {
-      tempState = removeElemento(tempState, { atual: eventos[0].elementos[0] });
+      tempState = removeElemento(tempState, { atual: listaSemEventosDeRevisao[0].elementos[0] });
     }
 
     const eventosRevisao = getEventosDeRevisao(eventos);

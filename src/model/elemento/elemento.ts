@@ -43,4 +43,5 @@ export class Elemento extends Referencia {
   artigoDefinido?: string;
   elementoAnteriorNaSequenciaDeLeitura?: Referencia;
   revisao?: Revisao;
+  ultimoFilhoDireto?: Referencia;
 }

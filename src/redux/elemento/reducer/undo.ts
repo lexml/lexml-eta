@@ -7,6 +7,7 @@ import {
   processarRestaurados,
   processarSuprimidos,
   processarRevisoesAceitasOuRejeitadas,
+  ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -61,6 +62,7 @@ export const undo = (state: any): State => {
         novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
       });
       ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventosFiltrados, tempState.ui!.events);
+      ajustarHierarquivoAgrupadorIncluidoPorUndoRedo(state.articulacao, eventosFiltrados, tempState.ui!.events);
     }
 
     const eventosRevisao = [

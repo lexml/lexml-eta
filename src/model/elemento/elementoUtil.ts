@@ -134,6 +134,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     tiposAgrupadoresQuePodemSerInseridosDepois: getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo),
     artigoDefinido: dispositivo.artigoDefinido,
     elementoAnteriorNaSequenciaDeLeitura,
+    ultimoFilhoDireto:
+      isAgrupador(dispositivo) && isDispositivoAlteracao(dispositivo) && dispositivo.filhos.length ? createElemento(dispositivo.filhos[dispositivo.filhos.length - 1]) : undefined,
   };
 };
 
