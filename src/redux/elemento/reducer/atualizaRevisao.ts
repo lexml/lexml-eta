@@ -401,7 +401,9 @@ const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
   revisoes = getRevisoesElemento(state.revisoes || []).filter(r => isRevisaoPrincipal(r) && isRevisaoDeExclusao(r));
   revisoes.forEach(r => {
     const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao.hierarquia!.pai!)!;
-    r.elementoAposRevisao.hierarquia!.pai!.lexmlId = d.id;
+    if (d) {
+      r.elementoAposRevisao.hierarquia!.pai!.lexmlId = d.id;
+    }
   });
 };
 
