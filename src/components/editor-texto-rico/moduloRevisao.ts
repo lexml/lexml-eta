@@ -143,6 +143,10 @@ class CustomKeyboard extends Keyboard {
   }
 
   private isTeclaQueAlteraTexto(ev: KeyboardEvent): boolean {
+    if (['Delete', 'Backspace', 'Quote', 'Dead'].includes(ev.key) || ev.key.length === 1 || ev.code === 'KeyV') {
+      return true;
+    }
+
     // Se teclas Ctrl, Alt ou Meta(?) estiverem pressionadas não faz nada
     // Atalhos para recortar e colar serão tratados em outro lugar
     if (ev.ctrlKey || ev.altKey || ev.metaKey) {
@@ -151,13 +155,6 @@ class CustomKeyboard extends Keyboard {
 
     if (this.altGraphPressionado && !this.isTeclaComCaracterGrafico(ev)) {
       return false;
-    }
-
-    // Verifica se é um caracter que altera texto
-    // OBS: 'Enter' não será tratado porque essa tecla cria um novo elemento e esta ação irá disparar
-    //      um evento onchange por conta própria.
-    if (['Delete', 'Backspace', 'Quote', 'Dead'].includes(ev.key) || ev.key.length === 1) {
-      return true;
     }
 
     return false;
@@ -471,7 +468,7 @@ class ModuloRevisao extends Module {
   }
 
   handleKeyDown(e) {
-    //console.log(e)
+    console.log(e);
     // Não implementado
   }
 
