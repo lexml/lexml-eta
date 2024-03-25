@@ -3,6 +3,7 @@
 /* eslint-disable eqeqeq */
 
 import { Modo } from '../../redux/elemento/enum/enumUtil';
+import { cancelarPropagacaoDoEvento } from '../../util/event-util';
 import { generateUUID } from '../../util/uuid';
 
 /* eslint-disable prefer-const */
@@ -99,7 +100,7 @@ InsBlot.tagName = 'ins';
 class DelBlot extends InlineRevisionBaseFormat {
   static create(value) {
     let node = super.create(value);
-    node.setAttribute('contenteditable', 'false');
+    //node.setAttribute('contenteditable', 'false');
     return node;
   }
 }
@@ -121,8 +122,51 @@ class CustomKeyboard extends Keyboard {
 
   onKeyDown(e) {
     if (this.quill?.revisao?.gerenciarKeydown && this.quill?.revisao?.emRevisao) {
+      const range = this.quill.getSelection();
+      const blot = this.quill.getLeaf(range.index)[0];
+
+      if (blot?.parent?.domNode?.tagName === 'DEL') {
+        if (this.isTeclaQueAlteraTexto(e) || this.isNotTeclasDeNavegacao(e)) {
+          cancelarPropagacaoDoEvento(e);
+        }
+      }
+
+      //this.quill.getSelection();
       this.quill.revisao.handleKeyDown(e);
     }
+  }
+
+  private isNotTeclasDeNavegacao(ev: KeyboardEvent): boolean {
+    return (
+      !ev.ctrlKey && ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown' && ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End' && !ev.shiftKey
+    );
+  }
+
+  private isTeclaQueAlteraTexto(ev: KeyboardEvent): boolean {
+    // Se teclas Ctrl, Alt ou Meta(?) estiverem pressionadas não faz nada
+    // Atalhos para recortar e colar serão tratados em outro lugar
+    if (ev.ctrlKey || ev.altKey || ev.metaKey) {
+      return false;
+    }
+
+    if (this.altGraphPressionado && !this.isTeclaComCaracterGrafico(ev)) {
+      return false;
+    }
+
+    // Verifica se é um caracter que altera texto
+    // OBS: 'Enter' não será tratado porque essa tecla cria um novo elemento e esta ação irá disparar
+    //      um evento onchange por conta própria.
+    if (['Delete', 'Backspace', 'Quote', 'Dead'].includes(ev.key) || ev.key.length === 1) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private isTeclaComCaracterGrafico(ev: KeyboardEvent): boolean {
+    const teclasComCaracterGrafico = '123456=[]/';
+    const DOM_KEY_LOCATION_NUMPAD = 3; //
+    return ev.location !== DOM_KEY_LOCATION_NUMPAD && teclasComCaracterGrafico.includes(ev.key);
   }
 }
 
@@ -427,6 +471,7 @@ class ModuloRevisao extends Module {
   }
 
   handleKeyDown(e) {
+    //console.log(e)
     // Não implementado
   }
 
@@ -544,6 +589,7 @@ class ModuloRevisao extends Module {
 
             if (deslocamento === 1) {
               posicao += numChars;
+              //posicao += 3;
             }
           }
         }
@@ -552,10 +598,11 @@ class ModuloRevisao extends Module {
       index && ops.unshift({ retain: index });
 
       this.ignorarEventoTextChange = true;
+
       quill.updateContents({ ops }, 'user');
-      // quill.setSelection(deslocamento === 1 ? index + length : index);
       quill.setSelection(posicao);
-      //quill.setSelection(0);
+      // quill.setSelection(deslocamento === 1 ? index + length : index);
+      //quill.setSelection(8);
 
       return false;
     }
@@ -566,12 +613,11 @@ class ModuloRevisao extends Module {
   onTextChange(delta, oldContent, source) {
     const isInsertJaFormatadoEmModoDeRevisao = delta.ops.find(op => op.insert)?.attributes?.added;
     const apenasNovaLinha = delta.ops.length === 2 && delta.ops[0].retain && delta.ops[1].insert === '\n';
+    const quill = this.quill;
     if (this.ignorarEventoTextChange || !this.emRevisao || isInsertJaFormatadoEmModoDeRevisao || !delta.ops.length || apenasNovaLinha) {
       this.ignorarEventoTextChange = false;
       return;
     }
-
-    const quill = this.quill;
 
     if (quill.history.stack.undo.length === 0) return;
 
