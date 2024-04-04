@@ -3,6 +3,7 @@
 /* eslint-disable eqeqeq */
 
 import { Modo } from '../../redux/elemento/enum/enumUtil';
+import { cancelarPropagacaoDoEvento } from '../../util/event-util';
 import { generateUUID } from '../../util/uuid';
 
 /* eslint-disable prefer-const */
@@ -10,7 +11,7 @@ const Delta = Quill.import('delta');
 const Parchment = Quill.import('parchment');
 const Module = Quill.import('core/module');
 const Inline = Quill.import('blots/inline');
-// const clipboard = Quill.import("modules/clipboard");
+const Clipboard = Quill.import('modules/clipboard');
 const Keyboard = Quill.import('modules/keyboard');
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -96,15 +97,15 @@ class InsBlot extends InlineRevisionBaseFormat {}
 InsBlot.blotName = 'added';
 InsBlot.tagName = 'ins';
 
-class DelBlot extends InlineRevisionBaseFormat {
-  static create(value) {
-    let node = super.create(value);
-    node.setAttribute('contenteditable', 'false');
-    return node;
-  }
-}
+class DelBlot extends InlineRevisionBaseFormat {}
 DelBlot.blotName = 'removed';
 DelBlot.tagName = 'del';
+
+const cursorEstaSobreBlotDel = quill => {
+  const range = quill.getSelection();
+  const blot = range && quill.getLeaf(range.index)[0];
+  return blot?.statics.blotName === DelBlot.blotName || blot?.parent?.statics.blotName === DelBlot.blotName;
+};
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -116,6 +117,7 @@ DelBlot.tagName = 'del';
 class CustomKeyboard extends Keyboard {
   listen() {
     this.quill.root.addEventListener('keydown', this.onKeyDown.bind(this));
+    this.quill.root.addEventListener('keypress', this.onKeyPress.bind(this));
     super.listen();
   }
 
@@ -123,6 +125,23 @@ class CustomKeyboard extends Keyboard {
     if (this.quill?.revisao?.gerenciarKeydown && this.quill?.revisao?.emRevisao) {
       this.quill.revisao.handleKeyDown(e);
     }
+  }
+
+  onKeyPress(e) {
+    if (cursorEstaSobreBlotDel(this.quill)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+}
+
+class CustomClipboard extends Clipboard {
+  onPaste(e) {
+    if (cursorEstaSobreBlotDel(this.quill)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    super.onPaste(e);
   }
 }
 
@@ -139,6 +158,7 @@ class ModuloRevisao extends Module {
 
   static register() {
     Quill.register('modules/keyboard', CustomKeyboard, true);
+    Quill.register('modules/clipboard', CustomClipboard, true);
     Quill.register(InsBlot, true);
     Quill.register(DelBlot, true);
   }
@@ -166,6 +186,8 @@ class ModuloRevisao extends Module {
     this.quill.on('text-change', this.onTextChange.bind(this));
 
     this.quill.root.addEventListener('click', this.tratarClick.bind(this));
+
+    this.quill.root.addEventListener('cut', this.onCut.bind(this));
 
     if (this.tableModule) {
       const toolbar = this.quill?.getModule('toolbar');
@@ -427,6 +449,7 @@ class ModuloRevisao extends Module {
   }
 
   handleKeyDown(e) {
+    console.log(e);
     // Não implementado
   }
 
@@ -552,26 +575,32 @@ class ModuloRevisao extends Module {
       index && ops.unshift({ retain: index });
 
       this.ignorarEventoTextChange = true;
-      quill.updateContents({ ops }, 'user');
-      // quill.setSelection(deslocamento === 1 ? index + length : index);
-      quill.setSelection(posicao);
-      //quill.setSelection(0);
 
+      quill.updateContents({ ops }, 'user');
+      quill.setSelection(posicao);
       return false;
     }
 
     return true;
   }
 
+  onCut(e) {
+    if (this.quill?.revisao?.emRevisao) {
+      const range = this.quill.getSelection();
+      if (range?.length > 0) {
+        this.handleRemove(range, null, null);
+      }
+    }
+  }
+
   onTextChange(delta, oldContent, source) {
     const isInsertJaFormatadoEmModoDeRevisao = delta.ops.find(op => op.insert)?.attributes?.added;
     const apenasNovaLinha = delta.ops.length === 2 && delta.ops[0].retain && delta.ops[1].insert === '\n';
+    const quill = this.quill;
     if (this.ignorarEventoTextChange || !this.emRevisao || isInsertJaFormatadoEmModoDeRevisao || !delta.ops.length || apenasNovaLinha) {
       this.ignorarEventoTextChange = false;
       return;
     }
-
-    const quill = this.quill;
 
     if (quill.history.stack.undo.length === 0) return;
 

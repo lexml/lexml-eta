@@ -48,7 +48,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
   }
 
   onPaste(e: ClipboardEvent): void {
-    if (this.quill.cursorDeTextoEstaSobreLink()) {
+    if (this.quill.cursorDeTextoEstaSobreLink() || this.quill.cursorDeTextoEstaSobreOmissis()) {
       cancelarPropagacaoDoEvento(e);
       return;
     }
