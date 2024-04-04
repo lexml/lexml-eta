@@ -187,6 +187,8 @@ class ModuloRevisao extends Module {
 
     this.quill.root.addEventListener('click', this.tratarClick.bind(this));
 
+    this.quill.root.addEventListener('cut', this.onCut.bind(this));
+
     if (this.tableModule) {
       const toolbar = this.quill?.getModule('toolbar');
 
@@ -580,6 +582,15 @@ class ModuloRevisao extends Module {
     }
 
     return true;
+  }
+
+  onCut(e) {
+    if (this.quill?.revisao?.emRevisao) {
+      const range = this.quill.getSelection();
+      if (range?.length > 0) {
+        this.handleRemove(range, null, null);
+      }
+    }
   }
 
   onTextChange(delta, oldContent, source) {
