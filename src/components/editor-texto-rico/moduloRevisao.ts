@@ -164,16 +164,16 @@ class CustomClipboard extends Clipboard {
     const selection = window.getSelection();
 
     if (selection) {
-      // Cria um elemento div temporário para armazenar a seleção
-      const tempElement = document.createElement('div');
-
-      // Clona a seleção e a insere no elemento div temporário
-      for (let i = 0; i < selection.rangeCount; i++) {
-        tempElement.appendChild(selection.getRangeAt(i).cloneContents());
-      }
-
-      // Copia o conteúdo do elemento div temporário para a área de transferência
       if (navigator.clipboard) {
+        // Cria um elemento div temporário para armazenar a seleção
+        const tempElement = document.createElement('div');
+
+        // Clona a seleção e a insere no elemento div temporário
+        for (let i = 0; i < selection.rangeCount; i++) {
+          tempElement.appendChild(selection.getRangeAt(i).cloneContents());
+        }
+
+        // Copia o conteúdo do elemento div temporário para a área de transferência
         navigator.clipboard
           .write([
             new ClipboardItem({
