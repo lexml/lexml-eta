@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable eqeqeq */
 
-import { Modo } from '../../redux/elemento/enum/enumUtil';
-import { cancelarPropagacaoDoEvento } from '../../util/event-util';
 import { generateUUID } from '../../util/uuid';
 
 /* eslint-disable prefer-const */
@@ -136,12 +134,59 @@ class CustomKeyboard extends Keyboard {
 }
 
 class CustomClipboard extends Clipboard {
+  constructor(quill, options) {
+    super(quill, options);
+    this.quill.root.addEventListener('cut', this.onCut.bind(this));
+  }
+
+  onCut(e) {
+    if (this.quill?.revisao?.emRevisao) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const range = this.quill.getSelection();
+      if (range?.length) {
+        this.copiarSelecaoParaClipboard();
+        this.quill?.revisao?.handleRemove(range, null, null);
+      }
+    }
+  }
+
   onPaste(e) {
     if (cursorEstaSobreBlotDel(this.quill)) {
       e.preventDefault();
       e.stopPropagation();
     }
     super.onPaste(e);
+  }
+
+  copiarSelecaoParaClipboard() {
+    const selection = window.getSelection();
+
+    if (selection) {
+      // Cria um elemento div temporário para armazenar a seleção
+      const tempElement = document.createElement('div');
+
+      // Clona a seleção e a insere no elemento div temporário
+      for (let i = 0; i < selection.rangeCount; i++) {
+        tempElement.appendChild(selection.getRangeAt(i).cloneContents());
+      }
+
+      // Copia o conteúdo do elemento div temporário para a área de transferência
+      if (navigator.clipboard) {
+        navigator.clipboard
+          .write([
+            new ClipboardItem({
+              'text/plain': new Blob([tempElement.innerText], { type: 'text/plain' }),
+              'text/html': new Blob([tempElement.outerHTML], { type: 'text/html' }),
+            }),
+          ])
+          .finally(() => tempElement.remove());
+      } else {
+        console.log('Clipboard API não suportada');
+        document.execCommand('copy'); // Alternativa para o caso de não suportar a Clipboard API
+      }
+    }
   }
 }
 
@@ -186,8 +231,6 @@ class ModuloRevisao extends Module {
     this.quill.on('text-change', this.onTextChange.bind(this));
 
     this.quill.root.addEventListener('click', this.tratarClick.bind(this));
-
-    this.quill.root.addEventListener('cut', this.onCut.bind(this));
 
     if (this.tableModule) {
       const toolbar = this.quill?.getModule('toolbar');
@@ -449,7 +492,6 @@ class ModuloRevisao extends Module {
   }
 
   handleKeyDown(e) {
-    console.log(e);
     // Não implementado
   }
 
@@ -457,7 +499,6 @@ class ModuloRevisao extends Module {
     // Handle para tratar colagem de trechos com tag <del>
     this.quill.clipboard.addMatcher('DEL', (node, delta) => {
       if (this.isAbrindoTexto) {
-        console.log('abrindo texto');
         return delta;
       } else {
         let match = Parchment.query(node);
@@ -526,7 +567,6 @@ class ModuloRevisao extends Module {
       this.ignorarEventoTextChange = true;
     }
 
-    // console.log(11111, 'REDO', this.quill.history.stack.redo[this.quill.history.stack.redo.length - 1]);
     if (hasModuloTabela) {
       return this.tableModule.keyboardHandler(this.quill, 'redo', range, context);
     } else {
@@ -582,15 +622,6 @@ class ModuloRevisao extends Module {
     }
 
     return true;
-  }
-
-  onCut(e) {
-    if (this.quill?.revisao?.emRevisao) {
-      const range = this.quill.getSelection();
-      if (range?.length > 0) {
-        this.handleRemove(range, null, null);
-      }
-    }
   }
 
   onTextChange(delta, oldContent, source) {
