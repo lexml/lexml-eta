@@ -1,3 +1,4 @@
+import { PL_5008_2023 } from './../doc/pl_5008_2023';
 import { LexmlEmendaConfig } from './../../src/model/lexmlEmendaConfig';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
@@ -45,6 +46,7 @@ const mapProjetosNormas = {
   pl_4687_2023: PL_4687_2023,
   pl_547_2018: PLS_547_2018,
   plp_137_2029: PLP_137_2019,
+  pl_5008_2023: PL_5008_2023,
   _codcivil_completo: COD_CIVIL_COMPLETO,
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,
