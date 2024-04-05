@@ -247,7 +247,7 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
 const buildContentDispositivo = (el: any): string => {
   let texto = '';
   if (el.value?.nomeAgrupador) {
-    return el.value.nomeAgrupador.content[0] ?? '';
+    return getTextoSemHtml(el.value.nomeAgrupador.content);
   } else {
     el.value?.p
       ?.map((p: any) => p)
@@ -255,6 +255,19 @@ const buildContentDispositivo = (el: any): string => {
       .forEach((content: any) => (texto += buildContent(content)));
   }
   return substituiAspasRetasPorCurvas(texto);
+};
+
+const getTextoSemHtml = (c: any): string => {
+  let ret = '';
+  c.forEach(ci => {
+    if (ci.value) {
+      ret += getTextoSemHtml(ci.value.content);
+    } else {
+      ret += ci ?? '';
+    }
+    ret += ' ';
+  });
+  return ret.trim();
 };
 
 const substituiAspasRetasPorCurvas = (html: string): string => {
