@@ -37,6 +37,10 @@ export class EtaKeyboard extends Keyboard {
       }
     });
 
+    this.quill.root.addEventListener('keypress', (ev: KeyboardEvent): void => {
+      this.bloqueiaAcentuacaoOmissis(ev);
+    });
+
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       this.altGraphPressionado = ev.altKey && ev.location === 2;
       const elementoLinhaAtual = this.quill.linhaAtual?.elemento;
@@ -181,6 +185,13 @@ export class EtaKeyboard extends Keyboard {
     const teclasComCaracterGrafico = '123456=[]/';
     const DOM_KEY_LOCATION_NUMPAD = 3; //
     return ev.location !== DOM_KEY_LOCATION_NUMPAD && teclasComCaracterGrafico.includes(ev.key);
+  }
+
+  private bloqueiaAcentuacaoOmissis(ev: KeyboardEvent): void {
+    if (this.quill.cursorDeTextoEstaSobreOmissis()) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
   }
 
   private isTeclaQueAlteraTexto(ev: KeyboardEvent): boolean {

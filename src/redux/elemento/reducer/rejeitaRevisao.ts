@@ -23,7 +23,7 @@ import {
   isRevisaoPrincipal,
 } from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { incluir } from '../util/undoRedoReducerUtil';
+import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, incluir } from '../util/undoRedoReducerUtil';
 import { agrupaElemento } from './agrupaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { removeElemento } from './removeElemento';
@@ -184,6 +184,25 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
         manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas,
       },
     });
+
+    const ev: StateEvent = { stateType: StateType.SituacaoElementoModificada, elementos: [elementoASerIncluido as Elemento] };
+    ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao!, [ev], tempState.ui!.events);
+    ajustarHierarquivoAgrupadorIncluidoPorUndoRedo(state.articulacao!, [ev], tempState.ui!.events);
+
+    // Atualiza elemento que seja agrupador de artigo em alteração de norma em eventos de inclusão
+    // Isso é necessário porque a rejeição da exclusão desse tipo de dispositivo pode ter alterado a hierarquia
+    tempState
+      .ui!.events!.filter(ev => ev.stateType === StateType.ElementoIncluido)
+      .forEach(ev => {
+        ev.elementos = ev.elementos?.map(e => {
+          if (e.agrupador && e.dispositivoAlteracao) {
+            const d = getDispositivoFromElemento(tempState.articulacao!, e)!;
+            return createElemento(d);
+          } else {
+            return e;
+          }
+        });
+      });
 
     result.push(...tempState.ui!.events!);
   } else {

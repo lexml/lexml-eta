@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable eqeqeq */
 
-import { Modo } from '../../redux/elemento/enum/enumUtil';
-import { cancelarPropagacaoDoEvento } from '../../util/event-util';
 import { generateUUID } from '../../util/uuid';
 
 /* eslint-disable prefer-const */
@@ -11,7 +9,7 @@ const Delta = Quill.import('delta');
 const Parchment = Quill.import('parchment');
 const Module = Quill.import('core/module');
 const Inline = Quill.import('blots/inline');
-// const clipboard = Quill.import("modules/clipboard");
+const Clipboard = Quill.import('modules/clipboard');
 const Keyboard = Quill.import('modules/keyboard');
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -97,15 +95,15 @@ class InsBlot extends InlineRevisionBaseFormat {}
 InsBlot.blotName = 'added';
 InsBlot.tagName = 'ins';
 
-class DelBlot extends InlineRevisionBaseFormat {
-  static create(value) {
-    let node = super.create(value);
-    //node.setAttribute('contenteditable', 'false');
-    return node;
-  }
-}
+class DelBlot extends InlineRevisionBaseFormat {}
 DelBlot.blotName = 'removed';
 DelBlot.tagName = 'del';
+
+const cursorEstaSobreBlotDel = quill => {
+  const range = quill.getSelection();
+  const blot = range && quill.getLeaf(range.index)[0];
+  return blot?.statics.blotName === DelBlot.blotName || blot?.parent?.statics.blotName === DelBlot.blotName;
+};
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -117,53 +115,78 @@ DelBlot.tagName = 'del';
 class CustomKeyboard extends Keyboard {
   listen() {
     this.quill.root.addEventListener('keydown', this.onKeyDown.bind(this));
+    this.quill.root.addEventListener('keypress', this.onKeyPress.bind(this));
     super.listen();
   }
 
   onKeyDown(e) {
     if (this.quill?.revisao?.gerenciarKeydown && this.quill?.revisao?.emRevisao) {
-      const range = this.quill.getSelection();
-      const blot = this.quill.getLeaf(range.index)[0];
-
-      if (blot?.parent?.domNode?.tagName === 'DEL') {
-        if (this.isTeclaQueAlteraTexto(e) || this.isNotTeclasDeNavegacao(e)) {
-          cancelarPropagacaoDoEvento(e);
-        }
-      }
-
-      //this.quill.getSelection();
       this.quill.revisao.handleKeyDown(e);
     }
   }
 
-  private isNotTeclasDeNavegacao(ev: KeyboardEvent): boolean {
-    return (
-      !ev.ctrlKey && ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown' && ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End' && !ev.shiftKey
-    );
+  onKeyPress(e) {
+    if (cursorEstaSobreBlotDel(this.quill)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+}
+
+class CustomClipboard extends Clipboard {
+  constructor(quill, options) {
+    super(quill, options);
+    this.quill.root.addEventListener('cut', this.onCut.bind(this));
   }
 
-  private isTeclaQueAlteraTexto(ev: KeyboardEvent): boolean {
-    if (['Delete', 'Backspace', 'Quote', 'Dead'].includes(ev.key) || ev.key.length === 1 || ev.code === 'KeyV') {
-      return true;
-    }
+  onCut(e) {
+    if (this.quill?.revisao?.emRevisao) {
+      e.preventDefault();
+      e.stopPropagation();
 
-    // Se teclas Ctrl, Alt ou Meta(?) estiverem pressionadas não faz nada
-    // Atalhos para recortar e colar serão tratados em outro lugar
-    if (ev.ctrlKey || ev.altKey || ev.metaKey) {
-      return false;
+      const range = this.quill.getSelection();
+      if (range?.length) {
+        this.copiarSelecaoParaClipboard();
+        this.quill?.revisao?.handleRemove(range, null, null);
+      }
     }
-
-    if (this.altGraphPressionado && !this.isTeclaComCaracterGrafico(ev)) {
-      return false;
-    }
-
-    return false;
   }
 
-  private isTeclaComCaracterGrafico(ev: KeyboardEvent): boolean {
-    const teclasComCaracterGrafico = '123456=[]/';
-    const DOM_KEY_LOCATION_NUMPAD = 3; //
-    return ev.location !== DOM_KEY_LOCATION_NUMPAD && teclasComCaracterGrafico.includes(ev.key);
+  onPaste(e) {
+    if (cursorEstaSobreBlotDel(this.quill)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    super.onPaste(e);
+  }
+
+  copiarSelecaoParaClipboard() {
+    const selection = window.getSelection();
+
+    if (selection) {
+      if (navigator.clipboard) {
+        // Cria um elemento div temporário para armazenar a seleção
+        const tempElement = document.createElement('div');
+
+        // Clona a seleção e a insere no elemento div temporário
+        for (let i = 0; i < selection.rangeCount; i++) {
+          tempElement.appendChild(selection.getRangeAt(i).cloneContents());
+        }
+
+        // Copia o conteúdo do elemento div temporário para a área de transferência
+        navigator.clipboard
+          .write([
+            new ClipboardItem({
+              'text/plain': new Blob([tempElement.innerText], { type: 'text/plain' }),
+              'text/html': new Blob([tempElement.outerHTML], { type: 'text/html' }),
+            }),
+          ])
+          .finally(() => tempElement.remove());
+      } else {
+        console.log('Clipboard API não suportada');
+        document.execCommand('copy'); // Alternativa para o caso de não suportar a Clipboard API
+      }
+    }
   }
 }
 
@@ -180,6 +203,7 @@ class ModuloRevisao extends Module {
 
   static register() {
     Quill.register('modules/keyboard', CustomKeyboard, true);
+    Quill.register('modules/clipboard', CustomClipboard, true);
     Quill.register(InsBlot, true);
     Quill.register(DelBlot, true);
   }
@@ -468,7 +492,6 @@ class ModuloRevisao extends Module {
   }
 
   handleKeyDown(e) {
-    console.log(e);
     // Não implementado
   }
 
@@ -476,7 +499,6 @@ class ModuloRevisao extends Module {
     // Handle para tratar colagem de trechos com tag <del>
     this.quill.clipboard.addMatcher('DEL', (node, delta) => {
       if (this.isAbrindoTexto) {
-        console.log('abrindo texto');
         return delta;
       } else {
         let match = Parchment.query(node);
@@ -545,7 +567,6 @@ class ModuloRevisao extends Module {
       this.ignorarEventoTextChange = true;
     }
 
-    // console.log(11111, 'REDO', this.quill.history.stack.redo[this.quill.history.stack.redo.length - 1]);
     if (hasModuloTabela) {
       return this.tableModule.keyboardHandler(this.quill, 'redo', range, context);
     } else {
@@ -586,7 +607,6 @@ class ModuloRevisao extends Module {
 
             if (deslocamento === 1) {
               posicao += numChars;
-              //posicao += 3;
             }
           }
         }
@@ -598,9 +618,6 @@ class ModuloRevisao extends Module {
 
       quill.updateContents({ ops }, 'user');
       quill.setSelection(posicao);
-      // quill.setSelection(deslocamento === 1 ? index + length : index);
-      //quill.setSelection(8);
-
       return false;
     }
 
