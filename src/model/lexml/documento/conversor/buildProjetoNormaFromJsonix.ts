@@ -270,7 +270,6 @@ const getTextoSemHtml = (c: any): string => {
   return ret.trim();
 };
 
-
 const substituiAspasRetasPorCurvas = (html: string): string => {
   const div = document.createElement('div');
   div.innerHTML = html;
