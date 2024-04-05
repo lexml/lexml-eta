@@ -347,7 +347,7 @@ const fecharDialog = (dialogElem: SlDialog, dialogColagem: DialogColagem): void 
   if (document.body.contains(dialogElem)) {
     document.body.removeChild(dialogElem);
   }
-  setTimeout(() => dialogColagem.quill.focus(), 0);
+  dialogColagem.quill.focus();
 };
 
 const buildMessages = (mensagens: string[]): string => mensagens.join('<br><br>');
