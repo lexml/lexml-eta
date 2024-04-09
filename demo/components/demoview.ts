@@ -28,6 +28,7 @@ import { PL_4687_2023 } from '../doc/pl_4687_2023';
 import { PDS_183_2018 } from '../doc/pds_183_2018';
 import { PLS_547_2018 } from '../doc/pls_547_2018';
 import { PLP_137_2019 } from '../doc/plp_137_2019';
+import { MPV_1210_2024 } from '../doc/mpv_1210_2024';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -37,6 +38,7 @@ const mapProjetosNormas = {
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
   mpv_1160_2023: MPV_1160_2023,
+  mpv_1210_2023: MPV_1210_2024,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
   pl_142_2018: PLC_142_2028,
@@ -171,6 +173,9 @@ export class DemoView extends LitElement {
 
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
+
+            params.isMateriaOrcamentaria = this.elLexmlEmenda.getEmentaFromProjetoNorma(this.projetoNorma).indexOf('crédito extraordinário') >= 0;
+
             // params.urn = this.projetoNorma?.value?.metadado?.identificacao?.urn;
             //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
             //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
