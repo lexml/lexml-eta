@@ -18,6 +18,7 @@ export class DestinoComponent extends LitElement {
   private isMPV = false;
   private isPlenario = false;
   private tipoColegiadoPlenario = false;
+  private isDestinoCMO = false;
 
   private _proposicao!: RefProposicaoEmendada;
   @property({ type: RefProposicaoEmendada })
@@ -28,8 +29,13 @@ export class DestinoComponent extends LitElement {
     if (this._proposicao.sigla === 'MPV') {
       this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
       this._colegiadoApreciador.tipoColegiado = 'Comissão';
-      this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
-      this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
+      if (this.isDestinoCMO) {
+        this._colegiadoApreciador.siglaComissao = 'CMO';
+        this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DE PLANOS, ORÇAMENTOS PÚBLICOS E FISCALIZAÇÃO`;
+      } else {
+        this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
+        this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
+      }
       this.isMPV = true;
     }
 

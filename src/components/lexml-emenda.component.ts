@@ -343,6 +343,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
     }
 
+    this._lexmlDestino.isDestinoCMO = this.isMateriaOrcamentaria;
     if (params.emenda) {
       this.setEmenda(params.emenda);
     } else {
