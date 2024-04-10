@@ -249,7 +249,6 @@ export class DemoView extends LitElement {
           params.modo = this.modo;
           params.projetoNorma = this.projetoNorma;
           params.emenda = emenda;
-          params.isMateriaOrcamentaria = emenda.colegiadoApreciador.siglaComissao.indexOf('CMO') >= 0;
           this.elLexmlEmenda.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);
