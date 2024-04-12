@@ -268,7 +268,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       const customToolbarOptions = [...toolbarOptions];
       const customFormatsOptions = [...formatsOptions];
       if (this.modo === Modo.JUSTIFICATIVA) {
-        console.log(customToolbarOptions);
         customToolbarOptions.push(['nota-rodape']);
         customToolbarOptions[1] = ['bold', 'italic', 'underline', 'link'];
         customFormatsOptions.push('nota-rodape');
