@@ -18,7 +18,7 @@ export class DestinoComponent extends LitElement {
   private isMPV = false;
   private isPlenario = false;
   private tipoColegiadoPlenario = false;
-  private isDestinoCMO = false;
+  public isMateriaOrcamentaria = false;
 
   private _proposicao!: RefProposicaoEmendada;
   @property({ type: RefProposicaoEmendada })
@@ -29,7 +29,7 @@ export class DestinoComponent extends LitElement {
     if (this._proposicao.sigla === 'MPV') {
       this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
       this._colegiadoApreciador.tipoColegiado = 'Comissão';
-      if (this.isDestinoCMO) {
+      if (this.isMateriaOrcamentaria) {
         this._colegiadoApreciador.siglaComissao = 'CMO';
         this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DE PLANOS, ORÇAMENTOS PÚBLICOS E FISCALIZAÇÃO`;
       } else {
@@ -46,9 +46,9 @@ export class DestinoComponent extends LitElement {
     return this._proposicao;
   }
 
-  private _comissoes!: Comissao[];
+  private _comissoes: Comissao[] = [];
   @property({ type: Array, state: true })
-  set comissoes(value: Comissao[] | undefined) {
+  set comissoes(value: Comissao[]) {
     this.isPlenario = false;
     if (!this._comissoes || this._comissoes.length === 0) {
       this._comissoes = value ? value : [];
@@ -60,7 +60,7 @@ export class DestinoComponent extends LitElement {
     }
   }
 
-  get comissoes(): Array<Comissao> {
+  get comissoes(): Comissao[] {
     return this._comissoes;
   }
 
@@ -80,7 +80,7 @@ export class DestinoComponent extends LitElement {
     this.requestUpdate();
   }
 
-  get colegiadoApreciador(): ColegiadoApreciador {
+  public get colegiadoApreciador(): ColegiadoApreciador {
     return this._colegiadoApreciador;
   }
 
