@@ -378,6 +378,59 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.updateView();
   }
 
+  public trocarModoEdicao(modo: string, motivo = ''): void {
+    if (this.modo === modo) {
+      console.log('Ignorando tentativa de mudança para o mesmo modo de edição.');
+      return;
+    }
+
+    if (!this.projetoNorma && modo === 'emenda') {
+      throw 'Não é possível trocar para o modo "emenda" quando não há texto da proposição.';
+    }
+
+    this._lexmlEmendaComando.emenda = [];
+    this.modo = modo;
+
+    this.motivo = motivo;
+    if (this.isEmendaTextoLivre() && !this.motivo) {
+      throw 'Deve ser informado um motivo para a emenda de texto livre.';
+    }
+
+    if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false);
+    }
+
+    rootStore.dispatch(limparAlertas());
+
+    if (this.isEmendaTextoLivre()) {
+      this._lexmlEmendaTextoRico.setContent('');
+      this._lexmlEmendaTextoRico.anexos = [];
+    } else if (this.isEmendaSubstituicaoTermo()) {
+      this._substituicaoTermo!.setSubstituicaoTermo(new SubstituicaoTermo());
+    }
+
+    this.limparAlertas();
+
+    if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+      this.showAlertaEmendaTextoLivre();
+    }
+    setTimeout(this.handleResize, 0);
+
+    this._tabsEsquerda.show('lexml-eta');
+
+    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+      setTimeout(() => {
+        this._tabsDireita?.show('comando');
+      });
+    } else {
+      setTimeout(() => {
+        this._tabsDireita?.show('notas');
+      });
+    }
+
+    this.updateView();
+  }
+
   private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
     this.urn = '';
     this.ementa = '';

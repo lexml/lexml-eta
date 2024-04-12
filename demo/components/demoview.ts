@@ -200,6 +200,19 @@ export class DemoView extends LitElement {
     }
   }
 
+  trocarModo(): void {
+    const novoModo = this.getElement('#modo').value;
+
+    if (this.modo === novoModo) {
+      alert('Escolha um modo de edição diferente do atual.');
+      return;
+    }
+
+    this.modo = novoModo;
+
+    this.elLexmlEmenda.trocarModoEdicao(this.modo, this.modo === 'emendaTextoLivre' ? 'Motivo da emenda de texto livre' : '');
+  }
+
   salvar(): void {
     const emenda = this.elLexmlEmenda.getEmenda();
     const emendaJson = JSON.stringify(emenda, null, '\t');
@@ -383,6 +396,7 @@ export class DemoView extends LitElement {
             <option value="emendaSubstituicaoTermo" id="optEmendaSubstituicaoTermo">Emenda Substituição de termo</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
+          <input type="button" value="Trocar modo" @click=${this.trocarModo} ?disabled="${!this.modo}" />
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
