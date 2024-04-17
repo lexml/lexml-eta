@@ -33,7 +33,6 @@ import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { generoFromLetra } from '../model/dispositivo/genero';
-import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
@@ -148,9 +147,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @query('sl-split-panel')
   private slSplitPanel!: any;
-
-  @query('lexml-sufixos-modal')
-  sufixosModal!: SufixosModalComponent;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
@@ -319,12 +315,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     });
 
     return revisoes;
-  }
-
-  openModalSufixos(): void {
-    if (this.sufixosModal !== null) {
-      this.sufixosModal.show();
-    }
   }
 
   inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
@@ -1092,7 +1082,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           </sl-tab-group>
         </div>
       </sl-split-panel>
-      <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
   }
 
