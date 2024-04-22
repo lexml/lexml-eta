@@ -46,6 +46,11 @@ export class SufixosModalComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
+      <style>
+        :host {
+          font-family: var(--sl-font-sans);
+        }
+      </style>
       <sl-dialog>
         <span slot="label">Sufixos de posicionamento</span>
 

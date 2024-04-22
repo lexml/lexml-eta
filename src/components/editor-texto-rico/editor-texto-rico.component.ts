@@ -3,7 +3,12 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado, iconeNotaDeRodape } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { rootStore } from '../../redux/store';
-import { getQuantidadeRevisoes, getQuantidadeRevisoesJustificativa, getQuantidadeRevisoesTextoLivre } from '../../redux/elemento/util/revisaoUtil';
+import {
+  atualizaQuantidadeRevisaoTextoRico,
+  getQuantidadeRevisoes,
+  getQuantidadeRevisoesJustificativa,
+  getQuantidadeRevisoesTextoLivre,
+} from '../../redux/elemento/util/revisaoUtil';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
@@ -28,6 +33,7 @@ import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atual
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
+import { QuillUtil } from './quill-util';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -87,6 +93,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   };
 
+  showAlterarLarguraImagemModal(img: any, width: string): void {
+    this.alterarLarguraImagemModal.show(img, width);
+  }
+
   private showAlterarLarguraColunaModal(width: string): void {
     this.alterarLarguraColunaModal.show(width);
   }
@@ -142,7 +152,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       }
 
       if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
-        moduloRevisao.usuario = state.elementoReducer.usuario.nome;
+        moduloRevisao.usuario = state.elementoReducer.usuario?.nome || 'Anônimo';
       }
     }
   }
@@ -256,29 +266,16 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
 
       const customToolbarOptions = toolbarOptions;
-      this.modo === Modo.JUSTIFICATIVA && customToolbarOptions.push(['nota-rodape']);
+      const customFormatsOptions = formatsOptions;
+      if (this.modo === Modo.JUSTIFICATIVA) {
+        customToolbarOptions.push(['nota-rodape']);
+        customToolbarOptions[1] = ['bold', 'italic', 'underline', 'link'];
+        customFormatsOptions.push('nota-rodape');
+        customFormatsOptions.push('link');
+      }
 
       this.quill = new Quill(quillContainer, {
-        formats: [
-          'estilo',
-          'bold',
-          'italic',
-          'image',
-          'underline',
-          'align',
-          'list',
-          'script',
-          'image',
-          'table',
-          'tr',
-          'td',
-          'text-indent',
-          'margin-bottom',
-          'width',
-          'nota-rodape',
-          'added',
-          'removed',
-        ],
+        formats: customFormatsOptions,
         modules: {
           toolbar: {
             container: customToolbarOptions,
@@ -294,7 +291,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             cellSelectionOnClick: false,
           },
           revisao: {
-            usuario: rootStore.getState().elementoReducer.usuario.nome,
+            usuario: rootStore.getState().elementoReducer.usuario?.nome || 'Anônimo',
             emRevisao: false,
             gerenciarKeydown: true,
             tableModule: TableModule,
@@ -421,6 +418,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
       this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
       this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
+      this.buildRevisoes();
+
+      QuillUtil.configurarAcoesLink(this.quill!);
     }
   };
 
@@ -575,6 +575,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       (this.quill as any).notasRodape.associar(notasRodape);
     }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
 
+    if (this.quill.getText().trim() === '') {
+      this.quill.format('align', 'justify');
+    }
+
     this.atualizaStatusElementosRevisao();
   };
 
@@ -586,9 +590,15 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
         if (this.switchRevisaoComponent) {
           this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
+          setTimeout(() => {
+            this.alertaGlobalRevisao();
+          }, 0);
         }
       }
     }
+    // setTimeout(() => {
+    //   this.atualizaQuantidadeRevisao(this.getQuantidadeDeRevisoes());
+    // }, 0);
   };
 
   updateApenasTexto = (): void => {
@@ -606,7 +616,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.alertaGlobalRevisao();
   };
 
-  private alertaGlobalRevisao(): void {
+  public alertaGlobalRevisao(): void {
     const id = 'alerta-global-revisao';
 
     if (this.getQuantidadeDeRevisoes() > 0 || getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes) > 0) {
@@ -618,7 +628,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           podeFechar: true,
           exibirComandoEmenda: true,
         };
-        rootStore.dispatch(adicionarAlerta(alerta));
+        setTimeout(() => {
+          rootStore.dispatch(adicionarAlerta(alerta));
+        }, 0);
       }
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
       rootStore.dispatch(removerAlerta(id));
@@ -696,6 +708,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           this.switchRevisaoComponent.ativarDesativarMarcaDeRevisao(false);
         }
       }
+
+      if (quantidade === 0) {
+        this.removeRevisoes();
+      } else if (quantidade > 0) {
+        this.buildRevisoes();
+      }
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_REJEITAR_REVISAO);
       this.desabilitaBtn(quantidade === 0, CLASS_BUTTON_ACEITAR_REVISAO);
       this.atualizaQuantidadeRevisao(quantidade);
@@ -729,18 +747,17 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   private removeRevisoes = (): void => {
-    if (this.modo === Modo.JUSTIFICATIVA) {
-      atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
-    } else {
-      atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
-    }
+    atualizaRevisaoJustificativa(rootStore.getState().elementoReducer, true);
+    atualizaRevisaoTextoLivre(rootStore.getState().elementoReducer, true);
   };
 
   private atualizaQuantidadeRevisao = (quantidade: number): void => {
     const elemento = this.querySelector(`#${this.getNomeBadge()}`) as any;
-    if (elemento) {
-      elemento.innerHTML = quantidade;
-    }
+    atualizaQuantidadeRevisaoTextoRico(quantidade, elemento);
+
+    // if (elemento) {
+    //   elemento.innerHTML = quantidade;
+    // }
   };
 
   editarNotaRodape(idNotaRodape: string): void {
@@ -751,6 +768,27 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     (this.quill as any).notasRodape.remover(idNotaRodape);
   }
 }
+
+const formatsOptions = [
+  'estilo',
+  'bold',
+  'italic',
+  'image',
+  'underline',
+  'align',
+  'list',
+  'script',
+  'image',
+  'table',
+  'tr',
+  'td',
+  'link',
+  'text-indent',
+  'margin-bottom',
+  'width',
+  'added',
+  'removed',
+];
 
 const toolbarOptions = [
   [{ estilo: [false, 'ementa', 'norma-alterada'] }],

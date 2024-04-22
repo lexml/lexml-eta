@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable eqeqeq */
 
-import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { generateUUID } from '../../util/uuid';
 
 /* eslint-disable prefer-const */
@@ -10,7 +9,7 @@ const Delta = Quill.import('delta');
 const Parchment = Quill.import('parchment');
 const Module = Quill.import('core/module');
 const Inline = Quill.import('blots/inline');
-// const clipboard = Quill.import("modules/clipboard");
+const Clipboard = Quill.import('modules/clipboard');
 const Keyboard = Quill.import('modules/keyboard');
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -22,7 +21,7 @@ class RevisaoUtil {
     const partes = value.split('|');
     domNode.setAttribute('usuario', partes[0]);
     domNode.setAttribute('date', partes[1]);
-    domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + partes[1]);
+    domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + this.formatDDMMYYYYAndTime(new Date(partes[1])));
     domNode.setAttribute('id-revisao', partes[2]);
   }
 
@@ -48,6 +47,12 @@ class RevisaoUtil {
       ].join(':')
     );
   }
+
+  static formatDDMMYYYYAndTime(date: Date): string {
+    const data = [this.padTo2Digits(date.getDate()), this.padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
+    const hora = [this.padTo2Digits(date.getHours()), this.padTo2Digits(date.getMinutes())].join(':');
+    return `${data} ${hora}`;
+  }
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -71,6 +76,19 @@ class InlineRevisionBaseFormat extends Inline {
     if (name !== this.statics.blotName || !value) return super.format(name, value);
     RevisaoUtil.valueToAttributes(value, this.domNode);
   }
+
+  optimize(context) {
+    const blotName = this.statics.blotName;
+
+    if (blotName === this.next?.statics?.blotName) {
+      const formatoAtual = this.formats();
+      this.next.domNode.setAttribute('date', this.domNode.getAttribute('date'));
+      this.next.domNode.setAttribute('usuario', this.domNode.getAttribute('usuario'));
+      this.next.format(blotName, formatoAtual[blotName]);
+    }
+
+    super.optimize(context);
+  }
 }
 
 class InsBlot extends InlineRevisionBaseFormat {}
@@ -80,6 +98,12 @@ InsBlot.tagName = 'ins';
 class DelBlot extends InlineRevisionBaseFormat {}
 DelBlot.blotName = 'removed';
 DelBlot.tagName = 'del';
+
+const cursorEstaSobreBlotDel = quill => {
+  const range = quill.getSelection();
+  const blot = range && quill.getLeaf(range.index)[0];
+  return blot?.statics.blotName === DelBlot.blotName || blot?.parent?.statics.blotName === DelBlot.blotName;
+};
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -91,12 +115,77 @@ DelBlot.tagName = 'del';
 class CustomKeyboard extends Keyboard {
   listen() {
     this.quill.root.addEventListener('keydown', this.onKeyDown.bind(this));
+    this.quill.root.addEventListener('keypress', this.onKeyPress.bind(this));
     super.listen();
   }
 
   onKeyDown(e) {
     if (this.quill?.revisao?.gerenciarKeydown && this.quill?.revisao?.emRevisao) {
       this.quill.revisao.handleKeyDown(e);
+    }
+  }
+
+  onKeyPress(e) {
+    if (cursorEstaSobreBlotDel(this.quill)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+}
+
+class CustomClipboard extends Clipboard {
+  constructor(quill, options) {
+    super(quill, options);
+    this.quill.root.addEventListener('cut', this.onCut.bind(this));
+  }
+
+  onCut(e) {
+    if (this.quill?.revisao?.emRevisao) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const range = this.quill.getSelection();
+      if (range?.length) {
+        this.copiarSelecaoParaClipboard();
+        this.quill?.revisao?.handleRemove(range, null, null);
+      }
+    }
+  }
+
+  onPaste(e) {
+    if (cursorEstaSobreBlotDel(this.quill)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    super.onPaste(e);
+  }
+
+  copiarSelecaoParaClipboard() {
+    const selection = window.getSelection();
+
+    if (selection) {
+      if (navigator.clipboard) {
+        // Cria um elemento div temporário para armazenar a seleção
+        const tempElement = document.createElement('div');
+
+        // Clona a seleção e a insere no elemento div temporário
+        for (let i = 0; i < selection.rangeCount; i++) {
+          tempElement.appendChild(selection.getRangeAt(i).cloneContents());
+        }
+
+        // Copia o conteúdo do elemento div temporário para a área de transferência
+        navigator.clipboard
+          .write([
+            new ClipboardItem({
+              'text/plain': new Blob([tempElement.innerText], { type: 'text/plain' }),
+              'text/html': new Blob([tempElement.outerHTML], { type: 'text/html' }),
+            }),
+          ])
+          .finally(() => tempElement.remove());
+      } else {
+        console.log('Clipboard API não suportada');
+        document.execCommand('copy'); // Alternativa para o caso de não suportar a Clipboard API
+      }
     }
   }
 }
@@ -114,6 +203,7 @@ class ModuloRevisao extends Module {
 
   static register() {
     Quill.register('modules/keyboard', CustomKeyboard, true);
+    Quill.register('modules/clipboard', CustomClipboard, true);
     Quill.register(InsBlot, true);
     Quill.register(DelBlot, true);
   }
@@ -206,12 +296,6 @@ class ModuloRevisao extends Module {
     }
   }
 
-  formatDDMMYYYYAndTime(date: Date): string {
-    const data = [this.padTo2Digits(date.getDate()), this.padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
-    const hora = [this.padTo2Digits(date.getHours()), this.padTo2Digits(date.getMinutes()), this.padTo2Digits(date.getSeconds())].join(':');
-    return `${data} ${hora}`;
-  }
-
   padTo2Digits(num: number): string {
     return num.toString().padStart(2, '0');
   }
@@ -284,7 +368,7 @@ class ModuloRevisao extends Module {
       <div class="tooltip-revisao__body" role="tooltip">
         <div>
           <div class="tooltip-revisao__autor">${elRevisao.getAttribute('usuario')}</div>
-          <div class="tooltip-revisao__data">${this.formatDDMMYYYYAndTime(data)}</div>
+          <div class="tooltip-revisao__data">${RevisaoUtil.formatDDMMYYYYAndTime(data)}</div>
         </div>
         <div class="tooltip-revisao__actions">
           <button id="button-rejeitar-revisao" aria-label="Rejeitar revisão" title="Rejeitar revisão">
@@ -415,7 +499,6 @@ class ModuloRevisao extends Module {
     // Handle para tratar colagem de trechos com tag <del>
     this.quill.clipboard.addMatcher('DEL', (node, delta) => {
       if (this.isAbrindoTexto) {
-        console.log('abrindo texto');
         return delta;
       } else {
         let match = Parchment.query(node);
@@ -484,7 +567,6 @@ class ModuloRevisao extends Module {
       this.ignorarEventoTextChange = true;
     }
 
-    // console.log(11111, 'REDO', this.quill.history.stack.redo[this.quill.history.stack.redo.length - 1]);
     if (hasModuloTabela) {
       return this.tableModule.keyboardHandler(this.quill, 'redo', range, context);
     } else {
@@ -533,10 +615,9 @@ class ModuloRevisao extends Module {
       index && ops.unshift({ retain: index });
 
       this.ignorarEventoTextChange = true;
-      quill.updateContents({ ops }, 'user');
-      // quill.setSelection(deslocamento === 1 ? index + length : index);
-      quill.setSelection(posicao);
 
+      quill.updateContents({ ops }, 'user');
+      quill.setSelection(posicao);
       return false;
     }
 
@@ -546,12 +627,11 @@ class ModuloRevisao extends Module {
   onTextChange(delta, oldContent, source) {
     const isInsertJaFormatadoEmModoDeRevisao = delta.ops.find(op => op.insert)?.attributes?.added;
     const apenasNovaLinha = delta.ops.length === 2 && delta.ops[0].retain && delta.ops[1].insert === '\n';
+    const quill = this.quill;
     if (this.ignorarEventoTextChange || !this.emRevisao || isInsertJaFormatadoEmModoDeRevisao || !delta.ops.length || apenasNovaLinha) {
       this.ignorarEventoTextChange = false;
       return;
     }
-
-    const quill = this.quill;
 
     if (quill.history.stack.undo.length === 0) return;
 
@@ -614,11 +694,7 @@ class ModuloRevisao extends Module {
     quill.updateContents(rev, 'user');
 
     setTimeout(() => {
-      // TODO: Corrigir setSelection (falhando em vários casos)
       quill.setSelection(idx - numCaracteresRemovidos, 0);
-      // quill.format('added', true, 'silent');
-      quill.format('added', this.buildAttributes(id), 'silent');
-      quill.format('removed', false, 'silent');
       this.ignorarEventoTextChange = false;
     }, 0);
   }
@@ -648,7 +724,7 @@ class ModuloRevisao extends Module {
     const revisoesSemDuplicidade = [] as any;
 
     listElements.forEach(element => {
-      if (!revisoesSemDuplicidade.find(r => r.getAttribute('id-revisao') === element.getAttribute('id-revisao'))) {
+      if (!revisoesSemDuplicidade.find(r => r.getAttribute('id-revisao') === element.getAttribute('id-revisao') && r.nodeName === element.nodeName)) {
         revisoesSemDuplicidade.push(element);
       }
     });

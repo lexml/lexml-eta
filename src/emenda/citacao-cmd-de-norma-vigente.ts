@@ -2,7 +2,7 @@ import { Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { StringBuilder } from '../util/string-util';
 import { isAgrupadorNaoArticulacao, isArtigo, isOmissis } from './../model/dispositivo/tipo';
-import { getArtigo, percorreHierarquiaDispositivos } from './../model/lexml/hierarquia/hierarquiaUtil';
+import { getArtigo, isArticulacaoAlteracao, percorreHierarquiaDispositivos } from './../model/lexml/hierarquia/hierarquiaUtil';
 import { CitacaoComandoMultiplaAlteracaoNormaVigente } from './citacao-cmd-multipla-de-norma-vigente';
 import { DispositivoComparator } from './dispositivo-comparator';
 
@@ -36,7 +36,7 @@ export class CitacaoComandoDeNormaVigente {
     let cabeca, cabecaAtual;
 
     for (const d of dispositivos) {
-      cabeca = isArtigo(d) || isAgrupadorNaoArticulacao(d) ? d : getArtigo(d);
+      cabeca = this.getCabeca(d);
 
       if (cabeca !== cabecaAtual) {
         if (dispositivosDaCabeca.length) {
@@ -55,6 +55,13 @@ export class CitacaoComandoDeNormaVigente {
     if (dispositivosDaCabeca.length) {
       this.getCitacaoMultipla(sb, dispositivosDaCabeca);
     }
+  }
+
+  private getCabeca(d: Dispositivo): Dispositivo {
+    if (isArticulacaoAlteracao(d.pai!) || isArtigo(d) || isAgrupadorNaoArticulacao(d) || (isOmissis(d) && isAgrupadorNaoArticulacao(d.pai!))) {
+      return d;
+    }
+    return getArtigo(d);
   }
 
   private getCitacaoMultipla(sb: StringBuilder, dispositivos: Dispositivo[]): void {

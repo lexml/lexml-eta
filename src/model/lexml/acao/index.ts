@@ -41,6 +41,7 @@ import {
   transformarAlineaEmIncisoParagrafo,
   transformarArtigoEmParagrafo,
   transformarEmOmissisAlinea,
+  transformarEmOmissisArtigo,
   transformarEmOmissisIncisoCaput,
   transformarEmOmissisIncisoParagrafo,
   transformarEmOmissisItem,
@@ -95,6 +96,7 @@ acoesMenu.push(transformarEmOmissisIncisoCaput);
 acoesMenu.push(transformarEmOmissisItem);
 acoesMenu.push(transformarEmOmissisParagrafo);
 acoesMenu.push(transformarEmOmissisIncisoParagrafo);
+acoesMenu.push(transformarEmOmissisArtigo);
 
 acoesMenu.push(transformarAlineaEmIncisoCaput);
 acoesMenu.push(transformarAlineaEmIncisoParagrafo);

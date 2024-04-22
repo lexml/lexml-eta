@@ -38,8 +38,10 @@ export class EtaBlotNotaAlteracao extends EtaBlot {
 
     if (elemento.notaAlteracao) {
       node.setAttribute('nota-alteracao', elemento.notaAlteracao || '');
+      node.setAttribute('exibir', '');
     } else {
       node.removeAttribute('nota-alteracao');
+      node.removeAttribute('exibir');
     }
 
     if (elemento.podeEditarNotaAlteracao) {
@@ -50,6 +52,9 @@ export class EtaBlotNotaAlteracao extends EtaBlot {
   }
 
   private static montarHTML(elemento: Elemento): string {
+    if (!elemento.dispositivoAlteracao) {
+      return '';
+    }
     return elemento.notaAlteracao ? '(' + elemento.notaAlteracao + ')' : ' ';
     // if (!elemento.notaAlteracao) {
     //   return '';

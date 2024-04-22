@@ -44,7 +44,7 @@ export const quillSnowStyles = html`
       tab-size: 4;
       -moz-tab-size: 4;
       text-align: left;
-      white-space: pre-wrap;
+      /* white-space: pre-wrap; */
       word-wrap: break-word;
     }
     .ql-editor > * {

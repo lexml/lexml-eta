@@ -2,6 +2,7 @@ import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
+import { EtaQuillUtil } from './eta-quill-util';
 
 export class EtaBlotConteudo extends EtaBlot {
   static blotName = 'EtaBlotConteudo';
@@ -29,7 +30,7 @@ export class EtaBlotConteudo extends EtaBlot {
     }
 
     if (elemento.tipo === 'Omissis' || conteudo.indexOf(TEXTO_OMISSIS) >= 0) {
-      node.innerHTML = '<span class="texto__omissis">' + TEXTO_OMISSIS + '</span>';
+      node.innerHTML = EtaQuillUtil.montarSpanOmissisAsString();
     } else {
       node.innerHTML = conteudo !== '' ? conteudo : '<br>';
     }

@@ -22,6 +22,9 @@ export class AlterarLarguraTabelaColunaModalComponent extends LitElement {
     this.valorLargura = width ? width.replace('%', '') : '';
     this.slAlert.hide();
     this.slDialog.show();
+    setTimeout(() => {
+      this.shadowRoot?.querySelector('sl-input')?.focus();
+    }, 0);
   }
 
   public hide(): void {
@@ -46,6 +49,7 @@ export class AlterarLarguraTabelaColunaModalComponent extends LitElement {
         }
         sl-input::part(base) {
           width: 150px;
+          margin-top: 5px;
         }
         sl-alert {
           margin-top: 20px;
@@ -60,8 +64,8 @@ export class AlterarLarguraTabelaColunaModalComponent extends LitElement {
           <sl-icon slot="icon" name="exclamation-triangle"></sl-icon>
           Informe uma valor numérico de 1 a 100.
         </sl-alert>
-        <sl-button slot="footer" @click=${(): void => this.alterarLargura()}>Alterar</sl-button>
-        <sl-button slot="footer" variant="primary" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>
+        <sl-button slot="footer" variant="primary" @click=${(): void => this.alterarLargura()}>Alterar</sl-button>
+        <sl-button slot="footer" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>
       </sl-dialog>
     `;
   }

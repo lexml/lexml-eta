@@ -492,6 +492,18 @@ export const editorStyles = html`
       font-weight: bold;
     }
 
+    .nota-alteracao[exibir],
+    .abre-aspas[exibir],
+    .fecha-aspas[exibir] {
+      display: inline;
+    }
+
+    .nota-alteracao:not([exibir]),
+    .abre-aspas:not([exibir]),
+    .fecha-aspas:not([exibir]) {
+      display: none;
+    }
+
     .nota-alteracao-editavel {
       text-decoration: underline;
       cursor: pointer;
@@ -546,6 +558,12 @@ export const editorStyles = html`
       }
       .button-navegacao-marca {
         display: none;
+      }
+      sl-dialog {
+        --sl-font-size-large: 1rem;
+      }
+      .modal {
+        --sl-font-size-large: 1rem;
       }
     }
 

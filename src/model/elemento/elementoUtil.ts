@@ -134,6 +134,9 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     tiposAgrupadoresQuePodemSerInseridosDepois: getTiposAgrupadoresQuePodemSerInseridosDepois(dispositivo),
     artigoDefinido: dispositivo.artigoDefinido,
     elementoAnteriorNaSequenciaDeLeitura,
+    manterNoMesmoGrupoDeAspas: isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo) && isAgrupador(dispositivo.pai!) && !isArticulacaoAlteracao(dispositivo.pai!),
+    ultimoFilhoDireto:
+      isAgrupador(dispositivo) && isDispositivoAlteracao(dispositivo) && dispositivo.filhos.length ? createElemento(dispositivo.filhos[dispositivo.filhos.length - 1]) : undefined,
   };
 };
 
@@ -341,8 +344,6 @@ export const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean =
     elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
   ) {
     return false;
-  } else if (elemento.tipo === 'Artigo') {
-    return true;
   } else {
     return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;
   }

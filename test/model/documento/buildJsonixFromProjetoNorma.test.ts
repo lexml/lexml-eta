@@ -105,7 +105,7 @@ describe('Parser de medida provisória com agrupador', () => {
         'Fica instituído, no âmbito do Ministério da Justiça e Segurança Pública, o Fundo Nacional Antidrogas - Funad, a ser gerido pela Secretaria Nacional de Políticas sobre Drogas do Ministério da Justiça e Segurança Pública.'
       );
     });
-    it('Deveria apresentar sob o Art. 2, da alteração do Art. 1, o caput e um omissis', () => {
+    it('Deveria apresentar sob o Art. 2, da alteração do Art. 1, o caput e uma linha pontilhada', () => {
       expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.href).equals(
         'art2_cpt'
       );
@@ -117,7 +117,7 @@ describe('Parser de medida provisória com agrupador', () => {
         'art1_cpt_alt1_art2_omi1'
       );
     });
-    it('Deveria apresentar sob o caput do Art. 2, da alteração do Art. 1, um omissis e um inciso', () => {
+    it('Deveria apresentar sob o caput do Art. 2, da alteração do Art. 1, uma linha pontilhada e um inciso', () => {
       expect(
         jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0].name
           .localPart

@@ -30,7 +30,7 @@ describe('Testando lexml-substituicao-termo (EditorTextoRicoComponent)', () => {
       expect(st.tipo).to.be.equal('Expressão');
 
       const ce = substituicaoTermoComponent.getComandoEmenda(urn);
-      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a/o expressão “(termo a ser substituído)” por “(novo termo)”.');
+      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a expressão “(termo a ser substituído)” por “(novo termo)”.');
     });
 
     it('Selecionando tipo "Palavra"', async () => {
@@ -45,7 +45,7 @@ describe('Testando lexml-substituicao-termo (EditorTextoRicoComponent)', () => {
       expect(st.tipo).to.be.equal('Palavra');
 
       const ce = substituicaoTermoComponent.getComandoEmenda(urn);
-      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a/o palavra “(termo a ser substituído)” por “(novo termo)”.');
+      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a palavra “(termo a ser substituído)” por “(novo termo)”.');
     });
 
     it('Selecionando tipo "Número"', async () => {
@@ -60,7 +60,7 @@ describe('Testando lexml-substituicao-termo (EditorTextoRicoComponent)', () => {
       expect(st.tipo).to.be.equal('Número');
 
       const ce = substituicaoTermoComponent.getComandoEmenda(urn);
-      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a/o número “(termo a ser substituído)” por “(novo termo)”.');
+      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória o número “(termo a ser substituído)” por “(novo termo)”.');
     });
   });
 
@@ -79,7 +79,7 @@ describe('Testando lexml-substituicao-termo (EditorTextoRicoComponent)', () => {
       const ev = await oneEvent(substituicaoTermoComponent, 'onchange');
       expect(ev).to.be.exist;
       const ce = substituicaoTermoComponent.getComandoEmenda(urn);
-      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a/o palavra “teste” por “avaliação”, fazendo-se as flexões de gênero e número necessárias.');
+      expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se na Medida Provisória a palavra “teste” por “avaliação”, fazendo-se as flexões de gênero e número necessárias.');
     });
 
     it('Deveria possuir os elementos com dados atualizados', async () => {
@@ -145,7 +145,7 @@ describe('Testando variações do comando da emenda para emenda de substituiçã
       flexaoNumero: true,
     };
     const ce = new ComandoEmendaBuilder('urn:lex:br:senado.federal:projeto.lei;pl:2018;142', st).getComandoEmenda();
-    expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se no Projeto a/o palavra “teste” por “avaliação”, fazendo-se as flexões de gênero e número necessárias.');
+    expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se no Projeto a palavra “teste” por “avaliação”, fazendo-se as flexões de gênero e número necessárias.');
   });
 
   it('Deveria gerar comando da emenda para um PL **', () => {
@@ -157,7 +157,7 @@ describe('Testando variações do comando da emenda para emenda de substituiçã
       flexaoNumero: false,
     };
     const ce = new ComandoEmendaBuilder('urn:lex:br:senado.federal:projeto.lei;pl:2018;142', st).getComandoEmenda();
-    expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se no Projeto a/o palavra “teste” por “avaliação”, fazendo-se as flexões de gênero necessárias.');
+    expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se no Projeto a palavra “teste” por “avaliação”, fazendo-se as flexões de gênero necessárias.');
   });
 
   it('Deveria gerar comando da emenda para um PL ***', () => {
@@ -169,6 +169,6 @@ describe('Testando variações do comando da emenda para emenda de substituiçã
       flexaoNumero: false,
     };
     const ce = new ComandoEmendaBuilder('urn:lex:br:senado.federal:projeto.lei;pl:2018;142', st).getComandoEmenda();
-    expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se no Projeto a/o palavra “teste” por “avaliação”.');
+    expect(ce.comandos[0].cabecalho).to.be.equal('Substitua-se no Projeto a palavra “teste” por “avaliação”.');
   });
 });

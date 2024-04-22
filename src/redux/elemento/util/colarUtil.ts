@@ -142,7 +142,9 @@ export class InfoTextoColado {
     articulacaoProposicao: Articulacao,
     atual: Elemento
   ): Promise<InfoTextoColado> {
-    let textoColadoAjustadoParaParser = removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado);
+    let textoColadoAjustadoParaParser = converterSufixoDosRotulos(
+      ajustarRotuloArtigo(removeAspasENRSeNecessario(hasArtigoOndeCouber(textoColadoAjustado) ? numerarArtigosOndeCouber(textoColadoAjustado) : textoColadoAjustado))
+    );
     let jsonix = await getJsonixFromTexto(textoColadoAjustadoParaParser);
     let projetoNorma = buildDispositivoFromJsonix(jsonix);
 
@@ -231,6 +233,12 @@ export const removeAspasENRSeNecessario = (texto: string): string => {
   // Grupo 1 do regex abaixo corresponde ao texto do artigo sem aspas iniciais e finais e sem o (NR)
   const regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo = /(?<=\n|^)\s*["“‘']?(art(?:\.|\s|\d)(?:.|\n)+?)(["”’]\s*(?:\(NR\))?[\s]*)?(?:(?=\n\s*["“‘']?art(?:\.|\s|\d))|$)/gi;
   return textoAux.replace(regexMatchTextoArtigoEntreAspasOuNaoComCapturaDeGrupo, '\n$1').trim();
+};
+
+export const ajustarRotuloArtigo = (texto: string): string => removeEspacosExcendentesEntreRotuloENumeracao(texto, 'Art');
+
+const removeEspacosExcendentesEntreRotuloENumeracao = (texto: string, rotulo: string, newChar = ' '): string => {
+  return texto.replace(new RegExp(`(^${rotulo}\\.?)([^\\S\\n\\r]+)`, 'gim'), `$1${newChar}`);
 };
 
 export const comecaComAspas = (texto: string): boolean => !!texto.match(/^["“‘']/);
@@ -533,6 +541,7 @@ const hasArtigoOndeCouber = (texto: string): boolean => {
   const t = removeAllHtmlTags(texto)
     ?.replace(/&nbsp;/g, ' ')
     .replace(/["“']/g, '')
+    .replace(/(^Art\.?)([^\S\n\r]+)/gim, '$1 ')
     .trim();
 
   return getRegexRotuloArtigoOndeCouber().test(t);
@@ -594,4 +603,24 @@ export const ajustaHtmlParaColagem = (htmlInicial: string): string => {
     .trim();
 
   return html;
+};
+
+export const converterSufixoDosRotulos = (texto: string): string => {
+  const regexRotulo = /^((?:(?:art\.?|§|par[aá]grafo [uú]nico)\s*\d+º?)|(?:[IVXMDC]{1,3}|[a-z]{1,2}|\d{1,3}))-(\d+)/gim;
+
+  const fnSubstituicao = (match: string, grupo1: string, grupo2: string): string => {
+    const numero = parseInt(grupo2);
+    let letra = '';
+    if (numero <= 26) {
+      letra = String.fromCharCode(65 + numero - 1);
+    } else {
+      const primeiraLetra = String.fromCharCode(65 + Math.floor((numero - 1) / 26) - 1);
+      const segundaLetra = String.fromCharCode(65 + ((numero - 1) % 26));
+      letra = primeiraLetra + segundaLetra;
+    }
+
+    return `${grupo1}-${letra}`;
+  };
+
+  return texto.replace(regexRotulo, fnSubstituicao);
 };

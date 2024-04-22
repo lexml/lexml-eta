@@ -104,6 +104,7 @@ const colarDispositivos = (
 
   const adicionados: Dispositivo[] = [];
   const modificados: Dispositivo[] = [];
+  const suprimidos: Dispositivo[] = [];
 
   articulacaoColada.filhos.forEach(f => {
     if (isColandoEmAlteracaoDeNorma || !isOmissis(f)) {
@@ -112,11 +113,13 @@ const colarDispositivos = (
         const d2 = colarDispositivoSubstituindo(d, f, modo, isColandoEmAlteracaoDeNorma);
         modificados.push(...getDispositivoAndFilhosAsLista(d2).filter(isModificado));
         adicionados.push(...getDispositivoAndFilhosAsLista(d2).filter(isAdicionado));
+        suprimidos.push(...getDispositivoAndFilhosAsLista(d2).filter(isSuprimido));
         refAux = d2;
       } else {
         refAux = d && isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao ? d : refAux;
         const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, posicao === 'antes' && refAux === referencia ? posicao : undefined);
         adicionados.push(...getDispositivoAndFilhosAsLista(d2));
+        suprimidos.push(...getDispositivoAndFilhosAsLista(d2).filter(isSuprimido));
         refAux = d2;
       }
     }
@@ -137,7 +140,7 @@ const colarDispositivos = (
   eventoElementoRemovido && eventos.push(eventoElementoRemovido);
   eventos.push(...buildEventosElementoModificado(modificados));
   eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
-  processaEventosSuprimidos(eventos, modificados);
+  processaEventosSuprimidos(eventos, modificados, suprimidos);
   eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
   adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
 
@@ -206,10 +209,24 @@ const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[
   return eventos;
 };
 
-const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[]): void => {
-  if (modificados.length > 0) {
+const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[], suprimidos: Dispositivo[]): void => {
+  const dispositivosProcessar = [] as any;
+
+  // if(modificados.length > 0){
+  //   modificados.forEach(m => {
+  //     dispositivosProcessar.push(m);
+  //   });
+  // }
+
+  if (suprimidos.length > 0) {
+    suprimidos.forEach(s => {
+      dispositivosProcessar.push(s);
+    });
+  }
+
+  if (dispositivosProcessar.length > 0) {
     const suprimidos: Dispositivo[] = [];
-    modificados.forEach(d => {
+    dispositivosProcessar.forEach(d => {
       getDispositivosToElementoSuprimido(d).forEach(d => {
         if (suprimidos.filter(s => s.id === d.id).length === 0) {
           suprimidos.push(d);

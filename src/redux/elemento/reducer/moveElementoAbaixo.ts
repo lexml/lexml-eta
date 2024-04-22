@@ -10,7 +10,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ajustaReferencia, resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { buildId } from '../../../model/lexml/util/idUtil';
+import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
 
@@ -62,9 +62,16 @@ export const moveElementoAbaixo = (state: any, action: any): State => {
     paiAntigo.renumeraFilhos();
   }
 
-  getDispositivoAndFilhosAsLista(atual).forEach(d => (d.id = buildId(d)));
+  getDispositivoAndFilhosAsLista(atual).forEach(d => {
+    d.id = buildId(d);
+    isArtigo(d) && buildIdCaputEAlteracao(d);
+  });
   const dAnterior = atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
-  dAnterior && getDispositivoAndFilhosAsLista(dAnterior).forEach(d => (d.id = buildId(d)));
+  dAnterior &&
+    getDispositivoAndFilhosAsLista(dAnterior).forEach(d => {
+      d.id = buildId(d);
+      isArtigo(d) && buildIdCaputEAlteracao(d);
+    });
 
   const referencia = movendoArtigoParaAgrupador ? proximo : getUltimoFilho(proximo);
 

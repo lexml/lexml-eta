@@ -1,4 +1,3 @@
-import { SlInput } from '@shoelace-style/shoelace';
 import { Elemento } from '../../model/elemento';
 import './autocomplete-norma';
 
@@ -27,7 +26,7 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   <sl-button slot="footer" variant="primary">Ok</sl-button>
   `);
 
-  const autocompleteNorma = content.querySelector('#auto-norma');
+  const autocompleteNorma = content.querySelector('#auto-norma') as any;
   const botoes = content.querySelectorAll('sl-button');
   const cancelar = botoes[0];
   const ok = botoes[1];
@@ -61,5 +60,5 @@ export async function informarNormaDialog(elemento: Elemento, quill: any, store:
   quill.blur();
   await dialogElem.appendChild(content);
   await dialogElem.show();
-  (autocompleteNorma as SlInput).focus();
+  autocompleteNorma.focusAutoComplete();
 }

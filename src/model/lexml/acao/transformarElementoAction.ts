@@ -33,6 +33,7 @@ export const transformarEmOmissisAlinea = new TransformarElemento(TipoDispositiv
 export const transformarEmOmissisIncisoCaput = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Incisos', 'transformarIncisoCaputEmOmissisIncisoCaput', '(Ctrl+Alt+O)');
 export const transformarEmOmissisItem = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Itens', 'transformarItemEmOmissisItem', '(Ctrl+Alt+O)');
 export const transformarEmOmissisParagrafo = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Parágrafos', 'transformarParagrafoEmOmissisParagrafo', '(Ctrl+Alt+O)');
+export const transformarEmOmissisArtigo = new TransformarElemento(TipoDispositivo.omissis, 'Omitir Artigos', 'transformarArtigoEmOmissisArtigo', '(Ctrl+Alt+O)');
 export const transformarEmOmissisIncisoParagrafo = new TransformarElemento(
   TipoDispositivo.omissis,
   'Omitir Incisos',

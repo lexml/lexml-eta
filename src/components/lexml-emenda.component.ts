@@ -37,6 +37,7 @@ import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -262,7 +263,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = '';
     } else if (this.isEmendaTextoLivre()) {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
+      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto; // visualizar ? this.removeRevisaoFormat(this._lexmlEmendaTextoRico.texto) : this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
       emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
     } else {
@@ -270,7 +271,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
     }
-    emenda.justificativa = this._lexmlJustificativa.texto;
+    emenda.justificativa = this._lexmlJustificativa.texto; // visualizar ? this.removeRevisaoFormat(this._lexmlJustificativa.texto) : this._lexmlJustificativa.texto;
     emenda.notasRodape = this._lexmlJustificativa.notasRodape;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
@@ -288,6 +289,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     return emenda;
+  }
+
+  private removeRevisaoFormat(texto: string): string {
+    let novoTexto = '';
+
+    if (texto !== '') {
+      texto = texto.replace(/<ins\b[^>]*>(.*?)<\/ins>/s, '');
+      texto = texto.replace(/<del\b[^>]*>(.*?)<\/del>/s, '');
+      novoTexto = texto;
+    }
+
+    return novoTexto;
   }
 
   private getRevisoes(): Revisao[] {
@@ -415,7 +428,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private desativarMarcaRevisao = (): void => {
     if (rootStore.getState().elementoReducer.emRevisao) {
-      const quantidade = getQuantidadeRevisoesAll();
+      const quantidade = getQuantidadeRevisoesAll(rootStore.getState().elementoReducer.revisoes);
       if (quantidade === 0) {
         rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
       }
@@ -427,6 +440,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private setEmenda(emenda: Emenda): void {
+    rootStore.dispatch(limparAlertas());
+
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
       this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
     }
@@ -874,6 +889,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           color: var(--sl-color-gray-500);
         }
 
+        .notas-texto p {
+          margin-block-start: 0;
+          margin-block-end: 0;
+        }
+
         .notas-acoes {
           display: flex;
           flex-direction: row;
@@ -1039,7 +1059,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                 html`
                   <li>
                     <input type="checkbox" idNotaRodape="${nr.id}" class="notas-checkbox" id="checkbox-${nr.id}" @change=${() => this.selecionarNotaRodape(nr.id)} />
-                    <label for="checkbox-${nr.id}" class="notas-texto">${nr.texto}</label>
+                    <label for="checkbox-${nr.id}" class="notas-texto">${unsafeHTML(nr.texto)}</label>
                     <span class="notas-acoes">
                       <sl-button
                         class="notas-acao"
@@ -1152,5 +1172,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   getTabFromElement(element: any): any {
     return element.closest('sl-tab-panel');
+  }
+
+  getRestricoesConhecidas(): string[] {
+    return [
+      'Emendamento ou adição de anexos.',
+      'Emendamento ou adição de pena, penalidade etc.',
+      'Emendamento ou adição de especificação temática do dispositivo (usado para nome do tipo penal e outros).',
+      'Alteração de anexo de MP de crédito extraordinário.',
+      'Alteração do texto da proposição e proposta de adição de dispositivos onde couber na mesma emenda.',
+      'Alteração de norma que não segue a LC nº 95 de 98 (ex: norma com alíneas em parágrafos).',
+      'Casos especiais de numeração de parte (PARTE GERAL, PARTE ESPECIAL e uso de numeral ordinal por extenso).',
+      'Tabelas e imagens no texto da proposição.',
+    ];
   }
 }

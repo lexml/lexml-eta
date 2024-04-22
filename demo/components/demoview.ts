@@ -26,6 +26,7 @@ import { PRS_92_2023 } from '../doc/prs_92_2023';
 import { PL_4687_2023 } from '../doc/pl_4687_2023';
 import { PDS_183_2018 } from '../doc/pds_183_2018';
 import { PLS_547_2018 } from '../doc/pls_547_2018';
+import { PLP_137_2019 } from '../doc/plp_137_2019';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -43,6 +44,7 @@ const mapProjetosNormas = {
   pdl_183_2018: PDS_183_2018,
   pl_4687_2023: PL_4687_2023,
   pl_547_2018: PLS_547_2018,
+  plp_137_2029: PLP_137_2019,
   _codcivil_completo: COD_CIVIL_COMPLETO,
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,

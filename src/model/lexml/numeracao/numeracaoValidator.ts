@@ -1,10 +1,11 @@
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
+  getDispositivoAnteriorNaSequenciaDeLeitura,
   getDispositivoPosteriorMesmoTipo,
   getDispositivosAnterioresMesmoTipo,
   getDispositivosPosteriores,
@@ -109,6 +110,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     !isDispositivoCabecaAlteracao(dispositivo) &&
     dispositivo.numero !== undefined &&
     isPrimeiroMesmoTipo(dispositivo) &&
+    !isAgrupador(dispositivo.pai!) &&
     !isOmissis(dispositivo) &&
     (!getDispositivoAnterior(dispositivo) || (getDispositivoAnterior(dispositivo) !== undefined && !isOmissis(getUltimoFilho(getDispositivoAnterior(dispositivo)!)))) &&
     dispositivo.numero !== '1' &&
@@ -129,6 +131,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     getDispositivoAnteriorMesmoTipo(dispositivo) &&
     dispositivo.tipo !== getDispositivoAnteriorMesmoTipo(dispositivo)?.rotulo &&
     !isOmissis(getDispositivoAnterior(dispositivo)!) &&
+    !isOmissis(getDispositivoAnteriorNaSequenciaDeLeitura(dispositivo)!) &&
     !validaOrdemDispositivo(getDispositivoAnterior(dispositivo)!, dispositivo) &&
     dispositivo.numero !== getDispositivoAnteriorMesmoTipo(dispositivo)?.numero
   ) {

@@ -8,9 +8,11 @@ import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoV
 import {
   buscaDispositivoById,
   findDispositivoByUuid,
+  getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getTiposAgrupadorArtigoOrdenados,
   getUltimoFilho,
+  isAdicionado,
   isArticulacaoAlteracao,
   isSuprimido,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -37,6 +39,7 @@ import {
 } from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
+import { buildId } from '../../../model/lexml/util/idUtil';
 
 const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
@@ -101,6 +104,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
       (novo as Artigo).alteracoes!.base = elemento.norma;
       novo.alteracoes!.situacao = new DispositivoAdicionado();
       (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+      novo.alteracoes!.id = buildId(novo.alteracoes!);
     }
   }
   return novo;
@@ -309,6 +313,37 @@ export const ajustarAtributosAgrupadorIncluidoPorUndoRedo = (articulacao: Articu
   dispositivo.rotulo = refFonteAgrupadorIncluido.rotulo;
   eventosResultantes[0].elementos!.length = 0;
   eventosResultantes[0].elementos!.push(createElemento(dispositivo));
+};
+
+export const ajustarHierarquivoAgrupadorIncluidoPorUndoRedo = (articulacao: Articulacao, eventosFonte: StateEvent[], eventosResultantes: StateEvent[]): void => {
+  const elAgrupador = eventosFonte[0].elementos![0];
+
+  if (!elAgrupador.dispositivoAlteracao || !elAgrupador.ultimoFilhoDireto) {
+    return;
+  }
+
+  const agrupador = getDispositivoFromElemento(articulacao, elAgrupador)!;
+  const pai = agrupador.pai!;
+  const ultimoFilhoDireto = getDispositivoFromElemento(articulacao, elAgrupador.ultimoFilhoDireto)!;
+
+  let index = pai.filhos.indexOf(agrupador) + 1;
+
+  while (index < pai.filhos.length) {
+    const d = pai.filhos[index];
+    if (isAdicionado(d)) {
+      pai.removeFilho(d);
+      d.pai = agrupador;
+      agrupador.addFilho(d);
+
+      if (d.uuid === ultimoFilhoDireto.uuid) {
+        break;
+      }
+    } else {
+      index++;
+    }
+  }
+
+  eventosResultantes.push({ stateType: StateType.SituacaoElementoModificada, elementos: getDispositivoAndFilhosAsLista(agrupador).map(d => createElemento(d)) });
 };
 
 export const processarRestaurados = (state: State, evento: StateEvent, acao: string): StateEvent => {

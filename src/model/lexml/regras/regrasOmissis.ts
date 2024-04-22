@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAlinea, isArticulacao, isArtigo, isCaput, isInciso, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isAlinea, isArticulacao, isArtigo, isCaput, isInciso, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
@@ -49,6 +49,11 @@ export function RegrasOmissis<TBase extends Constructor>(Base: TBase): any {
       if (isArticulacao(dispositivo.pai!) && getDispositivoAnterior(dispositivo) !== undefined) {
         acoes.push(transformarOmissisEmArtigo);
       }
+
+      if (isDispositivoAlteracao(dispositivo.pai!) && isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai!) && !isArticulacao(dispositivo.pai!)) {
+        acoes.push(transformarOmissisEmArtigo);
+      }
+
       if (isCaput(dispositivo.pai!)) {
         acoes.push(transformarOmissisEmIncisoCaput);
       }

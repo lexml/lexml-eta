@@ -1,5 +1,5 @@
 import { isRevisaoDeMovimentacao, isRevisaoDeTransformacao } from './../util/revisaoUtil';
-import { isAgrupador, isArticulacao, isCaput, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
@@ -35,6 +35,11 @@ import { isArticulacaoAlteracao, percorreHierarquiaDispositivos, getIrmaoAnterio
 import { agrupaElemento } from './agrupaElemento';
 
 export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
+  let alertas = [];
+  if (state.ui?.alertas?.length > 0) {
+    alertas = state.ui.alertas;
+  }
+
   const retorno: State = {
     articulacao: state.articulacao,
     modo: state.modo,
@@ -43,7 +48,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     future: [],
     ui: {
       events: [],
-      alertas: [],
+      alertas: alertas,
     },
     revisoes: [],
     emRevisao: state.emRevisao,
@@ -92,6 +97,8 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 
   retorno.ui!.events = eventos.build();
 
+  state.articulacao && renumeraParagrafosUnicos(retorno);
+
   const elementosInseridos: Elemento[] = [];
   retorno.ui!.events.filter(stateEvent => stateEvent.stateType === StateType.ElementoIncluido).forEach(se => elementosInseridos.push(...se.elementos!));
 
@@ -112,6 +119,16 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   }
 
   return retorno;
+};
+
+const renumeraParagrafosUnicos = (state: any): Dispositivo[] => {
+  // Trata renumeração de parágrafo único
+  let paragrafosUnicos = getDispositivoAndFilhosAsLista(state.articulacao)
+    .filter(d => isAdicionado(d) && isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
+    .map(d => d.pai!.filhos.find(f => f.id?.endsWith('par1u'))!);
+  paragrafosUnicos = [...new Set(paragrafosUnicos)];
+  paragrafosUnicos.map(d => d.pai!).forEach(d => d.renumeraFilhos());
+  return paragrafosUnicos;
 };
 
 const processaDispositivosAdicionados = (state: any, alteracoesEmenda: DispositivosEmenda): StateEvent[] => {
@@ -158,7 +175,7 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
 
     const atual = createElemento(ref);
 
-    const manterNoMesmoGrupoDeAspas = !dea.abreAspas || !dea.fechaAspas;
+    const manterNoMesmoGrupoDeAspas = dea.abreAspas ? false : !dea.fechaAspas;
     const tempState = agrupaElemento(state, { atual, novo: { tipo: dea.tipo, posicao, manterNoMesmoGrupoDeAspas, rotulo: dea.rotulo }, isAbrindoEmenda: true });
     const events = tempState.ui!.events.filter(ev => ev.stateType !== StateType.ElementoMarcado);
 

@@ -22,7 +22,7 @@ export class EtaBlotAbreAspas extends EtaBlot {
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotAbreAspas.className);
 
-    node.innerHTML = EtaBlotAbreAspas.montarHTML(elemento);
+    EtaBlotAbreAspas.__atualizarAtributos(elemento, node);
 
     return node;
   }
@@ -33,7 +33,16 @@ export class EtaBlotAbreAspas extends EtaBlot {
 
   public atualizarAtributos(elemento: Elemento): void {
     this.elemento = elemento;
-    this.domNode.innerHTML = EtaBlotAbreAspas.montarHTML(elemento);
+    EtaBlotAbreAspas.__atualizarAtributos(elemento, this.domNode);
+  }
+
+  private static __atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
+    if (elemento.abreAspas) {
+      node.setAttribute('exibir', '');
+    } else {
+      node.removeAttribute('exibir');
+    }
+    node.innerHTML = EtaBlotAbreAspas.montarHTML(elemento);
   }
 
   private static montarHTML(elemento: Elemento): string {
