@@ -44,7 +44,8 @@
     "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
     "build:demo": "npm run clean && npm run build && rollup -c",
     "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force",
-    "cy:open:local": "cypress open --config baseUrl=http://localhost:8000"
+    "cy:open:local": "cypress open --env envName=local",
+    "cy:run:local": "cypress run --env envName=local"
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.0.0-beta.73",
