@@ -186,6 +186,7 @@ export class DemoView extends LitElement {
               ano: '2023',
               ementa:
                 'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).',
+              emendarTextoSubsitutivo: false,
             };
           }
           params.motivo = 'Motivo da emenda de texto livre';

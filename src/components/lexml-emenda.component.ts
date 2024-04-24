@@ -52,6 +52,7 @@ export class LexmlEmendaParametrosEdicao {
     numero: string;
     ano: string;
     ementa: string;
+    emendarTextoSubsitutivo: boolean;
   };
 
   // Preenchido automaticamente se for informada a emenda ou o projetoNorma
@@ -82,6 +83,9 @@ export class LexmlEmendaParametrosEdicao {
 
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
+
+  // Indica se o texto a ser emendado é substitutivo
+  emendarTextoSubsitutivo = false;
 }
 
 @customElement('lexml-emenda')
@@ -107,6 +111,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
+
+  private emendarTextoSubsitutivo = false;
 
   // Para forçar atualização da interface
   @state()
@@ -246,6 +252,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         ano: getAno(urn),
         ementa: ementa,
         identificacaoTexto: 'Texto inicial',
+        emendarTextoSubsitutivo: false,
       };
     }
     return new RefProposicaoEmendada();
@@ -429,6 +436,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       // Preferência para a proposição informada
       this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
       this.ementa = params.proposicao.ementa; // Preferência para a ementa informada
+      this.emendarTextoSubsitutivo = params.proposicao.emendarTextoSubsitutivo;
     }
 
     // Se não forem informados, utilizar da Emenda
@@ -438,6 +446,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
       if (!this.ementa) {
         this.ementa = params.emenda.proposicao.ementa;
+        this.emendarTextoSubsitutivo = params.emenda.proposicao.emendarTextoSubsitutivo; //TODO Tá certo isso?
       }
     }
 
