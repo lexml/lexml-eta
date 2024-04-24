@@ -289,7 +289,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
-    emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
+    emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao || '';
     return emenda;
   }
 
