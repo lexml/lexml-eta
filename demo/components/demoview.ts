@@ -186,9 +186,9 @@ export class DemoView extends LitElement {
               ano: '2023',
               ementa:
                 'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).',
-              emendarTextoSubsitutivo: false,
             };
           }
+          params.emendarTextoSubstitutivo = false;
           params.motivo = 'Motivo da emenda de texto livre';
           this.elLexmlEmenda.inicializarEdicao(params);
 
@@ -216,6 +216,7 @@ export class DemoView extends LitElement {
 
   salvar(): void {
     const emenda = this.elLexmlEmenda.getEmenda();
+    console.log('emenda', emenda);
     const emendaJson = JSON.stringify(emenda, null, '\t');
     const blob = new Blob([emendaJson], { type: 'application/json' });
     const fileName = `${this.modo} - ${emenda.proposicao.sigla} nº ${emenda.proposicao.numero}, de ${emenda.proposicao.ano}.json`;

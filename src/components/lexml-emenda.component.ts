@@ -52,7 +52,6 @@ export class LexmlEmendaParametrosEdicao {
     numero: string;
     ano: string;
     ementa: string;
-    emendarTextoSubsitutivo: boolean;
   };
 
   // Preenchido automaticamente se for informada a emenda ou o projetoNorma
@@ -85,7 +84,7 @@ export class LexmlEmendaParametrosEdicao {
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
   // Indica se o texto a ser emendado é substitutivo
-  emendarTextoSubsitutivo = false;
+  emendarTextoSubstitutivo = false;
 }
 
 @customElement('lexml-emenda')
@@ -112,7 +111,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
 
-  private emendarTextoSubsitutivo = false;
+  private emendarTextoSubstitutivo = false;
 
   // Para forçar atualização da interface
   @state()
@@ -251,8 +250,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         numero: getNumero(urn),
         ano: getAno(urn),
         ementa: ementa,
-        identificacaoTexto: 'Texto inicial',
-        emendarTextoSubsitutivo: false,
+        identificacaoTexto: this.emendarTextoSubstitutivo ? 'Substitutivo' : 'Texto inicial',
+        emendarTextoSubstitutivo: this.emendarTextoSubstitutivo,
       };
     }
     return new RefProposicaoEmendada();
@@ -293,7 +292,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     const generoProposicao = generoFromLetra(getTipo(emenda.proposicao.urn).genero);
-    emenda.epigrafe.complemento = `(${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${emenda.proposicao.ano})`;
+    const inicioEpigrafe = this.emendarTextoSubstitutivo ? '(Ao substitutivo ' : '(';
+    emenda.epigrafe.complemento = `${inicioEpigrafe}${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${
+      emenda.proposicao.ano
+    })`;
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
@@ -436,8 +438,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       // Preferência para a proposição informada
       this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
       this.ementa = params.proposicao.ementa; // Preferência para a ementa informada
-      this.emendarTextoSubsitutivo = params.proposicao.emendarTextoSubsitutivo;
     }
+    this.emendarTextoSubstitutivo = params.emendarTextoSubstitutivo;
 
     // Se não forem informados, utilizar da Emenda
     if (params.emenda) {
@@ -446,7 +448,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
       if (!this.ementa) {
         this.ementa = params.emenda.proposicao.ementa;
-        this.emendarTextoSubsitutivo = params.emenda.proposicao.emendarTextoSubsitutivo; //TODO Tá certo isso?
+        this.emendarTextoSubstitutivo = params.emenda.proposicao.emendarTextoSubstitutivo;
       }
     }
 
