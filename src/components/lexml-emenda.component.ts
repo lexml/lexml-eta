@@ -251,7 +251,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         ano: getAno(urn),
         ementa: ementa,
         identificacaoTexto: this.emendarTextoSubstitutivo ? 'Substitutivo' : 'Texto inicial',
-        emendarTextoSubstitutivo: this.emendarTextoSubstitutivo,
       };
     }
     return new RefProposicaoEmendada();
@@ -299,6 +298,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
+    emenda.emendarTextoSubstitutivo = this.emendarTextoSubstitutivo;
     return emenda;
   }
 
@@ -448,7 +448,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
       if (!this.ementa) {
         this.ementa = params.emenda.proposicao.ementa;
-        this.emendarTextoSubstitutivo = params.emenda.proposicao.emendarTextoSubstitutivo;
+        this.emendarTextoSubstitutivo = params.emenda.emendarTextoSubstitutivo;
       }
     }
 

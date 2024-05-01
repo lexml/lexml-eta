@@ -25,6 +25,7 @@ export class Emenda {
   revisoes: Revisao[] = [];
   colegiadoApreciador = new ColegiadoApreciador();
   notasRodape: NotaRodape[] = [];
+  emendarTextoSubstitutivo = false;
 }
 
 export type MetadadosEmenda = {
@@ -46,7 +47,6 @@ export class RefProposicaoEmendada {
   ano = '';
   ementa = '';
   identificacaoTexto = '';
-  emendarTextoSubstitutivo = false;
 }
 
 // Colegiado apreciador da emenda ----------------------------
