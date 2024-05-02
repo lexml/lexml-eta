@@ -29,6 +29,7 @@ import { PDS_183_2018 } from '../doc/pds_183_2018';
 import { PLS_547_2018 } from '../doc/pls_547_2018';
 import { PLP_137_2019 } from '../doc/plp_137_2019';
 import { MPV_1210_2024 } from '../doc/mpv_1210_2024';
+import { MPV_1085_2021 } from '../doc/mpv_1085_2021';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -39,6 +40,7 @@ const mapProjetosNormas = {
   mpv_1100_2022: MPV_1100_2022,
   mpv_1160_2023: MPV_1160_2023,
   mpv_1210_2023: MPV_1210_2024,
+  mpv_1085_2021: MPV_1085_2021,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
   pl_142_2018: PLC_142_2028,
