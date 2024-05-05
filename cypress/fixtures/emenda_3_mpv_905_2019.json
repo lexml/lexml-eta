@@ -1,0 +1,88 @@
+{
+	"dataUltimaModificacao": "2024-05-01T18:14:40.880Z",
+	"aplicacao": "",
+	"versaoAplicacao": "",
+	"modoEdicao": "emenda",
+	"metadados": {},
+	"proposicao": {
+		"urn": "urn:lex:br:federal:medida.provisoria:2019-11-11;905",
+		"sigla": "MPV",
+		"numero": "905",
+		"ano": "2019",
+		"ementa": "Institui o Contrato de Trabalho Verde e Amarelo, altera a legislação trabalhista, e dá outras providências.\n",
+		"identificacaoTexto": "Texto inicial"
+	},
+	"epigrafe": {
+		"texto": "EMENDA Nº         - CMMPV 905/2019",
+		"complemento": "(à MPV 905/2019)"
+	},
+	"componentes": [
+		{
+			"urn": "urn:lex:br:federal:medida.provisoria:2019-11-11;905",
+			"articulado": true,
+			"dispositivos": {
+				"dispositivosSuprimidos": [],
+				"dispositivosModificados": [
+					{
+						"tipo": "Caput",
+						"id": "art1_cpt",
+						"rotulo": "Art. 1º",
+						"texto": "Fica instituído o Contrato de Trabalho Verde e Amarelo, modalidade de contratação destinada à criação de novos postos de trabalho para as pessoas entre dezoito e vinte e nove anos de idade, para fins de registro do primeiro emprego em Carteira de Trabalho e Previdência Social, e para mulheres em situação de violência doméstica e familiar, conforme descrito no art. 7º da Lei nº 11.340, de 7 de agosto de 2006 (Lei Maria da Penha)."
+					}
+				],
+				"dispositivosAdicionados": []
+			}
+		}
+	],
+	"comandoEmendaTextoLivre": {
+		"texto": ""
+	},
+	"comandoEmenda": {
+		"comandos": [
+			{
+				"cabecalho": "Dê-se ao <i>caput</i> do art. 1º da Medida Provisória a seguinte redação:",
+				"citacao": "<p class=\"artigo\">“<Rotulo>Art. 1º</Rotulo> Fica instituído o Contrato de Trabalho Verde e Amarelo, modalidade de contratação destinada à criação de novos postos de trabalho para as pessoas entre dezoito e vinte e nove anos de idade, para fins de registro do primeiro emprego em Carteira de Trabalho e Previdência Social, e para mulheres em situação de violência doméstica e familiar, conforme descrito no art. 7º da Lei nº 11.340, de 7 de agosto de 2006 (Lei Maria da Penha).</p><p class=\"omissis\"><Omissis/>”</p>"
+			}
+		]
+	},
+	"anexos": [],
+	"justificativa": "<p class=\"align-justify\">A presente emenda visa incluir no programa governamental as mulheres vítimas de violência doméstica. A ideia é permitir que mulheres, em especial as de baixa-renda, que sofrem ou já sofreram violência possam&nbsp;ter uma chance de emprego para reduzir a sua vulnerabilidade financeira que, muitas vezes, é apontada como uma das principais circunstâncias da continuidade da violência praticada contra a mulher. </p><p class=\"align-justify\">Não há nada mais emancipatório que o trabalho e a obtenção de renda própria. Assim sendo, aumentar as vagas de trabalho para as mulheres vítimas de violência é essencial para dar uma vida digna a elas e suas famílias. Muitas mulheres tem de se deslocar em grandes distâncias, muitas vezes até mudar de cidade para se verem livres da violência familiar. Frequentemente a manutenção da rotina normal de suas vidas é um fator de empecilho à mudança, especialmente a descontinuidade do contrato de trabalho. O fantasma do desemprego assola a todos e desta forma seria um impeditivo à correta aplicação das medidas governamentais para coibir a violência doméstica e familiar contra a mulher. </p><p class=\"align-justify\">No âmbito da dependência financeira, de acordo com a Nota Técnica do Senado Federal “Violência Doméstica e Familiar Contra a Mulher”<nota-rodape class=\"nota-rodape\" contenteditable=\"false\" id-nota-rodape=\"nr1714587134483\" texto=\"&amp;lt;p&amp;gt;&amp;amp;nbsp;https://www12.senado.leg.br/institucional/datasenado/arquivos/aumenta-numero-demulheres-que-declaram-ter-sofrido-violencia&amp;lt;/p&amp;gt;\" numero=\"1\">1</nota-rodape> , de 2017, 29% das mulheres apontam que a dependência financeira em relação ao agressor é o principal motivo para permanecerem no relacionamento abusivo e em situação de violência. A nota traz ainda que 25% das mulheres em situação de violência não possuem nenhum tipo de renda própria e 33% recebem até dois salários mínimos. </p><p class=\"align-justify\">A inclusão na atividade profissional é um elemento essencial para o bem-estar psicossocial das mulheres vítimas de violência doméstica, pois melhora a sua autoestima, sua convivência social e permite a sua autonomia financeira. Considerando que a dependência econômica em relação a seus agressores faz com que muitas mulheres permaneçam em relacionamentos abusivos, convivendo com os autores da violência, resta&nbsp;claro que a criação de vagas de trabalho ou o seu direcionamento específico para elas concretiza o objetivo da Lei Maria da Penha e da Constituição Federal de 1988.</p>",
+	"local": "Sala da comissão",
+	"data": "2019-11-12",
+	"autoria": {
+		"tipo": "Parlamentar",
+		"imprimirPartidoUF": true,
+		"quantidadeAssinaturasAdicionaisSenadores": 0,
+		"quantidadeAssinaturasAdicionaisDeputados": 0,
+		"parlamentares": [
+			{
+				"identificacao": "141421",
+				"nome": "Eduardo da Fonte",
+				"sexo": "M",
+				"siglaPartido": "PP",
+				"siglaUF": "PE",
+				"siglaCasaLegislativa": "CD",
+				"cargo": ""
+			}
+		]
+	},
+	"opcoesImpressao": {
+		"imprimirBrasao": true,
+		"textoCabecalho": "",
+		"reduzirEspacoEntreLinhas": true,
+		"tamanhoFonte": 14
+	},
+	"revisoes": [],
+	"colegiadoApreciador": {
+		"siglaCasaLegislativa": "CN",
+		"tipoColegiado": "Comissão",
+		"siglaComissao": "CMMPV 905/2019"
+	},
+	"notasRodape": [
+		{
+			"id": "nr1714587134483",
+			"numero": 1,
+			"texto": "<p>&nbsp;https://www12.senado.leg.br/institucional/datasenado/arquivos/aumenta-numero-demulheres-que-declaram-ter-sofrido-violencia</p>"
+		}
+	]
+}

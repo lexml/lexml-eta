@@ -18,3 +18,15 @@ import './commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+
+beforeEach(() => {
+    // ver commands.ts
+    cy.viewport(1920, 1080);
+    cy.visit('/', {
+      onBeforeLoad: win => {
+        win.sessionStorage.clear();
+        win.localStorage.clear();
+        cy.spy(win.console, 'error').as('consoleError');
+      },
+    });
+  });
