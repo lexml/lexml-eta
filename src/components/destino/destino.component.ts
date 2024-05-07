@@ -27,6 +27,7 @@ export class DestinoComponent extends LitElement {
     this._proposicao = value;
     this.isMPV = false;
     if (this._proposicao.sigla === 'MPV') {
+      this.isMPV = true;
       this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
       this._colegiadoApreciador.tipoColegiado = 'Comissão';
       if (this.isMateriaOrcamentaria) {
@@ -36,7 +37,6 @@ export class DestinoComponent extends LitElement {
         this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
         this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
       }
-      this.isMPV = true;
     }
 
     this.requestUpdate();
@@ -70,9 +70,12 @@ export class DestinoComponent extends LitElement {
   @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
-    this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário' ? true : false;
-    if (this._colegiadoApreciador.siglaComissao) {
+    this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
+    if (this.tipoColegiadoPlenario) {
+      this.ajustaTipoColegiadoPlenario();
+    } else if (this._colegiadoApreciador.siglaComissao) {
       const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
+      this._selecionarComissao(option);
       this._autocomplete.value = option.description || this._colegiadoApreciador.siglaComissao;
     } else {
       this._autocomplete.value = '';
@@ -206,12 +209,17 @@ export class DestinoComponent extends LitElement {
     if (!this.isMPV && !this.isPlenario) {
       this._colegiadoApreciador.tipoColegiado = value;
       this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
+      if (this.tipoColegiadoPlenario) this.ajustaTipoColegiadoPlenario();
       this.requestUpdate();
     }
   }
 
   private _selecionarComissao(item: Option): void {
-    this._colegiadoApreciador.siglaComissao = item.value;
+    const comissaoSelecionada: Comissao = this._comissoes.find(op => op.sigla === item.value)!;
+    if (comissaoSelecionada) {
+      this._colegiadoApreciador.siglaCasaLegislativa = comissaoSelecionada.siglaCasaLegislativa;
+      this._colegiadoApreciador.siglaComissao = comissaoSelecionada.sigla;
+    }
   }
 
   private _filtroComissao(query: string): void {
@@ -242,6 +250,12 @@ export class DestinoComponent extends LitElement {
         },
       })
     );
+  }
+
+  private ajustaTipoColegiadoPlenario() {
+    this._autocomplete.value = '';
+    this._colegiadoApreciador.siglaComissao = '';
+    this._colegiadoApreciador.siglaCasaLegislativa = 'SF';
   }
 }
 
