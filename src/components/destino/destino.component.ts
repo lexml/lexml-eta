@@ -236,6 +236,7 @@ export class DestinoComponent extends LitElement {
       if (!comissaoSelecionada) {
         this._autocomplete.value = '';
         this.comissaoSelecionada = '';
+        this._comissoesAutocomplete = [];
       }
     }, 200);
   }
@@ -252,7 +253,7 @@ export class DestinoComponent extends LitElement {
     );
   }
 
-  private ajustaTipoColegiadoPlenario() {
+  private ajustaTipoColegiadoPlenario(): void {
     this._autocomplete.value = '';
     this._colegiadoApreciador.siglaComissao = '';
     this._colegiadoApreciador.siglaCasaLegislativa = 'SF';
