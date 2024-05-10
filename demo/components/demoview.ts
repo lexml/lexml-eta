@@ -81,7 +81,7 @@ export class DemoView extends LitElement {
   constructor() {
     super();
     this.emendaConfig = new LexmlEmendaConfig();
-    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/18146f46-003c-4f6f-b00f-6e290de175dd';
+    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/9fc979a9-1fa0-4cd1-abd0-e166277ef3d6';
   }
 
   createRenderRoot(): LitElement {
