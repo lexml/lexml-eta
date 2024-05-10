@@ -220,14 +220,14 @@ export class DestinoComponent extends LitElement {
             @blur=${this._blurAutoComplete}
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
           ></autocomplete-async>
-          ${this.avaliarErroComissao() ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
+          ${this.validarErroComissao() ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
         </div>
       </fieldset>
     `;
   }
 
-  private avaliarErroComissao(): boolean {
-    const erroComissao = !this.comissaoSelecionada && this._autocomplete && !this._autocomplete.value;
+  private validarErroComissao(): boolean {
+    const erroComissao = this._colegiadoApreciador?.tipoColegiado !== 'Plenário' && !this.comissaoSelecionada && !this._autocomplete?.value;
     erroComissao ? this.disparaAlertaErroComissao() : rootStore.dispatch(removerAlerta('alerta-global-comissao-nao-selecionada'));
     return erroComissao;
   }
