@@ -4,6 +4,9 @@ import { Option } from '../editor/autocomplete-async';
 import { LexmlAutocomplete } from '../lexml-autocomplete';
 import { ColegiadoApreciador, RefProposicaoEmendada } from '../../model/emenda/emenda';
 import { Comissao } from './comissao';
+import { rootStore } from '../../redux/store';
+import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 
 @customElement('lexml-destino')
 export class DestinoComponent extends LitElement {
@@ -112,6 +115,23 @@ export class DestinoComponent extends LitElement {
           box-shadow: var(--sl-shadow-small);
         }
 
+        .mensagem {
+          font-size: 0.8em;
+          font-weight: normal;
+          text-align: left;
+          border: 1px solid;
+          padding: 4px 10px;
+          margin: 10px 0;
+          display: inline-block;
+          border-radius: 2px;
+          font-family: var(--sl-font-sans);
+        }
+
+        .mensagem--danger {
+          color: #721c24;
+          background-color: #f8d7da;
+          border-color: #f5c6cb;
+        }
         /* sl-radio-group::part(base) {
           display: flex;
           flex-direction: row;
@@ -200,9 +220,26 @@ export class DestinoComponent extends LitElement {
             @blur=${this._blurAutoComplete}
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
           ></autocomplete-async>
+          ${this.avaliarErroComissao() ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
         </div>
       </fieldset>
     `;
+  }
+
+  private avaliarErroComissao(): boolean {
+    const erroComissao = !this.comissaoSelecionada && this._autocomplete && !this._autocomplete.value;
+    erroComissao ? this.disparaAlertaErroComissao() : rootStore.dispatch(removerAlerta('alerta-global-comissao-nao-selecionada'));
+    return erroComissao;
+  }
+
+  disparaAlertaErroComissao(): void {
+    const alerta = {
+      id: 'alerta-global-comissao-nao-selecionada',
+      tipo: 'error',
+      mensagem: 'A comissão de destino deve ser selecionada.',
+      podeFechar: false,
+    };
+    rootStore.dispatch(adicionarAlerta(alerta));
   }
 
   private updateTipoColegiado(value: any): void {
@@ -237,6 +274,7 @@ export class DestinoComponent extends LitElement {
         this._autocomplete.value = '';
         this.comissaoSelecionada = '';
         this._comissoesAutocomplete = [];
+        this._colegiadoApreciador.siglaComissao = '';
       }
     }, 200);
   }
