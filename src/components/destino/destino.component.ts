@@ -178,7 +178,8 @@ export class DestinoComponent extends LitElement {
             .items=${this._comissoesAutocomplete}
             .onSearch=${value => this._filtroComissao(value)}
             .onSelect=${value => this._selecionarComissao(value)}
-            .onChange="${() => false}"
+            .onChange="${() => true}"
+            .onClick="${() => this._exibirComissoes()}"
             @blur=${this._blurAutoComplete}
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
           ></autocomplete-async>
@@ -186,6 +187,11 @@ export class DestinoComponent extends LitElement {
         </div>
       </fieldset>
     `;
+  }
+
+  private _exibirComissoes() {
+    this._autocomplete.value = '';
+    this._comissoesAutocomplete = this._comissoesOptions;
   }
 
   private criarAlertaErroComissao(): void {
@@ -234,8 +240,6 @@ export class DestinoComponent extends LitElement {
       const comissaoSelecionada = this._comissoesOptions.find(comissaoOp => comissao === comissaoOp.description);
 
       if (!comissaoSelecionada) {
-        this._autocomplete.value = '';
-        this._comissoesAutocomplete = [];
         this._colegiadoApreciador.siglaComissao = '';
         this.criarAlertaErroComissao();
       }
