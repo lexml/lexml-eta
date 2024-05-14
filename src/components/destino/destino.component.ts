@@ -16,13 +16,12 @@ export class DestinoComponent extends LitElement {
   @state()
   private _comissoesAutocomplete: Option[] = [];
 
-  @state()
-  private comissaoSelecionada = '';
   private isMPV = false;
   private isPlenario = false;
   private tipoColegiadoPlenario = false;
   public isMateriaOrcamentaria = false;
-
+  @state()
+  private isErroComissaoSelecionada = false;
   private _proposicao!: RefProposicaoEmendada;
   @property({ type: RefProposicaoEmendada })
   set proposicao(value: RefProposicaoEmendada) {
@@ -72,6 +71,7 @@ export class DestinoComponent extends LitElement {
   private _colegiadoApreciador!: ColegiadoApreciador;
   @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
+    console.log('this.tipoColegiadoPlenario', this.tipoColegiadoPlenario);
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
     this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
     if (this.tipoColegiadoPlenario) {
@@ -82,6 +82,9 @@ export class DestinoComponent extends LitElement {
       this._autocomplete.value = option.description || this._colegiadoApreciador.siglaComissao;
     } else {
       this._autocomplete.value = '';
+    }
+    if (!this.tipoColegiadoPlenario && !this._colegiadoApreciador.siglaComissao) {
+      this.criarAlertaErroComissao();
     }
     this.requestUpdate();
   }
@@ -217,22 +220,18 @@ export class DestinoComponent extends LitElement {
             .items=${this._comissoesAutocomplete}
             .onSearch=${value => this._filtroComissao(value)}
             .onSelect=${value => this._selecionarComissao(value)}
+            .onChange="${() => false}"
             @blur=${this._blurAutoComplete}
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
           ></autocomplete-async>
-          ${this.validarErroComissao() ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
+          ${this.isErroComissaoSelecionada ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
         </div>
       </fieldset>
     `;
   }
 
-  private validarErroComissao(): boolean {
-    const erroComissao = this._colegiadoApreciador?.tipoColegiado !== 'Plenário' && !this.comissaoSelecionada && !this._autocomplete?.value;
-    erroComissao ? this.disparaAlertaErroComissao() : rootStore.dispatch(removerAlerta('alerta-global-comissao-nao-selecionada'));
-    return erroComissao;
-  }
-
-  disparaAlertaErroComissao(): void {
+  private criarAlertaErroComissao(): void {
+    this.isErroComissaoSelecionada = true;
     const alerta = {
       id: 'alerta-global-comissao-nao-selecionada',
       tipo: 'error',
@@ -240,6 +239,11 @@ export class DestinoComponent extends LitElement {
       podeFechar: false,
     };
     rootStore.dispatch(adicionarAlerta(alerta));
+  }
+
+  private removerAlertaErroComissao(): void {
+    this.isErroComissaoSelecionada = false;
+    rootStore.dispatch(removerAlerta('alerta-global-comissao-nao-selecionada'));
   }
 
   private updateTipoColegiado(value: any): void {
@@ -256,6 +260,7 @@ export class DestinoComponent extends LitElement {
     if (comissaoSelecionada) {
       this._colegiadoApreciador.siglaCasaLegislativa = comissaoSelecionada.siglaCasaLegislativa;
       this._colegiadoApreciador.siglaComissao = comissaoSelecionada.sigla;
+      this.removerAlertaErroComissao();
     }
   }
 
@@ -272,9 +277,9 @@ export class DestinoComponent extends LitElement {
 
       if (!comissaoSelecionada) {
         this._autocomplete.value = '';
-        this.comissaoSelecionada = '';
         this._comissoesAutocomplete = [];
         this._colegiadoApreciador.siglaComissao = '';
+        this.criarAlertaErroComissao();
       }
     }, 200);
   }
