@@ -71,7 +71,6 @@ export class DestinoComponent extends LitElement {
   private _colegiadoApreciador!: ColegiadoApreciador;
   @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
-    console.log('this.tipoColegiadoPlenario', this.tipoColegiadoPlenario);
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
     this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
     if (this.tipoColegiadoPlenario) {
@@ -135,47 +134,6 @@ export class DestinoComponent extends LitElement {
           background-color: #f8d7da;
           border-color: #f5c6cb;
         }
-        /* sl-radio-group::part(base) {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: 10px;
-          background-color: var(--sl-color-gray-100);
-          box-shadow: var(--sl-shadow-x-large);
-          flex-wrap: wrap;
-          padding: 20px 20px;
-        }
-        sl-radio-group::part(label) {
-          background-color: var(--sl-color-gray-200);
-          font-weight: bold;
-          border-radius: 5px;
-          border: 1px solid var(--sl-color-gray-300);
-          padding: 2px 5px;
-          box-shadow: var(--sl-shadow-small);
-        }
-        sl-radio-group > sl-radio:first-child {
-          display: inline-flex;
-          padding: 0 20px 0 0;
-        }
-        sl-input::part(form-control) {
-          display: flex;
-          flex-direction: row;
-          gap: 10px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-        sl-input::part(base) {
-          max-width: 190px;
-        }
-        @media (max-width: 480px) {
-          sl-input::part(base) {
-            max-width: 150px;
-          }
-        }
-
-        sl-radio-group::part(base) {
-          box-shadow: none;
-        } */
       </style>
       <fieldset class="lexml-destino">
         <legend>Destino</legend>
