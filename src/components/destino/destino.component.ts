@@ -1,7 +1,6 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { Option } from '../editor/autocomplete-async';
-import { LexmlAutocomplete } from '../lexml-autocomplete';
+import { AutocompleteAsync, Option } from '../editor/autocomplete-async';
 import { ColegiadoApreciador, RefProposicaoEmendada } from '../../model/emenda/emenda';
 import { Comissao } from './comissao';
 import { rootStore } from '../../redux/store';
@@ -11,7 +10,7 @@ import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 @customElement('lexml-destino')
 export class DestinoComponent extends LitElement {
   @query('#auto-complete-async')
-  private _autocomplete!: LexmlAutocomplete;
+  private _autocomplete!: AutocompleteAsync;
 
   @state()
   private _comissoesAutocomplete: Option[] = [];
@@ -74,7 +73,7 @@ export class DestinoComponent extends LitElement {
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
     this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
     if (this.tipoColegiadoPlenario) {
-      this.ajustaTipoColegiadoPlenario();
+      this.ajustarTipoColegiadoPlenario();
     } else if (this._colegiadoApreciador.siglaComissao) {
       const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
       this._selecionarComissao(option);
@@ -191,7 +190,7 @@ export class DestinoComponent extends LitElement {
 
   private _exibirComissoes() {
     this._autocomplete.value = '';
-    this._comissoesAutocomplete = this._comissoesOptions;
+    this._comissoesAutocomplete = [];
   }
 
   private criarAlertaErroComissao(): void {
@@ -214,7 +213,7 @@ export class DestinoComponent extends LitElement {
     if (!this.isMPV && !this.isPlenario) {
       this._colegiadoApreciador.tipoColegiado = value;
       this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
-      if (this.tipoColegiadoPlenario) this.ajustaTipoColegiadoPlenario();
+      if (this.tipoColegiadoPlenario) this.ajustarTipoColegiadoPlenario();
       this.requestUpdate();
     }
   }
@@ -235,6 +234,7 @@ export class DestinoComponent extends LitElement {
 
   private _blurAutoComplete(): void {
     if (!this.comissoes?.length) return;
+
     setTimeout(() => {
       const comissao = this._autocomplete.value ?? '';
       const comissaoSelecionada = this._comissoesOptions.find(comissaoOp => comissao === comissaoOp.description);
@@ -242,6 +242,7 @@ export class DestinoComponent extends LitElement {
       if (!comissaoSelecionada) {
         this._colegiadoApreciador.siglaComissao = '';
         this.criarAlertaErroComissao();
+        this._autocomplete.value = '';
       }
     }, 200);
   }
@@ -258,7 +259,7 @@ export class DestinoComponent extends LitElement {
     );
   }
 
-  private ajustaTipoColegiadoPlenario(): void {
+  private ajustarTipoColegiadoPlenario(): void {
     this._autocomplete.value = '';
     this._colegiadoApreciador.siglaComissao = '';
     this._colegiadoApreciador.siglaCasaLegislativa = 'SF';
