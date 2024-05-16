@@ -4,12 +4,6 @@
 // import 'quill/dist/quill.snow.css';
 // import 'font-awesome/css/font-awesome.css';
 
-import 'elix/define/AlertDialog';
-import 'elix/define/Dialog';
-import 'elix/define/MenuButton';
-import 'elix/define/MenuItem';
-import 'elix/define/MenuSeparator';
-import 'elix/define/Toast';
 import 'quill/dist/quill';
 
 import '@shoelace-style/shoelace/dist/components/radio-group/radio-group.js';
