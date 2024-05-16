@@ -38,6 +38,7 @@ import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-te
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
+import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -318,54 +319,61 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
-    this._lexmlEmendaComando.emenda = [];
-    this.modo = params.modo;
-    this.projetoNorma = params.projetoNorma;
-    this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
-    this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
+    try {
+      this._lexmlEmendaComando.emenda = [];
+      this.modo = params.modo;
+      this.projetoNorma = params.projetoNorma;
+      this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
+      this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
 
-    this.inicializaProposicao(params);
+      this.inicializaProposicao(params);
 
-    this.motivo = params.motivo;
-    if (this.isEmendaTextoLivre() && params.emenda) {
-      this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
-    }
+      this.motivo = params.motivo;
+      if (this.isEmendaTextoLivre() && params.emenda) {
+        this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
+      }
 
-    if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
-    }
+      this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
-    if (params.emenda) {
-      this.setEmenda(params.emenda);
-    } else {
-      this.resetaEmenda(params);
-    }
+      if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
+        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
+      }
 
-    this.limparAlertas();
+      if (params.emenda) {
+        this.setEmenda(params.emenda);
+      } else {
+        this.resetaEmenda(params);
+      }
 
-    if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
-      this.showAlertaEmendaTextoLivre();
-    }
-    this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
-    setTimeout(this.handleResize, 0);
+      this.limparAlertas();
 
-    if (!params.emenda?.revisoes?.length) {
-      this.desativarMarcaRevisao();
-    }
+      if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+        this.showAlertaEmendaTextoLivre();
+      }
+      setTimeout(this.handleResize, 0);
 
-    this._tabsEsquerda.show('lexml-eta');
+      if (!params.emenda?.revisoes?.length) {
+        this.desativarMarcaRevisao();
+      }
 
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+      this._tabsEsquerda.show('lexml-eta');
+
+      if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+        setTimeout(() => {
+          this._tabsDireita?.show('comando');
+        });
+      } else {
+        setTimeout(() => {
+          this._tabsDireita?.show('notas');
+        });
+      }
+
+      this.updateView();
+    } catch (err) {
       setTimeout(() => {
-        this._tabsDireita?.show('comando');
-      });
-    } else {
-      setTimeout(() => {
-        this._tabsDireita?.show('notas');
-      });
+        rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
+      }, 0);
     }
-
-    this.updateView();
   }
 
   public trocarModoEdicao(modo: string, motivo = ''): void {
