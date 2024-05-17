@@ -83,6 +83,9 @@ export class LexmlEmendaParametrosEdicao {
 
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
+
+  // Casa legislativa resposavel pela apreciaçao da emenda
+  casaLegislativa: 'SF' | 'CD' | 'CN' = 'CN';
 }
 
 @customElement('lexml-emenda')
@@ -105,6 +108,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private projetoNorma: any;
 
   private motivo = '';
+
+  private casaLegislativa: 'SF' | 'CD' | 'CN' = 'CN';
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
@@ -176,13 +181,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       if (!this.lexmlEmendaConfig.urlComissoes) {
         return Promise.resolve([]);
       }
-      const _response = await fetch(this.lexmlEmendaConfig.urlComissoes);
+      const _response = await fetch(`${this.lexmlEmendaConfig.urlComissoes}?siglaCasaLegislativa=${this.casaLegislativa}`);
       const _comissoes = await _response.json();
-      return _comissoes.map(c => ({
-        siglaCasaLegislativa: c.siglaCasaLegislativa,
-        sigla: c.sigla,
-        nome: c.nome,
-      }));
+      return _comissoes
+        .filter(c => c.siglaCasaLegislativa === this.casaLegislativa)
+        .map(c => ({
+          siglaCasaLegislativa: c.siglaCasaLegislativa,
+          sigla: c.sigla,
+          nome: c.nome,
+        }));
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de comissões');
       console.log(err);
@@ -192,16 +199,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
     return Promise.resolve([]);
   }
-
-  // private habilitarBotoes(): void {
-  //   const botoes = document.querySelectorAll('.lexml-eta-main-header input[type=button]');
-
-  //   if (this.parlamentaresCarregados && this.comissoesCarregadas) {
-  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = false));
-  //   } else {
-  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = true));
-  //   }
-  // }
 
   atualizaListaParlamentares(): void {
     this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
@@ -341,9 +338,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
       if (params.emenda) {
         this.setEmenda(params.emenda);
+        this.casaLegislativa = params.emenda.colegiadoApreciador.siglaCasaLegislativa ?? 'CN';
       } else {
         this.resetaEmenda(params);
+        this.casaLegislativa = params.casaLegislativa;
       }
+
+      this._lexmlDestino!.casaLegislativa = this.casaLegislativa;
 
       this.limparAlertas();
 
@@ -368,11 +369,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         });
       }
 
+      this.atualizaListaComissoes();
+
       this.updateView();
     } catch (err) {
       setTimeout(() => {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
+    }
+  }
+
+  private inicializaColegiadoApreciador(params: LexmlEmendaParametrosEdicao): void {
+    const siglaProposicao = params.emenda?.proposicao.sigla ?? '';
+    if (['MPV', 'PDN', 'PRN'].indexOf(siglaProposicao)) {
+      this._lexmlDestino!.colegiadoApreciador.siglaCasaLegislativa = 'CN';
+    } else {
+      this._lexmlDestino!.colegiadoApreciador.siglaCasaLegislativa = params.casaLegislativa;
     }
   }
 
@@ -607,7 +619,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   protected firstUpdated(): void {
     // this.habilitarBotoes();
     setTimeout(() => this.atualizaListaParlamentares(), 0);
-    setTimeout(() => this.atualizaListaComissoes(), 0);
+    // setTimeout(() => this.atualizaListaComissoes(), 0);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
@@ -618,7 +630,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         }
       } else if (tabName === 'autoria') {
         this.parlamentares.length === 0 && this.atualizaListaParlamentares();
-        this.comissoes?.length === 0 && this.atualizaListaComissoes();
+        // this.comissoes?.length === 0 && this.atualizaListaComissoes();
       }
     });
 

@@ -16,15 +16,22 @@ export class DestinoComponent extends LitElement {
   private _comissoesAutocomplete: Option[] = [];
 
   private isMPV = false;
+
   private isPlenario = false;
+
   private tipoColegiadoPlenario = false;
+
+  public casaLegislativa: 'SF' | 'CD' | 'CN' = 'CN';
+
   public isMateriaOrcamentaria = false;
+
   @state()
   private isErroComissaoSelecionada = false;
+
   private _proposicao!: RefProposicaoEmendada;
+
   @property({ type: RefProposicaoEmendada })
   set proposicao(value: RefProposicaoEmendada) {
-    // this._autocomplete.value = '';
     this._proposicao = value;
     this.isMPV = false;
     if (this._proposicao.sigla === 'MPV') {
@@ -38,6 +45,10 @@ export class DestinoComponent extends LitElement {
         this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
         this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
       }
+    } else if (['PDN', 'PRN'].indexOf(this._proposicao.sigla) > -1) {
+      this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
+    } else if (this.casaLegislativa) {
+      this._colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
     }
 
     this.requestUpdate();
