@@ -248,9 +248,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         </div>
         <div id="lx-eta-editor"></div>
       </div>
-      <elix-toast id="toast-alerta" duration="3000">
-        <div id="toast-msg"></div>
-      </elix-toast>
       <div id="lx-eta-buffer"><p></p></div>
       <lexml-ajuda-modal></lexml-ajuda-modal>
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>

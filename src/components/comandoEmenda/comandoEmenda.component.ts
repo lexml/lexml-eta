@@ -25,11 +25,16 @@ export class ComandoEmendaComponent extends connect(rootStore)(LitElement) {
   buildTemplateCitacao(citacao: any): string {
     // eslint-disable-next-line prettier/prettier
     const corpo = citacao
+      .replaceAll(/<p[^>]*?>((?:(?!<p).)*?<Omissis\/>[^<]*?)<\/p>/gm, '<div class="container-omissis">$1</div>')
+      .replaceAll(
+        '<Omissis/>',
+        '<span>................................................................................................................................................................................................................................................................................................................................................</span>'
+      )
       .replaceAll('<Rotulo>', '<b>')
       .replaceAll('</Rotulo>', '</b> ')
+      .replaceAll('<Rotulo/>', '')
       .replaceAll('<Alteracao>', '<div class="alteracao">')
-      .replaceAll('</Alteracao>', '</div> ')
-      .replaceAll('<Omissis/>', '<span class="texto__omissis">...............................................</span>');
+      .replaceAll('</Alteracao>', '</div> ');
 
     return corpo;
   }
@@ -104,6 +109,33 @@ export class ComandoEmendaComponent extends connect(rootStore)(LitElement) {
         .lexml-emenda-citacaoComando div.alteracao p {
           text-indent: 2em;
         }
+
+        .lexml-emenda-citacaoComando .container-omissis {
+          margin-left: 3em;
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+        }
+
+        .lexml-emenda-citacaoComando div.alteracao .container-omissis {
+          margin-left: 2em;
+        }
+
+        .lexml-emenda-citacaoComando .container-omissis b {
+          font-weight: bold;
+          padding-right: 4px;
+        }
+
+        .lexml-emenda-citacaoComando .container-omissis span {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          flex-grow: 1;
+          width: 50px;
+          white-space: nowrap;
+        }
+
         .mensagem {
           font-size: 0.8em;
           font-weight: normal;
