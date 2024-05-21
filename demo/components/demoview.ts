@@ -191,7 +191,7 @@ export class DemoView extends LitElement {
             };
           }
           params.motivo = 'Motivo da emenda de texto livre';
-          params.casaLegislativa = 'SF';
+          // params.casaLegislativa = 'SF';
           this.elLexmlEmenda.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);
