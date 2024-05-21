@@ -21,8 +21,6 @@ export class DestinoComponent extends LitElement {
 
   private tipoColegiadoPlenario = false;
 
-  public casaLegislativa: 'SF' | 'CD' | 'CN' = 'CN';
-
   public isMateriaOrcamentaria = false;
 
   @state()
@@ -47,8 +45,6 @@ export class DestinoComponent extends LitElement {
       }
     } else if (['PDN', 'PRN'].indexOf(this._proposicao.sigla) > -1) {
       this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
-    } else if (this.casaLegislativa) {
-      this._colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
     }
 
     this.requestUpdate();
@@ -65,6 +61,7 @@ export class DestinoComponent extends LitElement {
     if (!this._comissoes || this._comissoes.length === 0) {
       this._comissoes = value ? value : [];
       this._comissoesOptions = this.comissoes.map(comissao => new Option(comissao.sigla, `${comissao.sigla} - ${comissao.nome}`));
+      this.ajustarValorAutocomplete();
       this.requestUpdate();
     }
     if (typeof value === 'undefined') {
@@ -78,6 +75,14 @@ export class DestinoComponent extends LitElement {
 
   private _comissoesOptions: Option[] = [];
 
+  private ajustarValorAutocomplete(): void {
+    if (this._colegiadoApreciador?.siglaComissao) {
+      const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
+      this._selecionarComissao(option);
+      this._autocomplete.value = option.description || this._colegiadoApreciador.siglaComissao;
+    }
+  }
+
   private _colegiadoApreciador!: ColegiadoApreciador;
   @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
@@ -86,9 +91,7 @@ export class DestinoComponent extends LitElement {
     if (this.tipoColegiadoPlenario) {
       this.ajustarTipoColegiadoPlenario();
     } else if (this._colegiadoApreciador.siglaComissao) {
-      const option: Option = this._comissoesOptions.find(op => op.value === this._colegiadoApreciador.siglaComissao) || new Option('', '');
-      this._selecionarComissao(option);
-      this._autocomplete.value = option.description || this._colegiadoApreciador.siglaComissao;
+      this.ajustarValorAutocomplete();
     } else {
       this._autocomplete.value = '';
     }

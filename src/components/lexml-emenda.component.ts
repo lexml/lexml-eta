@@ -176,15 +176,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
-  async getComissoes(): Promise<Comissao[]> {
+  async getComissoes(siglaCasaLegislativa: string): Promise<Comissao[]> {
     try {
       if (!this.lexmlEmendaConfig.urlComissoes) {
         return Promise.resolve([]);
       }
-      const _response = await fetch(`${this.lexmlEmendaConfig.urlComissoes}?siglaCasaLegislativa=${this.casaLegislativa}`);
+      const _response = await fetch(`${this.lexmlEmendaConfig.urlComissoes}?siglaCasaLegislativa=${siglaCasaLegislativa}`);
       const _comissoes = await _response.json();
       return _comissoes
-        .filter(c => c.siglaCasaLegislativa === this.casaLegislativa)
+        .filter(c => c.siglaCasaLegislativa === siglaCasaLegislativa)
         .map(c => ({
           siglaCasaLegislativa: c.siglaCasaLegislativa,
           sigla: c.sigla,
@@ -205,7 +205,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   atualizaListaComissoes(): void {
-    this.getComissoes().then(comissoes => (this.comissoes = comissoes));
+    this.getComissoes(this.casaLegislativa).then(comissoes => (this.comissoes = comissoes));
   }
 
   private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
@@ -337,14 +337,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
 
       if (params.emenda) {
-        this.setEmenda(params.emenda);
         this.casaLegislativa = params.emenda.colegiadoApreciador.siglaCasaLegislativa ?? 'CN';
+        this.setEmenda(params.emenda);
       } else {
-        this.resetaEmenda(params);
         this.casaLegislativa = params.casaLegislativa;
+        this.resetaEmenda(params);
       }
 
-      this._lexmlDestino!.casaLegislativa = this.casaLegislativa;
+      this.atualizaListaComissoes();
 
       this.limparAlertas();
 
@@ -369,22 +369,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         });
       }
 
-      this.atualizaListaComissoes();
-
       this.updateView();
     } catch (err) {
       setTimeout(() => {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
-    }
-  }
-
-  private inicializaColegiadoApreciador(params: LexmlEmendaParametrosEdicao): void {
-    const siglaProposicao = params.emenda?.proposicao.sigla ?? '';
-    if (['MPV', 'PDN', 'PRN'].indexOf(siglaProposicao)) {
-      this._lexmlDestino!.colegiadoApreciador.siglaCasaLegislativa = 'CN';
-    } else {
-      this._lexmlDestino!.colegiadoApreciador.siglaCasaLegislativa = params.casaLegislativa;
     }
   }
 
@@ -542,6 +531,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
     emenda.autoria = this.montarAutoriaPadrao(params);
     emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
+    emenda.colegiadoApreciador.siglaCasaLegislativa = params.casaLegislativa;
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
