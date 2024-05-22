@@ -292,7 +292,8 @@ export class DemoView extends LitElement {
   }
 
   private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
-    const aux = mapProjetosNormas[`${sigla.toLowerCase()}_${numero}_${ano}`];
+    const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
+    const aux = mapProjetosNormas[key] || mapProjetosNormas[`_${key}`];
     if (aux) {
       return Promise.resolve({ ...aux });
     }
