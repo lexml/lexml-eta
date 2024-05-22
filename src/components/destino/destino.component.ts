@@ -34,7 +34,6 @@ export class DestinoComponent extends LitElement {
     this.isMPV = false;
     if (this._proposicao.sigla === 'MPV') {
       this.isMPV = true;
-      this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
       this._colegiadoApreciador.tipoColegiado = 'Comissão';
       if (this.isMateriaOrcamentaria) {
         this._colegiadoApreciador.siglaComissao = 'CMO';
@@ -43,8 +42,6 @@ export class DestinoComponent extends LitElement {
         this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
         this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
       }
-    } else if (['PDN', 'PRN'].indexOf(this._proposicao.sigla) > -1) {
-      this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
     }
 
     this.requestUpdate();

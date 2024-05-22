@@ -109,7 +109,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private motivo = '';
 
-  private casaLegislativa: 'SF' | 'CD' | 'CN' = 'CN';
+  private casaLegislativa = 'CN';
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
@@ -340,7 +340,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.casaLegislativa = params.emenda.colegiadoApreciador.siglaCasaLegislativa ?? 'CN';
         this.setEmenda(params.emenda);
       } else {
-        this.casaLegislativa = params.casaLegislativa;
+        this.casaLegislativa = this.inicializaColegiadoApreciador(params);
         this.resetaEmenda(params);
       }
 
@@ -375,6 +375,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
     }
+  }
+
+  private inicializaColegiadoApreciador(params: LexmlEmendaParametrosEdicao): string {
+    const siglaProposicao = params.emenda?.proposicao.sigla ?? '';
+    return ['MPV', 'PDN', 'PRN'].indexOf(siglaProposicao) > -1 ? 'CN' : params.casaLegislativa;
   }
 
   public trocarModoEdicao(modo: string, motivo = ''): void {
