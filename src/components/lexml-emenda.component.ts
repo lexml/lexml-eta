@@ -348,7 +348,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
       this.limparAlertas();
 
-      if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+      if (this.isEmendaTextoLivre() && this._lexmlEmendaTextoRico.isEditorVazio()) {
         this.showAlertaEmendaTextoLivre();
       }
       setTimeout(this.handleResize, 0);
@@ -415,7 +415,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     this.limparAlertas();
 
-    if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+    if (this.isEmendaTextoLivre() && this._lexmlEmendaTextoRico.isEditorVazio()) {
       this.showAlertaEmendaTextoLivre();
     }
     setTimeout(this.handleResize, 0);
@@ -749,12 +749,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     } else if (this.isEmendaTextoLivre()) {
-      if (!this._lexmlJustificativa.texto) {
+      if (!this._lexmlEmendaTextoRico.isEditorVazio() && this._lexmlJustificativa.isEditorVazio()) {
         this.disparaAlerta();
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
       }
-      if (!this._lexmlEmendaTextoRico.texto) {
+      if (this._lexmlEmendaTextoRico.isEditorVazio()) {
         this.showAlertaEmendaTextoLivre();
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
@@ -773,7 +773,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     }
 
-    if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
+    if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && this._lexmlJustificativa.isEditorVazio()) {
       this.disparaAlerta();
     } else {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
