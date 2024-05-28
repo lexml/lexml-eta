@@ -68,7 +68,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
 
       verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.AGRUPADOR);
 
-      return dispositivo.getAcoesPermitidas(dispositivo, acoes);
+      return dispositivo.getAcoesPermitidas(dispositivo, acoes.filter(Boolean));
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

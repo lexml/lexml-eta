@@ -119,7 +119,7 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   private static montarRotulo(elemento: Elemento): string {
-    const descricaoTipo = TipoDispositivo[elemento.tipo!.toLowerCase()].descricao;
+    const descricaoTipo = TipoDispositivo[elemento.tipo!.toLowerCase()]?.descricao;
     return elemento.revisao && EtaBlotRotulo.isRevisaoPrincipalDeExclusaoDeDispositivo(elemento) ? descricaoTipo ?? '' : elemento.rotulo;
   }
 

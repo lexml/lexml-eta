@@ -96,7 +96,34 @@ export class AutoriaComponent extends LitElement {
 
   render(): TemplateResult {
     return html`
-      <sl-radio-group label="Autoria" fieldset class="lexml-autoria">
+      <style>
+        fieldset {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5em;
+          background-color: var(--sl-color-gray-100);
+          box-shadow: var(--sl-shadow-x-large);
+          flex-wrap: wrap;
+          padding: 20px 20px;
+          border: solid var(--sl-panel-border-width) var(--sl-panel-border-color);
+          border-radius: var(--sl-border-radius-medium);
+          max-width: 655px;
+          margin: 1em 0 2em 0;
+        }
+        legend {
+          background-color: var(--sl-color-gray-200);
+          font-weight: bold !important;
+          border-radius: 5px;
+          border: 1px solid var(--sl-color-gray-300);
+          padding: 2px 5px;
+          box-shadow: var(--sl-shadow-small);
+        }
+        sl-button {
+          width: fit-content;
+        }
+      </style>
+      <fieldset>
+        <legend>Autoria</legend>
         ${this._getTipoAutoriaTemplate()}
         <div class="autoria-list">${this._getParlamentaresTemplate()}</div>
         <sl-button id="btnNovoParlamentar" variant="primary" @click=${this._incluirNovoParlamentar} ?disabled=${!this._podeIncluirParlamentar}>
@@ -111,7 +138,7 @@ export class AutoriaComponent extends LitElement {
             Imprimir partido e UF para os signatários
           </label>
         </div>
-      </sl-radio-group>
+      </fieldset>
     `;
   }
 

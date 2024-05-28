@@ -371,6 +371,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
       this.updateView();
     } catch (err) {
+      console.error(err);
       setTimeout(() => {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
