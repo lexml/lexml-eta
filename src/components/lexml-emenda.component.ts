@@ -158,14 +158,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     try {
       const _response = await fetch(this.lexmlEmendaConfig.urlConsultaParlamentares);
       const _parlamentares = await _response.json();
-      return _parlamentares.map(p => ({
-        identificacao: p.id + '',
-        nome: p.nome,
-        sexo: p.sexo,
-        siglaPartido: p.siglaPartido,
-        siglaUF: p.siglaUF,
-        siglaCasaLegislativa: p.siglaCasa,
-      }));
+      return _parlamentares
+        .filter(p => this.casaLegislativa === 'CN' || p.siglaCasa === this.casaLegislativa)
+        .map(p => ({
+          identificacao: p.id + '',
+          nome: p.nome,
+          sexo: p.sexo,
+          siglaPartido: p.siglaPartido,
+          siglaUF: p.siglaUF,
+          siglaCasaLegislativa: p.siglaCasa,
+        }));
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de parlamentares');
       console.log(err);
@@ -344,6 +346,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.resetaEmenda(params);
       }
 
+      this.atualizaListaParlamentares();
       this.atualizaListaComissoes();
 
       this.limparAlertas();
@@ -513,6 +516,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     this._lexmlAutoria.autoria = emenda.autoria;
+    this._lexmlAutoria.casaLegislativa = emenda.colegiadoApreciador.siglaCasaLegislativa;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
     this._lexmlDestino!.colegiadoApreciador = emenda.colegiadoApreciador;
@@ -614,7 +618,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   protected firstUpdated(): void {
     // this.habilitarBotoes();
-    setTimeout(() => this.atualizaListaParlamentares(), 0);
+    // setTimeout(() => this.atualizaListaParlamentares(), 0);
     // setTimeout(() => this.atualizaListaComissoes(), 0);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
@@ -625,7 +629,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           badge.pulse = false;
         }
       } else if (tabName === 'autoria') {
-        this.parlamentares.length === 0 && this.atualizaListaParlamentares();
+        // this.parlamentares.length === 0 && this.atualizaListaParlamentares();
         // this.comissoes?.length === 0 && this.atualizaListaComissoes();
       }
     });
