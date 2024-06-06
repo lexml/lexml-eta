@@ -393,9 +393,6 @@ export class DemoView extends LitElement {
             <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
             <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
-            <option value="_plp_68_2024_1">PLP 68, de 2024 (arts. 1 a 160)</option>
-            <option value="_plp_68_2024_2">PLP 68, de 2024 (arts. 161 a 392)</option>
-            <option value="_plp_68_2024_3">PLP 68, de 2024 (arts. 393 a 499)</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>

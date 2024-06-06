@@ -1,3 +1,4 @@
+import { configurarPaginacao } from '../util/paginacaoUtil';
 import { Articulacao } from '../../../model/dispositivo/dispositivo';
 import { getElementos } from '../../../model/elemento/elementoUtil';
 import { State, StateType } from '../../state';
@@ -18,6 +19,7 @@ export const load = (articulacao: Articulacao, modo?: string): State => {
         },
       ],
       alertas: [],
+      paginacao: configurarPaginacao(articulacao),
     },
     revisoes: [],
     numEventosPassadosAntesDaRevisao: 0,

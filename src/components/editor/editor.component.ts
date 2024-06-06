@@ -37,7 +37,7 @@ import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { AutoFix } from '../../model/lexml/util/mensagem';
-import { StateEvent, StateType } from '../../redux/state';
+import { Paginacao, StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
 import { EtaBlotMenu } from '../../util/eta-quill/eta-blot-menu';
@@ -73,6 +73,7 @@ import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUti
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
+import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -142,7 +143,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         //this.alertar(state.elementoReducer.ui.message.descricao);
         alertarInfo(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
-        this.processarStateEvents(state.elementoReducer.ui.events);
+        this.processarStateEvents(state.elementoReducer.ui);
       }
     }
   }
@@ -202,7 +203,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               />
             </svg>
           </button>
-          <button type="button" class="ql-clean" title="Remover formatação">
+          <button type="button" class="ql-clean" title="Remover formatação" id="btnRemoverFormatacao">
             <svg class="" viewBox="0 0 18 18">
               <line class="ql-stroke" x1="5" x2="13" y1="3" y2="3"></line>
               <line class="ql-stroke" x1="6" x2="9.35" y1="12" y2="3"></line>
@@ -586,14 +587,72 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private processarStateEvents(events: StateEvent[]): void {
+  private configurarSeletorPaginacao(): void {
+    this.querySelector('#selectPaginaArticulacao')?.remove();
+
+    const paginasArticulacao = rootStore.getState().elementoReducer.ui?.paginacao?.paginasArticulacao ?? [];
+
+    if (paginasArticulacao.length <= 1) {
+      return;
+    }
+
+    // Cria elemento select para escolher a página
+    const select = document.createElement('select');
+    select.id = 'selectPaginaArticulacao';
+    select.className = 'paginacao-articulacao';
+    select.innerHTML = '';
+
+    // Evento a ser disparado ao selecionar uma página
+    select.onchange = (evt: Event): void => evt && this.onPaginaArticulacaoSelecionada(parseInt((evt.target as HTMLSelectElement).value));
+
+    // Adiciona opções de páginas
+    paginasArticulacao.forEach((pagina, index) => {
+      const option = document.createElement('option');
+      option.value = (index + 1).toString();
+      option.text = pagina.descricao;
+      select.add(option);
+    });
+
+    // Adiciona select após elemento btnRemoverFormatacao
+    this.querySelector('#btnRemoverFormatacao')?.insertAdjacentElement('afterend', select);
+  }
+
+  private onPaginaArticulacaoSelecionada(numPagina: number): void {
+    rootStore.dispatch(selecionarPaginaArticulacaoAction(numPagina));
+  }
+
+  private carregarPaginaArticulacao(elementos: Elemento[] = [], paginacao: Paginacao): void {
+    this.quill.setText('', 'api');
+    this.carregarArticulacao(elementos ?? [], true, paginacao);
+
+    // Marca a linha do primeiro dispositivo da página
+    const uuidPrimeiroElementoDaPagina = paginacao?.paginaSelecionada?.dispositivos.find(d => d.tipo !== 'Articulacao')?.uuid;
+    if (uuidPrimeiroElementoDaPagina) {
+      const linha = this.quill.getLinha(uuidPrimeiroElementoDaPagina);
+      linha && this.quill.marcarLinhaAtual(linha);
+    }
+  }
+
+  private atualizarSeletorPaginacao(paginacao: Paginacao): void {
+    const indexPaginaSelecionada = paginacao.paginaSelecionada ? paginacao.paginasArticulacao!.indexOf(paginacao.paginaSelecionada) : 0;
+    const select = this.querySelector('#selectPaginaArticulacao') as HTMLSelectElement;
+    select.selectedIndex = indexPaginaSelecionada;
+  }
+
+  private processarStateEvents(ui: any): void {
+    const events: StateEvent[] = ui.events;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
+        case StateType.PaginaArticulacaoSelecionada:
+          this.carregarPaginaArticulacao(event.elementos, ui.paginacao);
+          this.atualizarSeletorPaginacao(ui.paginacao);
+          break;
         case StateType.DocumentoCarregado:
           this.destroiQuill();
           this.inicializar(this.configEditor());
-          this.carregarArticulacao(event.elementos ?? []);
+          this.configurarSeletorPaginacao();
+          this.carregarArticulacao(event.elementos ?? [], false, ui.paginacao);
           break;
 
         case StateType.InformarDadosAssistente:
@@ -607,7 +666,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.ElementoIncluido:
           this.inserirNovoElementoNoQuill(event.elementos![0], event.referencia as Elemento, true);
           this.inserirNovosElementosNoQuill(event, true);
-          // this.atualizarReferenciaEmRevisoesDeExclusaoSeNecessario(events, event);
           break;
 
         case StateType.ElementoModificado:
@@ -788,7 +846,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia.uuid!);
+    const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia?.uuid || 0);
 
     if (linhaRef) {
       const novaLinha: EtaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
@@ -800,10 +858,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
 
       const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
-      if (this.quill.linhaAtual?.blotConteudo.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
+      if (this.quill.linhaAtual?.blotConteudo?.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
         selecionarLinha && !this.timerOnChange && fnSelecionarNovaLinha(novaLinha, this.quill.linhaAtual);
       } else {
-        this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html;
+        this.quill.linhaAtual?.blotConteudo && (this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html);
       }
 
       novaLinha.descricaoSituacao = elemento.descricaoSituacao;
@@ -1010,26 +1068,30 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private montarMenuContexto(event: StateEvent): void {
-    const elemento: Elemento = event.elementos ? event.elementos[0] : new Elemento();
-    const acoesMenu: ElementoAction[] = (elemento?.acoesPossiveis ?? []).filter((acao: ElementoAction) => isAcaoMenu(acao));
+    try {
+      const elemento: Elemento = event.elementos ? event.elementos[0] : new Elemento();
+      const acoesMenu: ElementoAction[] = (elemento?.acoesPossiveis ?? []).filter((acao: ElementoAction) => isAcaoMenu(acao));
 
-    if (acoesMenu.length > 0) {
-      const blotMenu: EtaBlotMenu = new EtaBlotMenu();
-      const blotMenuConteudo: EtaBlotMenuConteudo = new EtaBlotMenuConteudo(this.quill.linhaAtual.containerDireito.alinhamentoMenu);
-      const callback: any = (itemMenu: string) => {
-        this.processarEscolhaMenu(itemMenu);
-        this.quill.focus();
-      };
+      if (acoesMenu.length > 0) {
+        const blotMenu: EtaBlotMenu = new EtaBlotMenu();
+        const blotMenuConteudo: EtaBlotMenuConteudo = new EtaBlotMenuConteudo(this.quill.linhaAtual.containerDireito.alinhamentoMenu);
+        const callback: any = (itemMenu: string) => {
+          this.processarEscolhaMenu(itemMenu);
+          this.quill.focus();
+        };
 
-      new EtaBlotMenuBotao().insertInto(blotMenu);
+        new EtaBlotMenuBotao().insertInto(blotMenu);
 
-      acoesMenu.forEach((acao: ElementoAction) => {
-        new EtaBlotMenuItem(acao, callback).insertInto(blotMenuConteudo);
-      });
-      blotMenuConteudo.insertInto(blotMenu);
+        acoesMenu.forEach((acao: ElementoAction) => {
+          new EtaBlotMenuItem(acao, callback).insertInto(blotMenuConteudo);
+        });
+        blotMenuConteudo.insertInto(blotMenu);
 
-      this.quill.linhaAtual.blotInsideContainerDireito?.remove();
-      blotMenu.insertInto(this.quill.linhaAtual.containerDireito);
+        this.quill.linhaAtual.blotInsideContainerDireito?.remove();
+        blotMenu.insertInto(this.quill.linhaAtual.containerDireito);
+      }
+    } catch (error) {
+      // console.error('Erro ao montar menu de contexto', error);
     }
   }
 
@@ -1294,26 +1356,38 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = null;
   }
 
-  private carregarArticulacao(elementos: Elemento[]): void {
+  private carregarArticulacao(elementos: Elemento[], isMudancaDePagina: boolean, paginacao?: Paginacao): void {
+    let primeiraLinhaDaPagina: EtaContainerTable | undefined;
     setTimeout(() => {
       this.quill.getLine(0)[0].remove();
       elementos.forEach((elemento: Elemento) => {
-        const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
-        etaContainerTable.insertInto(this.quill.scroll);
-        etaContainerTable.setEstilo(elemento);
+        if (
+          (elemento.tipo === 'Articulacao' && !elemento.lexmlId) ||
+          !paginacao?.paginaSelecionada ||
+          paginacao.paginasArticulacao?.length === 1 ||
+          paginacao.paginaSelecionada.ids.includes(elemento.lexmlId!)
+        ) {
+          const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
+          etaContainerTable.insertInto(this.quill.scroll);
+          etaContainerTable.setEstilo(elemento);
 
-        elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
+          elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
+
+          if (!primeiraLinhaDaPagina && elemento.lexmlId) {
+            primeiraLinhaDaPagina = etaContainerTable;
+          }
+        }
       });
-      this.quill.limparHistory();
+      !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
-          const el = this.quill.getLinha(elementos[1].uuid!);
+          const el = primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
             this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
           }
         }, 0);
       }
-      rootStore.dispatch(validarArticulacaAction.execute());
+      !isMudancaDePagina && rootStore.dispatch(validarArticulacaAction.execute());
     }, 0);
   }
 
@@ -1399,7 +1473,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (!this.quill) {
           verificarQuillInicializado(elementos);
         } else if (elementos.length > 0) {
-          this.carregarArticulacao(elementos);
+          this.configurarSeletorPaginacao();
+          this.carregarArticulacao(elementos, false, state.elementoReducer.ui?.paginacao);
         }
       }, 70);
     };

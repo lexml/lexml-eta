@@ -49,6 +49,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
     ui: {
       events: [],
       alertas: alertas,
+      paginacao: state.ui?.paginacao,
     },
     revisoes: [],
     emRevisao: state.emRevisao,

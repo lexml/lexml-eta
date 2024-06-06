@@ -33,12 +33,13 @@ import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoActi
 import { VALIDAR_ARTICULACAO } from '../../../model/lexml/acao/validarArticulacaoAction';
 import { getEvento } from '../evento/eventosUtil';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
+import { SELECIONAR_PAGINA_ARTICULACAO } from '../../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 
 export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
   if ([ABRIR_ARTICULACAO, ATUALIZAR_USUARIO, VALIDAR_ARTICULACAO].includes(actionType) || !state.emRevisao || !actionType || !numElementos) {
     return state;
-  } else if (actionType === APLICAR_ALTERACOES_EMENDA) {
+  } else if ([APLICAR_ALTERACOES_EMENDA, SELECIONAR_PAGINA_ARTICULACAO].includes(actionType)) {
     associarRevisoesAosElementosDosEventos(state);
     return state;
   }
