@@ -66,6 +66,10 @@ export class LexmlEmendaParametrosEdicao {
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
 
+  // Lista de lexml id's de artigos bloqueados para edição.
+  // Não é salvo junto com a emenda, portanto deve ser informado também ao abrir uma emenda existente.
+  dispositivosBloqueados?: string[];
+
   // Emenda a ser aberta para edição
   emenda?: Emenda;
 

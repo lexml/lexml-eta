@@ -1709,11 +1709,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private navegarEntreMarcasRevisao = (direcao: string): void => {
     const atributo = direcao === 'abaixo' ? 'next' : 'prev';
     let linha = this.quill.linhaAtual;
-    if (linha.elemento.revisao) {
+
+    if (this.isLinhaNavegavelSeta(linha)) {
       linha = linha[atributo];
     }
 
-    while (linha && !linha.elemento.revisao) {
+    while (linha && !this.isLinhaNavegavelSeta(linha)) {
       linha = linha[atributo];
     }
 
@@ -1721,6 +1722,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
       this.quill.marcarLinhaAtual(linha);
     }
+  };
+
+  private isLinhaNavegavelSeta = (linha: any): boolean => {
+    if (
+      linha.elemento.revisao ||
+      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO ||
+      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    ) {
+      return true;
+    }
+
+    return false;
   };
 
   private checkedSwitchMarcaAlteracao = (): void => {
