@@ -39,6 +39,7 @@ import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from '
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
+import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -87,6 +88,9 @@ export class LexmlEmendaParametrosEdicao {
 
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
+
+  // Configuração de paginação de dispositivos durante a edição da emenda
+  configuracaoPaginacao?: ConfiguracaoPaginacao;
 }
 
 @customElement('lexml-emenda')
@@ -109,6 +113,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private projetoNorma: any;
 
   private motivo = '';
+
+  private configuracaoPaginacao?: ConfiguracaoPaginacao;
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
@@ -329,6 +335,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
+      this.configuracaoPaginacao = params.configuracaoPaginacao;
 
       this.inicializaProposicao(params);
 
@@ -340,7 +347,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
       if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
+        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda, params.configuracaoPaginacao);
       }
 
       if (params.emenda) {
@@ -400,7 +407,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false);
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.configuracaoPaginacao);
     }
 
     rootStore.dispatch(limparAlertas());

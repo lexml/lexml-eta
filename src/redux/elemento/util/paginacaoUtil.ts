@@ -15,6 +15,8 @@ import { getElementos } from '../../../model/elemento/elementoUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { isRevisaoElemento, isRevisaoDeExclusao } from './revisaoUtil';
 
+const MAX_DISPOSITIVOS_PAGINA = 1250;
+
 export const configurarPaginacao = (articulacao: Articulacao, config?: ConfiguracaoPaginacao): Paginacao => {
   const paginasArticulacao = getPaginasArticulacao(articulacao, config);
   return {
@@ -66,7 +68,7 @@ const getArtigoFinal = (artigoInicial: Dispositivo, maxItensPorPagina: number, d
   return isArtigo(dispFinal) ? dispFinal : getArtigo(dispFinal);
 };
 
-export const paginarArticulacao = (articulacao: Articulacao, maxItensPorPagina = 1250): Dispositivo[][] => {
+export const paginarArticulacao = (articulacao: Articulacao, maxItensPorPagina = MAX_DISPOSITIVOS_PAGINA): Dispositivo[][] => {
   const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
   const rangeArtigos: RangeArtigos[] = [];
 

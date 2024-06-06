@@ -65,6 +65,17 @@ const mapProjetosNormas = {
   _plp_68_2024_3: PLP_68_2024_3,
 };
 
+const mapConfiguracaoPaginacaoDispositivos = {
+  _plp_68_2024: {
+    // maxItensPorPagina: 700,
+    rangeArtigos: [
+      { numInicial: 1, numFinal: 160 },
+      { numInicial: 161, numFinal: 392 },
+      { numInicial: 393, numFinal: 499 },
+    ],
+  },
+};
+
 @customElement('demo-view')
 export class DemoView extends LitElement {
   @query('.nome-proposicao')
@@ -180,6 +191,7 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
+          params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
 
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;

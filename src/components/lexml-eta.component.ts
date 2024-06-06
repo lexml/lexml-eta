@@ -18,6 +18,7 @@ import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { rootStore } from './../redux/store';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { Revisao } from '../model/revisao/revisao';
+import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -36,13 +37,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  inicializarEdicao(modo: string, urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false): void {
+  inicializarEdicao(modo: string, urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false, configuracaoPaginacao?: ConfiguracaoPaginacao): void {
     this.modo = modo;
     this.urn = urn;
     if (projetoNorma) {
       this.projetoNorma = projetoNorma;
     }
-    this.loadProjetoNorma(preparaAberturaEmenda);
+    this.loadProjetoNorma(preparaAberturaEmenda, configuracaoPaginacao);
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
 
@@ -74,7 +75,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return out;
   }
 
-  private loadProjetoNorma(preparaAberturaEmenda: boolean): void {
+  private loadProjetoNorma(preparaAberturaEmenda: boolean, configuracaoPaginacao?: ConfiguracaoPaginacao): void {
     let documento;
 
     if (!this.projetoNorma || !this.projetoNorma.value) {
@@ -102,7 +103,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     documento.urn = this.urn;
 
     document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
-    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo));
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo, configuracaoPaginacao));
   }
 
   private _timerLoadEmenda = 0;
