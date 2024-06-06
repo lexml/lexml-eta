@@ -1,4 +1,4 @@
-import { isRevisaoDeModificacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
+import { isRevisaoDeModificacao, isRevisaoDeTransformacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
 import { isCaput } from './../../../model/dispositivo/tipo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
@@ -61,7 +61,7 @@ export const rejeitarRevisao = (state: any, action: any): State => {
 
   const eventos: StateEvent[] = [{ stateType: StateType.RevisaoRejeitada, elementos }];
 
-  if (isRevisaoDeMovimentacao(revisao)) {
+  if (isRevisaoDeMovimentacao(revisao) || isRevisaoDeTransformacao(revisao)) {
     // Elementos com revisão de movimentação também podem ter revisão de exclusão (desde que não seja o elemento principal)
     // Nesse caso, a revisão de exclusão deve ser removida do state (não precisa ser rejeitada)
     const uuid2Elementos = elementos.map(e => e.uuid2);

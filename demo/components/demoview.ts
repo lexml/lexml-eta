@@ -30,6 +30,10 @@ import { PLS_547_2018 } from '../doc/pls_547_2018';
 import { PLP_137_2019 } from '../doc/plp_137_2019';
 import { MPV_1210_2024 } from '../doc/mpv_1210_2024';
 import { MPV_1085_2021 } from '../doc/mpv_1085_2021';
+import { PLP_68_2024 } from '../doc/plp_68_2024';
+import { PLP_68_2024_1 } from '../doc/plp_68_2024_1';
+import { PLP_68_2024_2 } from '../doc/plp_68_2024_2';
+import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -55,6 +59,10 @@ const mapProjetosNormas = {
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,
   _plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
+  _plp_68_2024: PLP_68_2024,
+  _plp_68_2024_1: PLP_68_2024_1,
+  _plp_68_2024_2: PLP_68_2024_2,
+  _plp_68_2024_3: PLP_68_2024_3,
 };
 
 @customElement('demo-view')
@@ -284,7 +292,8 @@ export class DemoView extends LitElement {
   }
 
   private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
-    const aux = mapProjetosNormas[`${sigla.toLowerCase()}_${numero}_${ano}`];
+    const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
+    const aux = mapProjetosNormas[key] || mapProjetosNormas[`_${key}`];
     if (aux) {
       return Promise.resolve({ ...aux });
     }
@@ -381,9 +390,12 @@ export class DemoView extends LitElement {
             <option value="_codcivil_completo">Código Civil Completo</option>
             <option value="_codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
-            <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
+            <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
+            <option value="_plp_68_2024_1">PLP 68, de 2024 (arts. 1 a 160)</option>
+            <option value="_plp_68_2024_2">PLP 68, de 2024 (arts. 161 a 392)</option>
+            <option value="_plp_68_2024_3">PLP 68, de 2024 (arts. 393 a 499)</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>
