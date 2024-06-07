@@ -9,6 +9,7 @@ import {
   getDispositivoPosteriorNaSequenciaDeLeitura,
   getUltimoFilho,
   hasEmenta,
+  isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Elemento } from '../../../model/elemento';
 import { getElementos } from '../../../model/elemento/elementoUtil';
@@ -65,7 +66,8 @@ const getArtigoFinal = (artigoInicial: Dispositivo, maxItensPorPagina: number, d
   const indexInicial = dispositivos.indexOf(artigoInicial);
   const indexFinal = getIndexFinal(indexInicial, maxItensPorPagina, dispositivos);
   const dispFinal = dispositivos[indexFinal - 1];
-  return isArtigo(dispFinal) ? dispFinal : getArtigo(dispFinal);
+  const artigo = isArtigo(dispFinal) ? dispFinal : getArtigo(dispFinal);
+  return isDispositivoAlteracao(artigo) ? getArtigo(artigo) : artigo;
 };
 
 export const paginarArticulacao = (articulacao: Articulacao, maxItensPorPagina = MAX_DISPOSITIVOS_PAGINA): Dispositivo[][] => {
