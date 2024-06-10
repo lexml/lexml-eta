@@ -504,6 +504,13 @@ export const editorStyles = html`
       display: none;
     }
 
+    .titulo-dispositivo {
+      font-weight: bold;
+      display: block;
+      color: #000;
+      margin-bottom: 5px;
+    }
+
     .nota-alteracao-editavel {
       text-decoration: underline;
       cursor: pointer;
