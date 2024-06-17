@@ -40,6 +40,8 @@ import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 
+type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
+
 /**
  * Parâmetros de inicialização de edição de documento
  */
@@ -85,7 +87,7 @@ export class LexmlEmendaParametrosEdicao {
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
   // Casa legislativa resposavel pela apreciaçao da emenda
-  casaLegislativa: 'SF' | 'CD' | 'CN' = 'CN';
+  casaLegislativa?: TipoCasaLegislativa;
 }
 
 @customElement('lexml-emenda')
@@ -109,7 +111,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private motivo = '';
 
-  private casaLegislativa = 'CN';
+  private casaLegislativa: TipoCasaLegislativa = 'CN';
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
@@ -200,10 +202,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       // this.habilitarBotoes();
     }
     return Promise.resolve([]);
-  }
-
-  atualizaListaParlamentares(): void {
-    this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
   }
 
   atualizaListaComissoes(): void {
@@ -317,7 +315,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
+  async inicializarEdicao(params: LexmlEmendaParametrosEdicao) {
     try {
       this._lexmlEmendaComando.emenda = [];
       this.modo = params.modo;
@@ -338,15 +336,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
       }
 
+      this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
+
+      // Deve ser chamado antes do reseta emenda para garantir a autoria padrão e depois da inicialização da casaLegislativa
+      this.parlamentares = await this.getParlamentares();
+
       if (params.emenda) {
-        this.casaLegislativa = params.emenda.colegiadoApreciador.siglaCasaLegislativa ?? 'CN';
         this.setEmenda(params.emenda);
       } else {
-        this.casaLegislativa = this.inicializaColegiadoApreciador(params);
         this.resetaEmenda(params);
       }
 
-      this.atualizaListaParlamentares();
       this.atualizaListaComissoes();
 
       this.limparAlertas();
@@ -381,9 +381,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private inicializaColegiadoApreciador(params: LexmlEmendaParametrosEdicao): string {
-    const siglaProposicao = params.emenda?.proposicao.sigla ?? '';
-    return ['MPV', 'PDN', 'PRN'].indexOf(siglaProposicao) > -1 ? 'CN' : params.casaLegislativa;
+  private inicializaCasaLegislativa(siglaProposicao: string, params: LexmlEmendaParametrosEdicao): TipoCasaLegislativa {
+    if (['MPV', 'PDN', 'PRN'].indexOf(siglaProposicao) > -1) {
+      return 'CN';
+    }
+    return (params.emenda ? params.emenda.colegiadoApreciador.siglaCasaLegislativa : params.casaLegislativa) || 'CN';
   }
 
   public trocarModoEdicao(modo: string, motivo = ''): void {
@@ -516,7 +518,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     this._lexmlAutoria.autoria = emenda.autoria;
-    this._lexmlAutoria.casaLegislativa = emenda.colegiadoApreciador.siglaCasaLegislativa;
+    this._lexmlAutoria.casaLegislativa = this.casaLegislativa;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
     this._lexmlDestino!.colegiadoApreciador = emenda.colegiadoApreciador;
@@ -541,7 +543,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
     emenda.autoria = this.montarAutoriaPadrao(params);
     emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
-    emenda.colegiadoApreciador.siglaCasaLegislativa = params.casaLegislativa;
+    emenda.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
@@ -549,11 +551,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private montarAutoriaPadrao(params: LexmlEmendaParametrosEdicao): Autoria {
     const autoria = new Autoria();
-    const autoriaPadrao = params.autoriaPadrao;
-    const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao?.identificacao && par.siglaCasaLegislativa === autoriaPadrao?.siglaCasaLegislativa);
-
-    if (parlamentarAutor) {
-      autoria.parlamentares = [parlamentarAutor];
+    if (params.autoriaPadrao?.identificacao) {
+      const autoriaPadrao = params.autoriaPadrao;
+      const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa);
+      if (parlamentarAutor) {
+        autoria.parlamentares = [parlamentarAutor];
+      }
     }
     return autoria;
   }
