@@ -16,6 +16,7 @@ export class Referencia {
 }
 export class Elemento extends Referencia {
   nivel = 0;
+  tituloDispositivo?: string;
   numero?: string;
   rotulo = '';
   agrupador = false;
@@ -44,4 +45,5 @@ export class Elemento extends Referencia {
   elementoAnteriorNaSequenciaDeLeitura?: Referencia;
   revisao?: Revisao;
   ultimoFilhoDireto?: Referencia;
+  bloqueado?: boolean;
 }

@@ -1,4 +1,4 @@
-import { css, html, LitElement, TemplateResult } from 'lit';
+import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 import { OpcoesImpressao } from '../../model/emenda/emenda';
 import { SlSelect } from '@shoelace-style/shoelace';
@@ -21,31 +21,27 @@ export class OpcoesImpressaoComponent extends LitElement {
 
   private timerEmitirEventoOnChange = 0;
 
-  static styles = css`
-    .lexml-opcoes-impressao {
-      display: block;
-      margin: 20px 0 80px 0;
-      font-size: 1em;
-      max-width: 700px;
-    }
-  `;
-
   protected firstUpdated(): void {
     this.tamanhoFonte.addEventListener('sl-change', (ev: Event) => this._atualizarTamanhoFonte(ev));
   }
   render(): TemplateResult {
     return html`
       <style>
-        sl-radio-group::part(base) {
+        fieldset {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 0.5em;
           background-color: var(--sl-color-gray-100);
           box-shadow: var(--sl-shadow-x-large);
           flex-wrap: wrap;
           padding: 20px 20px;
+          border: solid var(--sl-panel-border-width) var(--sl-panel-border-color);
+          border-radius: var(--sl-border-radius-medium);
+          max-width: 655px;
+          margin: 1em 0 2em 0;
         }
-        sl-radio-group::part(label) {
+
+        legend {
           background-color: var(--sl-color-gray-200);
           font-weight: bold;
           border-radius: 5px;
@@ -65,12 +61,22 @@ export class OpcoesImpressaoComponent extends LitElement {
         sl-select {
           max-width: 400px;
         }
+        label {
+          line-height: var(--sl-toggle-size);
+          font-size: var(--sl-font-size-small);
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
       </style>
 
-      <sl-radio-group label="Opções de impressão" fieldset class="lexml-opcoes-impressao">
+      <fieldset class="lexml-opcoes-impressao">
+        <legend>Opções de impressão</legend>
         <div>
-          <sl-checkbox id="chk-imprimir-brasao" ?checked=${this._opcoesImpressao?.imprimirBrasao} @input=${(ev: Event): void => this._atualizarImprimirBrasao(ev)}></sl-checkbox>
-          <label for="chk-imprimir-brasao">Imprimir brasão</label>
+          <label class="lbl-imprimir-brasao" for="chk-imprimir-brasao">
+            <input type="checkbox" id="chk-imprimir-brasao" ?checked=${this._opcoesImpressao?.imprimirBrasao} @input=${(ev: Event): void => this._atualizarImprimirBrasao(ev)} />
+            Imprimir brasão
+          </label>
         </div>
         <sl-input
           type="text"
@@ -79,6 +85,7 @@ export class OpcoesImpressaoComponent extends LitElement {
           label="Texto do cabeçalho"
           value=${this._opcoesImpressao?.textoCabecalho}
           @input=${(ev: Event): void => this._atualizarTextoCabecalho(ev)}
+          size="small"
         ></sl-input>
         <div>
           <sl-select id="select-tamanho-fonte" label="Tamanho da letra" size="small" value=${this._opcoesImpressao?.tamanhoFonte}>
@@ -88,14 +95,17 @@ export class OpcoesImpressaoComponent extends LitElement {
           </sl-select>
         </div>
         <div>
-          <sl-checkbox
-            id="chk-reduzir-espaco"
-            ?checked=${this._opcoesImpressao?.reduzirEspacoEntreLinhas}
-            @click=${(ev: Event): void => this._atualizarReduzirEspacoEntreLinhas(ev)}
-          ></sl-checkbox>
-          <label for="chk-reduzir-espaco">Reduzir espaço entre linhas</label>
+          <label class="lbl-reduzir-espaco" for="chk-reduzir-espaco">
+            <input
+              type="checkbox"
+              id="chk-reduzir-espaco"
+              ?checked=${this._opcoesImpressao?.reduzirEspacoEntreLinhas}
+              @input=${(ev: Event): void => this._atualizarReduzirEspacoEntreLinhas(ev)}
+            />
+            Reduzir espaço entre linhas
+          </label>
         </div>
-      </sl-radio-group>
+      </fieldset>
     `;
   }
 

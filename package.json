@@ -1,6 +1,6 @@
 {
   "name": "@lexml/lexml-eta",
-  "version": "1.6.1",
+  "version": "1.6.4",
   "description": "Webcomponent lexml-eta following open-wc recommendations",
   "author": "lexml-eta",
   "license": "GPL-2.0-only",
@@ -50,7 +50,6 @@
   "dependencies": {
     "@shoelace-style/shoelace": "^2.0.0-beta.73",
     "diff": "^5.1.0",
-    "elix": "^14.1.2",
     "font-awesome": "^4.7.0",
     "html-diff-ts": "^1.4.2",
     "lit": "^2.2.1",

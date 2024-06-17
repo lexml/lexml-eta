@@ -72,6 +72,7 @@ import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
+import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -85,6 +86,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-emenda-comando-modal')
   private comandoEmendaModal!: ComandoEmendaModalComponent;
+
+  @query('lexml-sufixos-modal')
+  private sufixosModal!: SufixosModalComponent;
 
   @query('#btnAceitarTodasRevisoes')
   private btnAceitarTodasRevisoes!: HTMLButtonElement;
@@ -244,14 +248,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         </div>
         <div id="lx-eta-editor"></div>
       </div>
-      <elix-toast id="toast-alerta" duration="3000">
-        <div id="toast-msg"></div>
-      </elix-toast>
       <div id="lx-eta-buffer"><p></p></div>
       <lexml-ajuda-modal></lexml-ajuda-modal>
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
       <lexml-atalhos-modal></lexml-atalhos-modal>
-      <!-- <lexml-sufixos-modal></lexml-sufixos-modal> -->
+      <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
   }
 
@@ -1135,13 +1136,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   exibirModalSufixos(): void {
-    this.dispatchEvent(
-      new CustomEvent('onexibirsufixos', {
-        bubbles: true,
-        composed: true,
-        detail: {},
-      })
-    );
+    if (this.sufixosModal !== null) {
+      this.sufixosModal.show();
+    }
   }
 
   exibirDiferencas(elemento: Elemento): void {
@@ -1637,11 +1634,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private navegarEntreMarcasRevisao = (direcao: string): void => {
     const atributo = direcao === 'abaixo' ? 'next' : 'prev';
     let linha = this.quill.linhaAtual;
-    if (linha.elemento.revisao) {
+
+    if (this.isLinhaNavegavelSeta(linha)) {
       linha = linha[atributo];
     }
 
-    while (linha && !linha.elemento.revisao) {
+    while (linha && !this.isLinhaNavegavelSeta(linha)) {
       linha = linha[atributo];
     }
 
@@ -1649,6 +1647,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
       this.quill.marcarLinhaAtual(linha);
     }
+  };
+
+  private isLinhaNavegavelSeta = (linha: any): boolean => {
+    if (
+      linha.elemento.revisao ||
+      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
+      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO ||
+      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    ) {
+      return true;
+    }
+
+    return false;
   };
 
   private checkedSwitchMarcaAlteracao = (): void => {

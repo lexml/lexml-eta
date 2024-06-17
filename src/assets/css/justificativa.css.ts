@@ -1,4 +1,4 @@
-import html from 'elix/src/core/html';
+import { html } from 'lit';
 
 export const justificativaStyles = html`
   <style>

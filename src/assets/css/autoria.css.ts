@@ -1,23 +1,5 @@
 import { css } from 'lit';
 export const autoriaCss = css`
-  sl-radio-group::part(base) {
-    background-color: var(--sl-color-gray-100);
-    box-shadow: var(--sl-shadow-x-large);
-    padding: 20px 20px;
-  }
-  sl-radio-group::part(label) {
-    background-color: var(--sl-color-gray-200);
-    font-weight: bold;
-    border-radius: 5px;
-    border: 1px solid var(--sl-color-gray-300);
-    padding: 2px 5px;
-    box-shadow: var(--sl-shadow-small);
-  }
-
-  legend {
-    font-weight: normal;
-  }
-
   .lexml-autoria {
     display: block;
     font-size: var(--sl-font-size-small);

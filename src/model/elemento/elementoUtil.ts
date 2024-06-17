@@ -113,6 +113,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     uuid: dispositivo.uuid,
     uuid2: dispositivo.uuid2,
     lexmlId: (dispositivo.numero && buildId(dispositivo)) || dispositivo.id,
+    tituloDispositivo: dispositivo.tituloDispositivo,
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {

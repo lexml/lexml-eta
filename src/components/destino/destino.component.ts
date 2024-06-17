@@ -18,6 +18,7 @@ export class DestinoComponent extends LitElement {
   private isMPV = false;
   private isPlenario = false;
   private tipoColegiadoPlenario = false;
+  public isMateriaOrcamentaria = false;
 
   private _proposicao!: RefProposicaoEmendada;
   @property({ type: RefProposicaoEmendada })
@@ -28,8 +29,13 @@ export class DestinoComponent extends LitElement {
     if (this._proposicao.sigla === 'MPV') {
       this._colegiadoApreciador.siglaCasaLegislativa = 'CN';
       this._colegiadoApreciador.tipoColegiado = 'Comissão';
-      this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
-      this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
+      if (this.isMateriaOrcamentaria) {
+        this._colegiadoApreciador.siglaComissao = 'CMO';
+        this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DE PLANOS, ORÇAMENTOS PÚBLICOS E FISCALIZAÇÃO`;
+      } else {
+        this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
+        this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
+      }
       this.isMPV = true;
     }
 
@@ -40,9 +46,9 @@ export class DestinoComponent extends LitElement {
     return this._proposicao;
   }
 
-  private _comissoes!: Comissao[];
+  private _comissoes: Comissao[] = [];
   @property({ type: Array, state: true })
-  set comissoes(value: Comissao[] | undefined) {
+  set comissoes(value: Comissao[]) {
     this.isPlenario = false;
     if (!this._comissoes || this._comissoes.length === 0) {
       this._comissoes = value ? value : [];
@@ -54,7 +60,7 @@ export class DestinoComponent extends LitElement {
     }
   }
 
-  get comissoes(): Array<Comissao> {
+  get comissoes(): Comissao[] {
     return this._comissoes;
   }
 
@@ -74,7 +80,7 @@ export class DestinoComponent extends LitElement {
     this.requestUpdate();
   }
 
-  get colegiadoApreciador(): ColegiadoApreciador {
+  public get colegiadoApreciador(): ColegiadoApreciador {
     return this._colegiadoApreciador;
   }
 
@@ -102,48 +108,6 @@ export class DestinoComponent extends LitElement {
           padding: 2px 5px;
           box-shadow: var(--sl-shadow-small);
         }
-
-        /* sl-radio-group::part(base) {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          gap: 10px;
-          background-color: var(--sl-color-gray-100);
-          box-shadow: var(--sl-shadow-x-large);
-          flex-wrap: wrap;
-          padding: 20px 20px;
-        }
-        sl-radio-group::part(label) {
-          background-color: var(--sl-color-gray-200);
-          font-weight: bold;
-          border-radius: 5px;
-          border: 1px solid var(--sl-color-gray-300);
-          padding: 2px 5px;
-          box-shadow: var(--sl-shadow-small);
-        }
-        sl-radio-group > sl-radio:first-child {
-          display: inline-flex;
-          padding: 0 20px 0 0;
-        }
-        sl-input::part(form-control) {
-          display: flex;
-          flex-direction: row;
-          gap: 10px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-        sl-input::part(base) {
-          max-width: 190px;
-        }
-        @media (max-width: 480px) {
-          sl-input::part(base) {
-            max-width: 150px;
-          }
-        }
-
-        sl-radio-group::part(base) {
-          box-shadow: none;
-        } */
       </style>
       <fieldset class="lexml-destino">
         <legend>Destino</legend>

@@ -33,11 +33,12 @@ import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { generoFromLetra } from '../model/dispositivo/genero';
-import { SufixosModalComponent } from './sufixos/sufixos.modal.componet';
 import { Comissao } from './destino/comissao';
 import { SubstituicaoTermoComponent } from './substituicao-termo/substituicao-termo.component';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
+import { DestinoComponent } from './destino/destino.component';
+import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 
 /**
  * Parâmetros de inicialização de edição de documento
@@ -57,10 +58,17 @@ export class LexmlEmendaParametrosEdicao {
   // Preenchido automaticamente se for informada a emenda ou o projetoNorma
   ementa = '';
 
+  // Indicação de matéria orçamentária. Utilizado inicalmente para definir destino de emenda a MP
+  isMateriaOrcamentaria = false;
+
   // Texto json da proposição para emenda ou edição estruturada (modo 'emenda' ou 'edicao')
   // Obrigatório para modo 'emenda'
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
+
+  // Lista de lexml id's de artigos bloqueados para edição.
+  // Não é salvo junto com a emenda, portanto deve ser informado também ao abrir uma emenda existente.
+  dispositivosBloqueados?: string[];
 
   // Emenda a ser aberta para edição
   emenda?: Emenda;
@@ -87,7 +95,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
-  @property({ type: Array }) comissoes: Comissao[] | undefined = [];
+  @property({ type: Array }) comissoes: Comissao[] = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
   private modo: any = ClassificacaoDocumento.EMENDA;
@@ -95,6 +103,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private urn = '';
 
   private ementa = '';
+
+  private isMateriaOrcamentaria = false;
 
   private projetoNorma: any;
 
@@ -123,7 +133,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @query('#editor-texto-rico-justificativa')
   _lexmlJustificativa;
   @query('lexml-destino')
-  _lexmlDestino;
+  _lexmlDestino?: DestinoComponent;
   @query('lexml-autoria')
   _lexmlAutoria;
   @query('lexml-data')
@@ -142,9 +152,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   @query('sl-split-panel')
   private slSplitPanel!: any;
-
-  @query('lexml-sufixos-modal')
-  sufixosModal!: SufixosModalComponent;
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
@@ -168,10 +175,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
-  async getComissoes(): Promise<Comissao[] | undefined> {
+  async getComissoes(): Promise<Comissao[]> {
     try {
       if (!this.lexmlEmendaConfig.urlComissoes) {
-        return Promise.resolve(undefined);
+        return Promise.resolve([]);
       }
       const _response = await fetch(this.lexmlEmendaConfig.urlComissoes);
       const _comissoes = await _response.json();
@@ -276,7 +283,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
     emenda.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
-    emenda.colegiadoApreciador = this._lexmlDestino.colegiadoApreciador;
+    emenda.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = 'EMENDA Nº         ';
     if (emenda.colegiadoApreciador.tipoColegiado !== 'Plenário' && emenda.colegiadoApreciador.siglaComissao) {
@@ -315,32 +322,94 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  openModalSufixos(): void {
-    if (this.sufixosModal !== null) {
-      this.sufixosModal.show();
+  inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
+    try {
+      this._lexmlEmendaComando.emenda = [];
+      this.modo = params.modo;
+      this.projetoNorma = params.projetoNorma;
+      this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
+      this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
+
+      this.inicializaProposicao(params);
+
+      this.motivo = params.motivo;
+      if (this.isEmendaTextoLivre() && params.emenda) {
+        this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
+      }
+
+      this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
+
+      if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
+        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
+      }
+
+      if (params.emenda) {
+        this.setEmenda(params.emenda);
+      } else {
+        this.resetaEmenda(params);
+      }
+
+      this.limparAlertas();
+
+      if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+        this.showAlertaEmendaTextoLivre();
+      }
+      setTimeout(this.handleResize, 0);
+
+      if (!params.emenda?.revisoes?.length) {
+        this.desativarMarcaRevisao();
+      }
+
+      this._tabsEsquerda.show('lexml-eta');
+
+      if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
+        setTimeout(() => {
+          this._tabsDireita?.show('comando');
+        });
+      } else {
+        setTimeout(() => {
+          this._tabsDireita?.show('notas');
+        });
+      }
+
+      this.updateView();
+    } catch (err) {
+      console.error(err);
+      setTimeout(() => {
+        rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
+      }, 0);
     }
   }
 
-  inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
+  public trocarModoEdicao(modo: string, motivo = ''): void {
+    if (this.modo === modo) {
+      console.log('Ignorando tentativa de mudança para o mesmo modo de edição.');
+      return;
+    }
+
+    if (!this.projetoNorma && modo === 'emenda') {
+      throw 'Não é possível trocar para o modo "emenda" quando não há texto da proposição.';
+    }
+
     this._lexmlEmendaComando.emenda = [];
-    this.modo = params.modo;
-    this.projetoNorma = params.projetoNorma;
+    this.modo = modo;
 
-    this.inicializaProposicao(params);
-
-    this.motivo = params.motivo;
-    if (this.isEmendaTextoLivre() && params.emenda) {
-      this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
+    this.motivo = motivo;
+    if (this.isEmendaTextoLivre() && !this.motivo) {
+      throw 'Deve ser informado um motivo para a emenda de texto livre.';
     }
 
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false);
     }
 
-    if (params.emenda) {
-      this.setEmenda(params.emenda);
-    } else {
-      this.resetaEmenda(params);
+    rootStore.dispatch(limparAlertas());
+
+    if (this.isEmendaTextoLivre()) {
+      this._lexmlEmendaTextoRico.setContent('');
+      this._lexmlEmendaTextoRico.anexos = [];
+    } else if (this.isEmendaSubstituicaoTermo()) {
+      this._substituicaoTermo!.setSubstituicaoTermo(new SubstituicaoTermo());
     }
 
     this.limparAlertas();
@@ -348,12 +417,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
       this.showAlertaEmendaTextoLivre();
     }
-    this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
     setTimeout(this.handleResize, 0);
-
-    if (!params.emenda?.revisoes?.length) {
-      this.desativarMarcaRevisao();
-    }
 
     this._tabsEsquerda.show('lexml-eta');
 
@@ -449,8 +513,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
-    this._lexmlDestino.colegiadoApreciador = emenda.colegiadoApreciador;
-    this._lexmlDestino.proposicao = emenda.proposicao;
+    this._lexmlDestino!.colegiadoApreciador = emenda.colegiadoApreciador;
+    this._lexmlDestino!.proposicao = emenda.proposicao;
     this.notasRodape = emenda.notasRodape || [];
     this._lexmlJustificativa.setContent(emenda.justificativa, emenda.notasRodape);
 
@@ -623,7 +687,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const alturaElemento = alturaElementoBase - alturaLexmlEtaTabs - 12;
     if (alturaElemento <= 0) return false;
 
-    const getElement = (selector: string) => document.querySelector(selector) as HTMLElement;
+    const getElement = (selector: string): HTMLElement => document.querySelector(selector) as HTMLElement;
 
     const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
     const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta"]');
@@ -643,7 +707,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       },
     };
 
-    const setTabPanelStyles = (tabPanel: HTMLElement, estilos: any, isTemporary = false) => {
+    const setTabPanelStyles = (tabPanel: HTMLElement, estilos: any, isTemporary = false): void => {
       if (isTemporary) {
         tabPanel.style.opacity = '0';
         tabPanel.style.pointerEvents = 'none';
@@ -1031,7 +1095,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           </sl-tab-group>
         </div>
       </sl-split-panel>
-      <lexml-sufixos-modal></lexml-sufixos-modal>
     `;
   }
 

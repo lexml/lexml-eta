@@ -1,3 +1,4 @@
+import { PL_5008_2023 } from './../doc/pl_5008_2023';
 import { LexmlEmendaConfig } from './../../src/model/lexmlEmendaConfig';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
@@ -27,6 +28,13 @@ import { PL_4687_2023 } from '../doc/pl_4687_2023';
 import { PDS_183_2018 } from '../doc/pds_183_2018';
 import { PLS_547_2018 } from '../doc/pls_547_2018';
 import { PLP_137_2019 } from '../doc/plp_137_2019';
+import { MPV_1210_2024 } from '../doc/mpv_1210_2024';
+import { MPV_1085_2021 } from '../doc/mpv_1085_2021';
+import { PLP_68_2024 } from '../doc/plp_68_2024';
+import { PLP_68_2024_1 } from '../doc/plp_68_2024_1';
+import { PLP_68_2024_2 } from '../doc/plp_68_2024_2';
+import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
+import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -36,6 +44,9 @@ const mapProjetosNormas = {
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
   mpv_1160_2023: MPV_1160_2023,
+  mpv_1210_2023: MPV_1210_2024,
+  mpv_1085_2021: MPV_1085_2021,
+  mpv_1170_2023: MPV_1170_2023,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
   pl_142_2018: PLC_142_2028,
@@ -45,10 +56,15 @@ const mapProjetosNormas = {
   pl_4687_2023: PL_4687_2023,
   pl_547_2018: PLS_547_2018,
   plp_137_2029: PLP_137_2019,
+  pl_5008_2023: PL_5008_2023,
   _codcivil_completo: COD_CIVIL_COMPLETO,
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,
   _plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
+  _plp_68_2024: PLP_68_2024,
+  _plp_68_2024_1: PLP_68_2024_1,
+  _plp_68_2024_2: PLP_68_2024_2,
+  _plp_68_2024_3: PLP_68_2024_3,
 };
 
 @customElement('demo-view')
@@ -169,6 +185,9 @@ export class DemoView extends LitElement {
 
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
+
+            params.isMateriaOrcamentaria = this.elLexmlEmenda.getEmentaFromProjetoNorma(this.projetoNorma).indexOf('crédito extraordinário') >= 0;
+
             // params.urn = this.projetoNorma?.value?.metadado?.identificacao?.urn;
             //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
             //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
@@ -191,6 +210,19 @@ export class DemoView extends LitElement {
         }
       }, 0);
     }
+  }
+
+  trocarModo(): void {
+    const novoModo = this.getElement('#modo').value;
+
+    if (this.modo === novoModo) {
+      alert('Escolha um modo de edição diferente do atual.');
+      return;
+    }
+
+    this.modo = novoModo;
+
+    this.elLexmlEmenda.trocarModoEdicao(this.modo, this.modo === 'emendaTextoLivre' ? 'Motivo da emenda de texto livre' : '');
   }
 
   salvar(): void {
@@ -220,10 +252,6 @@ export class DemoView extends LitElement {
       this.nomeUsuario = nome;
       this.elLexmlEmenda.setUsuario(new Usuario(nome));
     }
-  }
-
-  abrirModalSufixos(): void {
-    this.elLexmlEmenda.openModalSufixos();
   }
 
   selecionaArquivo(event: Event): void {
@@ -266,7 +294,8 @@ export class DemoView extends LitElement {
   }
 
   private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
-    const aux = mapProjetosNormas[`${sigla.toLowerCase()}_${numero}_${ano}`];
+    const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
+    const aux = mapProjetosNormas[key] || mapProjetosNormas[`_${key}`];
     if (aux) {
       return Promise.resolve({ ...aux });
     }
@@ -351,7 +380,6 @@ export class DemoView extends LitElement {
           <input type="button" value="Salvar" @click=${this.salvar} />
           <input type="button" value="Abrir" @click=${this.abrir} />
           <input type="button" value="Usuário" @click=${this.usuario} />
-          <!-- <input type="button" value="Sufixos" @click=${this.abrirModalSufixos} /> -->
           <input type="file" id="fileUpload" accept="application/json" @change="${this.selecionaArquivo}" style="display: none" />
         </div>
 
@@ -364,9 +392,12 @@ export class DemoView extends LitElement {
             <option value="_codcivil_completo">Código Civil Completo</option>
             <option value="_codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
-            <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
+            <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
+            <option value="_plp_68_2024_1">PLP 68, de 2024 (arts. 1 a 160)</option>
+            <option value="_plp_68_2024_2">PLP 68, de 2024 (arts. 161 a 392)</option>
+            <option value="_plp_68_2024_3">PLP 68, de 2024 (arts. 393 a 499)</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>
@@ -376,16 +407,11 @@ export class DemoView extends LitElement {
             <option value="emendaSubstituicaoTermo" id="optEmendaSubstituicaoTermo">Emenda Substituição de termo</option>
           </select>
           <input type="button" value="Ok" @click=${this.executar} />
+          <input type="button" value="Trocar modo" @click=${this.trocarModo} ?disabled="${!this.modo}" />
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-emenda
-        .lexmlEmendaConfig=${this.emendaConfig}
-        modo=${this.modo}
-        @onrevisao=${this.onRevisao}
-        @onchange=${() => console.log('chegou evento')}
-        @onexibirsufixos=${(): void => this.abrirModalSufixos()}
-      ></lexml-emenda>
+      <lexml-emenda .lexmlEmendaConfig=${this.emendaConfig} modo=${this.modo} @onrevisao=${this.onRevisao} @onchange=${() => console.log('chegou evento')}></lexml-emenda>
     `;
   }
 

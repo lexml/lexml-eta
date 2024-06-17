@@ -79,7 +79,7 @@ export const autoFixElemento = (state: any, action: any): State => {
       break;
     }
     default:
-      state.ui = [];
+      state.ui.events = [];
       return state;
   }
 

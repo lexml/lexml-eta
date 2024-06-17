@@ -25,6 +25,15 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
     }
 
     createNumeroFromRotulo(rotulo: string): void {
+      // Trata incisos com numeração no formato "1º)", "2º)", "3º)", etc.
+      // Exemplo: Ver alteração no Art. 129 da Lei 6015/1973, proposta pelo Art. 11 da Medida Provisória 1085/2021.
+      const regexNumeracaoNaoPadrao = /^(\d+)(º\))$/;
+      if (rotulo?.match(regexNumeracaoNaoPadrao)) {
+        this.numero = rotulo.match(regexNumeracaoNaoPadrao)![1];
+        this.bloqueado = true; // Bloqueia e edição de emendas
+        return;
+      }
+
       const temp = trataNumeroAndComplemento(
         this.normalizaNumeracao(rotulo!),
         isNumeracaoZero(rotulo) ? null : converteNumeroRomanoParaArabico,

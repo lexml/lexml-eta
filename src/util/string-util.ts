@@ -32,7 +32,7 @@ export function getLastCharacter(texto: string): string {
 }
 
 export function endsWithWord(texto: string, indicadores: string[]): boolean {
-  return indicadores.map(word => new RegExp(addSpaceRegex(escapeRegex(word)) + '\\s*$').test(texto)).filter(r => r)[0] === true;
+  return indicadores.map(word => new RegExp(addSpaceRegex(escapeRegex(word)) + '\\s*$').test(getTextoSemHtml(texto))).filter(r => r)[0] === true;
 }
 
 export function converteIndicadorParaTexto(indicadores: string[]): string {

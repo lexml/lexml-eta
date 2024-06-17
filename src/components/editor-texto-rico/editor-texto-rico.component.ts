@@ -265,8 +265,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       Quill.register('formats/text-indent', NoIndentClass, true);
       Quill.register('formats/margin-bottom', MarginBottomClass, true);
 
-      const customToolbarOptions = toolbarOptions;
-      const customFormatsOptions = formatsOptions;
+      const customToolbarOptions = [...toolbarOptions];
+      const customFormatsOptions = [...formatsOptions];
       if (this.modo === Modo.JUSTIFICATIVA) {
         customToolbarOptions.push(['nota-rodape']);
         customToolbarOptions[1] = ['bold', 'italic', 'underline', 'link'];

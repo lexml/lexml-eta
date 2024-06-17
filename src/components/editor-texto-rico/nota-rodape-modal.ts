@@ -40,6 +40,7 @@ export class NotaRodapeModal {
       <style>
 
         .modal-nota-rodape {
+          display: inline-table;
           position: absolute;
           top: 50%;
           left: 50%;
@@ -67,6 +68,7 @@ export class NotaRodapeModal {
 
         .modal-title {
           margin: 0;
+          width: 100%;
           font-size: var(--sl-font-size-large);
         }
 

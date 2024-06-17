@@ -93,6 +93,5 @@ const adicionarOmissisObrigatorios = (atual: Dispositivo): void => {
     const anterior = getDispositivoAnterior(atual);
     const novo = criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
     novo.situacao = new DispositivoAdicionado();
-    atual.pai?.addFilhoOnPosition(novo, 0);
   }
 };

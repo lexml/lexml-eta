@@ -16,6 +16,7 @@ import { buildEventoTransformacaooElemento } from '../evento/eventosUtil';
 import { getElementosDoDispositivo } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { buildId } from '../../../model/lexml/util/idUtil';
 
 export const transformaTipoElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -45,6 +46,9 @@ export const transformaTipoElemento = (state: any, action: any): State => {
   const atualRenumerados = listaDispositivosRenumerados(atual);
 
   const novo = converteDispositivo(atual, action);
+
+  //novo.id = buildId(novo);
+  getDispositivoAndFilhosAsLista(novo).forEach(d => (d.id = buildId(d)));
 
   const novoRenumerados = listaDispositivosRenumerados(novo);
 
@@ -85,6 +89,7 @@ export const transformaTipoElemento = (state: any, action: any): State => {
     renumerados.map(d => {
       d.mensagens = validaDispositivo(d);
       const el = createElemento(d);
+      //el.lexmlId = buildId(d);
       return el;
     }),
     validados

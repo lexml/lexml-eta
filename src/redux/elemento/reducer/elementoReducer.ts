@@ -77,6 +77,8 @@ import { rejeitaRevisao } from './rejeitaRevisao';
 import { adicionaDiffMenuOpcoes } from './adicionaDiffMenuOpcoes';
 import { LIMPAR_REVISAO } from '../../../model/lexml/acao/limparRevisoes';
 import { limpaRevisao } from './limpaRevisao';
+import { ERROR_INICIALIZAR_EDICAO } from '../../../model/lexml/acao/errorInicializarEdicaoAction';
+import { erroInicializaEdicao } from './erroInicializaEdicao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -206,6 +208,9 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case LIMPAR_REVISAO:
       tempState = limpaRevisao(state);
+      break;
+    case ERROR_INICIALIZAR_EDICAO:
+      tempState = erroInicializaEdicao(state);
       break;
     default:
       actionType = undefined;
