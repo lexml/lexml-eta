@@ -166,6 +166,7 @@ export class AutocompleteAsync extends LitElement {
 
   firstUpdated(): void {
     this._suggestionEl = this.shadowRoot!.getElementById('suggestions');
+    this._suggestionEl.style = 'max-height: 250px; overflow: scroll';
     this._suggestionEl.style.width = `${this.contentElement.getBoundingClientRect().width}px`;
 
     this._bound.onKeyDown = this._handleKeyDown.bind(this);
