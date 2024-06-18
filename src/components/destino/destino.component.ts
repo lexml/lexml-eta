@@ -273,7 +273,6 @@ export class DestinoComponent extends LitElement {
   private ajustarTipoColegiadoPlenario(): void {
     this._autocomplete.value = '';
     this._colegiadoApreciador.siglaComissao = '';
-    this._colegiadoApreciador.siglaCasaLegislativa = 'SF';
     this.removerAlertaErroComissao();
   }
 }
