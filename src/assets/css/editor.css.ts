@@ -698,6 +698,10 @@ export const editorStyles = html`
       }
     }
 
+    [bloqueado='true'] {
+      background-color: #ccc;
+    }
+
     @media (max-width: 480px) {
       .lx-eta-btn-desfazer {
         margin-left: 0px;

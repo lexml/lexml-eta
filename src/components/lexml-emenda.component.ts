@@ -41,6 +41,12 @@ import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 
+export interface DispositivoBloqueado {
+  lexmlId: string;
+  bloquearFilhos: boolean;
+  motivoBloqueio?: string;
+}
+
 /**
  * Parâmetros de inicialização de edição de documento
  */
@@ -69,7 +75,7 @@ export class LexmlEmendaParametrosEdicao {
 
   // Lista de lexml id's de artigos bloqueados para edição.
   // Não é salvo junto com a emenda, portanto deve ser informado também ao abrir uma emenda existente.
-  dispositivosBloqueados?: string[];
+  dispositivosBloqueados?: (string | DispositivoBloqueado)[];
 
   // Emenda a ser aberta para edição
   emenda?: Emenda;
@@ -332,6 +338,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     try {
       this._lexmlEmendaComando.emenda = [];
       this.modo = params.modo;
+      ('');
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
