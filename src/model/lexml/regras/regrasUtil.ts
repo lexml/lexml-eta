@@ -37,3 +37,7 @@ export enum MotivosOperacaoNaoPermitida {
 export const isBloqueado = (dispositivo: Dispositivo): boolean => {
   return dispositivo.bloqueado !== undefined ? dispositivo.bloqueado : false;
 };
+
+export const existeFilhoDesbloqueado = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.filhos.some(f => !f.bloqueado);
+};

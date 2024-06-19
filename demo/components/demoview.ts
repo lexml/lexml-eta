@@ -63,6 +63,24 @@ const mapProjetosNormas = {
   _plp_68_2024_1: PLP_68_2024_1,
   _plp_68_2024_2: PLP_68_2024_2,
   _plp_68_2024_3: PLP_68_2024_3,
+  _mpv_905_2019: MPV_905_2019,
+};
+
+const mapDispositivosBloqueados = {
+  _mpv_905_2019: [
+    'art1',
+    'art2_par1',
+    'art2_par3',
+    {
+      lexmlId: 'art3',
+      bloquearFilhos: false,
+    },
+    'art4_par1u',
+    {
+      lexmlId: 'art5',
+      bloquearFilhos: false,
+    },
+  ],
 };
 
 @customElement('demo-view')
@@ -180,20 +198,7 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
-          params.dispositivosBloqueados = [
-            'art1',
-            'art2_par1',
-            'art2_par3',
-            {
-              lexmlId: 'art3',
-              bloquearFilhos: false,
-            },
-            'art4_par1u',
-            {
-              lexmlId: 'art5',
-              bloquearFilhos: false,
-            },
-          ];
+          params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;
@@ -410,6 +415,7 @@ export class DemoView extends LitElement {
             <option value="_plp_68_2024_1">PLP 68, de 2024 (arts. 1 a 160)</option>
             <option value="_plp_68_2024_2">PLP 68, de 2024 (arts. 161 a 392)</option>
             <option value="_plp_68_2024_3">PLP 68, de 2024 (arts. 393 a 499)</option>
+            <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>
