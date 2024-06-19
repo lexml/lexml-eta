@@ -114,7 +114,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private motivo = '';
 
-  private configuracaoPaginacao?: ConfiguracaoPaginacao;
+  private params?: LexmlEmendaParametrosEdicao;
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
@@ -335,7 +335,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
-      this.configuracaoPaginacao = params.configuracaoPaginacao;
+      this.params = params;
 
       this.inicializaProposicao(params);
 
@@ -347,7 +347,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
       if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda, params.configuracaoPaginacao);
+        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda, params);
       }
 
       if (params.emenda) {
@@ -407,7 +407,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.configuracaoPaginacao);
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.params);
     }
 
     rootStore.dispatch(limparAlertas());

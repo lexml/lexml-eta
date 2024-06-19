@@ -2,9 +2,9 @@ import { configurarPaginacao } from '../util/paginacaoUtil';
 import { Articulacao } from '../../../model/dispositivo/dispositivo';
 import { getElementos } from '../../../model/elemento/elementoUtil';
 import { State, StateType } from '../../state';
-import { ConfiguracaoPaginacao } from '../../../model/paginacao/paginacao';
+import { LexmlEmendaParametrosEdicao } from '../../../components/lexml-emenda.component';
 
-export const load = (articulacao: Articulacao, modo?: string, configuracaoPaginacao?: ConfiguracaoPaginacao): State => {
+export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEmendaParametrosEdicao): State => {
   const elementos = getElementos(articulacao);
   return {
     articulacao,
@@ -20,7 +20,7 @@ export const load = (articulacao: Articulacao, modo?: string, configuracaoPagina
         },
       ],
       alertas: [],
-      paginacao: configurarPaginacao(articulacao, configuracaoPaginacao),
+      paginacao: configurarPaginacao(articulacao, params?.configuracaoPaginacao),
     },
     revisoes: [],
     numEventosPassadosAntesDaRevisao: 0,

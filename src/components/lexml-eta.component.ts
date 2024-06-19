@@ -18,7 +18,7 @@ import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { rootStore } from './../redux/store';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { Revisao } from '../model/revisao/revisao';
-import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
+import { LexmlEmendaParametrosEdicao } from './lexml-emenda.component';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -37,13 +37,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  inicializarEdicao(modo: string, urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false, configuracaoPaginacao?: ConfiguracaoPaginacao): void {
+  inicializarEdicao(modo: string, urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false, params?: LexmlEmendaParametrosEdicao): void {
     this.modo = modo;
     this.urn = urn;
     if (projetoNorma) {
       this.projetoNorma = projetoNorma;
     }
-    this.loadProjetoNorma(preparaAberturaEmenda, configuracaoPaginacao);
+    this.loadProjetoNorma(preparaAberturaEmenda, params);
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
 
@@ -75,7 +75,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return out;
   }
 
-  private loadProjetoNorma(preparaAberturaEmenda: boolean, configuracaoPaginacao?: ConfiguracaoPaginacao): void {
+  private loadProjetoNorma(preparaAberturaEmenda: boolean, params?: LexmlEmendaParametrosEdicao): void {
     let documento;
 
     if (!this.projetoNorma || !this.projetoNorma.value) {
@@ -103,7 +103,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     documento.urn = this.urn;
 
     document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
-    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo, configuracaoPaginacao));
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo, params));
   }
 
   private _timerLoadEmenda = 0;
