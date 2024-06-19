@@ -180,6 +180,20 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
+          params.dispositivosBloqueados = [
+            'art1',
+            'art2_par1',
+            'art2_par3',
+            {
+              lexmlId: 'art3',
+              bloquearFilhos: false,
+            },
+            'art4_par1u',
+            {
+              lexmlId: 'art5',
+              bloquearFilhos: false,
+            },
+          ];
 
           if (this.projetoNorma) {
             params.projetoNorma = this.projetoNorma;

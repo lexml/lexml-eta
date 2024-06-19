@@ -35,14 +35,14 @@ import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { atualizarNotaAlteracaoAction } from './../acao/atualizarNotaAlteracaoAction';
 import { podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { MotivosOperacaoNaoPermitida, podeConverterEmOmissis } from './regrasUtil';
+import { MotivosOperacaoNaoPermitida, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
     getAcoesPossiveis(dispositivo: Dispositivo): ElementoAction[] {
       const acoes: ElementoAction[] = [];
 
-      if (!isAlinea(dispositivo)) {
+      if (!isAlinea(dispositivo) || (isBloqueado(dispositivo) && isBloqueado(dispositivo.pai!))) {
         return [];
       }
 
@@ -93,11 +93,11 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (!isBloqueado(dispositivo) && dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (!isBloqueado(dispositivo) && dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
         acoes.push(removerTextoOmissisAction);
       }
 

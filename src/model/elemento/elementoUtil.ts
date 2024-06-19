@@ -137,6 +137,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     manterNoMesmoGrupoDeAspas: isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo) && isAgrupador(dispositivo.pai!) && !isArticulacaoAlteracao(dispositivo.pai!),
     ultimoFilhoDireto:
       isAgrupador(dispositivo) && isDispositivoAlteracao(dispositivo) && dispositivo.filhos.length ? createElemento(dispositivo.filhos[dispositivo.filhos.length - 1]) : undefined,
+    bloqueado: dispositivo.bloqueado,
   };
 };
 
