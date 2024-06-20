@@ -26,7 +26,7 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { Regras } from './regras';
-import { isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -72,11 +72,11 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (!isBloqueado(dispositivo) && dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (!isBloqueado(dispositivo) && dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

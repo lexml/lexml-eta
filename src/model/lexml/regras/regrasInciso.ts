@@ -39,7 +39,7 @@ import {
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Regras } from './regras';
-import { MotivosOperacaoNaoPermitida, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -76,10 +76,10 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(iniciarBlocoAlteracao);
       }
 
-      if (!isSuprimido(dispositivo) && !isBloqueado(dispositivo)) {
+      if (!isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarAlineaFilho);
       }
-      if (hasIndicativoFinalSequencia(dispositivo) && isUltimoMesmoTipo(dispositivo) && !isBloqueado(dispositivo)) {
+      if (hasIndicativoFinalSequencia(dispositivo) && isUltimoMesmoTipo(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarParagrafo);
       }
 
@@ -119,11 +119,11 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (!isBloqueado(dispositivo) && dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (!isBloqueado(dispositivo) && dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo)) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 
