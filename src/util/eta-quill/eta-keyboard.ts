@@ -38,7 +38,8 @@ export class EtaKeyboard extends Keyboard {
     });
 
     this.quill.root.addEventListener('keypress', (ev: KeyboardEvent): void => {
-      this.bloqueiaAcentuacaoOmissis(ev);
+      this.bloqueiaPropagacaoOmissis(ev);
+      this.bloqueiaPropagacaoDispositivoBloqueado(ev);
     });
 
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
@@ -187,8 +188,15 @@ export class EtaKeyboard extends Keyboard {
     return ev.location !== DOM_KEY_LOCATION_NUMPAD && teclasComCaracterGrafico.includes(ev.key);
   }
 
-  private bloqueiaAcentuacaoOmissis(ev: KeyboardEvent): void {
+  private bloqueiaPropagacaoOmissis(ev: KeyboardEvent): void {
     if (this.quill.cursorDeTextoEstaSobreOmissis()) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+  }
+
+  private bloqueiaPropagacaoDispositivoBloqueado(ev: KeyboardEvent): void {
+    if (this.quill.linhaAtual.elemento.bloqueado) {
       ev.preventDefault();
       ev.stopPropagation();
     }
