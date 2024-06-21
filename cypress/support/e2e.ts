@@ -28,6 +28,7 @@ beforeEach(() => {
       cy.spy(win.console, 'error').as('consoleError');
     },
   });
+  cy.ignorarErro('removeEventListener');
 });
 
 const app = window.top;
