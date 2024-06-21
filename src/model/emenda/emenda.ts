@@ -46,6 +46,7 @@ export class RefProposicaoEmendada {
   ano = '';
   ementa = '';
   identificacaoTexto = '';
+  emendarTextoSubstitutivo = false;
 }
 
 // Colegiado apreciador da emenda ----------------------------
