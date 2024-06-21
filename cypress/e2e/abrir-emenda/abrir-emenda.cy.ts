@@ -1,16 +1,12 @@
-describe('Abrir emenda', () => {
-    describe('From lexm-eta', () => {
-      it('Emenda padrão', () => {
-        cy.abrirEmenda({
-          fixtureEmendaJson: 'emenda_2_mpv_1179_2023.json',
-          pdfName: 'DOC-EMENDA-2---MPV-11792023-20230711.pdf',
-          postAlias: 'postAbrirEmendaPadrao',
-          closeModalOrientacoes: true,
-        });
+import { Emenda } from '../../../src/model/emenda/emenda';
 
-      it.only('Emenda texto livre', () => {
-          
-      });
-   });        
- });
+describe('Abrir emenda', () => {
+  it('Emenda padrão (mpv_1160_2023_emenda_006.json)', () => {
+    cy.abrirEmenda({ fixtureEmendaJson: 'mpv_1160_2023_emenda_006.json' }).then((emenda: Emenda) => {
+      cy.wait(1000); // Aguarda um segundo para garantir que a emenda foi carregada no DOM
+      const containerArt3_1 = cy.getContainerArtigoByRotulo('Art. 3º-1');
+      cy.checarMensagem(containerArt3_1, 'Como interpretar sufixos');
+      cy.checarDadosAposAbrirEmenda({ emenda });
+    });
+  });
 });
