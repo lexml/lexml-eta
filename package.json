@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "start": "rimraf out-tsc && npm run build && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "start:cache": "rimraf out-tsc && npm run build && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds --cache\"",
     "build": "tsc",
     "clean": "rimraf out-tsc && rimraf prod",
     "prepublish": "rimraf dist && rollup -c rollup.config.dist.js",
