@@ -40,6 +40,8 @@ import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 
+type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
+
 /**
  * Parâmetros de inicialização de edição de documento
  */
@@ -88,6 +90,9 @@ export class LexmlEmendaParametrosEdicao {
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
+  // Casa legislativa resposavel pela apreciaçao da emenda
+  casaLegislativa?: TipoCasaLegislativa;
+
   // Indica se o texto a ser emendado é substitutivo
   emendarTextoSubstitutivo = false;
 }
@@ -112,6 +117,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private projetoNorma: any;
 
   private motivo = '';
+
+  private casaLegislativa: TipoCasaLegislativa = 'CN';
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
@@ -162,14 +169,16 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     try {
       const _response = await fetch(this.lexmlEmendaConfig.urlConsultaParlamentares);
       const _parlamentares = await _response.json();
-      return _parlamentares.map(p => ({
-        identificacao: p.id + '',
-        nome: p.nome,
-        sexo: p.sexo,
-        siglaPartido: p.siglaPartido,
-        siglaUF: p.siglaUF,
-        siglaCasaLegislativa: p.siglaCasa,
-      }));
+      return _parlamentares
+        .filter(p => this.casaLegislativa === 'CN' || p.siglaCasa === this.casaLegislativa)
+        .map(p => ({
+          identificacao: p.id + '',
+          nome: p.nome,
+          sexo: p.sexo,
+          siglaPartido: p.siglaPartido,
+          siglaUF: p.siglaUF,
+          siglaCasaLegislativa: p.siglaCasa,
+        }));
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de parlamentares');
       console.log(err);
@@ -180,18 +189,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
-  async getComissoes(): Promise<Comissao[]> {
+  async getComissoes(siglaCasaLegislativa: string): Promise<Comissao[]> {
     try {
       if (!this.lexmlEmendaConfig.urlComissoes) {
         return Promise.resolve([]);
       }
-      const _response = await fetch(this.lexmlEmendaConfig.urlComissoes);
+      const _response = await fetch(`${this.lexmlEmendaConfig.urlComissoes}?siglaCasaLegislativa=${siglaCasaLegislativa}`);
       const _comissoes = await _response.json();
-      return _comissoes.map(c => ({
-        siglaCasaLegislativa: c.siglaCasaLegislativa,
-        sigla: c.sigla,
-        nome: c.nome,
-      }));
+      return _comissoes
+        .filter(c => c.siglaCasaLegislativa === siglaCasaLegislativa)
+        .map(c => ({
+          siglaCasaLegislativa: c.siglaCasaLegislativa,
+          sigla: c.sigla,
+          nome: c.nome,
+        }));
     } catch (err) {
       console.log('Erro inesperado ao carregar lista de comissões');
       console.log(err);
@@ -202,22 +213,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return Promise.resolve([]);
   }
 
-  // private habilitarBotoes(): void {
-  //   const botoes = document.querySelectorAll('.lexml-eta-main-header input[type=button]');
-
-  //   if (this.parlamentaresCarregados && this.comissoesCarregadas) {
-  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = false));
-  //   } else {
-  //     botoes.forEach(btn => ((btn as HTMLInputElement).disabled = true));
-  //   }
-  // }
-
-  atualizaListaParlamentares(): void {
-    this.getParlamentares().then(parlamentares => (this.parlamentares = parlamentares));
-  }
-
   atualizaListaComissoes(): void {
-    this.getComissoes().then(comissoes => (this.comissoes = comissoes));
+    this.getComissoes(this.casaLegislativa).then(comissoes => (this.comissoes = comissoes));
   }
 
   private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
@@ -331,7 +328,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  inicializarEdicao(params: LexmlEmendaParametrosEdicao): void {
+  async inicializarEdicao(params: LexmlEmendaParametrosEdicao) {
     try {
       this._lexmlEmendaComando.emenda = [];
       this.modo = params.modo;
@@ -352,15 +349,22 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
       }
 
+      this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
+
+      // Deve ser chamado antes do reseta emenda para garantir a autoria padrão e depois da inicialização da casaLegislativa
+      this.parlamentares = await this.getParlamentares();
+
       if (params.emenda) {
         this.setEmenda(params.emenda);
       } else {
         this.resetaEmenda(params);
       }
 
+      this.atualizaListaComissoes();
+
       this.limparAlertas();
 
-      if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+      if (this.isEmendaTextoLivre() && this._lexmlEmendaTextoRico.isEditorVazio()) {
         this.showAlertaEmendaTextoLivre();
       }
       setTimeout(this.handleResize, 0);
@@ -388,6 +392,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
     }
+  }
+
+  private inicializaCasaLegislativa(siglaProposicao: string, params: LexmlEmendaParametrosEdicao): TipoCasaLegislativa {
+    if (['MPV', 'PDN', 'PRN'].indexOf(siglaProposicao) > -1) {
+      return 'CN';
+    }
+    return (params.emenda ? params.emenda.colegiadoApreciador.siglaCasaLegislativa : params.casaLegislativa) || 'CN';
   }
 
   public trocarModoEdicao(modo: string, motivo = ''): void {
@@ -423,7 +434,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     this.limparAlertas();
 
-    if (this.isEmendaTextoLivre() && !this._lexmlEmendaTextoRico.texto) {
+    if (this.isEmendaTextoLivre() && this._lexmlEmendaTextoRico.isEditorVazio()) {
       this.showAlertaEmendaTextoLivre();
     }
     setTimeout(this.handleResize, 0);
@@ -522,6 +533,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     this._lexmlAutoria.autoria = emenda.autoria;
+    this._lexmlAutoria.casaLegislativa = this.casaLegislativa;
     this._lexmlOpcoesImpressao.opcoesImpressao = emenda.opcoesImpressao;
     this._lexmlJustificativa.setTextoAntesRevisao(emenda.justificativaAntesRevisao);
     this._lexmlDestino!.colegiadoApreciador = emenda.colegiadoApreciador;
@@ -546,6 +558,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
     emenda.autoria = this.montarAutoriaPadrao(params);
     emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
+    emenda.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
     this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
@@ -553,11 +566,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private montarAutoriaPadrao(params: LexmlEmendaParametrosEdicao): Autoria {
     const autoria = new Autoria();
-    const autoriaPadrao = params.autoriaPadrao;
-    const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao?.identificacao && par.siglaCasaLegislativa === autoriaPadrao?.siglaCasaLegislativa);
-
-    if (parlamentarAutor) {
-      autoria.parlamentares = [parlamentarAutor];
+    if (params.autoriaPadrao?.identificacao) {
+      const autoriaPadrao = params.autoriaPadrao;
+      const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa);
+      if (parlamentarAutor) {
+        autoria.parlamentares = [parlamentarAutor];
+      }
     }
     return autoria;
   }
@@ -622,8 +636,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   protected firstUpdated(): void {
     // this.habilitarBotoes();
-    setTimeout(() => this.atualizaListaParlamentares(), 0);
-    setTimeout(() => this.atualizaListaComissoes(), 0);
+    // setTimeout(() => this.atualizaListaParlamentares(), 0);
+    // setTimeout(() => this.atualizaListaComissoes(), 0);
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
@@ -633,8 +647,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           badge.pulse = false;
         }
       } else if (tabName === 'autoria') {
-        this.parlamentares.length === 0 && this.atualizaListaParlamentares();
-        this.comissoes?.length === 0 && this.atualizaListaComissoes();
+        // this.parlamentares.length === 0 && this.atualizaListaParlamentares();
+        // this.comissoes?.length === 0 && this.atualizaListaComissoes();
       }
     });
 
@@ -758,12 +772,12 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     } else if (this.isEmendaTextoLivre()) {
-      if (!this._lexmlJustificativa.texto) {
+      if (!this._lexmlEmendaTextoRico.isEditorVazio() && this._lexmlJustificativa.isEditorVazio()) {
         this.disparaAlerta();
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
       }
-      if (!this._lexmlEmendaTextoRico.texto) {
+      if (this._lexmlEmendaTextoRico.isEditorVazio()) {
         this.showAlertaEmendaTextoLivre();
       } else {
         rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
@@ -782,7 +796,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     }
 
-    if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && !this._lexmlJustificativa.texto) {
+    if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && this._lexmlJustificativa.isEditorVazio()) {
       this.disparaAlerta();
     } else {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));

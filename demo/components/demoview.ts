@@ -91,7 +91,7 @@ export class DemoView extends LitElement {
   constructor() {
     super();
     this.emendaConfig = new LexmlEmendaConfig();
-    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/18146f46-003c-4f6f-b00f-6e290de175dd';
+    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/fee83f1d-e204-4746-adf6-c0f617156a6a';
   }
 
   createRenderRoot(): LitElement {
@@ -202,6 +202,7 @@ export class DemoView extends LitElement {
           }
           params.emendarTextoSubstitutivo = false;
           params.motivo = 'Motivo da emenda de texto livre';
+          // params.casaLegislativa = 'SF';
           this.elLexmlEmenda.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);

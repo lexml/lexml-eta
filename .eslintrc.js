@@ -13,6 +13,7 @@ module.exports = {
       experimentalObjectRestSpread: true,
     },
   },
+  ignorePatterns: ['**/*.js'],
   plugins: ['@typescript-eslint', 'import', 'html'],
   extends: [
     'eslint:recommended',
