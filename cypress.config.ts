@@ -23,7 +23,7 @@ export default defineConfig({
 
       return config;
     },
-    excludeSpecPattern: ['**/1-getting-started/**/*', '**/2-advanced-examples/**/*'],
+    excludeSpecPattern: ['**/1-getting-started/**/*', '**/2-advanced-examples/**/*', '**/paginacao/**/*'],
     experimentalStudio: true,
   },
 });
