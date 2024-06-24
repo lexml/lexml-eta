@@ -19,12 +19,8 @@ describe('Emenda para MPV 905', () => {
     //   $el0.type('PPP QQQ RRR SSS TTT UUU WWW XXX YYY ZZZ.', { force: true });
     // });
 
-    const dispositivoAdicionado = cy.get('div.container__elemento.dispositivo--adicionado');
-
     const texto = 'Texto do artigo onde couber.';
-    cy.inserirTextoNoDispositivo(dispositivoAdicionado, texto);
-
-    dispositivoAdicionado.should('have.length', 1).contains(texto);
+    cy.get('div.container__elemento.dispositivo--adicionado').should('have.length', 1).inserirTextoNoDispositivo(texto).contains(texto);
     cy.checarComandoEmenda();
     cy.checarTextoPresenteEmComandoEmenda(texto);
   });
@@ -37,16 +33,10 @@ describe('Emenda para MPV 905', () => {
 
     cy.checarEstadoInicialAoCriarNovaEmendaPadrao({ nomeProposicao: 'MPV 905/2019', totalElementos: 563 });
 
-    const art2 = cy.getContainerArtigoByNumero(2);
-    art2.click();
-    cy.selecionarOpcaoDeMenuDoDispositivo(art2, 'Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(2).click().selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
 
-    const dispositivoAdicionado = cy.get('div.container__elemento.dispositivo--adicionado');
     const texto = 'Texto do novo artigo.';
-    cy.inserirTextoNoDispositivo(dispositivoAdicionado, texto);
-
-    dispositivoAdicionado.should('have.length', 1).contains(texto);
-
+    cy.get('div.container__elemento.dispositivo--adicionado').should('have.length', 1).inserirTextoNoDispositivo(texto).contains(texto);
     cy.checarComandoEmenda();
     cy.checarTextoPresenteEmComandoEmenda(texto);
   });
@@ -59,14 +49,8 @@ describe('Emenda para MPV 905', () => {
 
     cy.checarEstadoInicialAoCriarNovaEmendaPadrao({ nomeProposicao: 'MPV 905/2019', totalElementos: 563 });
 
-    const art2_par1 = cy.getContainerArtigoByNumero(2).next();
-    art2_par1.click();
-
     const texto = 'Novo texto do parágrafo 1º do artigo 2º.';
-    cy.inserirTextoNoDispositivo(art2_par1, texto);
-
-    art2_par1.should('have.length', 1).contains(texto);
-
+    cy.getContainerArtigoByNumero(2).next().click().should('have.length', 1).inserirTextoNoDispositivo(texto).contains(texto);
     // cy.checarComandoEmenda();
     cy.checarTextoPresenteEmComandoEmenda(texto);
   });

@@ -73,14 +73,15 @@ Cypress.Commands.add('irParaPagina', (numeroPagina: number): void => {
   cy.get('#selectPaginaArticulacao').select(numeroPagina.toString());
 });
 
-Cypress.Commands.add('abrirEmenda', (payload: AbrirEmendaPayloadCypress): any => {
+Cypress.Commands.add('abrirEmenda', (payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda> => {
   const baseFolder = 'cypress/fixtures/';
-  cy.get('#fileUpload').selectFile(baseFolder + payload.fixtureEmendaJson, { force: true });
-  cy.wait(500);
-  return cy.fixture(payload.fixtureEmendaJson);
+  return cy.fixture(payload.fixtureEmendaJson).then((emenda: Emenda) => {
+    cy.get('#fileUpload').selectFile(baseFolder + payload.fixtureEmendaJson, { force: true });
+    return cy.wrap(emenda);
+  });
 });
 
-Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): void => {
+Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.Chainable<any> => {
   if (payload.naoMostrarExplicacaoSufixo ?? true) {
     cy.window().then(win => {
       win.localStorage.setItem('naoMostrarExplicacaoSufixo', 'true');
@@ -89,7 +90,8 @@ Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): void => 
   cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
   cy.get('#modo').select(payload.modoEmendaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
-  cy.wait(500);
+  // cy.wait(500);
+  return cy.wrap(true);
 });
 
 Cypress.Commands.add('getContainerArtigoByNumero', (numero: number): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -105,75 +107,80 @@ Cypress.Commands.add('getContainerArtigoByNumero', (numero: number): Cypress.Cha
 });
 
 Cypress.Commands.add('getContainerArtigoByRotulo', (rotulo: string): Cypress.Chainable<JQuery<HTMLElement>> => {
-  return cy.get('div.container__elemento.elemento-tipo-artigo div.container__texto--nivel0 label').then($labels => {
-    const regex = new RegExp(`${rotulo}`);
-    const $matchingLabel = $labels.filter((index, label) => regex.test(label.textContent || '')); // Filtra os labels que correspondem ao número do artigo
-    if ($matchingLabel.length) {
-      return cy.wrap($matchingLabel).closest('div.container__elemento.elemento-tipo-artigo');
-    } else {
-      return cy.wrap(Cypress.$());
-    }
-  });
+  const regex = new RegExp(`${rotulo}`);
+  return cy.get('div.container__elemento.elemento-tipo-artigo div.container__texto--nivel0 label').contains(regex).first().closest('div.container__elemento.elemento-tipo-artigo');
 });
 
-Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', (containerDisp: Cypress.Chainable<JQuery<HTMLElement>>, opcao: string): void => {
-  containerDisp.click();
-  cy.wait(500);
-  containerDisp.get('div.container__menu > sl-dropdown').click();
-  containerDisp.get('div.container__menu > sl-dropdown > sl-menu > sl-menu-item').then($items => {
-    const regex = new RegExp(opcao, 'i');
-    const $matchingItem = $items.filter((index, item) => regex.test(item.textContent || ''));
-    if ($matchingItem.length) {
-      cy.wrap($matchingItem).click();
-    }
-  });
+Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, opcaoDeMenu: string): void => {
+  cy.wrap(subject).click().find('div.container__menu > sl-dropdown').click().find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click();
 });
 
-Cypress.Commands.add('focusOnConteudo', (containerDisp: Cypress.Chainable<JQuery<HTMLElement>>): void => {
-  const paragraph = containerDisp.find('div.container__texto p.texto__dispositivo');
-  // containerDisp.click();
-  cy.wait(500);
-  paragraph.click({ force: true }).focus();
-  cy.wait(500);
+Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
+  return cy.wrap(subject).click().find('div.container__menu > sl-dropdown sl-menu > sl-menu-item');
 });
 
-Cypress.Commands.add('inserirTextoNoDispositivo', (containerDisp: Cypress.Chainable<JQuery<HTMLElement>>, texto: string): void => {
-  const paragraph = containerDisp.find('div.container__texto p.texto__dispositivo');
+Cypress.Commands.add('focusOnConteudo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
+  cy.wrap(subject).find('div.container__texto p.texto__dispositivo').click({ force: true }).focus();
+  return cy.wrap(subject);
+});
+
+Cypress.Commands.add('inserirTextoNoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, texto: string): Cypress.Chainable<JQuery<HTMLElement>> => {
   // Obs:
   // O comando "type" deveria adicionar o texto ao parágrafo.
   // Tem hora que funciona, tem hora que não.
   // Por isso, foi necessário usar o comando "invoke" para setar o texto.
+  // cy.wrap(subject).type(texto, { force: true, delay: 0 });
 
-  // paragraph.type(texto, { force: true, delay: 0 });
-  // paragraph.type('AAA BBB CCC DDD EEE FFF GGG HHH III JJJ KKK LLL MMM NNN OOO.', { force: true, delay: 0 });
-  paragraph.invoke('text', texto);
-  paragraph.closest('lexml-eta-editor').then($eta => {
+  const wrapSubject = cy.wrap(subject);
+  wrapSubject.find('div.container__texto p.texto__dispositivo').invoke('text', texto);
+  wrapSubject.closest('lexml-eta-editor').then($eta => {
     const eta = $eta[0];
     (eta as any).emitirEventoOnChange('cypress');
   });
+  return wrapSubject;
 });
 
-Cypress.Commands.add('ativarRevisao', (ocultarDisclaimerRevisao = true) => {
+Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
+  return cy.get('lexml-eta lexml-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
+});
+
+Cypress.Commands.add('getCheckRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
+  // Este comando deve ser encadeado com o comando "getSwitchRevisaoDispositivo" ou "getSwitchRevisaoTextoLivre"
+  // return cy.getSwitchRevisaoDispositivo().find('#chk-em-revisao').as('chkRevisaoDispositivo');
+  return cy.wrap(subject).find('#chk-em-revisao') as unknown as Cypress.Chainable<JQuery<HTMLElement>>;
+});
+
+Cypress.Commands.add('getContadorRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
+  // Este comando deve ser encadeado com o comando "getSwitchRevisaoDispositivo" ou "getSwitchRevisaoTextoLivre"
+  return cy.wrap(subject).find('sl-badge') as unknown as Cypress.Chainable<JQuery<HTMLElement>>;
+});
+
+Cypress.Commands.add('ativarRevisaoDispositivo', (ocultarDisclaimerRevisao = true): void => {
   if (ocultarDisclaimerRevisao) {
     cy.window().then(win => {
       win.localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', 'true');
     });
   }
-  cy.wait(500);
-  cy.get('lexml-eta #chk-em-revisao:not([checked])').click();
-  cy.wait(500);
-});
-
-Cypress.Commands.add('desativarRevisao', () => {
-  cy.wait(500);
-  cy.get('lexml-eta #chk-em-revisao[checked]').click();
+  cy.getSwitchRevisaoDispositivo().getCheckRevisao().as('chkRevisaoDispositivo').should('not.have.attr', 'checked');
+  cy.get('@chkRevisaoDispositivo').click().should('have.attr', 'checked');
   cy.wait(500);
 });
 
-Cypress.Commands.add('checarMensagem', (containerDisp: Cypress.Chainable<JQuery<HTMLElement>>, mensagem: string, tipo?: TipoMensagemContainerDispositivo) => {
-  const seletor = `div.container__texto--mensagem div.mensagem${tipo ? `.mensagem--${tipo}` : ''}`;
-  containerDisp.get(seletor).contains(mensagem);
+Cypress.Commands.add('desativarRevisaoDispositivo', (): void => {
+  cy.getSwitchRevisaoDispositivo().getCheckRevisao().as('chkRevisaoDispositivo').should('have.attr', 'checked');
+  cy.get('@chkRevisaoDispositivo').click().should('not.have.attr', 'checked');
+  cy.wait(500);
 });
+
+Cypress.Commands.add(
+  'checarMensagem',
+  { prevSubject: 'element' },
+  (subject: JQuery<HTMLElement>, mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>> => {
+    const seletor = `div.container__texto--mensagem div.mensagem${tipo ? `.mensagem--${tipo}` : ''}`;
+    cy.wrap(subject).find(seletor).contains(mensagem);
+    return cy.wrap(subject);
+  }
+);
 
 Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaEstruturada', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
   // Título da proposição
@@ -210,7 +217,7 @@ Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaPadrao', (payload: Che
 });
 
 Cypress.Commands.add('checarComandoEmenda', (emenda?: Emenda): void => {
-  cy.wait(1000); // O comando de emenda leva um tempo para ser atualizado no DOM
+  cy.wait(500);
   cy.get('lexml-emenda').then($lexmlEmenda => {
     const emendaAux = emenda ?? ($lexmlEmenda[0] as LexmlEmendaComponent).getEmenda();
     fnChecarComandoCabecalho(emendaAux);
@@ -231,6 +238,7 @@ Cypress.Commands.add('checarDadosAposAbrirEmenda', (payload: ChecarDadosAposAbri
   fnChecarDadosEmendaAbaAutoria(emenda);
   fnChecarDadosEmendaLateralComando(emenda);
   fnChecarDadosNotasRodape(emenda);
+  cy.get('#sl-tab-1').click();
 });
 
 const fnChecarTituloMpv = (emenda: Emenda): void => {
@@ -429,9 +437,9 @@ declare global {
       // configurarInterceptadores(): Chainable<void>;
       ignorarErro(text: string): void;
       irParaPagina(numeroPagina: number): void;
-      abrirEmenda(payload: AbrirEmendaPayloadCypress): any;
-      novaEmenda(payload: NovaEmendaPayloadCypress): Chainable<void>;
-      checarMensagem(containerDisp: Cypress.Chainable<JQuery<HTMLElement>>, mensagem: string, tipo?: TipoMensagemContainerDispositivo): void;
+      abrirEmenda(payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda>;
+      novaEmenda(payload: NovaEmendaPayloadCypress): Cypress.Chainable<any>;
+      checarMensagem(mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>>;
       checarEstadoInicialAoCriarNovaEmendaEstruturada(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
       checarEstadoInicialAoCriarNovaEmendaPadrao(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
       checarEstadoInicialAoCriarNovaEmendaOndeCouber(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
@@ -440,11 +448,15 @@ declare global {
       checarDadosAposAbrirEmenda(payload: ChecarDadosAposAbrirEmendaPayloadCypress): Chainable<void>;
       getContainerArtigoByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;
-      focusOnConteudo(containerDisp: Cypress.Chainable<JQuery<HTMLElement>>): void;
-      selecionarOpcaoDeMenuDoDispositivo(containerDisp: Cypress.Chainable<JQuery<HTMLElement>>, opcao: string): void;
-      inserirTextoNoDispositivo(containerDisp: Cypress.Chainable<JQuery<HTMLElement>>, texto: string): void;
-      ativarRevisao(ocultarDisclaimerRevisao?: boolean): Chainable<void>;
-      desativarRevisao(): Chainable<void>;
+      focusOnConteudo(): Cypress.Chainable<JQuery<HTMLElement>>;
+      selecionarOpcaoDeMenuDoDispositivo(opcaoDeMenu: string): void;
+      getOpcoesDeMenuDoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
+      inserirTextoNoDispositivo(texto: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      getSwitchRevisaoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
+      getCheckRevisao(): Cypress.Chainable<JQuery<HTMLElement>>;
+      getContadorRevisao(): Cypress.Chainable<JQuery<HTMLElement>>;
+      ativarRevisaoDispositivo(ocultarDisclaimerRevisao?: boolean): void;
+      desativarRevisaoDispositivo(): void;
     }
   }
 }
