@@ -24,6 +24,7 @@ import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
+import { EtaBlotTituloDispositivo } from './eta-blot-titulo-dispositivo';
 
 export class EtaQuillUtil {
   static alinhamentoMenu = AlinhamentoMenu.Esquerda;
@@ -35,6 +36,10 @@ export class EtaQuillUtil {
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
     const isDispositivoAlteracaoAdicionado = elemento.dispositivoAlteracao && elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+
+    if (elemento.tituloDispositivo) {
+      new EtaBlotTituloDispositivo(elemento).insertInto(etaTdTexto);
+    }
 
     if (elemento.abreAspas || isDispositivoAlteracaoAdicionado) {
       new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);

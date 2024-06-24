@@ -235,6 +235,7 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
     }
   }
   dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+  dispositivo.tituloDispositivo = buildContent(el.value?.tituloDispositivo?.content);
 
   ultimoDispositivoCriado = dispositivo;
   return dispositivo;

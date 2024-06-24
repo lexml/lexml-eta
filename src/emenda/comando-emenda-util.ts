@@ -5,7 +5,7 @@ import {
   getDispositivoPosterior,
   getFilhosEstiloLexML,
   isUltimaAlteracao,
-  percorreHierarquiaDispositivos
+  percorreHierarquiaDispositivos,
 } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { StringBuilder, removeEspacosDuplicados } from '../util/string-util';
 import { DescricaoSituacao } from './../model/dispositivo/situacao';
@@ -27,7 +27,7 @@ export class CmdEmdUtil {
   static getDispositivosNaoOriginais(articulacao: Articulacao): Dispositivo[] {
     const ret: Dispositivo[] = [];
 
-    if (articulacao.projetoNorma?.ementa?.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+    if (articulacao?.projetoNorma?.ementa?.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
       ret.push(articulacao.projetoNorma.ementa);
     }
 

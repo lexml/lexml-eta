@@ -46,11 +46,12 @@ export class RefProposicaoEmendada {
   ano = '';
   ementa = '';
   identificacaoTexto = '';
+  emendarTextoSubstitutivo = false;
 }
 
 // Colegiado apreciador da emenda ----------------------------
 export class ColegiadoApreciador {
-  siglaCasaLegislativa: 'CN' | 'SF' | 'CD' = 'CN';
+  siglaCasaLegislativa?: 'CN' | 'SF' | 'CD' = 'CN';
   tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão' = 'Plenário';
   siglaComissao?: string;
 }

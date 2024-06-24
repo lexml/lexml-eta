@@ -31,6 +31,9 @@ export class AutocompleteAsync extends LitElement {
   @property({ type: Function })
   onChange = (value: string): void => console.log('Mudança texto:', value);
 
+  @property({ type: Function })
+  onClick = (value: string): void => console.log('Click:', value);
+
   _interval = 1000;
 
   _timer: any;
@@ -115,6 +118,7 @@ export class AutocompleteAsync extends LitElement {
           placeholder=${this.placeholder}
           .value=${this.value?.description || ''}
           @change=${e => this._handleChange(e.target.value)}
+          @click=${e => this._handleClick(e.target.value)}
           ?disabled=${this.disabled}
         ></sl-input>
       </slot>
@@ -162,6 +166,7 @@ export class AutocompleteAsync extends LitElement {
 
   firstUpdated(): void {
     this._suggestionEl = this.shadowRoot!.getElementById('suggestions');
+    this._suggestionEl.style = 'max-height: 250px; overflow: scroll';
     this._suggestionEl.style.width = `${this.contentElement.getBoundingClientRect().width}px`;
 
     this._bound.onKeyDown = this._handleKeyDown.bind(this);
@@ -169,12 +174,14 @@ export class AutocompleteAsync extends LitElement {
     this._bound.onFocus = this._handleFocus.bind(this);
     this._bound.onBlur = this._handleBlur.bind(this);
     this._bound.onChange = this._handleChange.bind(this);
+    this._bound.onClick = this._handleClick.bind(this);
 
     this.contentElement.addEventListener('keydown', this._bound.onKeyDown);
     this.contentElement.addEventListener('keyup', this._bound.onKeyUp);
     this.contentElement.addEventListener('focus', this._bound.onFocus);
     this.contentElement.addEventListener('blur', this._bound.onBlur);
     this.contentElement.addEventListener('sl-input', this._bound.onChange);
+    this.contentElement.addEventListener('click', this._bound.onClick);
 
     if (this._tempValue !== undefined) {
       this.contentElement.value = this._tempValue;
@@ -188,6 +195,7 @@ export class AutocompleteAsync extends LitElement {
     this.contentElement.removeEventListener('focus', this._bound.onFocus);
     this.contentElement.removeEventListener('blur', this._bound.onBlur);
     this.contentElement.removeEventListener('sl-input', this._bound.onChange);
+    this.contentElement.removeEventListener('click', this._bound.onClick);
   }
 
   focus(options?: FocusOptions): void {
@@ -317,6 +325,10 @@ export class AutocompleteAsync extends LitElement {
     this._mouseEnter = false;
     // eslint-disable-next-line no-unused-expressions
     this._blur && setTimeout(() => this.close(), 500); // Give user some slack before closing
+  }
+
+  _handleClick(value: string): void {
+    this.onClick(value);
   }
 }
 

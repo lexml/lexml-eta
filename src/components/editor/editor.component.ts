@@ -1359,6 +1359,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private carregarArticulacao(elementos: Elemento[], isMudancaDePagina: boolean, paginacao?: Paginacao): void {
     let primeiraLinhaDaPagina: EtaContainerTable | undefined;
     setTimeout(() => {
+      if (!this.quill) return;
       this.quill.getLine(0)[0].remove();
       elementos.forEach((elemento: Elemento) => {
         if (

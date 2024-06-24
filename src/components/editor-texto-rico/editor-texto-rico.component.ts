@@ -575,6 +575,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       (this.quill as any).notasRodape.associar(notasRodape);
     }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
 
+    if (!textoAjustado) this.quill.format('align', 'justify');
+
     this.atualizaStatusElementosRevisao();
   };
 
@@ -667,6 +669,19 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   atualizaAnexo = (anexo: Anexo[]): void => {
     this.anexos = [...anexo];
+  };
+
+  isEditorVazio = (): boolean => {
+    const delta = this.quill?.getContents();
+    if (!delta || !delta.ops || delta.ops.length === 0) {
+      return true;
+    }
+    for (let i = 0; i < delta.ops.length; i++) {
+      if (delta.ops[i]?.insert.trim() !== '') {
+        return false;
+      }
+    }
+    return true;
   };
 
   private getNomeSwitch = (): string => {
