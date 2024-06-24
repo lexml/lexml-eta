@@ -575,9 +575,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       (this.quill as any).notasRodape.associar(notasRodape);
     }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
 
-    if (this.quill.getText().trim() === '') {
-      this.quill.format('align', 'justify');
-    }
+    if (!textoAjustado) this.quill.format('align', 'justify');
 
     this.atualizaStatusElementosRevisao();
   };
