@@ -23,7 +23,10 @@ export default defineConfig({
 
       return config;
     },
-    excludeSpecPattern: ['**/1-getting-started/**/*', '**/2-advanced-examples/**/*', '**/paginacao/**/*'],
+    excludeSpecPattern: ['**/1-getting-started/**/*', '**/2-advanced-examples/**/*'],
     experimentalStudio: true,
+    testIsolation: false,
+    viewportWidth: 1920,
+    viewportHeight: 1080,
   },
 });
