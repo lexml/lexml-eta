@@ -1,7 +1,8 @@
 /// <reference types="cypress" />
 
 import { LexmlEmendaComponent } from '../../src';
-import { Emenda } from '../../src/model/emenda/emenda';
+import { Emenda, ModoEdicaoEmenda } from '../../src/model/emenda/emenda';
+import { removeAllHtmlTags } from '../../src/util/string-util';
 
 // ***********************************************
 // This example commands.ts shows you how to
@@ -60,6 +61,11 @@ export interface ChecarEstadoInicialAoCriarNovaEmenda {
   totalElementos?: number;
 }
 
+const tempoDeEsperaPadrao = 100;
+const tempoDeEsperaMaior = 700;
+
+const regexEspaco = /\s+|&nbsp;/g;
+
 Cypress.Commands.add('ignorarErro', (text: string) => {
   Cypress.on('uncaught:exception', err => {
     if (err.message.includes(text)) {
@@ -70,7 +76,7 @@ Cypress.Commands.add('ignorarErro', (text: string) => {
 });
 
 Cypress.Commands.add('irParaPagina', (numeroPagina: number): void => {
-  cy.get('#selectPaginaArticulacao').select(numeroPagina.toString());
+  cy.get('#selectPaginaArticulacao').select(numeroPagina);
 });
 
 Cypress.Commands.add('abrirEmenda', (payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda> => {
@@ -90,7 +96,6 @@ Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.
   cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
   cy.get('#modo').select(payload.modoEmendaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
-  // cy.wait(500);
   return cy.wrap(true);
 });
 
@@ -146,7 +151,6 @@ Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
 
 Cypress.Commands.add('getCheckRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
   // Este comando deve ser encadeado com o comando "getSwitchRevisaoDispositivo" ou "getSwitchRevisaoTextoLivre"
-  // return cy.getSwitchRevisaoDispositivo().find('#chk-em-revisao').as('chkRevisaoDispositivo');
   return cy.wrap(subject).find('#chk-em-revisao') as unknown as Cypress.Chainable<JQuery<HTMLElement>>;
 });
 
@@ -162,14 +166,16 @@ Cypress.Commands.add('ativarRevisaoDispositivo', (ocultarDisclaimerRevisao = tru
     });
   }
   cy.getSwitchRevisaoDispositivo().getCheckRevisao().as('chkRevisaoDispositivo').should('not.have.attr', 'checked');
+  cy.wait(tempoDeEsperaPadrao);
   cy.get('@chkRevisaoDispositivo').click().should('have.attr', 'checked');
-  cy.wait(500);
+  cy.wait(tempoDeEsperaMaior);
 });
 
 Cypress.Commands.add('desativarRevisaoDispositivo', (): void => {
   cy.getSwitchRevisaoDispositivo().getCheckRevisao().as('chkRevisaoDispositivo').should('have.attr', 'checked');
+  cy.wait(tempoDeEsperaPadrao);
   cy.get('@chkRevisaoDispositivo').click().should('not.have.attr', 'checked');
-  cy.wait(500);
+  cy.wait(tempoDeEsperaMaior);
 });
 
 Cypress.Commands.add(
@@ -217,7 +223,7 @@ Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaPadrao', (payload: Che
 });
 
 Cypress.Commands.add('checarComandoEmenda', (emenda?: Emenda): void => {
-  cy.wait(500);
+  cy.wait(tempoDeEsperaPadrao);
   cy.get('lexml-emenda').then($lexmlEmenda => {
     const emendaAux = emenda ?? ($lexmlEmenda[0] as LexmlEmendaComponent).getEmenda();
     fnChecarComandoCabecalho(emendaAux);
@@ -232,11 +238,11 @@ Cypress.Commands.add('checarTextoPresenteEmComandoEmenda', (texto: string): void
 Cypress.Commands.add('checarDadosAposAbrirEmenda', (payload: ChecarDadosAposAbrirEmendaPayloadCypress) => {
   const emenda = payload.emenda;
   fnChecarTituloMpv(emenda);
-  fnChecarEmentaMpv(emenda);
+  emenda.modoEdicao === ModoEdicaoEmenda.EMENDA && fnChecarEmentaMpv(emenda);
   fnChecarDadosEmendaAbaTexto(emenda);
   fnChecarDadosEmendaAbaJustificativa(emenda);
   fnChecarDadosEmendaAbaAutoria(emenda);
-  fnChecarDadosEmendaLateralComando(emenda);
+  emenda.modoEdicao !== ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE && fnChecarDadosEmendaLateralComando(emenda);
   fnChecarDadosNotasRodape(emenda);
   cy.get('#sl-tab-1').click();
 });
@@ -256,140 +262,128 @@ const fnChecarEmentaMpv = (emenda: Emenda): void => {
 };
 
 const fnChecarDadosEmendaAbaTexto = (emenda: Emenda): void => {
+  // TODO: Verificar outros modos de edição
+
   // Verificar modoEdicao. Testar de acordo com o modo.
-  emenda.modoEdicao === 'emenda' && fnChecarDadosEmendaAbaTextoPadrao(emenda);
+  emenda.modoEdicao === ModoEdicaoEmenda.EMENDA && fnChecarDadosEmendaAbaTextoEmendaPadrao();
+  emenda.modoEdicao === ModoEdicaoEmenda.EMENDA_ARTIGO_ONDE_COUBER && fnChecarDadosEmendaAbaTextoEmendaArtigoOndeCouber(emenda);
+  emenda.modoEdicao === ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE && fnChecarDadosEmendaAbaTextoEmendaTextoLivre();
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fnChecarDadosEmendaAbaTextoPadrao = (emenda: Emenda): void => {
-  // TODO: Implementar
-  // // Verificar o texto do Art 1º alterado
-  // const textoDispositivoAlterado = 'e para mulheres em situação de violência doméstica e familiar';
-  // cy.get('texto__dispositivo6').contains(textoDispositivoAlterado);
+const fnChecarDadosEmendaAbaTextoEmendaPadrao = (): void => {
+  cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length.greaterThan', 0);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const fnChecarDadosEmendaAbaTextoEmendaArtigoOndeCouber = (emenda: Emenda): void => {
+  cy.get('div.container__elemento.elemento-tipo-artigo  div.container__texto--nivel0').should('have.length', emenda.componentes[0].dispositivos.dispositivosAdicionados.length);
+
+  emenda.componentes[0].dispositivos.dispositivosAdicionados.forEach((da, index) => {
+    const textoDoCaputDoArtigo = removeAllHtmlTags(da.filhos?.find(f => f.tipo === 'Caput')?.texto ?? '').replace(regexEspaco, '');
+    cy.get('div.container__elemento.elemento-tipo-artigo')
+      .eq(index)
+      .find('div.container__texto p.texto__dispositivo')
+      .then($p => {
+        expect($p.text().replace(regexEspaco, '')).equal(textoDoCaputDoArtigo);
+      });
+  });
+};
+
+const fnChecarDadosEmendaAbaTextoEmendaTextoLivre = (): void => {
+  cy.get('editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: block');
+};
+
 const fnChecarDadosEmendaAbaJustificativa = (emenda: Emenda): void => {
-  // TODO: Implementar
-
+  const justificativa = removeAllHtmlTags(emenda.justificativa ?? '').replace(regexEspaco, '');
   cy.get('#sl-tab-2').click();
-  cy.get('#editor-texto-rico-justificativa-inner > .ql-editor > :nth-child(1)'); //.contains(emenda.justificativa);
+  cy.get('#editor-texto-rico-justificativa-inner > .ql-editor').then($el => {
+    expect($el.text().replace(regexEspaco, '')).equal(justificativa);
+  });
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fnChecarDadosEmendaAbaAutoria = (emenda: Emenda): void => {
-  // TODO: Implementar
+const fnGetArrayNomeComissao = (emenda: Emenda): string[] => {
+  if (emenda.proposicao.sigla === 'MPV') {
+    if (emenda.colegiadoApreciador.siglaComissao === 'CMO') {
+      return [`CMO - Comissão Mista de Planos, Orçamentos Públicos e Fiscalização`];
+    } else {
+      const nomeEstendido = `${emenda.colegiadoApreciador.siglaComissao} - Comissão Mista da Medida Provisória n° ${emenda.proposicao.numero}, de ${emenda.proposicao.ano}`;
+      return [`${emenda.colegiadoApreciador.siglaComissao}`, nomeEstendido, nomeEstendido.toUpperCase()];
+    }
+  }
 
+  return [`${emenda.colegiadoApreciador.siglaComissao}`];
+};
+
+const fnChecarDadosEmendaAbaAutoria = (emenda: Emenda): void => {
   // Verificar o clique na aba Destino, Data, Autoria e Impressão
   cy.get('#sl-tab-3').click();
 
   // Verificar a seleção do tipo Órgão destino
-  cy.get('lexml-destino').shadow().find('fieldset.lexml-destino').find('div').find('sl-radio-group#tipoColegiado').find('sl-radio').contains('Comissão');
+  cy.get('lexml-destino').shadow().find('sl-radio-group#tipoColegiado').find('sl-radio').contains(emenda.colegiadoApreciador.tipoColegiado).should('have.attr', 'checked');
 
   // Verificar o preenchimento do nome do Órgão destino
   cy.get('lexml-destino')
     .shadow()
-    .find('fieldset.lexml-destino')
-    .find('div')
-    .find('autocomplete-async#auto-complete-async')
-    .shadow()
-    .find('slot#dropdown-input')
-    .find('sl-input#defaultInput.lexml-autocomplete-input')
-    .shadow()
-    .find('div.form-control.form-control--medium.form-control--has-label')
-    .find('div.form-control-input')
-    .find('div.input.input--medium.input--standard.input--disabled')
-    .find('input#input.input__control');
+    .find('autocomplete-async')
+    .should($el => {
+      expect(fnGetArrayNomeComissao(emenda)).to.include($el[0].value);
+    });
 
   // Verificar a seleção do radio Data e o preenchimento do valor
-  cy.get('lexml-data').shadow().find('div.lexml-data').find('sl-radio-group').find('sl-radio').shadow().find('label.radio.radio--checked');
-
-  cy.get('lexml-data')
-    .shadow()
-    .find('div.lexml-data')
-    .find('sl-radio-group')
-    .find('sl-radio')
-    .find('sl-input#input-data')
-    .shadow()
-    .find('div.form-control.form-control--medium.form-control--has-label')
-    .find('div.form-control-input')
-    .find('div.input.input--medium.input--standard.input')
-    .find('input#input.input__control');
+  if (emenda.data) {
+    cy.get('lexml-data').shadow().find('sl-radio[value="1"]').should('not.have.attr', 'checked');
+    cy.get('lexml-data').shadow().find('sl-radio[value="2"]').should('have.attr', 'checked');
+    cy.get('lexml-data').shadow().find('sl-radio[value="2"] sl-input#input-data').should('have.value', emenda.data);
+  } else {
+    cy.get('lexml-data').shadow().find('sl-radio[value="1"]').should('have.attr', 'checked');
+    cy.get('lexml-data').shadow().find('sl-radio[value="2"]').should('not.have.attr', 'checked');
+  }
 
   // Verificar o preenchimento dos campos da seção Autoria
-  // Verificar o preenchimento do campo Parlamentar
+  // Verificar o preenchimento do campo Parlamentar e Cargo
+  const sParlamentares = emenda.autoria.parlamentares.map(p => `${p.nome} - ${p.cargo ?? ''}`).join('; ');
   cy.get('lexml-autoria')
     .shadow()
-    .find('fieldset > div.autoria-list')
-    .find('div.autoria-grid')
-    .find('div.autoria-grid--col1')
-    .find('lexml-autocomplete.lexml-autocomplete')
-    .shadow()
-    .find('slot#dropdown-input')
-    .find('sl-input#defaultInput.lexml-autocomplete-input')
-    .shadow()
-    .find('div.form-control.form-control--small')
-    .find('div.form-control-input')
-    .find('div.input.input--small.input--standard')
-    .find('input#input.input__control');
+    .find('div.autoria-grid:not(.autoria-labels)')
+    .then($divs => {
+      const sParlamentaresAux = $divs.map((index, div) => {
+        const nome = div.querySelector('lexml-autocomplete')?.value;
+        const cargo = (div.querySelector('sl-input#tex-cargo') as any)?.value;
+        return nome ? `${nome} - ${cargo}` : '';
+      });
 
-  // Verificar o preenchimento do campo Cargo
-  cy.get('lexml-autoria')
-    .shadow()
-    .find('fieldset > div.autoria-list')
-    .find('div.autoria-grid')
-    .find('div.autoria-grid--col2')
-    .find('sl-input#tex-cargo.autoria-input')
-    .shadow()
-    .find('div.form-control.form-control--small')
-    .find('div.form-control-input')
-    .find('div.input.input--small.input--standard.input--empty')
-    .find('input#input.input__control');
+      expect(sParlamentaresAux.get().join('; ')).equal(sParlamentares);
+    });
 
   // Verificar o preenchimento do campo Quantidade de assinaturas adicionais de Senadores
-  cy.get('lexml-autoria')
-    .shadow()
-    .find('div.assinaturas-adicionais')
-    .find('sl-input#num-assinaturas-adicionais-senadores.autoria-input')
-    .shadow()
-    .find('div.form-control.form-control--small.form-control--has-label')
-    .find('div.form-control-input')
-    .find('div.input.input--small.input--standard.input')
-    .find('input#input.input__control');
+  cy.get('lexml-autoria').shadow().find('#num-assinaturas-adicionais-senadores').should('have.value', emenda.autoria.quantidadeAssinaturasAdicionaisSenadores);
 
   // Verificar o preenchimento do campo Quantidade de assinaturas adicionais de Deputados Federais
-  cy.get('lexml-autoria')
-    .shadow()
-    .find('div.assinaturas-adicionais')
-    .find('sl-input#num-assinaturas-adicionais-deputados.autoria-input')
-    .shadow()
-    .find('div.form-control.form-control--small.form-control--has-label')
-    .find('div.form-control-input')
-    .find('div.input.input--small.input--standard.input')
-    .find('input#input.input__control');
+  cy.get('lexml-autoria').shadow().find('#num-assinaturas-adicionais-deputados').should('have.value', emenda.autoria.quantidadeAssinaturasAdicionaisDeputados);
 
   // Verificar o checkbox de imprimir partido e UF para os signatários
-  cy.get('lexml-autoria').shadow().find('div.assinaturas-adicionais').find('label').find('input#chk-exibir-partido-uf');
+  cy.get('lexml-autoria')
+    .shadow()
+    .find('input#chk-exibir-partido-uf')
+    .should((emenda.autoria.imprimirPartidoUF ? '' : 'not.') + 'have.attr', 'checked');
 
   // Verificar o preenchimento dos campos da seção Opções de impressão
-  // Verificar o preenchimento do checkbox Opções de impressão
-  cy.get('lexml-opcoes-impressao').shadow().find('div').find('#chk-imprimir-brasao[checked]');
+  // Verificar a seleção de imprimir brasão
+  cy.get('lexml-opcoes-impressao')
+    .shadow()
+    .find('input#chk-imprimir-brasao')
+    .should((emenda.opcoesImpressao.imprimirBrasao ? '' : 'not.') + 'have.attr', 'checked');
 
   // Verificar a seleção do campo tamanho da letra
   cy.get('lexml-opcoes-impressao')
     .shadow()
-    .find('div')
     .find('sl-select#select-tamanho-fonte')
-    .shadow()
-    .find('div.form-control.form-control--small.form-control--has-label')
-    .find('div.form-control-input')
-    .find('sl-dropdown.select.select--standard.select--small');
-
-  // Verificar a seleção de imprimir brasão
-  cy.get('lexml-opcoes-impressao').shadow().find('div').find('#chk-imprimir-brasao');
+    .should('have.value', emenda.opcoesImpressao.tamanhoFonte ?? '');
 
   // Verificar a seleção de reduzir espaçamento entre linhas
-  cy.get('lexml-opcoes-impressao').shadow().find('div').find('#chk-reduzir-espaco');
+  cy.get('lexml-opcoes-impressao')
+    .shadow()
+    .find('input#chk-reduzir-espaco')
+    .should((emenda.opcoesImpressao.reduzirEspacoEntreLinhas ? '' : 'not.') + 'have.attr', 'checked');
 };
 
 const fnChecarDadosEmendaLateralComando = (emenda: any): void => {
@@ -403,6 +397,7 @@ const fnChecarComandoCabecalho = (emenda: any): void => {
 };
 
 const fnChecarComandoCitacao = (emenda: any): void => {
+  cy.wait(tempoDeEsperaMaior);
   const citacao = emenda.comandoEmenda.comandos[0].citacao;
   cy.get('lexml-emenda lexml-emenda-comando')
     .shadow()
@@ -411,13 +406,14 @@ const fnChecarComandoCitacao = (emenda: any): void => {
     .then(div => {
       const aux = citacao
         .replace(/<\/?[^>]*>?/g, '')
-        .replaceAll(/\s+/g, ' ')
+        .replaceAll(regexEspaco, ' ')
         .trim();
       const innerHTML = div[0].innerHTML
         .replace(/<\/?[^>]*>?/g, '')
-        .replace(/\s+/g, ' ')
+        .replace(regexEspaco, ' ')
         .replace('...............................................', '')
         .trim();
+
       expect(innerHTML).equal(aux);
     });
 };
