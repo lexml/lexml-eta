@@ -19,7 +19,7 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
-import { buildId } from '../../../model/lexml/util/idUtil';
+import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
@@ -184,9 +184,7 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   novo.pai!.renumeraFilhos();
 
-  if (novo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    novo.id = buildId(novo);
-  }
+  updateIdDispositivoAndFilhos(novo.pai!);
 
   const eventos =
     action.posicao && action.posicao === 'antes'

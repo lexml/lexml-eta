@@ -32,6 +32,7 @@ import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoS
 import { State, StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
+import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 
 export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositivo): Eventos => {
   const eventos = new Eventos();
@@ -120,6 +121,8 @@ export const removeAndBuildEvents = (state: State, dispositivo: Dispositivo): St
   const pai = dispositivo.pai!;
   pai.removeFilho(dispositivo);
   pai.renumeraFilhos();
+
+  updateIdDispositivoAndFilhos(pai);
 
   if (isArticulacaoAlteracao(pai) && pai.filhos.length === 0) {
     pai.pai!.alteracoes = undefined;
