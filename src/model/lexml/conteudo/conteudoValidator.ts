@@ -2,7 +2,7 @@ import { CmdEmdUtil } from '../../../emenda/comando-emenda-util';
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isEmenta } from '../../dispositivo/tipo';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
 import {
   getDispositivoCabecaAlteracao,
@@ -59,7 +59,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (!isArticulacao(dispositivo) && dispositivo.texto && !isValidHTML(dispositivo.texto)) {
     addMensagem(mensagens, TipoMensagem.ERROR, 'O conteúdo do dispositivo não é um HTML válido.');
   }
-  if (!isArticulacao(dispositivo) && dispositivo.texto && dispositivo.texto.trim().length > 500) {
+  if (!isArticulacao(dispositivo) && !isEmenta(dispositivo) && dispositivo.texto && dispositivo.texto.trim().length > 500) {
     addMensagem(mensagens, TipoMensagem.WARNING, `Pelo princípio da concisão, o texto dos dispositivos não deve ser extenso, devendo ser utilizadas frases curtas e concisas.`);
   }
 
