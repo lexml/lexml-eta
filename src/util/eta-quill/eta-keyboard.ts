@@ -79,11 +79,14 @@ export class EtaKeyboard extends Keyboard {
         }
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (elementoLinhaAtual?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && this.isNotTeclasDeNavegacao(ev)) {
+      } else if (
+        (elementoLinhaAtual?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || this.quill.linhaAtual.elemento.bloqueado) &&
+        this.isNotTeclasDeNavegacao(ev)
+      ) {
         cancelarPropagacaoDoEvento(ev);
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
-          if (['Delete', 'Backspace'].includes(ev.key)) {
+          if (['Delete', 'Backspace'].includes(ev.key) || (this.quill.linhaAtual.elemento.bloqueado && this.isNotTeclaAlteracaoExclusivaNoDispositivo(ev))) {
             cancelarPropagacaoDoEvento(ev);
           } else if (ev.key === 'Home') {
             this.onTeclaHome(ev);
@@ -174,6 +177,10 @@ export class EtaKeyboard extends Keyboard {
     });
 
     super.listen();
+  }
+
+  private isNotTeclaAlteracaoExclusivaNoDispositivo(ev: KeyboardEvent): boolean {
+    return ev.key.toLowerCase() !== 'c' && ev.key.toLowerCase() !== 'z' && ev.key.toLowerCase() !== 'y';
   }
 
   private isNotTeclasDeNavegacao(ev: KeyboardEvent): boolean {
