@@ -1,7 +1,7 @@
 import { DescricaoSituacao } from './../../dispositivo/situacao';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
-import { getDispositivosAnterioresMesmoTipo, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import { isArticulacao, isCaput, isDispositivoDeEmendaDeArtigoOndeCouber, isOmissis } from '../../dispositivo/tipo';
+import { getDispositivoAndFilhosAsLista, getDispositivosAnterioresMesmoTipo, isAdicionado, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
 import { getArticulacao, isDispositivoAlteracao, irmaosMesmoTipo } from './../hierarquia/hierarquiaUtil';
 
@@ -18,7 +18,10 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
         : isOmissis(dispositivo)
         ? calculaSequencialOmissis(dispositivo)
         : dispositivo.numero
-        ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.numero === '1' && isUnicoMesmoTipo(dispositivo)
+        ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) &&
+          dispositivo.numero === '1' &&
+          isUnicoMesmoTipo(dispositivo) &&
+          (!isDispositivoDeEmendaDeArtigoOndeCouber(dispositivo) || isParagrafo(dispositivo))
           ? '1u'
           : dispositivo.numero!
         : `[sn:${dispositivo.uuid}]`)
@@ -96,3 +99,12 @@ export const buildIdCaputEAlteracao = (dispositivo: Dispositivo): void => {
   }
   return dispositivo.numero ?? '';
 }; */
+
+export const updateIdDispositivoAndFilhos = (dispositivo: Dispositivo): void => {
+  getDispositivoAndFilhosAsLista(dispositivo)
+    .filter(isAdicionado)
+    .forEach(d => {
+      d.id = buildId(d);
+      isArtigo(d) && buildIdCaputEAlteracao(d);
+    });
+};

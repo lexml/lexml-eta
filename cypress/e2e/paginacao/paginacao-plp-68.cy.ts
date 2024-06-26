@@ -37,9 +37,9 @@ describe('Testando paginação com PLP 68/2024', () => {
 
   it('Adiciona dispositivo, liga revisão, remove dispositivo muda de página e retorna para página da remoção', () => {
     cy.irParaPagina(1);
-    cy.get('#lxEtaId16').selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso depois');
+    cy.getContainerArtigoByNumero(3).next().next().selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso depois');
 
-    cy.get('div.container__elemento.dispositivo--adicionado').as('dispositivoAdicionado').inserirTextoNoDispositivo('texto do novo inciso;');
+    cy.get('div.container__elemento.dispositivo--adicionado').as('dispositivoAdicionado').alterarTextoDoDispositivo('texto do novo inciso;');
 
     cy.ativarRevisaoDispositivo();
 
@@ -54,12 +54,12 @@ describe('Testando paginação com PLP 68/2024', () => {
 
   it('Suprime dispositivo, navega para outra página, volta e verifica se dispositivo suprimido está sendo exibido', () => {
     cy.irParaPagina(1);
-    cy.get('#lxEtaId9').as('art1_inc1').click().selecionarOpcaoDeMenuDoDispositivo('Suprimir');
+    cy.getContainerArtigoByNumero(1).next().click().selecionarOpcaoDeMenuDoDispositivo('Suprimir');
 
     cy.irParaPagina(2);
     cy.get('div.container__elemento.elemento-tipo-artigo label').contains('Art. 161').should('exist');
 
     cy.irParaPagina(1);
-    cy.get('@art1_inc1').should('have.class', 'dispositivo--suprimido').click();
+    cy.getContainerArtigoByNumero(1).next().should('have.class', 'dispositivo--suprimido').click();
   });
 });

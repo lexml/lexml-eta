@@ -19,8 +19,8 @@ import './commands';
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-beforeEach(() => {
-  cy.viewport(1920, 1080);
+before(() => {
+  // cy.viewport(1920, 1080);
   cy.visit('/', {
     onBeforeLoad: win => {
       win.sessionStorage.clear();

@@ -1,0 +1,218 @@
+{
+	"dataUltimaModificacao": "2024-06-18T17:02:44.996Z",
+	"aplicacao": "",
+	"versaoAplicacao": "",
+	"modoEdicao": "emendaArtigoOndeCouber",
+	"metadados": {
+	},
+	"proposicao": {
+		"urn": "urn:lex:br:federal:medida.provisoria:2024-06-12;1232",
+		"sigla": "MPV",
+		"numero": "1232",
+		"ano": "2024",
+		"ementa": "Altera a Lei nº 12.111, de 9 de dezembro de 2009, que dispõe sobre os serviços de energia elétrica nos Sistemas Isolados, e a Lei nº 12.783, de 11 de janeiro de 2013, que dispõe sobre as concessões de geração, transmissão e distribuição de energia elétrica, sobre a redução dos encargos setoriais e sobre a modicidade tarifária.",
+		"identificacaoTexto": "Texto inicial"
+	},
+	"epigrafe": {
+		"texto": "EMENDA Nº         - CMMPV 1232/2024",
+		"complemento": "(à MPV 1232/2024)"
+	},
+	"componentes": [
+		{
+			"urn": "urn:lex:br:federal:medida.provisoria:2024-06-12;1232",
+			"articulado": true,
+			"dispositivos": {
+				"dispositivosSuprimidos": [
+				],
+				"dispositivosModificados": [
+				],
+				"dispositivosAdicionados": [
+					{
+						"tipo": "Artigo",
+						"id": "art1u",
+						"rotulo": "Art.",
+						"filhos": [
+							{
+								"tipo": "Caput",
+								"id": "art1u_cpt",
+								"texto": "A <a href=\"urn:lex:br:federal:lei:1995-07-07;9074\">Lei nº 9.074, de 7 de julho de 1995</a>, que estabelece normas para outorga e prorrogações das concessões e permissões de serviços públicos e dá outras providências, passa a vigorar com as seguintes alterações:",
+								"filhos": [
+									{
+										"tipo": "Alteracao",
+										"id": "art1u_cpt_alt1",
+										"urnNormaAlterada": "urn:lex:br:federal:lei:1995-07-07;9074",
+										"filhos": [
+											{
+												"tipo": "Artigo",
+												"id": "art1u_cpt_alt1_art16-1",
+												"rotulo": "Art. 16-A.",
+												"abreAspas": true,
+												"filhos": [
+													{
+														"tipo": "Caput",
+														"id": "art1u_cpt_alt1_art16-1_cpt",
+														"texto": "Considera-se autoprodutor de energia elétrica o consumidor titular de concessão, autorização ou registro de empreendimento de geração para produzir energia por sua conta e risco"
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par1",
+														"rotulo": "§ 1º",
+														"texto": "O direito de acesso às redes de transmissão e distribuição de energia elétrica é assegurado ao autoprodutor de energia elétrica."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par2",
+														"rotulo": "§ 2º",
+														"texto": "Também é considerado autoprodutor o consumidor que pertence a um grupo econômico com carga mínima agregada igual ou superior a 30.000 kW (trinta mil quilowatts) e que:",
+														"filhos": [
+															{
+																"tipo": "Inciso",
+																"id": "art1u_cpt_alt1_art16-1_par2_inc1",
+																"rotulo": "I –",
+																"texto": "participe, direta ou indiretamente, do capital social da sociedade empresarial titular da outorga, observada a proporção da participação societária, direta ou indireta, com direito a voto; ou"
+															},
+															{
+																"tipo": "Inciso",
+																"id": "art1u_cpt_alt1_art16-1_par2_inc2",
+																"rotulo": "II –",
+																"texto": "esteja sob controle societário comum, direto ou indireto, ou seja controlador, controlado ou coligado, direta ou indiretamente, às empresas referidas no inciso I deste parágrafo, observada a participação societária, direta ou indireta, com direito a voto."
+															}
+														]
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par3",
+														"rotulo": "§ 3º",
+														"texto": "O consumidor com carga mínima individual igual ou superior a 3.000 kW (três mil quilowatts), que participe, até a data de publicação desta lei, de uma sociedade de propósito específico constituída para produzir energia elétrica, conforme os critérios estabelecidos pela Lei 11.488, de 15 de junho de 2007, será caracterizado autoprodutor."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par4",
+														"rotulo": "§ 4º",
+														"texto": "Para fins do disposto no § 2º deste artigo, na hipótese em que a sociedade emita ações sem direito a voto que confiram direitos econômicos em montante superior àqueles atribuídos pelas ações com direito a voto aos seus respectivos detentores, a participação mínima exigida do grupo econômico de cada consumidor no capital social, direto ou indireto, não poderá ser inferior a 30% do capital social total da sociedade multiplicado pelo percentual das suas ações com direito a voto."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par5",
+														"rotulo": "§ 5º",
+														"texto": "O disposto no §4º deste artigo não se aplica aos casos em que o consumidor e/ou gerador tenha protocolado, até data de publicação desta lei, pedido de aprovação de ato de concentração econômica ao CADE, conforme previsto na Lei nº 12.529/2011."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par6",
+														"rotulo": "§ 6º",
+														"texto": "Para fins do caput do § 2º e do § 4º deste artigo 16-A, considera-se grupo econômico do consumidor o conjunto de sociedades referidas no inciso II do § 2º deste artigo."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par7",
+														"rotulo": "§ 7º",
+														"texto": "A destinação da energia autoproduzida independe da localização geográfica da geração e do consumo, ficando o autoprodutor responsável por diferenças de preços entre o local de produção e o local de consumo. § 8º O pagamento de encargos pelo autoprodutor deverá ser apurado com base no consumo líquido."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par8",
+														"rotulo": "§ 8º",
+														"texto": "O pagamento de encargos pelo autoprodutor deverá ser apurado com base no consumo líquido."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par9",
+														"rotulo": "§ 9º",
+														"texto": "O consumo líquido, para fins do disposto no § 8º:",
+														"filhos": [
+															{
+																"tipo": "Inciso",
+																"id": "art1u_cpt_alt1_art16-1_par9_inc1",
+																"rotulo": "I –",
+																"texto": "corresponderá à diferença entre o total consumido pelo autoprodutor e a energia elétrica autoproduzida;"
+															},
+															{
+																"tipo": "Inciso",
+																"id": "art1u_cpt_alt1_art16-1_par9_inc2",
+																"rotulo": "II –",
+																"texto": "será apurado nos mesmos períodos e formas usados na apuração de encargos cobrados dos consumidores dos ambientes de contratação livre e regulada, considerando-se eventuais créditos ou débitos de períodos de apuração anterior a serem compensados no prazo de 12 meses."
+															}
+														]
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par10",
+														"rotulo": "§ 10.",
+														"texto": "Ficam preservadas todas as estruturas de autoprodução e contratos firmados com fundamento na legislação em vigor até a data de publicação deste artigo."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par11",
+														"rotulo": "§ 11.",
+														"texto": "A outorga conferida ao autoprodutor será em regime de produção independente de energia."
+													},
+													{
+														"tipo": "Paragrafo",
+														"id": "art1u_cpt_alt1_art16-1_par12",
+														"rotulo": "§ 12.",
+														"texto": "As linhas de transmissão de interesse restrito aos empreendimentos de autoprodução poderão ser concedidas ou autorizadas simultânea ou complementarmente às outorgas dos empreendimentos de autoprodução.",
+														"fechaAspas": true,
+														"notaAlteracao": "NR"
+													}
+												]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		}
+	],
+	"comandoEmendaTextoLivre": {
+		"texto": "  "
+	},
+	"comandoEmenda": {
+		"comandos": [
+			{
+				"cabecalho": "Acrescente-se, onde couber, na Medida Provisória o seguinte artigo:",
+				"citacao": "<p class=\"artigo\">“<Rotulo>Art.</Rotulo> A Lei nº 9.074, de 7 de julho de 1995, que estabelece normas para outorga e prorrogações das concessões e permissões de serviços públicos e dá outras providências, passa a vigorar com as seguintes alterações:</p><Alteracao><p class=\"artigo\">‘<Rotulo>Art. 16-A.</Rotulo> Considera-se autoprodutor de energia elétrica o consumidor titular de concessão, autorização ou registro de empreendimento de geração para produzir energia por sua conta e risco</p><p class=\"paragrafo\"><Rotulo>§ 1º</Rotulo> O direito de acesso às redes de transmissão e distribuição de energia elétrica é assegurado ao autoprodutor de energia elétrica.</p><p class=\"paragrafo\"><Rotulo>§ 2º</Rotulo> Também é considerado autoprodutor o consumidor que pertence a um grupo econômico com carga mínima agregada igual ou superior a 30.000 kW (trinta mil quilowatts) e que:</p><p class=\"inciso\"><Rotulo>I –</Rotulo> participe, direta ou indiretamente, do capital social da sociedade empresarial titular da outorga, observada a proporção da participação societária, direta ou indireta, com direito a voto; ou</p><p class=\"inciso\"><Rotulo>II –</Rotulo> esteja sob controle societário comum, direto ou indireto, ou seja controlador, controlado ou coligado, direta ou indiretamente, às empresas referidas no inciso I deste parágrafo, observada a participação societária, direta ou indireta, com direito a voto.</p><p class=\"paragrafo\"><Rotulo>§ 3º</Rotulo> O consumidor com carga mínima individual igual ou superior a 3.000 kW (três mil quilowatts), que participe, até a data de publicação desta lei, de uma sociedade de propósito específico constituída para produzir energia elétrica, conforme os critérios estabelecidos pela Lei 11.488, de 15 de junho de 2007, será caracterizado autoprodutor.</p><p class=\"paragrafo\"><Rotulo>§ 4º</Rotulo> Para fins do disposto no § 2º deste artigo, na hipótese em que a sociedade emita ações sem direito a voto que confiram direitos econômicos em montante superior àqueles atribuídos pelas ações com direito a voto aos seus respectivos detentores, a participação mínima exigida do grupo econômico de cada consumidor no capital social, direto ou indireto, não poderá ser inferior a 30% do capital social total da sociedade multiplicado pelo percentual das suas ações com direito a voto.</p><p class=\"paragrafo\"><Rotulo>§ 5º</Rotulo> O disposto no §4º deste artigo não se aplica aos casos em que o consumidor e/ou gerador tenha protocolado, até data de publicação desta lei, pedido de aprovação de ato de concentração econômica ao CADE, conforme previsto na Lei nº 12.529/2011.</p><p class=\"paragrafo\"><Rotulo>§ 6º</Rotulo> Para fins do caput do § 2º e do § 4º deste artigo 16-A, considera-se grupo econômico do consumidor o conjunto de sociedades referidas no inciso II do § 2º deste artigo.</p><p class=\"paragrafo\"><Rotulo>§ 7º</Rotulo> A destinação da energia autoproduzida independe da localização geográfica da geração e do consumo, ficando o autoprodutor responsável por diferenças de preços entre o local de produção e o local de consumo. § 8º O pagamento de encargos pelo autoprodutor deverá ser apurado com base no consumo líquido.</p><p class=\"paragrafo\"><Rotulo>§ 8º</Rotulo> O pagamento de encargos pelo autoprodutor deverá ser apurado com base no consumo líquido.</p><p class=\"paragrafo\"><Rotulo>§ 9º</Rotulo> O consumo líquido, para fins do disposto no § 8º:</p><p class=\"inciso\"><Rotulo>I –</Rotulo> corresponderá à diferença entre o total consumido pelo autoprodutor e a energia elétrica autoproduzida;</p><p class=\"inciso\"><Rotulo>II –</Rotulo> será apurado nos mesmos períodos e formas usados na apuração de encargos cobrados dos consumidores dos ambientes de contratação livre e regulada, considerando-se eventuais créditos ou débitos de períodos de apuração anterior a serem compensados no prazo de 12 meses.</p><p class=\"paragrafo\"><Rotulo>§ 10.</Rotulo> Ficam preservadas todas as estruturas de autoprodução e contratos firmados com fundamento na legislação em vigor até a data de publicação deste artigo.</p><p class=\"paragrafo\"><Rotulo>§ 11.</Rotulo> A outorga conferida ao autoprodutor será em regime de produção independente de energia.</p><p class=\"paragrafo\"><Rotulo>§ 12.</Rotulo> As linhas de transmissão de interesse restrito aos empreendimentos de autoprodução poderão ser concedidas ou autorizadas simultânea ou complementarmente às outorgas dos empreendimentos de autoprodução.’ (NR)”</p></Alteracao>"
+			}
+		]
+	},
+	"anexos": [
+	],
+	"justificativa": "<p class=\"align-justify\">O interesse da indústria na autoprodução de energia elétrica desde os momentos iniciais de desenvolvimento do setor tem uma razão bem específica: a garantia de suprimento do energético a custos que garantam a competitividade da atividade industrial. A prática da autoprodução tem o efeito de ancorar a competitividade da indústria, que é a base de sustento de diversos outros ramos da economia, além de aumentar a confiabilidade e a segurança de suprimento do Sistema Interligado Nacional (SIN).</p><p class=\"align-justify\">Investimentos em geração de energia, no entanto, são intensivos em capital. Aplicar elevados recursos e assumir riscos e compromissos de longo prazo, com uma atividade que não é fim da indústria, requer muita confiança no mercado e, principalmente, na robustez do arcabouço legal e regulatório do setor. Contudo, na prática, observa-se que a ausência de tratamento legal à figura do autoprodutor aumenta sensivelmente a percepção de risco desse agente, reprimindo importantes investimentos para o setor elétrico e para a indústria nacional e, consequentemente, prejudicando a geração de empregos e o crescimento econômico brasileiro.</p><p class=\"align-justify\">Buscando suprir essa lacuna legal, a emenda apresenta um tema proposto inicialmente pelo Ministério de Minas e Energia, no âmbito da Consulta Pública nº 33/2017. O texto passou por diversas fases de maturação em discussões no Legislativo e no Executivo a fim de cumprir seu objetivo: assegurar o equilíbrio de custos e riscos alocados ao autoprodutor em um modelo de negócios sustentável.</p><p>De forma sucinta, a emenda sugere: (i) definição legal da figura do autoprodutor, assim como consolidação dos direitos e deveres desse agente, de modo a trazer segurança jurídica para a realização de investimentos na atividade; (ii) definição clara e objetiva dos critérios de classificação da atividade de autoprodução envolvendo o mesmo grupo econômico investidor, permitindo que as decisões empresariais se deem de forma segura ante essa alternativa de suprimento de energia; e (iii) consolidação em lei da apuração dos encargos ao autoprodutor pelo consumo líquido, reduzindo o risco regulatório sobre decisões de investimento.</p>",
+	"local": "Sala da comissão",
+	"data": "2024-06-18",
+	"autoria": {
+		"tipo": "Parlamentar",
+		"imprimirPartidoUF": true,
+		"quantidadeAssinaturasAdicionaisSenadores": 0,
+		"quantidadeAssinaturasAdicionaisDeputados": 0,
+		"parlamentares": [
+			{
+				"identificacao": "3777",
+				"nome": "Eduardo Gomes",
+				"sexo": "M",
+				"siglaPartido": "PL",
+				"siglaCasaLegislativa": "SF",
+				"cargo": "",
+				"siglaUF": "TO"
+			}
+		]
+	},
+	"opcoesImpressao": {
+		"imprimirBrasao": true,
+		"textoCabecalho": "Gabinete do Senador Eduardo Gomes",
+		"reduzirEspacoEntreLinhas": false,
+		"tamanhoFonte": 14
+	},
+	"revisoes": [
+	],
+	"notasRodape": [
+	],
+	"colegiadoApreciador": {
+		"siglaCasaLegislativa": "CN",
+		"tipoColegiado": "Comissão",
+		"siglaComissao": "CMMPV 1232/2024"
+	}
+}
