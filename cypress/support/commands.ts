@@ -139,6 +139,12 @@ Cypress.Commands.add('alterarTextoDoDispositivo', { prevSubject: 'element' }, (s
 });
 
 Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, texto: string, replace = false): Cypress.Chainable<JQuery<HTMLElement>> => {
+  /* OBSERVAÇÃO
+    - O uso de "type" para "digitar" texto no dispositivo está inconsistente. Às vezes, o texto é digitado, às vezes não.
+    - Se o objetivo for apenas alterar o texto, o comando "alterarTextoDoDispositivo" é mais confiável.
+    - Use esse comando apenas quando quiser simular a digitação de teclas de controle, como "Enter", "Tab", "End", "Home", "Alt + seta para cima", etc.
+  */
+
   // cy.wrap(subject).as('containerDispositivo').find('div.container__texto p.texto__dispositivo').focus().type(texto, { force: true });
   cy.wrap(subject)
     .as('containerDispositivo')
