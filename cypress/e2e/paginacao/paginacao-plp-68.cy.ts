@@ -39,7 +39,7 @@ describe('Testando paginação com PLP 68/2024', () => {
     cy.irParaPagina(1);
     cy.getContainerArtigoByNumero(3).next().next().selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso depois');
 
-    cy.get('div.container__elemento.dispositivo--adicionado').as('dispositivoAdicionado').inserirTextoNoDispositivo('texto do novo inciso;');
+    cy.get('div.container__elemento.dispositivo--adicionado').as('dispositivoAdicionado').alterarTextoDoDispositivo('texto do novo inciso;');
 
     cy.ativarRevisaoDispositivo();
 
