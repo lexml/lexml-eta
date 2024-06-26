@@ -1,5 +1,4 @@
 /// <reference types="cypress" />
-
 import { LexmlEmendaComponent } from '../../src';
 import { Emenda, ModoEdicaoEmenda } from '../../src/model/emenda/emenda';
 import { removeAllHtmlTags } from '../../src/util/string-util';
@@ -129,13 +128,7 @@ Cypress.Commands.add('focusOnConteudo', { prevSubject: 'element' }, (subject: JQ
   return cy.wrap(subject);
 });
 
-Cypress.Commands.add('inserirTextoNoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, texto: string): Cypress.Chainable<JQuery<HTMLElement>> => {
-  // Obs:
-  // O comando "type" deveria adicionar o texto ao parágrafo.
-  // Tem hora que funciona, tem hora que não.
-  // Por isso, foi necessário usar o comando "invoke" para setar o texto.
-  // cy.wrap(subject).type(texto, { force: true, delay: 0 });
-
+Cypress.Commands.add('alterarTextoDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, texto: string): Cypress.Chainable<JQuery<HTMLElement>> => {
   const wrapSubject = cy.wrap(subject);
   wrapSubject.find('div.container__texto p.texto__dispositivo').invoke('text', texto);
   wrapSubject.closest('lexml-eta-editor').then($eta => {
@@ -143,6 +136,38 @@ Cypress.Commands.add('inserirTextoNoDispositivo', { prevSubject: 'element' }, (s
     (eta as any).emitirEventoOnChange('cypress');
   });
   return wrapSubject;
+});
+
+Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, texto: string, replace = false): Cypress.Chainable<JQuery<HTMLElement>> => {
+  // cy.wrap(subject).as('containerDispositivo').find('div.container__texto p.texto__dispositivo').focus().type(texto, { force: true });
+  cy.wrap(subject)
+    .as('containerDispositivo')
+    .find('div.container__texto p.texto__dispositivo')
+    .as('pTextoDispositivo')
+    // .focus()
+    .then($p => {
+      replace && $p.text('');
+      cy.wrap($p)
+        .wait(Cypress.config('isInteractive') ? tempoDeEsperaPadrao : tempoDeEsperaMaior)
+        .type(texto, { delay: 5 });
+    });
+  return cy.get('@containerDispositivo');
+});
+
+Cypress.Commands.add('inserirTextoNaJustificacao', (texto: string): Cypress.Chainable<JQuery<HTMLElement>> => {
+  cy.get('#sl-tab-2').click();
+  cy.get('#editor-texto-rico-justificativa-inner > .ql-editor')
+    .as('qlJustificacao')
+    .should('be.visible')
+    .focus()
+    .then($el => {
+      cy.wrap($el).type(texto, { force: true, delay: 0 });
+    });
+  return cy.get('@qlJustificacao');
+});
+
+Cypress.Commands.add('getTextoDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<string> => {
+  return cy.wrap(subject).find('div.container__texto p.texto__dispositivo').invoke('text');
 });
 
 Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
@@ -223,11 +248,12 @@ Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaPadrao', (payload: Che
 });
 
 Cypress.Commands.add('checarComandoEmenda', (emenda?: Emenda): void => {
-  cy.wait(tempoDeEsperaPadrao);
-  cy.get('lexml-emenda').then($lexmlEmenda => {
-    const emendaAux = emenda ?? ($lexmlEmenda[0] as LexmlEmendaComponent).getEmenda();
-    fnChecarComandoCabecalho(emendaAux);
-    fnChecarComandoCitacao(emendaAux);
+  cy.wait(tempoDeEsperaMaior).then(() => {
+    cy.get('lexml-emenda').then($lexmlEmenda => {
+      const emendaAux = emenda ?? ($lexmlEmenda[0] as LexmlEmendaComponent).getEmenda();
+      fnChecarComandoCabecalho(emendaAux);
+      fnChecarComandoCitacao(emendaAux);
+    });
   });
 });
 
@@ -397,7 +423,6 @@ const fnChecarComandoCabecalho = (emenda: any): void => {
 };
 
 const fnChecarComandoCitacao = (emenda: any): void => {
-  cy.wait(tempoDeEsperaMaior);
   const citacao = emenda.comandoEmenda.comandos[0].citacao;
   cy.get('lexml-emenda lexml-emenda-comando')
     .shadow()
@@ -447,7 +472,10 @@ declare global {
       focusOnConteudo(): Cypress.Chainable<JQuery<HTMLElement>>;
       selecionarOpcaoDeMenuDoDispositivo(opcaoDeMenu: string): void;
       getOpcoesDeMenuDoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
-      inserirTextoNoDispositivo(texto: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      getTextoDoDispositivo(): Cypress.Chainable<string>;
+      alterarTextoDoDispositivo(texto: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      digitarNoDispositivo(texto: string, replace?: boolean): Cypress.Chainable<JQuery<HTMLElement>>;
+      inserirTextoNaJustificacao(texto: string): Cypress.Chainable<JQuery<HTMLElement>>;
       getSwitchRevisaoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
       getCheckRevisao(): Cypress.Chainable<JQuery<HTMLElement>>;
       getContadorRevisao(): Cypress.Chainable<JQuery<HTMLElement>>;
