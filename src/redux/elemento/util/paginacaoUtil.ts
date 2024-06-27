@@ -71,6 +71,8 @@ const getArtigoFinal = (artigoInicial: Dispositivo, maxItensPorPagina: number, d
 };
 
 export const paginarArticulacao = (articulacao: Articulacao, maxItensPorPagina = MAX_DISPOSITIVOS_PAGINA): Dispositivo[][] => {
+  if (!articulacao?.artigos?.length) return [];
+
   const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
   const rangeArtigos: RangeArtigos[] = [];
 
