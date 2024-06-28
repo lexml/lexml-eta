@@ -463,7 +463,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
       this.ementa = params.proposicao.ementa; // Preferência para a ementa informada
     }
-    this.emendarTextoSubstitutivo = params.emendarTextoSubstitutivo;
+    this.emendarTextoSubstitutivo = params.emendarTextoSubstitutivo || false;
 
     // Se não forem informados, utilizar da Emenda
     if (params.emenda) {
@@ -472,8 +472,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
       if (!this.ementa) {
         this.ementa = params.emenda.proposicao.ementa;
-        this.emendarTextoSubstitutivo = params.emenda.proposicao.emendarTextoSubstitutivo;
       }
+      this.emendarTextoSubstitutivo = params.emenda.proposicao.emendarTextoSubstitutivo || false;
     }
 
     // Por último do ProjetoNorma
