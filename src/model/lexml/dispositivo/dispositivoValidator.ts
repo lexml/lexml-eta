@@ -1,9 +1,8 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArticulacao } from '../../dispositivo/tipo';
 import { validaTexto } from '../conteudo/conteudoValidator';
 import { validaUrn } from '../documento/urnUtil';
-import { isOriginal } from '../hierarquia/hierarquiaUtil';
+import { isOriginal, isSuprimido } from '../hierarquia/hierarquiaUtil';
 import { validaHierarquia } from '../hierarquia/hierarquiaValidator';
 import { validaNumeracao } from '../numeracao/numeracaoValidator';
 import { isBloqueado } from '../regras/regrasUtil';
@@ -27,20 +26,8 @@ const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
-  if (isBloqueado(dispositivo)) {
-    return retornoValidacao(dispositivo);
-  }
-
-  if (
-    (isArticulacao(dispositivo) && dispositivo.pai === undefined) ||
-    isOriginal(dispositivo) ||
-    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO
-  ) {
+  if ((isArticulacao(dispositivo) && dispositivo.pai === undefined) || (isOriginal(dispositivo) && !isBloqueado(dispositivo)) || isSuprimido(dispositivo)) {
     return [];
   }
-  return retornoValidacao(dispositivo);
-};
-
-const retornoValidacao = (dispositivo: Dispositivo): Mensagem[] => {
   return validaHierarquia(dispositivo).concat(validaTexto(dispositivo), validaNumeracao(dispositivo), validaReferencia(dispositivo));
 };
