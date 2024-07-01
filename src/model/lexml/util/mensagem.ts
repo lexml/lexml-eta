@@ -16,6 +16,7 @@ export enum AutoFix {
 export interface Mensagem {
   tipo: TipoMensagem;
   descricao?: string;
+  descricaoParaPDF?: string;
   detalhe?: any;
   fix?: any;
   nomeEvento?: string;
