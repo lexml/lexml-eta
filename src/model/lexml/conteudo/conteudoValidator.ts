@@ -309,6 +309,10 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     }
   }
 
+  if (dispositivo.bloqueado) {
+    addMensagem(mensagens, TipoMensagem.ERROR, `Artigo com estrutura não suportada pelo editor de emendas. Para alterações neste artigo, utilize o modo de emenda de texto livre.`);
+  }
+
   return [...new Set(mensagens)];
 };
 

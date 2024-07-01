@@ -27,6 +27,7 @@ import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
+import { isBloqueado } from '../lexml/regras/regrasUtil';
 
 export const isValid = (elemento?: Referencia): void => {
   if (elemento === undefined || elemento.uuid === undefined) {
@@ -123,7 +124,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
-    mensagens: isOriginal(dispositivo) ? [] : dispositivo.mensagens,
+    mensagens: isOriginal(dispositivo) && !isBloqueado(dispositivo) ? [] : dispositivo.mensagens,
     abreAspas: isDispositivoCabecaAlteracao(dispositivo),
     fechaAspas,
     notaAlteracao,

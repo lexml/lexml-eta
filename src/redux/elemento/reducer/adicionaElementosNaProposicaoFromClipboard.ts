@@ -58,12 +58,15 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
   const articulacaoColada = infoTextoColado.articulacaoColada;
   let dispositivoBloqueado;
 
-  getDispositivoAndFilhosAsLista(articulacaoColada).forEach(f => {
+  const listaArticulacaoColada = getDispositivoAndFilhosAsLista(articulacaoColada);
+
+  for (let index = 0; index < listaArticulacaoColada.length; index++) {
+    const f = listaArticulacaoColada[index];
     dispositivoBloqueado = getDispositivoAndFilhosAsLista(state.articulacao).filter(a => a.id === f.id && a.bloqueado);
     if (dispositivoBloqueado.length > 0) {
-      return;
+      break;
     }
-  });
+  }
 
   if (dispositivoBloqueado && dispositivoBloqueado.length !== 0) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível colagem de texto em dispositivo bloqueado.' });

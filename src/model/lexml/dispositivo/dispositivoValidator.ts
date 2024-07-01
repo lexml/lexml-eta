@@ -6,6 +6,7 @@ import { validaUrn } from '../documento/urnUtil';
 import { isOriginal } from '../hierarquia/hierarquiaUtil';
 import { validaHierarquia } from '../hierarquia/hierarquiaValidator';
 import { validaNumeracao } from '../numeracao/numeracaoValidator';
+import { isBloqueado } from '../regras/regrasUtil';
 import { Mensagem, TipoMensagem } from '../util/mensagem';
 
 const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
@@ -26,6 +27,10 @@ const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
+  if (isBloqueado(dispositivo)) {
+    return retornoValidacao(dispositivo);
+  }
+
   if (
     (isArticulacao(dispositivo) && dispositivo.pai === undefined) ||
     isOriginal(dispositivo) ||
@@ -33,5 +38,9 @@ export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
   ) {
     return [];
   }
+  return retornoValidacao(dispositivo);
+};
+
+const retornoValidacao = (dispositivo: Dispositivo): Mensagem[] => {
   return validaHierarquia(dispositivo).concat(validaTexto(dispositivo), validaNumeracao(dispositivo), validaReferencia(dispositivo));
 };
