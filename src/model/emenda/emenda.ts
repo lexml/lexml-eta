@@ -9,6 +9,7 @@ export class Emenda {
   modoEdicao = ModoEdicaoEmenda.EMENDA;
   // Metadados específicos de sistemas
   metadados: MetadadosEmenda = {};
+  pendenciasPreenchimento: string[] = [];
   proposicao = new RefProposicaoEmendada();
   epigrafe = new Epigrafe();
   componentes = [new ComponenteEmendado()];
@@ -46,11 +47,12 @@ export class RefProposicaoEmendada {
   ano = '';
   ementa = '';
   identificacaoTexto = '';
+  emendarTextoSubstitutivo = false;
 }
 
 // Colegiado apreciador da emenda ----------------------------
 export class ColegiadoApreciador {
-  siglaCasaLegislativa: 'CN' | 'SF' | 'CD' = 'CN';
+  siglaCasaLegislativa?: 'CN' | 'SF' | 'CD' = 'CN';
   tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão' = 'Plenário';
   siglaComissao?: string;
 }

@@ -1,0 +1,78 @@
+{
+	"dataUltimaModificacao": "2024-06-19T17:37:26.723Z",
+	"aplicacao": "",
+	"versaoAplicacao": "",
+	"modoEdicao": "emendaTextoLivre",
+	"metadados": {
+	},
+	"proposicao": {
+		"urn": "urn:lex:br:federal:medida.provisoria:2024-06-12;1232",
+		"sigla": "MPV",
+		"numero": "1232",
+		"ano": "2024",
+		"ementa": "Altera a Lei nº 12.111, de 9 de dezembro de 2009, que dispõe sobre os serviços de energia elétrica nos Sistemas Isolados, e a Lei nº 12.783, de 11 de janeiro de 2013, que dispõe sobre as concessões de geração, transmissão e distribuição de energia elétrica, sobre a redução dos encargos setoriais e sobre a modicidade tarifária.",
+		"identificacaoTexto": "Texto inicial"
+	},
+	"epigrafe": {
+		"texto": "EMENDA Nº         - CMMPV 1232/2024",
+		"complemento": "(à MPV 1232/2024)"
+	},
+	"componentes": [
+		{
+			"urn": "urn:lex:br:federal:medida.provisoria:2024-06-12;1232",
+			"articulado": true,
+			"dispositivos": {
+				"dispositivosSuprimidos": [
+				],
+				"dispositivosModificados": [
+				],
+				"dispositivosAdicionados": [
+				]
+			}
+		}
+	],
+	"comandoEmendaTextoLivre": {
+		"motivo": "Emendamento ou adição de anexos.",
+		"texto": "<p class=\"align-justify\">Acrescente-se na Medida Provisória, onde couber, o seguinte artigo:&nbsp;</p><p class=\"align-justify estilo-norma-alterada\">“Art. X Os titulares das usinas hidrelétricas afetadas pelos eventos climáticos e pela ocorrência do estado de calamidade pública de que trata o Decreto Legislativo nº 36/2024 serão compensados pelos custos e investimentos extraordinários, comprovados e reconhecidos pela ANEEL, para reestabelecimento das condições de operação das instalações afetadas, mediante extensão do prazo de outorga dos empreendimentos, conforme regulação da ANEEL”. (NR)</p><p><br></p>  "
+	},
+	"comandoEmenda": {
+		"comandos": [
+		]
+	},
+	"anexos": [
+	],
+	"justificativa": "<p class=\"align-justify\">\tDesde o dia 29/04/2024, o estado do Rio Grande do Sul vem sofrendo com eventos climáticos severos, a partir de chuvas intensas, que decorreram em alagamentos e inundações em diversos municípios do Estado, atingindo, inclusive, a infraestrutura de alguns empreendimentos hidrelétricos.</p><p class=\"align-justify\">\tDiante desse contexto, o Congresso Nacional reconheceu o estado de calamidade pública no território do estado do Rio Grande do Sul, nos termos do Decreto Legislativo nº 36, de 7 de maio de 2024.</p><p class=\"align-justify\">\tA aludida tragédia climática afetou diretamente 425 cidades gaúchas, que representa 85% do total de cidades do estado, impactando 1.476.170 pessoas. A infraestrutura do estado foi severamente impactada, comprometendo de modo significativo serviços essenciais como água, energia, comunicação, transporte, educação, saúde e paralisação do Aeroporto Internacional Salgado Filho. Ademais, os acessos terrestres estão severamente comprometidos, com 187 pontos de bloqueio identificados nas principais rodovias e estradas estaduais, impossibilitando o deslocamento a várias regiões.</p><p class=\"align-justify\">\tDo exposto, a presente emenda busca amenizar os efeitos da catástrofe às usinas hidrelétricas afetadas pela calamidade pública no Estado do Rio Grande do Sul sem, contudo, onerar os consumidores nesse momento peculiar, uma vez que estes já vêm enfrentando uma série de dificuldades relacionadas ao ocorrido.</p><p><br></p>",
+	"local": "Sala da comissão",
+	"data": "2024-06-19",
+	"autoria": {
+		"tipo": "Parlamentar",
+		"imprimirPartidoUF": true,
+		"quantidadeAssinaturasAdicionaisSenadores": 0,
+		"quantidadeAssinaturasAdicionaisDeputados": 0,
+		"parlamentares": [
+			{
+				"identificacao": "4811",
+				"nome": "Laércio Oliveira",
+				"sexo": "M",
+				"siglaPartido": "PP",
+				"siglaCasaLegislativa": "SF",
+				"siglaUF": "SE"
+			}
+		]
+	},
+	"opcoesImpressao": {
+		"imprimirBrasao": true,
+		"textoCabecalho": "Gabinete do Senador Laércio Oliveira",
+		"reduzirEspacoEntreLinhas": false,
+		"tamanhoFonte": 14
+	},
+	"revisoes": [
+	],
+	"notasRodape": [
+	],
+	"colegiadoApreciador": {
+		"siglaCasaLegislativa": "CN",
+		"tipoColegiado": "Comissão",
+		"siglaComissao": "CMMPV 1232/2024"
+	}
+}

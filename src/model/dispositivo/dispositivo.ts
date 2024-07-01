@@ -19,6 +19,7 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
   notaAlteracao?: string;
   motivosOperacaoNaoPermitida?: string[];
   bloqueado?: boolean;
+  tituloDispositivo?: string;
 }
 
 export interface Articulacao extends Dispositivo {

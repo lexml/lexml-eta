@@ -1,6 +1,6 @@
 {
   "name": "@lexml/lexml-eta",
-  "version": "1.6.4",
+  "version": "1.7.1",
   "description": "Webcomponent lexml-eta following open-wc recommendations",
   "author": "lexml-eta",
   "license": "GPL-2.0-only",
@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "start": "rimraf out-tsc && npm run build && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "start:cache": "rimraf out-tsc && npm run build && npm run copy:quill1table && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds --cache\"",
     "build": "tsc",
     "clean": "rimraf out-tsc && rimraf prod",
     "prepublish": "rimraf dist && rollup -c rollup.config.dist.js",
@@ -43,7 +44,9 @@
     "storybook:build": "tsc && build-storybook",
     "postinstall0": "node ./node_modules/husky/lib/installer/bin install",
     "build:demo": "npm run clean && npm run build && rollup -c",
-    "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force"
+    "deploy:demo": "git push origin `git subtree split --prefix prod main`:gh-pages --force",
+    "cy:open:local": "cypress open --env envName=local",
+    "cy:run:local": "cypress run --env envName=local"
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.0.0-beta.73",
@@ -73,6 +76,7 @@
     "@web/test-runner": "^0.12.18",
     "concat": "^1.0.3",
     "concurrently": "^5.3.0",
+    "cypress": "^13.3.3",
     "eslint": "^7.23.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-prettier": "^3.3.1",

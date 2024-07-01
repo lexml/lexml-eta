@@ -34,6 +34,8 @@ import { PLP_68_2024 } from '../doc/plp_68_2024';
 import { PLP_68_2024_1 } from '../doc/plp_68_2024_1';
 import { PLP_68_2024_2 } from '../doc/plp_68_2024_2';
 import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
+import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
+import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -43,8 +45,10 @@ const mapProjetosNormas = {
   mpv_1089_2021: MPV_1089_2021,
   mpv_1100_2022: MPV_1100_2022,
   mpv_1160_2023: MPV_1160_2023,
-  mpv_1210_2023: MPV_1210_2024,
+  mpv_1210_2024: MPV_1210_2024,
+  mpv_1232_2024: MPV_1232_2024,
   mpv_1085_2021: MPV_1085_2021,
+  mpv_1170_2023: MPV_1170_2023,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
   pl_142_2018: PLC_142_2028,
@@ -107,7 +111,7 @@ export class DemoView extends LitElement {
   constructor() {
     super();
     this.emendaConfig = new LexmlEmendaConfig();
-    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/18146f46-003c-4f6f-b00f-6e290de175dd';
+    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/fee83f1d-e204-4746-adf6-c0f617156a6a';
   }
 
   createRenderRoot(): LitElement {
@@ -217,7 +221,9 @@ export class DemoView extends LitElement {
                 'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).',
             };
           }
+          params.emendarTextoSubstitutivo = false;
           params.motivo = 'Motivo da emenda de texto livre';
+          // params.casaLegislativa = 'SF';
           this.elLexmlEmenda.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);

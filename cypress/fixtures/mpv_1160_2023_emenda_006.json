@@ -1,0 +1,103 @@
+{
+	"dataUltimaModificacao": "2023-01-27T12:39:35.820Z",
+	"aplicacao": "",
+	"versaoAplicacao": "",
+	"modoEdicao": "emenda",
+	"metadados": {
+	},
+	"proposicao": {
+		"urn": "urn:lex:br:federal:medida.provisoria:2023-01-12;1160",
+		"sigla": "MPV",
+		"numero": "1160",
+		"ano": "2023",
+		"ementa": "Dispõe sobre a proclamação do resultado do julgamento, na hipótese de empate na votação no âmbito do Conselho Administrativo de Recursos Fiscais, e sobre a conformidade tributária no âmbito da Secretaria Especial da Receita Federal do Brasil do Ministério da Fazenda e altera a Lei nº 13.988, de 14 de abril de 2020 , para dispor sobre o contencioso administrativo fiscal de baixa complexidade.",
+		"identificacaoTexto": "Texto da MPV"
+	},
+	"epigrafe": {
+		"texto": "EMENDA Nº         - CMMPV 1160/2023",
+		"complemento": "(à MPV 1160/2023)"
+	},
+	"componentes": [
+		{
+			"urn": "urn:lex:br:federal:medida.provisoria:2023-01-12;1160",
+			"articulado": true,
+			"dispositivos": {
+				"dispositivosSuprimidos": [
+				],
+				"dispositivosModificados": [
+				],
+				"dispositivosAdicionados": [
+					{
+						"tipo": "Artigo",
+						"id": "art3-1",
+						"rotulo": "Art. 3º-1.",
+						"idIrmaoAnterior": "art3",
+						"filhos": [
+							{
+								"tipo": "Caput",
+								"id": "art3-1_cpt",
+								"texto": "Até 30 de novembro de 2023, na hipótese de o sujeito passivo confessar e, concomitantemente, efetuar o pagamento do valor integral ou solicitar o parcelamento da contribuição previdenciária incidente sobre a comercialização rural, decorrente das operações entre produtores rurais, objeto de autuação fiscal, renunciando ao direito do processo judicial ou do processo tributário administrativo que discuta essa dívida, fica afastada a incidência de multa de mora e de multa de ofício."
+							},
+							{
+								"tipo": "Paragrafo",
+								"id": "art3-1_par1",
+								"rotulo": "§ 1º",
+								"texto": " O disposto no <strong>caput </strong>aplica-se exclusivamente aos procedimentos fiscais iniciados até a data de entrada em vigor desta Medida Provisória. "
+							},
+							{
+								"tipo": "Paragrafo",
+								"id": "art3-1_par2",
+								"rotulo": "§ 2º",
+								"texto": "A Secretaria Especial da Receita Federal do Brasil do Ministério da Fazenda e a Procuradoria Geral da Fazenda Nacional poderão disciplinar o disposto neste artigo."
+							}
+						]
+					}
+				]
+			}
+		}
+	],
+	"comandoEmenda": {
+		"comandos": [
+			{
+				"cabecalho": "Acrescente-se art. 3º-1 à Medida Provisória, com a seguinte redação:",
+				"citacao": "<p>“<Rotulo>Art. 3º-1.</Rotulo> Até 30 de novembro de 2023, na hipótese de o sujeito passivo confessar e, concomitantemente, efetuar o pagamento do valor integral ou solicitar o parcelamento da contribuição previdenciária incidente sobre a comercialização rural, decorrente das operações entre produtores rurais, objeto de autuação fiscal, renunciando ao direito do processo judicial ou do processo tributário administrativo que discuta essa dívida, fica afastada a incidência de multa de mora e de multa de ofício.</p><p><Rotulo>§ 1º</Rotulo> O disposto no <strong>caput </strong>aplica-se exclusivamente aos procedimentos fiscais iniciados até a data de entrada em vigor desta Medida Provisória.</p><p><Rotulo>§ 2º</Rotulo> A Secretaria Especial da Receita Federal do Brasil do Ministério da Fazenda e a Procuradoria Geral da Fazenda Nacional poderão disciplinar o disposto neste artigo.”</p>",
+				"complemento": "Os dispositivos acima propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição."
+			}
+		]
+	},
+	"anexos": [
+	],
+	"justificativa": "<p>\t</p><p>O art. 3º da Medida Provisória (MPV) nº 1160/2023 traz importante medida para prevenir a litigiosidade tributária e estimular o recolhimento imediato de tributos: permite o pagamento de tributos objeto de fiscalização sem multas de mora e de ofício.</p><p>Nesta emenda, propomos atingir o mesmo objetivo para as pendências envolvendo o Fundo de Assistência ao Trabalhador Rural (Funrural) decorrentes da decisão do STF de 2017 (Recurso Extraordinário nº 718.874 - Tema 669), tanto no âmbito administrativo quanto judicial. </p><p>Para isso, permitimos que o contribuinte pague os débitos da contribuição previdenciária incidente sobre a comercialização rural, decorrente das operações entre produtores rurais, objeto de autuação fiscal, desde que, concomitantemente: (i) confesse a dívida; (ii) efetue o pagamento ou solicite o parcelamento do valor integral; e (iii) renuncie ao direito do processo judicial ou do processo tributário administrativo que discuta a dívida. </p><p>Por se tratar de procedimento mais complexo, permitimos que isso seja feito até 30 de novembro de 2023.</p><p>Diante do exposto, solicito o apoio de meus ilustres pares para a aprovação desta emenda.</p>",
+	"local": "Sala da comissão",
+	"autoria": {
+		"tipo": "Parlamentar",
+		"imprimirPartidoUF": true,
+		"quantidadeAssinaturasAdicionaisSenadores": 0,
+		"quantidadeAssinaturasAdicionaisDeputados": 0,
+		"parlamentares": [
+			{
+				"identificacao": "204539",
+				"nome": "Hercílio Coelho Diniz",
+				"sexo": "M",
+				"siglaPartido": "MDB",
+				"siglaCasaLegislativa": "CD",
+				"cargo": "",
+				"siglaUF": "MG"
+			}
+		]
+	},
+	"opcoesImpressao": {
+		"imprimirBrasao": true,
+		"textoCabecalho": "",
+		"reduzirEspacoEntreLinhas": false
+	},
+	"revisoes": [
+	],
+	"notasRodape": [
+	],
+	"colegiadoApreciador": {
+		"siglaCasaLegislativa": "CN",
+		"tipoColegiado": "Comissão",
+		"siglaComissao": "CMMPV 1160/2023"
+	}
+}

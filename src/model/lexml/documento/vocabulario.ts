@@ -150,6 +150,16 @@ export const VOCABULARIO = {
       genero: 'M',
     },
     {
+      urn: 'projeto.decreto.legislativo;pdn',
+      descricao: 'Projeto de Decreto Legislativo do Congresso Nacional',
+      genero: 'M',
+    },
+    {
+      urn: 'projeto.resolucao;prn',
+      descricao: 'Projeto de Resolução do Congresso Nacional',
+      genero: 'M',
+    },
+    {
       urn: 'substitutivo.projeto.lei.senado;scd',
       descricao: 'Substitutivo da Câmara dos Deputados',
       genero: 'M',
@@ -221,6 +231,16 @@ export const VOCABULARIO = {
       urnAutoridade: 'senado.federal',
       urnTipoDocumento: 'medida.provisoria;mpv',
     },
+    {
+      sigla: 'PDN',
+      urnAutoridade: 'congresso.nacional',
+      urnTipoDocumento: 'projeto.decreto.legislativo;pdn',
+    },
+    {
+      sigla: 'PRN',
+      urnAutoridade: 'congresso.nacional',
+      urnTipoDocumento: 'projeto.resolucao;prn',
+    },
   ],
   siglas: [
     {
@@ -252,6 +272,16 @@ export const VOCABULARIO = {
       urnAutoridade: 'camara.deputados',
       urnTipoDocumento: 'projeto.lei',
       sigla: 'PLC',
+    },
+    {
+      urnAutoridade: 'congresso.nacional',
+      urnTipoDocumento: 'projeto.decreto.legislativo;pdn',
+      sigla: 'PDN',
+    },
+    {
+      urnAutoridade: 'congresso.nacional',
+      urnTipoDocumento: 'projeto.resolucao;prn',
+      sigla: 'PRN',
     },
   ],
   atalhosUrn: [

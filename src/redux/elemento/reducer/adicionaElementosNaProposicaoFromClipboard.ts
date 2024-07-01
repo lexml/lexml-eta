@@ -23,7 +23,7 @@ import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { buildId } from '../../../model/lexml/util/idUtil';
+import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
@@ -423,13 +423,7 @@ const colarDispositivoAdicionando = (
 
 const renumerarEAjustarIds = (dispositivo: Dispositivo): void => {
   dispositivo.pai?.renumeraFilhos();
-
-  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => {
-    d.id = buildId(d);
-    if (isArtigo(d)) {
-      (d as Artigo).caput!.id = buildId((d as Artigo).caput!);
-    }
-  });
+  updateIdDispositivoAndFilhos(dispositivo.pai!);
 };
 
 const criaAtributosComunsAdicionado = (filho: Dispositivo, modo: ClassificacaoDocumento): void => {

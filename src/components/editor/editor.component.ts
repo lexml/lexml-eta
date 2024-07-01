@@ -1296,6 +1296,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private carregarArticulacao(elementos: Elemento[]): void {
     setTimeout(() => {
+      if (!this.quill) return;
       this.quill.getLine(0)[0].remove();
       elementos.forEach((elemento: Elemento) => {
         const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
