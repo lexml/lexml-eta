@@ -9,6 +9,7 @@ export class Emenda {
   modoEdicao = ModoEdicaoEmenda.EMENDA;
   // Metadados específicos de sistemas
   metadados: MetadadosEmenda = {};
+  pendenciasPreenchimento: string[] = [];
   proposicao = new RefProposicaoEmendada();
   epigrafe = new Epigrafe();
   componentes = [new ComponenteEmendado()];
