@@ -30,6 +30,8 @@ import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUt
 import { ajustaIdsNaArticulacaoColada } from '../util/colarUtil';
 import { removeAllHtmlTags } from '../../../util/string-util';
 import { Elemento } from '../../../model/elemento/elemento';
+import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
+import { isBloqueado } from '../../../model/lexml/regras/regrasUtil';
 
 const REGEX_OMISSIS = /^\.{2,}/;
 
@@ -56,19 +58,8 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
   }
 
   const articulacaoColada = infoTextoColado.articulacaoColada;
-  let dispositivoBloqueado;
 
-  const listaArticulacaoColada = getDispositivoAndFilhosAsLista(articulacaoColada);
-
-  for (let index = 0; index < listaArticulacaoColada.length; index++) {
-    const f = listaArticulacaoColada[index];
-    dispositivoBloqueado = getDispositivoAndFilhosAsLista(state.articulacao).filter(a => a.id === f.id && a.bloqueado);
-    if (dispositivoBloqueado.length > 0) {
-      break;
-    }
-  }
-
-  if (dispositivoBloqueado && dispositivoBloqueado.length !== 0) {
+  if (existeDispositivoBloqueadoSendoColado(articulacaoColada, state.articulacao)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível colagem de texto em dispositivo bloqueado.' });
   }
 
@@ -102,6 +93,18 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
       alertas: state.ui?.alertas,
     },
   };
+};
+
+const existeDispositivoBloqueadoSendoColado = (articulacaoColada: Articulacao, articulacao: Articulacao): boolean => {
+  const idsColados = getDispositivoAndFilhosAsLista(articulacaoColada)
+    .filter(d => d.texto !== TEXTO_OMISSIS)
+    .map(d => d.id);
+
+  const idsBloqueados = getDispositivoAndFilhosAsLista(articulacao)
+    .filter(isBloqueado)
+    .map(d => d.id);
+
+  return idsColados.some(id => idsBloqueados.includes(id));
 };
 
 const colarDispositivos = (
