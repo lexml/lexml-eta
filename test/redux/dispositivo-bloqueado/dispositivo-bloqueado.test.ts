@@ -6,7 +6,14 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { LexmlEmendaParametrosEdicao } from '../../../src';
-import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isDispositivoAlteracao, isSuprimido } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import {
+  buscaDispositivoById,
+  getDispositivoAndFilhosAsLista,
+  isDispositivoAlteracao,
+  isModificado,
+  isOriginal,
+  isSuprimido,
+} from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { isBloqueado } from '../../../src/model/lexml/regras/regrasUtil';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
@@ -14,6 +21,9 @@ import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElement
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { adicionaElementosNaProposicaoFromClipboard } from '../../../src/redux/elemento/reducer/adicionaElementosNaProposicaoFromClipboard';
 import { TEXTO_001 } from '../../doc/textos-colar/texto_001';
+import { TEXTO_010 } from '../../doc/textos-colar/texto_010';
+import { TEXTO_011 } from '../../doc/textos-colar/texto_011';
+import { TEXTO_012 } from '../../doc/textos-colar/texto_012';
 
 let state: State;
 
@@ -30,6 +40,10 @@ params.dispositivosBloqueados = [
   {
     lexmlId: 'art5',
     bloquearFilhos: true,
+  },
+  {
+    lexmlId: 'art8',
+    bloquearFilhos: false,
   },
 ];
 
@@ -105,28 +119,141 @@ describe('Carregando texto da MPV 905/2019', () => {
     });
 
     describe('Colar', () => {
-      beforeEach(function () {
-        const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
-        state = adicionaElementosNaProposicaoFromClipboard(state, {
-          type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
-          atual: createElemento(disp),
-          novo: {
-            isDispositivoAlteracao: isDispositivoAlteracao(disp),
-            conteudo: {
-              texto: TEXTO_001,
+      describe('Colar modificando dispositivo bloqueado (art. 1º está bloqueado)', () => {
+        beforeEach(function () {
+          const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
+          state = adicionaElementosNaProposicaoFromClipboard(state, {
+            type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+            atual: createElemento(disp),
+            novo: {
+              isDispositivoAlteracao: isDispositivoAlteracao(disp),
+              conteudo: {
+                texto: TEXTO_001,
+              },
             },
-          },
-          isColarSubstituindo: true,
-          posicao: 'depois',
+            isColarSubstituindo: true,
+            posicao: 'depois',
+          });
+        });
+
+        it('Art. 1º não deveria ter sido modificado', () => {
+          expect(state.articulacao?.artigos[0].texto).to.not.equal('Teste 1.');
+        });
+
+        it('Estado deveria apresentar mensagem de erro', () => {
+          expect(state.ui?.message).to.not.be.undefined;
         });
       });
 
-      it('Art. 1º não deveria ter sido modificado', () => {
-        expect(state.articulacao?.artigos[0].texto).to.not.equal('Teste 1.');
+      describe('Colar estrutura com dispositivos bloqueados e não bloqueados', () => {
+        beforeEach(function () {
+          const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
+          state = adicionaElementosNaProposicaoFromClipboard(state, {
+            type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+            atual: createElemento(disp),
+            novo: {
+              isDispositivoAlteracao: isDispositivoAlteracao(disp),
+              conteudo: {
+                texto: TEXTO_010,
+              },
+            },
+            isColarSubstituindo: true,
+            posicao: 'depois',
+          });
+        });
+
+        it('Dispositivo "art2_par2" não deveria ter sido modificado (mesmo não estando bloqueado)', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art2_par2')!;
+          expect(disp.texto).to.not.equal('Teste.');
+          expect(isOriginal(disp)).to.be.true;
+        });
+
+        it('Dispositivo "art2_par3" não deveria ter sido modificado (está bloqueado)', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art2_par3')!;
+          expect(disp.texto).to.not.equal('Teste.');
+          expect(isOriginal(disp)).to.be.true;
+        });
+
+        it('Estado deveria apresentar mensagem de erro', () => {
+          expect(state.ui?.message).to.not.be.undefined;
+        });
       });
 
-      it('Estado deveria apresentar mensagem de erro', () => {
-        expect(state.ui?.message).to.not.be.undefined;
+      describe('Colar alterando dispositivos não bloqueados', () => {
+        beforeEach(function () {
+          const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
+          state = adicionaElementosNaProposicaoFromClipboard(state, {
+            type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+            atual: createElemento(disp),
+            novo: {
+              isDispositivoAlteracao: isDispositivoAlteracao(disp),
+              conteudo: {
+                texto: TEXTO_011,
+              },
+            },
+            isColarSubstituindo: true,
+            posicao: 'depois',
+          });
+        });
+
+        it('Dispositivo "art2_par2" deveria ter sido modificado', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art2_par2')!;
+          expect(disp.texto).equal('Teste.');
+          expect(isModificado(disp)).to.be.true;
+        });
+
+        it('Estado não deveria apresentar mensagem de erro', () => {
+          expect(state.ui?.message).to.be.undefined;
+        });
+      });
+
+      describe('Colar alterando dispositivos não bloqueados, filhos de dispositivos bloqueados', () => {
+        beforeEach(function () {
+          const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
+          state = adicionaElementosNaProposicaoFromClipboard(state, {
+            type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+            atual: createElemento(disp),
+            novo: {
+              isDispositivoAlteracao: isDispositivoAlteracao(disp),
+              conteudo: {
+                texto: TEXTO_012,
+              },
+            },
+            isColarSubstituindo: true,
+            posicao: 'depois',
+          });
+        });
+
+        it('Dispositivo "art8" não deveria ter sido modificado (está bloqueado)', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art8')!;
+          expect(disp.texto).to.not.equal('Teste.');
+          expect(isOriginal(disp)).to.be.true;
+          expect(isBloqueado(disp)).to.be.true;
+        });
+
+        it('Dispositivo "art8_par1" não deveria ter sido modificado', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art8_par1')!;
+          expect(isOriginal(disp)).to.be.true;
+          expect(isBloqueado(disp)).to.be.false;
+        });
+
+        it('Dispositivo "art8_par2" deveria ter sido modificado', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art8_par2')!;
+          expect(disp.texto).to.equal('Teste.');
+          expect(isModificado(disp)).to.be.true;
+          expect(isBloqueado(disp)).to.be.false;
+        });
+
+        it('Dispositivo "art8_par3" deveria ter sido suprimido', () => {
+          const disp = buscaDispositivoById(state.articulacao!, 'art8_par3')!;
+          expect(disp.texto).to.not.equal('Teste.');
+          expect(isSuprimido(disp)).to.be.true;
+          expect(isBloqueado(disp)).to.be.false;
+        });
+
+        it('Estado não deveria apresentar mensagem de erro', () => {
+          expect(state.ui?.message).to.be.undefined;
+        });
       });
     });
   });
