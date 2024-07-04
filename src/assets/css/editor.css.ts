@@ -706,7 +706,34 @@ export const editorStyles = html`
     }
 
     [bloqueado='true'] {
-      background-color: #ccc;
+      background-color: #f9f9fa;
+      border-color: #e9e9eb;
+      border-radius: 4px;
+      border-width: 1px;
+      color: #9c9ca0;
+      margin: 3px;
+      position: relative;
+      padding-left: 30px;
+    }
+
+    [bloqueado='true']::before {
+      content: '';
+      display: inline-block;
+      mask-image: url('data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2216%22%20height=%2216%22%20fill=%22currentColor%22%20class=%22bi%20bi-ban%22%20viewBox=%220%200%2016%2016%22%3E%3Cpath%20d=%22M15%208a6.97%206.97%200%200%200-1.71-4.584l-9.874%209.875A7%207%200%200%200%2015%208M2.71%2012.584l9.874-9.875a7%207%200%200%200-9.874%209.874ZM16%208A8%208%200%201%201%200%208a8%208%200%200%201%2016%200%22/%3E%3C/svg%3E');
+      width: 0.7em;
+      height: 0.7em;
+      background-color: currentColor;
+      -webkit-mask-size: cover;
+      mask-size: cover;
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9c9ca0;
+    }
+
+    [bloqueado='true']:hover {
+      cursor: not-allowed;
     }
 
     @media (max-width: 480px) {
