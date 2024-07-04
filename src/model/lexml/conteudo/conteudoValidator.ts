@@ -314,7 +314,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     addMensagem(
       mensagens,
       TipoMensagem.ERROR,
-      `Dispositivo com estrutura não suportada pelo editor de emendas. Para alterações neste artigo, utilize o modo de emenda de texto livre.`
+      `Dispositivo com estrutura não suportada pelo editor de emendas. Para alterações neste dispositivo, utilize o modo de emenda de texto livre.`
     );
   }
 
