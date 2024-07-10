@@ -21,7 +21,7 @@ describe('Cabeçalho de comando de emenda com alteração de denominação de ag
   });
 
   it('Altera denominação de capítulo', () => {
-    TesteCmdEmdUtil.modificaDispositivo(state, 'cap1');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'tit1_cap1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Capítulo I do Título I do Projeto a seguinte redação:');
   });
@@ -31,4 +31,12 @@ describe('Cabeçalho de comando de emenda com alteração de denominação de ag
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Título I do Projeto a seguinte redação:');
   });
+
+  it('Altera denominação de dois capítulos', () => {
+    TesteCmdEmdUtil.modificaDispositivo(state, 'tit1_cap1');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'tit1_cap2');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Capítulo I do Título I e à denominação do Capítulo II do Título I do Projeto a seguinte redação:');
+  });
+
 });

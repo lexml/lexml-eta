@@ -30,7 +30,7 @@ describe('Citação envolvendo alterações de agrupadores de artigo', () => {
     /*
      * 'Art. 1º-1. nononoono'
      */
-    TesteCmdEmdUtil.modificaDispositivo(state, 'cap1');
+    TesteCmdEmdUtil.modificaDispositivo(state, 'tit1_cap1');
     const cit = new CitacaoComandoDispPrj(state.articulacao!).getTexto();
     expect(cit).to.equal('<p class="capitulo agrupador">“<Rotulo>CAPÍTULO I</Rotulo></p><p class="capitulo agrupador"> TEXTO”</p>');
   });

@@ -17,7 +17,7 @@ describe('Cabeçalho de comando de emenda com supressão de denominação de agr
   });
 
   it('Suprime capítulo 1', () => {
-    TesteCmdEmdUtil.suprimeDispositivo(state, 'cap1');
+    TesteCmdEmdUtil.suprimeDispositivo(state, 'tit1_cap1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Capítulo I do Título I do Projeto.');
   });
