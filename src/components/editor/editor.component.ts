@@ -71,8 +71,9 @@ import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
-import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
+import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
+import { getElementos } from '../../model/elemento/elementoUtil';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -143,6 +144,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         alertarInfo(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui.events);
+        setTimeout(() => {
+          this.alertaGlobalEmendaSemPreenchimento(state.elementoReducer.articulacao);
+        }, 0);
       }
     }
   }
@@ -594,6 +598,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.destroiQuill();
           this.inicializar(this.configEditor());
           this.carregarArticulacao(event.elementos ?? []);
+          // setTimeout(() => {
+          //   this.alertaGlobalEmendaSemPreenchimento(rootStore.getState().elementoReducer);
+          // }, 0);
           break;
 
         case StateType.InformarDadosAssistente:
@@ -1267,6 +1274,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(adicionarAlerta(alerta));
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
       rootStore.dispatch(removerAlerta(id));
+    }
+  }
+
+  private alertaGlobalEmendaSemPreenchimento(articulacao: any): void {
+    if (articulacao) {
+      const elementos = getElementos(articulacao!).filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.tipo !== 'Articulacao');
+      if (elementos.length === 0) {
+        alertaGlobalEmendaSemPreenchimentoUtil(true, rootStore, 'Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
+      } else {
+        alertaGlobalEmendaSemPreenchimentoUtil(false, rootStore, '');
+      }
     }
   }
 

@@ -39,6 +39,7 @@ import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from '
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
+import { removeAllHtmlTags } from '../util/string-util';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
@@ -301,7 +302,38 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
+    emenda.pendenciasPreenchimento = this.getPendenciasPreenchimentoEmenda(emenda);
+
     return emenda;
+  }
+
+  private getPendenciasPreenchimentoEmenda(emenda: Emenda): string[] {
+    const pendenciasPreenchimento: Array<string> = [];
+    const TEXTO_NAO_INFORMADO = 'Não foi informado um texto para ';
+
+    if (
+      removeAllHtmlTags(emenda.justificativa)
+        .replace(/&nbsp;/g, '')
+        .trim() === ''
+    ) {
+      pendenciasPreenchimento.push(TEXTO_NAO_INFORMADO + 'a justificativa');
+    }
+
+    if (this.isEmendaSubstituicaoTermo()) {
+      if (emenda.substituicaoTermo?.termo.replace('(termo a ser substituído)', '').trim() === '' || emenda.substituicaoTermo?.novoTermo.replace('(novo termo)', '').trim() === '') {
+        pendenciasPreenchimento.push('Substituição de termo não preenchida.');
+      }
+    } else if (this.isEmendaTextoLivre()) {
+      if (!emenda.comandoEmendaTextoLivre.texto) {
+        pendenciasPreenchimento.push('Emenda de texto livre não preenchida.');
+      }
+    } else {
+      if (emenda.comandoEmenda.comandos.length === 0) {
+        pendenciasPreenchimento.push('Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
+      }
+    }
+
+    return pendenciasPreenchimento;
   }
 
   private removeRevisaoFormat(texto: string): string {
@@ -568,7 +600,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const autoria = new Autoria();
     if (params.autoriaPadrao?.identificacao) {
       const autoriaPadrao = params.autoriaPadrao;
-      const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa);
+      const parlamentarAutor = this.parlamentares.find(
+        par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa
+      );
       if (parlamentarAutor) {
         autoria.parlamentares = [parlamentarAutor];
       }
