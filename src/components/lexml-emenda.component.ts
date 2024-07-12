@@ -309,14 +309,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private getPendenciasPreenchimentoEmenda(emenda: Emenda): string[] {
     const pendenciasPreenchimento: Array<string> = [];
-    const TEXTO_NAO_INFORMADO = 'Não foi informado um texto para ';
 
     if (
       removeAllHtmlTags(emenda.justificativa)
         .replace(/&nbsp;/g, '')
         .trim() === ''
     ) {
-      pendenciasPreenchimento.push(TEXTO_NAO_INFORMADO + 'a justificativa');
+      pendenciasPreenchimento.push('Não foi informado um texto de justificação');
     }
 
     if (this.isEmendaSubstituicaoTermo()) {
@@ -333,7 +332,45 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
 
+    const messagesDanger = this.removeDuplicatasHTMLCollection(document.getElementsByClassName('mensagem mensagem--danger'));
+
+    for (let index = 0; index < messagesDanger.length; index++) {
+      const element = messagesDanger[index];
+      pendenciasPreenchimento.push(element.innerText);
+    }
+
     return pendenciasPreenchimento;
+  }
+
+  private removeDuplicatasHTMLCollection(lista: any): any {
+    const novaLista: Array<any> = [];
+
+    for (let index = 0; index < lista.length; index++) {
+      const element = lista[index];
+      if (novaLista.length === 0) {
+        novaLista.push(element);
+      } else {
+        if (!this.existeInHTMLCollection(novaLista, element.innerText)) {
+          novaLista.push(element);
+        }
+      }
+    }
+
+    return novaLista;
+  }
+
+  private existeInHTMLCollection(lista: any, valor: any): boolean {
+    let existe = false;
+
+    for (let index = 0; index < lista.length; index++) {
+      const element = lista[index];
+      if (element.innerText === valor) {
+        existe = true;
+        break;
+      }
+    }
+
+    return existe;
   }
 
   private removeRevisaoFormat(texto: string): string {

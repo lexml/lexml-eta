@@ -14,7 +14,7 @@ export class EtaBlotMensagem extends EtaBlot {
     const node: HTMLElement = super.create();
     let classe = '';
 
-    if (mensagem.nomeEvento !== '') {
+    if (mensagem.nomeEvento && mensagem.nomeEvento !== '') {
       node.setAttribute('id', mensagem.nomeEvento!);
     }
 

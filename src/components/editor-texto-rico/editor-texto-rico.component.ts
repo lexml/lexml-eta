@@ -556,6 +556,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
+    this;
+
     this.texto = texto;
 
     const textoAjustado = (texto || '')
