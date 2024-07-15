@@ -36,7 +36,7 @@ import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
 import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
-import { AutoFix } from '../../model/lexml/util/mensagem';
+import { AutoFix, TipoMensagem } from '../../model/lexml/util/mensagem';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 import { EtaBlotConteudo } from '../../util/eta-quill/eta-blot-conteudo';
@@ -337,7 +337,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private onOperacaoInvalida(): void {
-    this.alertar('Operação não permitida.');
+    alertarInfo('Operação não permitida.');
   }
 
   private isDesmembramento(textoAnterior: string, textoLinhaAtual: string, textoNovaLinha: string): boolean {
@@ -392,7 +392,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
 
     if (!podeRenumerar(rootStore.getState().elementoReducer.articulacao, elemento)) {
-      this.alertar('Nessa situação, não é possível renumerar o dispositivo');
+      alertarInfo('Nessa situação, não é possível renumerar o dispositivo');
       return;
     }
 
@@ -1218,7 +1218,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (dispositivos.length && CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(dispositivos)) {
       const alerta = {
         id: idAlerta,
-        tipo: 'warning',
+        tipo: TipoMensagem.WARNING,
         mensagem:
           'Os rótulos apresentados servem apenas para o posicionamento correto do novo dispositivo no texto. Serão feitas as renumerações necessárias no momento da consolidação das emendas.',
         podeFechar: true,
@@ -1240,7 +1240,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (artigos.length > 1) {
       const alerta = {
         id: 'alerta-global-correlacao',
-        tipo: 'info',
+        tipo: TipoMensagem.INFO,
         mensagem:
           'Cada emenda pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
         podeFechar: true,
@@ -1259,7 +1259,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (revisoesElementos.length > 0) {
       const alerta = {
         id: id,
-        tipo: 'info',
+        tipo: TipoMensagem.INFO,
         mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
         podeFechar: true,
         exibirComandoEmenda: true,
@@ -1379,20 +1379,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       callback(event);
     });
   }
-  private alertar(mensagem: string): void {
-    const alert = Object.assign(document.createElement('sl-alert'), {
-      variant: 'danger',
-      closable: true,
-      duration: 4000,
-      innerHTML: `
-        <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
-        ${mensagem}
-      `,
-    });
-    document.body.append(alert);
-    alert.toast();
-  }
-
   private quillNaoInicializado(state: any): void {
     let elementos: Elemento[] = [];
     const verificarQuillInicializado: any = (elementos: Elemento[]): void => {

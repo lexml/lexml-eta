@@ -34,6 +34,8 @@ import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualiza
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { QuillUtil } from './quill-util';
+import { TipoMensagem } from '../../model/lexml/util/mensagem';
+import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -228,22 +230,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private timerAlerta?: any;
   private onTableInTable = (): void => {
     clearTimeout(this.timerAlerta);
-    this.timerAlerta = setTimeout(() => this.alertar('Não é permitido inserir uma tabela dentro de outra tabela.'), 100);
+    this.timerAlerta = setTimeout(() => alertarInfo('Não é permitido inserir uma tabela dentro de outra tabela.'), 100);
   };
-
-  private alertar(mensagem: string): void {
-    const alert = Object.assign(document.createElement('sl-alert'), {
-      variant: 'danger',
-      closable: true,
-      duration: 4000,
-      innerHTML: `
-        <sl-icon name="exclamation-octagon" slot="icon"></sl-icon>
-        ${mensagem}
-      `,
-    });
-    document.body.append(alert);
-    alert.toast();
-  }
 
   firstUpdated(): void {
     this.init();
@@ -463,7 +451,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
               fileInput.value = '';
               fileInput.remove();
             } else {
-              this.alertar(`Essa imagem ultrapassa o tamanho máximo permitido (${Math.trunc(this.lexmlEtaConfig.tamanhoMaximoImagem / 1024)}MB)`);
+              alertarInfo(`Essa imagem ultrapassa o tamanho máximo permitido (${Math.trunc(this.lexmlEtaConfig.tamanhoMaximoImagem / 1024)}MB)`);
               fileInput.remove();
             }
           };
@@ -621,7 +609,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       if (rootStore.getState().elementoReducer.ui?.alertas?.filter(a => a.id === id).length === 0) {
         const alerta = {
           id: id,
-          tipo: 'info',
+          tipo: TipoMensagem.INFO,
           mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
           podeFechar: true,
           exibirComandoEmenda: true,

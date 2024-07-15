@@ -39,6 +39,7 @@ import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from '
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
+import { TipoMensagem } from '../model/lexml/util/mensagem';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
@@ -568,7 +569,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const autoria = new Autoria();
     if (params.autoriaPadrao?.identificacao) {
       const autoriaPadrao = params.autoriaPadrao;
-      const parlamentarAutor = this.parlamentares.find(par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa);
+      const parlamentarAutor = this.parlamentares.find(
+        par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa
+      );
       if (parlamentarAutor) {
         autoria.parlamentares = [parlamentarAutor];
       }
@@ -806,7 +809,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   disparaAlerta(): void {
     const alerta = {
       id: 'alerta-global-justificativa',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'A emenda não possui uma justificação',
       podeFechar: false,
     };
@@ -824,7 +827,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   showAlertaEmendaTextoLivre(): void {
     const alerta = {
       id: 'alerta-global-emenda-texto-livre',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'O comando de emenda deve ser preenchido.',
       podeFechar: false,
     };
