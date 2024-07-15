@@ -9,6 +9,30 @@ import { limparAlertas } from '../../model/alerta/acao/limparAlertas';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { LexmlEmendaComponent } from '../lexml-emenda.component';
 import SlBadge from '@shoelace-style/shoelace/dist/components/badge/badge';
+import { TipoMensagem } from '../../model/lexml/util/mensagem';
+
+const mapTipoMensagem = {
+  [TipoMensagem.INFO]: {
+    icon: 'info-circle',
+    variant: 'primary',
+  },
+  [TipoMensagem.WARNING]: {
+    icon: 'exclamation-triangle',
+    variant: 'warning',
+  },
+  [TipoMensagem.ERROR]: {
+    icon: 'exclamation-octagon',
+    variant: 'danger',
+  },
+  [TipoMensagem.CRITICAL]: {
+    icon: 'exclamation-octagon',
+    variant: 'danger',
+  },
+  [TipoMensagem.SUCCESS]: {
+    icon: 'check2-circle',
+    variant: 'success',
+  },
+};
 
 @customElement('lexml-eta-alertas')
 export class AlertasComponent extends connect(rootStore)(LitElement) {
@@ -29,16 +53,17 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
     this.alertas = state.elementoReducer.ui?.alertas || [];
   }
 
-  getAlertIcon(tipo: string): TemplateResult {
-    if (tipo === 'success') {
-      return html`<sl-icon slot="icon" name="check2-circle"></sl-icon>`;
-    } else if (tipo === 'warning') {
-      return html`<sl-icon slot="icon" name="exclamation-triangle"></sl-icon>`;
-    } else if (tipo === 'danger') {
-      return html`<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>`;
-    } else {
-      return html`<sl-icon slot="icon" name="info-circle"></sl-icon>`;
-    }
+  getAlertIcon(tipoAlerta: TipoMensagem): TemplateResult {
+    // if (tipoAlerta === 'success') {
+    //   return html`<sl-icon slot="icon" name="check2-circle"></sl-icon>`;
+    // } else if (tipoAlerta === 'warning') {
+    //   return html`<sl-icon slot="icon" name="exclamation-triangle"></sl-icon>`;
+    // } else if (tipoAlerta === 'danger') {
+    //   return html`<sl-icon slot="icon" name="exclamation-octagon"></sl-icon>`;
+    // } else {
+    //   return html`<sl-icon slot="icon" name="info-circle"></sl-icon>`;
+    // }
+    return html`<sl-icon slot="icon" name="${mapTipoMensagem[tipoAlerta].icon}"></sl-icon>`;
   }
 
   limparAlertas(): void {
@@ -77,12 +102,12 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
         alerta =>
           html` ${alerta.podeFechar
             ? html`
-                <sl-alert variant="${alerta.tipo}" open>
+                <sl-alert variant="${mapTipoMensagem[alerta.tipo].variant}" open>
                   <sl-icon-button name="x" class="alert__close-button" id="${alerta.id}" label="fechar"></sl-icon-button>
                   ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem}
                 </sl-alert>
               `
-            : html` <sl-alert variant="${alerta.tipo}" open> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `}`
+            : html` <sl-alert variant="${mapTipoMensagem[alerta.tipo].variant}" open> ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem} </sl-alert> `}`
       )}
     `;
   }

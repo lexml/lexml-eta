@@ -4,6 +4,7 @@ export enum TipoMensagem {
   WARNING = 'WARNING',
   ERROR = 'ERROR',
   CRITICAL = 'CRITICAL',
+  SUCCESS = 'SUCCESS',
 }
 
 export enum AutoFix {
