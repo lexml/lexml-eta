@@ -3,6 +3,8 @@ export enum TipoMensagem {
   INFO = 'INFO',
   WARNING = 'WARNING',
   ERROR = 'ERROR',
+  CRITICAL = 'CRITICAL',
+  SUCCESS = 'SUCCESS',
 }
 
 export enum AutoFix {
@@ -15,6 +17,7 @@ export enum AutoFix {
 export interface Mensagem {
   tipo: TipoMensagem;
   descricao?: string;
+  descricaoParaPDF?: string;
   detalhe?: any;
   fix?: any;
   nomeEvento?: string;

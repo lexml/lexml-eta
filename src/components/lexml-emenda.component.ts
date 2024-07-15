@@ -40,6 +40,7 @@ import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
+import { TipoMensagem } from '../model/lexml/util/mensagem';
 
 export interface DispositivoBloqueado {
   lexmlId: string;
@@ -475,7 +476,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
       this.ementa = params.proposicao.ementa; // Preferência para a ementa informada
     }
-    this.emendarTextoSubstitutivo = params.emendarTextoSubstitutivo;
+    this.emendarTextoSubstitutivo = params.emendarTextoSubstitutivo || false;
 
     // Se não forem informados, utilizar da Emenda
     if (params.emenda) {
@@ -484,8 +485,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
       if (!this.ementa) {
         this.ementa = params.emenda.proposicao.ementa;
-        this.emendarTextoSubstitutivo = params.emenda.proposicao.emendarTextoSubstitutivo;
       }
+      this.emendarTextoSubstitutivo = params.emenda.proposicao.emendarTextoSubstitutivo || false;
     }
 
     // Por último do ProjetoNorma
@@ -820,7 +821,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   disparaAlerta(): void {
     const alerta = {
       id: 'alerta-global-justificativa',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'A emenda não possui uma justificação',
       podeFechar: false,
     };
@@ -838,7 +839,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   showAlertaEmendaTextoLivre(): void {
     const alerta = {
       id: 'alerta-global-emenda-texto-livre',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'O comando de emenda deve ser preenchido.',
       podeFechar: false,
     };

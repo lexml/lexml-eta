@@ -61,7 +61,7 @@ export interface ChecarEstadoInicialAoCriarNovaEmenda {
 }
 
 const tempoDeEsperaPadrao = 100;
-const tempoDeEsperaMaior = 700;
+const tempoDeEsperaMaior = 1000;
 
 const regexEspaco = /\s+|&nbsp;/g;
 
@@ -75,7 +75,7 @@ Cypress.Commands.add('ignorarErro', (text: string) => {
 });
 
 Cypress.Commands.add('irParaPagina', (numeroPagina: number): void => {
-  cy.get('#selectPaginaArticulacao').select(numeroPagina);
+  cy.get('#selectPaginaArticulacao').select(numeroPagina + '');
 });
 
 Cypress.Commands.add('abrirEmenda', (payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda> => {

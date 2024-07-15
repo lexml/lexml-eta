@@ -38,7 +38,15 @@ describe('Emenda para MPV 905', () => {
     cy.checarEstadoInicialAoCriarNovaEmendaOndeCouber({ nomeProposicao: 'MPV 905/2019', totalElementos: 2 });
 
     const texto = 'Texto do artigo onde couber.';
-    cy.get('div.container__elemento.dispositivo--adicionado').should('have.length', 1).alterarTextoDoDispositivo(texto).contains(texto);
+    // cy.get('div.container__elemento.dispositivo--adicionado').should('have.length', 1).alterarTextoDoDispositivo(texto).contains(texto);
+
+    cy.get('div.container__elemento.dispositivo--adicionado')
+      .as('container')
+      .should('have.length', 1)
+      .alterarTextoDoDispositivo(texto)
+      .wait(Cypress.config('isInteractive') ? 1000 : 2000)
+      .then(() => cy.get('@container').contains(texto));
+
     cy.checarComandoEmenda();
     cy.checarTextoPresenteEmComandoEmenda(texto);
   });
