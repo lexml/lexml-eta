@@ -40,6 +40,7 @@ import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { removeAllHtmlTags } from '../util/string-util';
+import { TipoMensagem } from '../model/lexml/util/mensagem';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
@@ -877,7 +878,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   disparaAlerta(): void {
     const alerta = {
       id: 'alerta-global-justificativa',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'A emenda não possui uma justificação',
       podeFechar: false,
     };
@@ -895,7 +896,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   showAlertaEmendaTextoLivre(): void {
     const alerta = {
       id: 'alerta-global-emenda-texto-livre',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'O comando de emenda deve ser preenchido.',
       podeFechar: false,
     };
