@@ -36,7 +36,7 @@ const hasCitacaoAoFinalFrase = (texto: string): boolean => {
 export const validaTextoAgrupador = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens: Mensagem[] = [];
   if (!isArticulacao(dispositivo) && (!dispositivo.texto || dispositivo.texto.trim().length === 0)) {
-    addMensagem(mensagens, TipoMensagem.ERROR, `Não foi informado um texto para ${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`);
+    addMensagem(mensagens, TipoMensagem.CRITICAL, `Não foi informado um texto para ${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`);
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && endsWithPunctuation(dispositivo.texto)) {
     addMensagem(mensagens, TipoMensagem.ERROR, `Não pode haver sinal de pontuação ao final do texto d${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}.`);
@@ -54,7 +54,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   // validações comuns a dispositivos de texto
   //
   if ((!isArticulacao(dispositivo) && !dispositivo.texto) || dispositivo.texto.trim().length === 0) {
-    addMensagem(mensagens, TipoMensagem.ERROR, `Não foi informado um texto para ${dispositivo.artigoDefinido + ' ' + dispositivo.descricao?.toLowerCase()}.`);
+    addMensagem(mensagens, TipoMensagem.CRITICAL, `Não foi informado um texto para ${dispositivo.artigoDefinido + ' ' + dispositivo.descricao?.toLowerCase()}.`);
   }
   if (!isArticulacao(dispositivo) && dispositivo.texto && !isValidHTML(dispositivo.texto)) {
     addMensagem(mensagens, TipoMensagem.ERROR, 'O conteúdo do dispositivo não é um HTML válido.');

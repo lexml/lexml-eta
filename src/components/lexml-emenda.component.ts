@@ -333,10 +333,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
 
-    const messagesDanger = this.removeDuplicatasHTMLCollection(document.getElementsByClassName('mensagem mensagem--danger'));
+    const messagesCritical = this.removeDuplicatasHTMLCollection(document.getElementsByClassName('mensagem mensagem--danger'));
 
-    for (let index = 0; index < messagesDanger.length; index++) {
-      const element = messagesDanger[index];
+    for (let index = 0; index < messagesCritical.length; index++) {
+      const element = messagesCritical[index];
       pendenciasPreenchimento.push(element.innerText);
     }
 
@@ -349,7 +349,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     for (let index = 0; index < lista.length; index++) {
       const element = lista[index];
 
-      if (element.tipo === TipoMensagem.CRITICAL) {
+      if (element.getAttribute('tipo') === TipoMensagem.CRITICAL) {
         if (novaLista.length === 0) {
           novaLista.push(element);
         } else {

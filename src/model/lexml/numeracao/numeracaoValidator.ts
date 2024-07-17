@@ -93,7 +93,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     )
   ) {
     mensagens.push({
-      tipo: TipoMensagem.ERROR,
+      tipo: TipoMensagem.CRITICAL,
       descricao: AutoFix.RENUMERAR_DISPOSITIVO,
       fix: true,
     });
