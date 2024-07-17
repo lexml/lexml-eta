@@ -348,11 +348,14 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     for (let index = 0; index < lista.length; index++) {
       const element = lista[index];
-      if (novaLista.length === 0) {
-        novaLista.push(element);
-      } else {
-        if (!this.existeInHTMLCollection(novaLista, element.innerText)) {
+
+      if (element.tipo === TipoMensagem.CRITICAL) {
+        if (novaLista.length === 0) {
           novaLista.push(element);
+        } else {
+          if (!this.existeInHTMLCollection(novaLista, element.innerText)) {
+            novaLista.push(element);
+          }
         }
       }
     }

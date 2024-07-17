@@ -18,6 +18,8 @@ export class EtaBlotMensagem extends EtaBlot {
       node.setAttribute('id', mensagem.nomeEvento!);
     }
 
+    node.setAttribute('tipo', mensagem.tipo);
+
     if (mensagem.tipo === TipoMensagem.INFO) {
       classe = 'mensagem--info';
     } else if (mensagem.tipo === TipoMensagem.WARNING) {

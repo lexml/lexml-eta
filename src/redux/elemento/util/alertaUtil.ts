@@ -1,5 +1,6 @@
 import { adicionarAlerta } from '../../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../../model/alerta/acao/removerAlerta';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 
 export const alertarInfo = (mensagem: string): void => {
   const idAlert = 'alertaInfo';
@@ -26,7 +27,7 @@ export const alertaGlobalEmendaSemPreenchimentoUtil = (open: boolean, rootStore:
   if (open) {
     const alerta = {
       id: id,
-      tipo: 'info',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: mensagem,
       podeFechar: true,
       exibirComandoEmenda: true,
