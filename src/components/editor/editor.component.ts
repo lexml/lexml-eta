@@ -187,6 +187,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           <button class="ql-italic" title="Itálico (Ctrl+i)"></button>
           <button class="ql-script" value="sub" title="Subscrito"></button>
           <button class="ql-script" value="super" title="Sobrescrito"></button>
+          <button type="button" class="ql-clean" title="Remover formatação">
+            <svg class="" viewBox="0 0 18 18">
+              <line class="ql-stroke" x1="5" x2="13" y1="3" y2="3"></line>
+              <line class="ql-stroke" x1="6" x2="9.35" y1="12" y2="3"></line>
+              <line class="ql-stroke" x1="11" x2="15" y1="11" y2="15"></line>
+              <line class="ql-stroke" x1="15" x2="11" y1="11" y2="15"></line>
+              <rect class="ql-fill" height="1" rx="0.5" ry="0.5" width="7" x="2" y="14"></rect>
+            </svg>
+          </button>
 
           <button @click=${this.onClickUndo} class="lx-eta-ql-button lx-eta-btn-desfazer" title="Desfazer (Ctrl+Z)">
             <svg class="icon-undo-redo" id="undo" viewBox="0 0 512 512">
@@ -202,14 +211,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               />
             </svg>
           </button>
-          <button type="button" class="ql-clean" title="Remover formatação">
-            <svg class="" viewBox="0 0 18 18">
-              <line class="ql-stroke" x1="5" x2="13" y1="3" y2="3"></line>
-              <line class="ql-stroke" x1="6" x2="9.35" y1="12" y2="3"></line>
-              <line class="ql-stroke" x1="11" x2="15" y1="11" y2="15"></line>
-              <line class="ql-stroke" x1="15" x2="11" y1="11" y2="15"></line>
-              <rect class="ql-fill" height="1" rx="0.5" ry="0.5" width="7" x="2" y="14"></rect>
-            </svg>
+
+          <button type="button" class="button-navegacao-marca" title="Ir para o próximo diposositivo alterado" @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
+            <sl-icon name="arrow-down-circle"></sl-icon>
+          </button>
+
+          <button type="button" class="button-navegacao-marca" title="Ir para o diposositivo alterado anterior" @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
+            <sl-icon name="arrow-up-circle"></sl-icon>
           </button>
 
           <lexml-switch-revisao
@@ -219,14 +227,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           modo="${this.modo}"
           >
           </lexml-switch-revisao>
-
-          <sl-button class="button-navegacao-marca" variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
-            <sl-icon-button name="arrow-down"></sl-icon-button>
-          </sl-button>
-
-          <sl-button class="button-navegacao-marca" variant="default" size="small" circle @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
-            <sl-icon-button name="arrow-up"></sl-icon-button>
-          </sl-button>
 
           ${this.exibirBotoesParaTratarTodas ? this.renderBotoesParaTratarTodasRevisoes() : ''}
 
