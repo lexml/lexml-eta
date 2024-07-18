@@ -16,6 +16,7 @@ import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_1078_2021 } from '../doc/mpv_1078_2021';
 import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
+import { PL_AGRUPADORES } from '../doc/pl_agrupadores';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
 import { Usuario } from '../../src/model/revisao/usuario';
@@ -63,6 +64,7 @@ const mapProjetosNormas = {
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,
   _plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
+  _pl_agrupadores: PL_AGRUPADORES,
   _plp_68_2024: PLP_68_2024,
   _plp_68_2024_1: PLP_68_2024_1,
   _plp_68_2024_2: PLP_68_2024_2,
@@ -397,6 +399,7 @@ export class DemoView extends LitElement {
             <option value="_codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
+            <option value="_pl_agrupadores">PL Agrupadores (Simulaçao de cmd para testes)</option>
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
             <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
             <option value="_plp_68_2024_1">PLP 68, de 2024 (arts. 1 a 160)</option>
