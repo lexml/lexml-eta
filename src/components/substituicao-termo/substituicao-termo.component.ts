@@ -40,6 +40,18 @@ export class SubstituicaoTermoComponent extends LitElement {
     #flexaoGenero {
       margin-left: 20px;
     }
+    .fieldFlexaoGenero {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .fieldFlexaoGenero div {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+    .fieldFlexaoGenero span {
+      margin-bottom: 10px;
+    }
   `;
 
   @query('#tipoSubstituicaoTermo')
@@ -138,10 +150,12 @@ export class SubstituicaoTermoComponent extends LitElement {
           <sl-input id="novoTermo" type="text" required label="Novo termo: *"></sl-input>
           <span id="alertaNovoTermo" class="alerta">Este campo deve ser preenchido</span>
         </div>
-        <div>
+        <div class="fieldFlexaoGenero">
           <span>Propor fazer flexões de:</span>
-          <sl-checkbox id="flexaoGenero">Gênero</sl-checkbox>
-          <sl-checkbox id="flexaoNumero">Número</sl-checkbox>
+          <div>
+            <sl-checkbox id="flexaoGenero">Gênero</sl-checkbox>
+            <sl-checkbox id="flexaoNumero">Número</sl-checkbox>
+          </div>
         </div>
       </fieldset>
     `;

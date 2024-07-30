@@ -6,6 +6,7 @@ import { Comissao } from './comissao';
 import { rootStore } from '../../redux/store';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
+import { TipoMensagem } from '../../model/lexml/util/mensagem';
 
 @customElement('lexml-destino')
 export class DestinoComponent extends LitElement {
@@ -208,7 +209,7 @@ export class DestinoComponent extends LitElement {
     this.isErroComissaoSelecionada = true;
     const alerta = {
       id: 'alerta-global-comissao-nao-selecionada',
-      tipo: 'error',
+      tipo: TipoMensagem.CRITICAL,
       mensagem: 'A comissão de destino deve ser selecionada.',
       podeFechar: false,
     };
