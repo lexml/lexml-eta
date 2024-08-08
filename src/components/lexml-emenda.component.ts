@@ -40,7 +40,14 @@ import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { removeAllHtmlTags } from '../util/string-util';
+import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
+
+export interface DispositivoBloqueado {
+  lexmlId: string;
+  bloquearFilhos: boolean;
+  motivoBloqueio?: string;
+}
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
@@ -72,7 +79,7 @@ export class LexmlEmendaParametrosEdicao {
 
   // Lista de lexml id's de artigos bloqueados para edição.
   // Não é salvo junto com a emenda, portanto deve ser informado também ao abrir uma emenda existente.
-  dispositivosBloqueados?: string[];
+  dispositivosBloqueados?: (string | DispositivoBloqueado)[];
 
   // Emenda a ser aberta para edição
   emenda?: Emenda;
@@ -92,6 +99,8 @@ export class LexmlEmendaParametrosEdicao {
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
+  // Configuração de paginação de dispositivos durante a edição da emenda
+  configuracaoPaginacao?: ConfiguracaoPaginacao;
   // Casa legislativa resposavel pela apreciaçao da emenda
   casaLegislativa?: TipoCasaLegislativa;
 
@@ -120,6 +129,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private motivo = '';
 
+  private params?: LexmlEmendaParametrosEdicao;
   private casaLegislativa: TipoCasaLegislativa = 'CN';
 
   private parlamentaresCarregados = false;
@@ -316,7 +326,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         .replace(/&nbsp;/g, '')
         .trim() === ''
     ) {
-      pendenciasPreenchimento.push('Não foi informado um texto de justificação');
+      pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
     }
 
     if (this.isEmendaSubstituicaoTermo()) {
@@ -405,9 +415,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     try {
       this._lexmlEmendaComando.emenda = [];
       this.modo = params.modo;
+      ('');
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
+      this.params = params;
 
       this.inicializaProposicao(params);
 
@@ -419,7 +431,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
       if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda);
+        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda, params);
       }
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
@@ -493,7 +505,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false);
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.params);
     }
 
     rootStore.dispatch(limparAlertas());

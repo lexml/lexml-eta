@@ -33,3 +33,11 @@ export enum MotivosOperacaoNaoPermitida {
   PROXIMO_DIFERENTE_ALINEA = 'O próximo dispositivo não é uma alínea.',
   PROXIMO_DIFERENTE_INCISO = 'O próximo dispositivo não é um inciso.',
 }
+
+export const isBloqueado = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.bloqueado !== undefined ? dispositivo.bloqueado : false;
+};
+
+export const existeFilhoDesbloqueado = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.filhos.some(f => !f.bloqueado);
+};
