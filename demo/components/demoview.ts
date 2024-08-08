@@ -87,6 +87,17 @@ const mapDispositivosBloqueados = {
   ],
 };
 
+const mapConfiguracaoPaginacaoDispositivos = {
+  _plp_68_2024: {
+    // maxItensPorPagina: 700,
+    rangeArtigos: [
+      { numInicial: 1, numFinal: 160 },
+      { numInicial: 161, numFinal: 392 },
+      { numInicial: 393, numFinal: 499 },
+    ],
+  },
+};
+
 @customElement('demo-view')
 export class DemoView extends LitElement {
   @query('.nome-proposicao')
@@ -202,6 +213,7 @@ export class DemoView extends LitElement {
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
           params.modo = this.modo;
+          params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
           params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
           if (this.projetoNorma) {
@@ -418,9 +430,6 @@ export class DemoView extends LitElement {
             <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
             <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
-            <option value="_plp_68_2024_1">PLP 68, de 2024 (arts. 1 a 160)</option>
-            <option value="_plp_68_2024_2">PLP 68, de 2024 (arts. 161 a 392)</option>
-            <option value="_plp_68_2024_3">PLP 68, de 2024 (arts. 393 a 499)</option>
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
           </select>
           <select id="modo">

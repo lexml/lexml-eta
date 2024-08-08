@@ -1,3 +1,4 @@
+import { configurarPaginacao } from '../util/paginacaoUtil';
 import { DispositivoBloqueado, LexmlEmendaParametrosEdicao } from '../../../components/lexml-emenda.component';
 import { Articulacao } from '../../../model/dispositivo/dispositivo';
 import { getElementos } from '../../../model/elemento/elementoUtil';
@@ -22,6 +23,7 @@ export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEmen
         },
       ],
       alertas: [],
+      paginacao: configurarPaginacao(articulacao, params?.configuracaoPaginacao),
     },
     revisoes: [],
     numEventosPassadosAntesDaRevisao: 0,

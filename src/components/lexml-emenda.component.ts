@@ -39,6 +39,7 @@ import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from '
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
+import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 
 export interface DispositivoBloqueado {
@@ -46,6 +47,8 @@ export interface DispositivoBloqueado {
   bloquearFilhos: boolean;
   motivoBloqueio?: string;
 }
+type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
+
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
 /**
@@ -96,6 +99,8 @@ export class LexmlEmendaParametrosEdicao {
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
+  // Configuração de paginação de dispositivos durante a edição da emenda
+  configuracaoPaginacao?: ConfiguracaoPaginacao;
   // Casa legislativa resposavel pela apreciaçao da emenda
   casaLegislativa?: TipoCasaLegislativa;
 
@@ -124,6 +129,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private motivo = '';
 
+  private params?: LexmlEmendaParametrosEdicao;
   private casaLegislativa: TipoCasaLegislativa = 'CN';
 
   private parlamentaresCarregados = false;
@@ -342,6 +348,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
+      this.params = params;
 
       this.inicializaProposicao(params);
 
@@ -427,7 +434,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false);
+      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.params);
     }
 
     rootStore.dispatch(limparAlertas());

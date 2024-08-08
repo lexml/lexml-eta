@@ -608,6 +608,18 @@ export const editorStyles = html`
       vertical-align: 4px;
     }
 
+    .button-navegacao-marca {
+      font-size: 18px;
+    }
+
+    .button-navegacao-marca::part(base) {
+      margin: 0 2px;
+    }
+
+    .button-navegacao-marca::part(label) {
+      padding: 0;
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
