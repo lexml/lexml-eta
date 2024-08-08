@@ -47,7 +47,6 @@ export interface DispositivoBloqueado {
   bloquearFilhos: boolean;
   motivoBloqueio?: string;
 }
-type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 

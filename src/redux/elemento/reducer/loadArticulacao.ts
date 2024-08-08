@@ -40,7 +40,6 @@ const bloqueiaDispositivos = (articulacao: Articulacao, params?: LexmlEmendaPara
       if (db.bloquearFilhos) {
         getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.bloqueado = true));
       } else {
-        getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.bloqueado = false));
         dispositivo.bloqueado = true;
       }
     }
