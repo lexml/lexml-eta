@@ -33,11 +33,18 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos onde couber',
     state.modo = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
   });
 
-  it('Inclusão de capítulo onde couber', () => {
+  it('Inclusão de parte onde couber', () => {
     TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
-    TesteCmdEmdUtil.incluiAgrupador(state, 'art1', TipoDispositivo.capitulo.tipo);
+    TesteCmdEmdUtil.incluiAgrupador(state, 'art1', TipoDispositivo.parte.tipo);
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, onde couber, no Projeto o seguinte capítulo:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, onde couber, no Projeto a seguinte parte:');
+  });
+
+  it('Inclusão de livro onde couber', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiAgrupador(state, 'art1', TipoDispositivo.livro.tipo);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, onde couber, no Projeto o seguinte livro:');
   });
 
   it('Inclusão de título onde couber', () => {
@@ -45,5 +52,12 @@ describe('Cabeçalho de comando de emenda com inclusão de artigos onde couber',
     TesteCmdEmdUtil.incluiAgrupador(state, 'art1', TipoDispositivo.titulo.tipo);
     const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
     expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, onde couber, no Projeto o seguinte título:');
+  });
+
+  it('Inclusão de capítulo onde couber', () => {
+    TesteCmdEmdUtil.incluiArtigoDepois(state, 'art1');
+    TesteCmdEmdUtil.incluiAgrupador(state, 'art1', TipoDispositivo.capitulo.tipo);
+    const itemComandoEmenda = new ComandoEmendaBuilder(documento.urn!, state.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Acrescente-se, onde couber, no Projeto o seguinte capítulo:');
   });
 });
