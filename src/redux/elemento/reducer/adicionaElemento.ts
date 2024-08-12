@@ -220,9 +220,11 @@ export const adicionaElemento = (state: any, action: any): State => {
   }
 
   if (action.posicao && action.posicao === 'antes') {
+    const dispositivosRenumerados = listaDispositivosRenumerados(novo);
+    dispositivosRenumerados.forEach(dr => updateIdDispositivoAndFilhos(dr));
     eventos.add(
       StateType.ElementoRenumerado,
-      listaDispositivosRenumerados(novo).map(d => createElemento(d))
+      dispositivosRenumerados.map(d => createElemento(d))
     );
   }
 
