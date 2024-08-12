@@ -41,8 +41,6 @@ export class CmdEmdModificacao extends CmdEmdCombinavel {
       sb.append(isPrimeiro ? ' a seguinte redação:' : ', nos termos a seguir:');
     }
 
-    console.log('isPrimeiro', isPrimeiro, sb.toString());
-
     return sb.toString();
   }
 }
