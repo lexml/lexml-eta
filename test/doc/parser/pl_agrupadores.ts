@@ -102,9 +102,10 @@ export const PL_AGRUPADORES = {
                                   TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
                                   id: 'prt1_liv1_tit1_cap1',
                                   rotulo: 'CAPÍTULO I',
+                                  abreAspas: 's',
                                   nomeAgrupador: {
                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                    content: ['\n    Cap 1\n\n  '],
+                                    content: ['\n    Do Transporte Aéreo\n\n  '],
                                   },
                                   lXhier: [
                                     {
@@ -247,6 +248,45 @@ export const PL_AGRUPADORES = {
                                                   },
                                                 },
                                               ],
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    },
+                                    {
+                                      name: {
+                                        namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                        localPart: 'Secao',
+                                        prefix: '',
+                                        key: '{http://www.lexml.gov.br/1.0}Secao',
+                                        string: '{http://www.lexml.gov.br/1.0}Secao',
+                                      },
+                                      value: {
+                                        TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
+                                        id: 'prt1_liv1_tit1_cap1_sec3',
+                                        rotulo: 'Seção III',
+                                        nomeAgrupador: {
+                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                          content: ['\n    Sec 3\n\n  '],
+                                        },
+                                        lXhier: [
+                                          {
+                                            name: {
+                                              namespaceURI: 'http://www.lexml.gov.br/1.0',
+                                              localPart: 'Subsecao',
+                                              prefix: '',
+                                              key: '{http://www.lexml.gov.br/1.0}Secao',
+                                              string: '{http://www.lexml.gov.br/1.0}Secao',
+                                            },
+                                            value: {
+                                              TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
+                                              id: 'prt1_liv1_tit1_cap1_sec3_sub1',
+                                              rotulo: 'Subseção I',
+                                              fechaAspas: 's',
+                                              nomeAgrupador: {
+                                                TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                                                content: ['\n    Subseção I\n\n  '],
+                                              },
                                             },
                                           },
                                         ],

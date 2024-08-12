@@ -41,6 +41,7 @@ export class CmdEmdModificacaoDeNormaVigente extends CmdEmdCombinavel {
       sb.append(' ');
     }
 
+    console.log('norma vigente isPrimeiro', isPrimeiro, sb.toString());
     return sb.toString();
   }
 }

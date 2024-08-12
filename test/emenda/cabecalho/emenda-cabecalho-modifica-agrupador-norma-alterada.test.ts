@@ -6,14 +6,31 @@ import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { State, DefaultState } from '../../../src/redux/state';
 import { TesteCmdEmdUtil } from '../teste-cmd-emd-util';
 import { MPV_1089_2021 } from '../../doc/mpv_1089_2021';
+import { MPV_1170_2023_ALTERADA } from '../../doc/mpv_1170_2023_alterada';
 
 let documento: ProjetoNorma;
+let documentoPl: ProjetoNorma;
 const state: State = new DefaultState();
+const statePl: State = new DefaultState();
 
 describe('Cabeçalho de comando de emenda modifica texto de agrupador de artigo em norma alterada', () => {
   beforeEach(function () {
     documento = buildProjetoNormaFromJsonix(MPV_1089_2021, true);
+    documentoPl = buildProjetoNormaFromJsonix(MPV_1170_2023_ALTERADA, true);
     state.articulacao = documento.articulacao;
+    statePl.articulacao = documentoPl.articulacao;
+  });
+
+  it('Modifica texto Parte em norma alterada', () => {
+    TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1u');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Parte Única da Medida Provisória a seguinte redação:');
+  });
+
+  it('Modifica texto Parte em norma alterada', () => {
+    TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1u_liv1');
+    const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Livro I da Parte Única da Medida Provisória a seguinte redação:');
   });
 
   it('Modifica texto capítulo em norma alterada', () => {
