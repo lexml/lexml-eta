@@ -75,6 +75,7 @@ import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
 import { getElementos } from '../../model/elemento/elementoUtil';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
+import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -217,11 +218,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </svg>
           </button>
 
-          <button type="button" class="button-navegacao-marca" title="Ir para o próximo diposositivo alterado" @click=${(): void => this.navegarEntreMarcasRevisao('abaixo')}>
+          <button type="button" class="button-navegacao-marca" title="Ir para o próximo dispositivo alterado" @click=${(): void => this.navegarEntreElementosAlterados('proximo')}>
             <sl-icon name="arrow-down-circle"></sl-icon>
           </button>
 
-          <button type="button" class="button-navegacao-marca" title="Ir para o diposositivo alterado anterior" @click=${(): void => this.navegarEntreMarcasRevisao('acima')}>
+          <button type="button" class="button-navegacao-marca" title="Ir para o dispositivo alterado anterior" @click=${(): void =>
+            this.navegarEntreElementosAlterados('anterior')}>
+
             <sl-icon name="arrow-up-circle"></sl-icon>
           </button>
 
@@ -1696,49 +1699,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  // private atualizaQuantidadeRevisao = (): void => {
-  //   atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this._idBadgeQuantidadeRevisao) as any);
-  // };
-
   private atualizarStatusBotoesRevisao(): void {
     const numRevisoes = getQuantidadeRevisoes(rootStore.getState().elementoReducer.revisoes);
     this.btnAceitarTodasRevisoes && (this.btnAceitarTodasRevisoes.disabled = numRevisoes === 0);
     this.btnRejeitarTodasRevisoes && (this.btnRejeitarTodasRevisoes.disabled = numRevisoes === 0);
   }
 
-  /**
-   * Método utilizado para navegar entre as marcas de revisão
-   * @param direcao
-   */
-  private navegarEntreMarcasRevisao = (direcao: string): void => {
-    const atributo = direcao === 'abaixo' ? 'next' : 'prev';
-    let linha = this.quill.linhaAtual;
-
-    if (this.isLinhaNavegavelSeta(linha)) {
-      linha = linha[atributo];
-    }
-
-    while (linha && !this.isLinhaNavegavelSeta(linha)) {
-      linha = linha[atributo];
-    }
-
-    if (linha) {
-      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
-      this.quill.marcarLinhaAtual(linha);
-    }
-  };
-
-  private isLinhaNavegavelSeta = (linha: any): boolean => {
-    if (
-      linha.elemento.revisao ||
-      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO ||
-      linha.elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
-    ) {
-      return true;
-    }
-
-    return false;
+  private navegarEntreElementosAlterados = (direcao: TDirecao): void => {
+    const linha = this.quill.linhaAtual;
+    if (!linha) return;
+    rootStore.dispatch(navegarEntreElementosAlteradosAction.execute(linha.elemento, direcao));
   };
 
   private checkedSwitchMarcaAlteracao = (): void => {

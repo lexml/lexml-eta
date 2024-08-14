@@ -165,7 +165,11 @@ export const findPaginaByUuidDispositivo = (paginacao: Paginacao, uuid: number):
 };
 
 export const isPaginaUnica = (state: any): boolean => {
-  return state.ui?.paginacao?.paginasArticulacao?.length === 1;
+  return state.ui?.paginacao?.paginasArticulacao?.length && state.ui?.paginacao?.paginasArticulacao?.length === 1;
+};
+
+export const hasMultiplasPaginas = (state: any): boolean => {
+  return state.ui?.paginacao?.paginasArticulacao?.length && state.ui?.paginacao?.paginasArticulacao?.length > 1;
 };
 
 export const findPaginaDoDispositivoAnterior = (paginacao: Paginacao, dispositivo: Dispositivo): PaginaArticulacao | undefined => {
