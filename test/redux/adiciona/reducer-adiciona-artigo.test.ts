@@ -22,7 +22,7 @@ import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 let state: any;
 let eventos: StateEvent[];
 
-describe.only('Testando atualização de ids de dispositivos após inclusão de artigo', () => {
+describe('Testando atualização de ids de dispositivos após inclusão de artigo', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
