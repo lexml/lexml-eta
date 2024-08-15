@@ -28,31 +28,37 @@ const processaMensagensCritialElementos = (state: any): string[] | undefined => 
       for (let index = 0; index < element!.mensagens!.length; index++) {
         const mensagem = element!.mensagens![index];
         if (mensagem.tipo === TipoMensagem.CRITICAL) {
-          mensagensCritical.push(mensagem!.descricao!);
+          if (mensagem!.descricao!.includes('Não foi informado um texto para')) {
+            mensagensCritical.push('Existem dispositivos sem texto informado.');
+          } else if (mensagem!.descricao!.includes('Numere o dispositivo')) {
+            mensagensCritical.push('Existem dispositivos de norma alterada sem numeração informada.');
+          } else {
+            mensagensCritical.push(mensagem!.descricao!);
+          }
         }
       }
     }
   }
 
-  const mensagensCriticalUnificadas = unificaMensagemCritical(mensagensCritical);
-  mensagensCritical = [...new Set(mensagensCriticalUnificadas)];
+  //const mensagensCriticalUnificadas = unificaMensagemCritical(mensagensCritical);
+  mensagensCritical = [...new Set(mensagensCritical)];
 
   return mensagensCritical;
 };
 
-const unificaMensagemCritical = (mensagensCritical: any): any[] => {
-  let mensagensDuplicadas = getMensagensDuplicadas(mensagensCritical, 'Não foi informado um texto', 'Existem dispositivos sem texto informado.');
-  mensagensDuplicadas = getMensagensDuplicadas(mensagensCritical, 'Numere o dispositivo', 'Existem dispositivos de norma alterada sem numeração informada.');
-  return mensagensDuplicadas;
-};
+// const unificaMensagemCritical = (mensagensCritical: any): any[] => {
+//   let mensagensDuplicadas = getMensagensDuplicadas(mensagensCritical, 'Não foi informado um texto', 'Existem dispositivos sem texto informado.');
+//   mensagensDuplicadas = getMensagensDuplicadas(mensagensCritical, 'Numere o dispositivo', 'Existem dispositivos de norma alterada sem numeração informada.');
+//   return mensagensDuplicadas;
+// };
 
-const getMensagensDuplicadas = (mensagensCritical: any, valor: string, replace: string): any => {
-  const novaLista = mensagensCritical.map(item => {
-    if (item.includes(valor)) {
-      return replace;
-    }
-    return item;
-  });
+// const getMensagensDuplicadas = (mensagensCritical: any, valor: string, replace: string): any => {
+//   const novaLista = mensagensCritical.map(item => {
+//     if (item.includes(valor)) {
+//       return replace;
+//     }
+//     return item;
+//   });
 
-  return novaLista;
-};
+//   return novaLista;
+// };
