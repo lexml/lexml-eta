@@ -76,6 +76,7 @@ import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
 import { getElementos } from '../../model/elemento/elementoUtil';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
+import { emendaDivididaDialog } from './emendaDivididaDialog';
 
 @customElement('lexml-eta-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -98,6 +99,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('#btnRejeitarTodasRevisoes')
   private btnRejeitarTodasRevisoes!: HTMLButtonElement;
+
+  @query('emenda-dividida-modal')
+  private emendaDivididaDialog!: emendaDivididaDialog;
 
   private modo = ClassificacaoDocumento.EMENDA;
 
@@ -263,6 +267,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       <lexml-emenda-comando-modal></lexml-emenda-comando-modal>
       <lexml-atalhos-modal></lexml-atalhos-modal>
       <lexml-sufixos-modal></lexml-sufixos-modal>
+      <emenda-dividida-modal></emenda-dividida-modal>
     `;
   }
 
@@ -603,6 +608,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     if (paginasArticulacao.length <= 1) {
       return;
+    } else {
+      this.emendaDivididaDialog.show();
     }
 
     // Cria elemento select para escolher a página
