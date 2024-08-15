@@ -79,6 +79,7 @@ import { LIMPAR_REVISAO } from '../../../model/lexml/acao/limparRevisoes';
 import { limpaRevisao } from './limpaRevisao';
 import { ERROR_INICIALIZAR_EDICAO } from '../../../model/lexml/acao/errorInicializarEdicaoAction';
 import { erroInicializaEdicao } from './erroInicializaEdicao';
+import { atualizaMensagemCritical } from './atualizaMensagemCritical';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -235,6 +236,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
 
+  tempState = atualizaMensagemCritical(tempState);
   tempState = atualizaRevisao(tempState, actionType);
   return adicionaDiffMenuOpcoes(tempState);
 };

@@ -333,17 +333,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
 
-    const messagesCritical = this.removeDuplicatasHTMLCollection(document.getElementsByClassName('mensagem mensagem--danger'));
+    const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical; //this.removeDuplicatasNodeList(this._lexmlEta!.querySelectorAll('.mensagem--danger'));
 
     for (let index = 0; index < messagesCritical.length; index++) {
       const element = messagesCritical[index];
-      pendenciasPreenchimento.push(element.innerText);
+      pendenciasPreenchimento.push(element);
     }
 
     return pendenciasPreenchimento;
   }
 
-  private removeDuplicatasHTMLCollection(lista: any): any {
+  private removeDuplicatasNodeList(lista: any): any {
     const novaLista: Array<any> = [];
 
     for (let index = 0; index < lista.length; index++) {
@@ -353,7 +353,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         if (novaLista.length === 0) {
           novaLista.push(element);
         } else {
-          if (!this.existeInHTMLCollection(novaLista, element.innerText)) {
+          if (!this.existeInNodeList(novaLista, element.innerText)) {
             novaLista.push(element);
           }
         }
@@ -363,7 +363,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return novaLista;
   }
 
-  private existeInHTMLCollection(lista: any, valor: any): boolean {
+  private existeInNodeList(lista: any, valor: any): boolean {
     let existe = false;
 
     for (let index = 0; index < lista.length; index++) {
