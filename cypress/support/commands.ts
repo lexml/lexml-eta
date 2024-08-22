@@ -120,7 +120,7 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
-  return cy.wrap(subject).click().find('div.container__menu > sl-dropdown sl-menu > sl-menu-item');
+  return cy.wrap(subject).get('.lx-eta-dropbtn');
 });
 
 Cypress.Commands.add('focusOnConteudo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
