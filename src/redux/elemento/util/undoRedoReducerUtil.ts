@@ -136,7 +136,11 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
     const elemento = evento.elementos[0];
     const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
 
-    const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
+    let pai: Dispositivo | null | undefined = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
+
+    if (!pai) {
+      pai = findDispositivoByUuid(state.articulacao!, elemento.hierarquia!.pai!.uuid!);
+    }
 
     const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos, state.modo);
     pai?.renumeraFilhos();
