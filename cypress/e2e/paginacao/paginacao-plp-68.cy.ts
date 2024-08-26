@@ -4,6 +4,15 @@ describe('Testando paginação com PLP 68/2024', () => {
       projetoNormaSelectValue: '_plp_68_2024',
       modoEmendaSelectValue: 'emenda',
     });
+
+    cy.get('emenda-dividida-modal')
+      .shadow()
+      .find('sl-dialog')
+      .find('sl-button')
+      .shadow()
+      .find('button.button.button--primary.button--medium.button--standard.button--has-label')
+      .find('span.button__label')
+      .click();
   });
 
   it('Verificando configuração inicial', () => {
