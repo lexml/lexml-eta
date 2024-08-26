@@ -4,11 +4,11 @@ import { getDispositivoAndFilhosAsLista, isAdicionado, isModificado, isSuprimido
 import { createElementoValidado } from '../../../model/elemento/elementoUtil';
 
 export const atualizaMensagemCritical = (state: State): State => {
-  state.mensagensCritical = processaMensagensCritialElementos(state);
+  state.mensagensCritical = processaMensagensCriticalElementos(state);
   return state;
 };
 
-const processaMensagensCritialElementos = (state: any): string[] | undefined => {
+const processaMensagensCriticalElementos = (state: any): string[] | undefined => {
   if (!state.mensagensCritical) {
     state.mensagensCritical = [];
   }
@@ -40,25 +40,7 @@ const processaMensagensCritialElementos = (state: any): string[] | undefined => 
     }
   }
 
-  //const mensagensCriticalUnificadas = unificaMensagemCritical(mensagensCritical);
   mensagensCritical = [...new Set(mensagensCritical)];
 
   return mensagensCritical;
 };
-
-// const unificaMensagemCritical = (mensagensCritical: any): any[] => {
-//   let mensagensDuplicadas = getMensagensDuplicadas(mensagensCritical, 'Não foi informado um texto', 'Existem dispositivos sem texto informado.');
-//   mensagensDuplicadas = getMensagensDuplicadas(mensagensCritical, 'Numere o dispositivo', 'Existem dispositivos de norma alterada sem numeração informada.');
-//   return mensagensDuplicadas;
-// };
-
-// const getMensagensDuplicadas = (mensagensCritical: any, valor: string, replace: string): any => {
-//   const novaLista = mensagensCritical.map(item => {
-//     if (item.includes(valor)) {
-//       return replace;
-//     }
-//     return item;
-//   });
-
-//   return novaLista;
-// };
