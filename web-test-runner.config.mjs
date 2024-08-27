@@ -5,7 +5,7 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
     'out-tsc/test/**/*.test.js',
 
     // O TESTE ABAIXO É MUITO LENTO. É recomendado rodar separadamente.
-    // '!out-tsc/test/redux/paginacao/reducer-paginacao.test.js',
+    '!out-tsc/test/redux/paginacao/reducer-paginacao.test.js',
 
     // 'out-tsc/test/emenda/**/*.test.js',
     // 'out-tsc/test/redux/colar/**/*.test.js',
