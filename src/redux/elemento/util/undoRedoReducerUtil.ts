@@ -59,6 +59,10 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
       : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!) || buscaDispositivoById(articulacao, elemento.hierarquia!.pai!.lexmlId!);
 
     if (artigo) {
+      if (isDispositivoAlteracao(artigo)) {
+        return artigo;
+      }
+
       if (!artigo.alteracoes) {
         artigo!.alteracoes = createArticulacao();
         artigo.alteracoes.pai = artigo;
@@ -136,11 +140,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
     const elemento = evento.elementos[0];
     const procurarElementoAnterior = evento.elementos.some(e => e.elementoAnteriorNaSequenciaDeLeitura);
 
-    let pai: Dispositivo | null | undefined = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
-
-    if (!pai) {
-      pai = findDispositivoByUuid(state.articulacao!, elemento.hierarquia!.pai!.uuid!);
-    }
+    const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
     const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos, state.modo);
     pai?.renumeraFilhos();
