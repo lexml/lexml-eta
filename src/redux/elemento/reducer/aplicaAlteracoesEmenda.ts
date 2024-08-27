@@ -401,8 +401,15 @@ const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elem
 
     if (isRevisaoDeMovimentacao(revisao) || isRevisaoDeTransformacao(revisao)) {
       revisao.elementoAntesRevisao!.uuid = Counter.next();
-      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
-      revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
+      const dAux = buscaDispositivoById(state.articulacao!, revisao.elementoAntesRevisao!.hierarquia!.pai!.lexmlId!);
+      if (dAux) {
+        revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = dAux.uuid;
+        revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = dAux.uuid2;
+      } else {
+        // TODO: revisar necessidade de else
+        revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid = e.hierarquia?.pai?.uuid;
+        revisao.elementoAntesRevisao!.hierarquia!.pai!.uuid2 = e.hierarquia?.pai?.uuid2;
+      }
     } else if (revisao.stateType !== StateType.ElementoIncluido) {
       revisao.elementoAntesRevisao!.uuid = e.uuid;
       revisao.elementoAntesRevisao!.uuid2 = e.uuid2;

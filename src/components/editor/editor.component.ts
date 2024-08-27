@@ -1,4 +1,4 @@
-import { isRevisaoPrincipal, getQuantidadeRevisoes } from './../../redux/elemento/util/revisaoUtil';
+import { isRevisaoPrincipal, getQuantidadeRevisoes, isRevisaoDeTransformacao } from './../../redux/elemento/util/revisaoUtil';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
 import { InfoTextoColado } from './../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
@@ -1020,7 +1020,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento, index) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
-        if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusao(linha.elemento.revisao as RevisaoElemento))) {
+        const isRevisaoDeExclusaoOuTransformacao =
+          elemento.revisao && (isRevisaoDeExclusao(elemento.revisao as RevisaoElemento) || isRevisaoDeTransformacao(elemento.revisao as RevisaoElemento));
+
+        if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusaoOuTransformacao)) {
           linha.atualizarElemento(elemento);
           index === 0 && this.montarMenuContexto(event);
         } else {
