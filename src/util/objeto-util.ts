@@ -53,3 +53,10 @@ export class ObjetoUtil {
 export const removeFromArray = (array: any[], element: any): void => {
   array.splice(array.indexOf(element), 1);
 };
+
+export const existInArray = (array: string[], value: string): boolean => {
+  if (!array) {
+    return false;
+  }
+  return array.includes(value);
+};

@@ -7,6 +7,11 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { MPV_885_2019 } from '../../doc/mpv_885_2019';
 import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
+import { atualizaElemento } from '../../../src/redux/elemento/reducer/atualizaElemento';
+import { ATUALIZAR_ELEMENTO } from '../../../src/model/lexml/acao/atualizarElementoAction';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
+import { existInArray } from '../../../src/util/objeto-util';
 
 let state: any;
 
@@ -23,11 +28,38 @@ describe('Testando situações de mensagem Critical na articulação.', () => {
     });
 
     it('Deveria existir a mensagem Critical indicando ausência de texto no dispositivo.', () => {
-      expect(state.mensagensCritical[0]).to.equal('Existem dispositivos sem texto informado.');
+      expect(existInArray(state.mensagensCritical, 'Existem dispositivos sem texto informado.')).to.equal(true);
     });
 
     it('Deveria existir a mensagem Critical indicando ausência de numeração de dispositivo de alteração de norma.', () => {
-      expect(state.mensagensCritical[1]).to.equal('Existem dispositivos de norma alterada sem numeração informada.');
+      expect(existInArray(state.mensagensCritical, 'Existem dispositivos de norma alterada sem numeração informada.')).to.equal(true);
+    });
+  });
+
+  describe('Adiciona e renumera inciso', () => {
+    beforeEach(function () {
+      const dAtual = buscaDispositivoById(state.articulacao, 'art1_cpt_alt1_art1');
+      state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(dAtual!), novo: { tipo: 'Inciso' } });
+
+      const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art1')!;
+      const eNovo = createElemento(d.filhos[0]);
+      state = elementoReducer(state, { type: RENUMERAR_ELEMENTO, atual: eNovo, novo: { numero: 'I' } });
+    });
+
+    it('Não deveria mais existir a mensagem Existem dispositivos sem numeração informada.', () => {
+      expect(existInArray(state.mensagensCritical, 'Existem dispositivos de norma alterada sem numeração informada.')).to.equal(false);
+    });
+
+    describe('Modifica texto inciso', () => {
+      beforeEach(function () {
+        const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art1')!;
+        const eNovo = createElemento(d.filhos[0]);
+        state = atualizaElemento(state, { type: ATUALIZAR_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: eNovo.uuid!, conteudo: { texto: 'novo texto:' } } });
+      });
+
+      it('Não deveria mais existir a mensagem Existem dispositivos sem texto informado.', () => {
+        expect(existInArray(state.mensagensCritical, 'Existem dispositivos sem texto informado.')).to.equal(false);
+      });
     });
   });
 });
