@@ -59,6 +59,10 @@ const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Parti
       : findDispositivoByUuid(articulacao, elemento.hierarquia!.pai!.uuidAlteracao!) || buscaDispositivoById(articulacao, elemento.hierarquia!.pai!.lexmlId!);
 
     if (artigo) {
+      if (isDispositivoAlteracao(artigo)) {
+        return artigo;
+      }
+
       if (!artigo.alteracoes) {
         artigo!.alteracoes = createArticulacao();
         artigo.alteracoes.pai = artigo;

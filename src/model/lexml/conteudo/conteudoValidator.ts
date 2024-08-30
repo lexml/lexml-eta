@@ -17,6 +17,7 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
+import { isBloqueado } from '../regras/regrasUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
@@ -307,6 +308,14 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
         addMensagem(mensagens, TipoMensagem.WARNING, `Como interpretar sufixos (-1, -2,...)?`, undefined, 'onmodalsufixos');
       }
     }
+  }
+
+  if (isBloqueado(dispositivo) && !isBloqueado(dispositivo.pai!)) {
+    addMensagem(
+      mensagens,
+      TipoMensagem.ERROR,
+      `Dispositivo com estrutura não suportada pelo editor de emendas. Para alterações neste dispositivo, utilize o modo de emenda de texto livre.`
+    );
   }
 
   return [...new Set(mensagens)];

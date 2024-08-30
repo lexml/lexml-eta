@@ -80,6 +80,11 @@ import { limpaRevisao } from './limpaRevisao';
 import { ERROR_INICIALIZAR_EDICAO } from '../../../model/lexml/acao/errorInicializarEdicaoAction';
 import { erroInicializaEdicao } from './erroInicializaEdicao';
 import { atualizaMensagemCritical } from './atualizaMensagemCritical';
+import { SELECIONAR_PAGINA_ARTICULACAO } from '../../../model/lexml/acao/selecionarPaginaArticulacaoAction';
+import { selecionaPaginaArticulacao } from './selecionaPaginaArticulacao';
+import { atualizaPaginacao } from './atualizaPaginacao';
+import { NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS } from '../../../model/lexml/acao/navegarEntreElementosAlteradosAction';
+import { navegaEntreDispositivosAlterados } from './navegaEntreDispositivosAlterados';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -89,8 +94,15 @@ export const elementoReducer = (state = {}, action: any): any => {
   let emRevisao = (state as State).emRevisao;
   let revisoes = (state as State).revisoes || [];
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
+  const paginacao = (state as State).ui?.paginacao;
 
   switch (action.type) {
+    case NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS:
+      tempState = navegaEntreDispositivosAlterados(state, action);
+      break;
+    case SELECIONAR_PAGINA_ARTICULACAO:
+      tempState = selecionaPaginaArticulacao(state, action);
+      break;
     case ADICIONAR_AGRUPADOR_ARTIGO:
       tempState = agrupaElemento(state, action);
       break;
@@ -236,9 +248,19 @@ export const elementoReducer = (state = {}, action: any): any => {
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
 
+  // Garante que a paginação esteja presente no estado
+  if (![SELECIONAR_PAGINA_ARTICULACAO, ABRIR_ARTICULACAO, NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS].includes(actionType)) {
+    if (tempState.ui) {
+      tempState.ui.paginacao = paginacao;
+    } else {
+      tempState.ui = { events: [], alertas: [], paginacao };
+    }
+  }
+
   tempState = atualizaMensagemCritical(tempState);
   tempState = atualizaRevisao(tempState, actionType);
-  return adicionaDiffMenuOpcoes(tempState);
+  tempState = adicionaDiffMenuOpcoes(tempState);
+  return atualizaPaginacao(tempState, action);
 };
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {

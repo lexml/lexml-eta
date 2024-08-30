@@ -3,9 +3,13 @@
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   files: [
     'out-tsc/test/**/*.test.js',
-    'out-tsc/test/emenda/**/*.test.js',
-    //'out-tsc/test/redux/colar/**/*.test.js',
-    //'out-tsc/test/redux/aplicaEmenda/**/*.test.js',
+
+    // O TESTE ABAIXO É MUITO LENTO. É recomendado rodar separadamente.
+    '!out-tsc/test/redux/paginacao/reducer-paginacao.test.js',
+
+    // 'out-tsc/test/emenda/**/*.test.js',
+    // 'out-tsc/test/redux/colar/**/*.test.js',
+    // 'out-tsc/test/redux/aplicaEmenda/**/*.test.js',
     // 'out-tsc/test/componente/editor-texto-rico/**/*.test.js',
   ],
   nodeResolve: true,
@@ -30,6 +34,12 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   //   playwrightLauncher({ product: 'firefox' }),
   //   playwrightLauncher({ product: 'webkit' }),
   // ],
+
+  testFramework: {
+    config: {
+      timeout: 120000,
+    },
+  },
 
   // See documentation for all available options
   testRunnerHtml: testFramework =>

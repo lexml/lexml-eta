@@ -122,6 +122,7 @@ export const removeAndBuildEvents = (state: State, dispositivo: Dispositivo): St
   pai.removeFilho(dispositivo);
   pai.renumeraFilhos();
 
+  dispositivosRenumerados.forEach(dr => updateIdDispositivoAndFilhos(dr));
   updateIdDispositivoAndFilhos(pai);
 
   if (isArticulacaoAlteracao(pai) && pai.filhos.length === 0) {

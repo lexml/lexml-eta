@@ -3,9 +3,10 @@ import { createElemento, getDispositivoFromElemento } from '../../../model/eleme
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 export const atualizaElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -13,6 +14,10 @@ export const atualizaElemento = (state: any, action: any): State => {
   if (dispositivo === undefined || dispositivo.texto === action.atual.conteudo.texto) {
     state.ui.events = [];
     return state;
+  }
+
+  if (dispositivo.bloqueado) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível realizar essa ação em dispositivo bloqueado.' });
   }
 
   const original = createElemento(dispositivo);

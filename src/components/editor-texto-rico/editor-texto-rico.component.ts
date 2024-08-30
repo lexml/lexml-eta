@@ -674,6 +674,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     return true;
   };
 
+  getTexto = (): string => {
+    return this.texto;
+  };
+
   private getNomeSwitch = (): string => {
     return this.modo === Modo.JUSTIFICATIVA ? 'chk-em-revisao-justificativa' : 'chk-em-revisao-texto-livre';
   };

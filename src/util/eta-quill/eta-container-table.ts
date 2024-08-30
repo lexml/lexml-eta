@@ -40,6 +40,7 @@ export class EtaContainerTable extends EtaContainer {
     EtaContainerTable.atualizarAtributoRevisao(elemento, node);
     EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, node);
     EtaContainerTable.atualizarAtributoOmissis(elemento, node);
+    EtaContainerTable.atualizarAtributoBloqueado(elemento, node);
 
     return node;
   }
@@ -298,10 +299,19 @@ export class EtaContainerTable extends EtaContainer {
     }
   }
 
+  static atualizarAtributoBloqueado(elemento: Elemento, node: HTMLElement): void {
+    if (elemento.bloqueado) {
+      node.setAttribute('bloqueado', 'true');
+    } else {
+      node.removeAttribute('bloqueado');
+    }
+  }
+
   atualizarAtributos(elemento: Elemento): void {
     EtaContainerTable.atualizarAtributoRevisao(elemento, this.domNode);
     EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, this.domNode);
     EtaContainerTable.atualizarAtributoOmissis(elemento, this.domNode);
+    EtaContainerTable.atualizarAtributoBloqueado(elemento, this.domNode);
 
     this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);

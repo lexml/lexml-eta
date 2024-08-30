@@ -38,7 +38,8 @@ export class EtaKeyboard extends Keyboard {
     });
 
     this.quill.root.addEventListener('keypress', (ev: KeyboardEvent): void => {
-      this.bloqueiaAcentuacaoOmissis(ev);
+      this.bloqueiaPropagacaoOmissis(ev);
+      this.bloqueiaPropagacaoDispositivoBloqueado(ev);
     });
 
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
@@ -78,11 +79,14 @@ export class EtaKeyboard extends Keyboard {
         }
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (elementoLinhaAtual?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && this.isNotTeclasDeNavegacao(ev)) {
+      } else if (
+        (elementoLinhaAtual?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || this.quill.linhaAtual.elemento.bloqueado) &&
+        this.isNotTeclasDeNavegacao(ev)
+      ) {
         cancelarPropagacaoDoEvento(ev);
       } else if (ev.ctrlKey) {
         if (!ev.altKey && !ev.metaKey) {
-          if (['Delete', 'Backspace'].includes(ev.key)) {
+          if (['Delete', 'Backspace'].includes(ev.key) || (this.quill.linhaAtual.elemento.bloqueado && this.isNotTeclaAlteracaoExclusivaNoDispositivo(ev))) {
             cancelarPropagacaoDoEvento(ev);
           } else if (ev.key === 'Home') {
             this.onTeclaHome(ev);
@@ -175,6 +179,10 @@ export class EtaKeyboard extends Keyboard {
     super.listen();
   }
 
+  private isNotTeclaAlteracaoExclusivaNoDispositivo(ev: KeyboardEvent): boolean {
+    return ev.key.toLowerCase() !== 'c' && ev.key.toLowerCase() !== 'z' && ev.key.toLowerCase() !== 'y';
+  }
+
   private isNotTeclasDeNavegacao(ev: KeyboardEvent): boolean {
     return (
       !ev.ctrlKey && ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown' && ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft' && ev.key !== 'Home' && ev.key !== 'End' && !ev.shiftKey
@@ -187,8 +195,15 @@ export class EtaKeyboard extends Keyboard {
     return ev.location !== DOM_KEY_LOCATION_NUMPAD && teclasComCaracterGrafico.includes(ev.key);
   }
 
-  private bloqueiaAcentuacaoOmissis(ev: KeyboardEvent): void {
+  private bloqueiaPropagacaoOmissis(ev: KeyboardEvent): void {
     if (this.quill.cursorDeTextoEstaSobreOmissis()) {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+  }
+
+  private bloqueiaPropagacaoDispositivoBloqueado(ev: KeyboardEvent): void {
+    if (this.quill.linhaAtual.elemento.bloqueado) {
       ev.preventDefault();
       ev.stopPropagation();
     }

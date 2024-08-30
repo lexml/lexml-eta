@@ -10,6 +10,7 @@ import { suprimirAgrupadorAction } from '../acao/suprimirAgrupador';
 import { suprimirElementoAction } from '../acao/suprimirElemento';
 import { TransformarElemento } from '../acao/transformarElementoAction';
 import { getDispositivoAndFilhosAsLista, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
+import { existeFilhoDesbloqueado, isBloqueado } from '../regras/regrasUtil';
 
 export class DispositivoOriginal implements TipoSituacao {
   descricaoSituacao = DescricaoSituacao.DISPOSITIVO_ORIGINAL;
@@ -27,7 +28,8 @@ export class DispositivoOriginal implements TipoSituacao {
     if (
       !isEmenta(dispositivo) &&
       (!isAgrupador(dispositivo) || !isDispositivoAlteracao(dispositivo)) &&
-      getDispositivoAndFilhosAsLista(dispositivo).filter(f => isSituacaoExclusivaDispositivoEmenda(f)).length === 0
+      getDispositivoAndFilhosAsLista(dispositivo).filter(f => isSituacaoExclusivaDispositivoEmenda(f)).length === 0 &&
+      (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))
     ) {
       acoesFiltradas.push(suprimirElementoAction);
     }

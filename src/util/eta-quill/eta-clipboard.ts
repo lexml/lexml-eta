@@ -18,7 +18,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     super(quill, options);
 
     this.quill.root.addEventListener('cut', (ev: ClipboardEvent) => {
-      if (this.quill.cursorDeTextoEstaSobreLink()) {
+      if (this.quill.cursorDeTextoEstaSobreOmissis() || this.quill.cursorDeTextoEstaSobreLink() || this.quill.linhaAtual.elemento.bloqueado) {
         cancelarPropagacaoDoEvento(ev);
         return;
       }
@@ -48,7 +48,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
   }
 
   onPaste(e: ClipboardEvent): void {
-    if (this.quill.cursorDeTextoEstaSobreLink() || this.quill.cursorDeTextoEstaSobreOmissis()) {
+    if (this.quill.cursorDeTextoEstaSobreLink() || this.quill.cursorDeTextoEstaSobreOmissis() || this.quill.linhaAtual.elemento.bloqueado) {
       cancelarPropagacaoDoEvento(e);
       return;
     }

@@ -23,13 +23,14 @@ import {
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
+import { isBloqueado } from './regrasUtil';
 
 export function RegrasOmissis<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
     getAcoesPossiveis(dispositivo: Dispositivo): ElementoAction[] {
       const acoes: ElementoAction[] = [];
 
-      if (!isOmissis(dispositivo)) {
+      if (!isOmissis(dispositivo) || (isBloqueado(dispositivo) && isBloqueado(dispositivo.pai!))) {
         return [];
       }
 

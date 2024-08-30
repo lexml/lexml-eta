@@ -1,5 +1,6 @@
 import { Alerta } from '../model/alerta/alerta';
 import { Articulacao } from '../model/dispositivo/dispositivo';
+import { PaginaArticulacao } from '../model/paginacao/paginacao';
 import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
 import { Revisao } from '../model/revisao/revisao';
@@ -31,6 +32,7 @@ export enum StateType {
   RevisaoAdicionalRejeitada = 'RevisaoAdicionalRejeitada',
   AdicionarAnexoEmendaTextoLivre = 'AdicionarAnexoEmendaTextoLivre',
   RemoverAnexoEmendaTextoLivre = 'RemoverAnexoEmendaTextoLivre',
+  PaginaArticulacaoSelecionada = 'PaginaArticulacaoSelecionada',
 }
 export interface StateEvent {
   stateType: StateType;
@@ -38,6 +40,12 @@ export interface StateEvent {
   pai?: Elemento;
   moverParaFimLinha?: boolean;
   elementos?: Elemento[];
+}
+
+export interface Paginacao {
+  // numPagina?: number;
+  paginasArticulacao?: PaginaArticulacao[];
+  paginaSelecionada?: PaginaArticulacao;
 }
 
 export interface State {
@@ -50,6 +58,7 @@ export interface State {
     events: StateEvent[];
     message?: Mensagem;
     alertas?: Alerta[];
+    paginacao?: Paginacao;
   };
   emRevisao?: boolean;
   usuario?: Usuario;
