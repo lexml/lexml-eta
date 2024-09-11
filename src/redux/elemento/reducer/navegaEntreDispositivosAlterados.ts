@@ -1,4 +1,4 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArticulacao, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -108,14 +108,23 @@ const findElementoAlteradoAnterior = (ref: Dispositivo, state: State, ignorarRev
   const revisoes = state.revisoes?.filter(isRevisaoElemento).filter(isRevisaoPrincipal) as RevisaoElemento[];
   const revisoesDeExclusao = revisoes?.filter(isRevisaoDeExclusao);
 
+  let ementa: Dispositivo | undefined = undefined;
   let atual: Dispositivo | undefined = ref;
   do {
     atual = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d));
-    if (!atual) return undefined;
+    if (!atual) {
+      if (!ementa) {
+        return undefined;
+      } else {
+        atual = ementa;
+      }
+    }
     if (isAlterado(atual, revisoes)) return createElemento(atual);
     if (ignorarRevisoesDeExclusao) continue;
     const elemento = revisoesDeExclusao.find(r => r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura?.uuid === atual!.uuid)?.elementoAposRevisao;
     if (elemento) return elemento as Elemento;
+    if (atual.tipo === 'Articulacao') ementa = (atual as Articulacao).projetoNorma?.ementa;
+    if (atual.tipo === 'Ementa') return undefined;
   } while (atual);
   return undefined;
 };
