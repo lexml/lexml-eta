@@ -39,7 +39,6 @@ import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from '
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
-import { removeAllHtmlTags } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 
@@ -321,21 +320,9 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private getPendenciasPreenchimentoEmenda(emenda: Emenda): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
-    if (
-      removeAllHtmlTags(emenda.justificativa)
-        .replace(/&nbsp;/g, '')
-        .trim() === ''
-    ) {
-      pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
-    }
-
     if (this.isEmendaSubstituicaoTermo()) {
       if (emenda.substituicaoTermo?.termo.replace('(termo a ser substituído)', '').trim() === '' || emenda.substituicaoTermo?.novoTermo.replace('(novo termo)', '').trim() === '') {
         pendenciasPreenchimento.push('Substituição de termo não preenchida.');
-      }
-    } else if (this.isEmendaTextoLivre()) {
-      if (!emenda.comandoEmendaTextoLivre.texto) {
-        pendenciasPreenchimento.push('Emenda de texto livre não preenchida.');
       }
     } else {
       if (emenda.comandoEmenda.comandos.length === 0) {
@@ -343,17 +330,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       }
     }
 
-    const messagesCritical = this.removeDuplicatasHTMLCollection(document.getElementsByClassName('mensagem mensagem--danger'));
+    const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical; //this.removeDuplicatasNodeList(this._lexmlEta!.querySelectorAll('.mensagem--danger'));
 
     for (let index = 0; index < messagesCritical.length; index++) {
       const element = messagesCritical[index];
-      pendenciasPreenchimento.push(element.innerText);
+      pendenciasPreenchimento.push(element);
     }
 
     return pendenciasPreenchimento;
   }
 
-  private removeDuplicatasHTMLCollection(lista: any): any {
+  private removeDuplicatasNodeList(lista: any): any {
     const novaLista: Array<any> = [];
 
     for (let index = 0; index < lista.length; index++) {
@@ -363,7 +350,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         if (novaLista.length === 0) {
           novaLista.push(element);
         } else {
-          if (!this.existeInHTMLCollection(novaLista, element.innerText)) {
+          if (!this.existeInNodeList(novaLista, element.innerText)) {
             novaLista.push(element);
           }
         }
@@ -373,7 +360,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     return novaLista;
   }
 
-  private existeInHTMLCollection(lista: any, valor: any): boolean {
+  private existeInNodeList(lista: any, valor: any): boolean {
     let existe = false;
 
     for (let index = 0; index < lista.length; index++) {

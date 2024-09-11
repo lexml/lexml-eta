@@ -64,6 +64,7 @@ export interface State {
   usuario?: Usuario;
   revisoes?: Revisao[];
   numEventosPassadosAntesDaRevisao?: number;
+  mensagensCritical?: Array<string>;
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {

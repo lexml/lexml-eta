@@ -79,6 +79,7 @@ import { LIMPAR_REVISAO } from '../../../model/lexml/acao/limparRevisoes';
 import { limpaRevisao } from './limpaRevisao';
 import { ERROR_INICIALIZAR_EDICAO } from '../../../model/lexml/acao/errorInicializarEdicaoAction';
 import { erroInicializaEdicao } from './erroInicializaEdicao';
+import { atualizaMensagemCritical } from './atualizaMensagemCritical';
 import { SELECIONAR_PAGINA_ARTICULACAO } from '../../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { selecionaPaginaArticulacao } from './selecionaPaginaArticulacao';
 import { atualizaPaginacao } from './atualizaPaginacao';
@@ -256,6 +257,7 @@ export const elementoReducer = (state = {}, action: any): any => {
     }
   }
 
+  tempState = atualizaMensagemCritical(tempState);
   tempState = atualizaRevisao(tempState, actionType);
   tempState = adicionaDiffMenuOpcoes(tempState);
   return atualizaPaginacao(tempState, action);
