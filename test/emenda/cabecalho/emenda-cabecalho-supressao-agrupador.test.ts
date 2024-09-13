@@ -21,10 +21,10 @@ describe('Cabeçalho de comando de emenda com supressão de denominação de agr
     statePl.articulacao = documentoPl.articulacao;
   });
 
-  it('Suprime Parte 1 da Proposta', () => {
+  it('Suprime Parte 1 do Projeto', () => {
     TesteCmdEmdUtil.suprimeDispositivo(statePl, 'prt1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se toda a Parte I da Proposta.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se toda a Parte I do Projeto.');
   });
 
   it('Suprime Parte 1 do Projeto', () => {
@@ -33,16 +33,16 @@ describe('Cabeçalho de comando de emenda com supressão de denominação de agr
     expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Capítulo I do Título I do Projeto.');
   });
 
-  it('Suprime Livro 1 da Proposta', () => {
+  it('Suprime Livro 1 do Projeto', () => {
     TesteCmdEmdUtil.suprimeDispositivo(statePl, 'prt1_liv1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Livro I da Parte I da Proposta.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Livro I da Parte I do Projeto.');
   });
 
-  it('Suprime Título 1 da Proposta', () => {
+  it('Suprime Título 1 do Projeto', () => {
     TesteCmdEmdUtil.suprimeDispositivo(statePl, 'prt1_liv1_tit1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Título I do Livro I da Parte I da Proposta.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Título I do Livro I da Parte I do Projeto.');
   });
 
   it('Suprime Título 1 do Projeto', () => {
@@ -60,18 +60,18 @@ describe('Cabeçalho de comando de emenda com supressão de denominação de agr
   it('Suprime Capítulo 1 do Projeto', () => {
     TesteCmdEmdUtil.suprimeDispositivo(statePl, 'prt1_liv1_tit1_cap1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Capítulo I do Título I do Livro I da Parte I da Proposta.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se todo o Capítulo I do Título I do Livro I da Parte I do Projeto.');
   });
 
   it('Suprime Seção 1 do Projeto', () => {
     TesteCmdEmdUtil.suprimeDispositivo(statePl, 'prt1_liv1_tit1_cap1_sec1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se toda a Seção I do Capítulo I do Título I do Livro I da Parte I da Proposta.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se toda a Seção I do Capítulo I do Título I do Livro I da Parte I do Projeto.');
   });
 
   it('Suprime Subseção 1 do Projeto', () => {
     TesteCmdEmdUtil.suprimeDispositivo(statePl, 'prt1_liv1_tit1_cap1_sec3_sub1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se toda a Subseção I da Seção III do Capítulo I do Título I do Livro I da Parte I da Proposta.');
+    expect(itemComandoEmenda.cabecalho).to.equal('Suprima-se toda a Subseção I da Seção III do Capítulo I do Título I do Livro I da Parte I do Projeto.');
   });
 });

@@ -12,7 +12,7 @@ export const PL_AGRUPADORES = {
       TYPE_NAME: 'br_gov_lexml__1.Metadado',
       identificacao: {
         TYPE_NAME: 'br_gov_lexml__1.Identificacao',
-        urn: 'urn:lex:br:federal:lei:2024;999@data.evento;leitura;2024-07-12t18.00',
+        urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2024;999@data.evento;leitura;2024-07-12t18.00',
       },
     },
     projetoNorma: {

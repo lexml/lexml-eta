@@ -28,19 +28,19 @@ describe('Cabeçalho de comando de emenda com alteração de denominação de ag
   it('Altera denominação de Parte', () => {
     TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Parte I da Proposta a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Parte I do Projeto a seguinte redação:');
   });
 
   it('Altera denominação de Livro', () => {
     TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1_liv1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Livro I da Parte I da Proposta a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Livro I da Parte I do Projeto a seguinte redação:');
   });
 
   it('Altera denominação de Livro', () => {
     TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1_liv1_tit1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Título I do Livro I da Parte I da Proposta a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação do Título I do Livro I da Parte I do Projeto a seguinte redação:');
   });
 
   it('Altera denominação de capítulo', () => {
@@ -65,12 +65,12 @@ describe('Cabeçalho de comando de emenda com alteração de denominação de ag
   it('Altera denominação de Seção', () => {
     TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1_liv1_tit1_cap1_sec2');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Seção II do Capítulo I do Título I do Livro I da Parte I da Proposta a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Seção II do Capítulo I do Título I do Livro I da Parte I do Projeto a seguinte redação:');
   });
 
   it('Altera denominação de Subseção', () => {
     TesteCmdEmdUtil.modificaDispositivo(statePl, 'prt1_liv1_tit1_cap1_sec3_sub1');
     const itemComandoEmenda = new ComandoEmendaBuilder(documentoPl.urn!, statePl.articulacao!).getComandoEmenda().comandos[0];
-    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Subseção I da Seção III do Capítulo I do Título I do Livro I da Parte I da Proposta a seguinte redação:');
+    expect(itemComandoEmenda.cabecalho).to.equal('Dê-se à denominação da Subseção I da Seção III do Capítulo I do Título I do Livro I da Parte I do Projeto a seguinte redação:');
   });
 });
