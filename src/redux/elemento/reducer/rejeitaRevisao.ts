@@ -171,7 +171,7 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
 
   const result: StateEvent[] = [];
 
-  const elementoASerIncluido = revisao.elementoAposRevisao;
+  const elementoASerIncluido = revisao.elementoAntesRevisao ?? revisao.elementoAposRevisao;
 
   if (elementoASerIncluido.agrupador) {
     let tempState: State = { ...state, past: [], present: [], future: [], ui: { events: [] } };

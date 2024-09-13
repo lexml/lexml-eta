@@ -35,6 +35,10 @@ export const suprimeElemento = (state: any, action: any): State => {
     return state;
   }
 
+  if (dispositivo.bloqueado) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível suprimir um dispositivo bloqueado.' });
+  }
+
   if (!podeSuprimir(dispositivo)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Só é possível suprimir dispositivos que não tenham sofrido modificação.' });
   }

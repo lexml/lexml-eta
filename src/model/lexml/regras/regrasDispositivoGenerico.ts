@@ -6,13 +6,14 @@ import { removerElementoAction } from '../acao/removerElementoAction';
 import { TransformarElemento } from '../acao/transformarElementoAction';
 import { isDispositivoAlteracao, isUltimaAlteracao } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
+import { isBloqueado } from './regrasUtil';
 
 export function RegrasDispositivoGenerico<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
     getAcoesPossiveis(dispositivo: Dispositivo): ElementoAction[] {
       const acoes: ElementoAction[] = [];
 
-      if (!isDispositivoGenerico(dispositivo)) {
+      if (!isDispositivoGenerico(dispositivo) || (isBloqueado(dispositivo) && isBloqueado(dispositivo.pai!))) {
         return [];
       }
 

@@ -6,10 +6,11 @@ import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoV
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
-import { buildPast } from '../util/stateReducerUtil';
+import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
 // const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): boolean => {
 //   const textoAtual = action.atual?.conteudo?.texto;
@@ -26,6 +27,10 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   if (dispositivo === undefined || dispositivo.texto === textoAtual) {
     state.ui.events = [];
     return state;
+  }
+
+  if (dispositivo.bloqueado) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível realizar essa ação em dispositivo bloqueado.' });
   }
 
   const original = createElemento(dispositivo);

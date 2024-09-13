@@ -51,6 +51,7 @@ export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImp
 export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';
 export { SubstituicaoTermoComponent } from './components/substituicao-termo/substituicao-termo.component';
 export { Usuario } from './model/revisao/usuario';
+export { emendaDivididaDialog } from './components/editor/emendaDivididaDialog';
 
 Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
 Quill.register('modules/revisao', ModuloRevisao, true);

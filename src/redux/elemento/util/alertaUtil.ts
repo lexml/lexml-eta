@@ -1,3 +1,7 @@
+import { adicionarAlerta } from '../../../model/alerta/acao/adicionarAlerta';
+import { removerAlerta } from '../../../model/alerta/acao/removerAlerta';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+
 export const alertarInfo = (mensagem: string): void => {
   const idAlert = 'alertaInfo';
   const currentAlert = document.getElementById(idAlert);
@@ -14,5 +18,22 @@ export const alertarInfo = (mensagem: string): void => {
     });
     document.body.append(alert);
     alert.toast();
+  }
+};
+
+export const alertaGlobalEmendaSemPreenchimentoUtil = (open: boolean, rootStore: any, mensagem: string): void => {
+  const id = 'alerta-global-emenda-nao-preenchida';
+
+  if (open) {
+    const alerta = {
+      id: id,
+      tipo: TipoMensagem.CRITICAL,
+      mensagem: mensagem,
+      podeFechar: true,
+      exibirComandoEmenda: true,
+    };
+    rootStore.dispatch(adicionarAlerta(alerta));
+  } else {
+    rootStore.dispatch(removerAlerta(id));
   }
 };
