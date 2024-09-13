@@ -1,4 +1,4 @@
-export const PL_AGRUPADORES = {
+export const MPV_GENERICOS = {
   name: {
     namespaceURI: 'http://www.lexml.gov.br/1.0',
     localPart: 'LexML',
@@ -12,7 +12,7 @@ export const PL_AGRUPADORES = {
       TYPE_NAME: 'br_gov_lexml__1.Metadado',
       identificacao: {
         TYPE_NAME: 'br_gov_lexml__1.Identificacao',
-        urn: 'urn:lex:br:federal:lei:2024;999@data.evento;leitura;2024-07-12t18.00',
+        urn: 'urn:lex:br:federal:medida.provisoria:2024;999@data.evento;leitura;2024-07-30t14.52',
       },
     },
     projetoNorma: {
@@ -24,16 +24,39 @@ export const PL_AGRUPADORES = {
           epigrafe: {
             TYPE_NAME: 'br_gov_lexml__1.GenInline',
             id: 'epigrafe',
-            content: ['LEI Nº 999, DE 2024 '],
+            content: ['MEDIDA PROVISÓRIA Nº 999, DE 2024 '],
           },
           ementa: {
             TYPE_NAME: 'br_gov_lexml__1.GenInline',
             id: 'ementa',
-            content: ['Ementa. O CONGRESSO NACIONAL decreta:\n'],
+            content: [
+              'Altera a ',
+              {
+                name: {
+                  namespaceURI: 'http://www.lexml.gov.br/1.0',
+                  localPart: 'span',
+                  prefix: '',
+                  key: '{http://www.lexml.gov.br/1.0}span',
+                  string: '{http://www.lexml.gov.br/1.0}span',
+                },
+                value: {
+                  TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                  href: 'urn:lex:br:federal:lei:1986-12-19;7560',
+                  content: ['Lei nº 7.560, de 19 de dezembro de 1986'],
+                },
+              },
+              ', para alterar disposições acerca do Fundo Nacional Antidrogas  Ementa.  Nonononono',
+            ],
           },
           preambulo: {
             TYPE_NAME: 'br_gov_lexml__1.TextoType',
             id: 'preambulo',
+            p: [
+              {
+                TYPE_NAME: 'br_gov_lexml__1.GenInline',
+                content: ['\n O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:\n '],
+              },
+            ],
           },
         },
         articulacao: {
@@ -53,7 +76,7 @@ export const PL_AGRUPADORES = {
                 rotulo: 'PARTE I',
                 nomeAgrupador: {
                   TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                  content: ['\n    Part 1\n\n  '],
+                  content: ['Texto da Parte 1'],
                 },
                 lXhier: [
                   {
@@ -70,7 +93,7 @@ export const PL_AGRUPADORES = {
                       rotulo: 'LIVRO I',
                       nomeAgrupador: {
                         TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                        content: ['\n    Livro1\n\n  '],
+                        content: ['    Liv 1'],
                       },
                       lXhier: [
                         {
@@ -87,7 +110,7 @@ export const PL_AGRUPADORES = {
                             rotulo: 'TÍTULO I',
                             nomeAgrupador: {
                               TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                              content: ['\n    Tit 1\n\n  '],
+                              content: ['    Tit 1'],
                             },
                             lXhier: [
                               {
@@ -102,10 +125,9 @@ export const PL_AGRUPADORES = {
                                   TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
                                   id: 'prt1_liv1_tit1_cap1',
                                   rotulo: 'CAPÍTULO I',
-                                  abreAspas: 's',
                                   nomeAgrupador: {
                                     TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                    content: ['\n    Do Transporte Aéreo\n\n  '],
+                                    content: ['    Cap 1'],
                                   },
                                   lXhier: [
                                     {
@@ -135,7 +157,7 @@ export const PL_AGRUPADORES = {
                                               p: [
                                                 {
                                                   TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                  content: ['\n    Nononono.\n\n  '],
+                                                  content: ['    Nononono.'],
                                                 },
                                               ],
                                             },
@@ -157,7 +179,7 @@ export const PL_AGRUPADORES = {
                                         rotulo: 'Seção I',
                                         nomeAgrupador: {
                                           TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                          content: ['\n    Sec 1\n\n  '],
+                                          content: ['    Sec 1'],
                                         },
                                         lXhier: [
                                           {
@@ -187,7 +209,7 @@ export const PL_AGRUPADORES = {
                                                     p: [
                                                       {
                                                         TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                        content: ['\n    Nononono.\n\n  '],
+                                                        content: ['Nononono'],
                                                       },
                                                     ],
                                                   },
@@ -212,7 +234,7 @@ export const PL_AGRUPADORES = {
                                         rotulo: 'Seção II',
                                         nomeAgrupador: {
                                           TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                          content: ['\n    Sec 2\n\n  '],
+                                          content: ['    Sec 2'],
                                         },
                                         lXhier: [
                                           {
@@ -242,51 +264,12 @@ export const PL_AGRUPADORES = {
                                                     p: [
                                                       {
                                                         TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                        content: ['\n    Nononono.\n\n  '],
+                                                        content: ['Nononono.'],
                                                       },
                                                     ],
                                                   },
                                                 },
                                               ],
-                                            },
-                                          },
-                                        ],
-                                      },
-                                    },
-                                    {
-                                      name: {
-                                        namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                        localPart: 'Secao',
-                                        prefix: '',
-                                        key: '{http://www.lexml.gov.br/1.0}Secao',
-                                        string: '{http://www.lexml.gov.br/1.0}Secao',
-                                      },
-                                      value: {
-                                        TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
-                                        id: 'prt1_liv1_tit1_cap1_sec3',
-                                        rotulo: 'Seção III',
-                                        nomeAgrupador: {
-                                          TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                          content: ['\n    Sec 3\n\n  '],
-                                        },
-                                        lXhier: [
-                                          {
-                                            name: {
-                                              namespaceURI: 'http://www.lexml.gov.br/1.0',
-                                              localPart: 'Subsecao',
-                                              prefix: '',
-                                              key: '{http://www.lexml.gov.br/1.0}Secao',
-                                              string: '{http://www.lexml.gov.br/1.0}Secao',
-                                            },
-                                            value: {
-                                              TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
-                                              id: 'prt1_liv1_tit1_cap1_sec3_sub1',
-                                              rotulo: 'Subseção I',
-                                              fechaAspas: 's',
-                                              nomeAgrupador: {
-                                                TYPE_NAME: 'br_gov_lexml__1.GenInline',
-                                                content: ['\n    Subseção I\n\n  '],
-                                              },
                                             },
                                           },
                                         ],
