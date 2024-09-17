@@ -718,7 +718,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                     },
                     value: {
                       TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
-                      id: 'cap1',
+                      id: 'tit1_cap1',
                       rotulo: 'CAPÍTULO I',
                       nomeAgrupador: {
                         TYPE_NAME: 'br_gov_lexml__1.GenInline',
@@ -977,7 +977,7 @@ export const PLC_ARTIGOS_AGRUPADOS = {
                     },
                     value: {
                       TYPE_NAME: 'br_gov_lexml__1.Hierarchy',
-                      id: 'cap2',
+                      id: 'tit1_cap2',
                       rotulo: 'CAPÍTULO II',
                       nomeAgrupador: {
                         TYPE_NAME: 'br_gov_lexml__1.GenInline',

@@ -16,6 +16,7 @@ import { MPV_930_2020 } from '../doc/mpv_930_2020';
 import { MPV_1078_2021 } from '../doc/mpv_1078_2021';
 import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
+import { PL_AGRUPADORES } from '../doc/pl_agrupadores';
 import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
 import { Usuario } from '../../src/model/revisao/usuario';
@@ -36,6 +37,7 @@ import { PLP_68_2024_2 } from '../doc/plp_68_2024_2';
 import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
 import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
 import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
+import { MPV_1170_2023_ALTERADA } from '../doc/mpv_1170_2023_alterada';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -49,6 +51,7 @@ const mapProjetosNormas = {
   mpv_1232_2024: MPV_1232_2024,
   mpv_1085_2021: MPV_1085_2021,
   mpv_1170_2023: MPV_1170_2023,
+  mpv_1170_2023_ALTERADA: MPV_1170_2023_ALTERADA,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
   pl_142_2018: PLC_142_2028,
@@ -63,6 +66,7 @@ const mapProjetosNormas = {
   _codcivil_parcial1: COD_CIVIL_PARCIAL1,
   _codcivil_parcial2: COD_CIVIL_PARCIAL2,
   _plc_artigos_agrupados: PLC_ARTIGOS_AGRUPADOS,
+  _pl_agrupadores: PL_AGRUPADORES,
   _plp_68_2024: PLP_68_2024,
   _plp_68_2024_1: PLP_68_2024_1,
   _plp_68_2024_2: PLP_68_2024_2,
@@ -428,6 +432,7 @@ export class DemoView extends LitElement {
             <option value="_codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
             <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
             <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
+            <option value="_pl_agrupadores">PL Agrupadores (Simulaçao de cmd para testes)</option>
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
             <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
