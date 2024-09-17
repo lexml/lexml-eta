@@ -112,13 +112,10 @@ const findElementoAlteradoAnterior = (ref: Dispositivo, state: State, ignorarRev
   let atual: Dispositivo | undefined = ref;
   do {
     atual = getDispositivoAnteriorNaSequenciaDeLeitura(atual, d => !isCaput(d));
-    if (!atual) {
-      if (!ementa) {
-        return undefined;
-      } else {
-        atual = ementa;
-      }
-    }
+    if (!atual && !ementa) return undefined;
+    if (!atual)
+      if (!ementa) return undefined;
+      else atual = ementa;
     if (isAlterado(atual, revisoes)) return createElemento(atual);
     if (ignorarRevisoesDeExclusao) continue;
     const elemento = revisoesDeExclusao.find(r => r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura?.uuid === atual!.uuid)?.elementoAposRevisao;
