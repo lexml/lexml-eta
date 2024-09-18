@@ -86,7 +86,7 @@ export const paginarArticulacao = (articulacao: Articulacao, maxItensPorPagina =
       numFinal: parseInt(artFinalDaPagina.numero!.split('.')[0]),
     });
 
-    artInicialDaPagina = getDispositivoPosteriorNaSequenciaDeLeitura(artFinalDaPagina, d => isArtigo(d))!;
+    artInicialDaPagina = getDispositivoPosteriorNaSequenciaDeLeitura(artFinalDaPagina, d => isArtigo(d) && !isDispositivoAlteracao(d))!;
 
     if (!artInicialDaPagina) {
       break;

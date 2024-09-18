@@ -192,7 +192,11 @@ export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, a
   }
   let proximo: Dispositivo | undefined = undefined;
   if (aPartirDe) {
-    proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe);
+    if(isArticulacaoAlteracao(aPartirDe)) {
+      proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe.pai!);
+    } else {
+      proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe);
+    }
   } else {
     const filhos = isArtigo(disp) ? getFilhosArtigoEstiloLexML(disp as Artigo) : disp.filhos;
     if (filhos.length) {
@@ -203,17 +207,7 @@ export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, a
     proximo = disp.alteracoes.filhos[0];
   }
   if (!proximo && !isDispositivoRaiz(disp)) {
-    if (!isArticulacaoAlteracao(disp)) {
-      return getDispositivoPosteriorNaSequenciaDeLeitura(disp.pai!, accept, disp);
-    } else {
-      // const proximo = (disp.pai! as Artigo).caput!;
-      const dispSuperior = disp.pai!;
-      const irmaos = isArtigo(dispSuperior.pai!) ? getFilhosArtigoEstiloLexML(dispSuperior.pai as Artigo) : dispSuperior.pai!.filhos;
-      const pos = irmaos.indexOf(dispSuperior);
-      const proximo = pos > -1 ? irmaos[pos + 1] : disp.pai;
-
-      return !accept || accept(proximo!) ? proximo : getDispositivoPosteriorNaSequenciaDeLeitura(proximo!, accept);
-    }
+    return getDispositivoPosteriorNaSequenciaDeLeitura(disp.pai!, accept, disp);
   }
   return proximo ? (!accept || accept(proximo) ? proximo : getDispositivoPosteriorNaSequenciaDeLeitura(proximo, accept)) : undefined;
 };
