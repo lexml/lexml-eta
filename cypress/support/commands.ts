@@ -110,9 +110,45 @@ Cypress.Commands.add('getContainerArtigoByNumero', (numero: number): Cypress.Cha
   });
 });
 
+Cypress.Commands.add('getContainerArtigoNormaByNumero', (numero: number): Cypress.Chainable<JQuery<HTMLElement>> => {
+  return cy.get('div.container__elemento.elemento-tipo-artigo div.container__texto--nivel1 label').then($labels => {
+    const regex = new RegExp(`^Art\\. ${numero}(\\.|º)$`);
+    const $matchingLabel = $labels.filter((index, label) => regex.test(label.textContent || '')); // Filtra os labels que correspondem ao número do artigo
+    if ($matchingLabel.length) {
+      return cy.wrap($matchingLabel).closest('div.container__elemento.elemento-tipo-artigo');
+    } else {
+      return cy.wrap(Cypress.$()); // Retorna um objeto jQuery vazio dentro de um Chainable
+    }
+  });
+});
+
 Cypress.Commands.add('getContainerArtigoByRotulo', (rotulo: string): Cypress.Chainable<JQuery<HTMLElement>> => {
   const regex = new RegExp(`${rotulo}`);
   return cy.get('div.container__elemento.elemento-tipo-artigo div.container__texto--nivel0 label').contains(regex).first().closest('div.container__elemento.elemento-tipo-artigo');
+});
+
+Cypress.Commands.add('getContainerArtigoNormaByRotulo', (rotulo: string): Cypress.Chainable<JQuery<HTMLElement>> => {
+  const regex = new RegExp(`${rotulo}`);
+  return cy.get('div.container__elemento.elemento-tipo-artigo div.container__texto--nivel1 label').contains(regex).first().closest('div.container__elemento.elemento-tipo-artigo');
+});
+
+Cypress.Commands.add('getContainerParagrafoNormaByRotulo', (rotulo: string): Cypress.Chainable<JQuery<HTMLElement>> => {
+  const regex = new RegExp(`${rotulo}`);
+  return cy
+    .get('div.container__elemento.elemento-tipo-paragrafo div.container__texto--nivel2 label')
+    .contains(regex)
+    .first()
+    .closest('div.container__elemento.elemento-tipo-paragrafo');
+});
+
+Cypress.Commands.add('getContainerIncisoNormaByRotulo', (rotulo: string): Cypress.Chainable<JQuery<HTMLElement>> => {
+  const regex = new RegExp(`${rotulo}`);
+  return cy.get('div.container__elemento.elemento-tipo-inciso div.container__texto--nivel3 label').contains(regex).first().closest('div.container__elemento.elemento-tipo-inciso');
+});
+
+Cypress.Commands.add('getContainerAlineaNormaByRotulo', (rotulo: string): Cypress.Chainable<JQuery<HTMLElement>> => {
+  const regex = new RegExp(`${rotulo}`);
+  return cy.get('div.container__elemento.elemento-tipo-alinea div.container__texto--nivel4 label').contains(regex).first().closest('div.container__elemento.elemento-tipo-alinea');
 });
 
 Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, opcaoDeMenu: string): void => {
@@ -474,7 +510,12 @@ declare global {
       checarTextoPresenteEmComandoEmenda(texto: string): void;
       checarDadosAposAbrirEmenda(payload: ChecarDadosAposAbrirEmendaPayloadCypress): Chainable<void>;
       getContainerArtigoByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
+      getContainerArtigoNormaByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      getContainerArtigoNormaByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      getContainerParagrafoNormaByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      getContainerIncisoNormaByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;
+      getContainerAlineaNormaByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;
       focusOnConteudo(): Cypress.Chainable<JQuery<HTMLElement>>;
       selecionarOpcaoDeMenuDoDispositivo(opcaoDeMenu: string): void;
       getOpcoesDeMenuDoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
