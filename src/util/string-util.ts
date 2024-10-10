@@ -87,6 +87,13 @@ export const removeAllHtmlTagsExcept = (texto: string, tags: string[]): string =
   return texto.replace(regex, '');
 };
 
+export function isHtmlSemTexto(html: string | undefined): boolean {
+  if(!html) {
+    return true;
+  }
+  return removeAllHtmlTags(html).replace(/&nbsp;/g, '').trim() === '';
+}
+
 export class StringBuilder {
   private strs = new Array<string>();
 

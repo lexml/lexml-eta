@@ -60,9 +60,6 @@ describe('Testando situações de mensagem Critical na articulação.', () => {
         expect(existInArray(state.mensagensCritical, 'Existem dispositivos sem texto informado.')).to.equal(false);
       });
 
-      // it('Deveria contemplar a mensagem de ausência da justificação.', () => {
-      //   expect(existInArray(state.mensagensCritical, 'Não foi informado um texto de justificação.')).to.equal(true);
-      // });
     });
   });
 });

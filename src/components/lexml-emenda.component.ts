@@ -39,6 +39,7 @@ import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from '
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
+import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 
@@ -54,7 +55,7 @@ type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
  * Parâmetros de inicialização de edição de documento
  */
 export class LexmlEmendaParametrosEdicao {
-  modo = 'Emenda';
+  modo = 'emenda';
 
   // Identificação da proposição (texto) emendado.
   // Opcional se for informada a emenda ou o projetoNorma
@@ -228,21 +229,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this.getComissoes(this.casaLegislativa).then(comissoes => (this.comissoes = comissoes));
   }
 
-  private montarColegiadoApreciador(sigla: string, numero: string, ano: string): ColegiadoApreciador {
-    if (sigla.toUpperCase() === 'MPV') {
-      return {
-        siglaCasaLegislativa: 'CN',
-        tipoColegiado: 'Comissão',
-        siglaComissao: `CMMPV ${numero}/${ano}`,
-      };
-    }
-    // Inicialmente registra destino plenário do SF para demais matérias
-    return {
-      siglaCasaLegislativa: 'SF',
-      tipoColegiado: 'Plenário',
-    };
-  }
-
   private montarLocalFromColegiadoApreciador(colegiado: ColegiadoApreciador): any {
     return colegiado.tipoColegiado === 'Comissão' ? 'Sala da comissão' : 'Sala das sessões';
   }
@@ -284,7 +270,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = '';
     } else if (this.isEmendaTextoLivre()) {
       emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto; // visualizar ? this.removeRevisaoFormat(this._lexmlEmendaTextoRico.texto) : this._lexmlEmendaTextoRico.texto;
+      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
       emenda.anexos = this._lexmlEmendaTextoRico.anexos;
       emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
     } else {
@@ -292,7 +278,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
     }
-    emenda.justificativa = this._lexmlJustificativa.texto; // visualizar ? this.removeRevisaoFormat(this._lexmlJustificativa.texto) : this._lexmlJustificativa.texto;
+    emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.notasRodape = this._lexmlJustificativa.notasRodape;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     emenda.data = this._lexmlData.data || undefined;
@@ -320,17 +306,26 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private getPendenciasPreenchimentoEmenda(emenda: Emenda): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
-    if (this.isEmendaSubstituicaoTermo()) {
-      if (emenda.substituicaoTermo?.termo.replace('(termo a ser substituído)', '').trim() === '' || emenda.substituicaoTermo?.novoTermo.replace('(novo termo)', '').trim() === '') {
-        pendenciasPreenchimento.push('Substituição de termo não preenchida.');
-      }
-    } else {
+    if (this.isEmendaPadrao()) {
       if (emenda.comandoEmenda.comandos.length === 0) {
         pendenciasPreenchimento.push('Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
       }
+    } else if (this.isEmendaSubstituicaoTermo()) {
+      if (emenda.substituicaoTermo?.termo.replace('(termo a ser substituído)', '').trim() === '' || emenda.substituicaoTermo?.novoTermo.replace('(novo termo)', '').trim() === '') {
+        pendenciasPreenchimento.push('Substituição de termo não preenchida.');
+      }
+    } else if (this.isEmendaTextoLivre()) {
+      if (isHtmlSemTexto(emenda.comandoEmendaTextoLivre.texto)) {
+        pendenciasPreenchimento.push('Emenda de texto livre não preenchida.');
+      }
     }
 
-    const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical; //this.removeDuplicatasNodeList(this._lexmlEta!.querySelectorAll('.mensagem--danger'));
+    // Verifica preenchimento da justificação
+    if (isHtmlSemTexto(emenda.justificativa)) {
+      pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
+    }
+
+    const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical;
 
     for (let index = 0; index < messagesCritical.length; index++) {
       const element = messagesCritical[index];
@@ -338,52 +333,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     return pendenciasPreenchimento;
-  }
-
-  private removeDuplicatasNodeList(lista: any): any {
-    const novaLista: Array<any> = [];
-
-    for (let index = 0; index < lista.length; index++) {
-      const element = lista[index];
-
-      if (element.getAttribute('tipo') === TipoMensagem.CRITICAL) {
-        if (novaLista.length === 0) {
-          novaLista.push(element);
-        } else {
-          if (!this.existeInNodeList(novaLista, element.innerText)) {
-            novaLista.push(element);
-          }
-        }
-      }
-    }
-
-    return novaLista;
-  }
-
-  private existeInNodeList(lista: any, valor: any): boolean {
-    let existe = false;
-
-    for (let index = 0; index < lista.length; index++) {
-      const element = lista[index];
-      if (element.innerText === valor) {
-        existe = true;
-        break;
-      }
-    }
-
-    return existe;
-  }
-
-  private removeRevisaoFormat(texto: string): string {
-    let novoTexto = '';
-
-    if (texto !== '') {
-      texto = texto.replace(/<ins\b[^>]*>(.*?)<\/ins>/s, '');
-      texto = texto.replace(/<del\b[^>]*>(.*?)<\/del>/s, '');
-      novoTexto = texto;
-    }
-
-    return novoTexto;
   }
 
   private getRevisoes(): Revisao[] {
@@ -402,7 +351,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     try {
       this._lexmlEmendaComando.emenda = [];
       this.modo = params.modo;
-      ('');
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
@@ -909,12 +857,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     mostrarDialogDisclaimerRevisao();
   }
 
+  private isEmendaPadrao(): boolean {
+    return this.modo === ClassificacaoDocumento.EMENDA;
+  }
+
+  private isEmendaDispositivoOndeCouber(): boolean {
+    return this.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+  }
+
   private isEmendaTextoLivre(): boolean {
-    return this.modo && this.modo === 'emendaTextoLivre';
+    return this.modo === ClassificacaoDocumento.EMENDA_TEXTO_LIVRE;
   }
 
   private isEmendaSubstituicaoTermo(): boolean {
-    return this.modo === 'emendaSubstituicaoTermo';
+    return this.modo === ClassificacaoDocumento.EMENDA_SUBSTITUICAO_TERMO;
   }
 
   private updateView(): void {
