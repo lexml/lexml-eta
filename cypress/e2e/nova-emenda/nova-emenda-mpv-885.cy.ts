@@ -96,5 +96,10 @@ describe('Emenda para MPV 885', () => {
 
     cy.checarComandoEmenda();
     cy.checarTextoPresenteEmComandoEmenda(textoItem);
+
+    cy.get('#texto__dispositivo87').invoke('text', textoArtigo);
+    cy.get('#texto__dispositivo88').invoke('text', textoParagrafo);
+    cy.get('#texto__dispositivo89').invoke('text', textoInciso);
+    cy.get('#texto__dispositivo90').invoke('text', textoAlinea);
   });
 });
