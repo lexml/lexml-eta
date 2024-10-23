@@ -91,7 +91,7 @@ export class AutoriaComponent extends LitElement {
   }
 
   getAutoriaAtualizada(): Autoria {
-    return { ...this._autoria, parlamentares: this._autoria.parlamentares.filter(p => p.identificacao) };
+    return { ...this._autoria, parlamentares: this._autoria?.parlamentares.filter(p => p.identificacao) };
   }
 
   render(): TemplateResult {

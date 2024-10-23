@@ -286,7 +286,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
     emenda.epigrafe = new Epigrafe();
     emenda.epigrafe.texto = 'EMENDA Nº         ';
-    if (emenda.colegiadoApreciador.tipoColegiado !== 'Plenário' && emenda.colegiadoApreciador.siglaComissao) {
+    if (emenda.colegiadoApreciador && emenda.colegiadoApreciador.tipoColegiado !== 'Plenário' && emenda.colegiadoApreciador.siglaComissao) {
       emenda.epigrafe.texto += `- ${emenda.colegiadoApreciador.siglaComissao}`;
     }
 
@@ -295,7 +295,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.epigrafe.complemento = `${inicioEpigrafe}${generoProposicao.artigoDefinidoPrecedidoPreposicaoASingular.trim()} ${emenda.proposicao.sigla} ${numeroProposicao}/${
       emenda.proposicao.ano
     })`;
-    emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
+    if (emenda.colegiadoApreciador) emenda.local = this.montarLocalFromColegiadoApreciador(emenda.colegiadoApreciador);
     emenda.revisoes = this.getRevisoes();
     emenda.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     emenda.pendenciasPreenchimento = this.getPendenciasPreenchimentoEmenda(emenda);
