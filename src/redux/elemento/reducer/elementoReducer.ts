@@ -85,6 +85,8 @@ import { selecionaPaginaArticulacao } from './selecionaPaginaArticulacao';
 import { atualizaPaginacao } from './atualizaPaginacao';
 import { NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS } from '../../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { navegaEntreDispositivosAlterados } from './navegaEntreDispositivosAlterados';
+import { LIMPAR_ARTICULACAO } from '../../../model/lexml/acao/limparArticulacao';
+import { limpaArticulacao } from './limpaArticulacao';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -224,6 +226,9 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ERROR_INICIALIZAR_EDICAO:
       tempState = erroInicializaEdicao(state);
+      break;
+    case LIMPAR_ARTICULACAO:
+      tempState = limpaArticulacao(state);
       break;
     default:
       actionType = undefined;

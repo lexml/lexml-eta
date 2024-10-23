@@ -446,9 +446,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(limparAlertas());
 
     if (this.isEmendaTextoLivre()) {
-      this._lexmlEmendaTextoRico.setContent('');
+      this._lexmlEmendaTextoRico.reset();
       this._lexmlEmendaTextoRico.anexos = [];
     } else if (this.isEmendaSubstituicaoTermo()) {
+      this._lexmlEmendaTextoRico.reset();
       this._substituicaoTermo!.setSubstituicaoTermo(new SubstituicaoTermo());
     }
 

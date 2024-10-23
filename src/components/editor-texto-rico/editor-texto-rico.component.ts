@@ -36,6 +36,7 @@ import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { QuillUtil } from './quill-util';
 import { TipoMensagem } from '../../model/lexml/util/mensagem';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
+import { limparArticulacaoAction } from '../../model/lexml/acao/limparArticulacao';
 
 const DefaultKeyboardModule = Quill.import('modules/keyboard');
 const DefaultClipboardModule = Quill.import('modules/clipboard');
@@ -771,6 +772,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   removerNotaRodape(idNotaRodape: string): void {
     (this.quill as any).notasRodape.remover(idNotaRodape);
+  }
+
+  public reset(): void {
+    this.setContent('');
+    rootStore.dispatch(limparArticulacaoAction.execute());
   }
 }
 
