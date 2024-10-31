@@ -1,5 +1,5 @@
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
@@ -19,10 +19,14 @@ import { rootStore } from './../redux/store';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEmendaParametrosEdicao } from './lexml-emenda.component';
+import { EditorComponent } from './editor/editor.component';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
+
+  @query('lexml-eta-editor')
+  private editorComponent!: EditorComponent;
 
   private modo: any = '';
 
@@ -73,6 +77,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const articulacaoAtualizada = buildJsonixArticulacaoFromProjetoNorma(rootStore.getState().elementoReducer.articulacao);
     (out as any).value.projetoNorma[(out as any).value.projetoNorma.norma ? 'norma' : 'projeto'].articulacao.lXhier = articulacaoAtualizada.lXhier;
     return out;
+  }
+
+  getAnexos() {
+    return this.editorComponent.anexos;
   }
 
   private loadProjetoNorma(preparaAberturaEmenda: boolean, params?: LexmlEmendaParametrosEdicao): void {

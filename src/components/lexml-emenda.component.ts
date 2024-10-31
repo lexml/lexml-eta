@@ -277,6 +277,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = '';
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
+      emenda.anexos = this._lexmlEta!.getAnexos();
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.notasRodape = this._lexmlJustificativa.notasRodape;
