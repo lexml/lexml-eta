@@ -569,6 +569,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
     } else if (this.isEmendaSubstituicaoTermo()) {
       this._substituicaoTermo!.setSubstituicaoTermo(emenda.substituicaoTermo || new SubstituicaoTermo());
+    } else if (this.isEmendaPadrao() || this.isEmendaDispositivoOndeCouber()) {
+      this._lexmlEta!.atualizaAnexos(emenda.anexos || []);
     }
     this._lexmlData.data = emenda.data;
   }
