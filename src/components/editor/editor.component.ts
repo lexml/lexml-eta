@@ -131,6 +131,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.anexos = [...anexo];
   };
 
+  labelAnexo = (): string => {
+    const lengthAnexos = this.anexos?.length;
+    return lengthAnexos === 1 ? '1 anexo' : lengthAnexos > 1 ? `${lengthAnexos} anexos` : '';
+  };
+
   createRenderRoot(): LitElement {
     return this;
   }
@@ -240,7 +245,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             <sl-icon name="arrow-up-circle"></sl-icon>
           </button>
 
-          <button type="button" class="panel-anexo" title="Anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
+          <button type="button" class="panel-anexo" title="Anexo"
+                  style="width: auto"
+                  @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
             <span>
               <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2"
                    id="Layer_2">
@@ -248,6 +255,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
                   d="M18,34.75A11.32,11.32,0,0,1,6.69,23.45V8A7.78,7.78,0,0,1,22.25,8V22.49a4.58,4.58,0,1,1-9.15,0V9.29a1.25,1.25,0,0,1,2.5,0v13.2a2.08,2.08,0,1,0,4.15,0V8A5.28,5.28,0,0,0,9.19,8V23.45A8.82,8.82,0,0,0,18,32.25c4.6,0,7.81-3.62,7.81-8.8V9.66a1.25,1.25,0,0,1,2.5,0V23.45C28.31,30,24,34.75,18,34.75Z"
                 />
               </svg>
+              ${this.labelAnexo()}
             </span>
           </button>
 
