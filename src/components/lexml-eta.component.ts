@@ -6,7 +6,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
 import { DispositivosEmendaBuilder } from '../emenda/dispositivos-emenda-builder';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
-import { ComandoEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
+import { Anexo, ComandoEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -81,6 +81,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   getAnexos() {
     return this.editorComponent.anexos;
+  }
+
+  atualizaAnexos(anexos: Anexo[]) {
+    this.editorComponent.atualizaAnexo(anexos);
   }
 
   private loadProjetoNorma(preparaAberturaEmenda: boolean, params?: LexmlEmendaParametrosEdicao): void {
