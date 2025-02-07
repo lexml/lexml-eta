@@ -186,7 +186,9 @@ export const getDispositivoAnteriorNaSequenciaDeLeitura = (disp: Dispositivo, ac
 
 // Retorna o dispositivo imediatamente posterior na sequência de leitura ou primeiro dispositivo posterior aceito por "accept" na sequência de leitura
 // Considera caput. Não considera incisos de caput como filhos de artigo.
+/*
 export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, accept?: (d: Dispositivo) => boolean, aPartirDe?: Dispositivo): Dispositivo | undefined => {
+  console.log(`getDispositivoPosteriorNaSequenciaDeLeitura(${disp.id}, x, ${aPartirDe?.id})`);
   if (!disp) {
     return undefined;
   }
@@ -210,6 +212,51 @@ export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, a
     return getDispositivoPosteriorNaSequenciaDeLeitura(disp.pai!, accept, disp);
   }
   return proximo ? (!accept || accept(proximo) ? proximo : getDispositivoPosteriorNaSequenciaDeLeitura(proximo, accept)) : undefined;
+};
+*/
+
+export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, accept?: (d: Dispositivo) => boolean, aPartirDe?: Dispositivo): Dispositivo | undefined => {
+  //console.log(`getDispositivoPosteriorNaSequenciaDeLeitura(${disp.id}, x, ${aPartirDe?.id})`);
+  if (!disp) {
+    return undefined;
+  }
+  let current: Dispositivo | undefined = disp;
+  let proximo: Dispositivo | undefined = undefined;
+  while(current) {
+    //console.log(`${current?.id}, ${aPartirDe?.id}`);
+    if (aPartirDe) {
+      if(isArticulacaoAlteracao(aPartirDe)) {
+        proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe.pai!);
+      } else {
+        proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe);
+      }
+    } else {
+      const filhos = isArtigo(current) ? getFilhosArtigoEstiloLexML(current as Artigo) : current.filhos;
+      if (filhos.length) {
+        proximo = filhos[0];
+      }
+    }
+    if (!proximo && current?.hasAlteracao() && current.alteracoes?.filhos.length) {
+      proximo = current.alteracoes.filhos[0];
+    }
+    if(proximo) {
+      if(!accept || accept(proximo)) {
+        //console.log(`retornou ${proximo.id}`);
+        return proximo;
+      }
+      aPartirDe = undefined;
+      current = proximo;
+      proximo = undefined;
+    } else if(!isDispositivoRaiz(current)) {
+      aPartirDe = current;
+      current = current.pai;
+      proximo = undefined;
+    } else {
+      break;
+    }
+  }
+  //console.log(`retornou undefined`);
+  return undefined;
 };
 
 export const getFilhosArtigoEstiloLexML = (art: Artigo): Dispositivo[] => {
