@@ -34,7 +34,7 @@ const getPaginasArticulacao = (articulacao: Articulacao, config?: ConfiguracaoPa
 };
 
 const buildPaginaArticulacao = (dispositivos: Dispositivo[], numPagina: number): PaginaArticulacao => {
-  const artigos = dispositivos.filter(isArtigo);
+  const artigos = dispositivos.filter(d => isArtigo(d) && !isDispositivoAlteracao(d));
   const artInicial = artigos[0];
   const artFinal = artigos[artigos.length - 1];
   return {
