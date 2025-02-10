@@ -409,6 +409,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.updateView();
     } catch (err) {
       console.error(err);
+      this.emitirEventoFatalError(err);
       setTimeout(() => {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
@@ -528,6 +529,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         composed: true,
         detail: {
           emRevisao,
+        },
+      })
+    );
+  }
+
+  private emitirEventoFatalError(err): void {
+    this.dispatchEvent(
+      new CustomEvent('fatalError', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          err,
         },
       })
     );
