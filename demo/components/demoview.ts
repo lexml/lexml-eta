@@ -38,6 +38,7 @@ import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
 import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
 import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
 import { MPV_1170_2023_ALTERADA } from '../doc/mpv_1170_2023_alterada';
+import { PL_4_2025 } from '../doc/pl_4_2025';
 
 const mapProjetosNormas = {
   mpv_885_2019: MPV_885_2019,
@@ -72,6 +73,7 @@ const mapProjetosNormas = {
   _plp_68_2024_2: PLP_68_2024_2,
   _plp_68_2024_3: PLP_68_2024_3,
   _mpv_905_2019: MPV_905_2019,
+  _pl_4_2025: PL_4_2025,
 };
 
 const mapDispositivosBloqueados = {
@@ -436,6 +438,7 @@ export class DemoView extends LitElement {
             <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
             <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
+            <option value="_pl_4_2025">PL 4, de 2025</option>
           </select>
           <select id="modo">
             <option value="edicao" id="optEdicao">Edição</option>
