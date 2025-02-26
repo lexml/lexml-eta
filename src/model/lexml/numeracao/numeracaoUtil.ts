@@ -337,7 +337,7 @@ export const calculaNumeracao = (d: Dispositivo): string => {
 };
 
 const mapValidacaoNumeracao = {
-  Artigo: (numero: string): boolean => isNumero(numero.replace('º', '')) || /^(artigo )?[uúÚ]nico$/i.test(numero),
+  Artigo: (numero: string): boolean => isNumero(numero.replace('º', '').replace('.', '')) || /^(artigo )?[uúÚ]nico$/i.test(numero),
   Paragrafo: (numero: string): boolean => isNumero(numero.replace('º', '')) || /^(par[aáÁ]grafo )?[uúÚ]nico$/i.test(numero),
   Inciso: isRomano,
   Alinea: isLetra,
@@ -401,6 +401,10 @@ export const getNumeroAbaixo = (numero: string): string => {
     return partes.join('-');
   }
   return numero;
+};
+
+export const formatarMilhares = (valor: string): string => {
+  return new Intl.NumberFormat('pt-BR').format(Number(valor)) + '';
 };
 
 const getNumeracao = (d: Dispositivo): string => {
