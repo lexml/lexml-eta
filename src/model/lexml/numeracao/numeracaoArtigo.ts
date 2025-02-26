@@ -7,7 +7,7 @@ import { getArticulacao, isDispositivoCabecaAlteracao } from '../hierarquia/hier
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { isDispositivoAlteracao } from './../hierarquia/hierarquiaUtil';
-import { converteLetrasComplementoParaNumero, converteNumeroArabicoParaLetra, isNumeracaoValida, trataNumeroAndComplemento } from './numeracaoUtil';
+import { converteLetrasComplementoParaNumero, converteNumeroArabicoParaLetra, isNumeracaoValida, trataNumeroAndComplemento, formatarMilhares } from './numeracaoUtil';
 
 export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Numeracao {
@@ -76,7 +76,7 @@ export function NumeracaoArtigo<TBase extends Constructor>(Base: TBase): any {
       const [num, ...remaining] = partes!;
       const ordinal = +(num ?? '1') > 0 && parseInt(num ?? '1', 10) < 10;
       return (
-        (ordinal ? num + this.SUFIXO : num) +
+        (ordinal ? num + this.SUFIXO : formatarMilhares(num)) +
         (remaining.length > 0
           ? '-' +
             remaining
