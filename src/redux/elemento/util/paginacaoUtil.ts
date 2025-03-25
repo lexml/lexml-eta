@@ -30,6 +30,10 @@ const getPaginasArticulacao = (articulacao: Articulacao, config?: ConfiguracaoPa
   const dispositivosAgrupadosPorPagina = config?.rangeArtigos
     ? paginarArticulacaoByNumerosArtigos(articulacao, config.rangeArtigos)
     : paginarArticulacao(articulacao, config?.maxItensPorPagina);
+  if(!dispositivosAgrupadosPorPagina.length) {
+    // Caso de abertura de emenda onde couber
+    return [buildPaginaArticulacaoVazia()];
+  }
   return dispositivosAgrupadosPorPagina.map((dispositivos, index) => buildPaginaArticulacao(dispositivos, index + 1));
 };
 
@@ -45,6 +49,18 @@ const buildPaginaArticulacao = (dispositivos: Dispositivo[], numPagina: number):
     },
     dispositivos,
     ids: dispositivos.map(d => d.id!),
+  };
+};
+
+const buildPaginaArticulacaoVazia = (): PaginaArticulacao => {
+  return {
+    descricao: `Página única`,
+    rangeArtigos: {
+      numInicial: 0,
+      numFinal: 0,
+    },
+    dispositivos: [],
+    ids: [],
   };
 };
 
