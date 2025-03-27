@@ -293,6 +293,12 @@ export const editorTextoRicoCss = html`
       display: block;
     }
 
+    @-moz-document url-prefix() {
+      #editor-texto-rico-justificativa-inner > .ql-editor {
+        white-space: pre-wrap;
+      }
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;

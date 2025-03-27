@@ -19,6 +19,7 @@ export class DispositivoModificado implements TipoSituacao {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getAcoesPermitidas(dispositivo: Dispositivo, acoes: any[]): any[] {
     const acoesFiltradas = acoes
+      .filter((a: any) => !!a)
       .filter((a: ElementoAction) => !(a instanceof AgruparElemento))
       .filter((a: ElementoAction) => !(a instanceof RemoverElemento))
       .filter((a: ElementoAction) => !(a instanceof RenumerarElemento))

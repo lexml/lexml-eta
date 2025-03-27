@@ -277,6 +277,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       emenda.comandoEmendaTextoLivre.texto = '';
       emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
       emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
+      emenda.anexos = this._lexmlEta!.getAnexos();
     }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.notasRodape = this._lexmlJustificativa.notasRodape;
@@ -408,6 +409,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.updateView();
     } catch (err) {
       console.error(err);
+      this.emitirEventoFatalError(err);
       setTimeout(() => {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
@@ -533,6 +535,18 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     );
   }
 
+  private emitirEventoFatalError(err): void {
+    this.dispatchEvent(
+      new CustomEvent('fatalError', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          err,
+        },
+      })
+    );
+  }
+
   private desativarMarcaRevisao = (): void => {
     if (rootStore.getState().elementoReducer.emRevisao) {
       const quantidade = getQuantidadeRevisoesAll(rootStore.getState().elementoReducer.revisoes);
@@ -569,6 +583,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
     } else if (this.isEmendaSubstituicaoTermo()) {
       this._substituicaoTermo!.setSubstituicaoTermo(emenda.substituicaoTermo || new SubstituicaoTermo());
+    } else if (this.isEmendaPadrao() || this.isEmendaDispositivoOndeCouber()) {
+      this._lexmlEta!.atualizaAnexos(emenda.anexos || []);
     }
     this._lexmlData.data = emenda.data;
   }
