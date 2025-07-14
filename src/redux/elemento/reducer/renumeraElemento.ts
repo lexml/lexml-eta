@@ -8,6 +8,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { formatarMilhares } from '../../../model/lexml/numeracao/numeracaoUtil';
 
 const ajustarNumero = (dispositivo: Dispositivo, numero: string | undefined): string => {
   if (!numero) {
@@ -19,7 +20,7 @@ const ajustarNumero = (dispositivo: Dispositivo, numero: string | undefined): st
   }
 
   const partes = numero.split('-');
-  return partes.map((parte, index) => (index > 0 ? parte.toUpperCase() : parte)).join('-');
+  return partes.map((parte, index) => (index === 0 ? formatarMilhares(parte) : parte.toUpperCase())).join('-');
 };
 
 export const renumeraElemento = (state: any, action: any): State => {

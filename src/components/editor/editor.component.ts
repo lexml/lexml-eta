@@ -35,7 +35,7 @@ import { validarElementoAction } from '../../model/lexml/acao/validarElementoAct
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
-import { podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
+import { formatarMilhares, podeRenumerar, rotuloParaEdicao } from '../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { Paginacao, StateEvent, StateType } from '../../redux/state';
 import { AutoFix, TipoMensagem } from '../../model/lexml/util/mensagem';
@@ -527,6 +527,28 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     };
 
+    const aplicarMascaraNumeroArtigo = () => {
+      if (elemento.tipo !== 'Artigo') return;
+
+      let valor = input.value;
+
+      // Garante que as letras após o hífen sejam maiúsculas
+      const partes = valor.split('-');
+
+      // Formata os números com pontos (ex.: 1111 -> 1.111) e Remove caracteres inválidos
+      partes[0] = formatarMilhares(partes[0].replace(/[^0-9]/g, ''));
+
+      if (partes.length > 1) {
+        partes[1] = partes[1].toUpperCase(); // Converte letras para maiúsculas
+        valor = partes.join('-');
+      } else {
+        valor = partes[0];
+      }
+
+      input.value = valor;
+    };
+
+    input.addEventListener('input', aplicarMascaraNumeroArtigo);
     input.addEventListener('keyup', validarInput);
     input.addEventListener('sl-clear', validarInput);
 
