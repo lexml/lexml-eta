@@ -54,7 +54,8 @@ export class EtaBlotExistencia extends EtaBlot {
     if (podeAdicionarAtributoDeExistencia(elemento)) {
       return elemento.existeNaNormaAlterada ? 'Existente' : 'Novo';
     } else {
-      return '';
+      // Adicionando espaço em vez de string vazia, evita que o quill adicione uma quebra de linha indesejada.
+      return '&nbsp;';
     }
   }
 }
