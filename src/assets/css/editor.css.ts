@@ -584,8 +584,7 @@ export const editorStyles = html`
     .blot-tipo-omissis br,
     .agrupador.dispositivo-alteracao p[fecha-aspas] br,
     .h-artigo br {
-      display: inline; /* faz o BR não pular linha em texto__dispositivo vazio */
-      content: ''; /* descola cursor do rótulo e remove quebra de linha quando "(NR) */
+      display: none; /* faz o BR não pular linha em texto__dispositivo vazio */
     }
 
     .mobile-buttons {
