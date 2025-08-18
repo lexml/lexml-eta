@@ -1,7 +1,7 @@
 import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-@customElement('lexml-eta-atalhos')
+@customElement('lexml-eta-emenda-atalhos')
 export class AtalhosComponent extends LitElement {
   static styles = css`
     :host {
@@ -104,6 +104,6 @@ export class AtalhosComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-eta-atalhos': AtalhosComponent;
+    'lexml-eta-emenda-atalhos': AtalhosComponent;
   }
 }

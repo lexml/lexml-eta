@@ -2,7 +2,7 @@ import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { Revisao } from '../revisao/revisao';
 
 export class Emenda {
-  // Metadados padronizados para o lexml-eta
+  // Metadados padronizados para o lexml-eta-emenda
   dataUltimaModificacao = new Date().toISOString();
   aplicacao = '';
   versaoAplicacao = '';

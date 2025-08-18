@@ -80,7 +80,7 @@ import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexm
 import { emendaDivididaDialog } from './emendaDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 
-@customElement('lexml-eta-editor')
+@customElement('lexml-eta-emenda-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
@@ -187,7 +187,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           --lx-eta-editor-overflow: display;
         }
 
-        lexml-eta-editor .ql-editor {
+        lexml-eta-emenda-editor .ql-editor {
           white-space: normal;
         }
 
@@ -1361,7 +1361,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private alertaGlobalVerificaCorrelacao(): void {
-    const dispositivosEmenda = (document.querySelector('lexml-eta') as LexmlEtaComponent).getDispositivosEmenda() || [];
+    const dispositivosEmenda = (document.querySelector('lexml-eta-emenda') as LexmlEtaComponent).getDispositivosEmenda() || [];
     const listaLexmlIds = Object.values(dispositivosEmenda)
       .flat(1)
       .map(obj => obj.id);

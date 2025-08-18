@@ -150,7 +150,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @query('lexml-substituicao-termo')
   _substituicaoTermo?: SubstituicaoTermoComponent;
 
-  @query('lexml-eta')
+  @query('lexml-eta-emenda')
   _lexmlEta?: LexmlEtaComponent;
   @query('#editor-texto-rico-emenda')
   _lexmlEmendaTextoRico;
@@ -394,7 +394,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         this.desativarMarcaRevisao();
       }
 
-      this._tabsEsquerda.show('lexml-eta');
+      this._tabsEsquerda.show('lexml-eta-emenda');
 
       if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
         setTimeout(() => {
@@ -462,7 +462,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
     setTimeout(this.handleResize, 0);
 
-    this._tabsEsquerda.show('lexml-eta');
+    this._tabsEsquerda.show('lexml-eta-emenda');
 
     if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
       setTimeout(() => {
@@ -754,7 +754,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const getElement = (selector: string): HTMLElement => document.querySelector(selector) as HTMLElement;
 
     const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
-    const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta"]');
+    const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta-emenda"]');
     const qlToolbarJustificativa = getElement('#editor-texto-rico-justificativa .ql-toolbar');
     const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
 
@@ -920,7 +920,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
           display: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? 'block' : 'none'};
           height: 100%;
         }
-        lexml-eta {
+        lexml-eta-emenda {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
@@ -1064,20 +1064,20 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
-            <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
+            <sl-tab slot="nav" panel="lexml-eta-emenda">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>
             <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
-            <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              <lexml-eta
+            <sl-tab-panel name="lexml-eta-emenda" class="overflow-hidden">
+              <lexml-eta-emenda
                 style="display: ${!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo() ? 'block' : 'none'}"
                 id="lexmlEta"
                 .lexmlEtaConfig=${this.lexmlEmendaConfig}
                 @onchange=${this.onChange}
-              ></lexml-eta>
+              ></lexml-eta-emenda>
               <editor-texto-rico
                 style="display: ${this.isEmendaTextoLivre() ? 'block' : 'none'}"
                 modo="textoLivre"
@@ -1107,7 +1107,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               </div>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
-              <lexml-eta-alertas></lexml-eta-alertas>
+              <lexml-eta-emenda-alertas></lexml-eta-emenda-alertas>
             </sl-tab-panel>
           </sl-tab-group>
         </div>
@@ -1124,10 +1124,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             ${this.tabIsVisible('notas')
               ? html`
                   <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
-                    <sl-badge variant="primary" id="badgeAtalhos" pill>
-                      <sl-icon name="footnote"></sl-icon>
-                      Notas
-                    </sl-badge>
+                    <sl-icon name="footnote"></sl-icon>
+                    Notas
                   </sl-tab>
                 `
               : ''}
@@ -1162,7 +1160,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-ajuda></lexml-ajuda>
             </sl-tab-panel>
             <sl-tab-panel name="atalhos" class="overflow-hidden">
-              <lexml-eta-atalhos></lexml-eta-atalhos>
+              <lexml-eta-emenda-atalhos></lexml-eta-emenda-atalhos>
             </sl-tab-panel>
           </sl-tab-group>
         </div>

@@ -21,11 +21,11 @@ import { Revisao } from '../model/revisao/revisao';
 import { LexmlEmendaParametrosEdicao } from './lexml-emenda.component';
 import { EditorComponent } from './editor/editor.component';
 
-@customElement('lexml-eta')
+@customElement('lexml-eta-emenda')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
-  @query('lexml-eta-editor')
+  @query('lexml-eta-emenda-editor')
   private editorComponent!: EditorComponent;
 
   private modo: any = '';
@@ -48,7 +48,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.projetoNorma = projetoNorma;
     }
     this.loadProjetoNorma(preparaAberturaEmenda, params);
-    document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
+    document.querySelector('lexml-eta-emenda-articulacao')!['style'].display = 'block';
   }
 
   getDispositivosEmenda(): DispositivosEmenda | undefined {
@@ -136,19 +136,19 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           display: block;
         }
 
-        lexml-eta-articulacao {
+        lexml-eta-emenda-articulacao {
           display: none;
           height: 100%;
         }
 
-        lexml-eta-articulacao:focus {
+        lexml-eta-emenda-articulacao:focus {
           outline: 0;
           border: 0px solid #f1f1f1;
           -webkit-box-shadow: 0px;
           box-shadow: none;
         }
       </style>
-      <lexml-eta-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-articulacao>
+      <lexml-eta-emenda-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-emenda-articulacao>
     `;
   }
 }
