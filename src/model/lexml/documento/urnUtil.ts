@@ -3,9 +3,36 @@ import { Autoridade } from '../../documento/autoridade';
 import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
 import { VOCABULARIO } from './vocabulario';
 
-export const getAutoridade = (urn: string): Autoridade | undefined => {
+type DadosURN = {
+  nivel: string;
+  autoridade: string;
+  tipo: string;
+  identificador: string;
+};
+
+const _parseURN = (urn: string): DadosURN => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.autoridades.filter(t => t.urn === partes[0])[0];
+  const nivelImplicito = partes.length === 3;
+  if (nivelImplicito) {
+    return {
+      nivel: 'federal',
+      autoridade: partes[0],
+      tipo: partes[1],
+      identificador: partes[2],
+    };
+  } else {
+    return {
+      nivel: partes[0],
+      autoridade: partes[1],
+      tipo: partes[2],
+      identificador: partes[3],
+    };
+  }
+};
+
+export const getAutoridade = (urn: string): Autoridade | undefined => {
+  const dadosURN = _parseURN(urn);
+  return VOCABULARIO.autoridades.find(t => t.urn === dadosURN.autoridade);
 };
 
 export const getSigla = (urn: string): string => {
@@ -15,15 +42,15 @@ export const getSigla = (urn: string): string => {
 };
 
 export const getTipo = (urn: string): any => {
-  const tipo = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.tiposDocumento.filter(t => t.urn === tipo[1])[0];
+  const dadosURN = _parseURN(urn);
+  return VOCABULARIO.tiposDocumento.find(t => t.urn === dadosURN.tipo);
 };
 
 export const getNumero = (urn: string): string => {
   // urn:lex:br:federal:medida.provisoria:2019-11-11;905
   // urn:lex:br:senado.federal:proposta.emenda.constitucional;pec:2019;16@data.evento;leitura;2019-03-19t14.00
-  const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  const anoNumero = partes[2].replace(/@.+$/, '').split(';');
+  const dadosURN = _parseURN(urn);
+  const anoNumero = dadosURN.identificador.replace(/@.+$/, '').split(';');
   return anoNumero.length > 1 ? anoNumero[1] : '';
 };
 
@@ -32,41 +59,42 @@ export const formataNumero = (numero: string): string => {
 };
 
 export const getData = (urn: string): string => {
-  const partes = urn.replace('urn:lex:br:', '')?.split(':');
+  const dadosURN = _parseURN(urn);
 
-  if (partes.length < 3) {
+  /*  este caso pode acontecer?
+if (partes.length < 3) {
     return '';
-  }
+  }*/
 
   // Sem identificação (nem data nem número)
   // Ex: federal:lei:LEXML_URN_ID
-  if (partes[2] === 'LEXML_URN_ID') {
+  if (dadosURN.identificador === 'LEXML_URN_ID') {
     return '';
   }
 
   // Apenas ano
   // Ex: federal:lei:2020;123
-  if (/^\d{4};$/.test(partes[2])) {
-    return partes[2].split(';')[0];
+  if (/^\d{4};$/.test(dadosURN.identificador)) {
+    return dadosURN.identificador.split(';')[0];
   }
 
   // Data completa
   // Ex: federal:lei:2020-10-22;123
-  const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
+  const d = dadosURN.identificador?.substring(0, dadosURN.identificador.indexOf(';'))?.split('-')?.reverse();
   return d ? d.join('/') : '';
 };
 
 export const getDataPorExtenso = (urn: string): string => {
   const mes = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
-  const partes = urn.replace('urn:lex:br:', '')?.split(':');
+  const dadosURN = _parseURN(urn);
 
-  const dataInformada = partes[2]?.substring(0, partes[2].indexOf(';'));
+  const dataInformada = dadosURN.identificador?.substring(0, dadosURN.identificador.indexOf(';'));
 
   if (/^\d{4}$/.test(dataInformada) || /\d{4}$/.test(dataInformada)) {
     return dataInformada;
   }
-  const d = partes[2]?.substring(0, partes[2].indexOf(';'))?.split('-')?.reverse();
+  const d = dadosURN.identificador?.substring(0, dadosURN.identificador.indexOf(';'))?.split('-')?.reverse();
 
   if (d) {
     d[1] = mes[+d[1] - 1];
