@@ -20,6 +20,7 @@ export class EtaBlotRevisao extends EtaBlot {
     const node: HTMLElement = super.create();
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRevisao.className);
+    node.setAttribute('type', 'button');
     EtaBlotRevisao.atualizarAtributos(elemento, node);
     return node;
   }

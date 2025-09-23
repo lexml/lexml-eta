@@ -21,6 +21,7 @@ export class EtaBlotRevisaoAceitar extends EtaBlot {
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRevisaoAceitar.className);
     node.setAttribute('title', 'Aceitar revisão');
+    node.setAttribute('type', 'button');
     EtaBlotRevisaoAceitar.atualizarAtributos(elemento, node);
     return node;
   }
