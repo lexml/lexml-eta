@@ -128,7 +128,8 @@ export class DemoView extends LitElement {
   constructor() {
     super();
     this.emendaConfig = new LexmlEmendaConfig();
-    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/fee83f1d-e204-4746-adf6-c0f617156a6a';
+    this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
+    this.emendaConfig.urlComissoes = '/comissoes';
   }
 
   createRenderRoot(): LitElement {
