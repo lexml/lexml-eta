@@ -367,7 +367,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
       if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda, params);
+        this._lexmlEta!.inicializarEdicao(this.urn, params.projetoNorma, !!params.emenda, params);
       }
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
@@ -442,7 +442,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     }
 
     if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.params);
+      this._lexmlEta!.inicializarEdicao(this.urn, this.projetoNorma, false, this.params);
     }
 
     rootStore.dispatch(limparAlertas());
@@ -830,7 +830,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   buildAlertaJustificativa(comandoEmenda: any): void {
     if (comandoEmenda === null) {
-      comandoEmenda = this._lexmlEta!.getComandoEmenda();
+      // comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     }
