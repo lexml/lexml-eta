@@ -3,7 +3,6 @@ import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTexto
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isEmenta } from '../../dispositivo/tipo';
-import { ClassificacaoDocumento } from '../../documento/classificacao';
 import {
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
@@ -18,7 +17,6 @@ import {
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
 import { isBloqueado } from '../regras/regrasUtil';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
@@ -297,7 +295,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
   if (
     !isDispositivoAlteracao(dispositivo) &&
     dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-    (dispositivo.situacao as DispositivoAdicionado).tipoEmenda !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
     dispositivo.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
   ) {
     const dispositivos = [] as any;

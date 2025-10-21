@@ -181,7 +181,6 @@ export class DemoView extends LitElement {
     this.projetoNorma = {};
 
     const params = new LexmlEmendaParametrosEdicao();
-    params.modo = this.modo;
     params.projetoNorma = this.projetoNorma;
     this.elLexmlEmenda.inicializarEdicao(params);
 
@@ -205,11 +204,10 @@ export class DemoView extends LitElement {
 
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
-          params.modo = this.modo;
           params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
           params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
-          if (this.projetoNorma) {
+          if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
             params.projetoNorma = this.projetoNorma;
 
             params.isMateriaOrcamentaria = this.elLexmlEmenda.getEmentaFromProjetoNorma(this.projetoNorma).indexOf('crédito extraordinário') >= 0;
@@ -220,8 +218,8 @@ export class DemoView extends LitElement {
           } else {
             params.proposicao = {
               sigla: 'PL',
-              numero: '3',
-              ano: '2023',
+              numero: '1',
+              ano: new Date().getFullYear().toString(),
               ementa:
                 'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).',
             };
@@ -282,7 +280,6 @@ export class DemoView extends LitElement {
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
 
           const params = new LexmlEmendaParametrosEdicao();
-          params.modo = this.modo;
           params.projetoNorma = this.projetoNorma;
           params.emenda = emenda;
           this.elLexmlEmenda.inicializarEdicao(params);

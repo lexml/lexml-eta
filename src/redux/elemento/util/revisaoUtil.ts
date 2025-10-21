@@ -16,7 +16,6 @@ import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
-import { Modo } from '../enum/enumUtil';
 import { unificarEvento } from '../evento/eventosUtil';
 import { buildPast } from './stateReducerUtil';
 
@@ -330,8 +329,8 @@ export const ativarDesativarMarcaDeRevisao = (rootStore: any, quantidade: number
   rootStore.dispatch(ativarDesativarRevisaoAction.execute(quantidade));
 };
 
-export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any, modo: string): void => {
-  const quantidade = modo === Modo.EMENDA ? getQuantidadeRevisoes(revisoes) : 0;
+export const atualizaQuantidadeRevisao = (revisoes: Revisao[] = [], element: any): void => {
+  const quantidade = getQuantidadeRevisoes(revisoes);
   if (element) {
     element.innerHTML = quantidade;
   }

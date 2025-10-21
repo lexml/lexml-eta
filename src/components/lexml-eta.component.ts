@@ -45,11 +45,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     document.querySelector('lexml-eta-emenda-articulacao')!['style'].display = 'block';
   }
 
-  getDispositivosEmenda(): DispositivosEmenda | undefined {
-    // const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return undefined; //new DispositivosEmendaBuilder(this.modo, this.urn, articulacao).getDispositivosEmenda();
-  }
-
   setDispositivosERevisoesEmenda(dispositivosEmenda: DispositivosEmenda | undefined, revisoes?: Revisao[]): void {
     this.revisoes = revisoes;
     if (dispositivosEmenda) {

@@ -16,7 +16,7 @@ let state: State;
 describe('Testando movimentação de artigo com alteração de norma', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
-    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
     state = aplicaAlteracoesEmenda(state, { alteracoesEmenda: EMENDA_012.componentes[0].dispositivos });
 
     const dispositivo = buscaDispositivoById(state.articulacao!, 'art1-1')!;

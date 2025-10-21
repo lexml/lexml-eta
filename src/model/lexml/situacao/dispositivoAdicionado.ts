@@ -7,7 +7,7 @@ import { DispositivoNovo } from './dispositivoNovo';
 
 export class DispositivoAdicionado extends DispositivoNovo {
   descricaoSituacao = DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-  tipoEmenda = ClassificacaoDocumento.EMENDA;
+  tipoEmenda = ClassificacaoDocumento.PROJETO;
   existeNaNormaAlterada?;
 
   getAcoesPermitidas(dispositivo: Dispositivo, acoes: any[]): any[] {

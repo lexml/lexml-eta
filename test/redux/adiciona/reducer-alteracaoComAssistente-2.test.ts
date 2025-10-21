@@ -29,11 +29,11 @@ describe('Testando a "sincronização" de ids em alteração de norma', () => {
     artigo.texto = 'Teste 1.';
     artigo.caput!.texto = 'Teste 1.';
     const situacao = new DispositivoAdicionado();
-    situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
+    situacao.tipoEmenda = ClassificacaoDocumento.PROJETO;
     artigo.situacao = situacao;
 
-    // state = openArticulacaoAction(projetoNorma.articulacao!, ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER);
-    state = abreArticulacao(state, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER });
+    // state = openArticulacaoAction(projetoNorma.articulacao!, ClassificacaoDocumento.PROJETO_ARTIGO_ONDE_COUBER);
+    state = abreArticulacao(state, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
     // state.ui = {} as any;
   });
 
