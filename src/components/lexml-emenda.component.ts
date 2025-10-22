@@ -18,8 +18,6 @@ import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, RefProposi
 import { buildFakeUrn, getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
-import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
-import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
 import { LexmlEtaComponent } from './lexml-eta.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
@@ -162,11 +160,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   _tabsEsquerda;
   @query('#tabs-direita')
   _tabsDireita;
-  @query('lexml-emenda-comando')
-  _lexmlEmendaComando!: ComandoEmendaComponent;
-
-  @query('lexml-emenda-comando-modal')
-  _lexmlEmendaComandoModal!: ComandoEmendaModalComponent;
 
   @query('sl-split-panel')
   private slSplitPanel!: any;
@@ -314,7 +307,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEmendaParametrosEdicao) {
     try {
-      this._lexmlEmendaComando.emenda = [];
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
@@ -477,7 +469,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     emenda.autoria = this.montarAutoriaPadrao(params);
     emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
     emenda.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
-    this._lexmlEmendaComando.emenda = {};
     this.setEmenda(emenda);
     rootStore.dispatch(limparRevisaoAction.execute());
   }
@@ -676,20 +667,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(): void {
-    const comandoEmenda = null as any;
-    this.buildAlertaJustificativa(comandoEmenda);
+    this.buildAlertaJustificativa();
   }
 
-  buildAlertaJustificativa(comandoEmenda: any): void {
-    if (comandoEmenda === null) {
-      // comandoEmenda = this._lexmlEta!.getComandoEmenda();
-      this._lexmlEmendaComando.emenda = comandoEmenda;
-      this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
-    }
-
-    if (comandoEmenda !== null && comandoEmenda.comandos?.length > 0 && this._lexmlJustificativa.isEditorVazio()) {
-      this.disparaAlerta();
-    } else {
+  buildAlertaJustificativa(): void {
+    if (!this._lexmlJustificativa.isEditorVazio()) {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
     }
   }
@@ -965,9 +947,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
                   </sl-tab>
                 `
               : ''}
-            <sl-tab-panel name="comando" class="overflow-hidden">
-              <lexml-emenda-comando></lexml-emenda-comando>
-            </sl-tab-panel>
             <sl-tab-panel name="notas" class="overflow-hidden">
               <div class="notas-rodape">
                 <h4>Notas de rodapé</h4>

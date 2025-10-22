@@ -1,5 +1,5 @@
 import { Elemento } from '../../model/elemento';
-import './autocomplete-norma';
+import '../autocomplete/autocomplete-norma';
 
 export async function informarNormaDialog(elemento: Elemento, quill: any, store: any, action: any, urlAutocomplete: string): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');

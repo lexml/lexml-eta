@@ -27,7 +27,6 @@ import { ModuloNotaRodape } from './components/editor-texto-rico/moduloNotaRodap
 // ---------------------------------------------------
 
 export { ArticulacaoComponent } from './components/articulacao.component';
-export { ComandoEmendaComponent } from './components/comandoEmenda/comandoEmenda.component';
 export { EditorComponent } from './components/editor/editor.component';
 export { ElementoComponent } from './components/elemento/elemento.component';
 export { AtalhosComponent as HelpComponent } from './components/ajuda/atalhos.component';
@@ -45,7 +44,6 @@ export { AlertasComponent } from './components/alertas/alertas.component';
 export { AjudaComponent } from './components/ajuda/ajuda.component';
 export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
 export { SufixosModalComponent } from './components/sufixos/sufixos.modal.componet';
-export { ComandoEmendaModalComponent } from './components/comandoEmenda/comandoEmenda.modal.component';
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
 export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';

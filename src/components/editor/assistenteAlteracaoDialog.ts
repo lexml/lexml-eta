@@ -1,7 +1,7 @@
 import { Elemento } from '../../model/elemento';
 import { Norma } from '../../model/emenda/norma';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
-import './autocomplete-norma';
+import '../autocomplete/autocomplete-norma';
 
 export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, store: any, action: any, urlAutocomplete: string): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');

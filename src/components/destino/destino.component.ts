@@ -1,6 +1,6 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
-import { AutocompleteAsync, Option } from '../editor/autocomplete-async';
+import { AutocompleteAsync, Option } from '../autocomplete/autocomplete-async';
 import { ColegiadoApreciador, RefProposicaoEmendada } from '../../model/emenda/emenda';
 import { Comissao } from './comissao';
 import { rootStore } from '../../redux/store';

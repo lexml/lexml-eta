@@ -17,7 +17,6 @@ import { MPV_1078_2021 } from '../doc/mpv_1078_2021';
 import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { PL_AGRUPADORES } from '../doc/pl_agrupadores';
-import { ComandoEmendaComponent } from './../../src/components/comandoEmenda/comandoEmenda.component';
 import { getAno, getNumero, getSigla } from './../../src/model/lexml/documento/urnUtil';
 import { Usuario } from '../../src/model/revisao/usuario';
 import { PDL_343_2023 } from '../doc/pdl_343_2023';
@@ -115,9 +114,6 @@ export class DemoView extends LitElement {
   @query('lexml-emenda')
   private elLexmlEmenda!: LexmlEmendaComponent;
 
-  @query('lexml-emenda-comando')
-  private elLexmlEmendaComando!: ComandoEmendaComponent;
-
   @state() modo = 'edicao';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
@@ -177,7 +173,6 @@ export class DemoView extends LitElement {
 
   limparTela(): void {
     this.elLexmlEmenda.style.display = 'none';
-    this.elLexmlEmendaComando.style.display = 'none';
     this.projetoNorma = {};
 
     const params = new LexmlEmendaParametrosEdicao();
@@ -286,8 +281,6 @@ export class DemoView extends LitElement {
 
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
-          this.elLexmlEmendaComando.emenda = emenda.comandoEmenda;
-          this.elLexmlEmendaComando.style.display = 'block';
           // this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
           this.elLexmlEmenda.style.display = 'block';
 

@@ -3,8 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
-import { Anexo, ComandoEmenda } from '../model/emenda/emenda';
+import { Anexo } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -51,11 +50,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.dispositivosEmenda = dispositivosEmenda;
       this.loadEmenda();
     }
-  }
-
-  getComandoEmenda(): ComandoEmenda {
-    const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return new ComandoEmendaBuilder(this.urn, articulacao).getComandoEmenda();
   }
 
   getProjetoAtualizado(): any {

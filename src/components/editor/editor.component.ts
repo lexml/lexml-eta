@@ -55,7 +55,6 @@ import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { atualizarNotaAlteracaoAction } from './../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
-import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.modal.component';
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { informarNormaDialog } from './informarNormaDialog';
@@ -88,9 +87,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-atalhos-modal')
   private atalhosModal!: AtalhosModalComponent;
-
-  @query('lexml-emenda-comando-modal')
-  private comandoEmendaModal!: ComandoEmendaModalComponent;
 
   @query('lexml-sufixos-modal')
   private sufixosModal!: SufixosModalComponent;
@@ -272,10 +268,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
-            <button class="mobile-button btn-comando" title="Comando" @click=${this.showComandoEmendaModal}>
-              <sl-icon name="code"></sl-icon>
-              <span>Comando</span>
-            </button>
             <button class="mobile-button btn-dicas" title="Dicas" @click=${this.showAjudaModal}>
               <sl-icon name="lightbulb"></sl-icon>
               <span>Dicas</span>
@@ -315,10 +307,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private showAtalhosModal(): void {
     this.atalhosModal.show();
-  }
-
-  private showComandoEmendaModal(): void {
-    this.comandoEmendaModal.show();
   }
 
   private formatacaoAlterada(): void {
