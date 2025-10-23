@@ -18,7 +18,7 @@ export class AtalhosModalComponent extends LitElement {
         }
       </style>
       <sl-dialog label="Atalhos">
-        <lexml-eta-atalhos></lexml-eta-atalhos>
+        <lexml-eta-emenda-atalhos></lexml-eta-emenda-atalhos>
         <sl-button slot="footer" variant="primary" @click=${(): void => this.slDialog.hide()}>Fechar</sl-button>
       </sl-dialog>
     `;

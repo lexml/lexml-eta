@@ -185,7 +185,7 @@ const criaEventosParaDispositivoAgrupador = (state: any, dea: DispositivoEmendaA
 
     const novo = getDispositivoFromElemento(articulacao, novoAgrupador)!;
 
-    ajustaAtributosDispositivoAdicionado(novo, dea, ClassificacaoDocumento.EMENDA);
+    ajustaAtributosDispositivoAdicionado(novo, dea, ClassificacaoDocumento.PROJETO);
 
     elementosIncluidos.length = 0;
     elementosIncluidos.push(createElemento(novo));

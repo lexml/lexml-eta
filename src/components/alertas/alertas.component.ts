@@ -34,7 +34,7 @@ const mapTipoMensagem = {
   },
 };
 
-@customElement('lexml-eta-alertas')
+@customElement('lexml-eta-emenda-alertas')
 export class AlertasComponent extends connect(rootStore)(LitElement) {
   static styles = css`
     sl-alert {

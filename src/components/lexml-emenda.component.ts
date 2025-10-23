@@ -14,10 +14,9 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, ModoEdicaoEmenda, Parlamentar, RefProposicaoEmendada, OpcoesImpressao, SubstituicaoTermo } from '../model/emenda/emenda';
+import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, RefProposicaoEmendada, OpcoesImpressao } from '../model/emenda/emenda';
 import { buildFakeUrn, getAno, getNumero, getSigla, getTipo } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
-import { ClassificacaoDocumento } from './../model/documento/classificacao';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { ComandoEmendaComponent } from './comandoEmenda/comandoEmenda.component';
 import { ComandoEmendaModalComponent } from './comandoEmenda/comandoEmenda.modal.component';
@@ -30,7 +29,6 @@ import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
-import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { generoFromLetra } from '../model/dispositivo/genero';
 import { Comissao } from './destino/comissao';
@@ -55,8 +53,6 @@ type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
  * Parâmetros de inicialização de edição de documento
  */
 export class LexmlEmendaParametrosEdicao {
-  modo = 'emenda';
-
   // Identificação da proposição (texto) emendado.
   // Opcional se for informada a emenda ou o projetoNorma
   proposicao?: {
@@ -117,8 +113,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) comissoes: Comissao[] = [];
   @property({ type: Object }) lexmlEmendaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
-  private modo: any = ClassificacaoDocumento.EMENDA;
-
   private urn = '';
 
   private ementa = '';
@@ -150,7 +144,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   @query('lexml-substituicao-termo')
   _substituicaoTermo?: SubstituicaoTermoComponent;
 
-  @query('lexml-eta')
+  @query('lexml-eta-emenda')
   _lexmlEta?: LexmlEtaComponent;
   @query('#editor-texto-rico-emenda')
   _lexmlEmendaTextoRico;
@@ -235,7 +229,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private montarEmendaBasica(): Emenda {
     const emenda = new Emenda();
-    emenda.modoEdicao = this.modo;
     emenda.componentes[0].urn = this.urn;
     emenda.proposicao = this.montarProposicaoPorUrn(this.urn, this.ementa);
     return emenda;
@@ -264,21 +257,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
     const emenda = this.montarEmendaBasica();
     const numeroProposicao = emenda.proposicao.numero.replace(/^0+/, '');
-    if (this.isEmendaSubstituicaoTermo()) {
-      emenda.substituicaoTermo = this._substituicaoTermo!.getSubstituicaoTermo();
-      emenda.comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
-      emenda.comandoEmendaTextoLivre.texto = '';
-    } else if (this.isEmendaTextoLivre()) {
-      emenda.comandoEmendaTextoLivre.motivo = this.motivo;
-      emenda.comandoEmendaTextoLivre.texto = this._lexmlEmendaTextoRico.texto;
-      emenda.anexos = this._lexmlEmendaTextoRico.anexos;
-      emenda.comandoEmendaTextoLivre.textoAntesRevisao = this._lexmlEmendaTextoRico.textoAntesRevisao;
-    } else {
-      emenda.comandoEmendaTextoLivre.texto = '';
-      emenda.componentes[0].dispositivos = this._lexmlEta!.getDispositivosEmenda()!;
-      emenda.comandoEmenda = this._lexmlEta!.getComandoEmenda();
-      emenda.anexos = this._lexmlEta!.getAnexos();
-    }
     emenda.justificativa = this._lexmlJustificativa.texto;
     emenda.notasRodape = this._lexmlJustificativa.notasRodape;
     emenda.autoria = this._lexmlAutoria.getAutoriaAtualizada();
@@ -306,20 +284,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
   private getPendenciasPreenchimentoEmenda(emenda: Emenda): string[] {
     const pendenciasPreenchimento: Array<string> = [];
-
-    if (this.isEmendaPadrao()) {
-      if (emenda.comandoEmenda.comandos.length === 0) {
-        pendenciasPreenchimento.push('Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
-      }
-    } else if (this.isEmendaSubstituicaoTermo()) {
-      if (emenda.substituicaoTermo?.termo.replace('(termo a ser substituído)', '').trim() === '' || emenda.substituicaoTermo?.novoTermo.replace('(novo termo)', '').trim() === '') {
-        pendenciasPreenchimento.push('Substituição de termo não preenchida.');
-      }
-    } else if (this.isEmendaTextoLivre()) {
-      if (isHtmlSemTexto(emenda.comandoEmendaTextoLivre.texto)) {
-        pendenciasPreenchimento.push('Emenda de texto livre não preenchida.');
-      }
-    }
 
     // Verifica preenchimento da justificação
     if (isHtmlSemTexto(emenda.justificativa)) {
@@ -351,7 +315,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   async inicializarEdicao(params: LexmlEmendaParametrosEdicao) {
     try {
       this._lexmlEmendaComando.emenda = [];
-      this.modo = params.modo;
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.emenda && params.emenda.colegiadoApreciador.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
@@ -360,15 +323,10 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       this.inicializaProposicao(params);
 
       this.motivo = params.motivo;
-      if (this.isEmendaTextoLivre() && params.emenda) {
-        this.motivo = params.emenda.comandoEmendaTextoLivre.motivo || 'Motivo não informado na emenda';
-      }
 
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
-      if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-        this._lexmlEta!.inicializarEdicao(this.modo, this.urn, params.projetoNorma, !!params.emenda, params);
-      }
+      this._lexmlEta!.inicializarEdicao(this.urn, params.projetoNorma, !!params.emenda, params);
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
 
@@ -385,26 +343,17 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
 
       this.limparAlertas();
 
-      if (this.isEmendaTextoLivre() && this._lexmlEmendaTextoRico.isEditorVazio()) {
-        this.showAlertaEmendaTextoLivre();
-      }
       setTimeout(this.handleResize, 0);
 
       if (!params.emenda?.revisoes?.length) {
         this.desativarMarcaRevisao();
       }
 
-      this._tabsEsquerda.show('lexml-eta');
+      this._tabsEsquerda.show('lexml-eta-emenda');
 
-      if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-        setTimeout(() => {
-          this._tabsDireita?.show('comando');
-        });
-      } else {
-        setTimeout(() => {
-          this._tabsDireita?.show('notas');
-        });
-      }
+      setTimeout(() => {
+        this._tabsDireita?.show('notas');
+      });
 
       this.updateView();
     } catch (err) {
@@ -421,60 +370,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
       return 'CN';
     }
     return (params.emenda ? params.emenda.colegiadoApreciador.siglaCasaLegislativa : params.casaLegislativa) || 'CN';
-  }
-
-  public trocarModoEdicao(modo: string, motivo = ''): void {
-    if (this.modo === modo) {
-      console.log('Ignorando tentativa de mudança para o mesmo modo de edição.');
-      return;
-    }
-
-    if (!this.projetoNorma && modo === 'emenda') {
-      throw 'Não é possível trocar para o modo "emenda" quando não há texto da proposição.';
-    }
-
-    this._lexmlEmendaComando.emenda = [];
-    this.modo = modo;
-
-    this.motivo = motivo;
-    if (this.isEmendaTextoLivre() && !this.motivo) {
-      throw 'Deve ser informado um motivo para a emenda de texto livre.';
-    }
-
-    if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.inicializarEdicao(this.modo, this.urn, this.projetoNorma, false, this.params);
-    }
-
-    rootStore.dispatch(limparAlertas());
-
-    if (this.isEmendaTextoLivre()) {
-      this._lexmlEmendaTextoRico.reset();
-      this._lexmlEmendaTextoRico.anexos = [];
-    } else if (this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEmendaTextoRico.reset();
-      this._substituicaoTermo!.setSubstituicaoTermo(new SubstituicaoTermo());
-    }
-
-    this.limparAlertas();
-
-    if (this.isEmendaTextoLivre() && this._lexmlEmendaTextoRico.isEditorVazio()) {
-      this.showAlertaEmendaTextoLivre();
-    }
-    setTimeout(this.handleResize, 0);
-
-    this._tabsEsquerda.show('lexml-eta');
-
-    if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-      setTimeout(() => {
-        this._tabsDireita?.show('comando');
-      });
-    } else {
-      setTimeout(() => {
-        this._tabsDireita?.show('notas');
-      });
-    }
-
-    this.updateView();
   }
 
   private inicializaProposicao(params: LexmlEmendaParametrosEdicao): void {
@@ -563,9 +458,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   private setEmenda(emenda: Emenda): void {
     rootStore.dispatch(limparAlertas());
 
-    if (!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo()) {
-      this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
-    }
+    this._lexmlEta!.setDispositivosERevisoesEmenda(emenda.componentes[0].dispositivos, emenda.revisoes);
 
     this._lexmlAutoria.autoria = emenda.autoria;
     this._lexmlAutoria.casaLegislativa = this.casaLegislativa;
@@ -575,23 +468,11 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     this._lexmlDestino!.proposicao = emenda.proposicao;
     this.notasRodape = emenda.notasRodape || [];
     this._lexmlJustificativa.setContent(emenda.justificativa, emenda.notasRodape);
-
-    if (this.isEmendaTextoLivre()) {
-      this._lexmlEmendaTextoRico.setContent(emenda?.comandoEmendaTextoLivre.texto || '');
-      this._lexmlEmendaTextoRico.anexos = emenda.anexos || [];
-      this._lexmlEmendaTextoRico.setTextoAntesRevisao(emenda.comandoEmendaTextoLivre.textoAntesRevisao);
-      rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(emenda.componentes[0].dispositivos, emenda.revisoes));
-    } else if (this.isEmendaSubstituicaoTermo()) {
-      this._substituicaoTermo!.setSubstituicaoTermo(emenda.substituicaoTermo || new SubstituicaoTermo());
-    } else if (this.isEmendaPadrao() || this.isEmendaDispositivoOndeCouber()) {
-      this._lexmlEta!.atualizaAnexos(emenda.anexos || []);
-    }
     this._lexmlData.data = emenda.data;
   }
 
   private resetaEmenda(params: LexmlEmendaParametrosEdicao): void {
     const emenda = new Emenda();
-    emenda.modoEdicao = params.modo as ModoEdicaoEmenda;
     emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
     emenda.autoria = this.montarAutoriaPadrao(params);
     emenda.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
@@ -717,16 +598,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     });
   }
 
-  updated(): void {
-    // if (this.modo.startsWith('emenda') && !this.isEmendaTextoLivre()) {
-    //   this.slSplitPanel.removeAttribute('disabled');
-    //   this.slSplitPanel.position = this.splitPanelPosition;
-    // } else {
-    //   this.slSplitPanel.setAttribute('disabled', 'true');
-    //   this.slSplitPanel.position = 100;
-    // }
-  }
-
   private pesquisarAlturaParentElement(elemento): number {
     if (elemento.parentElement === null) {
       // chegou no HTML e não encontrou altura
@@ -754,7 +625,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     const getElement = (selector: string): HTMLElement => document.querySelector(selector) as HTMLElement;
 
     const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
-    const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta"]');
+    const emendaTabPanel = getElement('sl-tab-panel[name="lexml-eta-emenda"]');
     const qlToolbarJustificativa = getElement('#editor-texto-rico-justificativa .ql-toolbar');
     const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
 
@@ -805,32 +676,13 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   private onChange(): void {
-    let comandoEmenda = null as any;
-    if (this.isEmendaSubstituicaoTermo()) {
-      comandoEmenda = this._substituicaoTermo!.getComandoEmenda(this.urn);
-      this._lexmlEmendaComando.emenda = comandoEmenda;
-      this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
-    } else if (this.isEmendaTextoLivre()) {
-      if (!this._lexmlEmendaTextoRico.isEditorVazio() && this._lexmlJustificativa.isEditorVazio()) {
-        this.disparaAlerta();
-      } else {
-        rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-      }
-      if (this._lexmlEmendaTextoRico.isEditorVazio()) {
-        this.showAlertaEmendaTextoLivre();
-      } else {
-        rootStore.dispatch(removerAlerta('alerta-global-emenda-texto-livre'));
-      }
-    }
-
-    if (!this.isEmendaTextoLivre()) {
-      this.buildAlertaJustificativa(comandoEmenda);
-    }
+    const comandoEmenda = null as any;
+    this.buildAlertaJustificativa(comandoEmenda);
   }
 
   buildAlertaJustificativa(comandoEmenda: any): void {
     if (comandoEmenda === null) {
-      comandoEmenda = this._lexmlEta!.getComandoEmenda();
+      // comandoEmenda = this._lexmlEta!.getComandoEmenda();
       this._lexmlEmendaComando.emenda = comandoEmenda;
       this._lexmlEmendaComandoModal.atualizarComandoEmenda(comandoEmenda);
     }
@@ -874,22 +726,6 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
     mostrarDialogDisclaimerRevisao();
   }
 
-  private isEmendaPadrao(): boolean {
-    return this.modo === ClassificacaoDocumento.EMENDA;
-  }
-
-  private isEmendaDispositivoOndeCouber(): boolean {
-    return this.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
-  }
-
-  private isEmendaTextoLivre(): boolean {
-    return this.modo === ClassificacaoDocumento.EMENDA_TEXTO_LIVRE;
-  }
-
-  private isEmendaSubstituicaoTermo(): boolean {
-    return this.modo === ClassificacaoDocumento.EMENDA_SUBSTITUICAO_TERMO;
-  }
-
   private updateView(): void {
     this.updateState = new Date();
   }
@@ -915,12 +751,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
         }
-        lexml-emenda-comando {
-          font-family: var(--eta-font-serif);
-          display: ${this.modo.startsWith('emenda') && !this.isEmendaTextoLivre() ? 'block' : 'none'};
-          height: 100%;
-        }
-        lexml-eta {
+        lexml-eta-emenda {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
@@ -1064,28 +895,15 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
-            <sl-tab slot="nav" panel="lexml-eta">Texto</sl-tab>
+            <sl-tab slot="nav" panel="lexml-eta-emenda">Texto</sl-tab>
             <sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>
             <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
-            <sl-tab-panel name="lexml-eta" class="overflow-hidden">
-              <lexml-eta
-                style="display: ${!this.isEmendaTextoLivre() && !this.isEmendaSubstituicaoTermo() ? 'block' : 'none'}"
-                id="lexmlEta"
-                .lexmlEtaConfig=${this.lexmlEmendaConfig}
-                @onchange=${this.onChange}
-              ></lexml-eta>
-              <editor-texto-rico
-                style="display: ${this.isEmendaTextoLivre() ? 'block' : 'none'}"
-                modo="textoLivre"
-                id="editor-texto-rico-emenda"
-                registroEvento="justificativa"
-                @onchange=${this.onChange}
-              ></editor-texto-rico>
-              <lexml-substituicao-termo style="display: ${this.isEmendaSubstituicaoTermo() ? 'block' : 'none'}" @onchange=${this.onChange}></lexml-substituicao-termo>
+            <sl-tab-panel name="lexml-eta-emenda" class="overflow-hidden">
+              <lexml-eta-emenda style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta-emenda>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
               <editor-texto-rico
@@ -1107,7 +925,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               </div>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
-              <lexml-eta-alertas></lexml-eta-alertas>
+              <lexml-eta-emenda-alertas></lexml-eta-emenda-alertas>
             </sl-tab-panel>
           </sl-tab-group>
         </div>
@@ -1124,10 +942,8 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
             ${this.tabIsVisible('notas')
               ? html`
                   <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
-                    <sl-badge variant="primary" id="badgeAtalhos" pill>
-                      <sl-icon name="footnote"></sl-icon>
-                      Notas
-                    </sl-badge>
+                    <sl-icon name="footnote"></sl-icon>
+                    Notas
                   </sl-tab>
                 `
               : ''}
@@ -1162,7 +978,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
               <lexml-ajuda></lexml-ajuda>
             </sl-tab-panel>
             <sl-tab-panel name="atalhos" class="overflow-hidden">
-              <lexml-eta-atalhos></lexml-eta-atalhos>
+              <lexml-eta-emenda-atalhos></lexml-eta-emenda-atalhos>
             </sl-tab-panel>
           </sl-tab-group>
         </div>
@@ -1171,12 +987,7 @@ export class LexmlEmendaComponent extends connect(rootStore)(LitElement) {
   }
 
   tabIsVisible(tab: string): boolean {
-    if ((tab === 'atalhos' || tab === 'dicas') && this.modo === 'emendaSubstituicaoTermo') {
-      return false;
-    } else if (tab === 'notas' && (this.isEmendaTextoLivre() || this.modo === 'edicao')) {
-      return true;
-    }
-    return this.modo.startsWith('emenda') && !this.isEmendaTextoLivre();
+    return tab === 'notas';
   }
 
   onChangeNotasRodape(): void {

@@ -53,7 +53,6 @@ import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
-import { LexmlEtaComponent } from '../lexml-eta.component';
 import { atualizarNotaAlteracaoAction } from './../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { isNumeracaoValidaPorTipo } from './../../model/lexml/numeracao/numeracaoUtil';
 import { ComandoEmendaModalComponent } from './../comandoEmenda/comandoEmenda.modal.component';
@@ -80,7 +79,7 @@ import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexm
 import { emendaDivididaDialog } from './emendaDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 
-@customElement('lexml-eta-editor')
+@customElement('lexml-eta-emenda-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
@@ -105,7 +104,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   @query('emenda-dividida-modal')
   private emendaDivididaDialog!: emendaDivididaDialog;
 
-  private modo = ClassificacaoDocumento.EMENDA;
+  private modo = ClassificacaoDocumento.PROJETO;
 
   private _quill?: EtaQuill;
   private get quill(): EtaQuill {
@@ -187,7 +186,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           --lx-eta-editor-overflow: display;
         }
 
-        lexml-eta-editor .ql-editor {
+        lexml-eta-emenda-editor .ql-editor {
           white-space: normal;
         }
 
@@ -922,8 +921,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         novaLinha.insertInto(this.quill.scroll);
       }
 
-      const isEmendaArtigoOndeCouber = rootStore.getState().elementoReducer.modo === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
-      if (this.quill.linhaAtual?.blotConteudo?.html !== '' || novaLinha.blotConteudo.html === '' || isEmendaArtigoOndeCouber || elemento.tipo === 'Omissis') {
+      if (this.quill.linhaAtual?.blotConteudo?.html !== '' || novaLinha.blotConteudo.html === '' || elemento.tipo === 'Omissis') {
         selecionarLinha && !this.timerOnChange && fnSelecionarNovaLinha(novaLinha, this.quill.linhaAtual);
       } else {
         this.quill.linhaAtual?.blotConteudo && (this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html);
@@ -1360,28 +1358,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private alertaGlobalVerificaCorrelacao(): void {
-    const dispositivosEmenda = (document.querySelector('lexml-eta') as LexmlEtaComponent).getDispositivosEmenda() || [];
-    const listaLexmlIds = Object.values(dispositivosEmenda)
-      .flat(1)
-      .map(obj => obj.id);
-    const artigos = [...new Set(listaLexmlIds.map(lexmlId => lexmlId.split('_').filter(dispositivo => dispositivo.startsWith('art'))[0]))];
-
-    if (artigos.length > 1) {
-      const alerta = {
-        id: 'alerta-global-correlacao',
-        tipo: TipoMensagem.INFO,
-        mensagem:
-          'Cada emenda pode referir-se a apenas um dispositivo, salvo se houver correlação entre dispositivos. Verifique se há correlação entre os dispositivos emendados antes de submetê-la.',
-        podeFechar: true,
-        exibirComandoEmenda: true,
-      };
-      rootStore.dispatch(adicionarAlerta(alerta));
-    } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === 'alerta-global-correlacao')) {
-      rootStore.dispatch(removerAlerta('alerta-global-correlacao'));
-    }
-  }
-
   private alertaGlobalRevisao(): void {
     const id = 'alerta-global-revisao';
     const revisoesElementos = document.getElementsByClassName('blot__revisao');
@@ -1429,7 +1405,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.alertaGlobalVerificaRenumeracao();
     }
 
-    this.alertaGlobalVerificaCorrelacao();
     this.alertaGlobalRevisao();
     this.eventosOnChange = [];
     this.timerOnChange = null;

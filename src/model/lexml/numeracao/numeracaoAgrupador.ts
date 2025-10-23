@@ -64,7 +64,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       if (
         this.numero === undefined ||
         (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-          (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
+          (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.PROJETO &&
           dispositivo.pai?.tipo === 'Articulacao')
       ) {
         this.rotulo = prefixo; //TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toUpperCase() ?? dispositivo.tipo;

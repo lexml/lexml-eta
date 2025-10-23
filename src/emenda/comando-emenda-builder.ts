@@ -1,10 +1,8 @@
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { NomeComGenero } from '../model/dispositivo/genero';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
-import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { ComandoEmenda, ItemComandoEmenda, SubstituicaoTermo } from '../model/emenda/emenda';
 import { getArticulacao } from '../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao, isArticulacao } from './../model/dispositivo/tipo';
 import { getRefGenericaProjeto } from './../model/lexml/documento/urnUtil';
 import { buscaNaHierarquiaDispositivos, isArticulacaoAlteracao, isDispositivoAlteracao } from './../model/lexml/hierarquia/hierarquiaUtil';
@@ -134,7 +132,6 @@ export class ComandoEmendaBuilder {
       d =>
         !isDispositivoAlteracao(d) &&
         d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-        (d.situacao as DispositivoAdicionado).tipoEmenda !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER &&
         d.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
     );
     if (adicionadosProposicao.length && CmdEmdUtil.verificaNecessidadeRenumeracaoRedacaoFinal(adicionadosProposicao)) {

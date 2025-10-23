@@ -1,4 +1,4 @@
-import { isEmendaArtigoOndeCouber, isAdicionado, getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
+import { isAdicionado, getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
@@ -180,7 +180,7 @@ export const getElementos = (dispositivo: Dispositivo, validados = false, procur
   const elementos: Elemento[] = [];
   elementos.push(fnCreateElemento(dispositivo, true, procurarElementoAnterior));
 
-  if (isArticulacao(dispositivo) && !isDispositivoAlteracao(dispositivo) && hasEmenta(dispositivo) && !isEmendaArtigoOndeCouber(dispositivo)) {
+  if (isArticulacao(dispositivo) && !isDispositivoAlteracao(dispositivo) && hasEmenta(dispositivo)) {
     elementos.push(fnCreateElemento((dispositivo as Articulacao).projetoNorma!.ementa!, true));
   }
 

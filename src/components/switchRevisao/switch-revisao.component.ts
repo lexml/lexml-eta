@@ -6,7 +6,6 @@ import { rootStore } from '../../redux/store';
 import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
-import { Modo } from '../../redux/elemento/enum/enumUtil';
 
 @customElement('lexml-switch-revisao')
 export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
@@ -120,9 +119,7 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   }
 
   private atualizaQuantidadeRevisao = (): void => {
-    if (this.modo === Modo.EMENDA || this.modo === Modo.EMENDA_ARTIGO_ONDE_COUBER) {
-      atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any, this.modo);
-    }
+    atualizaQuantidadeRevisao(rootStore.getState().elementoReducer.revisoes, document.getElementById(this.nomeBadgeQuantidadeRevisao) as any);
   };
 
   public ativarDesativarMarcaDeRevisao(consideraQuantidade = true): void {

@@ -2,6 +2,33 @@
 
 /** Use Hot Module replacement by adding --hmr to the start command */
 
+import fs from 'fs';
+import path from 'path';
+
+const fileParlamentaresMock = path.resolve(process.cwd(), 'parlamentares.json');
+const fileComissoesMock = path.resolve(process.cwd(), 'comissoes.json');
+
+async function mockApiMiddleware(context, next) {
+  try {
+    let fileContent;
+    if (/^\/parlamentares(\?.*)?$/.test(context.url)) {
+      fileContent = fs.readFileSync(fileParlamentaresMock, 'utf8');
+      context.set('Content-Type', 'application/json');
+      context.body = fileContent;
+    } else if (/^\/comissoes(\?.*)?$/.test(context.url)) {
+      fileContent = fs.readFileSync(fileComissoesMock, 'utf8');
+      context.set('Content-Type', 'application/json');
+      context.body = fileContent;
+    }
+  } catch (error) {
+    console.error('Erro ao ler teste.json:', error);
+    context.status = 500;
+    context.body = { error: 'Failed to read mock file' };
+  }
+
+  return next();
+}
+
 function cacheMiddleware() {
   console.log('Cache middleware enabled');
   return async (context, next) => {
@@ -46,7 +73,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   // },
 
   // TODO Não está funcionando na rede do SF por não estar utilizando o proxy da rede no acesso à url externa
-  middleware: middlewares,
+  middleware: [mockApiMiddleware, ...middlewares],
 
   plugins: [
     /** Use Hot Module Replacement by uncommenting. Requires @open-wc/dev-server-hmr plugin */

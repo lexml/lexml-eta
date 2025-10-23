@@ -4,15 +4,12 @@ import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
 import { ComandoEmendaBuilder } from '../emenda/comando-emenda-builder';
-import { DispositivosEmendaBuilder } from '../emenda/dispositivos-emenda-builder';
-import { ClassificacaoDocumento } from '../model/documento/classificacao';
-import { Anexo, ComandoEmenda, ModoEdicaoEmenda } from '../model/emenda/emenda';
+import { Anexo, ComandoEmenda } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
-import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
 import { DispositivosEmenda } from './../model/emenda/emenda';
 import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
 import { rootStore } from './../redux/store';
@@ -21,14 +18,12 @@ import { Revisao } from '../model/revisao/revisao';
 import { LexmlEmendaParametrosEdicao } from './lexml-emenda.component';
 import { EditorComponent } from './editor/editor.component';
 
-@customElement('lexml-eta')
+@customElement('lexml-eta-emenda')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
 
-  @query('lexml-eta-editor')
+  @query('lexml-eta-emenda-editor')
   private editorComponent!: EditorComponent;
-
-  private modo: any = '';
 
   private urn = '';
 
@@ -41,22 +36,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return this;
   }
 
-  inicializarEdicao(modo: string, urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false, params?: LexmlEmendaParametrosEdicao): void {
-    this.modo = modo;
+  inicializarEdicao(urn: string, projetoNorma?: ProjetoNorma, preparaAberturaEmenda = false, params?: LexmlEmendaParametrosEdicao): void {
     this.urn = urn;
     if (projetoNorma) {
       this.projetoNorma = projetoNorma;
     }
     this.loadProjetoNorma(preparaAberturaEmenda, params);
-    document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
-  }
-
-  getDispositivosEmenda(): DispositivosEmenda | undefined {
-    if (this.modo !== ClassificacaoDocumento.EMENDA && this.modo !== ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER) {
-      return undefined;
-    }
-    const articulacao = rootStore.getState().elementoReducer.articulacao;
-    return new DispositivosEmendaBuilder(this.modo, this.urn, articulacao).getDispositivosEmenda();
+    document.querySelector('lexml-eta-emenda-articulacao')!['style'].display = 'block';
   }
 
   setDispositivosERevisoesEmenda(dispositivosEmenda: DispositivosEmenda | undefined, revisoes?: Revisao[]): void {
@@ -88,34 +74,15 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private loadProjetoNorma(preparaAberturaEmenda: boolean, params?: LexmlEmendaParametrosEdicao): void {
-    let documento;
-
     if (!this.projetoNorma || !this.projetoNorma.value) {
       this.projetoNorma = DOCUMENTO_PADRAO;
     }
 
-    if (this.modo === ModoEdicaoEmenda.EMENDA_ARTIGO_ONDE_COUBER) {
-      documento = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
-      const artigo = documento.articulacao!.artigos[0]!;
-      artigo.rotulo = 'Art.';
-      artigo.numero = '1';
-      artigo.id = 'art1';
-      const situacao = new DispositivoAdicionado();
-      situacao.tipoEmenda = ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
-      artigo.situacao = situacao;
-
-      // Se estiver abrindo emenda, remove artigo inicial do documento padrão
-      if (preparaAberturaEmenda) {
-        documento.articulacao.removeFilho(documento.articulacao.filhos[0]);
-      }
-    } else {
-      documento = buildProjetoNormaFromJsonix(this.projetoNorma, this.modo === ClassificacaoDocumento.EMENDA);
-    }
-
+    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, false);
     documento.urn = this.urn;
 
     document.querySelector('lexml-emenda')?.querySelector('sl-tab')?.click();
-    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, this.modo, params));
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params));
   }
 
   private _timerLoadEmenda = 0;
@@ -136,19 +103,19 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           display: block;
         }
 
-        lexml-eta-articulacao {
+        lexml-eta-emenda-articulacao {
           display: none;
           height: 100%;
         }
 
-        lexml-eta-articulacao:focus {
+        lexml-eta-emenda-articulacao:focus {
           outline: 0;
           border: 0px solid #f1f1f1;
           -webkit-box-shadow: 0px;
           box-shadow: none;
         }
       </style>
-      <lexml-eta-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-articulacao>
+      <lexml-eta-emenda-articulacao .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-emenda-articulacao>
     `;
   }
 }

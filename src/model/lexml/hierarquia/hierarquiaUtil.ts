@@ -1,7 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isEmenta, isIncisoCaput, isParagrafo, Tipo } from '../../dispositivo/tipo';
-import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { omissis } from '../acao/adicionarElementoAction';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao, isCaput, isOmissis } from './../../dispositivo/tipo';
@@ -222,10 +221,10 @@ export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, a
   }
   let current: Dispositivo | undefined = disp;
   let proximo: Dispositivo | undefined = undefined;
-  while(current) {
+  while (current) {
     //console.log(`${current?.id}, ${aPartirDe?.id}`);
     if (aPartirDe) {
-      if(isArticulacaoAlteracao(aPartirDe)) {
+      if (isArticulacaoAlteracao(aPartirDe)) {
         proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe.pai!);
       } else {
         proximo = getIrmaoPosteriorIndependenteDeTipo(aPartirDe);
@@ -239,15 +238,15 @@ export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, a
     if (!proximo && current?.hasAlteracao() && current.alteracoes?.filhos.length) {
       proximo = current.alteracoes.filhos[0];
     }
-    if(proximo) {
-      if(!accept || accept(proximo)) {
+    if (proximo) {
+      if (!accept || accept(proximo)) {
         //console.log(`retornou ${proximo.id}`);
         return proximo;
       }
       aPartirDe = undefined;
       current = proximo;
       proximo = undefined;
-    } else if(!isDispositivoRaiz(current)) {
+    } else if (!isDispositivoRaiz(current)) {
       aPartirDe = current;
       current = current.pai;
       proximo = undefined;
@@ -1048,12 +1047,6 @@ export const getParagrafosEOmissis = (art: Artigo): Dispositivo[] => {
 
 export const hasEmenta = (referencia: Dispositivo): boolean => {
   return !!getArticulacao(referencia).projetoNorma?.ementa?.texto;
-};
-
-export const isEmendaArtigoOndeCouber = (referencia: Dispositivo): boolean => {
-  return getDispositivoAndFilhosAsLista(getArticulacao(referencia)).some(
-    d => (d.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER
-  );
 };
 
 export const findDispositivoByUuid2 = (dispositivo: Dispositivo, uuid2: string): Dispositivo | null => {

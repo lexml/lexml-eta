@@ -4,7 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { Elemento } from '../../model/elemento';
 
-@customElement('lexml-eta-elemento')
+@customElement('lexml-eta-emenda-elemento')
 export class ElementoComponent extends LitElement {
   @property({ type: Object }) elemento!: Elemento;
 

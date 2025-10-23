@@ -118,7 +118,7 @@ export class DemoView extends LitElement {
   @query('lexml-emenda-comando')
   private elLexmlEmendaComando!: ComandoEmendaComponent;
 
-  @state() modo = '';
+  @state() modo = 'edicao';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
@@ -128,7 +128,8 @@ export class DemoView extends LitElement {
   constructor() {
     super();
     this.emendaConfig = new LexmlEmendaConfig();
-    this.emendaConfig.urlComissoes = 'https://run.mocky.io/v3/fee83f1d-e204-4746-adf6-c0f617156a6a';
+    this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
+    this.emendaConfig.urlComissoes = '/comissoes';
   }
 
   createRenderRoot(): LitElement {
@@ -165,24 +166,13 @@ export class DemoView extends LitElement {
   }
 
   onChangeDocumento(): void {
-    this.getElement('#optEdicao').disabled = true;
-    this.getElement('#optEmenda').disabled = true;
-    this.getElement('#optEmendaArtigoOndeCouber').disabled = true;
-    this.getElement('#optEmendaTextoLivre').disabled = true;
-    if (this.elDocumento.value === 'novo') {
-      this.getElement('#optEdicao').disabled = false;
-      this.getElement('#optEdicao').selected = true;
-    } else if (this.elDocumento.value.indexOf('sem_texto') >= 0) {
-      this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
-      this.getElement('#optEmendaTextoLivre').disabled = false;
-      this.getElement('#optEmendaArtigoOndeCouber').selected = true;
-    } else {
-      this.getElement('#optEdicao').disabled = false;
-      this.getElement('#optEmenda').disabled = false;
-      this.getElement('#optEmendaArtigoOndeCouber').disabled = false;
-      this.getElement('#optEmendaTextoLivre').disabled = false;
-      this.getElement('#optEmenda').selected = true;
-    }
+    // this.getElement('#optEdicao').disabled = true;
+    // if (this.elDocumento.value === 'novo') {
+    //   this.getElement('#optEdicao').disabled = false;
+    //   this.getElement('#optEdicao').selected = true;
+    // } else {
+    //   this.getElement('#optEdicao').disabled = false;
+    // }
   }
 
   limparTela(): void {
@@ -191,7 +181,6 @@ export class DemoView extends LitElement {
     this.projetoNorma = {};
 
     const params = new LexmlEmendaParametrosEdicao();
-    params.modo = this.modo;
     params.projetoNorma = this.projetoNorma;
     this.elLexmlEmenda.inicializarEdicao(params);
 
@@ -202,8 +191,6 @@ export class DemoView extends LitElement {
   }
 
   executar(): void {
-    const elmAcao = this.getElement('#modo');
-
     if (!this.elDocumento.value) {
       this.limparTela();
       return;
@@ -211,18 +198,16 @@ export class DemoView extends LitElement {
 
     this.getElement('#fileUpload').value = null;
 
-    if (this.elDocumento && elmAcao) {
-      this.modo = elmAcao.value;
+    if (this.elDocumento) {
       setTimeout(() => {
         this.projetoNorma = this.elDocumento.value.indexOf('sem_texto') >= 0 ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
         if (this.elLexmlEmenda) {
           const params = new LexmlEmendaParametrosEdicao();
-          params.modo = this.modo;
           params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
           params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
-          if (this.projetoNorma) {
+          if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
             params.projetoNorma = this.projetoNorma;
 
             params.isMateriaOrcamentaria = this.elLexmlEmenda.getEmentaFromProjetoNorma(this.projetoNorma).indexOf('crédito extraordinário') >= 0;
@@ -233,8 +218,8 @@ export class DemoView extends LitElement {
           } else {
             params.proposicao = {
               sigla: 'PL',
-              numero: '3',
-              ano: '2023',
+              numero: '1',
+              ano: new Date().getFullYear().toString(),
               ementa:
                 'Cria o protocolo “Não é Não”, para prevenção ao constrangimento e à violência contra a mulher e para proteção à vítima; institui o selo “Não é Não - Mulheres Seguras”; e altera a Lei nº 14.597, de 14 de junho de 2023 (Lei Geral do Esporte).',
             };
@@ -251,19 +236,6 @@ export class DemoView extends LitElement {
         }
       }, 0);
     }
-  }
-
-  trocarModo(): void {
-    const novoModo = this.getElement('#modo').value;
-
-    if (this.modo === novoModo) {
-      alert('Escolha um modo de edição diferente do atual.');
-      return;
-    }
-
-    this.modo = novoModo;
-
-    this.elLexmlEmenda.trocarModoEdicao(this.modo, this.modo === 'emendaTextoLivre' ? 'Motivo da emenda de texto livre' : '');
   }
 
   salvar(): void {
@@ -308,7 +280,6 @@ export class DemoView extends LitElement {
           this.projetoNorma = await this.getProjetoNormaJsonixFromEmenda(emenda);
 
           const params = new LexmlEmendaParametrosEdicao();
-          params.modo = this.modo;
           params.projetoNorma = this.projetoNorma;
           params.emenda = emenda;
           this.elLexmlEmenda.inicializarEdicao(params);
@@ -440,19 +411,11 @@ export class DemoView extends LitElement {
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
             <option value="_pl_4_2025">PL 4, de 2025</option>
           </select>
-          <select id="modo">
-            <option value="edicao" id="optEdicao">Edição</option>
-            <option value="emenda" id="optEmenda" selected>Emenda</option>
-            <option value="emendaArtigoOndeCouber" id="optEmendaArtigoOndeCouber">Emenda: propor artigo onde couber</option>
-            <option value="emendaTextoLivre" id="optEmendaTextoLivre">Emenda Texto Livre</option>
-            <option value="emendaSubstituicaoTermo" id="optEmendaSubstituicaoTermo">Emenda Substituição de termo</option>
-          </select>
           <input type="button" value="Ok" @click=${this.executar} />
-          <input type="button" value="Trocar modo" @click=${this.trocarModo} ?disabled="${!this.modo}" />
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-emenda .lexmlEmendaConfig=${this.emendaConfig} modo=${this.modo} @onrevisao=${this.onRevisao} @onchange=${() => console.log('chegou evento')}></lexml-emenda>
+      <lexml-emenda .lexmlEmendaConfig=${this.emendaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-emenda>
     `;
   }
 

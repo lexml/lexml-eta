@@ -1,8 +1,6 @@
 import { createElemento } from './../../../model/elemento/elementoUtil';
 import { getDispositivoAnterior } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { removeElemento } from './removeElemento';
-// import { isAgrupador } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { hasFilhos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { State, StateEvent, StateType } from '../../state';
@@ -34,8 +32,5 @@ const getEventoMarcacaoElemento = (dispositivo: Dispositivo): StateEvent => {
 };
 
 const podeRemoverDispositivo = (state: any, dispositivo: Dispositivo): boolean => {
-  if (state.modo.startsWith('emenda') && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    return false;
-  }
   return !hasFilhos(dispositivo);
 };

@@ -1,6 +1,4 @@
-import { ClassificacaoDocumento } from '../documento/classificacao';
 import { TEXTO_OMISSIS } from '../lexml/conteudo/textoOmissis';
-import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { Dispositivo } from './dispositivo';
 
@@ -91,7 +89,7 @@ export const isAgrupador = (dispositivo: Dispositivo): boolean => {
     TipoDispositivo.secao.tipo,
     TipoDispositivo.subsecao.tipo,
     TipoDispositivo.titulo.tipo,
-  ].includes(dispositivo.tipo);
+  ].includes(dispositivo?.tipo);
 };
 
 export const isAgrupadorNaoArticulacao = (dispositivo: Dispositivo): boolean => {
@@ -119,8 +117,4 @@ export const isTextoMaiusculo = (dispositivo?: Dispositivo): boolean => {
 
 export const isTextoOmitido = (d: Dispositivo): boolean => {
   return isOmissis(d) || d.texto.startsWith(TEXTO_OMISSIS) || d.texto.indexOf(TEXTO_OMISSIS) > -1;
-};
-
-export const isDispositivoDeEmendaDeArtigoOndeCouber = (dispositivo: Dispositivo): boolean => {
-  return (dispositivo.situacao as DispositivoAdicionado)?.tipoEmenda === ClassificacaoDocumento.EMENDA_ARTIGO_ONDE_COUBER;
 };

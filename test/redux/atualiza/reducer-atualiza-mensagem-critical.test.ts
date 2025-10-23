@@ -18,7 +18,7 @@ let state: any;
 describe('Testando situações de mensagem Critical na articulação.', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
-    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
   describe('Inclui artigo para valida mensagem critical.', () => {
@@ -59,7 +59,6 @@ describe('Testando situações de mensagem Critical na articulação.', () => {
       it('Não deveria mais existir a mensagem Existem dispositivos sem texto informado.', () => {
         expect(existInArray(state.mensagensCritical, 'Existem dispositivos sem texto informado.')).to.equal(false);
       });
-
     });
   });
 });

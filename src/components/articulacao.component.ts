@@ -7,7 +7,7 @@ import { Elemento } from '../model/elemento';
 import { LexmlEmendaConfig } from '../model/lexmlEmendaConfig';
 import { rootStore } from '../redux/store';
 
-@customElement('lexml-eta-articulacao')
+@customElement('lexml-eta-emenda-articulacao')
 export class ArticulacaoComponent extends connect(rootStore)(LitElement) {
   @property({ type: Array }) elementos: Elemento[] = [];
   @property({ type: Object }) lexmlEtaConfig: LexmlEmendaConfig = new LexmlEmendaConfig();
@@ -24,19 +24,19 @@ export class ArticulacaoComponent extends connect(rootStore)(LitElement) {
   render(): TemplateResult {
     return html`
       <style>
-        lexml-eta-editor {
+        lexml-eta-emenda-editor {
           display: block;
           height: 100%;
         }
 
-        lexml-eta-editor:focus {
+        lexml-eta-emenda-editor:focus {
           outline: 0;
           border: 0px solid #f1f1f1;
           -webkit-box-shadow: 0px;
           box-shadow: none;
         }
       </style>
-      <lexml-eta-editor .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-editor>
+      <lexml-eta-emenda-editor .lexmlEtaConfig=${this.lexmlEtaConfig}></lexml-eta-emenda-editor>
     `;
   }
 }
