@@ -21,6 +21,7 @@ export class EtaBlotRevisaoRecusar extends EtaBlot {
     node.setAttribute('contenteditable', 'false');
     node.setAttribute('class', EtaBlotRevisaoRecusar.className);
     node.setAttribute('title', 'Recusar revisão');
+    node.setAttribute('type', 'button');
     EtaBlotRevisaoRecusar.atualizarAtributos(elemento, node);
     return node;
   }
