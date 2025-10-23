@@ -78,7 +78,7 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
   return cabeca;
 };
 
-export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo, modo = ClassificacaoDocumento.EMENDA): Dispositivo => {
+export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo, modo = ClassificacaoDocumento.PROJETO): Dispositivo => {
   const referencias = identificaReferencias(texto);
   let artigoInformado = true;
 

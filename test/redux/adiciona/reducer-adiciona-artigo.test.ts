@@ -25,7 +25,7 @@ let eventos: StateEvent[];
 describe('Testando atualização de ids de dispositivos após inclusão de artigo', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
-    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
   describe('Abre EMENDA_013 e inclui artigo antes do Capítulo II', () => {
@@ -69,7 +69,7 @@ describe('Testando atualização de ids de dispositivos após inclusão de artig
 describe('Testando inclusão de artigo no início da articulação', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
-    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
   describe('Testando inclusão de artigo após a ementa', () => {

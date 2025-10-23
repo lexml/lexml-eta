@@ -374,7 +374,7 @@ export class EtaContainerTable extends EtaContainer {
 
   limparContainerDireito(): void {
     if (this.blotInsideContainerDireito instanceof EtaBlotMenu) {
-      this.blotInsideContainerDireito.remove();
+      this.blotInsideContainerDireito?.remove();
       new EtaBlotEspaco().insertInto(this.containerDireito);
     }
   }

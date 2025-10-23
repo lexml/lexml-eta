@@ -3,12 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { iconeMarginBottom, iconeTextIndent, negrito, sublinhado, iconeNotaDeRodape } from '../../../assets/icons/icons';
 import { Observable } from '../../util/observable';
 import { rootStore } from '../../redux/store';
-import {
-  atualizaQuantidadeRevisaoTextoRico,
-  getQuantidadeRevisoes,
-  getQuantidadeRevisoesJustificativa,
-  getQuantidadeRevisoesTextoLivre,
-} from '../../redux/elemento/util/revisaoUtil';
+import { atualizaQuantidadeRevisaoTextoRico, getQuantidadeRevisoes, getQuantidadeRevisoesJustificativa } from '../../redux/elemento/util/revisaoUtil';
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
@@ -89,11 +84,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   private existeRevisaoByModo = (): boolean => {
-    if (this.modo === Modo.TEXTO_LIVRE) {
-      return getQuantidadeRevisoesTextoLivre(rootStore.getState().elementoReducer.revisoes) > 0;
-    } else {
-      return getQuantidadeRevisoesJustificativa(rootStore.getState().elementoReducer.revisoes) > 0;
-    }
+    return getQuantidadeRevisoesJustificativa(rootStore.getState().elementoReducer.revisoes) > 0;
   };
 
   showAlterarLarguraImagemModal(img: any, width: string): void {
@@ -167,7 +158,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   render(): TemplateResult {
     return html`
-      ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss} ${this.modo === Modo.TEXTO_LIVRE ? this.renderBotaoAnexo() : ''}
+      ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss} ${this.renderBotaoAnexo()}
 
       <div class="panel-revisao">
         <lexml-switch-revisao

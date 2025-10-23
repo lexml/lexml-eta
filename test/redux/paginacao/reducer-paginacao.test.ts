@@ -16,7 +16,7 @@ let state: any;
 describe('Testando inclusão de dispositivos em proposições paginadas', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(PLP_68_2024, true);
-    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.EMENDA });
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
   describe('Inclui artigo antes do Título V do Livro I', () => {
