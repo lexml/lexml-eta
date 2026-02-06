@@ -197,15 +197,11 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
       dispositivo.tipo === 'Inciso' ||
       dispositivo.tipo === 'Paragrafo' ||
       dispositivo.tipo === 'Alinea' ||
-      dispositivo.tipo === 'Item')
+      dispositivo.tipo === 'Item' ||
+      dispositivo.tipo === 'Omissis')
   ) {
     /* eslint-disable prettier/prettier */
-    value['href'] =
-      isCaput(dispositivo) && !isIncisoCaput(dispositivo)
-        ? buildHref(dispositivo.pai!) + '_' + buildHref(dispositivo)
-        : dispositivo.href !== undefined
-        ? dispositivo.href
-        : buildHref(dispositivo);
+    value['href'] = isCaput(dispositivo) && !isIncisoCaput(dispositivo) ? buildHref(dispositivo.pai!) + '_' + buildHref(dispositivo) : buildHref(dispositivo);
     /* eslint-enable prettier/prettier */
   }
 
