@@ -666,3 +666,179 @@ describe('montaCabecalho (via buildJsonixFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('montaProjetoNorma (via buildJsonixFromProjetoNorma)', () => {
+  const URN_TESTE = 'urn:lex:br:federal:lei:2023-01-01;12345';
+
+  describe('Estrutura básica', () => {
+    let resultado: any;
+
+    beforeEach(function () {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+    });
+
+    it('Deveria criar TYPE_NAME br_gov_lexml__1.ProjetoNorma', () => {
+      expect(resultado.value.projetoNorma.TYPE_NAME).to.equal('br_gov_lexml__1.ProjetoNorma');
+    });
+
+    it('Deveria criar estrutura HierarchicalStructure', () => {
+      expect(resultado.value.projetoNorma.norma.TYPE_NAME).to.equal('br_gov_lexml__1.HierarchicalStructure');
+    });
+  });
+
+  describe('Campo norma vs projeto', () => {
+    it('Deveria criar campo norma quando isNorma retorna true', () => {
+      const norma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      };
+      const resultado = buildJsonixFromProjetoNorma(norma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma).to.have.property('norma');
+      expect(resultado.value.projetoNorma).not.to.have.property('projeto');
+    });
+
+    it('Deveria criar campo projeto quando isNorma retorna false', () => {
+      const projeto = {
+        classificacao: ClassificacaoDocumento.PROJETO,
+        epigrafe: { texto: 'PROJETO DE LEI' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      };
+      const resultado = buildJsonixFromProjetoNorma(projeto, URN_TESTE);
+
+      expect(resultado.value.projetoNorma).to.have.property('projeto');
+      expect(resultado.value.projetoNorma).not.to.have.property('norma');
+      expect(resultado.value.projetoNorma.projeto.TYPE_NAME).to.equal('br_gov_lexml__1.HierarchicalStructure');
+    });
+  });
+
+  describe('ParteInicial e Articulacao', () => {
+    let resultado: any;
+
+    beforeEach(function () {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+    });
+
+    it('Deveria incluir parteInicial na estrutura', () => {
+      expect(resultado.value.projetoNorma.norma).to.have.property('parteInicial');
+      expect(resultado.value.projetoNorma.norma.parteInicial.TYPE_NAME).to.equal('br_gov_lexml__1.ParteInicial');
+    });
+
+    it('Deveria incluir articulacao na estrutura', () => {
+      expect(resultado.value.projetoNorma.norma).to.have.property('articulacao');
+      expect(resultado.value.projetoNorma.norma.articulacao.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+    });
+
+    it('Deveria chamar montaParteInicial com projetoNorma', () => {
+      const parteInicial = resultado.value.projetoNorma.norma.parteInicial;
+      expect(parteInicial).to.have.property('epigrafe');
+      expect(parteInicial).to.have.property('ementa');
+      expect(parteInicial).to.have.property('preambulo');
+    });
+
+    it('Deveria chamar montaArticulacao com projetoNorma', () => {
+      const articulacao = resultado.value.projetoNorma.norma.articulacao;
+      expect(articulacao).to.have.property('lXhier');
+      expect(articulacao.lXhier).to.be.an('array');
+    });
+  });
+
+  describe('Estrutura completa do projetoNorma', () => {
+    it('Deveria ter todas as propriedades obrigatórias', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      // Verifica estrutura do projetoNorma
+      expect(resultado.value.projetoNorma).to.have.property('TYPE_NAME');
+      expect(resultado.value.projetoNorma).to.have.property('norma');
+
+      // Verifica estrutura da norma
+      expect(resultado.value.projetoNorma.norma).to.have.property('TYPE_NAME');
+      expect(resultado.value.projetoNorma.norma).to.have.property('parteInicial');
+      expect(resultado.value.projetoNorma.norma).to.have.property('articulacao');
+
+      // Verifica que parteInicial foi chamada corretamente
+      expect(resultado.value.projetoNorma.norma.parteInicial).to.have.property('TYPE_NAME');
+      expect(resultado.value.projetoNorma.norma.parteInicial).to.have.property('epigrafe');
+      expect(resultado.value.projetoNorma.norma.parteInicial).to.have.property('ementa');
+      expect(resultado.value.projetoNorma.norma.parteInicial).to.have.property('preambulo');
+
+      // Verifica que articulacao foi chamada corretamente
+      expect(resultado.value.projetoNorma.norma.articulacao).to.have.property('TYPE_NAME');
+      expect(resultado.value.projetoNorma.norma.articulacao).to.have.property('lXhier');
+    });
+  });
+
+  describe('Teste com diferentes tipos de norma', () => {
+    it('Deveria funcionar com Medida Provisória', () => {
+      const mpv = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        tipo: { urn: 'medida.provisoria' },
+        epigrafe: { texto: 'MEDIDA PROVISÓRIA Nº 905' },
+        ementa: { texto: 'Ementa da MPV' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(mpv, URN_TESTE);
+
+      expect(resultado.value.projetoNorma).to.have.property('norma');
+      expect(resultado.value.projetoNorma.norma.parteInicial).to.exist;
+      expect(resultado.value.projetoNorma.norma.articulacao).to.exist;
+    });
+
+    it('Deveria funcionar com Lei Ordinária', () => {
+      const lei = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        tipo: { urn: 'lei' },
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(lei, URN_TESTE);
+
+      expect(resultado.value.projetoNorma).to.have.property('norma');
+      expect(resultado.value.projetoNorma.norma.TYPE_NAME).to.equal('br_gov_lexml__1.HierarchicalStructure');
+    });
+
+    it('Deveria funcionar com Projeto de Lei', () => {
+      const pl = {
+        classificacao: ClassificacaoDocumento.PROJETO,
+        tipo: { urn: 'projeto.lei' },
+        epigrafe: { texto: 'PROJETO DE LEI Nº 1234' },
+        ementa: { texto: 'Ementa do PL' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(pl, URN_TESTE);
+
+      expect(resultado.value.projetoNorma).to.have.property('projeto');
+      expect(resultado.value.projetoNorma.projeto.TYPE_NAME).to.equal('br_gov_lexml__1.HierarchicalStructure');
+    });
+  });
+});
