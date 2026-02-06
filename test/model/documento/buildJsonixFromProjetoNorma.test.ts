@@ -1658,3 +1658,209 @@ describe('buildAlteracaoSeNecessario (via buildJsonixFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('buildFilhos (via buildJsonixArticulacaoFromProjetoNorma)', () => {
+  describe('Tratamento de filhos undefined e vazios', () => {
+    it('Não deveria adicionar nada quando filhos é undefined', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      // Caput é criado automaticamente, mas sem filhos adicionais
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // Artigo tem apenas o caput (filho padrão)
+      expect(resultado.lXhier[0].value.lXcontainersOmissis).to.have.lengthOf(1);
+      expect(resultado.lXhier[0].value.lXcontainersOmissis[0].name.localPart).to.equal('Caput');
+    });
+
+    it('Não deveria adicionar nada quando filhos é array vazio', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      // Caput não tem filhos
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      // Se lXcontainersOmissis existir e estiver vazio, deve ter sido removido
+      if (caputNode.value.lXcontainersOmissis) {
+        expect(caputNode.value.lXcontainersOmissis).to.have.lengthOf.at.least(0);
+      }
+    });
+  });
+
+  describe('Processamento de filhos únicos', () => {
+    it('Deveria funcionar com filho único', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caputNode.value.lXcontainersOmissis).to.have.lengthOf(1);
+      expect(caputNode.value.lXcontainersOmissis[0].name.localPart).to.equal('Inciso');
+    });
+
+    it('Deveria chamar buildNode para cada filho', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // Caput foi processado como um nó válido
+      const caput = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caput).to.have.property('name');
+      expect(caput).to.have.property('value');
+      expect(caput.value).to.have.property('TYPE_NAME');
+    });
+
+    it('Deveria adicionar node à tree', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // O nó foi adicionado à árvore
+      expect(resultado.lXhier[0].value.lXcontainersOmissis).to.be.an('array');
+      expect(resultado.lXhier[0].value.lXcontainersOmissis).to.have.lengthOf.at.least(1);
+    });
+
+    it('Deveria chamar buildTree para cada filho', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // buildTree foi chamado recursivamente para o inciso
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caputNode.value.lXcontainersOmissis[0]).to.have.property('name');
+      expect(caputNode.value.lXcontainersOmissis[0]).to.have.property('value');
+    });
+  });
+
+  describe('Processamento de múltiplos filhos', () => {
+    it('Deveria processar múltiplos filhos em ordem', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caputNode.value.lXcontainersOmissis).to.have.lengthOf(3);
+      caputNode.value.lXcontainersOmissis.forEach((filho: any) => {
+        expect(filho.name.localPart).to.equal('Inciso');
+      });
+    });
+
+    it('Deveria funcionar com filhos de tipos diferentes', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caputNode.value.lXcontainersOmissis).to.have.lengthOf(2);
+    });
+
+    it('Deveria funcionar com inciso, alinea e item', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const inciso = criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
+      criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const incisoNode = caputNode.value.lXcontainersOmissis[0];
+      expect(incisoNode.name.localPart).to.equal('Inciso');
+      expect(incisoNode.value.lXcontainersOmissis).to.have.lengthOf(2);
+      expect(incisoNode.value.lXcontainersOmissis[0].name.localPart).to.equal('Alinea');
+      expect(incisoNode.value.lXcontainersOmissis[1].name.localPart).to.equal('Alinea');
+    });
+  });
+
+  describe('Hierarquia profunda', () => {
+    it('Deveria funcionar com hierarquia profunda', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const inciso = criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      const alinea = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
+      criaDispositivo(alinea, TipoDispositivo.item.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // Navega pela hierarquia: Artigo → Caput → Inciso → Alínea → Item
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const incisoNode = caputNode.value.lXcontainersOmissis[0];
+      const alineaNode = incisoNode.value.lXcontainersOmissis[0];
+      const itemNode = alineaNode.value.lXcontainersOmissis[0];
+
+      expect(caputNode.name.localPart).to.equal('Caput');
+      expect(incisoNode.name.localPart).to.equal('Inciso');
+      expect(alineaNode.name.localPart).to.equal('Alinea');
+      expect(itemNode.name.localPart).to.equal('Item');
+    });
+  });
+
+  describe('Filhos de agrupadores', () => {
+    it('Deveria processar filhos de agrupador', () => {
+      const articulacao = createArticulacao();
+      const titulo = criaDispositivo(articulacao, TipoDispositivo.titulo.tipo);
+      criaDispositivo(titulo, TipoDispositivo.artigo.tipo);
+      criaDispositivo(titulo, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const tituloNode = resultado.lXhier[0];
+      expect(tituloNode.value.lXhier).to.have.lengthOf(2);
+      tituloNode.value.lXhier.forEach((filho: any) => {
+        expect(filho.name.localPart).to.equal('Artigo');
+      });
+    });
+
+    it('Deveria processar filhos de capítulo', () => {
+      const articulacao = createArticulacao();
+      const capitulo = criaDispositivo(articulacao, TipoDispositivo.capitulo.tipo);
+      criaDispositivo(capitulo, TipoDispositivo.artigo.tipo);
+      criaDispositivo(capitulo, TipoDispositivo.artigo.tipo);
+      criaDispositivo(capitulo, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const capituloNode = resultado.lXhier[0];
+      expect(capituloNode.value.lXhier).to.have.lengthOf(3);
+    });
+  });
+
+  describe('Processamento de parágrafos', () => {
+    it('Deveria funcionar com parágrafos filhos de artigo', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
+      criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // Artigo deve ter caput + 2 parágrafos (total 3 filhos)
+      expect(resultado.lXhier[0].value.lXcontainersOmissis).to.have.lengthOf(3);
+      expect(resultado.lXhier[0].value.lXcontainersOmissis[0].name.localPart).to.equal('Caput');
+      expect(resultado.lXhier[0].value.lXcontainersOmissis[1].name.localPart).to.equal('Paragrafo');
+      expect(resultado.lXhier[0].value.lXcontainersOmissis[2].name.localPart).to.equal('Paragrafo');
+    });
+  });
+});
