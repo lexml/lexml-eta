@@ -1532,3 +1532,129 @@ describe('buildTree (via buildJsonixArticulacaoFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('buildAlteracaoSeNecessario (via buildJsonixFromProjetoNorma)', () => {
+  describe('Artigo sem alteração', () => {
+    it('Não deveria adicionar alteracao quando hasAlteracao retorna false', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).not.to.have.property('alteracao');
+    });
+  });
+
+  describe('Artigo com alteração (usando dados reais)', () => {
+    let jsonix: any;
+
+    beforeEach(function () {
+      documento = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
+      jsonix = buildJsonixFromProjetoNorma(documento, 'urn:lex:br:federal:medida.provisoria:2019-06-17;885');
+    });
+
+    it('Deveria adicionar alteracao quando hasAlteracao retorna true', () => {
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value).to.have.property('alteracao');
+    });
+
+    it('Deveria criar TYPE_NAME br_gov_lexml__1.Alteracao', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+      expect(alteracao.TYPE_NAME).to.equal('br_gov_lexml__1.Alteracao');
+    });
+
+    it('Deveria incluir base quando existe em dispositivo.alteracoes.base', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+      expect(alteracao).to.have.property('base');
+      expect(alteracao.base).to.equal('urn:lex:br:federal:lei:1986-12-19;7560');
+    });
+
+    it('Deveria construir id com buildIdAlteracao do caput', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+      expect(alteracao).to.have.property('id');
+      expect(alteracao.id).to.equal('art1_cpt_alt1');
+    });
+
+    it('Deveria inicializar id como string vazia antes de construir', () => {
+      // Verifica que o id foi construído corretamente (não está vazio)
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+      expect(alteracao.id).to.be.a('string');
+      expect(alteracao.id).not.to.equal('');
+    });
+
+    it('Deveria inicializar content como array', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+      expect(alteracao).to.have.property('content');
+      expect(alteracao.content).to.be.an('array');
+    });
+
+    it('Deveria processar cada filho em alteracoes.filhos', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+      expect(alteracao.content).to.have.lengthOf(3);
+    });
+
+    it('Deveria chamar buildNode para cada filho', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+
+      alteracao.content.forEach((filho: any) => {
+        expect(filho).to.have.property('name');
+        expect(filho).to.have.property('value');
+        expect(filho.value).to.have.property('TYPE_NAME');
+      });
+    });
+
+    it('Deveria adicionar filho ao content da alteracao', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+
+      expect(alteracao.content[0].name.localPart).to.equal('Artigo');
+      expect(alteracao.content[1].name.localPart).to.equal('Artigo');
+      expect(alteracao.content[2].name.localPart).to.equal('Artigo');
+    });
+
+    it('Deveria chamar buildTree recursivamente para cada filho', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+
+      // Primeiro filho (Art. 1) deve ter seus filhos processados
+      expect(alteracao.content[0].value).to.have.property('lXcontainersOmissis');
+      expect(alteracao.content[0].value.lXcontainersOmissis[0].name.localPart).to.equal('Caput');
+
+      // Segundo filho (Art. 2) deve ter seus filhos processados
+      expect(alteracao.content[1].value).to.have.property('lXcontainersOmissis');
+      expect(alteracao.content[1].value.lXcontainersOmissis[0].name.localPart).to.equal('Caput');
+
+      // Terceiro filho (Art. 5) deve ter seus filhos processados
+      expect(alteracao.content[2].value).to.have.property('lXcontainersOmissis');
+    });
+
+    it('Deveria manter estrutura hierárquica nos filhos da alteração', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+
+      // Art. 2 deve ter caput e filhos
+      const art2 = alteracao.content[1].value;
+      expect(art2.lXcontainersOmissis[0].name.localPart).to.equal('Caput');
+      expect(art2.lXcontainersOmissis[0].value).to.have.property('lXcontainersOmissis');
+
+      // Verifica omissis e inciso dentro do caput
+      expect(art2.lXcontainersOmissis[0].value.lXcontainersOmissis[0].name.localPart).to.equal('Omissis');
+      expect(art2.lXcontainersOmissis[0].value.lXcontainersOmissis[1].name.localPart).to.equal('Inciso');
+    });
+  });
+
+  describe('Estrutura completa da alteração', () => {
+    let jsonix: any;
+
+    beforeEach(function () {
+      documento = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
+      jsonix = buildJsonixFromProjetoNorma(documento, 'urn:lex:br:federal:medida.provisoria:2019-06-17;885');
+    });
+
+    it('Deveria ter todas as propriedades obrigatórias da alteração', () => {
+      const alteracao = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao;
+
+      expect(alteracao).to.have.property('TYPE_NAME', 'br_gov_lexml__1.Alteracao');
+      expect(alteracao).to.have.property('id');
+      expect(alteracao).to.have.property('base');
+      expect(alteracao).to.have.property('content');
+      expect(alteracao.content).to.be.an('array');
+    });
+  });
+});
