@@ -842,3 +842,286 @@ describe('montaProjetoNorma (via buildJsonixFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('montaParteInicial (via buildJsonixFromProjetoNorma)', () => {
+  const URN_TESTE = 'urn:lex:br:federal:lei:2023-01-01;12345';
+
+  describe('Estrutura básica da ParteInicial', () => {
+    let resultado: any;
+
+    beforeEach(function () {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+    });
+
+    it('Deveria criar TYPE_NAME br_gov_lexml__1.ParteInicial', () => {
+      expect(resultado.value.projetoNorma.norma.parteInicial.TYPE_NAME).to.equal('br_gov_lexml__1.ParteInicial');
+    });
+  });
+
+  describe('Epigrafe', () => {
+    it('Deveria criar epigrafe com id correto', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.id).to.equal('epigrafe');
+    });
+
+    it('Deveria criar epigrafe com TYPE_NAME correto', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+    });
+
+    it('Deveria processar epigrafe com buildStructuredContent quando existe', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.content).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.content).to.have.lengthOf.at.least(1);
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.content[0]).to.equal('LEI Nº 12.345');
+    });
+
+    it('Deveria retornar array vazio quando epigrafe não existe', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe).to.exist;
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.content).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.content).to.be.empty;
+    });
+
+    it('Deveria retornar array vazio quando epigrafe é null', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: null,
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe).to.exist;
+      expect(resultado.value.projetoNorma.norma.parteInicial.epigrafe.content).to.be.an('array');
+    });
+  });
+
+  describe('Ementa', () => {
+    it('Deveria criar ementa com id correto', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' },
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.id).to.equal('ementa');
+    });
+
+    it('Deveria criar ementa com TYPE_NAME correto', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' },
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+    });
+
+    it('Deveria processar ementa com buildStructuredContent quando existe', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei de teste' },
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.content).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.content).to.have.lengthOf.at.least(1);
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.content[0]).to.equal('Ementa da lei de teste');
+    });
+
+    it('Deveria retornar array vazio quando ementa não existe', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa).to.exist;
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.content).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.content).to.be.empty;
+    });
+
+    it('Deveria retornar array vazio quando ementa é null', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: null,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa).to.exist;
+      expect(resultado.value.projetoNorma.norma.parteInicial.ementa.content).to.be.an('array');
+    });
+  });
+
+  describe('Preambulo', () => {
+    it('Deveria criar preambulo com id correto', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.id).to.equal('preambulo');
+    });
+
+    it('Deveria criar preambulo com TYPE_NAME correto', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.TYPE_NAME).to.equal('br_gov_lexml__1.TextoType');
+    });
+
+    it('Deveria criar preambulo com array p', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p).to.have.lengthOf(1);
+    });
+
+    it('Deveria processar preambulo com buildStructuredContent quando existe', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta e promulga:' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p[0].TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p[0].content).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p[0].content[0]).to.equal('O CONGRESSO NACIONAL decreta e promulga:');
+    });
+
+    it('Deveria retornar array vazio quando preambulo não existe', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo).to.exist;
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p).to.have.lengthOf(1);
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p[0].content).to.be.an('array');
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p[0].content).to.be.empty;
+    });
+
+    it('Deveria retornar array vazio quando preambulo é null', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        preambulo: null,
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo).to.exist;
+      expect(resultado.value.projetoNorma.norma.parteInicial.preambulo.p).to.be.an('array');
+    });
+  });
+
+  describe('Estrutura completa da ParteInicial', () => {
+    it('Deveria ter todos os campos obrigatórios', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' },
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      } as any;
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const parteInicial = resultado.value.projetoNorma.norma.parteInicial;
+
+      expect(parteInicial).to.have.property('TYPE_NAME', 'br_gov_lexml__1.ParteInicial');
+      expect(parteInicial).to.have.property('epigrafe');
+      expect(parteInicial).to.have.property('ementa');
+      expect(parteInicial).to.have.property('preambulo');
+
+      expect(parteInicial.epigrafe).to.have.property('id', 'epigrafe');
+      expect(parteInicial.epigrafe).to.have.property('TYPE_NAME');
+      expect(parteInicial.epigrafe).to.have.property('content');
+
+      expect(parteInicial.ementa).to.have.property('id', 'ementa');
+      expect(parteInicial.ementa).to.have.property('TYPE_NAME');
+      expect(parteInicial.ementa).to.have.property('content');
+
+      expect(parteInicial.preambulo).to.have.property('id', 'preambulo');
+      expect(parteInicial.preambulo).to.have.property('TYPE_NAME');
+      expect(parteInicial.preambulo).to.have.property('p');
+    });
+  });
+});
