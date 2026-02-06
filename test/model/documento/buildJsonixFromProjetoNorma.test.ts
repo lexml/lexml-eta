@@ -532,3 +532,137 @@ describe('buildJsonixArticulacaoFromProjetoNorma', () => {
     });
   });
 });
+
+describe('montaCabecalho (via buildJsonixFromProjetoNorma)', () => {
+  let resultado: any;
+  const URN_TESTE = 'urn:lex:br:federal:lei:2023-01-01;12345';
+
+  describe('Estrutura name', () => {
+    beforeEach(function () {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+    });
+
+    it('Deveria criar estrutura name com namespaceURI correto', () => {
+      expect(resultado.name.namespaceURI).to.equal('http://www.lexml.gov.br/1.0');
+    });
+
+    it('Deveria criar estrutura name com localPart LexML', () => {
+      expect(resultado.name.localPart).to.equal('LexML');
+    });
+
+    it('Deveria criar estrutura name com prefix vazio', () => {
+      expect(resultado.name.prefix).to.equal('');
+    });
+
+    it('Deveria criar estrutura name com key formatado', () => {
+      expect(resultado.name.key).to.equal('{http://www.lexml.gov.br/1.0}LexML');
+    });
+
+    it('Deveria criar estrutura name com string formatado', () => {
+      expect(resultado.name.string).to.equal('{http://www.lexml.gov.br/1.0}LexML');
+    });
+  });
+
+  describe('Estrutura value e metadado', () => {
+    beforeEach(function () {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+    });
+
+    it('Deveria criar estrutura value com TYPE_NAME br_gov_lexml__1.LexML', () => {
+      expect(resultado.value.TYPE_NAME).to.equal('br_gov_lexml__1.LexML');
+    });
+
+    it('Deveria incluir metadado com TYPE_NAME correto', () => {
+      expect(resultado.value.metadado.TYPE_NAME).to.equal('br_gov_lexml__1.Metadado');
+    });
+
+    it('Deveria incluir identificacao com a URN fornecida', () => {
+      expect(resultado.value.metadado.identificacao.urn).to.equal(URN_TESTE);
+    });
+  });
+
+  describe('URN variações', () => {
+    const projetoNorma = {
+      classificacao: ClassificacaoDocumento.NORMA,
+      epigrafe: { texto: 'LEI Nº 12.345' },
+      ementa: { texto: 'Ementa da lei' } as any,
+      preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+      articulacao: createArticulacao(),
+    };
+
+    it('Deveria funcionar com URN vazia', () => {
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, '');
+      expect(resultado.value.metadado.identificacao.urn).to.equal('');
+      expect(resultado.name).to.exist;
+      expect(resultado.value.TYPE_NAME).to.equal('br_gov_lexml__1.LexML');
+    });
+
+    it('Deveria funcionar com URN complexa', () => {
+      const urnComplexa = 'urn:lex:br:federal:medida.provisoria:2019-06-17;885';
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, urnComplexa);
+      expect(resultado.value.metadado.identificacao.urn).to.equal(urnComplexa);
+      expect(resultado.name.namespaceURI).to.equal('http://www.lexml.gov.br/1.0');
+    });
+
+    it('Deveria funcionar com URN de projeto de lei', () => {
+      const urnPL = 'urn:lex:br:federal:projeto.lei:2023;1234';
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, urnPL);
+      expect(resultado.value.metadado.identificacao.urn).to.equal(urnPL);
+    });
+
+    it('Deveria manter estrutura consistente independente da URN', () => {
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:test');
+      expect(resultado.name.localPart).to.equal('LexML');
+      expect(resultado.value.TYPE_NAME).to.equal('br_gov_lexml__1.LexML');
+      expect(resultado.value.metadado.TYPE_NAME).to.equal('br_gov_lexml__1.Metadado');
+      expect(resultado.value.metadado.identificacao.TYPE_NAME).to.equal('br_gov_lexml__1.Identificacao');
+    });
+  });
+
+  describe('Estrutura completa do cabeçalho', () => {
+    it('Deveria ter todas as propriedades obrigatórias do cabeçalho', () => {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa da lei' } as any,
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+
+      // Verifica estrutura name
+      expect(resultado.name).to.have.property('namespaceURI');
+      expect(resultado.name).to.have.property('localPart');
+      expect(resultado.name).to.have.property('prefix');
+      expect(resultado.name).to.have.property('key');
+      expect(resultado.name).to.have.property('string');
+
+      // Verifica estrutura value
+      expect(resultado.value).to.have.property('TYPE_NAME');
+      expect(resultado.value).to.have.property('metadado');
+      expect(resultado.value).to.have.property('projetoNorma');
+
+      // Verifica estrutura metadado
+      expect(resultado.value.metadado).to.have.property('TYPE_NAME');
+      expect(resultado.value.metadado).to.have.property('identificacao');
+
+      // Verifica estrutura identificacao
+      expect(resultado.value.metadado.identificacao).to.have.property('TYPE_NAME');
+      expect(resultado.value.metadado.identificacao).to.have.property('urn');
+    });
+  });
+});
