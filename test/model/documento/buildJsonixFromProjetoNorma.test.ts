@@ -1125,3 +1125,169 @@ describe('montaParteInicial (via buildJsonixFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('montaArticulacao (via buildJsonixFromProjetoNorma)', () => {
+  const URN_TESTE = 'urn:lex:br:federal:lei:2023-01-01;12345';
+
+  describe('Estrutura básica da Articulacao', () => {
+    let resultado: any;
+    let articulacaoJson: any;
+
+    beforeEach(function () {
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: createArticulacao(),
+      };
+      resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      articulacaoJson = resultado.value.projetoNorma.norma.articulacao;
+    });
+
+    it('Deveria criar TYPE_NAME br_gov_lexml__1.Articulacao', () => {
+      expect(articulacaoJson.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+    });
+
+    it('Deveria retornar estrutura com lXhier', () => {
+      expect(articulacaoJson).to.have.property('lXhier');
+      expect(articulacaoJson.lXhier).to.be.an('array');
+    });
+  });
+
+  describe('Integração com buildTree', () => {
+    it('Deveria chamar buildTree com projetoNorma.articulacao', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const articulacaoJson = resultado.value.projetoNorma.norma.articulacao;
+
+      // buildTree foi chamado e processou os artigos
+      expect(articulacaoJson.lXhier).to.have.lengthOf(1);
+      expect(articulacaoJson.lXhier[0].name.localPart).to.equal('Artigo');
+    });
+
+    it('Deveria passar projetoNorma.articulacao como segundo parâmetro para buildTree', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const articulacaoJson = resultado.value.projetoNorma.norma.articulacao;
+
+      // buildTree processou corretamente a articulacao
+      expect(articulacaoJson.lXhier).to.have.lengthOf(2);
+      expect(articulacaoJson.lXhier[0].name.localPart).to.equal('Artigo');
+      expect(articulacaoJson.lXhier[1].name.localPart).to.equal('Artigo');
+    });
+  });
+
+  describe('Articulacao com dispositivos complexos', () => {
+    it('Deveria processar articulacao com agrupadores e artigos', () => {
+      const articulacao = createArticulacao();
+      const titulo = criaDispositivo(articulacao, TipoDispositivo.titulo.tipo);
+      const capitulo = criaDispositivo(titulo, TipoDispositivo.capitulo.tipo);
+      criaDispositivo(capitulo, TipoDispositivo.artigo.tipo);
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const articulacaoJson = resultado.value.projetoNorma.norma.articulacao;
+
+      expect(articulacaoJson.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+      expect(articulacaoJson.lXhier).to.have.lengthOf.at.least(2);
+      expect(articulacaoJson.lXhier[0].name.localPart).to.equal('Titulo');
+    });
+
+    it('Deveria processar articulacao vazia corretamente', () => {
+      const articulacao = createArticulacao();
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const articulacaoJson = resultado.value.projetoNorma.norma.articulacao;
+
+      expect(articulacaoJson.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+      expect(articulacaoJson.lXhier).to.be.an('array');
+      expect(articulacaoJson.lXhier).to.be.empty;
+    });
+  });
+
+  describe('Estrutura completa da Articulacao', () => {
+    it('Deveria ter todas as propriedades obrigatórias', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const articulacaoJson = resultado.value.projetoNorma.norma.articulacao;
+
+      expect(articulacaoJson).to.have.property('TYPE_NAME', 'br_gov_lexml__1.Articulacao');
+      expect(articulacaoJson).to.have.property('lXhier');
+      expect(articulacaoJson.lXhier).to.be.an('array');
+      expect(articulacaoJson.lXhier[0]).to.have.property('name');
+      expect(articulacaoJson.lXhier[0]).to.have.property('value');
+    });
+  });
+
+  describe('Consistência com buildJsonixArticulacaoFromProjetoNorma', () => {
+    it('Deveria produzir o mesmo resultado que buildJsonixArticulacaoFromProjetoNorma', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado1 = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'LEI Nº 12.345' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: 'Preambulo' },
+        articulacao: articulacao,
+      };
+
+      const resultado2 = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
+      const articulacaoJson = resultado2.value.projetoNorma.norma.articulacao;
+
+      // Ambos devem ter a mesma estrutura básica
+      expect(resultado1.TYPE_NAME).to.equal(articulacaoJson.TYPE_NAME);
+      expect(resultado1.lXhier).to.have.lengthOf(articulacaoJson.lXhier.length);
+    });
+  });
+});
