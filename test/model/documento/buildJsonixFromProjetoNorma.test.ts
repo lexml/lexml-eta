@@ -1,9 +1,10 @@
 import { expect } from '@open-wc/testing';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
-import { buildJsonixFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { buildJsonixArticulacaoFromProjetoNorma, buildJsonixFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
-import { createArticulacao } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo, createArticulacao } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR } from '../../doc/parser/mpv_885_20190617';
 import { TESTE_SIMPLES } from '../../doc/parser/teste_simples';
 
@@ -411,6 +412,123 @@ describe('buildJsonixFromProjetoNorma', () => {
       };
       resultado = buildJsonixFromProjetoNorma(semPreambulo, URN_TESTE);
       expect(resultado.value.projetoNorma.norma.parteInicial.preambulo).to.exist;
+    });
+  });
+});
+
+describe('buildJsonixArticulacaoFromProjetoNorma', () => {
+  let articulacao: any;
+  let resultado: any;
+
+  describe('Estrutura básica', () => {
+    beforeEach(function () {
+      articulacao = createArticulacao();
+      resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    });
+
+    it('Deveria criar objeto com TYPE_NAME br_gov_lexml__1.Articulacao', () => {
+      expect(resultado).to.exist;
+      expect(resultado.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+    });
+
+    it('Deveria retornar estrutura com lXhier', () => {
+      expect(resultado).to.have.property('lXhier');
+      expect(resultado.lXhier).to.be.an('array');
+    });
+  });
+
+  describe('Articulação vazia', () => {
+    beforeEach(function () {
+      articulacao = createArticulacao();
+      resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    });
+
+    it('Deveria funcionar com articulação vazia', () => {
+      expect(resultado).to.exist;
+      expect(resultado.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+      expect(resultado.lXhier).to.be.an('array');
+      expect(resultado.lXhier).to.be.empty;
+    });
+
+    it('Deveria construir árvore com buildTree', () => {
+      expect(resultado.lXhier).to.exist;
+      expect(resultado.lXhier).to.be.an('array');
+    });
+  });
+
+  describe('Articulação com dispositivos', () => {
+    beforeEach(function () {
+      articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    });
+
+    it('Deveria funcionar com articulação com dispositivos', () => {
+      expect(resultado).to.exist;
+      expect(resultado.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+      expect(resultado.lXhier).to.be.an('array');
+      expect(resultado.lXhier).to.have.lengthOf(2);
+    });
+
+    it('Deveria passar articulacao corretamente para buildTree', () => {
+      expect(resultado.lXhier).to.have.lengthOf(2);
+      expect(resultado.lXhier[0]).to.have.property('name');
+      expect(resultado.lXhier[0].name.localPart).to.equal('Artigo');
+    });
+
+    it('Deveria incluir dispositivos filhos na árvore', () => {
+      expect(resultado.lXhier).to.have.lengthOf(2);
+      expect(resultado.lXhier[0].name.localPart).to.equal('Artigo');
+      expect(resultado.lXhier[1].name.localPart).to.equal('Artigo');
+    });
+  });
+
+  describe('Articulação com agrupadores', () => {
+    beforeEach(function () {
+      articulacao = createArticulacao();
+      const titulo = criaDispositivo(articulacao, TipoDispositivo.titulo.tipo);
+      const capitulo = criaDispositivo(titulo, TipoDispositivo.capitulo.tipo);
+      criaDispositivo(capitulo, TipoDispositivo.artigo.tipo);
+      resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    });
+
+    it('Deveria funcionar com agrupadores', () => {
+      expect(resultado).to.exist;
+      expect(resultado.TYPE_NAME).to.equal('br_gov_lexml__1.Articulacao');
+      expect(resultado.lXhier).to.be.an('array');
+      expect(resultado.lXhier).to.have.lengthOf(1);
+    });
+
+    it('Deveria incluir agrupador Título', () => {
+      expect(resultado.lXhier[0].name.localPart).to.equal('Titulo');
+    });
+
+    it('Deveria incluir hierarquia aninhada', () => {
+      expect(resultado.lXhier[0]).to.have.property('value');
+      expect(resultado.lXhier[0].value).to.have.property('lXhier');
+    });
+  });
+
+  describe('Articulação com estrutura complexa', () => {
+    beforeEach(function () {
+      articulacao = createArticulacao();
+      const artigo1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(artigo1, TipoDispositivo.caput.tipo);
+      criaDispositivo(artigo1, TipoDispositivo.paragrafo.tipo);
+      resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    });
+
+    it('Deveria construir árvore com estrutura hierárquica', () => {
+      expect(resultado).to.exist;
+      expect(resultado.lXhier).to.have.lengthOf(1);
+      expect(resultado.lXhier[0].name.localPart).to.equal('Artigo');
+    });
+
+    it('Deveria incluir caput e parágrafo filhos do artigo', () => {
+      const artigo = resultado.lXhier[0];
+      expect(artigo.value).to.have.property('lXcontainersOmissis');
+      expect(artigo.value.lXcontainersOmissis).to.have.lengthOf.at.least(2);
     });
   });
 });
