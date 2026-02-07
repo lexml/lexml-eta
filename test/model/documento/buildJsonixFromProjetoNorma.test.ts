@@ -2322,3 +2322,257 @@ describe('buildTypeName (via buildJsonixArticulacaoFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('buildDispositivo (via buildJsonixFromProjetoNorma)', () => {
+  describe('12.1. ID e Rótulo', () => {
+    it('Deveria incluir id criado com buildId', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      (artigo as any).numero = 1;
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).to.have.property('id');
+      expect(resultado.lXhier[0].value.id).to.be.a('string');
+      expect(resultado.lXhier[0].value.id).to.match(/art\d+/);
+    });
+
+    it('Não deveria incluir rotulo para tipo Caput', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caput = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caput.value).not.to.have.property('rotulo');
+    });
+
+    it('Não deveria incluir rotulo para tipo Omissis', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.omissis.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const omissis = resultado.lXhier[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0];
+      expect(omissis.value).not.to.have.property('rotulo');
+    });
+
+    it('Deveria incluir rotulo para outros tipos', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      (artigo as any).numero = 1;
+      (artigo as any).rotulo = 'Art. 1º';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).to.have.property('rotulo');
+      expect(resultado.lXhier[0].value.rotulo).to.be.a('string');
+    });
+  });
+
+  describe('12.2. HREF (usando dados reais com alterações)', () => {
+    let jsonix: any;
+
+    beforeEach(function () {
+      documento = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
+      jsonix = buildJsonixFromProjetoNorma(documento, 'urn:lex:br:federal:medida.provisoria:2019-06-17;885');
+    });
+
+    it('Deveria incluir href para dispositivo de alteracao tipo Artigo', () => {
+      const artigo = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0];
+
+      expect(artigo.value).to.have.property('href');
+      expect(artigo.value.href).to.equal('art1');
+    });
+
+    it('Deveria incluir href para dispositivo de alteracao tipo Caput', () => {
+      const caput = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0];
+
+      expect(caput.value).to.have.property('href');
+      expect(caput.value.href).to.equal('art1_cpt');
+    });
+
+    it('Deveria incluir href para dispositivo de alteracao tipo Inciso', () => {
+      const inciso =
+        jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1];
+
+      expect(inciso.value).to.have.property('href');
+      expect(inciso.value.href).to.equal('inc7');
+    });
+
+    it('Deveria incluir href para dispositivo de alteracao tipo Paragrafo', () => {
+      const paragrafo = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[5];
+
+      expect(paragrafo.value).to.have.property('href');
+      expect(paragrafo.value.href).to.equal('par4');
+    });
+
+    it('Para Caput não IncisoCaput, deveria usar href pai + "_" + href próprio', () => {
+      const caput = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0];
+
+      expect(caput.value.href).to.equal('art1_cpt');
+    });
+
+    it('Não deveria incluir href para dispositivo que não é alteracao', () => {
+      // Artigo sem alteração
+      const artigo = jsonix.value.projetoNorma.norma.articulacao.lXhier[4];
+
+      expect(artigo.value).not.to.have.property('href');
+    });
+  });
+
+  describe('12.3. Aspas e Nota de Alteração (usando dados reais)', () => {
+    let jsonix: any;
+
+    beforeEach(function () {
+      documento = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
+      jsonix = buildJsonixFromProjetoNorma(documento, 'urn:lex:br:federal:medida.provisoria:2019-06-17;885');
+    });
+
+    it('Deveria incluir abreAspas=s quando cabecaAlteracao existe', () => {
+      const artigo = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0];
+
+      expect(artigo.value).to.have.property('abreAspas', 's');
+    });
+
+    it('Deveria incluir rotulo quando cabecaAlteracao existe', () => {
+      const artigo = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0];
+
+      expect(artigo.value).to.have.property('rotulo');
+      expect(artigo.value.rotulo).to.be.a('string');
+    });
+
+    it('Deveria incluir fechaAspas=s para Caput com irmão único', () => {
+      const caput = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0];
+
+      expect(caput.value).to.have.property('fechaAspas', 's');
+    });
+
+    it('Deveria incluir notaAlteracao com valor ou NR', () => {
+      const caput = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[0].value.lXcontainersOmissis[0];
+
+      expect(caput.value).to.have.property('notaAlteracao', 'NR');
+    });
+
+    it('Deveria incluir fechaAspas=s para última alteracao', () => {
+      const paragrafo = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[5];
+
+      expect(paragrafo.value).to.have.property('fechaAspas', 's');
+      expect(paragrafo.value).to.have.property('notaAlteracao');
+    });
+  });
+
+  describe('12.4. Título do Dispositivo', () => {
+    it('Não deveria incluir tituloDispositivo quando isValidText retorna false', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).not.to.have.property('tituloDispositivo');
+    });
+
+    it('Deveria incluir tituloDispositivo quando definido', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      (artigo as any).tituloDispositivo = 'Título do Artigo';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).to.have.property('tituloDispositivo');
+      expect(resultado.lXhier[0].value.tituloDispositivo.TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+    });
+  });
+
+  describe('12.6. Agrupadores', () => {
+    it('Deveria incluir nomeAgrupador para agrupadores', () => {
+      const articulacao = createArticulacao();
+      const capitulo = criaDispositivo(articulacao, TipoDispositivo.capitulo.tipo);
+      (capitulo as any).texto = 'Capítulo I';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).to.have.property('nomeAgrupador');
+      expect(resultado.lXhier[0].value.nomeAgrupador.TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+    });
+
+    it('Deveria chamar buildStructuredContent com campo texto para agrupadores', () => {
+      const articulacao = createArticulacao();
+      const capitulo = criaDispositivo(articulacao, TipoDispositivo.capitulo.tipo);
+      (capitulo as any).texto = 'Capítulo Dos Dispositivos';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value.nomeAgrupador.content).to.be.an('array');
+      expect(resultado.lXhier[0].value.nomeAgrupador.content[0]).to.equal('Capítulo Dos Dispositivos');
+    });
+  });
+
+  describe('12.7. Texto de Dispositivos', () => {
+    it('Não deveria incluir texto/p para Artigo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // Artigo não tem p, tem lXcontainersOmissis
+      expect(resultado.lXhier[0].value).not.to.have.property('p');
+      expect(resultado.lXhier[0].value).to.have.property('lXcontainersOmissis');
+    });
+
+    it('Não deveria incluir texto/p para Omissis', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.omissis.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const omissis = resultado.lXhier[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0];
+      expect(omissis.value).not.to.have.property('p');
+    });
+
+    it('Deveria incluir array p para dispositivo normal com texto', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = 'Texto do caput';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caputNode.value).to.have.property('p');
+      expect(caputNode.value.p).to.be.an('array');
+      expect(caputNode.value.p[0].TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+    });
+
+    it('Deveria chamar buildStructuredContent com campo texto para p', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = 'Texto do caput';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caputNode.value.p[0].content).to.be.an('array');
+      expect(caputNode.value.p[0].content[0]).to.equal('Texto do caput');
+    });
+  });
+
+  describe('12.5. Retorno Antecipado', () => {
+    it('Deveria retornar early quando tipo é Artigo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      (articulacao as any).texto = 'Texto do artigo'; // não deve ser processado
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // Artigo tem lXcontainersOmissis mas não tem p
+      expect(resultado.lXhier[0].value).to.have.property('lXcontainersOmissis');
+      expect(resultado.lXhier[0].value).not.to.have.property('p');
+    });
+  });
+});
