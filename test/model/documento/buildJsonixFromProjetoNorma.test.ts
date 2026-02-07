@@ -2752,3 +2752,184 @@ describe('buildStructuredContent (via buildJsonixFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('buildSpan (via buildStructuredContent)', () => {
+  describe('14.1. Estrutura básica', () => {
+    it('Deveria criar name com namespaceURI correto', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.name).to.have.property('namespaceURI', 'http://www.lexml.gov.br/1.0');
+    });
+
+    it('Deveria criar name com localPart "span"', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.name).to.have.property('localPart', 'span');
+    });
+
+    it('Deveria criar name com prefix vazio', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.name).to.have.property('prefix', '');
+    });
+
+    it('Deveria criar name com key formatado', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.name).to.have.property('key', '{http://www.lexml.gov.br/1.0}span');
+    });
+
+    it('Deveria criar value com TYPE_NAME "br_gov_lexml__1.GenInline"', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value).to.have.property('TYPE_NAME', 'br_gov_lexml__1.GenInline');
+    });
+  });
+
+  describe('14.2. Extração de href', () => {
+    it('Deveria extrair href do atributo href da tag', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value).to.have.property('href', 'urn:lex:br:teste');
+    });
+
+    it('Deveria incluir href no value', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:federal:lei:2020-01-01;12345">Lei 13.456</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value).to.have.property('href').that.is.a('string');
+    });
+
+    it('Deveria retornar href vazio quando não existe', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="">Link com href vazio</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value).to.have.property('href', '');
+    });
+
+    it('Deveria funcionar com href complexo (urn completa)', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:federal:decreto.lei:1943-05-01;5452">Decreto-Lei nº 5.452, de 1º de maio de 1943</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value.href).to.equal('urn:lex:br:federal:decreto.lei:1943-05-01;5452');
+    });
+  });
+
+  describe('14.3. Extração de conteúdo', () => {
+    it('Deveria extrair conteúdo dentro da tag <a>', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Texto do Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value).to.have.property('content').that.is.an('array');
+      expect(span.value.content[0]).to.equal('Texto do Link');
+    });
+
+    it('Deveria fazer trim do conteúdo', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:test">  Texto com espaços  </a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      // O trim é aplicado ao extrair o conteúdo
+      expect(span.value.content[0]).to.equal('Texto com espaços');
+    });
+
+    it('Deveria incluir content como array no value', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:teste">Link</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value.content).to.be.an('array');
+      expect(span.value.content).to.have.length(1);
+    });
+
+    it('Deveria retornar array com string vazia quando conteúdo é vazio', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:test"></a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const span = caputNode.value.p[0].content[0];
+
+      expect(span.value.content).to.be.an('array');
+      expect(span.value.content[0]).to.equal('');
+    });
+  });
+});
