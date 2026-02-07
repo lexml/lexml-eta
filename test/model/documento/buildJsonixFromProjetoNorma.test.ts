@@ -2610,7 +2610,7 @@ describe('buildStructuredContent (via buildJsonixFromProjetoNorma)', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
-      (caput as any).texto = 'Texto do dispositivo" (NR)';
+      (caput as any).texto = 'Texto do dispositivo” (NR)';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
