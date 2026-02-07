@@ -1864,3 +1864,258 @@ describe('buildFilhos (via buildJsonixArticulacaoFromProjetoNorma)', () => {
     });
   });
 });
+
+describe('buildNode (via buildJsonixArticulacaoFromProjetoNorma)', () => {
+  describe('Estrutura name', () => {
+    it('Deveria criar estrutura name com namespaceURI correto', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.namespaceURI).to.equal('http://www.lexml.gov.br/1.0');
+    });
+
+    it('Deveria criar estrutura name com localPart igual ao tipo do dispositivo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Artigo');
+    });
+
+    it('Deveria criar estrutura name com prefix vazio', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.prefix).to.equal('');
+    });
+
+    it('Deveria criar estrutura name com key formatado', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.key).to.equal('{http://www.lexml.gov.br/1.0}Artigo');
+    });
+  });
+
+  describe('Estrutura value e TYPE_NAME', () => {
+    it('Deveria criar estrutura value com TYPE_NAME', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value).to.have.property('TYPE_NAME');
+    });
+
+    it('Deveria chamar buildTypeName para obter TYPE_NAME', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+  });
+
+  describe('Tipos de dispositivos básicos', () => {
+    it('Deveria funcionar com tipo Artigo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Artigo');
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+
+    it('Deveria funcionar com tipo Caput', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const caput = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      expect(caput.name.localPart).to.equal('Caput');
+      expect(caput.value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+
+    it('Deveria funcionar com tipo Inciso', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const inciso = resultado.lXhier[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0];
+      expect(inciso.name.localPart).to.equal('Inciso');
+      expect(inciso.value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+
+    it('Deveria funcionar com tipo Alinea', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const inciso = criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const alinea = resultado.lXhier[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0];
+      expect(alinea.name.localPart).to.equal('Alinea');
+      expect(alinea.value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+
+    it('Deveria funcionar com tipo Item', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const inciso = criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+      const alinea = criaDispositivo(inciso, TipoDispositivo.alinea.tipo);
+      criaDispositivo(alinea, TipoDispositivo.item.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const item = resultado.lXhier[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0];
+      expect(item.name.localPart).to.equal('Item');
+      expect(item.value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+
+    it('Deveria funcionar com tipo Paragrafo', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const paragrafo = resultado.lXhier[0].value.lXcontainersOmissis[1];
+      expect(paragrafo.name.localPart).to.equal('Paragrafo');
+      expect(paragrafo.value.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+    });
+
+    it('Deveria funcionar com tipo Omissis', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      criaDispositivo(caput, TipoDispositivo.omissis.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const omissis = resultado.lXhier[0].value.lXcontainersOmissis[0].value.lXcontainersOmissis[0];
+      expect(omissis.name.localPart).to.equal('Omissis');
+      expect(omissis.value.TYPE_NAME).to.equal('br_gov_lexml__1.Omissis');
+    });
+  });
+
+  describe('Agrupadores', () => {
+    it('Deveria funcionar com agrupador Livro', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.livro.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Livro');
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.Hierarchy');
+    });
+
+    it('Deveria funcionar com agrupador Titulo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.titulo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Titulo');
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.Hierarchy');
+    });
+
+    it('Deveria funcionar com agrupador Capitulo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.capitulo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Capitulo');
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.Hierarchy');
+    });
+
+    it('Deveria funcionar com agrupador Secao', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.secao.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Secao');
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.Hierarchy');
+    });
+
+    it('Deveria funcionar com agrupador Subsecao', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.subsecao.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      expect(resultado.lXhier[0].name.localPart).to.equal('Subsecao');
+      expect(resultado.lXhier[0].value.TYPE_NAME).to.equal('br_gov_lexml__1.Hierarchy');
+    });
+  });
+
+  describe('Chamada a buildDispositivo', () => {
+    it('Deveria chamar buildDispositivo para popular value', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      // buildDispositivo foi chamado e populou o value com id
+      expect(resultado.lXhier[0].value).to.have.property('id');
+      expect(resultado.lXhier[0].value.id).to.be.a('string');
+    });
+
+    it('Deveria popular value com propriedades do dispositivo', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+
+      const artigo = resultado.lXhier[0].value;
+      expect(artigo).to.have.property('TYPE_NAME');
+      expect(artigo).to.have.property('id');
+      expect(artigo).to.have.property('lXcontainersOmissis');
+    });
+  });
+
+  describe('Estrutura completa do nó', () => {
+    it('Deveria ter todas as propriedades obrigatórias do nó', () => {
+      const articulacao = createArticulacao();
+      criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const node = resultado.lXhier[0];
+
+      // Estrutura name
+      expect(node.name).to.have.property('namespaceURI');
+      expect(node.name).to.have.property('localPart');
+      expect(node.name).to.have.property('prefix');
+      expect(node.name).to.have.property('key');
+      expect(node.name).to.have.property('string');
+
+      // Estrutura value
+      expect(node.value).to.have.property('TYPE_NAME');
+      expect(node.value).to.have.property('id');
+
+      // Verifica namespace correto
+      expect(node.name.namespaceURI).to.equal('http://www.lexml.gov.br/1.0');
+      expect(node.name.prefix).to.equal('');
+      expect(node.name.key).to.equal('{http://www.lexml.gov.br/1.0}Artigo');
+      expect(node.name.string).to.equal('{http://www.lexml.gov.br/1.0}Artigo');
+    });
+  });
+});
