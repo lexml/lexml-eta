@@ -250,15 +250,163 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
   }
 };
 
-const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] => {
+interface ParsedElement {
+  type: 'text' | 'element';
+  content: string | ParsedElement[];
+  tag?: string;
+  attributes?: Record<string, string>;
+}
+
+const parseHTMLTags = (html: string): ParsedElement[] => {
+  const result: ParsedElement[] = [];
+
+  // Regex para capturar tags de formatação com seu conteúdo
+  // Suporta: b, i, u, sub, sup, strong, em
+  const inlineTagRegex = /<(b|strong|i|em|u|sub|sup)([^>]*)>([\s\S]*?)<\/\1>/gi;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = inlineTagRegex.exec(html)) !== null) {
+    // Texto antes da tag
+    if (match.index > lastIndex) {
+      const textBefore = html.substring(lastIndex, match.index);
+      if (textBefore.trim()) {
+        result.push({ type: 'text', content: textBefore });
+      }
+    }
+
+    const tag = match[1];
+    const normalizedTag = tag === 'strong' ? 'b' : tag === 'em' ? 'i' : tag;
+    const innerContent = match[3];
+
+    // Processar o conteúdo dentro da tag recursivamente
+    const innerParsed = parseHTMLTags(innerContent);
+    result.push({
+      type: 'element',
+      tag: normalizedTag,
+      content: innerParsed,
+    });
+
+    lastIndex = inlineTagRegex.lastIndex;
+  }
+
+  // Texto restante após todas as tags inline
+  if (lastIndex < html.length) {
+    const remainingText = html.substring(lastIndex);
+    if (remainingText.trim()) {
+      // Processar links no texto restante
+      const linkProcessed = parseContentWithLinks(remainingText);
+      result.push(...linkProcessed);
+    }
+  } else if (result.length === 0) {
+    // Não encontramos tags inline, processar apenas links
+    return parseContentWithLinks(html);
+  }
+
+  return result;
+};
+
+const parseContentWithLinks = (html: string): ParsedElement[] => {
+  const result: ParsedElement[] = [];
+  // Regex mais flexível para capturar href, independente do tipo de aspas
+  const linkRegex = /<a[^>]+href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(html)) !== null) {
+    // Texto antes do link
+    if (match.index > lastIndex) {
+      const textBefore = html.substring(lastIndex, match.index);
+      if (textBefore.trim()) {
+        result.push({ type: 'text', content: textBefore });
+      }
+    }
+
+    // O link - normalizar aspas curvas no href
+    let href = match[2];
+    // Remover aspas curvas (Unicode U+201C, U+201D, U+2018, U+2019) e aspas normais
+    href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
+
+    const content = match[3];
+    result.push({
+      type: 'element',
+      tag: 'span',
+      attributes: { href },
+      content,
+    });
+
+    lastIndex = linkRegex.lastIndex;
+  }
+
+  // Texto após o último link
+  if (lastIndex < html.length) {
+    const remainingText = html.substring(lastIndex);
+    if (remainingText.trim()) {
+      result.push({ type: 'text', content: remainingText });
+    }
+  } else if (result.length === 0) {
+    // Não encontramos links, retornar todo o texto
+    result.push({ type: 'text', content: html });
+  }
+
+  return result;
+};
+
+const buildInlineElement = (tag: string, content: any[], href?: string): any => {
+  return {
+    name: {
+      namespaceURI: 'http://www.lexml.gov.br/1.0',
+      localPart: tag,
+      prefix: '',
+      key: `{http://www.lexml.gov.br/1.0}${tag}`,
+      string: `{http://www.lexml.gov.br/1.0}${tag}`,
+    },
+    value: {
+      TYPE_NAME: 'br_gov_lexml__1.GenInline',
+      ...(href && { href }),
+      content,
+    },
+  };
+};
+
+const buildStructuredContentWithInlineElements = (html: string): any[] => {
+  const result: any[] = [];
+  const parsed = parseHTMLTags(html);
+
+  const convertParsedElement = (item: ParsedElement): any => {
+    if (item.type === 'text') {
+      return item.content;
+    } else if (item.type === 'element') {
+      if (item.tag === 'span') {
+        return buildInlineElement('span', [item.content], item.attributes?.href);
+      } else {
+        // Tags de formatação (b, i, u, sub, sup)
+        let innerContent: any[];
+        if (typeof item.content === 'string') {
+          innerContent = [item.content];
+        } else if (Array.isArray(item.content)) {
+          // Recursivamente converter cada elemento
+          innerContent = item.content.map((innerItem: ParsedElement) => convertParsedElement(innerItem));
+        } else {
+          innerContent = [];
+        }
+        return buildInlineElement(item.tag!, innerContent);
+      }
+    }
+    return item.content;
+  };
+
+  for (const item of parsed) {
+    const converted = convertParsedElement(item);
+    result.push(converted);
+  }
+
+  return result.length > 0 ? result : [html];
+};
+
+const buildStructuredContentWithLinks = (conteudo: string): any[] => {
   const regex = /<a[^>]+href="(.*?)"[^>]*>(.*?)<\/a>/gi;
   const result: any[] = [];
-
-  const conteudo = dispositivo[campo];
-  if (!conteudo && conteudo !== '') {
-    result.push(dispositivo);
-    return result;
-  }
 
   const ocorrencias = conteudo.match(regex);
   if (!ocorrencias) {
@@ -277,15 +425,53 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] 
 
     if (from < conteudo.length) {
       const to = ocorrencias[i + 1] ? conteudo.indexOf(ocorrencias[i + 1]) : conteudo.length;
-      result.push(
-        conteudo
-          .substring(from, to)
-          ?.replace(/strong>/gi, 'b>')
-          .replace(/em>/gi, 'i>')
-      );
+      let textSegment = conteudo.substring(from, to);
+
+      // Substitui tags strong/em por b/i apenas textualmente
+      textSegment = textSegment
+        .replace(/<strong([^>]*)>/gi, '<b$1>')
+        .replace(/<\/strong>/gi, '</b>')
+        .replace(/<em([^>]*)>/gi, '<i$1>')
+        .replace(/<\/em>/gi, '</i>');
+
+      result.push(textSegment);
     }
   });
+
   return result;
+};
+
+const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] => {
+  const conteudo = dispositivo[campo];
+  if (!conteudo && conteudo !== '') {
+    return [dispositivo];
+  }
+
+  // Verifica se há links
+  const hasLinks = /<a[^>]+href=/.test(conteudo);
+
+  if (hasLinks) {
+    // Verifica se há tags inline envolvendo os links
+    const hasInlineTagWrappingLinks = /^<(b|i|u|sub|sup|strong|em)[^>]*>[\s\S]*?<a[^>]+href=[\s\S]*?<\/\1>/.test(conteudo);
+
+    if (hasInlineTagWrappingLinks) {
+      // Nova implementação para tags inline envolvendo links
+      return buildStructuredContentWithInlineElements(conteudo);
+    }
+
+    // Comportamento original para links (com substituição textual de strong/em)
+    return buildStructuredContentWithLinks(conteudo);
+  }
+
+  // Verifica se há tags HTML inline (sem links)
+  const hasInlineTags = /<(b|i|u|sub|sup|strong|em)[^>]*>/.test(conteudo);
+  if (hasInlineTags) {
+    return buildStructuredContentWithInlineElements(conteudo);
+  }
+
+  // Sem tags HTML, retorna o conteúdo como está
+  const fim = conteudo.indexOf('” (NR)');
+  return [conteudo.substring(0, fim === -1 ? undefined : fim)];
 };
 
 const buildSpan = (m: string): any => {
