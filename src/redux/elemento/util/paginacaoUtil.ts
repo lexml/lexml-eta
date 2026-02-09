@@ -30,7 +30,7 @@ const getPaginasArticulacao = (articulacao: Articulacao, config?: ConfiguracaoPa
   const dispositivosAgrupadosPorPagina = config?.rangeArtigos
     ? paginarArticulacaoByNumerosArtigos(articulacao, config.rangeArtigos)
     : paginarArticulacao(articulacao, config?.maxItensPorPagina);
-  if(!dispositivosAgrupadosPorPagina.length) {
+  if (!dispositivosAgrupadosPorPagina.length) {
     // Caso de abertura de emenda onde couber
     return [buildPaginaArticulacaoVazia()];
   }
