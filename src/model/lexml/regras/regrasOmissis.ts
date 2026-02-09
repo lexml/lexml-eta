@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isCaput, isInciso, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';

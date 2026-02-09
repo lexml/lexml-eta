@@ -169,7 +169,7 @@ export const isAcaoMenu = (acao: ElementoAction): boolean => {
   return acoesMenu.includes(acao);
 };
 
-export const acoesDisponiveis = [...acoesMenu, ...acoesExclusivasEdicao, validarArticulacaAction];
+export const acoesDisponiveis: ElementoAction[] = [...acoesMenu, ...acoesExclusivasEdicao, validarArticulacaAction];
 
 export const getAcao = (descricao: string): ElementoAction => {
   return acoesDisponiveis.filter(acao => acao.descricao === descricao.trim())[0];

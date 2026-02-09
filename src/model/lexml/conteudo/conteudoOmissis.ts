@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Conteudo } from '../../dispositivo/conteudo';
 import { normalizaSeForOmissis, TEXTO_DEFAULT_DISPOSITIVO_ALTERACAO } from './conteudoUtil';
 import { TEXTO_OMISSIS } from './textoOmissis';

@@ -1,4 +1,5 @@
 // import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
+import type { Constructor } from '../util/mixin';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isEmenta } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';

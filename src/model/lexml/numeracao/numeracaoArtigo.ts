@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
 import { isAgrupador } from '../../dispositivo/tipo';

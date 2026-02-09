@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Alteracoes, BlocoAlteracao } from '../../dispositivo/blocoAlteracao';
 
 export function BlocoAlteracaoPermitido<TBase extends Constructor>(Base: TBase): any {

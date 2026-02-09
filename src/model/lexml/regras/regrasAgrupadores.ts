@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { DescricaoSituacao } from './../../dispositivo/situacao';
 // import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';

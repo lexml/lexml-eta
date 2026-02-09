@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { ElementoAction } from '../acao';
 import { Regras } from './regras';

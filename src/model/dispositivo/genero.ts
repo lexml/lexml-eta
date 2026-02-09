@@ -1,3 +1,5 @@
+import type { Constructor } from '../lexml/util/mixin';
+
 export enum TipoGenero {
   MASCULINO = 'masculino',
   FEMININO = 'feminino',

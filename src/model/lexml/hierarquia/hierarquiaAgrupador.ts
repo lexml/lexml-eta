@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
 import { DescricaoSituacao } from '../../dispositivo/situacao';

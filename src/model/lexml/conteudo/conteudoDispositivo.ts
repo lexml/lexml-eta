@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Conteudo } from '../../dispositivo/conteudo';
 import { TipoConteudo } from './tipoConteudo';
 

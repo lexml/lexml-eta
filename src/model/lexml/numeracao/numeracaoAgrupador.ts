@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';

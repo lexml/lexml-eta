@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Situacao } from '../../dispositivo/situacao';
 import { DispositivoNovo } from './dispositivoNovo';

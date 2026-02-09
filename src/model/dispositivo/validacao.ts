@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import type { Constructor } from '../lexml/util/mixin';
 import { Mensagem } from '../lexml/util/mensagem';
 
 export interface Validacao {

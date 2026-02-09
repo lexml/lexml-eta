@@ -1,3 +1,4 @@
+import type { Constructor } from '../util/mixin';
 import { isOmissis } from './../../dispositivo/tipo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
