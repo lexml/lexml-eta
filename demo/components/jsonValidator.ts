@@ -68,7 +68,7 @@ export const addErro = (erros: LogErro[], caminho: string, mensagem: string): vo
   erros.push({ mensagem: mensagem, caminho: caminho, tipo: 'erro' });
 };
 
-interface LogErro {
+export interface LogErro {
   mensagem: string;
   caminho: string;
   tipo: 'erro' | 'aviso';
