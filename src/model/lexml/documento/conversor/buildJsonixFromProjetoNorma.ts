@@ -199,37 +199,35 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
       dispositivo.tipo === 'Alinea' ||
       dispositivo.tipo === 'Item'
     ) {
+      // Para dispositivos em alteracoes, construir href completo incluindo todos os niveis
       let href = buildHref(dispositivo);
 
-      // Para dispositivos filhos na alteracao, construir href completo
       if (!isArtigo(dispositivo) && dispositivo.pai) {
-        // Verificar se o pai direto é um Caput
-        if (isCaput(dispositivo.pai)) {
-          // Dispositivo filho de Caput: artigo + caput + dispositivo
-          const caputHref = buildHref(dispositivo.pai);
-          // Encontrar o Artigo pai
-          let pai: Dispositivo | undefined = dispositivo.pai.pai;
-          while (pai && !isArtigo(pai)) {
-            pai = pai.pai;
-          }
-          if (pai && isArtigo(pai)) {
-            const artigoHref = buildHref(pai);
-            if (artigoHref && caputHref) {
-              href = artigoHref + '_' + caputHref + '_' + href;
-            }
-          }
-        } else {
-          // Encontrar o Artigo pai na hierarquia da alteracao
-          let pai: Dispositivo | undefined = dispositivo.pai;
-          while (pai && !isArtigo(pai)) {
-            pai = pai.pai;
-          }
-          if (pai && isArtigo(pai)) {
-            const artigoHref = buildHref(pai);
+        // Construir href completo incluindo todos os niveis da hierarquia ate o Artigo
+        const hrefArray: string[] = [];
+        let temp: Dispositivo | undefined = dispositivo;
+        let foundArtigo = false;
+
+        // Percorrer a hierarquia de baixo para cima ate encontrar o Artigo
+        while (temp) {
+          if (isArtigo(temp)) {
+            foundArtigo = true;
+            const artigoHref = buildHref(temp);
             if (artigoHref) {
-              href = artigoHref + '_' + href;
+              hrefArray.unshift(artigoHref);
             }
+            break;
           }
+
+          const tempHref = buildHref(temp);
+          if (tempHref) {
+            hrefArray.unshift(tempHref);
+          }
+          temp = temp.pai;
+        }
+
+        if (foundArtigo && hrefArray.length > 0) {
+          href = hrefArray.join('_');
         }
       }
 

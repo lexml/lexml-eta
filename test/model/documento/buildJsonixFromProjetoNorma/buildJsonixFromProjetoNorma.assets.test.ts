@@ -3,6 +3,7 @@ import { buildJsonixFromProjetoNorma } from '../../../../src/model/lexml/documen
 import { buildProjetoNormaFromJsonix } from '../../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { MPV_1210_2024 } from '../../../assets/mpv_1210_2024';
 import { MPV_885_2019 } from '../../../assets/mpv_885_2019';
+// import { MPV_905_2019 } from '../../../assets/mpv_905_2019'; // Desabilitado: formato inconsistente
 import { PDL_343_2023 } from '../../../assets/pdl_343_2023';
 import { PL_4687_2023 } from '../../../assets/pl_4687_2023';
 import { validarRecursivo } from '../../../../demo/components/jsonValidator';
@@ -41,6 +42,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
       testarConversaoJsonix(MPV_885_2019, 'MPV 885/2019');
     });
   });
+
+  // describe('MPV 905/2019', () => {
+  //   it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado', () => {
+  //     testarConversaoJsonix(MPV_905_2019, 'MPV 905/2019');
+  //   });
+  // });
 
   describe('PDL 343/2023', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado', () => {

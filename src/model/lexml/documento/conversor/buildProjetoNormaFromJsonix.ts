@@ -280,14 +280,6 @@ const getTextoSemHtml = (c: any): string => {
 const substituiAspasRetasPorCurvas = (html: string): string => {
   const div = document.createElement('div');
   div.innerHTML = html;
-  const elements = div.getElementsByTagName('*');
-  for (let i = 0; i < elements.length; i++) {
-    const innerHTML = elements[i].innerHTML;
-    if (innerHTML.indexOf('"') !== -1) {
-      const newInnerHTML = innerHTML.replace(/"(?=\w|$)/g, '&#8220;').replace(/(?=[\w,.?!\-")]|^)"/g, '&#8221;');
-      elements[i].innerHTML = newInnerHTML;
-    }
-  }
   return div.innerHTML.replace(/&nbsp;/g, ' ');
 };
 
@@ -297,10 +289,7 @@ export const buildContent = (content: any): string => {
     if (element.value) {
       texto += montaTag(element.name, element.value);
     } else {
-      let elementTexto = element;
-      elementTexto = elementTexto.replace(/"(?=\w|$)/g, '&#8220;');
-      elementTexto = elementTexto.replace(/(?=[\w,.?!\-")]|^)"/g, '&#8221;');
-      texto += elementTexto;
+      texto += element;
     }
   });
   return texto;
