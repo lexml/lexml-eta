@@ -7,7 +7,7 @@ import {
   isOmissisIrmaoUnico,
 } from '../../hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isIncisoCaput, isOmissis } from '../../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
@@ -190,19 +190,53 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
     value.rotulo = dispositivo.rotulo;
   }
 
-  if (
-    isDispositivoAlteracao(dispositivo) &&
-    (dispositivo.tipo === 'Artigo' ||
+  if (isDispositivoAlteracao(dispositivo) && !isOmissis(dispositivo)) {
+    if (
+      dispositivo.tipo === 'Artigo' ||
       dispositivo.tipo === 'Caput' ||
       dispositivo.tipo === 'Inciso' ||
       dispositivo.tipo === 'Paragrafo' ||
       dispositivo.tipo === 'Alinea' ||
-      dispositivo.tipo === 'Item' ||
-      dispositivo.tipo === 'Omissis')
-  ) {
-    /* eslint-disable prettier/prettier */
-    value['href'] = isCaput(dispositivo) && !isIncisoCaput(dispositivo) ? buildHref(dispositivo.pai!) + '_' + buildHref(dispositivo) : buildHref(dispositivo);
-    /* eslint-enable prettier/prettier */
+      dispositivo.tipo === 'Item'
+    ) {
+      let href = buildHref(dispositivo);
+
+      // Para dispositivos filhos na alteracao, construir href completo
+      if (!isArtigo(dispositivo) && dispositivo.pai) {
+        // Verificar se o pai direto é um Caput
+        if (isCaput(dispositivo.pai)) {
+          // Dispositivo filho de Caput: artigo + caput + dispositivo
+          const caputHref = buildHref(dispositivo.pai);
+          // Encontrar o Artigo pai
+          let pai: Dispositivo | undefined = dispositivo.pai.pai;
+          while (pai && !isArtigo(pai)) {
+            pai = pai.pai;
+          }
+          if (pai && isArtigo(pai)) {
+            const artigoHref = buildHref(pai);
+            if (artigoHref && caputHref) {
+              href = artigoHref + '_' + caputHref + '_' + href;
+            }
+          }
+        } else {
+          // Encontrar o Artigo pai na hierarquia da alteracao
+          let pai: Dispositivo | undefined = dispositivo.pai;
+          while (pai && !isArtigo(pai)) {
+            pai = pai.pai;
+          }
+          if (pai && isArtigo(pai)) {
+            const artigoHref = buildHref(pai);
+            if (artigoHref) {
+              href = artigoHref + '_' + href;
+            }
+          }
+        }
+      }
+
+      if (href) {
+        value['href'] = href;
+      }
+    }
   }
 
   if (dispositivo.cabecaAlteracao || isDispositivoCabecaAlteracao(dispositivo)) {
@@ -345,7 +379,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
       result.push({ type: 'text', content: remainingText });
     }
   } else if (result.length === 0) {
-    // Não encontramos links, retornar todo o texto
+    // Não encontramos links, retornar o texto completo
     result.push({ type: 'text', content: html });
   }
 

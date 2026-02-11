@@ -129,7 +129,8 @@ describe('buildJsonixFromProjetoNorma - Integração: Parser de medida provisór
       expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.id).equals(
         'art1_cpt_alt1_art2_cpt'
       );
-      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[1].value.href).equals('omi1');
+      // Omissis NÃO deve ter atributo href
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[1].value.href).to.be.undefined;
       expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[1].value.id).equals(
         'art1_cpt_alt1_art2_omi1'
       );
@@ -147,7 +148,7 @@ describe('buildJsonixFromProjetoNorma - Integração: Parser de medida provisór
       expect(
         jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1]
           .value.href
-      ).equals('inc7');
+      ).equals('art2_cpt_inc7');
       expect(
         jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1]
           .value.id
@@ -169,7 +170,8 @@ describe('buildJsonixFromProjetoNorma - Integração: Parser de medida provisór
       expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[0].name.localPart).equals(
         'Caput'
       );
-      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[1].value.href).equals('omi1');
+      // Omissis NÃO deve ter atributo href
+      expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[1].value.href).to.be.undefined;
       expect(jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[1].value.id).equals(
         'art1_cpt_alt1_art5_omi1'
       );

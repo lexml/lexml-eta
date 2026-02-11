@@ -474,14 +474,14 @@ describe('buildDispositivo (via buildJsonixFromProjetoNorma)', () => {
         jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[1].value.lXcontainersOmissis[0].value.lXcontainersOmissis[1];
 
       expect(inciso.value).to.have.property('href');
-      expect(inciso.value.href).to.equal('inc7');
+      expect(inciso.value.href).to.equal('art2_cpt_inc7');
     });
 
     it('Deveria incluir href para dispositivo de alteracao tipo Paragrafo', () => {
       const paragrafo = jsonix.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.alteracao.content[2].value.lXcontainersOmissis[5];
 
       expect(paragrafo.value).to.have.property('href');
-      expect(paragrafo.value.href).to.equal('par4');
+      expect(paragrafo.value.href).to.equal('art5_par4');
     });
 
     it('Para Caput não IncisoCaput, deveria usar href pai + "_" + href próprio', () => {
