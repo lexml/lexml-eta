@@ -2,6 +2,7 @@ import { Articulacao, Dispositivo } from '../../../../src/model/dispositivo/disp
 import { buildJsonixArticulacaoFromProjetoNorma } from '../../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { criaDispositivo, createArticulacao } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
+import { LogErro } from '../../../../demo/components/jsonValidator';
 
 /**
  * Cria uma articulação com um artigo completo (artigo + caput)
@@ -114,3 +115,13 @@ export function configurarNumero(dispositivo: Dispositivo, numero: number): void
 export function configurarRotulo(dispositivo: Dispositivo, rotulo: string): void {
   (dispositivo as any).rotulo = rotulo;
 }
+
+/**
+ * filtrar erros relacionados a links em nomeAgrupador (Opção B)
+ */
+export const filtrarErrosLinksNomeAgrupador = (erros: LogErro[]): LogErro[] => {
+  return erros.filter(erro => {
+    // Ignora erros relacionados a links em nomeAgrupador
+    return !erro.caminho.includes('.nomeAgrupador.content');
+  });
+};
