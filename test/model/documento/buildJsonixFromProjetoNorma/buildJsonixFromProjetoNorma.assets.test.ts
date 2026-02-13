@@ -8,6 +8,7 @@ import { MPV_905_2019 } from '../../../assets/mpv_905_2019';
 import { PDL_343_2023 } from '../../../assets/pdl_343_2023';
 import { PL_4687_2023 } from '../../../assets/pl_4687_2023';
 import { Plc_142_2018 } from '../../../assets/plc_142_2018';
+import { PL_5008_2023 } from '../../../assets/pl_5008_2023';
 import { validarRecursivo } from '../../../../demo/components/jsonValidator';
 import type { LogErro } from '../../../../demo/components/jsonValidator';
 import { filtrarErrosLinksNomeAgrupador, filtrarErrosPreambuloVazio } from './buildJsonixHelpers';
@@ -77,6 +78,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('PLC 142/2018', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando elementos vazios no preâmbulo)', () => {
       testarConversaoJsonix(Plc_142_2018, 'PLC 142/2018', [filtrarErrosPreambuloVazio]);
+    });
+  });
+
+  describe('PL 5008/2023', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando links em nomeAgrupador e elementos vazios no preâmbulo)', () => {
+      testarConversaoJsonix(PL_5008_2023, 'PL 5008/2023', [filtrarErrosLinksNomeAgrupador, filtrarErrosPreambuloVazio]);
     });
   });
 });
