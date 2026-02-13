@@ -125,3 +125,14 @@ export const filtrarErrosLinksNomeAgrupador = (erros: LogErro[]): LogErro[] => {
     return !erro.caminho.includes('.nomeAgrupador.content');
   });
 };
+
+/**
+ * Filtra erros relacionados a elementos GenInline vazios no preambulo
+ * O conversor pode remover elementos GenInline sem content durante a conversão
+ */
+export const filtrarErrosPreambuloVazio = (erros: LogErro[]): LogErro[] => {
+  return erros.filter(erro => {
+    // Ignora erros de tamanho de array no preambulo.p
+    return !(erro.caminho.includes('.preambulo.p') && erro.mensagem.includes('Tamanho do array incorreto'));
+  });
+};
