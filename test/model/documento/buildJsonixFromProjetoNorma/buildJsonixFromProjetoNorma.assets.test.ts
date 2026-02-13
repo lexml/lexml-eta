@@ -1,9 +1,10 @@
 import { expect } from '@open-wc/testing';
 import { buildJsonixFromProjetoNorma } from '../../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from '../../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { MPV_1085_2021 } from '../../../assets/mpv_1085_2021';
 import { MPV_1210_2024 } from '../../../assets/mpv_1210_2024';
 import { MPV_885_2019 } from '../../../assets/mpv_885_2019';
-import { MPV_905_2019 } from '../../../assets/mpv_905_2019'; // Desabilitado: formato inconsistente
+import { MPV_905_2019 } from '../../../assets/mpv_905_2019';
 import { PDL_343_2023 } from '../../../assets/pdl_343_2023';
 import { PL_4687_2023 } from '../../../assets/pl_4687_2023';
 import { validarRecursivo } from '../../../../demo/components/jsonValidator';
@@ -48,6 +49,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('MPV 905/2019', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando links em nomeAgrupador)', () => {
       testarConversaoJsonix(MPV_905_2019, 'MPV 905/2019', true);
+    });
+  });
+
+  describe('MPV 1085/2021', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando links em nomeAgrupador)', () => {
+      testarConversaoJsonix(MPV_1085_2021, 'MPV 1085/2021', true);
     });
   });
 
