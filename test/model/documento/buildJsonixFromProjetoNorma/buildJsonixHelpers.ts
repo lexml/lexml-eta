@@ -136,3 +136,14 @@ export const filtrarErrosPreambuloVazio = (erros: LogErro[]): LogErro[] => {
     return !(erro.caminho.includes('.preambulo.p') && erro.mensagem.includes('Tamanho do array incorreto'));
   });
 };
+
+/**
+ * Filtra erros relacionados a atributos notaAlteracao inesperados em omissis dentro de alteração
+ * O conversor pode adicionar notaAlteracao em lXcontainersOmissis dentro de blocos de alteração
+ */
+export const filtrarErrosNotaAlteracaoOmissis = (erros: LogErro[]): LogErro[] => {
+  return erros.filter(erro => {
+    // Ignora erros de atributos notaAlteracao inesperados em lXcontainersOmissis
+    return !(erro.caminho.includes('.lXcontainersOmissis') && erro.mensagem.includes('Atributos inesperados: [notaAlteracao]'));
+  });
+};
