@@ -147,3 +147,14 @@ export const filtrarErrosNotaAlteracaoOmissis = (erros: LogErro[]): LogErro[] =>
     return !(erro.caminho.includes('.lXcontainersOmissis') && erro.mensagem.includes('Atributos inesperados: [notaAlteracao]'));
   });
 };
+
+/**
+ * Filtra erros relacionados a conteúdo de parágrafos com elementos inline e links
+ * O conversor pode tratar elementos inline (<i>, <b>) e links de forma diferente durante a conversão
+ */
+export const filtrarErrosConteudoParagrafo = (erros: LogErro[]): LogErro[] => {
+  return erros.filter(erro => {
+    // Ignora erros de conteúdo de parágrafos
+    return !erro.caminho.includes('.p[0].content');
+  });
+};

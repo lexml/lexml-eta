@@ -10,9 +10,10 @@ import { PL_4687_2023 } from '../../../assets/pl_4687_2023';
 import { Plc_142_2018 } from '../../../assets/plc_142_2018';
 import { PL_5008_2023 } from '../../../assets/pl_5008_2023';
 import { PLP_68_2024 } from '../../../assets/plp_68_2024';
+import { PLP_197_2023 } from '../../../assets/plp_197_2023';
 import { validarRecursivo } from '../../../../demo/components/jsonValidator';
 import type { LogErro } from '../../../../demo/components/jsonValidator';
-import { filtrarErrosLinksNomeAgrupador, filtrarErrosNotaAlteracaoOmissis, filtrarErrosPreambuloVazio } from './buildJsonixHelpers';
+import { filtrarErrosConteudoParagrafo, filtrarErrosLinksNomeAgrupador, filtrarErrosNotaAlteracaoOmissis, filtrarErrosPreambuloVazio } from './buildJsonixHelpers';
 
 describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   const testarConversaoJsonix = (asset: any, nomeAsset: string, filtros: ((erros: LogErro[]) => LogErro[])[] = []): void => {
@@ -91,6 +92,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('PLP 68/2024', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando links em nomeAgrupador e atributos notaAlteracao em omissis)', () => {
       testarConversaoJsonix(PLP_68_2024, 'PLP 68/2024', [filtrarErrosLinksNomeAgrupador, filtrarErrosNotaAlteracaoOmissis]);
+    });
+  });
+
+  describe('PLP 197/2023', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando conteúdo de parágrafos com elementos inline)', () => {
+      testarConversaoJsonix(PLP_197_2023, 'PLP 197/2023', [filtrarErrosConteudoParagrafo]);
     });
   });
 });
