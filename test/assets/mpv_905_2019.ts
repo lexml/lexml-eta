@@ -3863,8 +3863,8 @@ export const MPV_905_2019 = {
                                         },
                                         value: {
                                           TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art7_par1u',
-                                          id: 'art25_cpt_alt1_art7_par1u',
+                                          href: 'art7_par1',
+                                          id: 'art25_cpt_alt1_art7_par1',
                                           rotulo: '§ 1º',
                                           p: [
                                             {
@@ -11593,8 +11593,8 @@ export const MPV_905_2019 = {
                                         },
                                         value: {
                                           TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art17_par1u',
-                                          id: 'art42_cpt_alt1_art17_par1u',
+                                          href: 'art17_par1',
+                                          id: 'art42_cpt_alt1_art17_par1',
                                           rotulo: '§ 1º',
                                           p: [
                                             {
@@ -12994,8 +12994,8 @@ export const MPV_905_2019 = {
                                         },
                                         value: {
                                           TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
-                                          href: 'art39_par1u',
-                                          id: 'art47_cpt_alt1_art39_par1u',
+                                          href: 'art39_par1',
+                                          id: 'art47_cpt_alt1_art39_par1',
                                           rotulo: '§ 1º',
                                           p: [
                                             {
