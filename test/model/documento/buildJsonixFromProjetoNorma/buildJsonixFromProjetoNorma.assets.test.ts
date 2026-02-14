@@ -1,6 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { buildJsonixFromProjetoNorma } from '../../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from '../../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { MPV_1078_2021 } from '../../../assets/mpv_1078_2021';
 import { MPV_1085_2021 } from '../../../assets/mpv_1085_2021';
 import { MPV_1210_2024 } from '../../../assets/mpv_1210_2024';
 import { MPV_885_2019 } from '../../../assets/mpv_885_2019';
@@ -71,6 +72,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('MPV 930/2020', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando elementos vazios no preâmbulo)', () => {
       testarConversaoJsonix(MPV_930_2020, 'MPV 930/2020', [filtrarErrosPreambuloVazio]);
+    });
+  });
+
+  describe('MPV 1078/2021', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado', () => {
+      testarConversaoJsonix(MPV_1078_2021, 'MPV 1078/2021');
     });
   });
 
