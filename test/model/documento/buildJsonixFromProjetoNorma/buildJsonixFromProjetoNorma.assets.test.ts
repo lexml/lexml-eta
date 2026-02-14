@@ -7,6 +7,7 @@ import { MPV_1100_2022 } from '../../../assets/mpv_1100_2022';
 import { MPV_1160_2023 } from '../../../assets/mpv_1160_2023';
 import { MPV_1170_2023 } from '../../../assets/mpv_1170_2023';
 import { MPV_1210_2024 } from '../../../assets/mpv_1210_2024';
+import { MPV_1232_2024 } from '../../../assets/mpv_1232_2024';
 import { MPV_885_2019 } from '../../../assets/mpv_885_2019';
 import { MPV_905_2019 } from '../../../assets/mpv_905_2019';
 import { MPV_930_2020 } from '../../../assets/mpv_930_2020';
@@ -99,6 +100,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('MPV 1170/2023', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando elementos vazios no preâmbulo e conteúdo de parágrafos)', () => {
       testarConversaoJsonix(MPV_1170_2023, 'MPV 1170/2023', [filtrarErrosPreambuloVazio, filtrarErrosConteudoParagrafo]);
+    });
+  });
+
+  describe('MPV 1232/2024', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando conteúdo de parágrafos com elementos inline)', () => {
+      testarConversaoJsonix(MPV_1232_2024, 'MPV 1232/2024', [filtrarErrosConteudoParagrafo]);
     });
   });
 
