@@ -12,6 +12,7 @@ import { PL_5008_2023 } from '../../../assets/pl_5008_2023';
 import { PLP_68_2024 } from '../../../assets/plp_68_2024';
 import { PLP_197_2023 } from '../../../assets/plp_197_2023';
 import { PLS_547_2018 } from '../../../assets/pls_547_2018';
+import { PRS_92_2023 } from '../../../assets/prs_92_2023';
 import { validarRecursivo } from '../../../../demo/components/jsonValidator';
 import type { LogErro } from '../../../../demo/components/jsonValidator';
 import { filtrarErrosConteudoParagrafo, filtrarErrosLinksNomeAgrupador, filtrarErrosNotaAlteracaoOmissis, filtrarErrosPreambuloVazio } from './buildJsonixHelpers';
@@ -105,6 +106,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('PLS 547/2018', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando elementos vazios no preâmbulo)', () => {
       testarConversaoJsonix(PLS_547_2018, 'PLS 547/2018', [filtrarErrosPreambuloVazio]);
+    });
+  });
+
+  describe('PRS 92/2023', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado', () => {
+      testarConversaoJsonix(PRS_92_2023, 'PRS 92/2023');
     });
   });
 });
