@@ -12,6 +12,7 @@ import { MPV_885_2019 } from '../../../assets/mpv_885_2019';
 import { MPV_905_2019 } from '../../../assets/mpv_905_2019';
 import { MPV_930_2020 } from '../../../assets/mpv_930_2020';
 import { PDL_343_2023 } from '../../../assets/pdl_343_2023';
+import { PEC_48_2023 } from '../../../assets/pec_48_2023';
 import { PL_4687_2023 } from '../../../assets/pl_4687_2023';
 import { Plc_142_2018 } from '../../../assets/plc_142_2018';
 import { PL_5008_2023 } from '../../../assets/pl_5008_2023';
@@ -154,6 +155,12 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   describe('PRS 92/2023', () => {
     it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado', () => {
       testarConversaoJsonix(PRS_92_2023, 'PRS 92/2023');
+    });
+  });
+
+  describe('PEC_48_2023', () => {
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado', () => {
+      testarConversaoJsonix(PEC_48_2023, 'PEC_48_2023', [filtrarErrosPreambuloVazio]);
     });
   });
 });
