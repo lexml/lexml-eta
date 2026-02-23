@@ -1,7 +1,7 @@
 import { DescricaoSituacao } from './../../dispositivo/situacao';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
-import { getDispositivoAndFilhosAsLista, getDispositivosAnterioresMesmoTipo, isAdicionado, isUnicoMesmoTipo } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getDispositivosAnterioresMesmoTipo, isAdicionado } from '../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
 import { getArticulacao, isDispositivoAlteracao, irmaosMesmoTipo } from './../hierarquia/hierarquiaUtil';
 
@@ -9,6 +9,10 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
   if (isArticulacao(dispositivo)) {
     return 'cpt_alt1';
   }
+
+  // Verifica se o rótulo do parágrafo explicitamente menciona "único"
+  // O sufixo '1u' só deve ser usado quando o rótulo é "Parágrafo único.", não quando numericamente há apenas um parágrafo
+  const isParagrafoUnicoExplicito = isParagrafo(dispositivo) && (dispositivo as any).informouParagrafoUnico === true;
 
   if (dispositivo.tagId) {
     /* eslint-disable prettier/prettier */
@@ -19,7 +23,7 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
         : isOmissis(dispositivo)
         ? calculaSequencialOmissis(dispositivo)
         : dispositivo.numero
-        ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.numero === '1' && isUnicoMesmoTipo(dispositivo) && isParagrafo(dispositivo)
+        ? (isArtigo(dispositivo) || isParagrafo(dispositivo)) && dispositivo.numero === '1' && isParagrafoUnicoExplicito
           ? '1u'
           : dispositivo.numero!
         : `[sn:${dispositivo.uuid}]`)

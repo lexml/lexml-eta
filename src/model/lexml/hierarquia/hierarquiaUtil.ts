@@ -482,10 +482,50 @@ export const isAntesDoPrimeiroDispositivoOriginal = (dispositivo: Dispositivo): 
   return getDispositivosPosterioresMesmoTipo(dispositivo).filter(d => isOriginal(d) && d.numero === '1').length > 0;
 };
 
+/**
+ * Encontra o artigo ascendente de um dispositivo (se existir).
+ * Usado para determinar o contexto de artigo quando o cabeça da alteração é um agrupador.
+ */
+const findArtigoAscendente = (dispositivo: Dispositivo | undefined): Artigo | undefined => {
+  if (!dispositivo) return undefined;
+  if (isArtigo(dispositivo)) return dispositivo as Artigo;
+  return findArtigoAscendente(dispositivo.pai);
+};
+
+/**
+ * Constrói uma lista de dispositivos para verificação de última alteração.
+ * Para artigos, inclui os filhos do caput (incisos) e os parágrafos,
+ * mas NÃO usa alteracoes!.filhos, pois isso incluiria outros artigos da alteração.
+ */
+const buildListaDispositivosParaUltimaAlteracao = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
+  dispositivos.push(dispositivo);
+
+  if (isArtigo(dispositivo)) {
+    const artigo = dispositivo as Artigo;
+    // Incluir filhos do caput (incisos) mas não o caput em si
+    if (artigo.caput && artigo.caput.filhos.length > 0) {
+      artigo.caput.filhos.forEach(d => buildListaDispositivosParaUltimaAlteracao(d, dispositivos));
+    }
+    // Incluir parágrafos (filhos do artigo)
+    artigo.filhos.forEach(d => buildListaDispositivosParaUltimaAlteracao(d, dispositivos));
+  } else {
+    // Para outros dispositivos, usar a lógica padrão
+    const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
+    filhos.length ? filhos.forEach(d => buildListaDispositivosParaUltimaAlteracao(d, dispositivos)) : undefined;
+  }
+
+  return dispositivos;
+};
+
 export const isUltimaAlteracao = (dispositivo: Dispositivo, print = false): boolean => {
   const atual = getDispositivoCabecaAlteracao(dispositivo);
 
-  const lista = getDispositivoAndFilhosAsLista(atual);
+  // Se o cabeça da alteração NÃO é um artigo (é um agrupador como Título, Capítulo),
+  // encontre o artigo contexto do dispositivo para determinar
+  // se é o último dispositivo DAQUELE artigo, não do agrupador inteiro.
+  const contextoLista = isArtigo(atual) ? atual : findArtigoAscendente(dispositivo);
+
+  const lista = contextoLista ? buildListaDispositivosParaUltimaAlteracao(contextoLista, []) : buildListaDispositivosParaUltimaAlteracao(atual, []);
 
   const ultimoLista = lista[lista.length - 1];
   const dispTeste = isCaput(dispositivo) ? dispositivo.pai! : dispositivo;

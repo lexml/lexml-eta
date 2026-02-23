@@ -1,4 +1,4 @@
-export const PLC_142_2028 = {
+export const Plc_142_2018 = {
   name: { namespaceURI: 'http://www.lexml.gov.br/1.0', localPart: 'LexML', prefix: '', key: '{http://www.lexml.gov.br/1.0}LexML', string: '{http://www.lexml.gov.br/1.0}LexML' },
   value: {
     TYPE_NAME: 'br_gov_lexml__1.LexML',

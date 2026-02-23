@@ -18,7 +18,7 @@ import { PL_AGRUPADORES } from '../doc/pl_agrupadores';
 import { getAno, getNumero, getSigla } from '../../src/model/lexml/documento/urnUtil';
 import { PDL_343_2023 } from '../doc/pdl_343_2023';
 import { PEC_48_2023 } from '../doc/pec_48_2023';
-import { PLC_142_2028 } from '../doc/plc_142_2028';
+import { Plc_142_2018 } from '../doc/plc_142_2018';
 import { PLP_197_2023 } from '../doc/plp_197_2023';
 import { PRS_92_2023 } from '../doc/prs_92_2023';
 import { PL_4687_2023 } from '../doc/pl_4687_2023';
@@ -52,7 +52,7 @@ const mapProjetosNormas = {
   mpv_1170_2023_ALTERADA: MPV_1170_2023_ALTERADA,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
-  pl_142_2018: PLC_142_2028,
+  pl_142_2018: Plc_142_2018,
   plp_197_2023: PLP_197_2023,
   prs_92_2023: PRS_92_2023,
   pdl_183_2018: PDS_183_2018,
