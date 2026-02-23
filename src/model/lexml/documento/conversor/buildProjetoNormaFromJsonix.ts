@@ -87,7 +87,7 @@ const getParteInicial = (documento: any): ParteInicial => {
   const parteInicial = documento?.value?.projetoNorma?.norma?.parteInicial;
   const epigrafe = parteInicial?.epigrafe?.content[0]?.length > 0 ? parteInicial?.epigrafe?.content[0] : buildTextoEpigrafe(getUrn(documento));
   const ementa = buildContent(parteInicial?.ementa.content);
-  const preambulo = parteInicial?.preambulo?.p?.length ? parteInicial?.preambulo?.p[0].content[0] : '';
+  const preambulo = parteInicial?.preambulo?.p?.length ? buildContent(parteInicial.preambulo.p[0].content) : '';
 
   return {
     epigrafe: retiraCaracteresDesnecessarios(epigrafe),
