@@ -23,6 +23,7 @@ import '@shoelace-style/shoelace/dist/components/card/card';
 import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
 import { ModuloRevisao } from './components/editor-texto-rico/moduloRevisao';
 import { ModuloNotaRodape } from './components/editor-texto-rico/moduloNotaRodape';
+import { ModuloRemissao } from './components/editor-texto-rico/moduloRemissao';
 
 // ---------------------------------------------------
 
@@ -54,3 +55,4 @@ export { ProposicaoDivididaDialog } from './components/editor/proposicaoDividida
 Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
 Quill.register('modules/revisao', ModuloRevisao, true);
 Quill.register('modules/notaRodape', ModuloNotaRodape, true);
+Quill.register('modules/remissaoInterna', ModuloRemissao, true);
