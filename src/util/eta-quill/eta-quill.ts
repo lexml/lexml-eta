@@ -30,7 +30,8 @@ import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { EtaKeyboard } from './eta-keyboard';
 import { EtaQuillBuffer } from './eta-quill-buffer';
-import { ModuloRemissao, RemissaoInternaBlot } from '../../components/editor/moduloRemissao';
+import { ModuloRemissao } from '../../components/editor/moduloRemissao';
+import { RemissaoInternaBlot } from './eta-blot-remissao-interna';
 
 export interface TextoSelecionado {
   conteudo: string;

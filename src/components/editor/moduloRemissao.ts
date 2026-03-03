@@ -1,10 +1,10 @@
 import { RemissaoInternaValue } from '../../model/remissao';
 import { rootStore } from '../../redux/store';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
+import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
 
 const Delta = Quill.import('delta');
 const Module = Quill.import('core/module');
-const Inline = Quill.import('blots/inline');
 const Parchment = Quill.import('parchment');
 
 const cfgInline = {
@@ -18,74 +18,6 @@ export const REMISSAO_INTERNA_CHANGE_EVENT = 'remissao-interna-change';
 export const REMISSAO_INTERNA_REMOVE_EVENT = 'remissao-interna-remove';
 
 const PREFIXO_ID = 'ref_';
-
-class RemissaoInternaBlot extends Inline {
-  static create(value: RemissaoInternaValue | string): HTMLElement {
-    const node = super.create(value) as HTMLElement;
-
-    if (typeof value === 'string') {
-      node.setAttribute('href', value);
-    } else {
-      RemissaoInternaBlot.valueToAttributes(value, node);
-    }
-
-    node.setAttribute('class', 'lexml-remissao-interna');
-    node.setAttribute('target', '_self');
-    return node;
-  }
-
-  static formats(domNode: HTMLElement): RemissaoInternaValue | string | undefined {
-    const dataLexmlRef = domNode.getAttribute('data-lexml-ref');
-    const dataRefId = domNode.getAttribute('data-ref-id');
-    const href = domNode.getAttribute('href');
-
-    if (dataLexmlRef && dataRefId) {
-      return {
-        refId: dataRefId,
-        targetLexmlId: dataLexmlRef,
-        targetUuid: this.extractUuidFromHref(href || ''),
-        targetRotulo: domNode.textContent || undefined,
-      };
-    }
-
-    return href || undefined;
-  }
-
-  format(name: string, value: RemissaoInternaValue | string | boolean): void {
-    if (name !== this.statics.blotName || !value) {
-      return super.format(name, value);
-    }
-
-    if (typeof value === 'string') {
-      this.domNode.setAttribute('href', value);
-    } else if (typeof value === 'object') {
-      RemissaoInternaBlot.valueToAttributes(value, this.domNode as HTMLElement);
-    }
-  }
-
-  static valueToAttributes(value: RemissaoInternaValue, domNode: HTMLElement): void {
-    if (!value) return;
-
-    const href = `#lxEtaId${value.targetUuid}`;
-    domNode.setAttribute('href', href);
-
-    if (value.targetLexmlId) {
-      domNode.setAttribute('data-lexml-ref', value.targetLexmlId);
-    }
-
-    if (value.refId) {
-      domNode.setAttribute('data-ref-id', value.refId);
-    }
-  }
-
-  static extractUuidFromHref(href: string): number {
-    const match = href.match(/#lxEtaId(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
-  }
-}
-
-RemissaoInternaBlot.blotName = 'remissao-interna';
-RemissaoInternaBlot.tagName = 'A';
 
 class ModuloRemissao extends Module {
   quill: any;
@@ -102,7 +34,6 @@ class ModuloRemissao extends Module {
   }
 
   static register(): void {
-    Quill.register(RemissaoInternaBlot, true);
     Quill.register(DataLexmlRefAttribute, true);
     Quill.register(DataRefIdAttribute, true);
   }
@@ -469,4 +400,4 @@ class ModuloRemissao extends Module {
 
 Quill.register('modules/remissaoInterna', ModuloRemissao, true);
 
-export { ModuloRemissao, RemissaoInternaBlot };
+export { ModuloRemissao };
