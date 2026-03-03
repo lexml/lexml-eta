@@ -24,7 +24,6 @@ import { AlterarLarguraImagemModalComponent } from './alterar-largura-imagem-mod
 import { notaRodapeCss } from './notaRodape.css';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 import { SwitchRevisaoComponent } from '../switchRevisao/switch-revisao.component';
-import { REMISSAO_INTERNA_CLICK_EVENT, REMISSAO_INTERNA_CHANGE_EVENT, REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
 import { atualizaRevisaoJustificativa } from '../../redux/elemento/reducer/atualizaRevisaoJustificativa';
 import { atualizaRevisaoTextoLivre } from '../../redux/elemento/reducer/atualizaRevisaoTextoLivre';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
@@ -106,22 +105,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private hideAlterarLarguraTabelaModal(): void {
     this.alterarLarguraTabelaModal.hide();
-  }
-
-  private agendarEmissaoEventoOnChange(): void {
-    clearTimeout(this.timerOnChange);
-    this.timerOnChange = setTimeout(() => {
-      this.dispatchEvent(
-        new CustomEvent('onchange', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            origemEvento: this.registroEvento,
-          },
-        })
-      );
-      this.onChange.notify(this.registroEvento);
-    }, 1000);
   }
 
   update(changedProperties: PropertyValues): void {
@@ -268,7 +251,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           },
           aspasCurvas: true,
           notaRodape: true,
-          remissaoInterna: true,
           table: {
             cellSelectionOnClick: false,
           },
@@ -400,9 +382,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
       this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
       this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
-      this.quill.root.addEventListener(REMISSAO_INTERNA_CLICK_EVENT, this.onRemissaoInternaClick);
-      this.quill.root.addEventListener(REMISSAO_INTERNA_CHANGE_EVENT, this.onRemissaoInternaChange);
-      this.quill.root.addEventListener(REMISSAO_INTERNA_REMOVE_EVENT, this.onRemissaoInternaChange);
+
       this.buildRevisoes();
 
       QuillUtil.configurarAcoesLink(this.quill!);
@@ -532,8 +512,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-text-indent', 'Recuo de parágrafo');
     this.setTitle(toolbarContainer, 'button.ql-table', 'Tabela');
     this.setTitle(toolbarContainer, 'button.ql-nota-rodape', 'Nota de rodapé');
-    this.setTitle(toolbarContainer, 'button.ql-remissao-interna', 'Remissão interna');
-    this.setTitle(toolbarContainer, 'button.ql-remover-remissao', 'Remover remissão interna');
   };
 
   setTitle = (toolbarContainer: HTMLElement, seletor: string, title: string): void => toolbarContainer.querySelector(seletor)?.setAttribute('title', title);
@@ -572,9 +550,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   configAbrindoTexto = (valor: boolean): void => {
     (this.quill as any).revisao.isAbrindoTexto = valor;
     (this.quill as any).notasRodape.isAbrindoTexto = valor;
-    if ((this.quill as any).remissaoInterna) {
-      (this.quill as any).remissaoInterna.isAbrindoTexto = valor;
-    }
     const emRevisao = (this.quill as any).revisao.emRevisao;
     if (!valor) {
       if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
@@ -599,7 +574,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   updateTexto = (): void => {
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
-    this.agendarEmissaoEventoOnChange();
     this.onSelectionChange(this.quill?.getSelection());
     this.atualizaStatusElementosRevisao(false);
     this.buildRevisoes();
@@ -629,32 +603,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   updateNotasRodape = (): void => {
     this.notasRodape = (this.quill as any).notasRodape.getNotasRodape();
-    // this.agendarEmissaoEventoOnChange();
-  };
-
-  onRemissaoInternaClick = (event: Event): void => {
-    const customEvent = event as CustomEvent;
-    // Emite evento para que o componente pai possa navegar para o dispositivo
-    this.dispatchEvent(
-      new CustomEvent('remissao-interna-click', {
-        bubbles: true,
-        composed: true,
-        detail: customEvent.detail,
-      })
-    );
-  };
-
-  onRemissaoInternaChange = (): void => {
-    // Emite evento de mudança para o componente pai
-    this.dispatchEvent(
-      new CustomEvent('remissao-interna-change', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          remissoes: (this.quill as any).remissaoInterna?.getRemissoes() || [],
-        },
-      })
-    );
   };
 
   ajustaHtml = (html = ''): string => {
@@ -825,7 +773,6 @@ const formatsOptions = [
   'width',
   'added',
   'removed',
-  'remissao-interna',
 ];
 
 const toolbarOptions = [
