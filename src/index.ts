@@ -23,7 +23,7 @@ import '@shoelace-style/shoelace/dist/components/card/card';
 import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
 import { ModuloRevisao } from './components/editor-texto-rico/moduloRevisao';
 import { ModuloNotaRodape } from './components/editor-texto-rico/moduloNotaRodape';
-import { ModuloRemissao } from './components/editor-texto-rico/moduloRemissao';
+import { ModuloRemissao } from './components/editor/moduloRemissao';
 
 // ---------------------------------------------------
 
