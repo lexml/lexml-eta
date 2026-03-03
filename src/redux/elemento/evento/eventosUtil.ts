@@ -404,6 +404,18 @@ export const createEventos = (): StateEvent[] => {
       pai: undefined,
       elementos: [],
     },
+    {
+      stateType: StateType.RemissaoRedirecionar,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.AtualizaRemissaoInterna,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
   ];
 };
 

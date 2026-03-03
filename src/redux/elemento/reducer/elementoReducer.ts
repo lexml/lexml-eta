@@ -87,6 +87,10 @@ import { NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS } from '../../../model/lexml/acao/nav
 import { navegaEntreDispositivosAlterados } from './navegaEntreDispositivosAlterados';
 import { LIMPAR_ARTICULACAO } from '../../../model/lexml/acao/limparArticulacao';
 import { limpaArticulacao } from './limpaArticulacao';
+import { REDIRECIONAR_REMISSAO } from '../../../model/lexml/acao/redirecionarRemissaoAction';
+import { redirecionaRemissao } from './redirecionaRemissao';
+import { ATUALIZAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/atualizarRemissaoInternaAction';
+import { atualizaRemissaoInterna } from './atualizaRemissaoInterna';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -229,6 +233,12 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case LIMPAR_ARTICULACAO:
       tempState = limpaArticulacao(state);
+      break;
+    case REDIRECIONAR_REMISSAO:
+      tempState = redirecionaRemissao(state, action);
+      break;
+    case ATUALIZAR_REMISSAO_INTERNA:
+      tempState = atualizaRemissaoInterna(state, action);
       break;
     default:
       actionType = undefined;

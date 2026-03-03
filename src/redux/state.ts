@@ -34,7 +34,8 @@ export enum StateType {
   AdicionarAnexoEmendaTextoLivre = 'AdicionarAnexoEmendaTextoLivre',
   RemoverAnexoEmendaTextoLivre = 'RemoverAnexoEmendaTextoLivre',
   PaginaArticulacaoSelecionada = 'PaginaArticulacaoSelecionada',
-  RemissaoAtualizada = 'RemissaoAtualizada',
+  RemissaoRedirecionar = 'RemissaoRedirecionar',
+  AtualizaRemissaoInterna = 'AtualizaRemissaoInterna',
 }
 export interface StateEvent {
   stateType: StateType;

@@ -30,6 +30,7 @@ import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
 import { EtaContainerTr } from './eta-container-tr';
 import { EtaKeyboard } from './eta-keyboard';
 import { EtaQuillBuffer } from './eta-quill-buffer';
+import { ModuloRemissao, RemissaoInternaBlot } from '../../components/editor/moduloRemissao';
 
 export interface TextoSelecionado {
   conteudo: string;
@@ -158,6 +159,8 @@ export class EtaQuill extends Quill {
     EtaQuill.register(EtaBlotRevisaoRecusar, true);
     EtaQuill.register(EtaContainerOpcoes, true);
     EtaQuill.register(EtaBlotOpcoesDiff, true);
+    EtaQuill.register('modules/remissaoInterna', ModuloRemissao, true);
+    EtaQuill.register(RemissaoInternaBlot, true);
     EtaQuill.register(id, true);
     EtaQuill.register(paddingLeft, true);
     EtaQuill.register(border, true);

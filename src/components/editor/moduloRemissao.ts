@@ -1,4 +1,6 @@
 import { RemissaoInternaValue } from '../../model/remissao';
+import { rootStore } from '../../redux/store';
+import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 
 const Delta = Quill.import('delta');
 const Module = Quill.import('core/module');
@@ -14,7 +16,6 @@ const DataRefIdAttribute = new Parchment.Attributor.Attribute('data-ref-id', 'da
 
 export const REMISSAO_INTERNA_CHANGE_EVENT = 'remissao-interna-change';
 export const REMISSAO_INTERNA_REMOVE_EVENT = 'remissao-interna-remove';
-export const REMISSAO_INTERNA_CLICK_EVENT = 'remissao-interna-click';
 
 const PREFIXO_ID = 'ref_';
 
@@ -122,7 +123,6 @@ class ModuloRemissao extends Module {
     this.addClipboardMatcher();
 
     this.quill.root.addEventListener('click', this.onClick.bind(this));
-    this.quill.on('text-change', this.onTextChange.bind(this));
   }
 
   addClipboardMatcher(): void {
@@ -184,61 +184,43 @@ class ModuloRemissao extends Module {
     if (linkRemissao) {
       e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
 
       const href = linkRemissao.getAttribute('href');
-      const dataLexmlRef = linkRemissao.getAttribute('data-lexml-ref');
-      const dataRefId = linkRemissao.getAttribute('data-ref-id');
 
       if (href) {
-        const event = new CustomEvent(REMISSAO_INTERNA_CLICK_EVENT, {
-          bubbles: true,
-          composed: true,
-          detail: {
-            href,
-            lexmlRef: dataLexmlRef,
-            refId: dataRefId,
-            elemento: linkRemissao,
-          },
-        });
-        this.quill.root.dispatchEvent(event);
-
-        this.navegarParaDispositivo(href);
+        const uuid = RemissaoInternaBlot.extractUuidFromHref(href);
+        if (uuid) {
+          const elemento = { uuid };
+          rootStore.dispatch(redirecionarRemissaoAction.execute(elemento));
+        }
       }
     }
   }
 
-  navegarParaDispositivo(href: string): void {
-    const targetId = href.replace('#', '');
-    const targetElement = document.getElementById(targetId);
+  private estaNoRotulo(index: number): boolean {
+    try {
+      const [leaf] = this.quill.getLeaf(index);
+      if (!leaf) return false;
 
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const domNode = leaf.domNode;
+      if (domNode && domNode.parentElement) {
+        const parent = domNode.parentElement;
+        if (parent.tagName === 'LABEL' || parent.closest('label.texto__rotulo')) {
+          return true;
+        }
+      }
 
-      targetElement.classList.add('lexml-remissao-destaque');
-      setTimeout(() => {
-        targetElement.classList.remove('lexml-remissao-destaque');
-      }, 2000);
+      if (leaf.parent && leaf.parent.statics && leaf.parent.statics.blotName === 'EtaBlotRotulo') {
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
     }
   }
 
-  onTextChange(delta: any, oldContent: any, source: string): void {
-    if (source === 'silent') return;
-
-    if (this.hasRemissao(delta)) {
-      this.emitirEventoRemissaoChange();
-    }
-  }
-
-  hasRemissao(delta: any): boolean {
-    return delta?.ops?.some((op: any) => {
-      if (op.insert?.['remissao-interna']) return true;
-      return !!op.attributes?.['remissao-interna'];
-    });
-  }
-
-  /**
-   * Emite evento de mudança de remissão
-   */
   emitirEventoRemissaoChange(): void {
     const event = new CustomEvent(REMISSAO_INTERNA_CHANGE_EVENT, {
       bubbles: true,
@@ -437,6 +419,51 @@ class ModuloRemissao extends Module {
     });
 
     return count;
+  }
+
+  renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {
+    const remissoesDoDispositivo = remissoesDoState[uuidDispositivoAtual] || [];
+
+    if (remissoesDoDispositivo.length === 0) {
+      return;
+    }
+
+    for (const remissao of remissoesDoDispositivo) {
+      const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${remissao.refId}"]`);
+      if (linkExistente) {
+        continue;
+      }
+
+      const texto = this.quill.getText();
+      const textoRef = remissao.textoRef;
+
+      if (!textoRef) {
+        continue;
+      }
+
+      let index = texto.indexOf(textoRef);
+      while (index !== -1) {
+        try {
+          const format = this.quill.getFormat(index, textoRef.length);
+          if (format['remissao-interna']) {
+            index = texto.indexOf(textoRef, index + textoRef.length);
+            continue;
+          }
+        } catch {
+          //empty
+        }
+
+        if (this.estaNoRotulo(index)) {
+          index = texto.indexOf(textoRef, index + textoRef.length);
+          continue;
+        }
+
+        this.quill.formatText(index, textoRef.length, 'remissao-interna', remissao, 'silent');
+        index = texto.indexOf(textoRef, index + textoRef.length);
+      }
+    }
+
+    this.emitirEventoRemissaoChange();
   }
 }
 

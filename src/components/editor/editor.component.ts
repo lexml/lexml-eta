@@ -74,6 +74,7 @@ import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/seleci
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
+import { atualizarRemissaoInternaAction } from '../../model/lexml/acao/atualizarRemissaoInternaAction';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -194,6 +195,30 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .checkBoxRevisao {
           padding: 3px 5px;
           margin: 5px 5px 5px 4px;
+        }
+        lexml-eta-proposicao-editor a.lexml-remissao-interna {
+          color: #0066cc;
+          text-decoration: underline;
+          cursor: pointer;
+        }
+
+        lexml-eta-proposicao-editor a.lexml-remissao-interna:hover {
+          color: #004499;
+          text-decoration: underline;
+        }
+
+        lexml-eta-proposicao-editor a.lexml-remissao-interna:visited {
+          color: #660099;
+        }
+
+        lexml-eta-proposicao-editor a.lexml-remissao-invalida {
+          color: #cc0000;
+          text-decoration: line-through;
+        }
+
+        lexml-eta-proposicao-editor .lexml-remissao-destaque {
+          background-color: #fff3cd !important;
+          transition: background-color 0.3s ease;
         }
       </style>
       <div id="lx-eta-box">
@@ -394,6 +419,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+      rootStore.dispatch(atualizarRemissaoInternaAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
   }
@@ -776,6 +802,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
         case StateType.RevisaoAdicionalRejeitada:
           this.removerLinhaQuill(event);
+          break;
+        case StateType.RemissaoRedirecionar:
+          this.redirecionarParaDispositivoRemissao(event);
+          break;
+        case StateType.AtualizaRemissaoInterna:
+          this.renderizarRemissoesDoState(event);
           break;
       }
 
@@ -1320,6 +1352,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.hierarquia
       );
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+      rootStore.dispatch(atualizarRemissaoInternaAction.execute(elemento));
     }
   }
 
@@ -1409,7 +1442,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptionsStatic {
     return {
-      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis'],
+      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis', 'remissao-interna'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
@@ -1424,6 +1457,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           maxStack: 500,
           userOnly: true,
         },
+        remissaoInterna: true,
       },
       theme: 'snow',
     };
@@ -1725,4 +1759,52 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     });
   };
+
+  private redirecionarParaDispositivoRemissao(event: StateEvent): void {
+    const elemento = event.elementos?.[0];
+    if (!elemento?.uuid) return;
+
+    const uuid = elemento.uuid;
+    const linha = this.quill.getLinhaPorId(uuid);
+
+    if (linha && linha.blotConteudo) {
+      if (this.quill.linhaAtual && typeof this.quill.linhaAtual.desativarBorda === 'function') {
+        this.quill.linhaAtual.desativarBorda();
+      }
+
+      const targetElement = document.getElementById(`lxEtaId${uuid}`);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+        targetElement.classList.add('lexml-remissao-destaque');
+        setTimeout(() => {
+          targetElement.classList.remove('lexml-remissao-destaque');
+        }, 2000);
+      }
+
+      this.quill.focus();
+      const index = this.quill.getIndex(linha.blotConteudo);
+      this.quill.setSelection(index, 0, 'user');
+
+      if (typeof this.quill.atualizarLinhaCorrente === 'function') {
+        this.quill.atualizarLinhaCorrente(linha);
+      }
+    }
+  }
+
+  private renderizarRemissoesDoState(event: StateEvent): void {
+    const elemento = event.elementos?.[0];
+    if (!elemento?.uuid) {
+      return;
+    }
+
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) {
+      return;
+    }
+
+    const state = rootStore.getState().elementoReducer;
+    const remissoes = state.remissoes || {};
+
+    remissaoModule.renderizarRemissoesDoState(remissoes, elemento.uuid);
+  }
 }

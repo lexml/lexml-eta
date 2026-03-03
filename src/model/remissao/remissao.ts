@@ -23,11 +23,17 @@ export interface RemissaoInterna {
 export interface RemissaoInternaValue {
   refId: string;
 
-  targetUuid: number;
+  targetUuid?: number;
 
-  targetLexmlId: string;
+  targetLexmlId?: string;
 
   targetRotulo?: string;
+
+  sourceUuid?: number;
+
+  sourceLexmlId?: string;
+
+  textoRef?: string;
 }
 
 export interface ReferenciaDetectada {
