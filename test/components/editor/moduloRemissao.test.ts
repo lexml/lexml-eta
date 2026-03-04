@@ -2,6 +2,7 @@ import { expect } from '@open-wc/testing';
 import { RemissaoInternaValue } from '../../../src/model/remissao/remissao';
 import { ReferenciaDispositivoParser } from '../../../src/model/lexml/numeracao/parserReferenciaDispositivo';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
+import { ModuloRemissao } from '../../../src/components/editor/moduloRemissao';
 
 describe('ModuloRemissao - Constantes de Eventos', () => {
   it('deve definir evento de mudança corretamente', () => {
@@ -124,25 +125,111 @@ describe('Atributos de Remissão', () => {
   });
 });
 
-describe('Geração de ID de Referência', () => {
-  it('deve gerar ID único com prefixo ref_', () => {
-    const prefix = 'ref_';
-    const id = prefix + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+describe('ModuloRemissao.gerarId() - Testes da Função Real', () => {
+  let moduloRemissao: ModuloRemissao;
 
-    expect(id.startsWith('ref_')).to.be.true;
-    expect(id.length).to.be.greaterThan(10);
-  });
-
-  it('deve gerar IDs diferentes em chamadas consecutivas', async () => {
-    const generateId = (): string => {
-      return 'ref_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  before(() => {
+    // Mock do Quill
+    const mockQuill: any = {
+      root: document.createElement('div'),
+      getModule: () => null,
+      clipboard: {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        addMatcher: () => {},
+      },
     };
 
-    const id1 = generateId();
-    await new Promise(resolve => setTimeout(resolve, 1));
-    const id2 = generateId();
+    // Instancia o módulo com o mock
+    moduloRemissao = new ModuloRemissao(mockQuill, {});
+  });
 
-    expect(id1).to.not.equal(id2);
+  describe('Formato do ID gerado', () => {
+    it('deve iniciar com o prefixo "ref_"', () => {
+      const id = moduloRemissao.gerarId();
+      expect(id.startsWith('ref_')).to.be.true;
+    });
+
+    it('deve conter exatamente um underscore após o prefixo', () => {
+      const id = moduloRemissao.gerarId();
+      const semPrefixo = id.slice(4); // Remove 'ref_'
+      const underscoreCount = (semPrefixo.match(/_/g) || []).length;
+      expect(underscoreCount).to.equal(1);
+    });
+
+    it('deve ter o formato: ref_<timestamp>_<random>', () => {
+      const id = moduloRemissao.gerarId();
+      const regex = /^ref_\d+_[a-z0-9]+$/;
+      expect(regex.test(id)).to.be.true;
+    });
+
+    it('deve conter um timestamp válido após o prefixo', () => {
+      const id = moduloRemissao.gerarId();
+      const semPrefixo = id.slice(4); // Remove 'ref_'
+      const partes = semPrefixo.split('_');
+
+      expect(partes.length).to.equal(2);
+
+      const timestamp = parseInt(partes[0], 10);
+      expect(isNaN(timestamp)).to.be.false;
+      expect(timestamp).to.be.greaterThan(0);
+      // Verifica se o timestamp é razoável (após 2020)
+      expect(timestamp).to.be.greaterThan(1577836800000);
+    });
+  });
+
+  describe('Parte aleatória do ID', () => {
+    it('deve ter a parte aleatória com comprimento esperado (9 caracteres)', () => {
+      const id = moduloRemissao.gerarId();
+      const semPrefixo = id.slice(4); // Remove 'ref_'
+      const partes = semPrefixo.split('_');
+      const parteAleatoria = partes[1];
+
+      expect(parteAleatoria.length).to.equal(9);
+    });
+
+    it('deve conter apenas caracteres alfanuméricos minúsculos na parte aleatória', () => {
+      const id = moduloRemissao.gerarId();
+      const semPrefixo = id.slice(4); // Remove 'ref_'
+      const partes = semPrefixo.split('_');
+      const parteAleatoria = partes[1];
+
+      expect(/^[a-z0-9]+$/.test(parteAleatoria)).to.be.true;
+    });
+  });
+
+  describe('Unicidade dos IDs', () => {
+    it('deve gerar IDs únicos em chamadas consecutivas', () => {
+      const ids = new Set<string>();
+      for (let i = 0; i < 100; i++) {
+        ids.add(moduloRemissao.gerarId());
+      }
+      expect(ids.size).to.equal(100);
+    });
+
+    it('deve gerar IDs diferentes mesmo em chamadas muito rápidas', () => {
+      const id1 = moduloRemissao.gerarId();
+      const id2 = moduloRemissao.gerarId();
+      const id3 = moduloRemissao.gerarId();
+
+      expect(id1).to.not.equal(id2);
+      expect(id2).to.not.equal(id3);
+      expect(id1).to.not.equal(id3);
+    });
+  });
+
+  describe('Estrutura completa do ID', () => {
+    it('deve ter comprimento total esperado (prefixo + timestamp + underscore + 9 chars)', () => {
+      const id = moduloRemissao.gerarId();
+      // ref_ (4) + timestamp (13) + _ (1) + random (9) = 27 caracteres (aprox)
+      expect(id.length).to.be.greaterThan(20);
+      expect(id.length).to.be.lessThan(35);
+    });
+
+    it('deve ser uma string válida', () => {
+      const id = moduloRemissao.gerarId();
+      expect(typeof id).to.equal('string');
+      expect(id.length).to.be.greaterThan(0);
+    });
   });
 });
 

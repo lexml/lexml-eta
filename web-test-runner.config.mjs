@@ -49,6 +49,32 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
       </script>
       <body>
         <script>window.process = { env: { NODE_ENV: "development", testMode: true } }</script>
+        <script>
+          // Mock global do Quill para testes que precisam importar módulos dependentes do Quill
+          // Deve ser definido antes de qualquer import de módulo que use Quill
+          const mockBlot = class {
+            static blotName = 'mock-blot';
+            static create() { return document.createElement('span'); }
+            constructor() { this.domNode = document.createElement('span'); }
+            format() {}
+            length() { return 0; }
+            offset() { return 0; }
+          };
+          window.Quill = {
+            import: (path) => {
+              if (path === 'blots/inline') return mockBlot;
+              if (path === 'delta') return class Delta {};
+              if (path === 'core/module') return class {};
+              if (path === 'parchment') return {
+                Scope: { INLINE_ATTRIBUTE: 1 },
+                Attributor: { Attribute: class {} },
+              };
+              return class {};
+            },
+            register: () => {},
+            find: () => null,
+          };
+        </script>
         <script type="module" src="${testFramework}"></script>
       </body>
     </html>`,
