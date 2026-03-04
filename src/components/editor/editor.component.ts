@@ -6,6 +6,7 @@ import { AdicionarAgrupadorArtigo } from '../../model/lexml/acao/adicionarAgrupa
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
@@ -75,6 +76,9 @@ import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexm
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 import { atualizarRemissaoInternaAction } from '../../model/lexml/acao/atualizarRemissaoInternaAction';
+import { iconeRemissaoInterna, iconeRemoverRemissao } from '../../../assets/icons/icons';
+import { remissaoInternaDialog } from './remissaoInternaDialog';
+import { RemissaoInternaValue } from '../../model/remissao';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -220,6 +224,29 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           background-color: #fff3cd !important;
           transition: background-color 0.3s ease;
         }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna,
+        lexml-eta-proposicao-editor .btn-remover-remissao {
+          background: none;
+          border: none;
+          padding: 4px 6px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna:hover,
+        lexml-eta-proposicao-editor .btn-remover-remissao:hover {
+          background-color: var(--sl-color-neutral-100);
+          border-radius: 4px;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna svg,
+        lexml-eta-proposicao-editor .btn-remover-remissao svg {
+          width: 16px;
+          height: 16px;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -274,6 +301,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               </svg>
               ${this.labelAnexo()}
             </span>
+          </button>
+
+          <button type="button" class="btn-remissao-interna" title="Adicionar remissão interna" @click=${this.abrirDialogoRemissaoInterna}>
+            ${unsafeHTML(iconeRemissaoInterna)}
+          </button>
+
+          <button type="button" class="btn-remover-remissao" title="Remover remissão interna" @click=${this.removerRemissaoInterna}>
+            ${unsafeHTML(iconeRemoverRemissao)}
           </button>
 
           <span id="pos-select-paginacao"></span>
@@ -1807,4 +1842,31 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     remissaoModule.renderizarRemissoesDoState(remissoes, elemento.uuid);
   }
+
+  private abrirDialogoRemissaoInterna = async (): Promise<void> => {
+    const range = this.quill.getSelection();
+    if (!range) {
+      this.quill.focus();
+      return;
+    }
+
+    // Salva o range para usar no callback (pois o foco pode ser perdido ao fechar o diálogo)
+    const savedRange = { index: range.index, length: range.length };
+
+    const callback = (value: RemissaoInternaValue): void => {
+      const remissaoModule = this.quill.getModule('remissaoInterna');
+      if (remissaoModule) {
+        remissaoModule.criarRemissao(value, savedRange);
+      }
+    };
+
+    await remissaoInternaDialog(this.quill, savedRange, callback);
+  };
+
+  private removerRemissaoInterna = (): void => {
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (remissaoModule) {
+      remissaoModule.removerRemissao();
+    }
+  };
 }

@@ -195,19 +195,21 @@ class ModuloRemissao extends Module {
     this.quill.root.dispatchEvent(event);
   }
 
-  criarRemissao(value: RemissaoInternaValue): void {
-    const range = this.quill.getSelection();
-    if (!range) return;
+  criarRemissao(value: RemissaoInternaValue, range?: { index: number; length: number }): void {
+    // Usa o range fornecido ou obtém do quill
+    const selectionRange = range || this.quill.getSelection();
+    if (!selectionRange) return;
 
-    const delta = new Delta()
-      .retain(range.index)
-      .delete(range.length)
-      .insert(this.quill.getText(range.index, range.length) || value.targetRotulo || '', {
-        'remissao-interna': value,
-      });
+    // Obtém o texto selecionado antes de qualquer modificação
+    const textoSelecionado = this.quill.getText(selectionRange.index, selectionRange.length);
+    const textoParaInserir = textoSelecionado || value.targetRotulo || '';
+
+    const delta = new Delta().retain(selectionRange.index).delete(selectionRange.length).insert(textoParaInserir, {
+      'remissao-interna': value,
+    });
 
     this.quill.updateContents(delta, 'user');
-    this.quill.setSelection(range.index + (value.targetRotulo?.length || range.length), 0);
+    this.quill.setSelection(selectionRange.index + textoParaInserir.length, 0);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
