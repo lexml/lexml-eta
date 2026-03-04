@@ -220,6 +220,18 @@ class ModuloRemissao extends Module {
       return;
     }
 
+    // Se há uma seleção com comprimento > 0, busca todas as remissões dentro da seleção
+    if (range.length > 0) {
+      const remissoesRemovidas = this.removerRemissoesNoRange(range.index, range.length);
+      if (remissoesRemovidas > 0) {
+        this.emitirEventoRemissaoRemove();
+      } else {
+        this.mostrarMensagem('Não há remissões internas na seleção.');
+      }
+      return;
+    }
+
+    // Cursor sem seleção - verifica se está sobre uma remissão
     const format = this.quill.getFormat(range);
 
     if (!format['remissao-interna']) {
@@ -233,12 +245,43 @@ class ModuloRemissao extends Module {
         return;
       }
 
-      this.mostrarMensagem('Selecione um link de remissão interna para remover.');
+      this.mostrarMensagem('Posicione o cursor sobre uma remissão interna ou selecione um trecho com remissões.');
       return;
     }
 
     this.quill.format('remissao-interna', false, 'user');
     this.emitirEventoRemissaoRemove();
+  }
+
+  private removerRemissoesNoRange(index: number, length: number): number {
+    const endIndex = index + length;
+    const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna');
+    let removidas = 0;
+
+    // Coleta todas as remissões dentro do range (de trás para frente para não afetar índices)
+    const remissoesParaRemover: { index: number; length: number }[] = [];
+
+    links.forEach((link: Element) => {
+      const blot = Quill.find(link);
+      if (blot) {
+        const blotIndex = blot.offset(this.quill.scroll);
+        const blotLength = blot.length();
+
+        // Verifica se a remissão está dentro do range
+        if (blotIndex >= index && blotIndex + blotLength <= endIndex) {
+          remissoesParaRemover.push({ index: blotIndex, length: blotLength });
+        }
+      }
+    });
+
+    remissoesParaRemover.sort((a, b) => b.index - a.index);
+
+    for (const remissao of remissoesParaRemover) {
+      this.quill.formatText(remissao.index, remissao.length, 'remissao-interna', false, 'user');
+      removidas++;
+    }
+
+    return removidas;
   }
 
   private mostrarMensagem(mensagem: string): void {
