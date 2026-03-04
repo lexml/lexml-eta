@@ -294,7 +294,7 @@ class ModuloRemissao extends Module {
   }
 
   gerarId(): string {
-    return PREFIXO_ID + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return PREFIXO_ID + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   getRemissoes(): RemissaoInternaValue[] {
