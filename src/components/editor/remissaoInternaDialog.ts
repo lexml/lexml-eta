@@ -161,6 +161,13 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
         padding: 24px;
         color: var(--sl-color-neutral-400);
       }
+
+      .remissao-dialog-container #initial-state {
+        text-align: center;
+        padding: 40px 24px;
+        color: var(--sl-color-neutral-400);
+        font-size: 0.9em;
+      }
     </style>
 
     <div class="remissao-dialog-container">
@@ -185,10 +192,12 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
       </sl-input>
 
       <div class="dispositivo-count" id="dispositivo-count">
-        ${dispositivos.length} dispositivos encontrados
+        Digite para buscar dispositivos
       </div>
 
-      <div class="dispositivo-list" id="lista-dispositivos"></div>
+      <div class="dispositivo-list" id="lista-dispositivos">
+        <div class="empty-state" id="initial-state">Digite no campo acima para buscar dispositivos</div>
+      </div>
 
       <sl-alert id="alerta-remissao" variant="warning" closable>
         <span slot="icon" style="color: var(--sl-color-warning-500);">⚠</span>
@@ -274,6 +283,17 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
 
   function atualizarLista(): void {
     const filtro = inputBusca.value || '';
+
+    // Se não houver filtro, não exibe a lista
+    if (!filtro || filtro.trim() === '') {
+      listaContainer.innerHTML = '<div class="empty-state" id="initial-state">Digite no campo acima para buscar dispositivos</div>';
+      countDisplay.textContent = 'Digite para buscar dispositivos';
+      dispositivoSelecionado = null;
+      selectedItemElement = null;
+      btnConfirmar.disabled = true;
+      return;
+    }
+
     const filtrados = filtrarDispositivos(dispositivos, filtro);
     renderizarDispositivos(filtrados);
 
@@ -329,7 +349,8 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
     fecharDialogo();
   };
 
-  renderizarDispositivos(dispositivos);
+  // Não renderiza lista inicial - aguarda digitação no campo de busca
+  // A lista começa vazia para evitar lentidão em proposições grandes
 
   quill.blur();
   await dialogElem.appendChild(content);
