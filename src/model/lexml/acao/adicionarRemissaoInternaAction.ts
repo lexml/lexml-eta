@@ -1,7 +1,7 @@
 import { ElementoAction } from '.';
 import { Referencia } from '../../elemento';
 
-export const ATUALIZAR_REMISSAO_INTERNA = 'ATUALIZAR_REMISSAO_INTERNA';
+export const ADICIONAR_REMISSAO_INTERNA = 'ADICIONAR_REMISSAO_INTERNA';
 
 class AtualizaRemissaoInterna implements ElementoAction {
   descricao: string;
@@ -13,10 +13,10 @@ class AtualizaRemissaoInterna implements ElementoAction {
 
   execute(atual: Referencia): any {
     return {
-      type: ATUALIZAR_REMISSAO_INTERNA,
+      type: ADICIONAR_REMISSAO_INTERNA,
       atual,
     };
   }
 }
 
-export const atualizarRemissaoInternaAction = new AtualizaRemissaoInterna();
+export const adicionarRemissaoInternaAction = new AtualizaRemissaoInterna();

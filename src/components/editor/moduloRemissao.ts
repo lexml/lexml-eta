@@ -334,7 +334,7 @@ class ModuloRemissao extends Module {
     return { blot, index };
   }
 
-  atualizarRemissao(refId: string, newValue: RemissaoInternaValue): boolean {
+  adicionarRemissao(refId: string, newValue: RemissaoInternaValue): boolean {
     const result = this.findBlotByRefId(refId);
     if (!result) return false;
 
@@ -389,7 +389,7 @@ class ModuloRemissao extends Module {
           targetRotulo: el.textContent || undefined,
         };
 
-        this.atualizarRemissao(dataRefId, newValue);
+        this.adicionarRemissao(dataRefId, newValue);
         count++;
       }
     });

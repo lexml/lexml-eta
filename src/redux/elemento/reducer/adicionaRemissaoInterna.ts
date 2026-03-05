@@ -5,7 +5,7 @@ import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/pars
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../model/remissao';
 
-export const atualizaRemissaoInterna = (state: any, action: any): State => {
+export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const textoAtual = dispositivo?.texto;
 

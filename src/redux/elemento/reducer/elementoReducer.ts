@@ -89,8 +89,8 @@ import { LIMPAR_ARTICULACAO } from '../../../model/lexml/acao/limparArticulacao'
 import { limpaArticulacao } from './limpaArticulacao';
 import { REDIRECIONAR_REMISSAO } from '../../../model/lexml/acao/redirecionarRemissaoAction';
 import { redirecionaRemissao } from './redirecionaRemissao';
-import { ATUALIZAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/atualizarRemissaoInternaAction';
-import { atualizaRemissaoInterna } from './atualizaRemissaoInterna';
+import { ADICIONAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/adicionarRemissaoInternaAction';
+import { adicionaRemissaoInterna } from './adicionaRemissaoInterna';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -237,8 +237,8 @@ export const elementoReducer = (state = {}, action: any): any => {
     case REDIRECIONAR_REMISSAO:
       tempState = redirecionaRemissao(state, action);
       break;
-    case ATUALIZAR_REMISSAO_INTERNA:
-      tempState = atualizaRemissaoInterna(state, action);
+    case ADICIONAR_REMISSAO_INTERNA:
+      tempState = adicionaRemissaoInterna(state, action);
       break;
     default:
       actionType = undefined;

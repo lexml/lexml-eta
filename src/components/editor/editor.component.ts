@@ -75,7 +75,7 @@ import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/seleci
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
-import { atualizarRemissaoInternaAction } from '../../model/lexml/acao/atualizarRemissaoInternaAction';
+import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
 import { iconeRemissaoInterna, iconeRemoverRemissao } from '../../../assets/icons/icons';
 import { remissaoInternaDialog } from './remissaoInternaDialog';
 import { RemissaoInternaValue } from '../../model/remissao';
@@ -454,7 +454,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
-      rootStore.dispatch(atualizarRemissaoInternaAction.execute(elemento));
+      rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
     }
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
   }
@@ -1387,7 +1387,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.hierarquia
       );
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
-      rootStore.dispatch(atualizarRemissaoInternaAction.execute(elemento));
+      rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
     }
   }
 
