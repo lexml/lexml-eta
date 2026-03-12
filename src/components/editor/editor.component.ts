@@ -15,7 +15,14 @@ import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
-import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
+import {
+  adicionarElementoAction,
+  adicionarArtigoAntes,
+  adicionarParagrafoAntes,
+  adicionarIncisoAntes,
+  adicionarAlineaAntes,
+  adicionarItemAntes,
+} from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
 import { autofixAction } from '../../model/lexml/acao/autoFixAction';
@@ -437,10 +444,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const indexFim: number = indexInicio + blotConteudo!.tamanho ?? 0;
     let textoLinha = '';
     let textoNovaLinha = '';
+    let posicao: string | undefined = undefined;
 
     if (range.index === indexInicio) {
-      textoLinha = '';
-      textoNovaLinha = blotConteudo.html;
+      // Cursor no início: novo dispositivo vazio criado ANTES, atual mantém conteúdo
+      textoLinha = blotConteudo.html;
+      textoNovaLinha = '';
+      posicao = 'antes';
     } else if (range.index === indexFim) {
       textoLinha = blotConteudo.html;
       textoNovaLinha = '';
@@ -456,7 +466,30 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
       rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
     }
-    rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+
+    if (posicao === 'antes') {
+      const actionAntes = this.getActionAdicionarAntes(linha.tipo);
+      rootStore.dispatch(actionAntes.execute(elemento, textoNovaLinha));
+    } else {
+      rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+    }
+  }
+
+  private getActionAdicionarAntes(tipo: string): any {
+    switch (tipo) {
+      case 'Artigo':
+        return adicionarArtigoAntes;
+      case 'Paragrafo':
+        return adicionarParagrafoAntes;
+      case 'Inciso':
+        return adicionarIncisoAntes;
+      case 'Alinea':
+        return adicionarAlineaAntes;
+      case 'Item':
+        return adicionarItemAntes;
+      default:
+        return adicionarElementoAction;
+    }
   }
 
   private editarNotaAlteracao(elemento: Elemento): void {
@@ -843,6 +876,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
         case StateType.AtualizaRemissaoInterna:
           this.renderizarRemissoesDoState(event);
+          break;
+        case StateType.RemissaoRenumerada:
+          this.atualizarRemissaoRenumerada(event);
           break;
       }
 
@@ -1841,6 +1877,22 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const remissoes = state.remissoes || {};
 
     remissaoModule.renderizarRemissoesDoState(remissoes, elemento.uuid);
+  }
+
+  private atualizarRemissaoRenumerada(event: StateEvent): void {
+    if (!event.remissaoRenumeracao) {
+      return;
+    }
+
+    const { lexmlIdAntigo, lexmlIdNovo, novoUuid } = event.remissaoRenumeracao;
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+
+    if (!remissaoModule) {
+      return;
+    }
+
+    // Atualiza as remissões no DOM que apontam para o lexmlId antigo
+    remissaoModule.atualizarReferencias(lexmlIdAntigo, lexmlIdNovo, novoUuid);
   }
 
   private abrirDialogoRemissaoInterna = async (): Promise<void> => {

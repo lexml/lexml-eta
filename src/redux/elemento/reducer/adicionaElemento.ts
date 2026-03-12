@@ -1,7 +1,6 @@
-import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo, isArtigo, isCaput, isEmenta } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
@@ -182,6 +181,16 @@ export const adicionaElemento = (state: any, action: any): State => {
     (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai);
   }
 
+  // Captura lexmlIds antes de renumerar (para atualização de remissões)
+  const mapeamentoLexmlIds =
+    action.posicao && action.posicao === 'antes'
+      ? listaDispositivosRenumerados(novo).map(d => ({
+          dispositivo: d,
+          lexmlIdAntigo: d.id,
+          uuidDispositivo: d.uuid,
+        }))
+      : [];
+
   novo.pai!.renumeraFilhos();
 
   updateIdDispositivoAndFilhos(novo.pai!);
@@ -221,7 +230,22 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   if (action.posicao && action.posicao === 'antes') {
     const dispositivosRenumerados = listaDispositivosRenumerados(novo);
-    dispositivosRenumerados.forEach(dr => updateIdDispositivoAndFilhos(dr));
+
+    mapeamentoLexmlIds.forEach(({ dispositivo, lexmlIdAntigo, uuidDispositivo }) => {
+      const lexmlIdNovo = dispositivo.id;
+      if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
+        eventos.eventos.push({
+          stateType: StateType.RemissaoRenumerada,
+          elementos: [],
+          remissaoRenumeracao: {
+            lexmlIdAntigo,
+            lexmlIdNovo,
+            novoUuid: uuidDispositivo,
+          },
+        });
+      }
+    });
+
     eventos.add(
       StateType.ElementoRenumerado,
       dispositivosRenumerados.map(d => createElemento(d))

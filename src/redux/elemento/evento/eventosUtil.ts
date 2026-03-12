@@ -416,6 +416,12 @@ export const createEventos = (): StateEvent[] => {
       pai: undefined,
       elementos: [],
     },
+    {
+      stateType: StateType.RemissaoRenumerada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
   ];
 };
 
