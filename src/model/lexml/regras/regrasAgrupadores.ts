@@ -56,7 +56,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
       } */
 
-      if (isDispositivoAlteracao(dispositivo)) {
+      if (isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
         acoes.push(renumerarElementoAction);
       }
 
