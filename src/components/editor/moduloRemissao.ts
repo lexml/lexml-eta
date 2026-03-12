@@ -380,8 +380,14 @@ class ModuloRemissao extends Module {
     links.forEach((link: Element) => {
       const el = link as HTMLElement;
       const dataRefId = el.getAttribute('data-ref-id');
+      const href = el.getAttribute('href') || '';
 
-      if (dataRefId) {
+      // Extrai o UUID do href para verificar se corresponde ao evento
+      const currentUuid = this.extractUuidFromHref(href);
+
+      // Atualiza APENAS se o UUID da remissão corresponde ao UUID do evento
+      // Isso evita atualizar remissões que foram atualizadas por eventos anteriores
+      if (dataRefId && currentUuid === novoUuid) {
         const newValue: RemissaoInternaValue = {
           refId: dataRefId,
           targetLexmlId: lexmlIdNovo,
@@ -395,6 +401,11 @@ class ModuloRemissao extends Module {
     });
 
     return count;
+  }
+
+  private extractUuidFromHref(href: string): number {
+    const match = href.match(/#lxEtaId(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
   }
 
   renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {

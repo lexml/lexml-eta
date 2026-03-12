@@ -62,6 +62,11 @@ export const renumeraElemento = (state: any, action: any): State => {
 
   const lexmlIdNovo = dispositivo.id;
   if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
+    const index = eventos.eventos.findIndex(ev => ev.stateType === StateType.RemissaoRenumerada);
+    if (index !== -1) {
+      eventos.eventos.splice(index, 1);
+    }
+
     eventos.eventos.push({
       stateType: StateType.RemissaoRenumerada,
       elementos: [],
@@ -73,14 +78,16 @@ export const renumeraElemento = (state: any, action: any): State => {
     });
   }
 
+  const builtEvents = eventos.build();
+
   return {
     articulacao: state.articulacao,
     modo: state.modo,
     past,
-    present: eventos.build(),
+    present: builtEvents,
     future: state.future,
     ui: {
-      events: eventos.build(),
+      events: builtEvents,
       alertas: state.ui?.alertas,
     },
   };
