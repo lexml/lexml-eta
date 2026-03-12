@@ -88,6 +88,16 @@ export const removeElemento = (state: any, action: any): State => {
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
+  if (dispositivo.id && dispositivo.uuid) {
+    events.push({
+      stateType: StateType.RemissaoInvalidada,
+      remissaoInvalidacao: {
+        lexmlId: dispositivo.id,
+        uuid: dispositivo.uuid,
+      },
+    });
+  }
+
   if (elPrimeiroFilhoDoAgrupador) {
     events.push({ stateType: StateType.ElementoMarcado, elementos: [elPrimeiroFilhoDoAgrupador] });
     events.push({ stateType: StateType.ElementoReferenciado, elementos: [elPrimeiroFilhoDoAgrupador] });

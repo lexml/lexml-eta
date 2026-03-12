@@ -82,6 +82,14 @@ export const undo = (state: any): State => {
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
 
+  const eventoRemissaoInvalidada = eventos.find((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada);
+  if (eventoRemissaoInvalidada?.remissaoInvalidacao) {
+    events.eventos.push({
+      stateType: StateType.RemissaoRestaurada,
+      remissaoInvalidacao: eventoRemissaoInvalidada.remissaoInvalidacao,
+    });
+  }
+
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSuprimido).forEach((ev: StateEvent) => events.eventos.push(...processarSuprimidos(state, ev)));
 
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));

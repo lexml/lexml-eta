@@ -382,7 +382,6 @@ class ModuloRemissao extends Module {
       const dataRefId = el.getAttribute('data-ref-id');
       const href = el.getAttribute('href') || '';
 
-      // Extrai o UUID do href para verificar se corresponde ao evento
       const currentUuid = this.extractUuidFromHref(href);
 
       // Atualiza APENAS se o UUID da remissão corresponde ao UUID do evento
@@ -396,6 +395,40 @@ class ModuloRemissao extends Module {
         };
 
         this.adicionarRemissao(dataRefId, newValue);
+        count++;
+      }
+    });
+
+    return count;
+  }
+
+  marcarRemissoesComoInvalidas(lexmlId: string): number {
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlId}"]`);
+    let count = 0;
+
+    links.forEach((link: Element) => {
+      const el = link as HTMLElement;
+      const dataRefId = el.getAttribute('data-ref-id');
+
+      if (dataRefId) {
+        this.marcarComoInvalida(dataRefId);
+        count++;
+      }
+    });
+
+    return count;
+  }
+
+  restaurarRemissoesPorLexmlId(lexmlId: string): number {
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlId}"]`);
+    let count = 0;
+
+    links.forEach((link: Element) => {
+      const el = link as HTMLElement;
+      const dataRefId = el.getAttribute('data-ref-id');
+
+      if (dataRefId) {
+        this.restaurarRemissao(dataRefId);
         count++;
       }
     });

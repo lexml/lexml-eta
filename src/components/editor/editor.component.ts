@@ -880,6 +880,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.RemissaoRenumerada:
           this.atualizarRemissaoRenumerada(event);
           break;
+        case StateType.RemissaoInvalidada:
+          this.marcarRemissoesComoInvalidas(event);
+          break;
+        case StateType.RemissaoRestaurada:
+          this.restaurarRemissoes(event);
+          break;
       }
 
       this.disabledParagrafoElementoRemovido(event);
@@ -891,7 +897,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     //this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
 
-    // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
     const eventosQueDevemEmitirTextChange = [
       StateType.ElementoModificado,
       StateType.ElementoSuprimido,
@@ -1893,6 +1898,38 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     // Atualiza as remissões no DOM que apontam para o lexmlId antigo
     remissaoModule.atualizarReferencias(lexmlIdAntigo, lexmlIdNovo, novoUuid);
+  }
+
+  private marcarRemissoesComoInvalidas(event: StateEvent): void {
+    if (!event.remissaoInvalidacao) {
+      return;
+    }
+
+    const { lexmlId } = event.remissaoInvalidacao;
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+
+    if (!remissaoModule) {
+      return;
+    }
+
+    // Marca todas as remissões que apontam para o dispositivo removido como inválidas
+    remissaoModule.marcarRemissoesComoInvalidas(lexmlId);
+  }
+
+  private restaurarRemissoes(event: StateEvent): void {
+    if (!event.remissaoInvalidacao) {
+      return;
+    }
+
+    const { lexmlId } = event.remissaoInvalidacao;
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+
+    if (!remissaoModule) {
+      return;
+    }
+
+    // Restaura todas as remissões que apontam para o dispositivo restaurado
+    remissaoModule.restaurarRemissoesPorLexmlId(lexmlId);
   }
 
   private abrirDialogoRemissaoInterna = async (): Promise<void> => {
