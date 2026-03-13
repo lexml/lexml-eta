@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { parseLexmlId, diffLexmlId, numeroParaExibicao, SegmentoLexmlId } from '../../../src/model/remissao/lexmlIdUtil';
+import { parseLexmlId, diffLexmlId, numeroParaExibicao, lexmlIdParaTextoCanonico, SegmentoLexmlId } from '../../../src/model/remissao/lexmlIdUtil';
 
 describe('lexmlIdUtil', () => {
   // ─── parseLexmlId ───────────────────────────────────────────────────────────
@@ -84,6 +84,10 @@ describe('lexmlIdUtil', () => {
       expect(numeroParaExibicao('ali', '1')).to.equal('a');
       expect(numeroParaExibicao('ali', '2')).to.equal('b');
       expect(numeroParaExibicao('ali', '26')).to.equal('z');
+    });
+
+    it('deve converter alínea n>26 corretamente (bug fix)', () => {
+      expect(numeroParaExibicao('ali', '27')).to.equal('aa');
     });
 
     it('deve retornar número árabe para artigo', () => {
@@ -215,6 +219,50 @@ describe('lexmlIdUtil', () => {
         numeroNovo: '2',
         exibicaoNova: '2',
       });
+    });
+  });
+
+  // ─── lexmlIdParaTextoCanonico ────────────────────────────────────────────────
+
+  describe('lexmlIdParaTextoCanonico', () => {
+    it('artigo simples n<10 → ordinal', () => {
+      expect(lexmlIdParaTextoCanonico('art7')).to.equal('art. 7º');
+    });
+
+    it('artigo n>=10 → sem ordinal', () => {
+      expect(lexmlIdParaTextoCanonico('art10')).to.equal('art. 10');
+    });
+
+    it('parágrafo único', () => {
+      expect(lexmlIdParaTextoCanonico('art1_par1u')).to.equal('parágrafo único do art. 1º');
+    });
+
+    it('art + par + inc encadeados', () => {
+      expect(lexmlIdParaTextoCanonico('art16_par2_inc2')).to.equal('inciso II do § 2º do art. 16');
+    });
+
+    it('agrupadores: cap + sec', () => {
+      expect(lexmlIdParaTextoCanonico('cap1_sec2')).to.equal('Seção II do Capítulo I');
+    });
+
+    it('cpt é filtrado — caput omitido do canonical', () => {
+      expect(lexmlIdParaTextoCanonico('art3_cpt_inc4')).to.equal('inciso IV do art. 3º');
+    });
+
+    it('agrupador simples', () => {
+      expect(lexmlIdParaTextoCanonico('cap3')).to.equal('Capítulo III');
+    });
+
+    it('agrupador encadeado', () => {
+      expect(lexmlIdParaTextoCanonico('cap1_sec2')).to.equal('Seção II do Capítulo I');
+    });
+
+    it('cadeia completa: art + par + inc + ali', () => {
+      expect(lexmlIdParaTextoCanonico('art1_par2_inc1_ali1')).to.equal('alínea a do inciso I do § 2º do art. 1º');
+    });
+
+    it('artigo cruza limiar ordinal (art9 → art9)', () => {
+      expect(lexmlIdParaTextoCanonico('art9')).to.equal('art. 9º');
     });
   });
 });

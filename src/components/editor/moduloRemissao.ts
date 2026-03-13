@@ -1,4 +1,5 @@
 import { RemissaoInternaValue } from '../../model/remissao';
+import { atualizarTextoRemissao } from '../../model/remissao/lexmlIdUtil';
 import { rootStore } from '../../redux/store';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
@@ -434,6 +435,10 @@ class ModuloRemissao extends Module {
     });
 
     return count;
+  }
+
+  private atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
+    return atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
   }
 
   private extractUuidFromHref(href: string): number {
