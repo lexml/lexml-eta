@@ -376,29 +376,52 @@ class ModuloRemissao extends Module {
 
   atualizarReferencias(lexmlIdAntigo: string, lexmlIdNovo: string, novoUuid: number): number {
     const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlIdAntigo}"]`);
-    let count = 0;
 
+    // Coleta refIds e textos antes de qualquer modificação DOM para evitar referências obsoletas
+    const candidatos: { refId: string; textoAtual: string }[] = [];
     links.forEach((link: Element) => {
       const el = link as HTMLElement;
       const dataRefId = el.getAttribute('data-ref-id');
       const href = el.getAttribute('href') || '';
-
       const currentUuid = this.extractUuidFromHref(href);
 
-      // Atualiza APENAS se o UUID da remissão corresponde ao UUID do evento
-      // Isso evita atualizar remissões que foram atualizadas por eventos anteriores
+      // Match de UUID evita que eventos antigos ou defasados sobrescrevam a remissão.
       if (dataRefId && currentUuid === novoUuid) {
-        const newValue: RemissaoInternaValue = {
-          refId: dataRefId,
-          targetLexmlId: lexmlIdNovo,
-          targetUuid: novoUuid,
-          targetRotulo: el.textContent || undefined,
-        };
-
-        this.adicionarRemissao(dataRefId, newValue);
-        count++;
+        candidatos.push({ refId: dataRefId, textoAtual: el.textContent || '' });
       }
     });
+
+    let count = 0;
+    for (const { refId, textoAtual } of candidatos) {
+      const novoTexto = this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
+      const newValue: RemissaoInternaValue = {
+        refId,
+        targetLexmlId: lexmlIdNovo,
+        targetUuid: novoUuid,
+        targetRotulo: novoTexto || undefined,
+      };
+
+      if (novoTexto !== textoAtual) {
+        // Aguarda o MutationObserver do Quill processar o insertInto pendente.
+        // Sem o setTimeout, o scroll.update() consome a fila prematuramente e quebra o delete+insert.
+        const refIdCaptura = refId;
+        const novoTextoCaptura = novoTexto;
+        const newValueCaptura = newValue;
+        setTimeout(() => {
+          const result = this.findBlotByRefId(refIdCaptura);
+          if (result) {
+            const length = result.blot.length();
+            const delta = new Delta().retain(result.index).delete(length).insert(novoTextoCaptura, { 'remissao-interna': newValueCaptura });
+            this.quill.updateContents(delta, 'silent');
+          }
+        }, 0);
+      } else {
+        // Texto inalterado — só atualiza metadados
+        this.adicionarRemissao(refId, newValue);
+      }
+
+      count++;
+    }
 
     return count;
   }
