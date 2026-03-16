@@ -4,6 +4,8 @@ import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../model/remissao';
+import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 
 export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -84,27 +86,31 @@ interface ReferenciaEncontrada {
 const detectarReferencias = (texto: string): ReferenciaEncontrada[] => {
   const referenciasEncontradas: ReferenciaEncontrada[] = [];
 
-  const padroes = [
-    { regex: /(art\.?\s*|artigo\s+)([uú]nico|\d+(?:-[a-z]+)?)(?:º)?/gi, tipo: 'artigo' },
-    { regex: /(§\s*|par[aá]grafo\s+|par\.?\s*)([uú]nico|\d+(?:-[a-z]+)?)(?:º)?/gi, tipo: 'paragrafo' },
-    { regex: /(inc\.?\s*|inciso\s+)([uú]nico|[MDCLXVI]+(?:-[a-z]+)?)/gi, tipo: 'inciso' },
-    { regex: /(al[ií]\.?\s*|al[ií]nea\s+)([a-z]+(?:-[a-z]+)?)/gi, tipo: 'alinea' },
-    { regex: /(item\s+)([uú]nico|\d+(?:-[a-z]+)?)/gi, tipo: 'item' },
-  ];
+  // Padrões por nível - do mais específico para a remissão
+  const P_ARTIGO = `(?:art\\.?\\s*|artigo\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
+  const P_PARAGRAFO = `(?:§\\s*|par[aá]grafo\\s+|par\\.?\\s*)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
+  const P_INCISO = `(?:inc\\.?\\s*|inciso\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
+  const P_ALINEA = `(?:al[ií]\\.?\\s*|al[ií]nea\\s+)(?:[a-z]+(?:-[a-z]+)?)`;
+  const P_ITEM = `(?:item\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)`;
+  const CONECTOR = `\\s+d[ao]\\s+`;
 
-  for (const padrao of padroes) {
-    let match;
-    padrao.regex.lastIndex = 0;
-    while ((match = padrao.regex.exec(texto)) !== null) {
-      const textoReferencia = match[0];
-      const parser = new ReferenciaDispositivoParser(textoReferencia);
+  // Regex composta: : "inciso II do § 2º do art. 16". (nível intermediário é opcional; artigo é obrigatório para evitar double match
+  const regexComposta = new RegExp(
+    `(?:${P_ITEM}${CONECTOR})?` + `(?:${P_ALINEA}${CONECTOR})?` + `(?:${P_INCISO}${CONECTOR})?` + `(?:${P_PARAGRAFO}${CONECTOR})?` + `${P_ARTIGO}`,
+    'gi'
+  );
 
-      if (parser.valido && parser.referencias.length > 0) {
-        referenciasEncontradas.push({
-          texto: textoReferencia,
-          referencias: parser.referencias,
-        });
-      }
+  let match: RegExpExecArray | null;
+  regexComposta.lastIndex = 0;
+  while ((match = regexComposta.exec(texto)) !== null) {
+    const textoReferencia = match[0];
+    const parser = new ReferenciaDispositivoParser(textoReferencia);
+
+    if (parser.valido && parser.referencias.length > 0) {
+      referenciasEncontradas.push({
+        texto: textoReferencia,
+        referencias: parser.referencias,
+      });
     }
   }
 
@@ -155,6 +161,18 @@ const buscarArtigo = (articulacao: Articulacao, numero: string): Dispositivo | n
   return null;
 };
 
+// Converte arábico para nativo (inciso: '2'→'ii', alínea: '1'→'a') para permitir comparação no ReferenciaDispositivoParser.
+const normalizarNumeroParaTipo = (tipo: string, numero: string | undefined): string => {
+  if (!numero) return '';
+  if (tipo === TipoDispositivo.inciso.tipo) {
+    return normalizarNumero(converteNumeroArabicoParaRomano(numero));
+  }
+  if (tipo === TipoDispositivo.alinea.tipo) {
+    return normalizarNumero(converteNumeroArabicoParaLetra(numero));
+  }
+  return normalizarNumero(numero);
+};
+
 const buscarFilhoPorTipoENumero = (dispositivo: Dispositivo, tipo: string, numero: string): Dispositivo | null => {
   if (!dispositivo) {
     return null;
@@ -162,29 +180,21 @@ const buscarFilhoPorTipoENumero = (dispositivo: Dispositivo, tipo: string, numer
 
   const numeroNormalizado = normalizarNumero(numero);
 
+  const bate = (filho: Dispositivo): boolean => filho.tipo === tipo && normalizarNumeroParaTipo(tipo, filho.numero) === numeroNormalizado;
+
   const artigo = dispositivo as Artigo;
-  if (tipo === 'Inciso' && artigo?.caput) {
+  if (tipo === TipoDispositivo.inciso.tipo && artigo?.caput) {
     const filhosCaput = artigo.caput.filhos || [];
-    for (const filho of filhosCaput) {
-      if (filho.tipo === tipo && normalizarNumero(filho.numero) === numeroNormalizado) {
-        return filho;
-      }
-    }
+    const encontrado = filhosCaput.find(bate);
+    if (encontrado) return encontrado;
   }
 
   const filhos = dispositivo.filhos || [];
-  for (const filho of filhos) {
-    if (filho.tipo === tipo && normalizarNumero(filho.numero) === numeroNormalizado) {
-      return filho;
-    }
-  }
+  const encontradoFilho = filhos.find(bate);
+  if (encontradoFilho) return encontradoFilho;
 
-  if (tipo === 'Paragrafo' && numero && numero.toLowerCase() === 'único') {
-    for (const filho of filhos) {
-      if (filho.tipo === tipo) {
-        return filho;
-      }
-    }
+  if (tipo === TipoDispositivo.paragrafo.tipo && numero && numero.toLowerCase() === 'único') {
+    return filhos.find(f => f.tipo === tipo) ?? null;
   }
 
   return null;
