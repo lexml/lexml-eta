@@ -107,7 +107,7 @@ describe('Atualização de Remissões na Renumeração', () => {
   });
 
   describe('Adicionar dispositivo depois', () => {
-    it('não deve emitir evento RemissaoRenumerada quando adiciona artigo depois', () => {
+    it('deve emitir evento RemissaoRenumerada para dispositivos posteriores ao inserir artigo depois', () => {
       const artigo2 = state.articulacao!.artigos[1];
 
       const elemento = createElemento(artigo2, true);
@@ -117,8 +117,12 @@ describe('Atualização de Remissões na Renumeração', () => {
 
       const eventosRemissaoRenumerada = result.ui!.events.filter(ev => ev.stateType === StateType.RemissaoRenumerada);
 
-      // Não deve haver eventos de renumeração ao adicionar depois
-      expect(eventosRemissaoRenumerada.length).to.equal(0);
+      // art3 é renumerado para art4 (artigo posterior ao ponto de inserção)
+      expect(eventosRemissaoRenumerada.length).to.equal(1);
+
+      const eventoArt3 = eventosRemissaoRenumerada.find(ev => ev.remissaoRenumeracao?.lexmlIdAntigo === 'art3');
+      expect(eventoArt3).to.exist;
+      expect(eventoArt3!.remissaoRenumeracao!.lexmlIdNovo).to.equal('art4');
     });
   });
 
