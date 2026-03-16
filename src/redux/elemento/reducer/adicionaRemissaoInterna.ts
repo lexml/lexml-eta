@@ -49,8 +49,7 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   }));
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
-  const remissoesDoDispositivo = remissaoRegistry[dispositivo.uuid!] || [];
-  remissaoRegistry[dispositivo.uuid!] = [...remissoesDoDispositivo, ...novasRemissoes];
+  remissaoRegistry[dispositivo.uuid!] = novasRemissoes;
 
   const elemento = createElemento(dispositivo, true);
   const eventosUi = new Eventos();

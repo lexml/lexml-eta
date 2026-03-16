@@ -476,23 +476,40 @@ class ModuloRemissao extends Module {
       return;
     }
 
+    // Localiza o blot de conteúdo do dispositivo pelo id do DOM para escopar a busca.
+    // Isso evita que textoRef seja encontrado em outros dispositivos do editor.
+    let blotStart = -1;
+    let blotLength = -1;
+    const domEl = this.quill.root.querySelector(`#texto__dispositivo${uuidDispositivoAtual}`);
+    if (domEl) {
+      const blot = Quill.find(domEl);
+      if (blot) {
+        blotStart = blot.offset(this.quill.scroll);
+        blotLength = blot.length();
+      }
+    }
+
     for (const remissao of remissoesDoDispositivo) {
       const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${remissao.refId}"]`);
       if (linkExistente) {
         continue;
       }
 
-      const texto = this.quill.getText();
       const textoRef = remissao.textoRef;
 
       if (!textoRef) {
         continue;
       }
 
+      // Usa blot para evitar regex no texto global, para evitar erro de remissao aleatória
+      const texto = blotStart >= 0 ? this.quill.getText(blotStart, blotLength) : this.quill.getText();
+      const indexOffset = blotStart >= 0 ? blotStart : 0;
+
       let index = texto.indexOf(textoRef);
       while (index !== -1) {
+        const absoluteIndex = indexOffset + index;
         try {
-          const format = this.quill.getFormat(index, textoRef.length);
+          const format = this.quill.getFormat(absoluteIndex, textoRef.length);
           if (format['remissao-interna']) {
             index = texto.indexOf(textoRef, index + textoRef.length);
             continue;
@@ -501,12 +518,12 @@ class ModuloRemissao extends Module {
           //empty
         }
 
-        if (this.estaNoRotulo(index)) {
+        if (this.estaNoRotulo(absoluteIndex)) {
           index = texto.indexOf(textoRef, index + textoRef.length);
           continue;
         }
 
-        this.quill.formatText(index, textoRef.length, 'remissao-interna', remissao, 'silent');
+        this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-interna', remissao, 'silent');
         index = texto.indexOf(textoRef, index + textoRef.length);
       }
     }
