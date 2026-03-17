@@ -106,6 +106,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   @query('#btnRejeitarTodasRevisoes')
   private btnRejeitarTodasRevisoes!: HTMLButtonElement;
 
+  @query('.btn-remover-remissao')
+  private btnRemoverRemissao!: HTMLButtonElement;
+
   @query('proposicao-dividida-modal')
   private proposicaoDivididaDialog!: ProposicaoDivididaDialog;
 
@@ -254,6 +257,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           width: 16px;
           height: 16px;
         }
+
+        lexml-eta-proposicao-editor .btn-remover-remissao:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+
+        lexml-eta-proposicao-editor .btn-remover-remissao:disabled:hover {
+          background-color: transparent;
+        }
       </style>
       <div id="lx-eta-box">
         <div id="lx-eta-barra-ferramenta">
@@ -314,7 +326,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
 
-          <button type="button" class="btn-remover-remissao" title="Remover remissão interna" @click=${this.removerRemissaoInterna}>
+          <button type="button" class="btn-remover-remissao" title="Remover remissão interna" @click=${this.removerRemissaoInterna} disabled>
             ${unsafeHTML(iconeRemoverRemissao)}
           </button>
 
@@ -395,7 +407,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (range?.length === 0 && source === Quill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
+    this.atualizarBotaoRemoverRemissao();
   };
+
+  private atualizarBotaoRemoverRemissao(): void {
+    if (!this.btnRemoverRemissao) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    this.btnRemoverRemissao.disabled = !remissaoModule?.temRemissaoNaCursorOuSelecao();
+  }
 
   private ajustarLinkParaNorma(): void {
     const linkTooltip = document.querySelector('a.ql-preview');
@@ -1956,6 +1975,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const remissaoModule = this.quill.getModule('remissaoInterna');
     if (remissaoModule) {
       remissaoModule.removerRemissao();
+      this.atualizarBotaoRemoverRemissao();
     }
   };
 }

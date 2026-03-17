@@ -254,6 +254,33 @@ class ModuloRemissao extends Module {
     this.emitirEventoRemissaoRemove();
   }
 
+  temRemissaoNaCursorOuSelecao(): boolean {
+    const range = this.quill.getSelection();
+    if (!range) return false;
+
+    if (range.length > 0) {
+      const endIndex = range.index + range.length;
+      const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna');
+      for (const link of links) {
+        const blot = Quill.find(link);
+        if (blot) {
+          const blotIndex = blot.offset(this.quill.scroll);
+          const blotLength = blot.length();
+          if (blotIndex >= range.index && blotIndex + blotLength <= endIndex) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    const format = this.quill.getFormat(range);
+    if (format['remissao-interna']) return true;
+
+    const [leaf] = this.quill.getLeaf(range.index);
+    return leaf?.parent?.statics?.blotName === 'remissao-interna';
+  }
+
   private removerRemissoesNoRange(index: number, length: number): number {
     const endIndex = index + length;
     const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna');
