@@ -90,6 +90,21 @@ export const undo = (state: any): State => {
     });
   }
 
+  eventos
+    .filter((ev: StateEvent) => ev.stateType === StateType.RemissaoRenumerada)
+    .forEach((ev: StateEvent) => {
+      if (ev.remissaoRenumeracao) {
+        events.eventos.push({
+          stateType: StateType.RemissaoRenumerada,
+          remissaoRenumeracao: {
+            lexmlIdAntigo: ev.remissaoRenumeracao.lexmlIdNovo,
+            lexmlIdNovo: ev.remissaoRenumeracao.lexmlIdAntigo,
+            novoUuid: ev.remissaoRenumeracao.novoUuid,
+          },
+        });
+      }
+    });
+
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSuprimido).forEach((ev: StateEvent) => events.eventos.push(...processarSuprimidos(state, ev)));
 
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));
