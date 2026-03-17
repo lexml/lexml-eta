@@ -405,7 +405,7 @@ class ModuloRemissao extends Module {
     const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlIdAntigo}"]`);
 
     // Coleta refIds e textos antes de qualquer modificação DOM para evitar referências obsoletas
-    const candidatos: { refId: string; textoAtual: string }[] = [];
+    const candidatos: { refId: string; textoAtual: string; textoFixo: boolean }[] = [];
     links.forEach((link: Element) => {
       const el = link as HTMLElement;
       const dataRefId = el.getAttribute('data-ref-id');
@@ -414,13 +414,18 @@ class ModuloRemissao extends Module {
 
       // Match de UUID evita que eventos antigos ou defasados sobrescrevam a remissão.
       if (dataRefId && currentUuid === novoUuid) {
-        candidatos.push({ refId: dataRefId, textoAtual: el.textContent || '' });
+        candidatos.push({
+          refId: dataRefId,
+          textoAtual: el.textContent || '',
+          textoFixo: el.getAttribute('data-texto-fixo') === 'true',
+        });
       }
     });
 
     let count = 0;
-    for (const { refId, textoAtual } of candidatos) {
-      const novoTexto = this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
+    for (const { refId, textoAtual, textoFixo } of candidatos) {
+      // textoFixo: remissão criada manualmente com texto arbitrário — preserva o texto original.
+      const novoTexto = textoFixo ? textoAtual : this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
       const newValue: RemissaoInternaValue = {
         refId,
         targetLexmlId: lexmlIdNovo,

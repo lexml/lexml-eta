@@ -34,6 +34,8 @@ export interface RemissaoInternaValue {
   sourceLexmlId?: string;
 
   textoRef?: string;
+
+  textoFixo?: boolean;
 }
 
 export interface ReferenciaDetectada {

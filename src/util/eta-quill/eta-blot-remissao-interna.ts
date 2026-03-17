@@ -26,12 +26,16 @@ export class RemissaoInternaBlot extends Inline {
     const href = domNode.getAttribute('href');
 
     if (dataLexmlRef && dataRefId) {
-      return {
+      const value: RemissaoInternaValue = {
         refId: dataRefId,
         targetLexmlId: dataLexmlRef,
         targetUuid: this.extractUuidFromHref(href || ''),
         targetRotulo: domNode.textContent || undefined,
       };
+      if (domNode.getAttribute('data-texto-fixo') === 'true') {
+        value.textoFixo = true;
+      }
+      return value;
     }
 
     return href || undefined;
@@ -61,6 +65,10 @@ export class RemissaoInternaBlot extends Inline {
 
     if (value.refId) {
       domNode.setAttribute('data-ref-id', value.refId);
+    }
+
+    if (value.textoFixo) {
+      domNode.setAttribute('data-texto-fixo', 'true');
     }
   }
 
