@@ -8,7 +8,6 @@ import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacao
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { getDispositivoAndFilhosAsLista } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { RemissaoRegistry } from '../../../src/model/remissao/remissaoRegistry';
 
 let state: State;
 
@@ -22,7 +21,7 @@ describe('adicionaRemissaoInterna', () => {
     });
     state.emRevisao = false;
     state.revisoes = [];
-    state.remissoes = new RemissaoRegistry();
+    state.remissoes = {};
   });
 
   describe('Quando action.atual é undefined', () => {

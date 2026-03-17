@@ -6,7 +6,6 @@ import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUt
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { RemissaoRegistry } from '../../../src/model/remissao';
 
 const marcaAdicionado = (d: any): void => {
   d.situacao = new DispositivoAdicionado();
@@ -22,7 +21,7 @@ const montaState = (articulacao: any): State => ({
   present: [],
   future: [],
   ui: { events: [] },
-  remissoes: new RemissaoRegistry(),
+  remissoes: {},
 });
 
 const detecta = (state: State, source: any, texto: string): any[] => {

@@ -171,4 +171,69 @@ describe('Invalidação e Restauração de Remissões', () => {
       expect(eventoRestaurada?.remissaoInvalidacao?.uuid).to.equal(uuidOriginal);
     });
   });
+
+  // M1 — undo não reverte RemissaoRenumerada
+  describe('RemissaoRenumerada no undo', () => {
+    it('deve emitir RemissaoRenumerada invertida ao fazer undo de remoção que causou renumeração', () => {
+      const art1 = state.articulacao!.filhos[0]; // art1 → será removido; art2→art1, art3→art2
+      const stateRemoved = removeElemento(state, { atual: { uuid: art1.uuid } });
+
+      const renumerados = stateRemoved.ui?.events.filter(ev => ev.stateType === StateType.RemissaoRenumerada) ?? [];
+      expect(renumerados.length).to.be.greaterThan(0, 'remoção de art1 deve gerar RemissaoRenumerada');
+
+      // BUG: undo não emite RemissaoRenumerada invertida — deve FALHAR até a correção
+      const stateUndo = undo(stateRemoved);
+      const renumeradosUndo = stateUndo.ui?.events.filter(ev => ev.stateType === StateType.RemissaoRenumerada) ?? [];
+
+      expect(renumeradosUndo.length).to.equal(renumerados.length, 'undo deve emitir mesmo número de RemissaoRenumerada que a operação original');
+    });
+
+    it('RemissaoRenumerada do undo deve inverter lexmlIdAntigo e lexmlIdNovo', () => {
+      const art1 = state.articulacao!.filhos[0];
+      const stateRemoved = removeElemento(state, { atual: { uuid: art1.uuid } });
+
+      // remoção emite: art2→art1 (lexmlIdAntigo='art2', lexmlIdNovo='art1')
+      const eventoOriginal = stateRemoved.ui?.events.find(ev => ev.stateType === StateType.RemissaoRenumerada && ev.remissaoRenumeracao?.lexmlIdAntigo === 'art2');
+      expect(eventoOriginal).to.exist;
+
+      const stateUndo = undo(stateRemoved);
+
+      // BUG: undo deveria emitir o inverso — art1→art2 (lexmlIdAntigo='art1', lexmlIdNovo='art2')
+      const eventoInvertido = stateUndo.ui?.events.find(ev => ev.stateType === StateType.RemissaoRenumerada && ev.remissaoRenumeracao?.lexmlIdAntigo === 'art1');
+      expect(eventoInvertido).to.exist;
+      expect(eventoInvertido!.remissaoRenumeracao!.lexmlIdNovo).to.equal('art2');
+    });
+  });
+
+  // M2 — RemissaoInvalidada deve capturar lexmlId antes da renumeração
+  describe('RemissaoInvalidada: lexmlId capturado antes da renumeração (M2)', () => {
+    it('ao remover art1, lexmlId da invalidação deve ser "art1" — não o "art1" que art2 assume após renumeração', () => {
+      const art1 = state.articulacao!.filhos[0];
+      const uuidArt1 = art1.uuid;
+
+      const stateRemoved = removeElemento(state, { atual: { uuid: uuidArt1 } });
+
+      const eventoInvalidada = stateRemoved.ui?.events.find(ev => ev.stateType === StateType.RemissaoInvalidada);
+      expect(eventoInvalidada?.remissaoInvalidacao?.lexmlId).to.equal('art1');
+
+      // O uuid deve corresponder ao artigo removido, que não existe mais na articulação
+      const dispositivosRestantes = stateRemoved.articulacao!.filhos;
+      expect(dispositivosRestantes.find((d: any) => d.uuid === uuidArt1)).to.be.undefined;
+    });
+
+    it('ao remover art2, lexmlId da invalidação deve ser "art2" — não "art1" (art3 assume art2 após renumeração)', () => {
+      const art2 = state.articulacao!.filhos[1];
+      const uuidArt2 = art2.uuid;
+
+      const stateRemoved = removeElemento(state, { atual: { uuid: uuidArt2 } });
+
+      const eventoInvalidada = stateRemoved.ui?.events.find(ev => ev.stateType === StateType.RemissaoInvalidada);
+      expect(eventoInvalidada?.remissaoInvalidacao?.lexmlId).to.equal('art2');
+      expect(eventoInvalidada?.remissaoInvalidacao?.uuid).to.equal(uuidArt2);
+
+      // Após remoção, art3 assume id 'art2' — mas o uuid do dispositivo restante é diferente
+      const novoArt2 = stateRemoved.articulacao!.filhos.find((d: any) => d.id === 'art2');
+      expect(novoArt2?.uuid).to.not.equal(uuidArt2, 'o novo art2 é o antigo art3, com uuid diferente');
+    });
+  });
 });

@@ -5,7 +5,6 @@ import { State, StateType } from '../../../src/redux/state';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { RemissaoRegistry } from '../../../src/model/remissao/remissaoRegistry';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 
 // ---------------------------------------------------------------------------
@@ -44,7 +43,7 @@ function criarStateMinimal(): { state: State; artigo: Artigo } {
     ui: { events: [] },
     emRevisao: false,
     revisoes: [],
-    remissoes: new RemissaoRegistry(),
+    remissoes: {},
   } as any;
 
   return { state, artigo };

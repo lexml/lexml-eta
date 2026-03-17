@@ -6,7 +6,6 @@ import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUt
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { RemissaoRegistry } from '../../../src/model/remissao';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -26,7 +25,7 @@ const montaState = (articulacao: any): State => ({
   present: [],
   future: [],
   ui: { events: [] },
-  remissoes: new RemissaoRegistry(),
+  remissoes: {},
 });
 
 /**
@@ -270,6 +269,61 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
       expect(remissoes).to.have.length(2);
       const uuids = remissoes.map((r: any) => r.targetUuid);
       expect(uuids).to.include(cap1.uuid);
+    });
+  });
+
+  // M3 — sem duplicatas entre as três passagens de detecção
+  describe('M3 — Sem duplicatas entre as três passagens de detecção', () => {
+    it('[M3-01] "Seção I deste Capítulo" → exatamente 1 remissão (não 2)', () => {
+      const { state, sec1, art1 } = criaStateComCapitulosESections();
+      // art1 está dentro de sec1 (Capítulo I > Seção I > Subseção I > Art. 1º)
+      // passagem agrupadores detecta "Seção I"; contextual detecta "Seção I deste Capítulo"
+      // resultado: exatamente 1 remissão apontando para sec1
+      const remissoes = detecta(state, art1, 'Conforme a Seção I deste Capítulo.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetUuid).to.equal(sec1.uuid);
+    });
+
+    it('[M3-02] "Capítulo I e art. 1º" → exatamente 2 remissões (sem duplicata por passagem)', () => {
+      const { state, cap1, art4 } = criaStateComCapitulosESections();
+      const remissoes = detecta(state, art4, 'Conforme o Capítulo I e o art. 1º.');
+
+      expect(remissoes).to.have.length(2);
+      // garante que cap1 aparece exatamente uma vez
+      const uuidsCapitulo = remissoes.filter((r: any) => r.targetUuid === cap1.uuid);
+      expect(uuidsCapitulo).to.have.length(1);
+    });
+
+    it('[M3-03] "§ 2º deste artigo" (contextual) → exatamente 1 remissão', () => {
+      const articulacao = createArticulacao();
+      const art = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const par1 = criaDispositivo(art, 'Paragrafo');
+      const par2 = criaDispositivo(art, 'Paragrafo');
+      const inc1 = criaDispositivo(par1, 'Inciso');
+
+      // Renumera todos os níveis da hierarquia
+      articulacao.renumeraFilhos();
+      (art as any).renumeraFilhos?.();
+      (par1 as any).renumeraFilhos?.();
+
+      art.createRotulo(art);
+      (art as Artigo).caput?.createRotulo((art as Artigo).caput!);
+      par1.createRotulo(par1);
+      par2.createRotulo(par2);
+      inc1.createRotulo(inc1);
+      updateIdDispositivoAndFilhos(articulacao);
+
+      marcaAdicionado(art);
+      marcaAdicionado(par1);
+      marcaAdicionado(par2);
+      marcaAdicionado(inc1);
+
+      const state = montaState(articulacao);
+      const remissoes = detecta(state, inc1, 'Conforme o § 2º deste artigo.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetUuid).to.equal(par2.uuid);
     });
   });
 });

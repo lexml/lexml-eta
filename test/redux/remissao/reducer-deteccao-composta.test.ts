@@ -6,7 +6,6 @@ import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUt
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { RemissaoRegistry } from '../../../src/model/remissao/remissaoRegistry';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -43,7 +42,7 @@ const criaStateComNArtigos = (n: number): { state: State; artigos: any[] } => {
       present: [],
       future: [],
       ui: { events: [] },
-      remissoes: new RemissaoRegistry(),
+      remissoes: {},
     },
     artigos,
   };

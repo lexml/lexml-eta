@@ -8,7 +8,7 @@ import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacao
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { getDispositivoAndFilhosAsLista } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 
-import { RemissaoRegistry } from '../../../src/model/remissao/remissaoRegistry';
+import { RemissaoInternaValue } from '../../../src/model/remissao';
 
 let state: State;
 
@@ -101,7 +101,7 @@ describe('redirecionaRemissao', () => {
       const artigo = dispositivos.find(d => d.tipo === 'Artigo');
       expect(artigo).to.not.be.undefined;
       const uuid = artigo!.uuid;
-      const remissoesOriginais = new RemissaoRegistry();
+      const remissoesOriginais: Record<number, RemissaoInternaValue[]> = {};
       state.remissoes = remissoesOriginais;
       const result = redirecionaRemissao(state, { uuid });
       expect(result.remissoes).to.equal(remissoesOriginais);
