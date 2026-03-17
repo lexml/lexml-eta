@@ -21,13 +21,14 @@ const P_ITEM = `(?:item\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)`;
 const CONECTOR = `\\s+d[ao]\\s+`;
 const P_CAPUT = `caput`;
 
-// Padrões para agrupadores (número sempre em romano no texto)
-const P_SUBSECAO = `(?:subse[çc][aã]o\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
-const P_SECAO = `(?:se[çc][aã]o\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
-const P_CAPITULO = `(?:cap[ií]tulo\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
-const P_TITULO = `(?:t[ií]tulo\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
-const P_LIVRO = `(?:livro\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
-const P_PARTE = `(?:parte\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+// Padrões para agrupadores (número em romano ou "único/única" no texto)
+const P_NUM_AGRUPADOR = `(?:[uú]nic[ao]|[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_SUBSECAO = `(?:subse[çc][aã]o\\s+)${P_NUM_AGRUPADOR}`;
+const P_SECAO = `(?:se[çc][aã]o\\s+)${P_NUM_AGRUPADOR}`;
+const P_CAPITULO = `(?:cap[ií]tulo\\s+)${P_NUM_AGRUPADOR}`;
+const P_TITULO = `(?:t[ií]tulo\\s+)${P_NUM_AGRUPADOR}`;
+const P_LIVRO = `(?:livro\\s+)${P_NUM_AGRUPADOR}`;
+const P_PARTE = `(?:parte\\s+)${P_NUM_AGRUPADOR}`;
 
 // Alternação composta para qualquer agrupador (mais específico primeiro)
 const P_QUALQUER_AGRUPADOR = `(?:${P_SUBSECAO}|${P_SECAO}|${P_CAPITULO}|${P_TITULO}|${P_LIVRO}|${P_PARTE})`;
@@ -128,8 +129,8 @@ const MAPA_TEXTO_PARA_TIPO_AGRUPADOR: Record<string, string> = {
   parte: TipoDispositivo.parte.tipo,
 };
 
-// extrair tipo e número romano de um segmento de agrupador
-const REGEX_SEGMENTO_AGRUPADOR = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o)\s+([MDCLXVI]+(?:-[a-z]+)?)$/i;
+// extrair tipo e número (romano ou "único/única") de um segmento de agrupador
+const REGEX_SEGMENTO_AGRUPADOR = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o)\s+([uú]nic[ao]|[MDCLXVI]+(?:-[a-z]+)?)$/i;
 
 // Extrai tipo e número romano de um segmento textual de agrupador.
 const parsearSegmentoAgrupador = (segmento: string): { tipo: string; numero: string } | null => {
@@ -139,9 +140,16 @@ const parsearSegmentoAgrupador = (segmento: string): { tipo: string; numero: str
   return tipo ? { tipo, numero: m[2] } : null;
 };
 
-// Busca filho direto correspondente em tipo e número (convertendo o arábico interno para o romano do texto).
+// Busca filho direto correspondente em tipo e número (romano ou "único/única").
 const buscarFilhoAgrupador = (raiz: Dispositivo, tipo: string, numeroRomano: string): Dispositivo | null => {
   const filhos = raiz.filhos ?? [];
+
+  // "Único/Única": válido apenas quando existe exatamente 1 filho do tipo com numero='1'.
+  if (/[uú]nic[ao]/i.test(numeroRomano)) {
+    const filhosMesmoTipo = filhos.filter(f => f.tipo === tipo);
+    return filhosMesmoTipo.length === 1 && filhosMesmoTipo[0].numero === '1' ? filhosMesmoTipo[0] : null;
+  }
+
   const numeroNorm = normalizarNumero(numeroRomano);
   return filhos.find(f => f.tipo === tipo && normalizarNumero(converteNumeroArabicoParaRomano(f.numero ?? '')) === numeroNorm) ?? null;
 };
