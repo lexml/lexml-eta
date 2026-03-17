@@ -12,6 +12,7 @@ interface ReferenciaEncontrada {
   dispositivoDestino: Dispositivo;
 }
 
+// Padrões para dispositivo (número sempre em romano no texto)
 const P_ARTIGO = `(?:art\\.?\\s*|artigo\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
 const P_PARAGRAFO = `(?:§\\s*|par[aá]grafo\\s+|par\\.?\\s*)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
 const P_INCISO = `(?:inc\\.?\\s*|inciso\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
@@ -19,6 +20,17 @@ const P_ALINEA = `(?:al[ií]\\.?\\s*|al[ií]nea\\s+)(?:[a-z]+(?:-[a-z]+)?)`;
 const P_ITEM = `(?:item\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)`;
 const CONECTOR = `\\s+d[ao]\\s+`;
 const P_CAPUT = `caput`;
+
+// Padrões para agrupadores (número sempre em romano no texto)
+const P_SUBSECAO = `(?:subse[çc][aã]o\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_SECAO = `(?:se[çc][aã]o\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_CAPITULO = `(?:cap[ií]tulo\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_TITULO = `(?:t[ií]tulo\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_LIVRO = `(?:livro\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_PARTE = `(?:parte\\s+)(?:[MDCLXVI]+(?:-[a-z]+)?)`;
+
+// Alternação composta para qualquer agrupador (mais específico primeiro)
+const P_QUALQUER_AGRUPADOR = `(?:${P_SUBSECAO}|${P_SECAO}|${P_CAPITULO}|${P_TITULO}|${P_LIVRO}|${P_PARTE})`;
 
 export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -76,8 +88,9 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
 
 const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
   const absolutas = detectarReferenciasAbsolutas(texto, articulacao);
+  const agrupadores = detectarReferenciasAgrupadores(texto, articulacao);
   const contextuais = detectarReferenciasContextuais(texto, dispositivo, articulacao);
-  return [...absolutas, ...contextuais];
+  return [...absolutas, ...agrupadores, ...contextuais];
 };
 
 // Captura referências absolutas encadeadas exigindo a âncora do artigo (ex: "§ 2º do art. 5º").
@@ -103,6 +116,71 @@ const detectarReferenciasAbsolutas = (texto: string, articulacao: Articulacao): 
   }
 
   return resultado;
+};
+
+// Mapeia palavra-chave normalizada -> tipo de dispositivo agrupador.
+const MAPA_TEXTO_PARA_TIPO_AGRUPADOR: Record<string, string> = {
+  subsecao: TipoDispositivo.subsecao.tipo,
+  secao: TipoDispositivo.secao.tipo,
+  capitulo: TipoDispositivo.capitulo.tipo,
+  titulo: TipoDispositivo.titulo.tipo,
+  livro: TipoDispositivo.livro.tipo,
+  parte: TipoDispositivo.parte.tipo,
+};
+
+// extrair tipo e número romano de um segmento de agrupador
+const REGEX_SEGMENTO_AGRUPADOR = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o)\s+([MDCLXVI]+(?:-[a-z]+)?)$/i;
+
+// Extrai tipo e número romano de um segmento textual de agrupador.
+const parsearSegmentoAgrupador = (segmento: string): { tipo: string; numero: string } | null => {
+  const m = REGEX_SEGMENTO_AGRUPADOR.exec(segmento.trim());
+  if (!m) return null;
+  const tipo = MAPA_TEXTO_PARA_TIPO_AGRUPADOR[normalizarKeyword(m[1])];
+  return tipo ? { tipo, numero: m[2] } : null;
+};
+
+// Busca filho direto correspondente em tipo e número (convertendo o arábico interno para o romano do texto).
+const buscarFilhoAgrupador = (raiz: Dispositivo, tipo: string, numeroRomano: string): Dispositivo | null => {
+  const filhos = raiz.filhos ?? [];
+  const numeroNorm = normalizarNumero(numeroRomano);
+  return filhos.find(f => f.tipo === tipo && normalizarNumero(converteNumeroArabicoParaRomano(f.numero ?? '')) === numeroNorm) ?? null;
+};
+
+// Resolve cadeia ("Seção II do Capítulo I") quebrando por "do/da" e buscando do geral ao específico via articulacao.filhos.
+const resolverCadeiaAgrupadores = (textoChain: string, articulacao: Articulacao): Dispositivo | null => {
+  const segmentos = textoChain.split(/\s+d[ao]\s+/i);
+  const segmentosReversed = [...segmentos].reverse();
+  let atual: Dispositivo = articulacao;
+  for (const seg of segmentosReversed) {
+    const parsed = parsearSegmentoAgrupador(seg);
+    if (!parsed) return null;
+    const filho = buscarFilhoAgrupador(atual, parsed.tipo, parsed.numero);
+    if (!filho) return null;
+    atual = filho;
+  }
+  return atual === (articulacao as unknown as Dispositivo) ? null : atual;
+};
+
+// Detecta referências absolutas a agrupadores, incluindo cadeias (ex: "Seção II do Capítulo I").
+const detectarReferenciasAgrupadores = (texto: string, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  const resultado: ReferenciaEncontrada[] = [];
+  const regexAgrupador = new RegExp(`${P_QUALQUER_AGRUPADOR}(?:${CONECTOR}${P_QUALQUER_AGRUPADOR})*`, 'gi');
+  let match: RegExpExecArray | null;
+  regexAgrupador.lastIndex = 0;
+  while ((match = regexAgrupador.exec(texto)) !== null) {
+    const dispositivoDestino = resolverCadeiaAgrupadores(match[0], articulacao);
+    if (dispositivoDestino) {
+      resultado.push({ texto: match[0], dispositivoDestino });
+    }
+  }
+  return resultado;
+};
+
+// Busca filho agrupador de um ancestral a partir do prefixo textual (ex: "Seção II").
+const buscarAgrupadorFilhoPorPrefixo = (prefixText: string, ancestor: Dispositivo): Dispositivo | null => {
+  const parsed = parsearSegmentoAgrupador(prefixText);
+  if (!parsed) return null;
+  return buscarFilhoAgrupador(ancestor, parsed.tipo, parsed.numero);
 };
 
 // Detecção de referências contextuais relativas (ex: "deste artigo", "deste parágrafo", "do caput").
@@ -161,10 +239,10 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
   const resultado: ReferenciaEncontrada[] = [];
 
   /**
-   * Captura referências contextuais divididas em Grupo 1 (Cadeia) e Grupo 2 (Alvo).
-   * - O Grupo 1 mapeia as combinações válidas de hierarquia (ex: item até inciso).
-   * - O Grupo 2 define o termo âncora ("artigo", "capítulo").
-   * - O qualificador lida com os pronomes ("deste", "da presente", etc).
+   * Captura referências contextuais divididas em Grupo 1 (Cadeia) e Grupo 2 (Âncora).
+   * - Grupo 1: o dispositivo referenciado (parágrafo, inciso, agrupador, etc.).
+   * - Grupo 2: o tipo da âncora ancestral ("artigo", "capítulo", etc.).
+   * - O qualificador suporta os pronomes "deste", "desta", "do presente", "da presente".
    */
   const regexContextual = new RegExp(
     `(` +
@@ -176,6 +254,8 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
       `|(?:(?:${P_ITEM}${CONECTOR})?${P_ALINEA})` +
       // 4: apenas item
       `|(?:${P_ITEM})` +
+      // 5: agrupador simples (ex: "Seção II deste Capítulo")
+      `|(?:${P_QUALQUER_AGRUPADOR})` +
       `)\\s+d(?:este|esta|o\\s+presente|a\\s+presente)\\s+(artigo|par[aá]grafo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o|t[ií]tulo|livro|parte)`,
     'gi'
   );
@@ -210,7 +290,14 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
 
     // Sintetiza a referência absoluta e delega ao parser (ex: "§ 2º" + art3 → "§ 2º do art. 3")
     const textSintetizado = construirSinteseAteArtigo(prefixText, ancestor);
-    if (!textSintetizado) continue;
+    if (!textSintetizado) {
+      // Contexto de agrupador: busca o filho direto do ancestral pelo prefixo (ex: "Seção II deste Capítulo")
+      const agrupadorDestino = buscarAgrupadorFilhoPorPrefixo(prefixText, ancestor);
+      if (agrupadorDestino) {
+        resultado.push({ texto: textoCompleto, dispositivoDestino: agrupadorDestino });
+      }
+      continue;
+    }
 
     const parser = new ReferenciaDispositivoParser(textSintetizado);
     if (!parser.valido || parser.referencias.length === 0) continue;
