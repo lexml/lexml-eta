@@ -69,6 +69,8 @@ export class RemissaoInternaBlot extends Inline {
 
     if (value.textoFixo) {
       domNode.setAttribute('data-texto-fixo', 'true');
+    } else {
+      domNode.removeAttribute('data-texto-fixo');
     }
   }
 

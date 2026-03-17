@@ -1,5 +1,6 @@
 import { RemissaoInternaValue } from '../../model/remissao';
 import { atualizarTextoRemissao } from '../../model/remissao/lexmlIdUtil';
+import { gerarRefId } from '../../model/remissao/refId';
 import { rootStore } from '../../redux/store';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
@@ -17,8 +18,6 @@ const DataRefIdAttribute = new Parchment.Attributor.Attribute('data-ref-id', 'da
 
 export const REMISSAO_INTERNA_CHANGE_EVENT = 'remissao-interna-change';
 export const REMISSAO_INTERNA_REMOVE_EVENT = 'remissao-interna-remove';
-
-const PREFIXO_ID = 'ref_';
 
 class ModuloRemissao extends Module {
   quill: any;
@@ -63,7 +62,7 @@ class ModuloRemissao extends Module {
       const dataRefId = node.getAttribute('data-ref-id');
       const href = node.getAttribute('href');
 
-      const refId = this.isAbrindoTexto ? dataRefId : this.gerarId();
+      const refId = this.isAbrindoTexto ? dataRefId : gerarRefId();
       const targetLexmlId = dataLexmlRef;
       const targetUuid = RemissaoInternaBlot.extractUuidFromHref(href || '');
 
@@ -89,20 +88,6 @@ class ModuloRemissao extends Module {
         });
 
         return new Delta(ops);
-      }
-
-      return delta;
-    });
-
-    this.quill.clipboard.addMatcher('A', (node: HTMLElement, delta: any) => {
-      const dataLexmlRef = node.getAttribute('data-lexml-ref');
-
-      if (!dataLexmlRef) {
-        return delta;
-      }
-
-      if (node.classList.contains('lexml-remissao-interna')) {
-        return delta;
       }
 
       return delta;
@@ -321,10 +306,6 @@ class ModuloRemissao extends Module {
     this.quill.root.dispatchEvent(event);
   }
 
-  gerarId(): string {
-    return PREFIXO_ID + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
-  }
-
   getRemissoes(): RemissaoInternaValue[] {
     const remissoes: RemissaoInternaValue[] = [];
     const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna');
@@ -349,7 +330,7 @@ class ModuloRemissao extends Module {
   }
 
   findBlotByRefId(refId: string): { blot: any; index: number } | null {
-    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-ref-id="${refId}"]`);
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-ref-id="${CSS.escape(refId)}"]`);
 
     if (links.length === 0) return null;
 
@@ -402,7 +383,7 @@ class ModuloRemissao extends Module {
   }
 
   atualizarReferencias(lexmlIdAntigo: string, lexmlIdNovo: string, novoUuid: number): number {
-    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlIdAntigo}"]`);
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlIdAntigo)}"]`);
 
     // Coleta refIds e textos antes de qualquer modificação DOM para evitar referências obsoletas
     const candidatos: { refId: string; textoAtual: string; textoFixo: boolean }[] = [];
@@ -410,7 +391,7 @@ class ModuloRemissao extends Module {
       const el = link as HTMLElement;
       const dataRefId = el.getAttribute('data-ref-id');
       const href = el.getAttribute('href') || '';
-      const currentUuid = this.extractUuidFromHref(href);
+      const currentUuid = RemissaoInternaBlot.extractUuidFromHref(href);
 
       // Match de UUID evita que eventos antigos ou defasados sobrescrevam a remissão.
       if (dataRefId && currentUuid === novoUuid) {
@@ -459,7 +440,7 @@ class ModuloRemissao extends Module {
   }
 
   marcarRemissoesComoInvalidas(lexmlId: string): number {
-    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlId}"]`);
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlId)}"]`);
     let count = 0;
 
     links.forEach((link: Element) => {
@@ -476,7 +457,7 @@ class ModuloRemissao extends Module {
   }
 
   restaurarRemissoesPorLexmlId(lexmlId: string): number {
-    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${lexmlId}"]`);
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlId)}"]`);
     let count = 0;
 
     links.forEach((link: Element) => {
@@ -494,11 +475,6 @@ class ModuloRemissao extends Module {
 
   private atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
     return atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
-  }
-
-  private extractUuidFromHref(href: string): number {
-    const match = href.match(/#lxEtaId(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
   }
 
   renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {
@@ -522,7 +498,7 @@ class ModuloRemissao extends Module {
     }
 
     for (const remissao of remissoesDoDispositivo) {
-      const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${remissao.refId}"]`);
+      const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${CSS.escape(remissao.refId!)}"]`);
       if (linkExistente) {
         continue;
       }
@@ -563,7 +539,5 @@ class ModuloRemissao extends Module {
     this.emitirEventoRemissaoChange();
   }
 }
-
-Quill.register('modules/remissaoInterna', ModuloRemissao, true);
 
 export { ModuloRemissao };

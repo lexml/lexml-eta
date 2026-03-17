@@ -4,6 +4,7 @@ import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../model/remissao';
+import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 
@@ -48,7 +49,7 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   }
 
   const novasRemissoes: RemissaoInternaValue[] = remissoesEncontradas.map(item => ({
-    refId: gerarId(),
+    refId: gerarRefId(),
     targetLexmlId: item.dispositivoDestino.id,
     targetUuid: item.dispositivoDestino.uuid,
     targetRotulo: item.dispositivoDestino.rotulo,
@@ -402,8 +403,4 @@ const buscarFilhoPorTipoENumero = (dispositivo: Dispositivo, tipo: string, numer
 const normalizarNumero = (numero: string | undefined): string => {
   if (!numero) return '';
   return numero.toLowerCase().replace(/[^a-z0-9]/g, '');
-};
-
-const gerarId = (): string => {
-  return 'ref_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 };

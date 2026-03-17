@@ -4,6 +4,7 @@ import { getElementos } from '../../model/elemento/elementoUtil';
 import { Articulacao } from '../../model/dispositivo/dispositivo';
 import { rootStore } from '../../redux/store';
 import { escapeHtml } from '../../util/html-util';
+import { gerarRefId } from '../../model/remissao/refId';
 
 export interface DispositivoRemissao {
   uuid: number;
@@ -334,7 +335,7 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
       return;
     }
 
-    const refId = 'ref_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const refId = gerarRefId();
 
     const remissaoValue: RemissaoInternaValue = {
       refId,

@@ -287,3 +287,60 @@ describe('textoFixo — ModuloRemissao.atualizarReferencias()', () => {
     expect(chamadaB.value.targetRotulo).to.equal('segundo texto fixo');
   });
 });
+
+// ---------------------------------------------------------------------------
+// m4 — data-texto-fixo não é removido quando textoFixo muda para false
+// BUG: valueToAttributes só seta o atributo; sem ramo else para remover.
+// ---------------------------------------------------------------------------
+
+describe('m4 — valueToAttributes: data-texto-fixo removido quando textoFixo é false', () => {
+  it('remove data-texto-fixo quando textoFixo é false (BUG: atualmente não remove)', () => {
+    const domNode = document.createElement('a');
+    domNode.setAttribute('data-texto-fixo', 'true');
+
+    const value: RemissaoInternaValue = {
+      refId: 'ref_1',
+      targetUuid: 123,
+      targetLexmlId: 'art1',
+      textoRef: 'art. 1\u00ba',
+      textoFixo: false,
+    };
+
+    RemissaoInternaBlot.valueToAttributes(value, domNode);
+
+    // BUG ATUAL: atributo permanece porque o ramo else nao existe.
+    expect(domNode.getAttribute('data-texto-fixo')).to.be.null;
+  });
+
+  it('remove data-texto-fixo quando textoFixo e undefined', () => {
+    const domNode = document.createElement('a');
+    domNode.setAttribute('data-texto-fixo', 'true');
+
+    const value: RemissaoInternaValue = {
+      refId: 'ref_1',
+      targetUuid: 123,
+      targetLexmlId: 'art1',
+      textoRef: 'art. 1\u00ba',
+    };
+
+    RemissaoInternaBlot.valueToAttributes(value, domNode);
+
+    expect(domNode.getAttribute('data-texto-fixo')).to.be.null;
+  });
+
+  it('mantem data-texto-fixo="true" quando textoFixo e true', () => {
+    const domNode = document.createElement('a');
+
+    const value: RemissaoInternaValue = {
+      refId: 'ref_1',
+      targetUuid: 123,
+      targetLexmlId: 'art1',
+      textoRef: 'art. 1\u00ba',
+      textoFixo: true,
+    };
+
+    RemissaoInternaBlot.valueToAttributes(value, domNode);
+
+    expect(domNode.getAttribute('data-texto-fixo')).to.equal('true');
+  });
+});
