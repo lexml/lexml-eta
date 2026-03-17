@@ -38,15 +38,13 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const textoAtual = dispositivo?.texto;
 
   if (!dispositivo || !textoAtual) {
-    state.ui.events = [];
-    return state;
+    return { ...state, ui: { ...state.ui, events: [] } };
   }
 
   const remissoesEncontradas = detectarReferencias(textoAtual, dispositivo, state.articulacao);
 
   if (remissoesEncontradas.length === 0) {
-    state.ui.events = [];
-    return state;
+    return { ...state, ui: { ...state.ui, events: [] } };
   }
 
   const novasRemissoes: RemissaoInternaValue[] = remissoesEncontradas.map(item => ({

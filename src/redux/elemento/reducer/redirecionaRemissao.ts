@@ -7,15 +7,13 @@ export const redirecionaRemissao = (state: any, action: any): State => {
   const uuid = action.uuid;
 
   if (uuid === undefined) {
-    state.ui.events = [];
-    return state;
+    return { ...state, ui: { ...state.ui, events: [] } };
   }
 
   const dispositivo = buscarDispositivoPorUuid(state.articulacao, uuid);
 
   if (!dispositivo) {
-    state.ui.events = [];
-    return state;
+    return { ...state, ui: { ...state.ui, events: [] } };
   }
 
   // Fix: Usa o artigo pai no getLinhaPorId, pois o caput não possui container DOM isolado.
