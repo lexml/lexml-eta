@@ -3,6 +3,7 @@ import { RemissaoInternaValue } from '../../model/remissao';
 import { getElementos } from '../../model/elemento/elementoUtil';
 import { Articulacao } from '../../model/dispositivo/dispositivo';
 import { rootStore } from '../../redux/store';
+import { escapeHtml } from '../../util/html-util';
 
 export interface DispositivoRemissao {
   uuid: number;
@@ -176,7 +177,7 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
           ? `
         <div>
           <div class="info-text">Texto selecionado:</div>
-          <div class="texto-selecionado">"${textoSelecionado}"</div>
+          <div class="texto-selecionado">"${escapeHtml(textoSelecionado)}"</div>
         </div>
       `
           : ''
