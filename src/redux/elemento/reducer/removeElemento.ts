@@ -87,7 +87,7 @@ export const removeElemento = (state: any, action: any): State => {
   const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
   const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
 
-  // Salva lexmlIds dos dispositivos afetados na pré-exclusão para conseguir emitir RemissaoRenumerada.
+  // Guarda lexmlId antigo (valor) e a referência do objeto para ler o novo d.id após a renumeração.
   const mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
   const capturarComDescendentes = (d: Dispositivo): void => {
     if (d.id && d.uuid) {
@@ -97,14 +97,19 @@ export const removeElemento = (state: any, action: any): State => {
   };
   listaDispositivosRenumerados(dispositivo).forEach(capturarComDescendentes);
 
+  // `dispositivo.id` e `dispositivo.uuid` são lidos APÓS removeAndBuildEvents, não afetados após remoção da árvore
+  const lexmlIdRemovido = dispositivo.id;
+  const uuidRemovido = dispositivo.uuid;
+
+  // CONTRATO: removeAndBuildEvents deve mutar os dispositivos in-place, sem recriar as instâncias.
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  if (dispositivo.id && dispositivo.uuid) {
+  if (lexmlIdRemovido && uuidRemovido) {
     events.push({
       stateType: StateType.RemissaoInvalidada,
       remissaoInvalidacao: {
-        lexmlId: dispositivo.id,
-        uuid: dispositivo.uuid,
+        lexmlId: lexmlIdRemovido,
+        uuid: uuidRemovido,
       },
     });
   }
