@@ -1,6 +1,7 @@
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { createElemento } from '../../../model/elemento/elementoUtil';
+import { isCaput } from '../../../model/dispositivo/tipo';
 
 export const redirecionaRemissao = (state: any, action: any): State => {
   const uuid = action.uuid;
@@ -17,7 +18,10 @@ export const redirecionaRemissao = (state: any, action: any): State => {
     return state;
   }
 
-  const elemento = createElemento(dispositivo, true);
+  // Fix: Usa o artigo pai no getLinhaPorId, pois o caput não possui container DOM isolado.
+  const dispositivoNavegacao = isCaput(dispositivo) && dispositivo.pai ? dispositivo.pai : dispositivo;
+
+  const elemento = createElemento(dispositivoNavegacao, true);
   const eventosUi = new Eventos();
 
   eventosUi.add(StateType.RemissaoRedirecionar, [elemento]);
