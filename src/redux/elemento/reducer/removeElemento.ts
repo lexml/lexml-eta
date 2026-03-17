@@ -1,4 +1,4 @@
-import { createElemento } from './../../../model/elemento/elementoUtil';
+import { createElemento, listaDispositivosRenumerados } from './../../../model/elemento/elementoUtil';
 import { StateType } from './../../state';
 import {
   getDispositivoPosterior,
@@ -9,6 +9,7 @@ import {
   getDispositivoAndFilhosAsLista,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isArticulacao, isArtigo, isEmenta } from '../../../model/dispositivo/tipo';
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
@@ -86,6 +87,16 @@ export const removeElemento = (state: any, action: any): State => {
   const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
   const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
 
+  // Salva lexmlIds dos dispositivos afetados na pré-exclusão para conseguir emitir RemissaoRenumerada.
+  const mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
+  const capturarComDescendentes = (d: Dispositivo): void => {
+    if (d.id && d.uuid) {
+      mapeamentoLexmlIds.push({ d, lexmlIdAntigo: d.id, uuidDispositivo: d.uuid });
+    }
+    d.filhos?.forEach(capturarComDescendentes);
+  };
+  listaDispositivosRenumerados(dispositivo).forEach(capturarComDescendentes);
+
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
   if (dispositivo.id && dispositivo.uuid) {
@@ -97,6 +108,21 @@ export const removeElemento = (state: any, action: any): State => {
       },
     });
   }
+
+  mapeamentoLexmlIds.forEach(({ d, lexmlIdAntigo, uuidDispositivo }) => {
+    const lexmlIdNovo = d.id;
+    if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
+      events.push({
+        stateType: StateType.RemissaoRenumerada,
+        elementos: [],
+        remissaoRenumeracao: {
+          lexmlIdAntigo,
+          lexmlIdNovo,
+          novoUuid: uuidDispositivo,
+        },
+      });
+    }
+  });
 
   if (elPrimeiroFilhoDoAgrupador) {
     events.push({ stateType: StateType.ElementoMarcado, elementos: [elPrimeiroFilhoDoAgrupador] });
