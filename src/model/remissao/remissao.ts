@@ -36,6 +36,8 @@ export interface RemissaoInternaValue {
   textoRef?: string;
 
   textoFixo?: boolean;
+
+  inicio?: number; // posição de início no texto do dispositivo de origem
 }
 
 export interface ReferenciaDetectada {

@@ -253,15 +253,16 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   eventos.add(StateType.ElementoMarcado, [createElemento(novo), createElemento(atual)]);
 
+  const builtEvents = eventos.build();
   return {
     articulacao: state.articulacao,
     modo: state.modo,
-    past: buildPast(state, eventos.build()),
-    present: eventos.build(),
+    past: buildPast(state, builtEvents),
+    present: builtEvents,
     future: [],
 
     ui: {
-      events: eventos.build(),
+      events: builtEvents,
       alertas: state.ui?.alertas,
     },
   };
