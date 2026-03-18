@@ -356,7 +356,7 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
   // A lista começa vazia para evitar lentidão em proposições grandes
 
   quill.blur();
-  await dialogElem.appendChild(content);
+  dialogElem.appendChild(content);
   await dialogElem.show();
 
   setTimeout(() => {
