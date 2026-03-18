@@ -3,6 +3,36 @@ import { RemissaoInternaValue } from '../../../src/model/remissao';
 import { ReferenciaDispositivoParser } from '../../../src/model/lexml/numeracao/parserReferenciaDispositivo';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { gerarRefId } from '../../../src/model/remissao/refId';
+import { ModuloRemissao } from '../../../src/components/editor/moduloRemissao';
+
+function criarMockQuill(rootElement: HTMLElement): any {
+  return {
+    root: rootElement,
+    getModule: () => null,
+    focus: (): void => {
+      //empty
+    },
+    getSelection: () => null,
+    getFormat: () => ({}),
+    getLeaf: () => [null, 0],
+    format: (): void => {
+      //empty
+    },
+    formatText: (): void => {
+      //empty
+    },
+    getIndex: () => 0,
+    updateContents: (): void => {
+      //empty
+    },
+    clipboard: {
+      addMatcher: (): void => {
+        //empty
+      },
+    },
+    scroll: { descendant: () => [null, 0] },
+  };
+}
 
 describe('ModuloRemissao - Constantes de Eventos', () => {
   it('deve definir evento de mudança corretamente', () => {
@@ -488,5 +518,144 @@ describe('RemissaoRegistry', () => {
     const remissoes = registry[999] || [];
 
     expect(remissoes).to.have.length(0);
+  });
+});
+
+describe('ModuloRemissao.atualizarReferencias()', () => {
+  let moduloRemissao: ModuloRemissao;
+  let mockQuill: any;
+  let adicionarRemissaoCalls: { refId: string; value: RemissaoInternaValue }[];
+
+  beforeEach(() => {
+    adicionarRemissaoCalls = [];
+    const rootElement = document.createElement('div');
+    mockQuill = criarMockQuill(rootElement);
+    moduloRemissao = new ModuloRemissao(mockQuill, {});
+
+    const original = moduloRemissao.adicionarRemissao.bind(moduloRemissao);
+    (moduloRemissao as any).adicionarRemissao = (refId: string, value: RemissaoInternaValue): boolean => {
+      adicionarRemissaoCalls.push({ refId, value });
+      return original(refId, value);
+    };
+  });
+
+  describe('CT-E-03: texto atualizado ao renumerar cada nível', () => {
+    function capturaNovoTexto(modulo: ModuloRemissao): { valor: string | null } {
+      const captura = { valor: null as string | null };
+      const orig = (modulo as any).atualizarTextoRemissao.bind(modulo);
+      (modulo as any).atualizarTextoRemissao = (texto: string, antigo: string, novo: string): string => {
+        const result = orig(texto, antigo, novo);
+        captura.valor = result;
+        return result;
+      };
+      return captura;
+    }
+
+    const textoOriginal = 'inciso III do § 2º do art. 5º';
+    const htmlLink = (lexmlId: string, uuid: number, texto: string): string => `
+      <a class="lexml-remissao-interna"
+         data-lexml-ref="${lexmlId}"
+         data-ref-id="ref_1"
+         href="#lxEtaId${uuid}">${texto}</a>
+    `;
+
+    it('inciso renumera: inciso III → inciso IV', () => {
+      mockQuill.root.innerHTML = htmlLink('art5_par2_inc3', 200, textoOriginal);
+      const captura = capturaNovoTexto(moduloRemissao);
+      moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art5_par2_inc4', 200);
+      expect(captura.valor).to.equal('inciso IV do § 2º do art. 5º');
+    });
+
+    it('parágrafo renumera: § 2º → § 3º', () => {
+      mockQuill.root.innerHTML = htmlLink('art5_par2_inc3', 200, textoOriginal);
+      const captura = capturaNovoTexto(moduloRemissao);
+      moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art5_par3_inc3', 200);
+      expect(captura.valor).to.equal('inciso III do § 3º do art. 5º');
+    });
+
+    it('artigo renumera: art. 5º → art. 6º', () => {
+      mockQuill.root.innerHTML = htmlLink('art5_par2_inc3', 200, textoOriginal);
+      const captura = capturaNovoTexto(moduloRemissao);
+      moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art6_par2_inc3', 200);
+      expect(captura.valor).to.equal('inciso III do § 2º do art. 6º');
+    });
+  });
+
+  describe('caminho síncrono quando texto não muda (textoFixo=false)', () => {
+    it('chama adicionarRemissao quando texto já é o canonical do novo lexmlId', () => {
+      mockQuill.root.innerHTML = `
+        <a class="lexml-remissao-interna"
+           data-lexml-ref="art2"
+           data-ref-id="ref_1"
+           href="#lxEtaId100">art. 3º</a>
+      `;
+
+      const count = moduloRemissao.atualizarReferencias('art2', 'art3', 100);
+
+      expect(count).to.equal(1);
+      expect(adicionarRemissaoCalls.length).to.equal(1);
+      expect(adicionarRemissaoCalls[0].value.targetLexmlId).to.equal('art3');
+      expect(adicionarRemissaoCalls[0].value.targetRotulo).to.equal('art. 3º');
+      expect(adicionarRemissaoCalls[0].value.targetUuid).to.equal(100);
+    });
+
+    it('parágrafo: chama adicionarRemissao quando texto já é canonical do novo lexmlId', () => {
+      mockQuill.root.innerHTML = `
+        <a class="lexml-remissao-interna"
+           data-lexml-ref="art1_par1"
+           data-ref-id="ref_1"
+           href="#lxEtaId50">§ 2º do art. 1º</a>
+      `;
+
+      const count = moduloRemissao.atualizarReferencias('art1_par1', 'art1_par2', 50);
+
+      expect(count).to.equal(1);
+      expect(adicionarRemissaoCalls.length).to.equal(1);
+      expect(adicionarRemissaoCalls[0].value.targetLexmlId).to.equal('art1_par2');
+    });
+  });
+
+  describe('mix de textoFixo=true e textoFixo=false', () => {
+    it('conta ambos; apenas textoFixo=true chama adicionarRemissao de forma síncrona', () => {
+      mockQuill.root.innerHTML = `
+        <p>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100" data-texto-fixo="true">texto livre</a>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId100">art. 1º</a>
+        </p>
+      `;
+
+      const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
+
+      expect(count).to.equal(2);
+      expect(adicionarRemissaoCalls.length).to.equal(1);
+      expect(adicionarRemissaoCalls[0].refId).to.equal('ref_A');
+      expect(adicionarRemissaoCalls[0].value.targetRotulo).to.equal('texto livre');
+    });
+  });
+
+  describe('filtragem por UUID (mix de UUIDs)', () => {
+    it('ignora link com UUID incorreto mesmo que lexmlId coincida', () => {
+      mockQuill.root.innerHTML = `
+        <p>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100" data-texto-fixo="true">texto A</a>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId999" data-texto-fixo="true">texto B</a>
+        </p>
+      `;
+
+      const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
+
+      expect(count).to.equal(1);
+      expect(adicionarRemissaoCalls.length).to.equal(1);
+      expect(adicionarRemissaoCalls[0].refId).to.equal('ref_A');
+    });
+
+    it('retorna 0 quando todos os links têm UUID incorreto', () => {
+      mockQuill.root.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_1" href="#lxEtaId999" data-texto-fixo="true">texto</a>
+      `;
+
+      expect(moduloRemissao.atualizarReferencias('art1', 'art2', 100)).to.equal(0);
+      expect(adicionarRemissaoCalls.length).to.equal(0);
+    });
   });
 });
