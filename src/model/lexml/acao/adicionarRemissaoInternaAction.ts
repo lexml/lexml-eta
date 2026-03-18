@@ -3,12 +3,12 @@ import { Referencia } from '../../elemento';
 
 export const ADICIONAR_REMISSAO_INTERNA = 'ADICIONAR_REMISSAO_INTERNA';
 
-class AtualizaRemissaoInterna implements ElementoAction {
+class AdicionarRemissaoInterna implements ElementoAction {
   descricao: string;
   tipo?: string;
 
   constructor() {
-    this.descricao = 'Atualizar remissão interna';
+    this.descricao = 'Adicionar remissão interna';
   }
 
   execute(atual: Referencia): any {
@@ -19,4 +19,4 @@ class AtualizaRemissaoInterna implements ElementoAction {
   }
 }
 
-export const adicionarRemissaoInternaAction = new AtualizaRemissaoInterna();
+export const adicionarRemissaoInternaAction = new AdicionarRemissaoInterna();

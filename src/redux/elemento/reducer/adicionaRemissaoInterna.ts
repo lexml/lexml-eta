@@ -11,6 +11,7 @@ import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 interface ReferenciaEncontrada {
   texto: string;
   dispositivoDestino: Dispositivo;
+  inicio?: number; // posição de início no texto original (match.index)
 }
 
 // Padrões para dispositivo (número sempre em romano no texto)
@@ -34,6 +35,30 @@ const P_PARTE = `(?:parte\\s+)${P_NUM_AGRUPADOR}`;
 // Alternação composta para qualquer agrupador (mais específico primeiro)
 const P_QUALQUER_AGRUPADOR = `(?:${P_SUBSECAO}|${P_SECAO}|${P_CAPITULO}|${P_TITULO}|${P_LIVRO}|${P_PARTE})`;
 
+// Regex compiladas uma única vez no escopo do módulo — resetar lastIndex antes de cada uso.
+const REGEX_ABSOLUTA = new RegExp(
+  `(?:${P_ITEM}${CONECTOR})?` + `(?:${P_ALINEA}${CONECTOR})?` + `(?:${P_INCISO}${CONECTOR})?` + `(?:${P_PARAGRAFO}${CONECTOR})?` + `${P_ARTIGO}`,
+  'gi'
+);
+
+const REGEX_AGRUPADOR = new RegExp(`${P_QUALQUER_AGRUPADOR}(?:${CONECTOR}${P_QUALQUER_AGRUPADOR})*`, 'gi');
+
+const REGEX_CONTEXTUAL = new RegExp(
+  `(` +
+    // 1: termina em caput ou parágrafo (com item/alínea/inciso opcionais)
+    `(?:(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?(?:${P_INCISO}${CONECTOR})?(?:${P_CAPUT}|${P_PARAGRAFO}))` +
+    // 2: termina em inciso (com item/alínea opcionais)
+    `|(?:(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?${P_INCISO})` +
+    // 3: termina em alínea (com item opcional)
+    `|(?:(?:${P_ITEM}${CONECTOR})?${P_ALINEA})` +
+    // 4: apenas item
+    `|(?:${P_ITEM})` +
+    // 5: agrupador simples (ex: "Seção II deste Capítulo")
+    `|(?:${P_QUALQUER_AGRUPADOR})` +
+    `)\\s+d(?:este|esta|o\\s+presente|a\\s+presente)\\s+(artigo|par[aá]grafo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o|t[ií]tulo|livro|parte)`,
+  'gi'
+);
+
 export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const textoAtual = dispositivo?.texto;
@@ -56,6 +81,7 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     sourceUuid: dispositivo.uuid,
     sourceLexmlId: dispositivo.id,
     textoRef: item.texto,
+    inicio: item.inicio,
   }));
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
@@ -97,20 +123,15 @@ const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulaca
 const detectarReferenciasAbsolutas = (texto: string, articulacao: Articulacao): ReferenciaEncontrada[] => {
   const resultado: ReferenciaEncontrada[] = [];
 
-  const regexComposta = new RegExp(
-    `(?:${P_ITEM}${CONECTOR})?` + `(?:${P_ALINEA}${CONECTOR})?` + `(?:${P_INCISO}${CONECTOR})?` + `(?:${P_PARAGRAFO}${CONECTOR})?` + `${P_ARTIGO}`,
-    'gi'
-  );
-
   let match: RegExpExecArray | null;
-  regexComposta.lastIndex = 0;
-  while ((match = regexComposta.exec(texto)) !== null) {
+  REGEX_ABSOLUTA.lastIndex = 0;
+  while ((match = REGEX_ABSOLUTA.exec(texto)) !== null) {
     const textoReferencia = match[0];
     const parser = new ReferenciaDispositivoParser(textoReferencia);
     if (parser.valido && parser.referencias.length > 0) {
       const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
       if (dispositivoDestino) {
-        resultado.push({ texto: textoReferencia, dispositivoDestino });
+        resultado.push({ texto: textoReferencia, dispositivoDestino, inicio: match.index });
       }
     }
   }
@@ -171,13 +192,12 @@ const resolverCadeiaAgrupadores = (textoChain: string, articulacao: Articulacao)
 // Detecta referências absolutas a agrupadores, incluindo cadeias (ex: "Seção II do Capítulo I").
 const detectarReferenciasAgrupadores = (texto: string, articulacao: Articulacao): ReferenciaEncontrada[] => {
   const resultado: ReferenciaEncontrada[] = [];
-  const regexAgrupador = new RegExp(`${P_QUALQUER_AGRUPADOR}(?:${CONECTOR}${P_QUALQUER_AGRUPADOR})*`, 'gi');
   let match: RegExpExecArray | null;
-  regexAgrupador.lastIndex = 0;
-  while ((match = regexAgrupador.exec(texto)) !== null) {
+  REGEX_AGRUPADOR.lastIndex = 0;
+  while ((match = REGEX_AGRUPADOR.exec(texto)) !== null) {
     const dispositivoDestino = resolverCadeiaAgrupadores(match[0], articulacao);
     if (dispositivoDestino) {
-      resultado.push({ texto: match[0], dispositivoDestino });
+      resultado.push({ texto: match[0], dispositivoDestino, inicio: match.index });
     }
   }
   return resultado;
@@ -245,32 +265,10 @@ const construirSinteseAteArtigo = (prefixText: string, ancestorInicial: Disposit
 const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
   const resultado: ReferenciaEncontrada[] = [];
 
-  /**
-   * Captura referências contextuais divididas em Grupo 1 (Cadeia) e Grupo 2 (Âncora).
-   * - Grupo 1: o dispositivo referenciado (parágrafo, inciso, agrupador, etc.).
-   * - Grupo 2: o tipo da âncora ancestral ("artigo", "capítulo", etc.).
-   * - O qualificador suporta os pronomes "deste", "desta", "do presente", "da presente".
-   */
-  const regexContextual = new RegExp(
-    `(` +
-      // 1: termina em caput ou parágrafo (com item/alínea/inciso opcionais)
-      `(?:(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?(?:${P_INCISO}${CONECTOR})?(?:${P_CAPUT}|${P_PARAGRAFO}))` +
-      // 2: termina em inciso (com item/alínea opcionais)
-      `|(?:(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?${P_INCISO})` +
-      // 3: termina em alínea (com item opcional)
-      `|(?:(?:${P_ITEM}${CONECTOR})?${P_ALINEA})` +
-      // 4: apenas item
-      `|(?:${P_ITEM})` +
-      // 5: agrupador simples (ex: "Seção II deste Capítulo")
-      `|(?:${P_QUALQUER_AGRUPADOR})` +
-      `)\\s+d(?:este|esta|o\\s+presente|a\\s+presente)\\s+(artigo|par[aá]grafo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o|t[ií]tulo|livro|parte)`,
-    'gi'
-  );
-
   let match: RegExpExecArray | null;
-  regexContextual.lastIndex = 0;
+  REGEX_CONTEXTUAL.lastIndex = 0;
 
-  while ((match = regexContextual.exec(texto)) !== null) {
+  while ((match = REGEX_CONTEXTUAL.exec(texto)) !== null) {
     const textoCompleto = match[0];
     const prefixText = match[1]?.trim() ?? '';
     const qualifierKeyword = match[2] ?? '';
@@ -289,7 +287,7 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
       if (artigo) {
         const caput = (artigo as Artigo).caput;
         if (caput) {
-          resultado.push({ texto: textoCompleto, dispositivoDestino: caput });
+          resultado.push({ texto: textoCompleto, dispositivoDestino: caput, inicio: match.index });
         }
       }
       continue;
@@ -301,7 +299,7 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
       // Contexto de agrupador: busca o filho direto do ancestral pelo prefixo (ex: "Seção II deste Capítulo")
       const agrupadorDestino = buscarAgrupadorFilhoPorPrefixo(prefixText, ancestor);
       if (agrupadorDestino) {
-        resultado.push({ texto: textoCompleto, dispositivoDestino: agrupadorDestino });
+        resultado.push({ texto: textoCompleto, dispositivoDestino: agrupadorDestino, inicio: match.index });
       }
       continue;
     }
@@ -311,7 +309,7 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
 
     const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
     if (dispositivoDestino) {
-      resultado.push({ texto: textoCompleto, dispositivoDestino });
+      resultado.push({ texto: textoCompleto, dispositivoDestino, inicio: match.index });
     }
   }
 
