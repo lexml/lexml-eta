@@ -149,7 +149,70 @@ export function lexmlIdParaTextoCanonico(lexmlId: string): string {
   return result;
 }
 
+// Mapeamento de nome do dispositivo (como aparece no texto) → prefixo do lexmlId
+const SUFIXO_PARA_TIPO: Record<string, string> = {
+  artigo: 'art',
+  parágrafo: 'par',
+  inciso: 'inc',
+  alínea: 'ali',
+  item: 'ite',
+  subseção: 'sub', // subseção antes de seção para evitar match parcial
+  seção: 'sec',
+  capítulo: 'cap',
+  título: 'tit',
+  livro: 'liv',
+  parte: 'prt',
+};
+
+const TIPOS_SUFIXO = Object.keys(SUFIXO_PARA_TIPO).join('|');
+
+// Detecta sufixo contextual no FINAL do texto do link: deste <dispositivo> | do presente <dispositivo>
+const REGEX_SUFIXO_CONTEXTUAL = new RegExp(`\\s+(d(?:est[ae]|o presente|a presente)\\s+(${TIPOS_SUFIXO}))$`, 'i');
+
+export interface SufixoContextual {
+  tipo: string; // prefixo lexmlId: 'art', 'par', 'cap', etc.
+  texto: string; // texto original preservado: "deste parágrafo"
+}
+
+export function extrairSufixoContextual(texto: string): SufixoContextual | null {
+  const match = texto.match(REGEX_SUFIXO_CONTEXTUAL);
+  if (!match) return null;
+  const nomeDispositivo = match[2].toLowerCase();
+  const tipo = SUFIXO_PARA_TIPO[nomeDispositivo];
+  if (!tipo) return null;
+  return { tipo, texto: match[1] };
+}
+
+// Retorna os segmentos do lexmlId ABAIXO do nível do contexto.
+// Ex: extrairParteRelativa('art6_par1_inc2', 'par') → 'inc2'
+//     extrairParteRelativa('art6_par1_inc2', 'art') → 'par1_inc2'
+// Retorna null se o nível de contexto não for encontrado no lexmlId.
+export function extrairParteRelativa(lexmlId: string, nivelContexto: string): string | null {
+  const segs = parseLexmlId(lexmlId);
+  const idx = segs.findIndex(s => s.tipo === nivelContexto);
+  if (idx < 0) return null;
+  return segs
+    .slice(idx + 1)
+    .map(s => s.tipo + s.numero)
+    .join('_');
+}
+
 export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
   if (lexmlIdAntigo === lexmlIdNovo) return textoAtual;
+
+  const sufixo = extrairSufixoContextual(textoAtual);
+  if (sufixo) {
+    const relAntiga = extrairParteRelativa(lexmlIdAntigo, sufixo.tipo);
+    const relNova = extrairParteRelativa(lexmlIdNovo, sufixo.tipo);
+
+    if (relAntiga !== null && relNova !== null) {
+      if (relAntiga === relNova) return textoAtual;
+
+      if (relNova !== '') {
+        return lexmlIdParaTextoCanonico(relNova) + ' ' + sufixo.texto;
+      }
+    }
+  }
+
   return lexmlIdParaTextoCanonico(lexmlIdNovo);
 }

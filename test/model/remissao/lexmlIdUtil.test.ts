@@ -1,5 +1,14 @@
 import { expect } from '@open-wc/testing';
-import { parseLexmlId, diffLexmlId, numeroParaExibicao, lexmlIdParaTextoCanonico, atualizarTextoRemissao, SegmentoLexmlId } from '../../../src/model/remissao/lexmlIdUtil';
+import {
+  parseLexmlId,
+  diffLexmlId,
+  numeroParaExibicao,
+  lexmlIdParaTextoCanonico,
+  atualizarTextoRemissao,
+  extrairSufixoContextual,
+  extrairParteRelativa,
+  SegmentoLexmlId,
+} from '../../../src/model/remissao/lexmlIdUtil';
 
 describe('lexmlIdUtil', () => {
   describe('parseLexmlId', () => {
@@ -654,6 +663,188 @@ describe('lexmlIdUtil', () => {
       });
     });
   });
+
+  describe('extrairSufixoContextual', () => {
+    describe('Detecção de sufixos válidos', () => {
+      it('"inciso I deste parágrafo" → tipo par', () => {
+        const r = extrairSufixoContextual('inciso I deste parágrafo');
+        expect(r).to.deep.equal({ tipo: 'par', texto: 'deste parágrafo' });
+      });
+
+      it('"§ 2º deste artigo" → tipo art', () => {
+        const r = extrairSufixoContextual('§ 2º deste artigo');
+        expect(r).to.deep.equal({ tipo: 'art', texto: 'deste artigo' });
+      });
+
+      it('"§ 2º do presente artigo" → tipo art', () => {
+        const r = extrairSufixoContextual('§ 2º do presente artigo');
+        expect(r).to.deep.equal({ tipo: 'art', texto: 'do presente artigo' });
+      });
+
+      it('"caput deste artigo" → tipo art', () => {
+        const r = extrairSufixoContextual('caput deste artigo');
+        expect(r).to.deep.equal({ tipo: 'art', texto: 'deste artigo' });
+      });
+
+      it('"Seção I deste Capítulo" → tipo cap (case-insensitive)', () => {
+        const r = extrairSufixoContextual('Seção I deste Capítulo');
+        expect(r).to.deep.equal({ tipo: 'cap', texto: 'deste Capítulo' });
+      });
+
+      it('"inciso I desta alínea" → tipo ali', () => {
+        const r = extrairSufixoContextual('inciso I desta alínea');
+        expect(r).to.deep.equal({ tipo: 'ali', texto: 'desta alínea' });
+      });
+
+      it('"alínea a deste inciso" → tipo inc', () => {
+        const r = extrairSufixoContextual('alínea a deste inciso');
+        expect(r).to.deep.equal({ tipo: 'inc', texto: 'deste inciso' });
+      });
+
+      it('"item 2 deste inciso" → tipo inc', () => {
+        const r = extrairSufixoContextual('item 2 deste inciso');
+        expect(r).to.deep.equal({ tipo: 'inc', texto: 'deste inciso' });
+      });
+
+      it('"Subseção I desta Seção" → tipo sec', () => {
+        const r = extrairSufixoContextual('Subseção I desta Seção');
+        expect(r).to.deep.equal({ tipo: 'sec', texto: 'desta Seção' });
+      });
+
+      it('"Seção I desta Subseção" → tipo sub', () => {
+        const r = extrairSufixoContextual('Seção I desta Subseção');
+        expect(r).to.deep.equal({ tipo: 'sub', texto: 'desta Subseção' });
+      });
+    });
+
+    describe('Rejeição de falsos positivos', () => {
+      it('"art. 5º" (referência absoluta) → null', () => {
+        expect(extrairSufixoContextual('art. 5º')).to.be.null;
+      });
+
+      it('"§ 3º do art. 10" (referência absoluta composta) → null', () => {
+        expect(extrairSufixoContextual('§ 3º do art. 10')).to.be.null;
+      });
+
+      it('"inciso I do § 2º do art. 3º" (referência absoluta) → null', () => {
+        expect(extrairSufixoContextual('inciso I do § 2º do art. 3º')).to.be.null;
+      });
+
+      it('"§ 2º desta Lei" (contexto externo, "Lei" não é tipo) → null', () => {
+        expect(extrairSufixoContextual('§ 2º desta Lei')).to.be.null;
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Texto contextual — extrairParteRelativa
+  // ---------------------------------------------------------------------------
+
+  describe('extrairParteRelativa', () => {
+    it('art6_par1_inc1 com contexto par → inc1', () => {
+      expect(extrairParteRelativa('art6_par1_inc1', 'par')).to.equal('inc1');
+    });
+
+    it('art6_par1_inc2_ali1 com contexto par → inc2_ali1', () => {
+      expect(extrairParteRelativa('art6_par1_inc2_ali1', 'par')).to.equal('inc2_ali1');
+    });
+
+    it('art6_par2 com contexto art → par2', () => {
+      expect(extrairParteRelativa('art6_par2', 'art')).to.equal('par2');
+    });
+
+    it('art6_cpt1 com contexto art → cpt1 (caput com número)', () => {
+      expect(extrairParteRelativa('art6_cpt1', 'art')).to.equal('cpt1');
+    });
+
+    it('U-14b: art6 com contexto art → string vazia (artigo é o próprio alvo)', () => {
+      expect(extrairParteRelativa('art6', 'art')).to.equal('');
+    });
+
+    it('cap3_sec2 com contexto cap → sec2', () => {
+      expect(extrairParteRelativa('cap3_sec2', 'cap')).to.equal('sec2');
+    });
+
+    it('art6_par1_inc1 com contexto inc → string vazia (inciso é folha)', () => {
+      expect(extrairParteRelativa('art6_par1_inc1', 'inc')).to.equal('');
+    });
+
+    it('art6_par1_inc1 com contexto tit → null (nível não encontrado)', () => {
+      expect(extrairParteRelativa('art6_par1_inc1', 'tit')).to.be.null;
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // atualizarTextoRemissao — cenários contextuais
+  // ---------------------------------------------------------------------------
+
+  describe('atualizarTextoRemissao — preservação de texto contextual', () => {
+    describe('Cenário A: ancestral renumerado — texto preservado', () => {
+      it('"inciso I deste parágrafo" com art1→art6, inciso inalterado', () => {
+        expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art6_par1_inc1')).to.equal('inciso I deste parágrafo');
+      });
+
+      it('"caput deste artigo" quando artigo renumera', () => {
+        expect(atualizarTextoRemissao('caput deste artigo', 'art1_cpt1', 'art6_cpt1')).to.equal('caput deste artigo');
+      });
+
+      it('"§ 2º deste artigo" quando artigo renumera', () => {
+        expect(atualizarTextoRemissao('§ 2º deste artigo', 'art1_par2', 'art6_par2')).to.equal('§ 2º deste artigo');
+      });
+
+      it('"§ 2º do presente artigo" — forma alternativa também preservada', () => {
+        expect(atualizarTextoRemissao('§ 2º do presente artigo', 'art1_par2', 'art6_par2')).to.equal('§ 2º do presente artigo');
+      });
+
+      it('"Seção I deste Capítulo" quando capítulo renumera', () => {
+        expect(atualizarTextoRemissao('Seção I deste Capítulo', 'cap1_sec1', 'cap3_sec1')).to.equal('Seção I deste Capítulo');
+      });
+
+      it('"alínea a deste inciso" quando ancestral renumera', () => {
+        expect(atualizarTextoRemissao('alínea a deste inciso', 'art1_cpt1_inc1_ali1', 'art6_cpt1_inc1_ali1')).to.equal('alínea a deste inciso');
+      });
+    });
+
+    describe('Cenário B: alvo direto renumerado — regeneração parcial', () => {
+      it('inciso I→II deste parágrafo', () => {
+        expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par1_inc2')).to.equal('inciso II deste parágrafo');
+      });
+
+      it('§ 2→3 deste artigo', () => {
+        expect(atualizarTextoRemissao('§ 2º deste artigo', 'art1_par2', 'art1_par3')).to.equal('§ 3º deste artigo');
+      });
+
+      it('Seção I→II deste Capítulo', () => {
+        expect(atualizarTextoRemissao('Seção I deste Capítulo', 'cap1_sec1', 'cap1_sec2')).to.equal('Seção II deste Capítulo');
+      });
+    });
+
+    describe('Cenário C: contexto renumerado — texto preservado', () => {
+      it('"inciso I deste parágrafo" quando parágrafo renumera (§1→§2)', () => {
+        // O parágrafo mudou de número, mas "deste parágrafo" é relativo: continua correto
+        expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par2_inc1')).to.equal('inciso I deste parágrafo');
+      });
+    });
+
+    describe('Regressão — referências absolutas continuam canônicas', () => {
+      it('"art. 1º" com art1→art6 → canônico (sem sufixo contextual)', () => {
+        expect(atualizarTextoRemissao('art. 1º', 'art1', 'art6')).to.equal('art. 6º');
+      });
+
+      it('"§ 2º do art. 1º" com art1_par2→art6_par2 → canônico', () => {
+        expect(atualizarTextoRemissao('§ 2º do art. 1º', 'art1_par2', 'art6_par2')).to.equal('§ 2º do art. 6º');
+      });
+
+      it('"inciso I do § 1º do art. 1º" com art1_par1_inc1→art6_par1_inc1 → canônico', () => {
+        expect(atualizarTextoRemissao('inciso I do § 1º do art. 1º', 'art1_par1_inc1', 'art6_par1_inc1')).to.equal('inciso I do § 1º do art. 6º');
+      });
+
+      it('IDs iguais → texto inalterado mesmo com sufixo contextual', () => {
+        expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par1_inc1')).to.equal('inciso I deste parágrafo');
+      });
+    });
+  });
+
   describe('parseLexmlId: suporte a números compostos (ex: art1-a)', () => {
     it('parseia segmento simples sem composição (comportamento existente)', () => {
       const segs = parseLexmlId('art1_par2');
