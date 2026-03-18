@@ -23,6 +23,8 @@ class ModuloRemissao extends Module {
   quill: any;
   options: any;
 
+  private _clickHandler: ((e: MouseEvent) => void) | null = null;
+
   _isAbrindoTexto = false;
 
   get isAbrindoTexto(): boolean {
@@ -53,7 +55,15 @@ class ModuloRemissao extends Module {
 
     this.addClipboardMatcher();
 
-    this.quill.root.addEventListener('click', this.onClick.bind(this));
+    this._clickHandler = this.onClick.bind(this);
+    this.quill.root.addEventListener('click', this._clickHandler);
+  }
+
+  destroy(): void {
+    if (this._clickHandler) {
+      this.quill.root.removeEventListener('click', this._clickHandler);
+      this._clickHandler = null;
+    }
   }
 
   addClipboardMatcher(): void {
@@ -513,13 +523,26 @@ class ModuloRemissao extends Module {
       const texto = blotStart >= 0 ? this.quill.getText(blotStart, blotLength) : this.quill.getText();
       const indexOffset = blotStart >= 0 ? blotStart : 0;
 
-      let index = texto.indexOf(textoRef);
-      while (index !== -1) {
+      // Se a posição de início está disponível, aplica apenas naquela ocorrência específica.
+      // Caso contrário, percorre todas as ocorrências (compatibilidade com remissões manuais).
+      const indicesParaFormatar: number[] =
+        remissao.inicio !== undefined
+          ? [remissao.inicio]
+          : (() => {
+              const indices: number[] = [];
+              let i = texto.indexOf(textoRef);
+              while (i !== -1) {
+                indices.push(i);
+                i = texto.indexOf(textoRef, i + textoRef.length);
+              }
+              return indices;
+            })();
+
+      for (const index of indicesParaFormatar) {
         const absoluteIndex = indexOffset + index;
         try {
           const format = this.quill.getFormat(absoluteIndex, textoRef.length);
           if (format['remissao-interna']) {
-            index = texto.indexOf(textoRef, index + textoRef.length);
             continue;
           }
         } catch {
@@ -527,12 +550,10 @@ class ModuloRemissao extends Module {
         }
 
         if (this.estaNoRotulo(absoluteIndex)) {
-          index = texto.indexOf(textoRef, index + textoRef.length);
           continue;
         }
 
         this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-interna', remissao, 'silent');
-        index = texto.indexOf(textoRef, index + textoRef.length);
       }
     }
 
