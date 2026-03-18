@@ -265,4 +265,39 @@ describe('lexmlIdUtil', () => {
       expect(lexmlIdParaTextoCanonico('art9')).to.equal('art. 9º');
     });
   });
+
+  describe('m13 — parseLexmlId: suporte a numeros compostos (ex: art1-a)', () => {
+    it('parseia segmento simples sem composicao (comportamento existente)', () => {
+      const segs = parseLexmlId('art1_par2');
+      expect(segs).to.have.length(2);
+      expect(segs[0]).to.deep.equal({ tipo: 'art', numero: '1' });
+      expect(segs[1]).to.deep.equal({ tipo: 'par', numero: '2' });
+    });
+
+    it('parseia segmento com numero unico (comportamento existente)', () => {
+      const segs = parseLexmlId('art1u');
+      expect(segs).to.have.length(1);
+      expect(segs[0]).to.deep.equal({ tipo: 'art', numero: '1u' });
+    });
+
+    it('parseia art1-a (artigo 1-A) — BUG: retorna array vazio com regex atual', () => {
+      const segs = parseLexmlId('art1-a');
+      expect(segs).to.have.length(1);
+      expect(segs[0].tipo).to.equal('art');
+      expect(segs[0].numero).to.equal('1-a');
+    });
+
+    it('parseia par2-b dentro de id composto (ex: art1_par2-b)', () => {
+      const segs = parseLexmlId('art1_par2-b');
+      expect(segs).to.have.length(2);
+      expect(segs[1].numero).to.equal('2-b');
+    });
+
+    it('parseia id com multiplos segmentos compostos', () => {
+      const segs = parseLexmlId('art1-a_par1');
+      expect(segs).to.have.length(2);
+      expect(segs[0].numero).to.equal('1-a');
+      expect(segs[1].numero).to.equal('1');
+    });
+  });
 });

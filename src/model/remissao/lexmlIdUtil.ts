@@ -56,7 +56,7 @@ export function parseLexmlId(id: string): SegmentoLexmlId[] {
   return id
     .split('_')
     .map(seg => {
-      const match = seg.match(/^([a-z]+)(\d+[u]?)$/);
+      const match = seg.match(/^([a-z]+)(\d+(?:-[a-z]+)?[u]?)$/);
       if (!match) return null;
       return { tipo: match[1], numero: match[2] };
     })
