@@ -551,33 +551,144 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
       return captura;
     }
 
-    const textoOriginal = 'inciso III do § 2º do art. 5º';
-    const htmlLink = (lexmlId: string, uuid: number, texto: string): string => `
+    const link = (lexmlId: string, uuid: number, texto: string): string => `
       <a class="lexml-remissao-interna"
          data-lexml-ref="${lexmlId}"
          data-ref-id="ref_1"
          href="#lxEtaId${uuid}">${texto}</a>
     `;
 
-    it('inciso renumera: inciso III → inciso IV', () => {
-      mockQuill.root.innerHTML = htmlLink('art5_par2_inc3', 200, textoOriginal);
-      const captura = capturaNovoTexto(moduloRemissao);
-      moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art5_par2_inc4', 200);
-      expect(captura.valor).to.equal('inciso IV do § 2º do art. 5º');
+    describe('Inciso (art + par + inc)', () => {
+      const textoBase = 'inciso III do § 2º do art. 5º';
+
+      it('inciso renumera: inc3 → inc4', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art5_par2_inc4', 200);
+        expect(captura.valor).to.equal('inciso IV do § 2º do art. 5º');
+      });
+
+      it('parágrafo-pai renumera: par2 → par3', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art5_par3_inc3', 200);
+        expect(captura.valor).to.equal('inciso III do § 3º do art. 5º');
+      });
+
+      it('artigo-pai renumera: art5 → art6', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art6_par2_inc3', 200);
+        expect(captura.valor).to.equal('inciso III do § 2º do art. 6º');
+      });
     });
 
-    it('parágrafo renumera: § 2º → § 3º', () => {
-      mockQuill.root.innerHTML = htmlLink('art5_par2_inc3', 200, textoOriginal);
-      const captura = capturaNovoTexto(moduloRemissao);
-      moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art5_par3_inc3', 200);
-      expect(captura.valor).to.equal('inciso III do § 3º do art. 5º');
+    describe('Alínea (art + par + inc + ali)', () => {
+      const textoBase = 'alínea b do inciso III do § 2º do art. 5º';
+
+      it('alínea renumera: ali2 → ali3', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3_ali2', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2', 'art5_par2_inc3_ali3', 200);
+        expect(captura.valor).to.equal('alínea c do inciso III do § 2º do art. 5º');
+      });
+
+      it('inciso-pai renumera: inc3 → inc4', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3_ali2', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2', 'art5_par2_inc4_ali2', 200);
+        expect(captura.valor).to.equal('alínea b do inciso IV do § 2º do art. 5º');
+      });
+
+      it('artigo-pai renumera: art5 → art6', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3_ali2', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2', 'art6_par2_inc3_ali2', 200);
+        expect(captura.valor).to.equal('alínea b do inciso III do § 2º do art. 6º');
+      });
     });
 
-    it('artigo renumera: art. 5º → art. 6º', () => {
-      mockQuill.root.innerHTML = htmlLink('art5_par2_inc3', 200, textoOriginal);
-      const captura = capturaNovoTexto(moduloRemissao);
-      moduloRemissao.atualizarReferencias('art5_par2_inc3', 'art6_par2_inc3', 200);
-      expect(captura.valor).to.equal('inciso III do § 2º do art. 6º');
+    describe('Item (art + par + inc + ali + ite)', () => {
+      const textoBase = 'item 1 da alínea b do inciso III do § 2º do art. 5º';
+
+      it('item renumera: ite1 → ite2', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3_ali2_ite1', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2_ite1', 'art5_par2_inc3_ali2_ite2', 200);
+        expect(captura.valor).to.equal('item 2 da alínea b do inciso III do § 2º do art. 5º');
+      });
+
+      it('artigo-pai renumera: art5 → art6', () => {
+        mockQuill.root.innerHTML = link('art5_par2_inc3_ali2_ite1', 200, textoBase);
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2_ite1', 'art6_par2_inc3_ali2_ite1', 200);
+        expect(captura.valor).to.equal('item 1 da alínea b do inciso III do § 2º do art. 6º');
+      });
+    });
+
+    describe('Agrupadores (cap, sec, sub, tit, liv, prt)', () => {
+      it('Capítulo II → III', () => {
+        mockQuill.root.innerHTML = link('cap2', 200, 'Capítulo II');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('cap2', 'cap3', 200);
+        expect(captura.valor).to.equal('Capítulo III');
+      });
+
+      it('Seção renumera: sec2 → sec3 dentro do Capítulo I', () => {
+        mockQuill.root.innerHTML = link('cap1_sec2', 200, 'Seção II do Capítulo I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('cap1_sec2', 'cap1_sec3', 200);
+        expect(captura.valor).to.equal('Seção III do Capítulo I');
+      });
+
+      it('capítulo-pai renumera: Seção II do Capítulo I → Seção II do Capítulo II', () => {
+        mockQuill.root.innerHTML = link('cap1_sec2', 200, 'Seção II do Capítulo I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('cap1_sec2', 'cap2_sec2', 200);
+        expect(captura.valor).to.equal('Seção II do Capítulo II');
+      });
+
+      it('Subseção renumera: sub1 → sub2', () => {
+        mockQuill.root.innerHTML = link('cap1_sec2_sub1', 200, 'Subseção I da Seção II do Capítulo I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('cap1_sec2_sub1', 'cap1_sec2_sub2', 200);
+        expect(captura.valor).to.equal('Subseção II da Seção II do Capítulo I');
+      });
+
+      it('Título I → II', () => {
+        mockQuill.root.innerHTML = link('tit1', 200, 'Título I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('tit1', 'tit2', 200);
+        expect(captura.valor).to.equal('Título II');
+      });
+
+      it('tit + cap + sec: seção renumera sec3 → sec4', () => {
+        mockQuill.root.innerHTML = link('tit1_cap2_sec3', 200, 'Seção III do Capítulo II do Título I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('tit1_cap2_sec3', 'tit1_cap2_sec4', 200);
+        expect(captura.valor).to.equal('Seção IV do Capítulo II do Título I');
+      });
+
+      it('tit + cap + sec: título-pai renumera tit1 → tit2', () => {
+        mockQuill.root.innerHTML = link('tit1_cap2_sec3', 200, 'Seção III do Capítulo II do Título I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('tit1_cap2_sec3', 'tit2_cap2_sec3', 200);
+        expect(captura.valor).to.equal('Seção III do Capítulo II do Título II');
+      });
+
+      it('Livro I → II', () => {
+        mockQuill.root.innerHTML = link('liv1', 200, 'Livro I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('liv1', 'liv2', 200);
+        expect(captura.valor).to.equal('Livro II');
+      });
+
+      it('Parte I → II', () => {
+        mockQuill.root.innerHTML = link('prt1', 200, 'Parte I');
+        const captura = capturaNovoTexto(moduloRemissao);
+        moduloRemissao.atualizarReferencias('prt1', 'prt2', 200);
+        expect(captura.valor).to.equal('Parte II');
+      });
     });
   });
 
