@@ -245,6 +245,61 @@ describe('Detecção de Remissões Compostas (Etapa 1.1)', () => {
     });
   });
 
+  describe('Composto: artigo + caput + inciso (via "do caput do art. X")', () => {
+    let state: State;
+    let art1: any;
+    let inc1: any;
+    let inc2: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(2);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      const art2 = setup.artigos[1] as Artigo;
+
+      // Adiciona incisos diretamente ao caput do art. 2
+      inc1 = criaDispositivo(art2 as any, 'Inciso');
+      inc2 = criaDispositivo(art2 as any, 'Inciso');
+      inc1.texto = 'Inciso I.';
+      inc2.texto = 'Inciso II.';
+
+      [inc1, inc2].forEach(marcaAdicionado);
+
+      // Renumera os incisos do caput e cria rótulos
+      art2.caput!.renumeraFilhos();
+      [inc1, inc2].forEach((d: any) => d.createRotulo(d));
+
+      // Atualiza IDs gerais (articulação → artigos → parágrafos)
+      updateIdDispositivoAndFilhos(state.articulacao!);
+
+      // Caput.filhos (incisos) não são alcançados por updateIdDispositivoAndFilhos
+      // pois artigo.filhos só contém parágrafos; necessário setar IDs manualmente
+      inc1.id = buildId(inc1);
+      inc2.id = buildId(inc2);
+    });
+
+    it('"inciso II do caput do art. 2º" → 1 remissão para art2_cpt_inc2', () => {
+      const remissoes = detecta(state, art1, 'Conforme o inciso II do caput do art. 2º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2_cpt_inc2');
+    });
+
+    it('"inciso II do caput do art. 2º" → NÃO aponta para o artigo (regressão)', () => {
+      const remissoes = detecta(state, art1, 'Conforme o inciso II do caput do art. 2º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.not.equal('art2', 'Deve apontar para o inciso do caput, não para o artigo');
+    });
+
+    it('"inciso I do caput do art. 2º" → 1 remissão para art2_cpt_inc1', () => {
+      const remissoes = detecta(state, art1, 'Conforme o inciso I do caput do art. 2º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2_cpt_inc1');
+    });
+  });
+
   // ── Casos de não-criação ───────────────────────────────────────────────────
 
   describe('Casos que não devem criar remissão', () => {

@@ -37,7 +37,7 @@ const P_QUALQUER_AGRUPADOR = `(?:${P_SUBSECAO}|${P_SECAO}|${P_CAPITULO}|${P_TITU
 
 // Regex compiladas uma única vez no escopo do módulo — resetar lastIndex antes de cada uso.
 const REGEX_ABSOLUTA = new RegExp(
-  `(?:${P_ITEM}${CONECTOR})?` + `(?:${P_ALINEA}${CONECTOR})?` + `(?:${P_INCISO}${CONECTOR})?` + `(?:${P_PARAGRAFO}${CONECTOR})?` + `${P_ARTIGO}`,
+  `(?:${P_ITEM}${CONECTOR})?` + `(?:${P_ALINEA}${CONECTOR})?` + `(?:${P_INCISO}${CONECTOR})?` + `(?:(?:${P_CAPUT}|${P_PARAGRAFO})${CONECTOR})?` + `${P_ARTIGO}`,
   'gi'
 );
 
