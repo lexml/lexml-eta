@@ -7,67 +7,12 @@ import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-
-const montaStateComTresArtigos = (): State => {
-  const articulacao = createArticulacao();
-  const art1 = criaDispositivo(articulacao, 'Artigo');
-  const art2 = criaDispositivo(articulacao, 'Artigo');
-  const art3 = criaDispositivo(articulacao, 'Artigo');
-
-  art1.texto = 'Primeiro artigo.';
-  art2.texto = 'Segundo artigo.';
-  art3.texto = 'Terceiro artigo.';
-
-  articulacao.renumeraFilhos();
-  [art1, art2, art3].forEach(a => a.createRotulo(a));
-  updateIdDispositivoAndFilhos(articulacao);
-
-  [art1, art2, art3].forEach(a => {
-    a.situacao = new DispositivoAdicionado();
-    (a as Artigo).caput!.situacao = new DispositivoAdicionado();
-  });
-
-  return {
-    articulacao,
-    modo: 'emenda',
-    past: [],
-    present: [],
-    future: [],
-    ui: { events: [] },
-  };
-};
-
-const montaStateComQuatroArtigos = (): State => {
-  const articulacao = createArticulacao();
-  const artigos = [1, 2, 3, 4].map(() => criaDispositivo(articulacao, 'Artigo'));
-
-  artigos.forEach((a, i) => {
-    a.texto = `Artigo ${i + 1}.`;
-  });
-
-  articulacao.renumeraFilhos();
-  artigos.forEach(a => a.createRotulo(a));
-  updateIdDispositivoAndFilhos(articulacao);
-
-  artigos.forEach(a => {
-    a.situacao = new DispositivoAdicionado();
-    (a as Artigo).caput!.situacao = new DispositivoAdicionado();
-  });
-
-  return {
-    articulacao,
-    modo: 'emenda',
-    past: [],
-    present: [],
-    future: [],
-    ui: { events: [] },
-  };
-};
+import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 
 describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada)', () => {
   describe('Remover artigo do início — renumera todos os posteriores', () => {
     it('deve emitir RemissaoRenumerada para art2→art1 e art3→art2 ao remover art1', () => {
-      const state = montaStateComTresArtigos();
+      const state = criaStateComNArtigos(3).state;
       const art1 = state.articulacao!.artigos[0];
 
       expect(art1.id).to.equal('art1');
@@ -95,7 +40,7 @@ describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada
 
   describe('Remover artigo do meio — renumera apenas os posteriores', () => {
     it('deve emitir RemissaoRenumerada apenas para art3→art2 ao remover art2', () => {
-      const state = montaStateComTresArtigos();
+      const state = criaStateComNArtigos(3).state;
       const art2 = state.articulacao!.artigos[1];
 
       expect(art2.id).to.equal('art2');
@@ -116,7 +61,7 @@ describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada
     });
 
     it('não deve emitir RemissaoRenumerada para o artigo removido em si', () => {
-      const state = montaStateComTresArtigos();
+      const state = criaStateComNArtigos(3).state;
       const art2 = state.articulacao!.artigos[1];
       const uuidArt2 = art2.uuid;
 
@@ -135,7 +80,7 @@ describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada
 
   describe('Remover artigo do fim — nenhuma renumeração necessária', () => {
     it('não deve emitir RemissaoRenumerada ao remover o último artigo', () => {
-      const state = montaStateComTresArtigos();
+      const state = criaStateComNArtigos(3).state;
       const art3 = state.articulacao!.artigos[2];
 
       expect(art3.id).to.equal('art3');
@@ -153,7 +98,7 @@ describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada
 
   describe('Remover artigo do meio em documento com 4 artigos', () => {
     it('deve renumerar art3→art2 e art4→art3 ao remover art2', () => {
-      const state = montaStateComQuatroArtigos();
+      const state = criaStateComNArtigos(4).state;
       const art2 = state.articulacao!.artigos[1];
 
       expect(art2.id).to.equal('art2');
@@ -231,7 +176,7 @@ describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada
 
   describe('Estrutura dos eventos RemissaoRenumerada', () => {
     it('evento deve conter lexmlIdAntigo, lexmlIdNovo e novoUuid válidos', () => {
-      const state = montaStateComTresArtigos();
+      const state = criaStateComNArtigos(3).state;
       const art1 = state.articulacao!.artigos[0];
 
       const elemento = createElemento(art1, true);
@@ -255,7 +200,7 @@ describe('Atualização de Remissões ao Remover Dispositivo (RemissaoRenumerada
 
   describe('Coexistência com RemissaoInvalidada', () => {
     it('deve emitir RemissaoInvalidada para o dispositivo removido e RemissaoRenumerada para os posteriores', () => {
-      const state = montaStateComTresArtigos();
+      const state = criaStateComNArtigos(3).state;
       const art2 = state.articulacao!.artigos[1];
       const uuidArt2 = art2.uuid;
 

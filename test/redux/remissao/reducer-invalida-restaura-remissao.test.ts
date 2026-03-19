@@ -2,51 +2,13 @@ import { expect } from '@open-wc/testing';
 import { State, StateType } from '../../../src/redux/state';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
-import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
-import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
-import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-
-const getState = (): State => {
-  const articulacao = createArticulacao();
-  const art1 = criaDispositivo(articulacao, 'Artigo');
-  const art2 = criaDispositivo(articulacao, 'Artigo');
-  const art3 = criaDispositivo(articulacao, 'Artigo');
-
-  art1.texto = 'Este é o artigo 1.';
-  art2.texto = 'Este é o artigo 2.';
-  art3.texto = 'Este é o artigo 3.';
-
-  articulacao.renumeraFilhos();
-  art1.createRotulo(art1);
-  art2.createRotulo(art2);
-  art3.createRotulo(art3);
-  updateIdDispositivoAndFilhos(articulacao);
-
-  art1.situacao = new DispositivoAdicionado();
-  art2.situacao = new DispositivoAdicionado();
-  art3.situacao = new DispositivoAdicionado();
-  (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-  (art2 as Artigo).caput!.situacao = new DispositivoAdicionado();
-  (art3 as Artigo).caput!.situacao = new DispositivoAdicionado();
-
-  return {
-    articulacao,
-    modo: 'emenda',
-    past: [],
-    present: [],
-    future: [],
-    ui: {
-      events: [],
-    },
-  };
-};
+import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 
 describe('Invalidação e Restauração de Remissões', () => {
   let state: State;
 
   beforeEach(() => {
-    state = getState();
+    state = criaStateComNArtigos(3).state;
   });
 
   describe('RemissaoInvalidada', () => {

@@ -1,35 +1,7 @@
 import { expect } from '@open-wc/testing';
-import { adicionaRemissaoInterna } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
-import { State } from '../../../src/redux/state';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
-import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-
-const marcaAdicionado = (d: any): void => {
-  d.situacao = new DispositivoAdicionado();
-  if (d.caput) {
-    (d as Artigo).caput!.situacao = new DispositivoAdicionado();
-  }
-};
-
-const montaState = (articulacao: any): State => ({
-  articulacao,
-  modo: 'emenda',
-  past: [],
-  present: [],
-  future: [],
-  ui: { events: [] },
-  remissoes: {},
-});
-
-const detecta = (state: State, source: any, texto: string): any[] => {
-  source.texto = texto;
-  const elemento = createElemento(source, true);
-  const result = adicionaRemissaoInterna(state, { atual: elemento });
-  return (result.remissoes as any)[source.uuid!] ?? [];
-};
+import { marcaAdicionado, montaState, detectaRemissoes } from '../../helpers/dispositivo-helper';
 
 /**
  * Seção Única como filha direta da articulação:
@@ -38,7 +10,7 @@ const detecta = (state: State, source: any, texto: string): any[] => {
  *   │   └── Art. 1
  *   └── Art. 2  ← fonte das referências absolutas simples
  */
-const criaStateComSecaoUnicaFilhaDireta = () => {
+const criaStateComSecaoUnicaFilhaDireta = (): any => {
   const articulacao = createArticulacao();
   const secUnica = criaDispositivo(articulacao, 'Secao');
   const art1 = criaDispositivo(secUnica, 'Artigo');
@@ -61,7 +33,7 @@ const criaStateComSecaoUnicaFilhaDireta = () => {
  *   └── Capítulo II
  *       └── Art. 2  ← fonte das referências em cadeia
  */
-const criaStateComSecaoUnicaAninhada = () => {
+const criaStateComSecaoUnicaAninhada = (): any => {
   const articulacao = createArticulacao();
   const cap1 = criaDispositivo(articulacao, 'Capitulo');
   const secUnica = criaDispositivo(cap1, 'Secao');
@@ -85,7 +57,7 @@ const criaStateComSecaoUnicaAninhada = () => {
  *   │   └── Art. 1
  *   └── Art. 2  ← fonte
  */
-const criaStateComCapituloUnico = () => {
+const criaStateComCapituloUnico = (): any => {
   const articulacao = createArticulacao();
   const capUnico = criaDispositivo(articulacao, 'Capitulo');
   const art1 = criaDispositivo(capUnico, 'Artigo');
@@ -107,7 +79,7 @@ const criaStateComCapituloUnico = () => {
  *       ├── Seção II
  *       └── Art. 1  ← fonte
  */
-const criaStateComDuasSecoes = () => {
+const criaStateComDuasSecoes = (): any => {
   const articulacao = createArticulacao();
   const cap1 = criaDispositivo(articulacao, 'Capitulo');
   const sec1 = criaDispositivo(cap1, 'Secao');
@@ -127,7 +99,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
   describe('Absolutas — agrupador único simples', () => {
     it('[AG-U-01] "Seção Única" (filha direta) → 1 remissão para secUnica', () => {
       const { state, secUnica, art2 } = criaStateComSecaoUnicaFilhaDireta();
-      const remissoes = detecta(state, art2, 'Conforme a Seção Única.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme a Seção Única.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(secUnica.uuid);
@@ -135,7 +107,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
 
     it('[AG-U-02] "Capítulo Único" → 1 remissão para capUnico', () => {
       const { state, capUnico, art2 } = criaStateComCapituloUnico();
-      const remissoes = detecta(state, art2, 'Conforme o Capítulo Único.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme o Capítulo Único.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(capUnico.uuid);
@@ -145,7 +117,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
   describe('Absolutas — cadeia com agrupador único', () => {
     it('[AG-U-03] "Seção Única do Capítulo I" → 1 remissão para secUnica (cadeia 2 níveis)', () => {
       const { state, secUnica, art2 } = criaStateComSecaoUnicaAninhada();
-      const remissoes = detecta(state, art2, 'Conforme a Seção Única do Capítulo I.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme a Seção Única do Capítulo I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(secUnica.uuid);
@@ -156,7 +128,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
     it('[AG-U-04] "Seção Única deste Capítulo" → 1 remissão para secUnica via cap1', () => {
       // art1 está dentro de secUnica → cap1 é ancestral do tipo Capitulo
       const { state, secUnica, art1 } = criaStateComSecaoUnicaAninhada();
-      const remissoes = detecta(state, art1, 'Conforme a Seção Única deste Capítulo.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a Seção Única deste Capítulo.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(secUnica.uuid);
@@ -166,7 +138,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
   describe('Negativos — "único" inválido quando há mais de um irmão do tipo', () => {
     it('[AG-U-05] "Seção Única do Capítulo I" com 2 seções → 0 remissões', () => {
       const { state, art1 } = criaStateComDuasSecoes();
-      const remissoes = detecta(state, art1, 'Conforme a Seção Única do Capítulo I.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a Seção Única do Capítulo I.');
 
       expect(remissoes).to.have.length(0);
     });
@@ -174,7 +146,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
     it('[AG-U-06] "Capítulo Único" quando há 2 capítulos → 0 remissões', () => {
       // criaStateComSecaoUnicaAninhada tem cap1 e cap2 → "Capítulo Único" não pode resolver
       const { state, art2 } = criaStateComSecaoUnicaAninhada();
-      const remissoes = detecta(state, art2, 'Conforme o Capítulo Único.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme o Capítulo Único.');
 
       expect(remissoes).to.have.length(0);
     });
@@ -184,7 +156,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
     it('[AG-U-07] "Seção I do Capítulo I" em fixture de seção única → ainda resolve', () => {
       // secUnica tem numero='1' → "Seção I" (romano) deve continuar encontrando
       const { state, secUnica, art2 } = criaStateComSecaoUnicaAninhada();
-      const remissoes = detecta(state, art2, 'Conforme a Seção I do Capítulo I.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme a Seção I do Capítulo I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(secUnica.uuid);
@@ -192,7 +164,7 @@ describe('Detecção de Remissões a Agrupadores Únicos (Etapa 1.4-U)', () => {
 
     it('[AG-U-08] "Capítulo I" em fixture de 2 capítulos → ainda resolve (sem regressão)', () => {
       const { state, cap1, art2 } = criaStateComSecaoUnicaAninhada();
-      const remissoes = detecta(state, art2, 'Conforme o Capítulo I.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme o Capítulo I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(cap1.uuid);

@@ -3,7 +3,7 @@ import { State } from '../../../src/redux/state';
 import { criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { criaStateComNArtigos, detecta, marcaAdicionado } from '../../helpers/dispositivo-helper';
+import { criaStateComNArtigos, detectaRemissoes, marcaAdicionado } from '../../helpers/dispositivo-helper';
 
 describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
   describe('1.2 — Parágrafo contextual: "§ N deste artigo"', () => {
@@ -33,18 +33,18 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X1] "§ 2º deste artigo" → 1 remissão para art1_par2', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o § 2º deste artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art1_par2');
     });
 
     it('[CT-X2] "§ 2º deste artigo" → exatamente 1 remissão (sem double-match)', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o § 2º deste artigo.');
       expect(remissoes).to.have.length(1, 'deve gerar 1 remissão, não 2');
     });
 
     it('[CT-X3] "§ 2º do presente artigo" (forma alternativa) → 1 remissão para art1_par2', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o § 2º do presente artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o § 2º do presente artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art1_par2');
     });
@@ -52,12 +52,12 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     it('[CT-X4] "parágrafo único deste artigo" → não cria remissão quando artigo não tem parágrafo', () => {
       const { state: state2, artigos: artigos2 } = criaStateComNArtigos(2);
       const art2 = artigos2[1]; // art2 has no paragraphs
-      const remissoes = detecta(state2, art2, 'Conforme o parágrafo único deste artigo.');
+      const remissoes = detectaRemissoes(state2, art2, 'Conforme o parágrafo único deste artigo.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-X5] textoRef preserva o texto original digitado', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o § 2º deste artigo.');
       expect(remissoes[0].textoRef).to.equal('§ 2º deste artigo');
     });
   });
@@ -92,13 +92,13 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X6] "inciso I deste artigo" (editando § 1) → 1 remissão para inciso I do caput', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o inciso I deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o inciso I deste artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.match(/^art1_cpt_inc/);
     });
 
     it('[CT-X7] "inciso I deste artigo" → não confunde inciso do caput com inciso do §', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o inciso I deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o inciso I deste artigo.');
       expect(remissoes[0].targetLexmlId).to.include('_cpt_');
     });
   });
@@ -132,19 +132,19 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X8] "inciso I deste parágrafo" (editando alínea) → 1 remissão para art1_par1_inc1', () => {
-      const remissoes = detecta(state, ali1, 'Conforme o inciso I deste parágrafo.');
+      const remissoes = detectaRemissoes(state, ali1, 'Conforme o inciso I deste parágrafo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal(inc1EmPar1.id);
       expect(remissoes[0].targetLexmlId).to.match(/^art1_par1_inc/);
     });
 
     it('[CT-X9] "inciso I deste parágrafo" → exatamente 1 remissão', () => {
-      const remissoes = detecta(state, ali1, 'Conforme o inciso I deste parágrafo.');
+      const remissoes = detectaRemissoes(state, ali1, 'Conforme o inciso I deste parágrafo.');
       expect(remissoes).to.have.length(1);
     });
 
     it('[CT-X10] Inciso inexistente no parágrafo → 0 remissões', () => {
-      const remissoes = detecta(state, ali1, 'Conforme o inciso X deste parágrafo.');
+      const remissoes = detectaRemissoes(state, ali1, 'Conforme o inciso X deste parágrafo.');
       expect(remissoes).to.have.length(0);
     });
   });
@@ -184,19 +184,19 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X11] "inciso I do § 2º deste artigo" → 1 remissão para art1_par2_inc1', () => {
-      const remissoes = detecta(state, ali1EmPar1Inc1, 'Conforme o inciso I do § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, ali1EmPar1Inc1, 'Conforme o inciso I do § 2º deste artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal(inc1EmPar2.id);
       expect(remissoes[0].targetLexmlId).to.match(/^art1_par2_inc/);
     });
 
     it('[CT-X12] "inciso I do § 2º deste artigo" → exatamente 1 remissão (sem double-match)', () => {
-      const remissoes = detecta(state, ali1EmPar1Inc1, 'Conforme o inciso I do § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, ali1EmPar1Inc1, 'Conforme o inciso I do § 2º deste artigo.');
       expect(remissoes).to.have.length(1, 'deve criar 1 remissão, não 3');
     });
 
     it('[CT-X13] "alínea a do inciso I deste parágrafo" (multi-nível, ancestor=§1) → 1 remissão', () => {
-      const remissoes = detecta(state, ali1EmPar1Inc1, 'Conforme a alínea a do inciso I deste parágrafo.');
+      const remissoes = detectaRemissoes(state, ali1EmPar1Inc1, 'Conforme a alínea a do inciso I deste parágrafo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal(ali1EmPar1Inc1.id);
     });
@@ -222,18 +222,18 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X14] "caput deste artigo" (editando inciso do caput) → 1 remissão para o caput', () => {
-      const remissoes = detecta(state, inc1NoCaput, 'Para os fins do caput deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1NoCaput, 'Para os fins do caput deste artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art1_cpt');
     });
 
     it('[CT-X15] "caput deste artigo" → targetUuid aponta para o caput (não para o artigo)', () => {
-      const remissoes = detecta(state, inc1NoCaput, 'Para os fins do caput deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1NoCaput, 'Para os fins do caput deste artigo.');
       expect(remissoes[0].targetUuid).to.equal((art1 as Artigo).caput!.uuid);
     });
 
     it('[CT-X16] "caput deste artigo" → exatamente 1 remissão', () => {
-      const remissoes = detecta(state, inc1NoCaput, 'Para os fins do caput deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1NoCaput, 'Para os fins do caput deste artigo.');
       expect(remissoes).to.have.length(1);
     });
   });
@@ -268,14 +268,14 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X17] "inciso I do caput deste artigo" → 1 remissão para o inciso I do caput', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o inciso I do caput deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o inciso I do caput deste artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal(inc1NoCaput.id);
       expect(remissoes[0].targetLexmlId).to.match(/^art1_cpt_inc/);
     });
 
     it('[CT-X18] "inciso I do caput deste artigo" → exatamente 1 remissão (sem double-match)', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o inciso I do caput deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o inciso I do caput deste artigo.');
       expect(remissoes).to.have.length(1, 'deve criar 1 remissão, não 2 ou 3');
     });
   });
@@ -291,26 +291,26 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
       updateIdDispositivoAndFilhos(state.articulacao!);
       marcaAdicionado(par);
 
-      const remissoes = detecta(state, artigos[0], 'Conforme o § 2º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 2º.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-X20] "inciso I" isolado (sem qualificador) → 0 remissões', () => {
       const { state, artigos } = criaStateComNArtigos(2);
-      const remissoes = detecta(state, artigos[0], 'Conforme o inciso I.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o inciso I.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-X21] "§ 2º desta Lei" → 0 remissões (qualificador ignorado)', () => {
       const { state, artigos } = criaStateComNArtigos(1);
-      const remissoes = detecta(state, artigos[0], 'Conforme o § 2º desta Lei.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 2º desta Lei.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-X22] Ancestor não existe (source não está dentro de artigo) → graceful null', () => {
       const { state, artigos } = criaStateComNArtigos(2);
       const art1 = artigos[0];
-      const remissoes = detecta(state, art1, 'Conforme o § 2º deste parágrafo.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º deste parágrafo.');
       expect(remissoes).to.have.length(0);
     });
 
@@ -330,7 +330,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
       parUnico.renumeraFilhos();
       updateIdDispositivoAndFilhos(state.articulacao!);
 
-      const remissoes = detecta(state, incUnico, 'Conforme o parágrafo único deste artigo.');
+      const remissoes = detectaRemissoes(state, incUnico, 'Conforme o parágrafo único deste artigo.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.match(/^art1_par/);
     });
@@ -366,7 +366,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X24] Texto com absoluta + contextual → 2 remissões corretas', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o § 1º do art. 3º e o § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o § 1º do art. 3º e o § 2º deste artigo.');
 
       expect(remissoes).to.have.length(2);
       const ids = remissoes.map((r: any) => r.targetLexmlId);
@@ -375,7 +375,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
     });
 
     it('[CT-X25] Duas contextuais no mesmo texto → 2 remissões corretas', () => {
-      const remissoes = detecta(state, inc1EmPar1, 'Conforme o § 1º deste artigo e o § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1EmPar1, 'Conforme o § 1º deste artigo e o § 2º deste artigo.');
 
       expect(remissoes).to.have.length(2);
       const ids = remissoes.map((r: any) => r.targetLexmlId);
@@ -387,7 +387,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
   describe('Retrocompatibilidade — detecção absoluta ainda funciona', () => {
     it('[CT-X26] "art. 3º" absoluto ainda cria remissão (regressão 1.1)', () => {
       const { state, artigos } = criaStateComNArtigos(3);
-      const remissoes = detecta(state, artigos[0], 'Conforme o art. 3º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o art. 3º.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art3');
     });
@@ -404,7 +404,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
       art3.renumeraFilhos();
       updateIdDispositivoAndFilhos(state.articulacao!);
 
-      const remissoes = detecta(state, artigos[0], 'Conforme o § 2º do art. 3º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 2º do art. 3º.');
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art3_par2');
     });

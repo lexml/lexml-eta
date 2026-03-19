@@ -3,7 +3,7 @@ import { State } from '../../../src/redux/state';
 import { criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { criaStateComNArtigos, detecta, marcaAdicionado } from '../../helpers/dispositivo-helper';
+import { criaStateComNArtigos, detectaRemissoes, marcaAdicionado } from '../../helpers/dispositivo-helper';
 
 // ─── Testes ──────────────────────────────────────────────────────────────────
 
@@ -13,7 +13,7 @@ describe('Detecção de Remissões Compostas', () => {
   describe('Retrocompatibilidade — artigo simples', () => {
     it('[CT-R1] "art. 5º" → 1 remissão para art5', () => {
       const { state, artigos } = criaStateComNArtigos(5);
-      const remissoes = detecta(state, artigos[0], 'Conforme o art. 5º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o art. 5º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art5');
@@ -21,7 +21,7 @@ describe('Detecção de Remissões Compostas', () => {
 
     it('[CT-R2] "art. 1º" → 1 remissão para art1', () => {
       const { state, artigos } = criaStateComNArtigos(3);
-      const remissoes = detecta(state, artigos[1], 'Conforme o art. 1º.');
+      const remissoes = detectaRemissoes(state, artigos[1], 'Conforme o art. 1º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art1');
@@ -29,7 +29,7 @@ describe('Detecção de Remissões Compostas', () => {
 
     it('[CT-R3] Múltiplos artigos simples → 2 remissões', () => {
       const { state, artigos } = criaStateComNArtigos(3);
-      const remissoes = detecta(state, artigos[0], 'Refere-se ao art. 2º e ao art. 3º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Refere-se ao art. 2º e ao art. 3º.');
 
       expect(remissoes).to.have.length(2);
       const ids = remissoes.map((r: any) => r.targetLexmlId);
@@ -65,7 +65,7 @@ describe('Detecção de Remissões Compostas', () => {
     });
 
     it('[CT-C1] "§ 2º do art. 5º" → 1 remissão para art5_par2', () => {
-      const remissoes = detecta(state, art1, 'Conforme o § 2º do art. 5º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º do art. 5º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art5_par2');
@@ -73,14 +73,14 @@ describe('Detecção de Remissões Compostas', () => {
 
     it('[CT-C2] "§ 2º do art. 5º" → exatamente 1 remissão (sem double-match)', () => {
       // Garante que § 2º sozinho NÃO cria remissão adicional
-      const remissoes = detecta(state, art1, 'Conforme o § 2º do art. 5º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º do art. 5º.');
 
       expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 2 (uma para § e outra para art)');
     });
 
     it('[CT-C3] "parágrafo único do art. 5º" → 1 remissão para art5 (parágrafo 1)', () => {
       // "parágrafo único" referencia o primeiro parágrafo
-      const remissoes = detecta(state, art1, 'Conforme o parágrafo único do art. 5º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o parágrafo único do art. 5º.');
 
       // Deve criar 1 remissão (o parser resolve "parágrafo único" → busca parágrafo único)
       expect(remissoes).to.have.length(1);
@@ -123,7 +123,7 @@ describe('Detecção de Remissões Compostas', () => {
     });
 
     it('[CT-C4] "inciso II do § 2º do art. 16" → 1 remissão para art16_par2_inc2', () => {
-      const remissoes = detecta(state, art1, 'Conforme o inciso II do § 2º do art. 16.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do § 2º do art. 16.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art16_par2_inc2');
@@ -131,7 +131,7 @@ describe('Detecção de Remissões Compostas', () => {
 
     it('[CT-C5] "inciso II do § 2º do art. 16" → exatamente 1 remissão (sem double-match)', () => {
       // Antes da correção: gerava 3 remissões (art16, par2 inválido, inc2 inválido)
-      const remissoes = detecta(state, art1, 'Conforme o inciso II do § 2º do art. 16.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do § 2º do art. 16.');
 
       expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 3 (uma para inciso, uma para §, uma para art)');
     });
@@ -177,7 +177,7 @@ describe('Detecção de Remissões Compostas', () => {
     });
 
     it('[CT-C6] "alínea a do inciso I do § 2º do art. 5º" → 1 remissão para art5_par2_inc1_ali1', () => {
-      const remissoes = detecta(state, art1, 'Conforme a alínea a do inciso I do § 2º do art. 5º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a alínea a do inciso I do § 2º do art. 5º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal(alinea1.id);
@@ -185,7 +185,7 @@ describe('Detecção de Remissões Compostas', () => {
     });
 
     it('[CT-C7] "alínea a do inciso I do § 2º do art. 5º" → exatamente 1 remissão (sem double-match)', () => {
-      const remissoes = detecta(state, art1, 'Conforme a alínea a do inciso I do § 2º do art. 5º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a alínea a do inciso I do § 2º do art. 5º.');
 
       expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 4');
     });
@@ -225,21 +225,21 @@ describe('Detecção de Remissões Compostas', () => {
     });
 
     it('"inciso II do caput do art. 2º" → 1 remissão para art2_cpt_inc2', () => {
-      const remissoes = detecta(state, art1, 'Conforme o inciso II do caput do art. 2º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do caput do art. 2º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art2_cpt_inc2');
     });
 
     it('"inciso II do caput do art. 2º" → NÃO aponta para o artigo (regressão)', () => {
-      const remissoes = detecta(state, art1, 'Conforme o inciso II do caput do art. 2º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do caput do art. 2º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.not.equal('art2', 'Deve apontar para o inciso do caput, não para o artigo');
     });
 
     it('"inciso I do caput do art. 2º" → 1 remissão para art2_cpt_inc1', () => {
-      const remissoes = detecta(state, art1, 'Conforme o inciso I do caput do art. 2º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso I do caput do art. 2º.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.equal('art2_cpt_inc1');
@@ -262,26 +262,26 @@ describe('Detecção de Remissões Compostas', () => {
       updateIdDispositivoAndFilhos(state.articulacao!);
       marcaAdicionado(par2);
 
-      const remissoes = detecta(state, art1, 'Conforme o § 2º.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-N2] "inciso II" isolado (sem artigo âncora) → 0 remissões', () => {
       const { state, artigos } = criaStateComNArtigos(3);
-      const remissoes = detecta(state, artigos[0], 'Conforme o inciso II.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o inciso II.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-N3] Artigo inexistente → 0 remissões', () => {
       const { state, artigos } = criaStateComNArtigos(3);
-      const remissoes = detecta(state, artigos[0], 'Conforme o art. 999.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o art. 999.');
       expect(remissoes).to.have.length(0);
     });
 
     it('[CT-N4] Parágrafo inexistente no artigo → 0 remissões', () => {
       // art2 sem parágrafos, texto menciona "§ 5º do art. 2º"
       const { state, artigos } = criaStateComNArtigos(3);
-      const remissoes = detecta(state, artigos[0], 'Conforme o § 5º do art. 2º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 5º do art. 2º.');
       expect(remissoes).to.have.length(0);
     });
 
@@ -300,7 +300,7 @@ describe('Detecção de Remissões Compostas', () => {
       [par1, inc1].forEach(marcaAdicionado);
 
       // Menciona inciso X que não existe
-      const remissoes = detecta(state, artigos[0], 'Conforme o inciso X do § 1º do art. 5º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o inciso X do § 1º do art. 5º.');
       expect(remissoes).to.have.length(0);
     });
   });
@@ -337,7 +337,7 @@ describe('Detecção de Remissões Compostas', () => {
 
     it('baseline: dois refs em texto plano → ambos detectados com início correto', () => {
       // Texto plano: "inciso II..." começa em 11, "art. 5" começa em 61
-      const remissoes = detecta(state, art1, 'Conforme o inciso II do caput do art. 4º deve ser aceita. No art. 5 também acontece.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do caput do art. 4º deve ser aceita. No art. 5 também acontece.');
 
       expect(remissoes).to.have.length(2);
       const r1 = remissoes.find((r: any) => r.targetLexmlId === 'art4_cpt_inc2');
@@ -354,7 +354,7 @@ describe('Detecção de Remissões Compostas', () => {
       // '</a>' tem 4 chars  → desloca match.index da 2ª ref de 61 para 78 no HTML.
       const htmlText = 'Conforme o <a href="#x">inciso II do caput do art. 4º</a> deve ser aceita. No art. 5 também acontece.';
 
-      const remissoes = detecta(state, art1, htmlText);
+      const remissoes = detectaRemissoes(state, art1, htmlText);
 
       expect(remissoes).to.have.length(2);
 
@@ -380,7 +380,7 @@ describe('Detecção de Remissões Compostas', () => {
 
       const htmlText2 = 'Ver o <a href="#x">art. 4</a> e o art. 5 também.';
 
-      const remissoes2 = detecta(s2, src, htmlText2);
+      const remissoes2 = detectaRemissoes(s2, src, htmlText2);
 
       expect(remissoes2).to.have.length(2);
       const rArt4 = remissoes2.find((r: any) => r.targetLexmlId === 'art4');
@@ -422,7 +422,7 @@ describe('Detecção de Remissões Compostas', () => {
       updateIdDispositivoAndFilhos(state.articulacao!);
       [par1, par2, par3].forEach(marcaAdicionado);
 
-      const remissoes = detecta(state, artigos[0], 'Conforme o § 1º do art. 3º e o § 3º do art. 5º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 1º do art. 3º e o § 3º do art. 5º.');
 
       expect(remissoes).to.have.length(2);
       const ids = remissoes.map((r: any) => r.targetLexmlId);
@@ -443,7 +443,7 @@ describe('Detecção de Remissões Compostas', () => {
       updateIdDispositivoAndFilhos(state.articulacao!);
       [par1, par2].forEach(marcaAdicionado);
 
-      const remissoes = detecta(state, artigos[0], 'Conforme o § 2º do art. 5º e o art. 3º.');
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 2º do art. 5º e o art. 3º.');
 
       expect(remissoes).to.have.length(2);
       const ids = remissoes.map((r: any) => r.targetLexmlId);

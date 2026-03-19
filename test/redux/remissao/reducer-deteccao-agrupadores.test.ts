@@ -1,43 +1,8 @@
 import { expect } from '@open-wc/testing';
-import { adicionaRemissaoInterna } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
-import { State } from '../../../src/redux/state';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Marca dispositivo (e caput, se artigo) como adicionado. */
-const marcaAdicionado = (d: any): void => {
-  d.situacao = new DispositivoAdicionado();
-  if (d.caput) {
-    (d as Artigo).caput!.situacao = new DispositivoAdicionado();
-  }
-};
-
-/** Monta estado mínimo compatível com adicionaRemissaoInterna. */
-const montaState = (articulacao: any): State => ({
-  articulacao,
-  modo: 'emenda',
-  past: [],
-  present: [],
-  future: [],
-  ui: { events: [] },
-  remissoes: {},
-});
-
-/**
- * Executa adicionaRemissaoInterna com o texto no dispositivo `source` e
- * retorna o array de remissões criadas (ou []).
- */
-const detecta = (state: State, source: any, texto: string): any[] => {
-  source.texto = texto;
-  const elemento = createElemento(source, true);
-  const result = adicionaRemissaoInterna(state, { atual: elemento });
-  return (result.remissoes as any)[source.uuid!] ?? [];
-};
+import { marcaAdicionado, montaState, detectaRemissoes } from '../../helpers/dispositivo-helper';
 
 /**
  * Fixture principal:
@@ -51,7 +16,7 @@ const detecta = (state: State, source: any, texto: string): any[] => {
  *   └── Capítulo II
  *       └── Art. 4º  ← fonte para referências absolutas
  */
-const criaStateComCapitulosESections = () => {
+const criaStateComCapitulosESections = (): any => {
   const articulacao = createArticulacao();
 
   const cap1 = criaDispositivo(articulacao, 'Capitulo');
@@ -86,7 +51,7 @@ const criaStateComCapitulosESections = () => {
  *   │               └── Art. 1º
  *   └── Art. 2º  ← fonte para referências absolutas
  */
-const criaStateComParteELivroETitulo = () => {
+const criaStateComParteELivroETitulo = (): any => {
   const articulacao = createArticulacao();
 
   const prt1 = criaDispositivo(articulacao, 'Parte');
@@ -116,7 +81,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
   describe('Absolutas — agrupador único', () => {
     it('[AG-01] "Capítulo I" → 1 remissão para cap1', () => {
       const { state, cap1, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme o Capítulo I.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o Capítulo I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(cap1.uuid);
@@ -124,7 +89,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[AG-02] "Capítulo II" → 1 remissão para cap2', () => {
       const { state, cap2, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme o Capítulo II.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o Capítulo II.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(cap2.uuid);
@@ -132,7 +97,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[AG-03] "Título I do Livro I da Parte I" → 1 remissão para tit1 (cadeia 3 níveis)', () => {
       const { state, tit1, art2 } = criaStateComParteELivroETitulo();
-      const remissoes = detecta(state, art2, 'Conforme o Título I do Livro I da Parte I.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme o Título I do Livro I da Parte I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(tit1.uuid);
@@ -140,7 +105,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[AG-04] "Livro I da Parte I" → 1 remissão para liv1 (cadeia 2 níveis)', () => {
       const { state, liv1, art2 } = criaStateComParteELivroETitulo();
-      const remissoes = detecta(state, art2, 'Conforme o Livro I da Parte I.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme o Livro I da Parte I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(liv1.uuid);
@@ -148,7 +113,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[AG-05] "Parte I" → 1 remissão para prt1', () => {
       const { state, prt1, art2 } = criaStateComParteELivroETitulo();
-      const remissoes = detecta(state, art2, 'Conforme a Parte I.');
+      const remissoes = detectaRemissoes(state, art2, 'Conforme a Parte I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(prt1.uuid);
@@ -160,7 +125,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
   describe('Absolutas — cadeia de agrupadores', () => {
     it('[AG-06] "Seção I do Capítulo I" → 1 remissão para sec1 (não para cap1)', () => {
       const { state, sec1, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme a Seção I do Capítulo I.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme a Seção I do Capítulo I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(sec1.uuid);
@@ -168,7 +133,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[AG-07] "Subseção I da Seção I do Capítulo I" → 1 remissão para subsec1', () => {
       const { state, subsec1, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme a Subseção I da Seção I do Capítulo I.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme a Subseção I da Seção I do Capítulo I.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(subsec1.uuid);
@@ -180,7 +145,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
   describe('Casos que não devem criar remissão a agrupador', () => {
     it('[AG-08] Capítulo inexistente → 0 remissões', () => {
       const { state, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme o Capítulo X.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o Capítulo X.');
 
       expect(remissoes).to.have.length(0);
     });
@@ -188,7 +153,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
     it('[AG-09] "Seção I" sem seção direta na articulação → 0 remissões', () => {
       // Seção I está dentro de Capítulo I, não diretamente na articulação
       const { state, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme a Seção I.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme a Seção I.');
 
       expect(remissoes).to.have.length(0);
     });
@@ -196,14 +161,14 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
     it('[AG-10] Seção com número errado na cadeia → 0 remissões', () => {
       const { state, art4 } = criaStateComCapitulosESections();
       // Capítulo I existe mas não tem Seção III
-      const remissoes = detecta(state, art4, 'Conforme a Seção III do Capítulo I.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme a Seção III do Capítulo I.');
 
       expect(remissoes).to.have.length(0);
     });
 
     it('[AG-11] Texto sem nenhum agrupador → 0 remissões', () => {
       const { state, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme o art. 1º.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o art. 1º.');
 
       // Pode haver remissão para o art1, mas nenhuma para agrupador
       const remissoesAgrupador = remissoes.filter((r: any) => r.targetLexmlId?.startsWith('cap') || r.targetLexmlId?.startsWith('sec'));
@@ -217,7 +182,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
     it('[AG-12] "Seção I deste Capítulo" → encontra sec1 via ancestral cap1', () => {
       // art1 tem cap1 como ancestral; busca sec1 entre os filhos de cap1
       const { state, sec1, art1 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art1, 'Conforme a Seção I deste Capítulo.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a Seção I deste Capítulo.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(sec1.uuid);
@@ -225,7 +190,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[AG-13] "Subseção I desta Seção" → encontra subsec1 via ancestral sec1', () => {
       const { state, subsec1, art1 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art1, 'Conforme a Subseção I desta Seção.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a Subseção I desta Seção.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(subsec1.uuid);
@@ -234,7 +199,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
     it('[AG-14] Agrupador filho inexistente → 0 remissões', () => {
       // art1 tem cap1 como ancestral; Seção III não existe em cap1
       const { state, art1 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art1, 'Conforme a Seção III deste Capítulo.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a Seção III deste Capítulo.');
 
       expect(remissoes).to.have.length(0);
     });
@@ -242,7 +207,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
     it('[AG-15] Ancestral inexistente → 0 remissões', () => {
       // art4 está em cap2 que não tem Seção; não há ancestral Seção
       const { state, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme a Subseção I desta Seção.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme a Subseção I desta Seção.');
 
       expect(remissoes).to.have.length(0);
     });
@@ -253,7 +218,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
   describe('Múltiplas remissões e misto com artigos', () => {
     it('[AG-16] Dois capítulos no mesmo texto → 2 remissões', () => {
       const { state, cap1, cap2, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme o Capítulo I e o Capítulo II.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o Capítulo I e o Capítulo II.');
 
       expect(remissoes).to.have.length(2);
       const uuids = remissoes.map((r: any) => r.targetUuid);
@@ -264,7 +229,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
     it('[AG-17] Capítulo + artigo no mesmo texto → 2 remissões independentes', () => {
       const { state, cap1, art4 } = criaStateComCapitulosESections();
       // art1 é o Art. 1º da articulação
-      const remissoes = detecta(state, art4, 'Conforme o Capítulo I e o art. 1º.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o Capítulo I e o art. 1º.');
 
       expect(remissoes).to.have.length(2);
       const uuids = remissoes.map((r: any) => r.targetUuid);
@@ -279,7 +244,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
       // art1 está dentro de sec1 (Capítulo I > Seção I > Subseção I > Art. 1º)
       // passagem agrupadores detecta "Seção I"; contextual detecta "Seção I deste Capítulo"
       // resultado: exatamente 1 remissão apontando para sec1
-      const remissoes = detecta(state, art1, 'Conforme a Seção I deste Capítulo.');
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a Seção I deste Capítulo.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(sec1.uuid);
@@ -287,7 +252,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
 
     it('[M3-02] "Capítulo I e art. 1º" → exatamente 2 remissões (sem duplicata por passagem)', () => {
       const { state, cap1, art4 } = criaStateComCapitulosESections();
-      const remissoes = detecta(state, art4, 'Conforme o Capítulo I e o art. 1º.');
+      const remissoes = detectaRemissoes(state, art4, 'Conforme o Capítulo I e o art. 1º.');
 
       expect(remissoes).to.have.length(2);
       // garante que cap1 aparece exatamente uma vez
@@ -320,7 +285,7 @@ describe('Detecção de Remissões a Agrupadores (Etapa 1.4)', () => {
       marcaAdicionado(inc1);
 
       const state = montaState(articulacao);
-      const remissoes = detecta(state, inc1, 'Conforme o § 2º deste artigo.');
+      const remissoes = detectaRemissoes(state, inc1, 'Conforme o § 2º deste artigo.');
 
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetUuid).to.equal(par2.uuid);

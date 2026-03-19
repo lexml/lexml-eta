@@ -8,49 +8,13 @@ import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
+import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 
 let state: State;
 
-const getState = (): State => {
-  const articulacao = createArticulacao();
-  const art1 = criaDispositivo(articulacao, 'Artigo');
-  const art2 = criaDispositivo(articulacao, 'Artigo');
-  const art3 = criaDispositivo(articulacao, 'Artigo');
-
-  // Define algum texto para os artigos
-  art1.texto = 'Este é o artigo 1.';
-  art2.texto = 'Este é o artigo 2.';
-  art3.texto = 'Este é o artigo 3.';
-
-  // Renumera os artigos e atualiza seus lexmlIds
-  articulacao.renumeraFilhos();
-  art1.createRotulo(art1);
-  art2.createRotulo(art2);
-  art3.createRotulo(art3);
-  updateIdDispositivoAndFilhos(articulacao);
-
-  art1.situacao = new DispositivoAdicionado();
-  art2.situacao = new DispositivoAdicionado();
-  art3.situacao = new DispositivoAdicionado();
-  (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-  (art2 as Artigo).caput!.situacao = new DispositivoAdicionado();
-  (art3 as Artigo).caput!.situacao = new DispositivoAdicionado();
-
-  return {
-    articulacao,
-    modo: 'emenda',
-    past: [],
-    present: [],
-    future: [],
-    ui: {
-      events: [],
-    },
-  };
-};
-
 describe('Atualização de Remissões na Renumeração', () => {
   beforeEach(() => {
-    state = getState();
+    state = criaStateComNArtigos(3).state;
   });
 
   describe('Adicionar dispositivo antes', () => {
