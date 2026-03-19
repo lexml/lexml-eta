@@ -15,7 +15,8 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
       // Para itens aninhados (ex: "34.1)"), extrair apenas a última parte do número
       // O formato "34.1" indica que 34 é do pai e 1 é do filho
       // Então extraímos apenas o número final (1)
-      const normalized = numero.trim().replace(/\.(\d+)/g, '-$1');
+      const trimmed = numero.trim();
+      const normalized = trimmed.replace(/\.(\d+)/g, '-$1');
 
       // Tenta capturar padrão como "34-1" ou "34-1-2" ou "1-A"
       const match = /\d+(-[a-zA-Z0-9]+)+/.exec(normalized);
@@ -24,7 +25,7 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
         const parts = match[0].split('-');
         const lastPart = parts[parts.length - 1];
         // Se a última parte é um número puro, usar apenas ele (formato aninhado: 34.1 -> 1)
-        if (/^\d+$/.test(lastPart)) {
+        if (/^\d+$/.test(lastPart) && trimmed.endsWith(')')) {
           return lastPart;
         }
         // Se a última parte contém letra, retornar o formato composto (ex: 1-A)
@@ -32,8 +33,8 @@ export function NumeracaoItem<TBase extends Constructor>(Base: TBase): any {
       }
 
       // Fallback: capturar número simples
-      const num = /\d+/.exec(numero.trim());
-      return num ? num[0] : addSpaceRegex(numero).trim().replace(/\.$/, '').trim();
+      const num = /\d+/.exec(trimmed);
+      return num ? num[0] : addSpaceRegex(trimmed).replace(/\.$/, '').trim();
     }
 
     private isNumeracaoValidaParaRotulo(numero: string): boolean {
