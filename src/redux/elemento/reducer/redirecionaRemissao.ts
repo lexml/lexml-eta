@@ -1,7 +1,8 @@
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
-import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento } from '../../../model/elemento/elementoUtil';
 import { isCaput } from '../../../model/dispositivo/tipo';
+import { findDispositivoByUuid } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const redirecionaRemissao = (state: any, action: any): State => {
   const uuid = action.uuid;
@@ -10,7 +11,8 @@ export const redirecionaRemissao = (state: any, action: any): State => {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
-  const dispositivo = getDispositivoFromElemento(state.articulacao, { uuid }, true);
+  // incluiCaput=true: caput não está em artigo.filhos, apenas em artigo.caput
+  const dispositivo = findDispositivoByUuid(state.articulacao, uuid, true);
 
   if (!dispositivo) {
     return { ...state, ui: { ...state.ui, events: [] } };

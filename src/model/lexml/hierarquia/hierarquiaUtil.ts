@@ -30,27 +30,38 @@ export function getArticulacaoAlteracao(dispositivo: Dispositivo): Articulacao {
   return getArticulacaoAlteracao(dispositivo.pai);
 }
 
-export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articulacao): Dispositivo | Articulacao | null {
+export function getDispositivo(uuid: number, dispositivo: Dispositivo | Articulacao, incluiCaput = false): Dispositivo | Articulacao | null {
   if (dispositivo.uuid === uuid) {
     return dispositivo;
-  } else if (dispositivo.filhos !== null) {
+  }
+
+  // Caput é propriedade separada do artigo (não está em artigo.filhos); pesquisado apenas quando opt-in
+  if (incluiCaput) {
+    const caput = (dispositivo as Artigo).caput;
+    if (caput) {
+      const resultCaput = getDispositivo(uuid, caput, incluiCaput);
+      if (resultCaput) return resultCaput;
+    }
+  }
+
+  if (dispositivo.filhos !== null) {
     let result: any = null;
 
     const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
 
     for (let i = 0; result === null && i < filhos.length; i++) {
-      result = getDispositivo(uuid, filhos[i]);
+      result = getDispositivo(uuid, filhos[i], incluiCaput);
     }
     return result;
   }
   return null;
 }
 
-export const findDispositivoByUuid = (dispositivo: Dispositivo, uuid: number): Dispositivo | null => {
+export const findDispositivoByUuid = (dispositivo: Dispositivo, uuid: number, incluiCaput = false): Dispositivo | null => {
   if (uuid === undefined) {
     throw new Error('uuid não foi informado');
   }
-  return getDispositivo(uuid, dispositivo);
+  return getDispositivo(uuid, dispositivo, incluiCaput);
 };
 
 export const getUltimoFilho = (dispositivo: Dispositivo): Dispositivo => {

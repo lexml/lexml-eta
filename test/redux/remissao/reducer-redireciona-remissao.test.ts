@@ -7,6 +7,7 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { getDispositivoAndFilhosAsLista } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 
 import { RemissaoInternaValue } from '../../../src/model/remissao';
 
@@ -55,6 +56,22 @@ describe('redirecionaRemissao', () => {
       expect(result.ui!.events).to.have.length(2);
       expect(result.ui!.events[0].stateType).to.equal(StateType.ElementoSelecionado);
       expect(result.ui!.events[1].stateType).to.equal(StateType.RemissaoRedirecionar);
+    });
+
+    it('deve redirecionar para o artigo pai quando uuid é de um caput', () => {
+      const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!);
+      const artigo = dispositivos.find(d => d.tipo === 'Artigo') as Artigo;
+
+      expect(artigo).to.not.be.undefined;
+      const caput = artigo.caput!;
+      expect(caput).to.not.be.undefined;
+
+      const result = redirecionaRemissao(state, { uuid: caput.uuid });
+
+      // Deve emitir eventos (não retornar vazio)
+      expect(result.ui!.events).to.have.length(2);
+      // O elemento navegado deve ser o artigo pai (não o caput)
+      expect(result.ui!.events[0].elementos![0].uuid).to.equal(artigo.uuid);
     });
 
     it('deve incluir elemento correto nos eventos', () => {
