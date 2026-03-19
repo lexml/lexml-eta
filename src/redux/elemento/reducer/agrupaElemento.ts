@@ -146,6 +146,16 @@ export const agrupaElemento = (state: any, action: any): State => {
   const dispositivos = getDispositivosASeremCopiadosParaOutroPai(atual, novo, posicaoDoNovoAgrupador, dispositivosAlteracao);
   copiaDispositivosParaOutroPai(novo, dispositivos);
 
+  // Captura IDs dos agrupadores ANTES de renumerar para emitir RemissaoRenumerada.
+  const mapeamentoLexmlIds: Array<{ dispositivo: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
+  getDispositivoAndFilhosAsLista(novo.pai!)
+    .filter(d => isAgrupador(d) && !(d.tipo === 'Articulacao' && d.pai === undefined) && d !== novo)
+    .forEach(d => {
+      if (d.id && d.uuid) {
+        mapeamentoLexmlIds.push({ dispositivo: d, lexmlIdAntigo: d.id, uuidDispositivo: d.uuid });
+      }
+    });
+
   novo.pai!.renumeraFilhos();
   novo.pai!.filhos.forEach(f => f.renumeraFilhos());
   // novo.renumeraFilhos();
@@ -183,6 +193,18 @@ export const agrupaElemento = (state: any, action: any): State => {
   eventos.add(StateType.SituacaoElementoModificada, [createElemento(atual), ...transferidosParaOutroPai]);
   eventos.add(StateType.ElementoRenumerado, renumerados);
   eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
+
+  // Emite RemissaoRenumerada para agrupadores cujo ID mudou após a inserção.
+  mapeamentoLexmlIds.forEach(({ dispositivo, lexmlIdAntigo, uuidDispositivo }) => {
+    const lexmlIdNovo = dispositivo.id;
+    if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
+      eventos.eventos.push({
+        stateType: StateType.RemissaoRenumerada,
+        elementos: [],
+        remissaoRenumeracao: { lexmlIdAntigo, lexmlIdNovo, novoUuid: uuidDispositivo },
+      });
+    }
+  });
 
   const dArticulacao = getDispositivoAndFilhosAsLista(state.articulacao);
   const dReferenciado = dArticulacao[dArticulacao.indexOf(novo) + 1];
