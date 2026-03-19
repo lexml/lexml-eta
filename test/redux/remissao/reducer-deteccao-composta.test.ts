@@ -1,67 +1,13 @@
 import { expect } from '@open-wc/testing';
-import { adicionaRemissaoInterna } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
 import { State } from '../../../src/redux/state';
-import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
-import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
+import { criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { buildId, updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/** Marca dispositivo (e caput, se artigo) como adicionado */
-const marcaAdicionado = (d: any): void => {
-  d.situacao = new DispositivoAdicionado();
-  if (d.caput) {
-    (d as Artigo).caput!.situacao = new DispositivoAdicionado();
-  }
-};
-
-/**
- * Cria state com articulação contendo `n` artigos numerados sequencialmente.
- * Retorna o state e a lista de artigos.
- */
-const criaStateComNArtigos = (n: number): { state: State; artigos: any[] } => {
-  const articulacao = createArticulacao();
-  const artigos: any[] = [];
-  for (let i = 0; i < n; i++) {
-    const art = criaDispositivo(articulacao, 'Artigo');
-    art.texto = `Artigo ${i + 1}.`;
-    artigos.push(art);
-  }
-  articulacao.renumeraFilhos();
-  artigos.forEach(a => a.createRotulo(a));
-  updateIdDispositivoAndFilhos(articulacao);
-  artigos.forEach(marcaAdicionado);
-
-  return {
-    state: {
-      articulacao,
-      modo: 'emenda',
-      past: [],
-      present: [],
-      future: [],
-      ui: { events: [] },
-      remissoes: {},
-    },
-    artigos,
-  };
-};
-
-/**
- * Executa adicionaRemissaoInterna com o texto no dispositivo `source` e
- * retorna o array de remissões criadas (ou []).
- */
-const detecta = (state: State, source: any, texto: string): any[] => {
-  source.texto = texto;
-  const elemento = createElemento(source, true);
-  const result = adicionaRemissaoInterna(state, { atual: elemento });
-  return (result.remissoes as any)[source.uuid!] ?? [];
-};
+import { criaStateComNArtigos, detecta, marcaAdicionado } from '../../helpers/dispositivo-helper';
 
 // ─── Testes ──────────────────────────────────────────────────────────────────
 
-describe('Detecção de Remissões Compostas (Etapa 1.1)', () => {
+describe('Detecção de Remissões Compostas', () => {
   // ── Retrocompatibilidade ───────────────────────────────────────────────────
 
   describe('Retrocompatibilidade — artigo simples', () => {
@@ -356,6 +302,97 @@ describe('Detecção de Remissões Compostas (Etapa 1.1)', () => {
       // Menciona inciso X que não existe
       const remissoes = detecta(state, artigos[0], 'Conforme o inciso X do § 1º do art. 5º.');
       expect(remissoes).to.have.length(0);
+    });
+  });
+
+  // ── Texto com HTML de remissão já renderizada ─────────────────────────────
+
+  describe('Texto com HTML de remissão já renderizada (dispositivo com <a> existente)', () => {
+    let state: State;
+    let art1: any;
+    let inc2: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(5);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      const art4 = setup.artigos[3] as Artigo;
+
+      // Adiciona incisos ao caput do art. 4
+      const inc1 = criaDispositivo(art4 as any, 'Inciso');
+      inc2 = criaDispositivo(art4 as any, 'Inciso');
+      inc1.texto = 'Inciso I.';
+      inc2.texto = 'Inciso II.';
+
+      [inc1, inc2].forEach(marcaAdicionado);
+
+      art4.caput!.renumeraFilhos();
+      [inc1, inc2].forEach((d: any) => d.createRotulo(d));
+      updateIdDispositivoAndFilhos(state.articulacao!);
+
+      // IDs dos incisos do caput devem ser setados manualmente
+      inc1.id = buildId(inc1);
+      inc2.id = buildId(inc2);
+    });
+
+    it('baseline: dois refs em texto plano → ambos detectados com início correto', () => {
+      // Texto plano: "inciso II..." começa em 11, "art. 5" começa em 61
+      const remissoes = detecta(state, art1, 'Conforme o inciso II do caput do art. 4º deve ser aceita. No art. 5 também acontece.');
+
+      expect(remissoes).to.have.length(2);
+      const r1 = remissoes.find((r: any) => r.targetLexmlId === 'art4_cpt_inc2');
+      const r2 = remissoes.find((r: any) => r.targetLexmlId === 'art5');
+      expect(r1).to.not.be.undefined;
+      expect(r2).to.not.be.undefined;
+      expect(r1!.inicio).to.equal(11);
+      expect(r2!.inicio).to.equal(61);
+    });
+
+    it('com tag <a> em volta da primeira ref → início baseado em texto plano, não em HTML', () => {
+      // Simula dispositivo.texto com HTML de remissão já renderizada.
+      // '<a href="#x">' tem 14 chars → desloca match.index da 1ª ref de 11 para 24 no HTML.
+      // '</a>' tem 4 chars  → desloca match.index da 2ª ref de 61 para 78 no HTML.
+      const htmlText = 'Conforme o <a href="#x">inciso II do caput do art. 4º</a> deve ser aceita. No art. 5 também acontece.';
+
+      const remissoes = detecta(state, art1, htmlText);
+
+      expect(remissoes).to.have.length(2);
+
+      const r1 = remissoes.find((r: any) => r.targetLexmlId === 'art4_cpt_inc2');
+      const r2 = remissoes.find((r: any) => r.targetLexmlId === 'art5');
+      expect(r1).to.not.be.undefined;
+      expect(r2).to.not.be.undefined;
+
+      // Posições devem refletir o texto plano (sem tags HTML), para que o Quill
+      // renderize os links nas posições corretas.
+      expect(r1!.inicio).to.equal(11, 'início da 1ª ref deve ser posição no texto plano');
+      expect(r2!.inicio).to.equal(61, 'início da 2ª ref deve ser posição no texto plano');
+    });
+
+    it('com dois artigos simples e primeiro já em tag <a> → início do segundo correto', () => {
+      // Caso mais simples: dois artigos simples, primeiro já renderizado como link.
+      // '<a href="#x">art. 4</a>' substitui "art. 4" na posição 13.
+      // Texto plano: 'Ver o art. 4 e o art. 5 também.'
+      //  posições:         13        17 (art.4)   21 (art.5 → offset 21? vamos calcular)
+      // 'Ver o ' = 6, 'art. 4' = 6 → art4 em 6; ' e o ' = 5 → art5 em 17
+      const { state: s2, artigos } = criaStateComNArtigos(5);
+      const src = artigos[0];
+
+      const htmlText2 = 'Ver o <a href="#x">art. 4</a> e o art. 5 também.';
+
+      const remissoes2 = detecta(s2, src, htmlText2);
+
+      expect(remissoes2).to.have.length(2);
+      const rArt4 = remissoes2.find((r: any) => r.targetLexmlId === 'art4');
+      const rArt5 = remissoes2.find((r: any) => r.targetLexmlId === 'art5');
+      expect(rArt4).to.not.be.undefined;
+      expect(rArt5).to.not.be.undefined;
+
+      // Texto plano: 'Ver o art. 4 e o art. 5 também.'
+      //               0123456789...
+      // 'Ver o ' = 6 → art4 em 6; 'art. 4' = 6, ' e o ' = 5 → art5 em 17
+      expect(rArt4!.inicio).to.equal(6, 'início de art4 deve ser posição no texto plano');
+      expect(rArt5!.inicio).to.equal(17, 'início de art5 deve ser posição no texto plano');
     });
   });
 

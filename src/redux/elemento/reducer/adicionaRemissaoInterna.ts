@@ -7,6 +7,7 @@ import { RemissaoInternaValue } from '../../../model/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { stripHtml } from '../../../util/html-util';
 
 interface ReferenciaEncontrada {
   texto: string;
@@ -67,7 +68,7 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
-  const remissoesEncontradas = detectarReferencias(textoAtual, dispositivo, state.articulacao);
+  const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao);
 
   if (remissoesEncontradas.length === 0) {
     return { ...state, ui: { ...state.ui, events: [] } };

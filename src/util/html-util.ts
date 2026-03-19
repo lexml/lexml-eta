@@ -3,3 +3,7 @@ export function escapeHtml(text: string): string {
   div.textContent = text;
   return div.innerHTML;
 }
+
+export function stripHtml(texto: string): string {
+  return texto.replace(/<[^>]+>/g, '');
+}

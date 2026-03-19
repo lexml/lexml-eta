@@ -1,53 +1,9 @@
 import { expect } from '@open-wc/testing';
-import { adicionaRemissaoInterna } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
 import { State } from '../../../src/redux/state';
-import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-
-const marcaAdicionado = (d: any): void => {
-  d.situacao = new DispositivoAdicionado();
-  if (d.caput) {
-    (d as Artigo).caput!.situacao = new DispositivoAdicionado();
-  }
-};
-
-const criaStateComNArtigos = (n: number): { state: State; artigos: any[] } => {
-  const articulacao = createArticulacao();
-  const artigos: any[] = [];
-  for (let i = 0; i < n; i++) {
-    const art = criaDispositivo(articulacao, 'Artigo');
-    art.texto = `Artigo ${i + 1}.`;
-    artigos.push(art);
-  }
-  articulacao.renumeraFilhos();
-  artigos.forEach(a => a.createRotulo(a));
-  updateIdDispositivoAndFilhos(articulacao);
-  artigos.forEach(marcaAdicionado);
-
-  return {
-    state: {
-      articulacao,
-      modo: 'emenda',
-      past: [],
-      present: [],
-      future: [],
-      ui: { events: [] },
-      remissoes: {},
-    },
-    artigos,
-  };
-};
-
-/** Chama adicionaRemissaoInterna com `source` como dispositivo sendo editado. */
-const detecta = (state: State, source: any, texto: string): any[] => {
-  source.texto = texto;
-  const elemento = createElemento(source, true);
-  const result = adicionaRemissaoInterna(state, { atual: elemento });
-  return (result.remissoes as any)[source.uuid!] ?? [];
-};
+import { criaStateComNArtigos, detecta, marcaAdicionado } from '../../helpers/dispositivo-helper';
 
 describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
   describe('1.2 — Parágrafo contextual: "§ N deste artigo"', () => {
