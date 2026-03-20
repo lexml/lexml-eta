@@ -59,6 +59,9 @@ export class LexmlEtaParametrosEdicao {
 
   proposicao?: Proposicao;
 
+  // Indica se é texto substitutivo. Quando true, sigla, numero e ano são obrigatórios.
+  substitutivo = false;
+
   // Indicação de matéria orçamentária. Utilizado inicalmente para definir destino de emenda a MP
   isMateriaOrcamentaria = false;
 
@@ -331,6 +334,27 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return (params.proposicao ? params.proposicao.colegiadoApreciador?.siglaCasaLegislativa : params.casaLegislativa) || 'CN';
   }
 
+  private validarParametrosIdentificacaoProposicao(params: LexmlEtaParametrosEdicao): void {
+    if (!params.sigla) {
+      throw new Error('O parâmetro "sigla" é obrigatório.');
+    }
+    if (params.substitutivo) {
+      if (!params.numero) {
+        throw new Error('O parâmetro "numero" é obrigatório para texto substitutivo.');
+      }
+      if (!params.ano) {
+        throw new Error('O parâmetro "ano" é obrigatório para texto substitutivo.');
+      }
+    } else {
+      if (!params.numero) {
+        params.numero = '1';
+      }
+      if (!params.ano) {
+        params.ano = new Date().getFullYear().toString();
+      }
+    }
+  }
+
   private inicializaProposicao(params: LexmlEtaParametrosEdicao): void {
     this.urn = '';
 
@@ -339,6 +363,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     } else if (this.projetoNorma) {
       this.urn = getUrn(params.projetoNorma);
     } else {
+      this.validarParametrosIdentificacaoProposicao(params);
       this.urn = buildFakeUrn(params.sigla, params.numero, params.ano);
     }
   }
