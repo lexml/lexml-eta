@@ -110,7 +110,7 @@ export class DemoView extends LitElement {
   private elDocumento!: HTMLSelectElement;
 
   @query('lexml-eta')
-  private elLexmlEmenda!: LexmlEtaComponent;
+  private elLexmlEta!: LexmlEtaComponent;
 
   @state() modo = 'edicao';
   @state() projetoNorma: any = {};
@@ -132,7 +132,7 @@ export class DemoView extends LitElement {
 
   protected firstUpdated(): void {
     this.elNomeProposicao.style.display = 'none';
-    this.elLexmlEmenda.setUsuario(new Usuario(this.nomeUsuario));
+    this.elLexmlEta.setUsuario(new Usuario(this.nomeUsuario));
   }
 
   private getElement(selector: string): any {
@@ -166,12 +166,12 @@ export class DemoView extends LitElement {
   }
 
   limparTela(): void {
-    this.elLexmlEmenda.style.display = 'none';
+    this.elLexmlEta.style.display = 'none';
     this.projetoNorma = {};
 
     const params = new LexmlEtaParametrosEdicao();
     params.projetoNorma = this.projetoNorma;
-    this.elLexmlEmenda.inicializarEdicao(params);
+    this.elLexmlEta.inicializarEdicao(params);
 
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
@@ -191,7 +191,7 @@ export class DemoView extends LitElement {
       setTimeout(() => {
         this.projetoNorma = this.elDocumento.value.indexOf('sem_texto') >= 0 ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
-        if (this.elLexmlEmenda) {
+        if (this.elLexmlEta) {
           const params = new LexmlEtaParametrosEdicao();
           params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
           params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
@@ -207,10 +207,10 @@ export class DemoView extends LitElement {
             params.ano = new Date().getFullYear().toString();
           }
           // params.casaLegislativa = 'SF';
-          this.elLexmlEmenda.inicializarEdicao(params);
+          this.elLexmlEta.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);
-          this.elLexmlEmenda.style.display = 'block';
+          this.elLexmlEta.style.display = 'block';
         } else {
           this.atualizarProposicaoCorrente(this.projetoNorma);
         }
@@ -219,7 +219,7 @@ export class DemoView extends LitElement {
   }
 
   salvar(): void {
-    const proposicao = this.elLexmlEmenda.getProposicao();
+    const proposicao = this.elLexmlEta.getProposicao();
     const proposicaoJson = JSON.stringify(proposicao, null, '\t');
     const blob = new Blob([proposicaoJson], { type: 'application/json' });
     const fileName = `${this.modo} - ${proposicao.sigla} nº ${proposicao.numero}, de ${proposicao.ano}.json`;
@@ -243,7 +243,7 @@ export class DemoView extends LitElement {
     const nome = prompt('Nome do usuário', this.nomeUsuario ?? '');
     if (nome !== null) {
       this.nomeUsuario = nome;
-      this.elLexmlEmenda.setUsuario(new Usuario(nome));
+      this.elLexmlEta.setUsuario(new Usuario(nome));
     }
   }
 
@@ -293,12 +293,12 @@ export class DemoView extends LitElement {
           const params = new LexmlEtaParametrosEdicao();
           params.projetoNorma = this.projetoNorma;
           params.proposicao = proposicao;
-          this.elLexmlEmenda.inicializarEdicao(params);
+          this.elLexmlEta.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.atualizarSelects(this.projetoNorma);
           // this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
-          this.elLexmlEmenda.style.display = 'block';
+          this.elLexmlEta.style.display = 'block';
 
           this.onChangeDocumento();
         }
