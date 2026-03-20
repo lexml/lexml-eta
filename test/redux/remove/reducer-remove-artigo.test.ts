@@ -4,6 +4,7 @@ import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoPa
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
+import { StateType } from '../../../src/redux/state';
 
 let state: any;
 
@@ -38,8 +39,11 @@ describe('Testando a exclusão de artigos', () => {
       });
     });
     describe('Testando os eventos resultantes da ação de exclusão do artigo', () => {
-      it('Deveria apresentar 2 eventos', () => {
-        expect(state.ui.events.length).to.equal(2);
+      it('Deveria apresentar 2 eventos (ElementoRemovido e ElementoRenumerado)', () => {
+        const eventosCore = state.ui.events.filter((e: any) => e.stateType !== StateType.RemissaoRenumerada && e.stateType !== StateType.RemissaoInvalidada);
+        expect(eventosCore.length).to.equal(2);
+        expect(eventosCore[0].stateType).to.equal(StateType.ElementoRemovido);
+        expect(eventosCore[1].stateType).to.equal(StateType.ElementoRenumerado);
       });
       it('Deveria apresentar 1 elemento removido já que o artigo não possui filhos', () => {
         expect(state.ui.events[0].elementos.length).equal(1);

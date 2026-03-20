@@ -98,11 +98,13 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
 const existeDispositivoBloqueadoSendoColado = (articulacaoColada: Articulacao, articulacao: Articulacao): boolean => {
   const idsColados = getDispositivoAndFilhosAsLista(articulacaoColada)
     .filter(d => d.texto !== TEXTO_OMISSIS)
-    .map(d => d.id);
+    .map(d => d.id)
+    .filter((id): id is string => id !== undefined);
 
   const idsBloqueados = getDispositivoAndFilhosAsLista(articulacao)
     .filter(isBloqueado)
-    .map(d => d.id);
+    .map(d => d.id)
+    .filter((id): id is string => id !== undefined);
 
   return idsColados.some(id => idsBloqueados.includes(id));
 };

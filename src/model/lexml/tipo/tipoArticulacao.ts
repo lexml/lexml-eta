@@ -1,6 +1,6 @@
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
-import { isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
 import { TipoLexml } from './tipoLexml';
@@ -44,6 +44,12 @@ export class TipoArticulacao extends TipoLexml {
         if (caput) {
           caput.id = buildId(caput);
         }
+        getDispositivoAndFilhosAsLista(filho)
+          .slice(1)
+          .filter(d => d.id !== undefined)
+          .forEach(d => {
+            d.id = buildId(d);
+          });
       });
   }
 

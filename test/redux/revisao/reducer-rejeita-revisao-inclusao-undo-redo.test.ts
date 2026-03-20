@@ -77,9 +77,10 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
 
     it('Deveria possuir "State.ui.events" com eventos: RevisaoRejeitada, ElementoRemovido, ElementoRenumerado', () => {
-      expect(state.ui?.events[0].stateType).to.be.equal(StateType.RevisaoRejeitada);
-      expect(state.ui?.events[1].stateType).to.be.equal(StateType.ElementoRemovido);
-      expect(state.ui?.events[2].stateType).to.be.equal(StateType.ElementoRenumerado);
+      const eventsCore = state.ui?.events.filter((e: any) => e.stateType !== StateType.RemissaoRenumerada && e.stateType !== StateType.RemissaoInvalidada);
+      expect(eventsCore![0].stateType).to.be.equal(StateType.RevisaoRejeitada);
+      expect(eventsCore![1].stateType).to.be.equal(StateType.ElementoRemovido);
+      expect(eventsCore![2].stateType).to.be.equal(StateType.ElementoRenumerado);
     });
 
     describe('Testando evento RevisaoRejeitada', () => {
@@ -115,21 +116,26 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
 
     describe('Testando evento ElementoRenumerado (*)', () => {
+      let eventoRenumerado: any;
+      beforeEach(function () {
+        eventoRenumerado = state.ui?.events.find((e: any) => e.stateType === StateType.ElementoRenumerado);
+      });
+
       it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
-        expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
+        expect(eventoRenumerado?.elementos?.length).to.be.equal(7);
+        expect(eventoRenumerado?.elementos?.filter((e: any) => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
+        expect(eventoRenumerado?.elementos?.filter((e: any) => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {
-        expect(state.ui?.events[2].elementos![0].conteudo!.texto).to.be.equal('teste G:');
-        expect(state.ui?.events[2].elementos![1].conteudo!.texto).to.be.equal('teste J:');
-        expect(state.ui?.events[2].elementos![2].conteudo!.texto).to.be.equal('teste M:');
-        expect(state.ui?.events[2].elementos![3].conteudo!.texto).to.be.equal('teste P:');
+        expect(eventoRenumerado?.elementos![0].conteudo!.texto).to.be.equal('teste G:');
+        expect(eventoRenumerado?.elementos![1].conteudo!.texto).to.be.equal('teste J:');
+        expect(eventoRenumerado?.elementos![2].conteudo!.texto).to.be.equal('teste M:');
+        expect(eventoRenumerado?.elementos![3].conteudo!.texto).to.be.equal('teste P:');
       });
 
       it('Os elementos não devem possuir revisão', () => {
-        expect(state.ui?.events[2].elementos?.every(e => !e.revisao)).to.be.true;
+        expect(eventoRenumerado?.elementos?.every((e: any) => !e.revisao)).to.be.true;
       });
     });
   });
