@@ -1,4 +1,4 @@
-import { Usuario } from './../model/revisao/usuario';
+import { Usuario } from '../model/revisao/usuario';
 import '@shoelace-style/shoelace/dist/components/badge/badge';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
@@ -17,7 +17,7 @@ import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, OpcoesImpressao } from '../model/emenda/emenda';
 import { buildFakeUrn, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
-import { ProjetoNorma } from './../model/lexml/documento/projetoNorma';
+import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
@@ -62,7 +62,7 @@ export class LexmlEtaParametrosEdicao {
   // Indica se é texto substitutivo. Quando true, sigla, numero e ano são obrigatórios.
   substitutivo = false;
 
-  // Indicação de matéria orçamentária. Utilizado inicalmente para definir destino de emenda a MP
+  // Indicação de matéria orçamentária. Utilizado inicialmente para definir destino de emenda a MP
   isMateriaOrcamentaria = false;
 
   // Texto json da proposição para edição estruturada
@@ -111,7 +111,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
 
-  private emendarTextoSubstitutivo = false;
+  private substitutivo = false;
 
   // Para forçar atualização da interface
   @state()
@@ -234,6 +234,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     proposicao.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
     proposicao.anexos = this._lexmlEta!.getAnexos();
+    proposicao.substitutivo = this.substitutivo;
     if (proposicao.colegiadoApreciador) proposicao.local = this.montarLocalFromColegiadoApreciador(proposicao.colegiadoApreciador);
 
     return proposicao;
@@ -421,6 +422,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private setProposicao(proposicao: Proposicao): void {
     rootStore.dispatch(limparAlertas());
 
+    this.substitutivo = proposicao.substitutivo;
     if (proposicao.autoria) this._lexmlAutoria.autoria = proposicao.autoria;
     this._lexmlAutoria.casaLegislativa = this.casaLegislativa;
     this._lexmlOpcoesImpressao.opcoesImpressao = proposicao.opcoesImpressao;
@@ -440,6 +442,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     proposicao.autoria = this.montarAutoriaPadrao(params);
     proposicao.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
     proposicao.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
+    proposicao.substitutivo = params.substitutivo;
     this.setProposicao(proposicao);
     rootStore.dispatch(limparRevisaoAction.execute());
   }
