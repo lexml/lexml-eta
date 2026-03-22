@@ -130,7 +130,12 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
   const elementId = subject[0]?.id;
   cy.wrap(subject).click();
   const container = elementId ? cy.get('#' + elementId) : cy.wrap(subject);
-  container.find('div.container__menu > sl-dropdown').click({ force: true }).find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click({ force: true });
+  // Quebra a cadeia após clicar o sl-dropdown: após o clique, o LitElement pode re-renderizar
+  // o elemento pai e desconectar o sl-dropdown do DOM durante o retry de .find().
+  // Re-consultando 'container' (que é estável via cy.get('#id')), evitamos usar a referência
+  // stale do sl-dropdown como base para a busca do sl-menu-item.
+  container.find('div.container__menu > sl-dropdown').click({ force: true });
+  container.find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click({ force: true });
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
