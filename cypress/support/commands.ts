@@ -1,43 +1,6 @@
 /// <reference types="cypress" />
 import { Emenda } from '../../src/model/emenda/emenda';
 
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
-
 export type TipoMensagemContainerDispositivo = 'warning' | 'danger';
 export interface AbrirEmendaPayloadCypress {
   fixtureEmendaJson: string;
@@ -89,8 +52,18 @@ Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.
     });
   }
   cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
-  cy.get('#modo').select(payload.modoEmendaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
+  return cy.wrap(true);
+});
+
+Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo'): Cypress.Chainable<any> => {
+  cy.get('#projetoNorma').select(projetoNormaSelectValue);
+  cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
+  return cy.wrap(true);
+});
+
+Cypress.Commands.add('abrirProposicao', (fixtureJson: string): Cypress.Chainable<any> => {
+  cy.get('#fileUpload').selectFile(`cypress/fixtures/${fixtureJson}`, { force: true });
   return cy.wrap(true);
 });
 
@@ -209,7 +182,7 @@ Cypress.Commands.add('getTextoDoDispositivo', { prevSubject: 'element' }, (subje
 });
 
 Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
-  return cy.get('lexml-eta-emenda lexml-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
+  return cy.get('lexml-eta-proposicao-editor lexml-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
 });
 
 Cypress.Commands.add('getCheckRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -292,6 +265,8 @@ declare global {
       irParaPagina(numeroPagina: number): void;
       abrirEmenda(payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda>;
       novaEmenda(payload: NovaEmendaPayloadCypress): Cypress.Chainable<any>;
+      novaProposicao(projetoNormaSelectValue?: string): Cypress.Chainable<any>;
+      abrirProposicao(fixtureJson: string): Cypress.Chainable<any>;
       checarMensagem(mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>>;
       checarEstadoInicialAoCriarNovaEmendaEstruturada(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
       checarEstadoInicialAoCriarNovaEmendaPadrao(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
