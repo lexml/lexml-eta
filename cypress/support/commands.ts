@@ -121,7 +121,16 @@ Cypress.Commands.add('getContainerAlineaNormaByRotulo', (rotulo: string): Cypres
 });
 
 Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, opcaoDeMenu: string): void => {
-  cy.wrap(subject).click().find('div.container__menu > sl-dropdown').click().find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click();
+  // O LitElement pode re-renderizar o elemento de forma assíncrona após cada clique,
+  // detachando o DOM node original enquanto o Cypress aguarda actionabilidade.
+  // Solução:
+  //   1. Re-consultar pelo id estável após o primeiro click.
+  //   2. Usar {force: true} nos clicks seguintes para evitar esperar por actionabilidade
+  //      (o elemento poderia ser removido durante essa espera).
+  const elementId = subject[0]?.id;
+  cy.wrap(subject).click();
+  const container = elementId ? cy.get('#' + elementId) : cy.wrap(subject);
+  container.find('div.container__menu > sl-dropdown').click({ force: true }).find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click({ force: true });
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
