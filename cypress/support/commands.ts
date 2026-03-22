@@ -121,21 +121,40 @@ Cypress.Commands.add('getContainerAlineaNormaByRotulo', (rotulo: string): Cypres
 });
 
 Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, opcaoDeMenu: string): void => {
-  // O LitElement pode re-renderizar o elemento de forma assíncrona após cada clique,
-  // detachando o DOM node original enquanto o Cypress aguarda actionabilidade.
-  // Solução:
-  //   1. Re-consultar pelo id estável após o primeiro click.
-  //   2. Usar {force: true} nos clicks seguintes para evitar esperar por actionabilidade
-  //      (o elemento poderia ser removido durante essa espera).
-  const elementId = subject[0]?.id;
-  cy.wrap(subject).click();
-  const container = elementId ? cy.get('#' + elementId) : cy.wrap(subject);
-  // Quebra a cadeia após clicar o sl-dropdown: após o clique, o LitElement pode re-renderizar
-  // o elemento pai e desconectar o sl-dropdown do DOM durante o retry de .find().
-  // Re-consultando 'container' (que é estável via cy.get('#id')), evitamos usar a referência
-  // stale do sl-dropdown como base para a busca do sl-menu-item.
-  container.find('div.container__menu > sl-dropdown').click({ force: true });
-  container.find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click({ force: true });
+  // O sl-dropdown é montado por montarMenuContexto() quando o Quill detecta seleção.
+  // Para garantir que o evento selection-change dispare, clicamos em dois pontos:
+  //   1. No container externo (para ativar hover/foco do elemento).
+  //   2. No conteúdo de texto (p.texto__dispositivo), que está dentro do ql-editor.
+  // Cada passo usa cy.get() independente (não chained) para evitar referência stale
+  // causada por re-renders do LitElement após cada interação.
+  const id = subject[0]?.id;
+  if (id) {
+    // Passo 1: aguardar o conteúdo Quill ser renderizado (p.texto__dispositivo pode ainda
+    // estar inicializando quando o elemento foi recém criado)
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .should('exist');
+    // Passo 2: click no container para disparar hover/foco
+    cy.get('#' + id).click({ force: true });
+    // Passo 3: click no texto para garantir selection-change no Quill
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .click({ force: true });
+    // Passo 4: aguardar o menu ser montado e clicar no sl-dropdown (fresh query)
+    cy.get('#' + id + ' div.container__menu > sl-dropdown')
+      .should('exist')
+      .click({ force: true });
+    // Passo 5: clicar no item desejado (fresh query)
+    cy.get('#' + id + ' sl-menu > sl-menu-item')
+      .contains(opcaoDeMenu)
+      .click({ force: true });
+  } else {
+    cy.wrap(subject).find('p.texto__dispositivo').should('exist');
+    cy.wrap(subject).click({ force: true });
+    cy.wrap(subject).find('p.texto__dispositivo').click({ force: true });
+    cy.wrap(subject).find('div.container__menu > sl-dropdown').click({ force: true });
+    cy.wrap(subject).find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click({ force: true });
+  }
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {

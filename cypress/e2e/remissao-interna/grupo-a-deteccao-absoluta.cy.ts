@@ -15,7 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // CT-A-01 e CT-A-04 — Setup: 3 artigos simples (sem parágrafos)
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Grupo A — CT-A-01 e CT-A-04: Artigo simples e negativo', () => {
+describe('Detecção absoluta: artigo simples e negativo', () => {
   beforeEach(() => {
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
@@ -27,7 +27,7 @@ describe('Grupo A — CT-A-01 e CT-A-04: Artigo simples e negativo', () => {
     cy.getContainerArtigoByNumero(3).should('exist');
   });
 
-  it('CT-A-01 — Artigo simples: detecção, criação de link e navegação por clique', () => {
+  it('Referência a artigo cria link e permite navegação por clique', () => {
     // Insere texto com referência ao art. 1 no Art. 3
     cy.getContainerArtigoByNumero(3).digitarTextoRemissao('Conforme o art. 1. aplica-se o seguinte.');
 
@@ -45,7 +45,7 @@ describe('Grupo A — CT-A-01 e CT-A-04: Artigo simples e negativo', () => {
     cy.getDestinoRemissaoDestacado().should('exist');
   });
 
-  it('CT-A-04 — Parágrafo sem âncora absoluta: nenhum link criado', () => {
+  it('Parágrafo sem âncora absoluta não cria link', () => {
     // "§ 2º" isolado sem "art. N" e sem qualificador contextual → não deve criar remissão
     cy.getContainerArtigoByNumero(1).digitarTextoRemissao('Conforme o § 2º acima mencionado.');
 
@@ -62,7 +62,7 @@ describe('Grupo A — CT-A-01 e CT-A-04: Artigo simples e negativo', () => {
 // CT-A-02 — Setup: 3 artigos + 2 parágrafos no Art. 3
 // Verifica que "§ 2º do art. 3." gera exatamente 1 link (anti double-match 2 níveis)
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Grupo A — CT-A-02: Composto 2 níveis (anti double-match)', () => {
+describe('Detecção absoluta: referência composta 2 níveis sem duplicação', () => {
   beforeEach(() => {
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
@@ -82,7 +82,7 @@ describe('Grupo A — CT-A-02: Composto 2 níveis (anti double-match)', () => {
     cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 2);
   });
 
-  it('CT-A-02 — "§ 2º do art. 3." → exatamente 1 link (não 2)', () => {
+  it('"§ 2º do art. 3." cria exatamente 1 link, não 2', () => {
     // Se houvesse double-match, "§ 2º" e "art. 3" seriam detectados separadamente (2 links).
     // Com a regex composta, o match completo "§ 2º do art. 3" gera exatamente 1 link.
     cy.getContainerArtigoByNumero(1).digitarTextoRemissao('Conforme o § 2º do art. 3.');
@@ -99,7 +99,7 @@ describe('Grupo A — CT-A-02: Composto 2 níveis (anti double-match)', () => {
 // CT-A-03 — Setup: 3 artigos + 2 parágrafos no Art. 3 + 1 inciso no § 2
 // Verifica que "inciso I do § 2º do art. 3." gera exatamente 1 link (anti double-match 3 níveis)
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Grupo A — CT-A-03: Composto 3 níveis (anti double-match)', () => {
+describe('Detecção absoluta: referência composta 3 níveis sem duplicação', () => {
   beforeEach(() => {
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
@@ -123,7 +123,7 @@ describe('Grupo A — CT-A-03: Composto 3 níveis (anti double-match)', () => {
     cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length.gte', 1);
   });
 
-  it('CT-A-03 — "inciso I do § 2º do art. 3." → exatamente 1 link (não 3)', () => {
+  it('"inciso I do § 2º do art. 3." cria exatamente 1 link, não 3', () => {
     // Se houvesse double-match, "inciso I", "§ 2º" e "art. 3" seriam detectados separadamente (3 links).
     // Com a regex composta, o match completo gera exatamente 1 link.
     cy.getContainerArtigoByNumero(1).digitarTextoRemissao('Conforme o inciso I do § 2º do art. 3.');
