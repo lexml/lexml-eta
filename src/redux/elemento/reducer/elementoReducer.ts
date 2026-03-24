@@ -91,6 +91,8 @@ import { REDIRECIONAR_REMISSAO } from '../../../model/lexml/acao/redirecionarRem
 import { redirecionaRemissao } from './redirecionaRemissao';
 import { ADICIONAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/adicionarRemissaoInternaAction';
 import { adicionaRemissaoInterna } from './adicionaRemissaoInterna';
+import { REMOVER_REMISSAO_INVALIDA } from '../../../model/lexml/acao/removerRemissaoInvalidaAction';
+import { removerRemissaoInvalida } from './removerRemissaoInvalida';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -239,6 +241,9 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ADICIONAR_REMISSAO_INTERNA:
       tempState = adicionaRemissaoInterna(state, action);
+      break;
+    case REMOVER_REMISSAO_INVALIDA:
+      tempState = removerRemissaoInvalida(state, action);
       break;
     default:
       actionType = undefined;
