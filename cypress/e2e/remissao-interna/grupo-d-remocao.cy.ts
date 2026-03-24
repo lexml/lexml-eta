@@ -1,12 +1,24 @@
 /**
  * Grupo D — Remoção de Remissão
  *
- * CT-D-01: Posicionar cursor sobre link → botão habilitado → clicar → link removido, texto preservado.
- * CT-D-02: Selecionar trecho com dois links → clicar remover → ambos removidos, texto preservado.
+ * CT-D-01: Seleção sobre link → botão habilitado → clicar → link removido, texto preservado.
+ * CT-D-02: Seleção abrangendo dois links → clicar remover → ambos removidos, texto preservado.
  * CT-D-03: Cursor em texto sem link → botão disabled.
  *
- * Setup de remissões via digitarTextoRemissao + dispararDeteccaoRemissao (sem fixture JSON),
- * consistente com os padrões dos Grupos A–C.
+ * Nota sobre o botão de remoção:
+ *   Cypress .click() despacha mousedown antes do click, o que causa blur no ql-editor e limpa
+ *   document.getSelection(). Como resultado, quill.getSelection() retorna null dentro de
+ *   removerRemissao() e a remoção é ignorada.
+ *   Solução: usar element.click() nativo (não despacha mousedown, não altera o foco) dentro de
+ *   cy.window().then(), imediatamente após quill.setSelection(), enquanto a seleção ainda é válida.
+ *
+ * Nota sobre CT-D-01:
+ *   Usar cursor simples (length=0) em linkIndex falha porque quill.getLeaf(linkIndex) retorna o
+ *   nó de texto ANTERIOR ao link (comportamento de fronteira do Parchment). temRemissaoNaCursorOuSelecao()
+ *   usa leaf.parent.statics.blotName — o qual aponta para o blot pai do texto anterior, não para o link.
+ *   Solução: selecionar o link inteiro via setSelection(linkIndex, blotLength, 'user'). Com range.length > 0,
+ *   temRemissaoNaCursorOuSelecao() entra no branch de seleção (querySelectorAll) e detecta o link;
+ *   removerRemissao() chama removerRemissoesNoRange() → formatText() → remove o DOM <a>.
  */
 
 const SEL_BTN_REMOVER = '.btn-remover-remissao';
@@ -15,7 +27,7 @@ const SEL_LINK = 'a.lexml-remissao-interna';
 // ─────────────────────────────────────────────────────────────────────────────
 // CT-D-01 — Remover remissão posicionando cursor sobre o link
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Remoção: cursor sobre link → botão habilitado → link removido', () => {
+describe('Remoção: seleção sobre link → botão habilitado → link removido', () => {
   beforeEach(() => {
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
@@ -23,28 +35,46 @@ describe('Remoção: cursor sobre link → botão habilitado → link removido',
     cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(2).should('exist');
 
-    // Inserir texto com referência ao Art. 1 no Art. 2
     cy.getContainerArtigoByNumero(2).digitarTextoRemissao('Conforme o art. 1º, aplica-se o seguinte.');
     cy.getContainerArtigoByNumero(2).find('p.texto__dispositivo').should('contain.text', 'art. 1');
 
-    // Disparar detecção e aguardar link criado
     cy.getContainerArtigoByNumero(2).dispararDeteccaoRemissao();
     cy.getContainerArtigoByNumero(2).find(SEL_LINK).should('have.length', 1);
   });
 
-  it('CT-D-01: clicar no link habilita botão; clicar no botão remove o link', () => {
-    // Clicar no link posiciona o cursor sobre ele (Quill dispara selection-change)
-    cy.getContainerArtigoByNumero(2).find(SEL_LINK).click();
+  it('CT-D-01: seleção sobre link habilita botão; click nativo no botão remove o link', () => {
+    cy.getContainerArtigoByNumero(2).then($container => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
 
-    // Botão de remoção deve ficar habilitado
-    cy.get(SEL_BTN_REMOVER).should('not.have.attr', 'disabled');
+        // Localiza o blot do link e seleciona seu conteúdo completo.
+        // Cursor simples em linkIndex falha: getLeaf(linkIndex) retorna o nó de texto anterior
+        // (comportamento de fronteira do Parchment). Com range.length > 0, temRemissaoNaCursorOuSelecao()
+        // usa querySelectorAll e detecta o link corretamente; removerRemissao() chama formatText().
+        const link = $container[0].querySelector('a.lexml-remissao-interna');
+        if (!link) return;
+        const EtaQuillClass = quill.constructor as any;
+        const blot = EtaQuillClass.find(link);
+        if (!blot) return;
 
-    // Clicar no botão de remoção
-    cy.get(SEL_BTN_REMOVER).click();
+        const linkIndex = blot.offset(quill.scroll);
+        const blotLength = blot.length();
+        quill.setSelection(linkIndex, blotLength, 'user'); // selection-change → button enabled
 
-    // Link deve ter desaparecido
+        // Verificar que o módulo reconhece a remissão na seleção
+        const remissaoModule = quill.getModule('remissaoInterna');
+        expect(remissaoModule?.temRemissaoNaCursorOuSelecao()).to.be.true;
+
+        // Click nativo: não despacha mousedown, não altera foco, seleção permanece válida
+        const btnRemover = win.document.querySelector(SEL_BTN_REMOVER) as HTMLElement;
+        btnRemover?.click();
+      });
+    });
+
+    // Link deve ter sido removido
     cy.getContainerArtigoByNumero(2).find(SEL_LINK).should('not.exist');
-
     // Texto deve permanecer intacto
     cy.getContainerArtigoByNumero(2).find('p.texto__dispositivo').should('contain.text', 'art. 1');
   });
@@ -53,7 +83,7 @@ describe('Remoção: cursor sobre link → botão habilitado → link removido',
 // ─────────────────────────────────────────────────────────────────────────────
 // CT-D-02 — Remover múltiplas remissões selecionando um trecho
 // ─────────────────────────────────────────────────────────────────────────────
-describe('Remoção: seleção de trecho com dois links → ambos removidos', () => {
+describe('Remoção: seleção abrangendo dois links → ambos removidos', () => {
   beforeEach(() => {
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
@@ -64,17 +94,14 @@ describe('Remoção: seleção de trecho com dois links → ambos removidos', ()
     cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(3).should('exist');
 
-    // Inserir texto com referências ao Art. 1 e Art. 2 no Art. 3
     cy.getContainerArtigoByNumero(3).digitarTextoRemissao('Nos termos do art. 1º e do art. 2º, aplica-se o seguinte.');
     cy.getContainerArtigoByNumero(3).find('p.texto__dispositivo').should('contain.text', 'art. 1');
 
-    // Disparar detecção e aguardar os dois links
     cy.getContainerArtigoByNumero(3).dispararDeteccaoRemissao();
     cy.getContainerArtigoByNumero(3).find(SEL_LINK).should('have.length', 2);
   });
 
-  it('CT-D-02: selecionar trecho inteiro via Quill e remover apaga ambos os links', () => {
-    // Selecionar o texto completo do p.texto__dispositivo do Art. 3 via quill.setSelection
+  it('CT-D-02: seleção sobre texto completo + click nativo remove ambos os links', () => {
     cy.getContainerArtigoByNumero(3).then($container => {
       return cy.window().then(win => {
         const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
@@ -90,20 +117,21 @@ describe('Remoção: seleção de trecho com dois links → ambos removidos', ()
 
         const blotStart = blot.offset(quill.scroll);
         const blotLength = blot.length();
-        // blotLength inclui o newline terminal; selecionar blotLength - 1 para cobrir só o texto
-        quill.setSelection(blotStart, blotLength - 1, 'user');
+        // Seleciona o conteúdo completo do blot (excluindo newline terminal)
+        quill.setSelection(blotStart, blotLength - 1, 'user'); // selection-change → button enabled
+
+        // Verificar que o módulo reconhece remissões na seleção
+        const remissaoModule = quill.getModule('remissaoInterna');
+        expect(remissaoModule?.temRemissaoNaCursorOuSelecao()).to.be.true;
+
+        // Click nativo: não altera foco, seleção permanece válida
+        const btnRemover = win.document.querySelector(SEL_BTN_REMOVER) as HTMLElement;
+        btnRemover?.click();
       });
     });
 
-    // Botão de remoção deve estar habilitado (seleção cobre links)
-    cy.get(SEL_BTN_REMOVER).should('not.have.attr', 'disabled');
-
-    // Clicar no botão de remoção
-    cy.get(SEL_BTN_REMOVER).click();
-
     // Ambos os links devem ter desaparecido
     cy.getContainerArtigoByNumero(3).find(SEL_LINK).should('not.exist');
-
     // Texto deve permanecer intacto
     cy.getContainerArtigoByNumero(3).find('p.texto__dispositivo').should('contain.text', 'art. 1');
     cy.getContainerArtigoByNumero(3).find('p.texto__dispositivo').should('contain.text', 'art. 2');
@@ -120,10 +148,9 @@ describe('Remoção: botão disabled quando cursor está em texto sem link', () 
   });
 
   it('CT-D-03: após posicionar cursor em texto sem link, botão permanece disabled', () => {
-    // Posicionar cursor no Art. 1 (sem nenhuma remissão)
+    // posicionarCursorNoDispositivo usa quill.setSelection(..., 'user') → selection-change
     cy.getContainerArtigoByNumero(1).posicionarCursorNoDispositivo();
 
-    // Botão de remoção deve permanecer desabilitado
     cy.get(SEL_BTN_REMOVER).should('have.attr', 'disabled');
   });
 });

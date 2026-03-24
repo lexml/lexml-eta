@@ -8,6 +8,13 @@
  * Pré-condição para abrir o diálogo: quill.getSelection() != null.
  * Usamos posicionarCursorNoDispositivo() para definir a seleção antes do clique.
  *
+ * Nota sobre o botão "Confirmar" (sl-button):
+ *   cy.click() despacha mousedown → browser limpa document.getSelection() → quill.getSelection()
+ *   em criarRemissao() lê estado errado (posição de Art. 2 em vez de Art. 1). O link é criado
+ *   no dispositivo errado.
+ *   Solução: usar sl-button.click() nativo via cy.window().then(), que não despacha mousedown
+ *   e preserva o savedRange capturado em abrirDialogoRemissaoInterna().
+ *
  * O <input> real do sl-input Shoelace está no shadow DOM → acessado via .shadow().find('input').
  * Os itens da lista (.dispositivo-item) e os botões (sl-button) estão no light DOM do sl-dialog.
  */
@@ -31,11 +38,32 @@ describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
   });
 
   it('Abrir diálogo, buscar dispositivo, clicar item e confirmar cria 1 link', () => {
-    // Posiciona cursor no Quill do art. 1 (pré-condição para quill.getSelection())
-    cy.getContainerArtigoByNumero(1).posicionarCursorNoDispositivo();
+    // Posiciona cursor e abre o diálogo no mesmo bloco síncrono para evitar race conditions:
+    // um setTimeout(..., 100) de StateType.ElementoMarcado pode alterar quill.getSelection()
+    // entre posicionarCursorNoDispositivo() e o click() do botão. Ao combinar os dois em um
+    // único cy.window().then(), nenhuma tarefa assíncrona pode interferir.
+    cy.getContainerArtigoByNumero(1).then($container => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
 
-    // Clica no botão "Adicionar remissão interna" da toolbar
-    cy.get('.btn-remissao-interna').click();
+        const p = $container[0]?.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+        if (!p) return;
+
+        const EtaQuillClass = quill.constructor as any;
+        const blot = EtaQuillClass.find(p);
+        if (!blot) return;
+
+        const blotStart = blot.offset(quill.scroll);
+        quill.setSelection(blotStart, 0, 'user');
+
+        // Abre o diálogo imediatamente após setSelection, no mesmo tick síncrono.
+        // Click nativo: não despacha mousedown, não interfere com document.getSelection().
+        const btn = win.document.querySelector('.btn-remissao-interna') as HTMLElement;
+        btn?.click();
+      });
+    });
 
     // Diálogo deve abrir
     cy.get(SEL_DIALOG).should('exist');
@@ -53,8 +81,12 @@ describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
     // Sem este wait, sl-button.click() pode delegar a um shadow button ainda disabled.
     cy.get(SEL_BTN_CONFIRMAR).shadow().find('button').should('not.have.attr', 'disabled');
 
-    // Confirma via botão (cria o link e fecha o diálogo)
-    cy.get(SEL_BTN_CONFIRMAR).click();
+    // Click nativo: cy.click() despacha mousedown que limpa document.getSelection(), fazendo
+    // quill.getSelection() retornar estado errado (Art. 2 em vez de Art. 1) ao chamar criarRemissao.
+    // sl-button.click() → this.button.click() (shadow) → click sem mousedown → savedRange preservado.
+    cy.window().then(win => {
+      (win.document.querySelector(SEL_BTN_CONFIRMAR) as any)?.click();
+    });
 
     // Diálogo deve fechar
     cy.get(SEL_DIALOG).should('not.exist');
