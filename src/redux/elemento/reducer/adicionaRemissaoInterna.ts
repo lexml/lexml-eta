@@ -70,7 +70,10 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
 
   const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao);
 
-  if (remissoesEncontradas.length === 0) {
+  // Preserva entradas inválidas existentes — só saem via REMOVER_REMISSAO_INVALIDA
+  const oldInvalidas = (state.remissoes?.[dispositivo.uuid!] ?? []).filter((r: any) => r.valida === false);
+
+  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0) {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
@@ -86,7 +89,8 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   }));
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
-  remissaoRegistry[dispositivo.uuid!] = novasRemissoes;
+  // Merge: novas detecções válidas + inválidas preservadas
+  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldInvalidas];
 
   const elemento = createElemento(dispositivo, true);
   const eventosUi = new Eventos();

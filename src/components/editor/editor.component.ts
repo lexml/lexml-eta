@@ -86,6 +86,8 @@ import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionar
 import { iconeRemissaoInterna, iconeRemoverRemissao } from '../../../assets/icons/icons';
 import { remissaoInternaDialog } from './remissaoInternaDialog';
 import { RemissaoInternaValue } from '../../model/remissao';
+import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
+import { removerRemissaoInvalidaAction } from '../../model/lexml/acao/removerRemissaoInvalidaAction';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -1447,6 +1449,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.hierarquia
       );
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+
+      // Caminho B: limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
+      const remissaoModule = this.quill.getModule('remissaoInterna');
+      if (remissaoModule && linhaAtual.uuid !== undefined) {
+        rootStore.dispatch(removerRemissaoInvalidaAction(linhaAtual.uuid, remissaoModule.getRemissoes()));
+      }
+
       rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
     }
   }
@@ -1674,6 +1683,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.rejeitarRevisao(event.detail.elemento);
   };
 
+  private listenerRemoveRemissao = (event: any): void => {
+    event.stopImmediatePropagation();
+    const linha = this.quill.linhaAtual;
+    if (linha?.uuid !== undefined) {
+      rootStore.dispatch(removerRemissaoInvalidaAction(linha.uuid, event.detail.remissoes ?? []));
+    }
+  };
+
   private configListenersEta(): void {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     editorHtml.addEventListener('rotulo', this.listenerRotulo);
@@ -1682,6 +1699,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('mensagem', this.listenerMensagem);
     editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
     editorHtml.addEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
+    editorHtml.addEventListener(REMISSAO_INTERNA_REMOVE_EVENT, this.listenerRemoveRemissao);
   }
 
   private removeListenersEta(): void {
@@ -1692,6 +1710,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.removeEventListener('mensagem', this.listenerMensagem);
     editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);
     editorHtml.removeEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
+    editorHtml.removeEventListener(REMISSAO_INTERNA_REMOVE_EVENT, this.listenerRemoveRemissao);
   }
 
   private async onPasteTextoArticulado(payload: any): Promise<void> {

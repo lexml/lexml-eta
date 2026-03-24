@@ -1,6 +1,7 @@
-import { createElemento, listaDispositivosRenumerados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidadoComExtras, listaDispositivosRenumerados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { State, StateType } from '../../state';
 import {
+  findDispositivoByUuid,
   getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getDispositivoPosterior,
@@ -103,6 +104,30 @@ export const removeElemento = (state: any, action: any): State => {
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
   const novoRegistroRemissoes = marcarRemissoesComoInvalidas(state.remissoes, lexmlIdRemovido);
+
+  // Emite ElementoValidado para cada dispositivo de origem com remissão inválida recém-marcada
+  if (novoRegistroRemissoes && lexmlIdRemovido) {
+    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.' };
+    const sourceUuidsAfetados = new Set<number>();
+
+    for (const uuidStr of Object.keys(novoRegistroRemissoes)) {
+      const uuid = Number(uuidStr);
+      const remissoes = novoRegistroRemissoes[uuid];
+      if (remissoes.some((r: any) => r.targetLexmlId === lexmlIdRemovido && r.valida === false)) {
+        sourceUuidsAfetados.add(uuid);
+      }
+    }
+
+    for (const sourceUuid of sourceUuidsAfetados) {
+      const dispositivoOrigem = findDispositivoByUuid(state.articulacao, sourceUuid, true);
+      if (dispositivoOrigem) {
+        events.push({
+          stateType: StateType.ElementoValidado,
+          elementos: [createElementoValidadoComExtras(dispositivoOrigem, [mensagemInvalida])],
+        });
+      }
+    }
+  }
 
   if (lexmlIdRemovido && uuidRemovido) {
     events.push({
