@@ -126,6 +126,32 @@ Cypress.Commands.add('dispararDeteccaoRemissao', { prevSubject: 'element' }, (su
   return cy.wrap(subject);
 });
 
+/**
+ * Posiciona o cursor do Quill no início do p.texto__dispositivo do container (subject).
+ * Pré-condição para `cy.get('.btn-remissao-interna').click()`: o Quill precisa ter uma
+ * seleção ativa (quill.getSelection() != null) antes do clique. Clicar num <button> fora
+ * do ql-editor não limpa document.getSelection() no browser, portanto a seleção definida
+ * aqui persiste quando o handler do botão chama quill.getSelection().
+ */
+Cypress.Commands.add('posicionarCursorNoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
+  cy.window().then(win => {
+    const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+    const quill = editorEl?.quill;
+    if (!quill) return;
+
+    const p = subject[0]?.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+    if (!p) return;
+
+    const EtaQuillClass = quill.constructor as any;
+    const blot = EtaQuillClass.find(p);
+    if (!blot) return;
+
+    const blotStart = blot.offset(quill.scroll);
+    quill.setSelection(blotStart, 0, 'user');
+  });
+  return cy.wrap(subject);
+});
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -140,6 +166,7 @@ declare global {
       getDestinoRemissaoDestacado(): Cypress.Chainable<JQuery<HTMLElement>>;
       digitarTextoRemissao(texto: string): Cypress.Chainable<JQuery<HTMLElement>>;
       dispararDeteccaoRemissao(): Cypress.Chainable<JQuery<HTMLElement>>;
+      posicionarCursorNoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
     }
   }
 }

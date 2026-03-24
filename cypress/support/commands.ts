@@ -140,20 +140,48 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
     cy.get('#' + id)
       .find('p.texto__dispositivo')
       .click({ force: true });
-    // Passo 4: aguardar o menu ser montado e clicar no sl-dropdown (fresh query)
-    cy.get('#' + id + ' div.container__menu > sl-dropdown')
+    // Passo 3b: garante que o menu contextual seja montado para o dispositivo alvo.
+    // Problema: após criar um dispositivo, verificarMudouLinha detecta linhaCursor ===
+    // linhaCursorAnt (mesma linha) → mudouLinha=false → montarMenuContexto não é chamado.
+    // Solução: chamar marcarLinhaAtual diretamente, sem disparar selection-change,
+    // evitando efeitos colaterais como observableSelectionChange.notify com blot stale.
+    cy.window().then(win => {
+      const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+      const quill = editorEl?.quill;
+      if (!quill) return;
+      const containerEl = win.document.querySelector('#' + id) as HTMLElement;
+      if (!containerEl) return;
+      const p = containerEl.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+      if (!p) return;
+      const EtaQuillClass = quill.constructor as any;
+      const blot = EtaQuillClass.find(p);
+      if (!blot) return;
+      // EtaBlotConteudo.parent.parent.parent = EtaContainerTable (linha do dispositivo)
+      const linhaAlvo = blot.parent?.parent?.parent;
+      if (linhaAlvo) {
+        // Limpa destaque anterior e força montagem do menu sem selection-change.
+        (quill as any).desmarcarLinhas?.();
+        (quill as any).marcarLinhaAtual(linhaAlvo);
+      }
+    });
+    // Passo 4: aguardar o menu ser montado e clicar no trigger do sl-dropdown (fresh query).
+    // Clicamos em sl-button[slot="trigger"] (não no sl-dropdown host) para evitar disparar
+    // selection-change inesperado que pode mover o menu para outro container.
+    cy.get('#' + id + ' div.container__menu > sl-dropdown').should('exist');
+    cy.get('#' + id + ' sl-button[slot="trigger"]')
       .should('exist')
       .click({ force: true });
-    // Passo 5: clicar no item desejado (fresh query)
-    cy.get('#' + id + ' sl-menu > sl-menu-item')
-      .contains(opcaoDeMenu)
-      .click({ force: true });
+    // Passo 5: clicar no item desejado.
+    // Seletor global (sem prefixo #id) é mais robusto para o caso em que o panel
+    // do Shoelace foi movido para fora do container pelo mecanismo de hoist.
+    cy.contains('sl-menu-item', opcaoDeMenu).click({ force: true });
   } else {
     cy.wrap(subject).find('p.texto__dispositivo').should('exist');
     cy.wrap(subject).click({ force: true });
     cy.wrap(subject).find('p.texto__dispositivo').click({ force: true });
-    cy.wrap(subject).find('div.container__menu > sl-dropdown').click({ force: true });
-    cy.wrap(subject).find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click({ force: true });
+    cy.wrap(subject).find('div.container__menu > sl-dropdown').should('exist');
+    cy.wrap(subject).find('sl-button[slot="trigger"]').click({ force: true });
+    cy.contains('sl-menu-item', opcaoDeMenu).click({ force: true });
   }
 });
 
