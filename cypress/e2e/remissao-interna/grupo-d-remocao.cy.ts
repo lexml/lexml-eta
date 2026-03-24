@@ -74,40 +74,25 @@ describe('Remoção: seleção de trecho com dois links → ambos removidos', ()
   });
 
   it('CT-D-02: selecionar trecho inteiro via Quill e remover apaga ambos os links', () => {
-    // Selecionar o texto completo do dispositivo via quill.setSelection
-    cy.window().then(win => {
-      const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
-      const quill = editorEl?.quill;
-      if (!quill) return;
+    // Selecionar o texto completo do p.texto__dispositivo do Art. 3 via quill.setSelection
+    cy.getContainerArtigoByNumero(3).then($container => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
 
-      const containerEl = win.document.querySelector('#lxEtaId' + getIdArtigo3(win)) as HTMLElement;
-      if (!containerEl) {
-        // fallback: usa o terceiro container de artigo
-        const containers = win.document.querySelectorAll('[id^="lxEtaId"]');
-        const art3 = Array.from(containers).find(c => (c as HTMLElement).querySelector('span.rotulo__dispositivo')?.textContent?.trim().startsWith('Art. 3')) as
-          | HTMLElement
-          | undefined;
-        if (!art3) return;
-
-        const p = art3.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+        const p = $container[0].querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
         if (!p) return;
+
         const EtaQuillClass = quill.constructor as any;
         const blot = EtaQuillClass.find(p);
         if (!blot) return;
+
         const blotStart = blot.offset(quill.scroll);
         const blotLength = blot.length();
-        quill.setSelection(blotStart, blotLength, 'user');
-        return;
-      }
-
-      const p = containerEl.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
-      if (!p) return;
-      const EtaQuillClass = quill.constructor as any;
-      const blot = EtaQuillClass.find(p);
-      if (!blot) return;
-      const blotStart = blot.offset(quill.scroll);
-      const blotLength = blot.length();
-      quill.setSelection(blotStart, blotLength, 'user');
+        // blotLength inclui o newline terminal; selecionar blotLength - 1 para cobrir só o texto
+        quill.setSelection(blotStart, blotLength - 1, 'user');
+      });
     });
 
     // Botão de remoção deve estar habilitado (seleção cobre links)
@@ -142,16 +127,3 @@ describe('Remoção: botão disabled quando cursor está em texto sem link', () 
     cy.get(SEL_BTN_REMOVER).should('have.attr', 'disabled');
   });
 });
-
-// Helper — retorna o sufixo numérico do ID do container do Art. 3 via DOM
-// (necessário porque o ID é gerado dinamicamente pelo LexML)
-function getIdArtigo3(win: Window): string {
-  const containers = win.document.querySelectorAll('[id^="lxEtaId"]');
-  for (const c of containers) {
-    const rotulo = (c as HTMLElement).querySelector('span.rotulo__dispositivo');
-    if (rotulo?.textContent?.trim().startsWith('Art. 3')) {
-      return (c as HTMLElement).id.replace('lxEtaId', '');
-    }
-  }
-  return '';
-}
