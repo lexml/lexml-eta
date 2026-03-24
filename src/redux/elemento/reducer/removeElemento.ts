@@ -102,7 +102,7 @@ export const removeElemento = (state: any, action: any): State => {
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  const novoRegistroRemissoes = marcarRemissoesDoDestinoComoInvalidas(state.remissoes, lexmlIdRemovido);
+  const novoRegistroRemissoes = marcarRemissoesComoInvalidas(state.remissoes, lexmlIdRemovido);
 
   if (lexmlIdRemovido && uuidRemovido) {
     events.push({
@@ -153,7 +153,7 @@ export const removeElemento = (state: any, action: any): State => {
   };
 };
 
-const marcarRemissoesDoDestinoComoInvalidas = (registroAtual: Record<number, any[]> | undefined, lexmlIdRemovido: string | undefined): Record<number, any[]> | undefined => {
+const marcarRemissoesComoInvalidas = (registroAtual: Record<number, any[]> | undefined, lexmlIdRemovido: string | undefined): Record<number, any[]> | undefined => {
   if (!lexmlIdRemovido || !registroAtual) {
     return registroAtual;
   }

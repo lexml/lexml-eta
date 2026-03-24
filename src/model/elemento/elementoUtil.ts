@@ -28,6 +28,7 @@ import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
 import { isBloqueado } from '../lexml/regras/regrasUtil';
+import { Mensagem } from '../lexml/util/mensagem';
 
 export const isValid = (elemento?: Referencia): void => {
   if (elemento === undefined || elemento.uuid === undefined) {
@@ -146,6 +147,13 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
 export const createElementoValidado = (dispositivo: Dispositivo, procurarElementoAnterior = false): Elemento => {
   const el = createElemento(dispositivo, true, procurarElementoAnterior);
   el.mensagens = validaDispositivo(dispositivo);
+
+  return el;
+};
+
+export const createElementoValidadoComExtras = (dispositivo: Dispositivo, mensagensExtras: Mensagem[], procurarElementoAnterior = false): Elemento => {
+  const el = createElemento(dispositivo, true, procurarElementoAnterior);
+  el.mensagens = [...validaDispositivo(dispositivo), ...mensagensExtras];
 
   return el;
 };
