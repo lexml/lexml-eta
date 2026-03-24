@@ -1,21 +1,21 @@
-import { createElemento, listaDispositivosRenumerados } from './../../../model/elemento/elementoUtil';
-import { StateType } from './../../state';
+import { createElemento, listaDispositivosRenumerados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { State, StateType } from '../../state';
 import {
-  getDispositivoPosterior,
-  getDispositivoAnterior,
-  getPrimeiroAgrupadorNaArticulacao,
-  hasEmenta,
-  getTiposAgrupadorArtigoPermitidosNaArticulacao,
   getDispositivoAndFilhosAsLista,
-} from './../../../model/lexml/hierarquia/hierarquiaUtil';
+  getDispositivoAnterior,
+  getDispositivoPosterior,
+  getPrimeiroAgrupadorNaArticulacao,
+  getTiposAgrupadorArtigoPermitidosNaArticulacao,
+  hasEmenta,
+  hasFilhos,
+  isArtigoUnico,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isArticulacao, isArtigo, isEmenta } from '../../../model/dispositivo/tipo';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
-import { hasFilhos, isArtigoUnico, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
-import { State } from '../../state';
 import { getPaiQuePodeReceberFilhoDoTipo, removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
@@ -97,12 +97,12 @@ export const removeElemento = (state: any, action: any): State => {
   };
   listaDispositivosRenumerados(dispositivo).forEach(capturarComDescendentes);
 
-  // `dispositivo.id` e `dispositivo.uuid` são lidos APÓS removeAndBuildEvents, não afetados após remoção da árvore
   const lexmlIdRemovido = dispositivo.id;
   const uuidRemovido = dispositivo.uuid;
 
-  // CONTRATO: removeAndBuildEvents deve mutar os dispositivos in-place, sem recriar as instâncias.
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
+
+  const novoRegistroRemissoes = marcarRemissoesDoDestinoComoInvalidas(state.remissoes, lexmlIdRemovido);
 
   if (lexmlIdRemovido && uuidRemovido) {
     events.push({
@@ -148,5 +148,29 @@ export const removeElemento = (state: any, action: any): State => {
       events,
       alertas: state.ui?.alertas,
     },
+    remissoes: novoRegistroRemissoes,
+    mensagensCritical: state.mensagensCritical,
   };
+};
+
+const marcarRemissoesDoDestinoComoInvalidas = (registroAtual: Record<number, any[]> | undefined, lexmlIdRemovido: string | undefined): Record<number, any[]> | undefined => {
+  if (!lexmlIdRemovido || !registroAtual) {
+    return registroAtual;
+  }
+
+  const novoRegistro: Record<number, any[]> = {};
+  let houveAlteracao = false;
+
+  for (const uuid of Object.keys(registroAtual)) {
+    const remissoes = registroAtual[Number(uuid)];
+    novoRegistro[Number(uuid)] = remissoes.map((r: any) => {
+      if (r.targetLexmlId === lexmlIdRemovido && r.valida !== false) {
+        houveAlteracao = true;
+        return { ...r, valida: false };
+      }
+      return r;
+    });
+  }
+
+  return houveAlteracao ? novoRegistro : registroAtual;
 };

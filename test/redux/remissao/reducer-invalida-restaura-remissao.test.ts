@@ -199,3 +199,109 @@ describe('Invalidação e Restauração de Remissões', () => {
     });
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug fix (Etapa 1): state.remissoes preservado + marcação valida:false
+// ─────────────────────────────────────────────────────────────────────────────
+describe('state.remissoes após removeElemento (Etapa 1)', () => {
+  it('deve preservar state.remissoes após remover dispositivo', () => {
+    const { state: s, artigos } = criaStateComNArtigos(3);
+    const stateComRemissoes = {
+      ...s,
+      remissoes: {
+        [artigos[0].uuid!]: [{ refId: 'ref1', targetLexmlId: 'art3', targetUuid: artigos[2].uuid }],
+      },
+    };
+
+    const newState = removeElemento(stateComRemissoes, { atual: { uuid: artigos[1].uuid } });
+
+    expect(newState.remissoes).to.exist;
+    const entrada = (newState.remissoes as any)[artigos[0].uuid!];
+    expect(entrada).to.have.length(1);
+    expect(entrada[0].targetLexmlId).to.equal('art3');
+  });
+
+  it('deve marcar como valida:false a remissão cujo targetLexmlId é o id do dispositivo removido', () => {
+    const { state: s, artigos } = criaStateComNArtigos(3);
+    const art1 = artigos[0];
+    const art2 = artigos[1];
+    const lexmlIdArt2 = art2.id; // 'art2' antes da remoção
+
+    const stateComRemissoes = {
+      ...s,
+      remissoes: {
+        [art1.uuid!]: [{ refId: 'ref1', targetLexmlId: lexmlIdArt2, targetUuid: art2.uuid }],
+      },
+    };
+
+    const newState = removeElemento(stateComRemissoes, { atual: { uuid: art2.uuid } });
+
+    const remissoes = (newState.remissoes as any)[art1.uuid!];
+    expect(remissoes).to.have.length(1);
+    expect(remissoes[0].valida).to.equal(false, 'remissão apontando para dispositivo removido deve ter valida:false');
+  });
+
+  it('não deve afetar entradas cujo targetLexmlId é diferente do dispositivo removido', () => {
+    const { state: s, artigos } = criaStateComNArtigos(3);
+    const art1 = artigos[0];
+    const art2 = artigos[1];
+    const art3 = artigos[2];
+
+    // art1 aponta para art3 (não removido) e para art2 (removido)
+    const stateComRemissoes = {
+      ...s,
+      remissoes: {
+        [art1.uuid!]: [
+          { refId: 'ref-art3', targetLexmlId: art3.id, targetUuid: art3.uuid },
+          { refId: 'ref-art2', targetLexmlId: art2.id, targetUuid: art2.uuid },
+        ],
+      },
+    };
+
+    const newState = removeElemento(stateComRemissoes, { atual: { uuid: art2.uuid } });
+
+    const remissoes = (newState.remissoes as any)[art1.uuid!];
+    expect(remissoes).to.have.length(2);
+
+    const refArt3 = remissoes.find((r: any) => r.refId === 'ref-art3');
+    const refArt2 = remissoes.find((r: any) => r.refId === 'ref-art2');
+
+    expect(refArt3.valida).to.not.equal(false, 'remissão para art3 não deve ser afetada');
+    expect(refArt2.valida).to.equal(false, 'remissão para art2 removido deve ser marcada');
+  });
+
+  it('deve marcar valida:false em múltiplos dispositivos de origem que apontam para o mesmo destino removido', () => {
+    const { state: s, artigos } = criaStateComNArtigos(3);
+    const art1 = artigos[0];
+    const art2 = artigos[1];
+    const art3 = artigos[2];
+    const lexmlIdArt1 = art1.id; // 'art1'
+
+    // art2 e art3 ambos apontam para art1
+    const stateComRemissoes = {
+      ...s,
+      remissoes: {
+        [art2.uuid!]: [{ refId: 'ref-a', targetLexmlId: lexmlIdArt1, targetUuid: art1.uuid }],
+        [art3.uuid!]: [{ refId: 'ref-b', targetLexmlId: lexmlIdArt1, targetUuid: art1.uuid }],
+      },
+    };
+
+    const newState = removeElemento(stateComRemissoes, { atual: { uuid: art1.uuid } });
+
+    const remissoesArt2 = (newState.remissoes as any)[art2.uuid!];
+    const remissoesArt3 = (newState.remissoes as any)[art3.uuid!];
+
+    expect(remissoesArt2[0].valida).to.equal(false, 'origem art2 deve ter remissão marcada como inválida');
+    expect(remissoesArt3[0].valida).to.equal(false, 'origem art3 deve ter remissão marcada como inválida');
+  });
+
+  it('não deve lançar erro quando state.remissoes está vazio e um dispositivo é removido', () => {
+    const { state: s, artigos } = criaStateComNArtigos(3);
+    const stateVazio = { ...s, remissoes: {} };
+
+    expect(() => removeElemento(stateVazio, { atual: { uuid: artigos[1].uuid } })).to.not.throw();
+
+    const newState = removeElemento(stateVazio, { atual: { uuid: artigos[1].uuid } });
+    expect(newState.remissoes).to.exist;
+  });
+});

@@ -1,25 +1,3 @@
-export interface RemissaoInterna {
-  id: string;
-
-  elementoOrigemUuid: number;
-
-  dispositivoDestinoId: string;
-
-  dispositivoDestinoUuid: number;
-
-  indexInicio: number;
-
-  indexFim: number;
-
-  textoOriginal: string;
-
-  tipo: 'automatica' | 'manual';
-
-  dataCriacao: Date;
-
-  valida?: boolean;
-}
-
 export interface RemissaoInternaValue {
   refId: string;
 
@@ -38,6 +16,8 @@ export interface RemissaoInternaValue {
   textoFixo?: boolean;
 
   inicio?: number; // posição de início no texto do dispositivo de origem
+
+  valida?: boolean; // false = dispositivo destino foi excluído; undefined = sem informação de validade
 }
 
 export interface ReferenciaDetectada {

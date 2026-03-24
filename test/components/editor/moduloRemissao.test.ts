@@ -770,3 +770,174 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     });
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// marcarRemissoesComoInvalidas / restaurarRemissoesPorLexmlId
+//
+// Verifica o mecanismo de marcação CSS de remissões inválidas.
+// Estes testes documentam o comportamento ATUAL (apenas CSS) e servem de base
+// para a futura integração com o campo `valida` de RemissaoInternaValue
+// (ver PLANO_REMISSAO_INVALIDA_MENSAGEM.md, seção 0.1).
+// ─────────────────────────────────────────────────────────────────────────────
+describe('marcarRemissoesComoInvalidas / restaurarRemissoesPorLexmlId', () => {
+  let moduloRemissao: ModuloRemissao;
+  let rootElement: HTMLElement;
+
+  beforeEach(() => {
+    rootElement = document.createElement('div');
+    const mockQuill = {
+      root: rootElement,
+      getModule: () => null,
+      focus: (): void => {
+        /* vazio */
+      },
+      getSelection: () => null,
+      getFormat: () => ({}),
+      getLeaf: () => [null, 0],
+      format: (): void => {
+        /* vazio */
+      },
+      formatText: (): void => {
+        /* vazio */
+      },
+      getIndex: () => 0,
+      updateContents: (): void => {
+        /* vazio */
+      },
+      clipboard: {
+        addMatcher: (): void => {
+          /* vazio */
+        },
+      },
+      scroll: { descendant: () => [null, 0] },
+    };
+    moduloRemissao = new ModuloRemissao(mockQuill, {});
+  });
+
+  // ── marcarComoInvalida via findBlotByRefId mockado ────────────────────────
+
+  it('marcarComoInvalida: adiciona classe lexml-remissao-invalida ao link com refId correto', () => {
+    const link = document.createElement('a');
+    link.setAttribute('class', 'lexml-remissao-interna');
+    link.setAttribute('data-ref-id', 'ref_X');
+
+    // Mock de findBlotByRefId para simular Quill.find() sem instância real do Quill
+    (moduloRemissao as any).findBlotByRefId = () => ({ blot: { domNode: link }, index: 0 });
+
+    const resultado = moduloRemissao.marcarComoInvalida('ref_X');
+
+    expect(resultado).to.be.true;
+    expect(link.classList.contains('lexml-remissao-invalida')).to.be.true;
+    // Classe original deve ser preservada
+    expect(link.classList.contains('lexml-remissao-interna')).to.be.true;
+  });
+
+  it('marcarComoInvalida: retorna false quando refId não existe no DOM', () => {
+    (moduloRemissao as any).findBlotByRefId = () => null;
+
+    const resultado = moduloRemissao.marcarComoInvalida('ref_inexistente');
+
+    expect(resultado).to.be.false;
+  });
+
+  it('restaurarRemissao: remove classe lexml-remissao-invalida mantendo lexml-remissao-interna', () => {
+    const link = document.createElement('a');
+    link.setAttribute('class', 'lexml-remissao-interna lexml-remissao-invalida');
+    link.setAttribute('data-ref-id', 'ref_Y');
+
+    (moduloRemissao as any).findBlotByRefId = () => ({ blot: { domNode: link }, index: 0 });
+
+    const resultado = moduloRemissao.restaurarRemissao('ref_Y');
+
+    expect(resultado).to.be.true;
+    expect(link.classList.contains('lexml-remissao-invalida')).to.be.false;
+    expect(link.classList.contains('lexml-remissao-interna')).to.be.true;
+  });
+
+  // ── marcarRemissoesComoInvalidas (múltiplos links por lexmlId) ────────────
+
+  it('marcarRemissoesComoInvalidas: marca todos os links com data-lexml-ref igual ao lexmlId', () => {
+    rootElement.innerHTML = `
+      <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId10">art. 1º</a>
+      <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId20">art. 1º</a>
+      <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_C" href="#lxEtaId30">art. 2º</a>
+    `;
+
+    // marcarRemissoesComoInvalidas usa querySelectorAll direto — não precisa do blot real
+    // Redefine marcarComoInvalida para operar no nó DOM sem precisar de Quill.find()
+    (moduloRemissao as any).marcarComoInvalida = (refId: string): boolean => {
+      const link = rootElement.querySelector(`[data-ref-id="${refId}"]`) as HTMLElement | null;
+      if (!link) return false;
+      link.classList.add('lexml-remissao-invalida');
+      return true;
+    };
+
+    const count = moduloRemissao.marcarRemissoesComoInvalidas('art1');
+
+    expect(count).to.equal(2);
+    expect((rootElement.querySelector('[data-ref-id="ref_A"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.true;
+    expect((rootElement.querySelector('[data-ref-id="ref_B"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.true;
+    // Link de outro dispositivo não deve ser afetado
+    expect((rootElement.querySelector('[data-ref-id="ref_C"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.false;
+  });
+
+  it('marcarRemissoesComoInvalidas: retorna 0 quando não há links com o lexmlId indicado', () => {
+    rootElement.innerHTML = `
+      <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_A" href="#lxEtaId10">art. 2º</a>
+    `;
+
+    const count = moduloRemissao.marcarRemissoesComoInvalidas('art1');
+
+    expect(count).to.equal(0);
+  });
+
+  it('restaurarRemissoesPorLexmlId: restaura todos os links inválidos com data-lexml-ref igual ao lexmlId', () => {
+    rootElement.innerHTML = `
+      <a class="lexml-remissao-interna lexml-remissao-invalida" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId10">art. 1º</a>
+      <a class="lexml-remissao-interna lexml-remissao-invalida" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId20">art. 1º</a>
+    `;
+
+    (moduloRemissao as any).restaurarRemissao = (refId: string): boolean => {
+      const link = rootElement.querySelector(`[data-ref-id="${refId}"]`) as HTMLElement | null;
+      if (!link) return false;
+      link.classList.remove('lexml-remissao-invalida');
+      return true;
+    };
+
+    const count = moduloRemissao.restaurarRemissoesPorLexmlId('art1');
+
+    expect(count).to.equal(2);
+    expect((rootElement.querySelector('[data-ref-id="ref_A"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.false;
+    expect((rootElement.querySelector('[data-ref-id="ref_B"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.false;
+  });
+
+  // ── RemissaoInternaValue: campo valida (GAP documentado) ─────────────────
+  //
+  // ATENÇÃO: os testes abaixo documentam o comportamento ESPERADO após a
+  // implementação do campo `valida` em RemissaoInternaValue.
+  // Hoje o campo só existe em RemissaoInterna (interface não utilizada).
+  // Ao adicionar `valida?: boolean` em RemissaoInternaValue, descomente os testes.
+  //
+  // it('RemissaoInternaValue deve aceitar campo valida: false', () => {
+  //   const value: RemissaoInternaValue = {
+  //     refId: 'ref_1',
+  //     targetLexmlId: 'art1',
+  //     valida: false,
+  //   };
+  //   expect(value.valida).to.be.false;
+  // });
+  //
+  // it('RemissaoInternaValue deve aceitar campo valida: true', () => {
+  //   const value: RemissaoInternaValue = {
+  //     refId: 'ref_1',
+  //     targetLexmlId: 'art1',
+  //     valida: true,
+  //   };
+  //   expect(value.valida).to.be.true;
+  // });
+  //
+  // it('campo valida deve ser opcional (undefined = sem informação de validade)', () => {
+  //   const value: RemissaoInternaValue = { refId: 'ref_1' };
+  //   expect(value.valida).to.be.undefined;
+  // });
+});
