@@ -26,11 +26,11 @@ describe('Testando funções de conversão de html', () => {
   });
 });
 
-describe('Testando editor-texto-rico (EditorTextoRicoComponent)', () => {
+describe('Testando lexml-eta-editor-texto-rico (EditorTextoRicoComponent)', () => {
   beforeEach(async function () {
     // const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
     // state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE });
-    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<editor-texto-rico></editor-texto-rico>`);
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
 
     rootStore.getState().elementoReducer = {
       articulacao: undefined,

@@ -2,22 +2,22 @@ import { html } from 'lit';
 
 export const editorTextoRicoCss = html`
   <style>
-    .editor-texto-rico {
+    .lexml-eta-editor-texto-rico {
       height: 375px;
       font-size: 18px !important;
     }
-    .editor-texto-rico p,
-    .editor-texto-rico ol,
-    .editor-texto-rico ul {
+    .lexml-eta-editor-texto-rico p,
+    .lexml-eta-editor-texto-rico ol,
+    .lexml-eta-editor-texto-rico ul {
       margin-bottom: 0.7rem;
     }
-    .editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
+    .lexml-eta-editor-texto-rico p:not(.ql-align-rigth, .ql-align-center) {
       text-indent: 3rem;
     }
     .ql-toolbar.ql-snow .ql-formats {
       margin-right: 8px;
     }
-    .editor-texto-rico.ql-snow .ql-tooltip {
+    .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip {
       font-family: var(--eta-font-sans);
       font-size: 0.9rem;
     }
@@ -31,32 +31,32 @@ export const editorTextoRicoCss = html`
       padding: 0 15px;
       margin: 0 0 0 10px;
     }
-    .editor-texto-rico.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+    .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
       content: 'Salvar';
       margin: 0 !important;
       padding: 0 !important;
     }
-    .editor-texto-rico.ql-snow .ql-tooltip a.ql-action::after {
+    .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip a.ql-action::after {
       display: inline;
       content: 'Editar';
       margin: 0 !important;
       padding: 0 !important;
       border: 0;
     }
-    .editor-texto-rico.ql-snow .ql-tooltip a.ql-remove::before {
+    .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip a.ql-remove::before {
       display: inline;
       content: 'Remover';
       margin: 0 !important;
       padding: 0 !important;
     }
-    .editor-texto-rico.ql-snow .ql-tooltip[data-mode='link']::before {
+    .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip[data-mode='link']::before {
       content: 'Insira o link:';
     }
-    .editor-texto-rico.ql-snow .ql-tooltip::before {
+    .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip::before {
       content: 'Visite o link:';
     }
     @media (max-width: 600px) {
-      .editor-texto-rico.ql-snow .ql-tooltip {
+      .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip {
         display: flex;
         gap: 5px;
         flex-direction: column;
@@ -65,17 +65,17 @@ export const editorTextoRicoCss = html`
       .ql-tooltip .ql-remove {
         margin: 0;
       }
-      .editor-texto-rico.ql-snow .ql-tooltip.ql-hidden {
+      .lexml-eta-editor-texto-rico.ql-snow .ql-tooltip.ql-hidden {
         display: none;
       }
     }
 
-    .editor-texto-rico .estilo-ementa {
+    .lexml-eta-editor-texto-rico .estilo-ementa {
       text-indent: 0 !important;
       text-align: justify;
       margin-left: 40%;
     }
-    .editor-texto-rico .estilo-norma-alterada {
+    .lexml-eta-editor-texto-rico .estilo-norma-alterada {
       margin-left: 3rem;
     }
 
@@ -254,11 +254,11 @@ export const editorTextoRicoCss = html`
       max-width: 100%;
     }
 
-    .editor-texto-rico p.ql-text-indent-0px {
+    .lexml-eta-editor-texto-rico p.ql-text-indent-0px {
       text-indent: 0;
     }
 
-    .editor-texto-rico p.ql-margin-bottom-0px {
+    .lexml-eta-editor-texto-rico p.ql-margin-bottom-0px {
       margin-bottom: 0;
     }
 
@@ -274,27 +274,27 @@ export const editorTextoRicoCss = html`
       /* #f8d7da; */
     }
 
-    .editor-texto-rico .ql-tooltip input:invalid {
+    .lexml-eta-editor-texto-rico .ql-tooltip input:invalid {
       color: red;
     }
 
-    .editor-texto-rico .ql-tooltip div.tooltip-invalid-message {
+    .lexml-eta-editor-texto-rico .ql-tooltip div.tooltip-invalid-message {
       color: red;
       display: none;
       font-family: var(--eta-font-sans);
       font-size: 0.9rem;
     }
 
-    .editor-texto-rico .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
+    .lexml-eta-editor-texto-rico .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
       content: 'A URL deve iniciar com http:// ou https://';
     }
 
-    .editor-texto-rico .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
+    .lexml-eta-editor-texto-rico .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
       display: block;
     }
 
     @-moz-document url-prefix() {
-      #editor-texto-rico-justificativa-inner > .ql-editor {
+      #lexml-eta-editor-texto-rico-justificativa-inner > .ql-editor {
         white-space: pre-wrap;
       }
     }

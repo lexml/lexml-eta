@@ -194,7 +194,7 @@ Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subjec
 
 Cypress.Commands.add('inserirTextoNaJustificacao', (texto: string): Cypress.Chainable<JQuery<HTMLElement>> => {
   cy.get('#sl-tab-2').click();
-  cy.get('#editor-texto-rico-justificativa-inner > .ql-editor')
+  cy.get('#lexml-eta-editor-texto-rico-justificativa-inner > .ql-editor')
     .as('qlJustificacao')
     .should('be.visible')
     .focus()
@@ -209,7 +209,7 @@ Cypress.Commands.add('getTextoDoDispositivo', { prevSubject: 'element' }, (subje
 });
 
 Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
-  return cy.get('lexml-eta-emenda lexml-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
+  return cy.get('lexml-eta-emenda lexml-eta-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
 });
 
 Cypress.Commands.add('getCheckRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -260,8 +260,8 @@ Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaEstruturada', (payload
   // lexml-eta deve existir e estar visível
   cy.get('lexml-eta-proposicao').should('exist').should('have.attr', 'style', 'display: block');
 
-  // editor-texto-rico deve existir e estar oculto
-  cy.get('editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: none');
+  // lexml-eta-editor-texto-rico deve existir e estar oculto
+  cy.get('lexml-eta-editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: none');
 
   payload.totalElementos && cy.get('div.container__elemento').should('have.length', payload.totalElementos);
 });

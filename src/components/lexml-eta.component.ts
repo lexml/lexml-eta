@@ -125,15 +125,15 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   @query('lexml-eta-proposicao')
   _lexmlEta?: LexmlEtaProposicaoComponent;
-  @query('#editor-texto-rico-justificativa')
+  @query('#lexml-eta-editor-texto-rico-justificativa')
   _lexmlJustificativa;
-  @query('lexml-destino')
+  @query('lexml-eta-destino')
   _lexmlDestino?: DestinoComponent;
-  @query('lexml-autoria')
+  @query('lexml-eta-autoria')
   _lexmlAutoria;
-  @query('lexml-data')
+  @query('lexml-eta-data')
   _lexmlData;
-  @query('lexml-opcoes-impressao')
+  @query('lexml-eta-opcoes-impressao')
   _lexmlOpcoesImpressao;
   @query('#tabs-esquerda')
   _tabsEsquerda;
@@ -591,7 +591,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
     const proposicaoTabPanel = getElement('sl-tab-panel[name="lexml-eta-proposicao"]');
-    const qlToolbarJustificativa = getElement('#editor-texto-rico-justificativa .ql-toolbar');
+    const qlToolbarJustificativa = getElement('#lexml-eta-editor-texto-rico-justificativa .ql-toolbar');
     const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
 
     const estilosOriginais = {
@@ -713,7 +713,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        /* #editor-texto-rico-justificativa #editor-texto-rico {
+        /* #lexml-eta-editor-texto-rico-justificativa #lexml-eta-editor-texto-rico {
           height: calc(var(--height) - 44px);
           overflow: var(--overflow);
         } */
@@ -855,22 +855,22 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden">
-              <editor-texto-rico
+              <lexml-eta-editor-texto-rico
                 .lexmlEtaConfig=${this.lexmlEmendaConfig}
                 modo="justificativa"
-                id="editor-texto-rico-justificativa"
+                id="lexml-eta-editor-texto-rico-justificativa"
                 registroEvento="justificativa"
                 @onchange=${this.onChange}
-              ></editor-texto-rico>
+              ></lexml-eta-editor-texto-rico>
             </sl-tab-panel>
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">
-                <lexml-destino .comissoes=${this.comissoes}></lexml-destino>
+                <lexml-eta-destino .comissoes=${this.comissoes}></lexml-eta-destino>
                 <br />
-                <lexml-data></lexml-data>
+                <lexml-eta-data></lexml-eta-data>
                 <br />
-                <lexml-autoria .parlamentares=${this.parlamentares}></lexml-autoria>
-                <lexml-opcoes-impressao></lexml-opcoes-impressao>
+                <lexml-eta-autoria .parlamentares=${this.parlamentares}></lexml-eta-autoria>
+                <lexml-eta-opcoes-impressao></lexml-eta-opcoes-impressao>
               </div>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
@@ -921,7 +921,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               </div>
             </sl-tab-panel>
             <sl-tab-panel name="dicas" class="overflow-hidden">
-              <lexml-ajuda></lexml-ajuda>
+              <lexml-eta-ajuda></lexml-eta-ajuda>
             </sl-tab-panel>
             <sl-tab-panel name="atalhos" class="overflow-hidden">
               <lexml-eta-atalhos></lexml-eta-atalhos>
@@ -1006,13 +1006,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   localizarNotaRodape(idNotaRodape: any): void {
     // const idNotaRodape = event.target.getAttribute('idNotaRodape');
-    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const notaRodapeElement = this.querySelector(`.ql-editor lexml-eta-nota-rodape[id-lexml-eta-nota-rodape="${idNotaRodape}"]`);
     const tab = this.getTabFromElement(notaRodapeElement);
     this.focusOnTab(tab.getAttribute('name'));
     notaRodapeElement && setTimeout(() => notaRodapeElement.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-    const notasRodape = this.querySelectorAll('.ql-editor nota-rodape');
+    const notasRodape = this.querySelectorAll('.ql-editor lexml-eta-nota-rodape');
     notasRodape.forEach(nr => {
-      if (nr.attributes['id-nota-rodape'].value === idNotaRodape) {
+      if (nr.attributes['id-lexml-eta-nota-rodape'].value === idNotaRodape) {
         nr?.classList.add('pulse');
       } else {
         nr.classList.remove('pulse');
@@ -1038,13 +1038,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   removerPulsarNotaRodape(idNotaRodape: any): void {
-    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const notaRodapeElement = this.querySelector(`.ql-editor lexml-eta-nota-rodape[id-lexml-eta-nota-rodape="${idNotaRodape}"]`);
     notaRodapeElement?.classList.remove('pulse');
   }
 
   editarNotaRodape(event: any): void {
     const idNotaRodape = event.target.getAttribute('idNotaRodape');
-    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const notaRodapeElement = this.querySelector(`.ql-editor lexml-eta-nota-rodape[id-lexml-eta-nota-rodape="${idNotaRodape}"]`);
     const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
     editorTextoRico?.focus();
     editorTextoRico.editarNotaRodape(idNotaRodape);
@@ -1052,14 +1052,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   removerNotaRodape(event: any): void {
     const idNotaRodape = event.target.getAttribute('idNotaRodape');
-    const notaRodapeElement = this.querySelector(`.ql-editor nota-rodape[id-nota-rodape="${idNotaRodape}"]`);
+    const notaRodapeElement = this.querySelector(`.ql-editor lexml-eta-nota-rodape[id-lexml-eta-nota-rodape="${idNotaRodape}"]`);
     const editorTextoRico = this.getEditorTextoRicoFromElement(notaRodapeElement);
     editorTextoRico?.focus();
     editorTextoRico.removerNotaRodape(idNotaRodape);
   }
 
   getEditorTextoRicoFromElement(element: any): any {
-    return element.closest('editor-texto-rico');
+    return element.closest('lexml-eta-editor-texto-rico');
   }
 
   getTabFromElement(element: any): any {

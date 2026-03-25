@@ -3,7 +3,7 @@ import { customElement, property, state, query } from 'lit/decorators.js';
 import { Option, AutocompleteAsync } from './autocomplete-async';
 import { Norma } from '../../model/emenda/norma';
 
-@customElement('autocomplete-norma')
+@customElement('lexml-eta-autocomplete-norma')
 export class AutocompleteNorma extends LitElement {
   @property({ type: String })
   urnInicial = '';
@@ -117,7 +117,7 @@ export class AutocompleteNorma extends LitElement {
         }
       </style>
       <div>
-        <autocomplete-async
+        <lexml-eta-autocomplete-async
           id="auto-complete-async"
           label="Identificação da norma"
           placeholder="ex: Lei 10406 ou Código Civil"
@@ -135,6 +135,6 @@ export class AutocompleteNorma extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'autocomplete-norma': AutocompleteNorma;
+    'lexml-eta-autocomplete-norma': AutocompleteNorma;
   }
 }

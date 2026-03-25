@@ -79,13 +79,13 @@ import { Anexo } from '../../model/emenda/emenda';
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
 
-  @query('lexml-ajuda-modal')
+  @query('lexml-eta-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
 
-  @query('lexml-atalhos-modal')
+  @query('lexml-eta-atalhos-modal')
   private atalhosModal!: AtalhosModalComponent;
 
-  @query('lexml-sufixos-modal')
+  @query('lexml-eta-sufixos-modal')
   private sufixosModal!: SufixosModalComponent;
 
   @query('#btnAceitarTodasRevisoes')
@@ -253,13 +253,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <span id="pos-select-paginacao"></span>
 
-          <lexml-switch-revisao
+          <lexml-eta-switch-revisao
           class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
           modo="${this.modo}"
           >
-          </lexml-switch-revisao>
+          </lexml-eta-switch-revisao>
 
           ${this.exibirBotoesParaTratarTodas ? this.renderBotoesParaTratarTodasRevisoes() : ''}
 
@@ -278,9 +278,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         <div id="lx-eta-editor"></div>
       </div>
       <div id="lx-eta-buffer"><p></p></div>
-      <lexml-ajuda-modal></lexml-ajuda-modal>
-      <lexml-atalhos-modal></lexml-atalhos-modal>
-      <lexml-sufixos-modal></lexml-sufixos-modal>
+      <lexml-eta-ajuda-modal></lexml-eta-ajuda-modal>
+      <lexml-eta-atalhos-modal></lexml-eta-atalhos-modal>
+      <lexml-eta-sufixos-modal></lexml-eta-sufixos-modal>
       <proposicao-dividida-modal></proposicao-dividida-modal>
     `;
   }
