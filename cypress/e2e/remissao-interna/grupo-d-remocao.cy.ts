@@ -21,8 +21,8 @@
  *   removerRemissao() chama removerRemissoesNoRange() → formatText() → remove o DOM <a>.
  */
 
-const SEL_BTN_REMOVER = '.btn-remover-remissao';
-const SEL_LINK = 'a.lexml-remissao-interna';
+export const SEL_BTN_REMOVER = '.btn-remover-remissao';
+export const SEL_LINK = 'a.lexml-remissao-interna';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CT-D-01 — Remover remissão posicionando cursor sobre o link
