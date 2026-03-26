@@ -103,6 +103,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   let revisoes = (state as State).revisoes || [];
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
   const paginacao = (state as State).ui?.paginacao;
+  const remissoes = (state as State).remissoes;
 
   switch (action.type) {
     case NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS:
@@ -267,6 +268,11 @@ export const elementoReducer = (state = {}, action: any): any => {
 
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
+
+  // Preserva remissões quando o reducer não as gerencia explicitamente
+  if (tempState.remissoes === undefined) {
+    tempState.remissoes = remissoes;
+  }
 
   // Garante que a paginação esteja presente no estado
   if (![SELECIONAR_PAGINA_ARTICULACAO, ABRIR_ARTICULACAO, NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS].includes(actionType)) {
