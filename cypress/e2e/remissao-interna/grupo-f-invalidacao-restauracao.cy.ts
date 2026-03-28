@@ -39,6 +39,7 @@ const SEL_BTN_DESFAZER = '.lx-eta-btn-desfazer';
  *   numerados ("Art. 1." e "Art. 2.").
  */
 function configurarEstadoComRemissaoInvalida(): void {
+  cy.visit('/');
   cy.novaProposicao();
   cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -132,6 +133,7 @@ describe('Invalidação e restauração de remissão', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Invalidação: excluir dispositivo não referenciado não afeta remissões válidas', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 

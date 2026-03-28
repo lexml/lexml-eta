@@ -13,6 +13,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: referências relativas ao artigo corrente', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -64,6 +65,7 @@ describe('Detecção contextual: referências relativas ao artigo corrente', () 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: referência ao parágrafo a partir de inciso no caput', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -97,6 +99,7 @@ describe('Detecção contextual: referência ao parágrafo a partir de inciso no
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: referências a inciso e parágrafo único do artigo', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -137,6 +140,7 @@ describe('Detecção contextual: referências a inciso e parágrafo único do ar
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: referência a inciso do parágrafo corrente', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -170,6 +174,7 @@ describe('Detecção contextual: referência a inciso do parágrafo corrente', (
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: cadeia composta inciso + parágrafo do artigo', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -203,6 +208,7 @@ describe('Detecção contextual: cadeia composta inciso + parágrafo do artigo',
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: referência a inciso do caput deste artigo', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -239,6 +245,7 @@ describe('Detecção contextual: referência a inciso do caput deste artigo', ()
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção contextual: referência contextual sem dispositivo destino', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
   });

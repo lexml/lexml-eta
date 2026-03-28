@@ -128,23 +128,26 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
   // Cada passo usa cy.get() independente (não chained) para evitar referência stale
   // causada por re-renders do LitElement após cada interação.
   const id = subject[0]?.id;
-  if (id) {
-    // Passo 1: aguardar o conteúdo Quill ser renderizado (p.texto__dispositivo pode ainda
-    // estar inicializando quando o elemento foi recém criado)
+  if (!id) {
+    cy.wrap(subject).find('p.texto__dispositivo').should('exist');
+    cy.wrap(subject).click({ force: true });
+    cy.wrap(subject).find('p.texto__dispositivo').click({ force: true });
+    cy.wrap(subject).find('div.container__menu > sl-dropdown').should('exist');
+    cy.wrap(subject).find('sl-button[slot="trigger"]').click({ force: true });
+    cy.contains('sl-menu-item', opcaoDeMenu).click({ force: true });
+    return;
+  }
+
+  // Função que executa toda a sequência: click no texto + marcarLinhaAtual.
+  // Retorna true (via side-effect no DOM) se o dropdown foi montado.
+  const clicarEMontarMenu = (): void => {
     cy.get('#' + id)
       .find('p.texto__dispositivo')
       .should('exist');
-    // Passo 2: click no container para disparar hover/foco
     cy.get('#' + id).click({ force: true });
-    // Passo 3: click no texto para garantir selection-change no Quill
     cy.get('#' + id)
       .find('p.texto__dispositivo')
       .click({ force: true });
-    // Passo 3b: garante que o menu contextual seja montado para o dispositivo alvo.
-    // Problema: após criar um dispositivo, verificarMudouLinha detecta linhaCursor ===
-    // linhaCursorAnt (mesma linha) → mudouLinha=false → montarMenuContexto não é chamado.
-    // Solução: chamar marcarLinhaAtual diretamente, sem disparar selection-change,
-    // evitando efeitos colaterais como observableSelectionChange.notify com blot stale.
     cy.window().then(win => {
       const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
       const quill = editorEl?.quill;
@@ -156,33 +159,39 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
       const EtaQuillClass = quill.constructor as any;
       const blot = EtaQuillClass.find(p);
       if (!blot) return;
-      // EtaBlotConteudo.parent.parent.parent = EtaContainerTable (linha do dispositivo)
       const linhaAlvo = blot.parent?.parent?.parent;
       if (linhaAlvo) {
-        // Limpa destaque anterior e força montagem do menu sem selection-change.
         (quill as any).desmarcarLinhas?.();
         (quill as any).marcarLinhaAtual(linhaAlvo);
       }
     });
-    // Passo 4: aguardar o menu ser montado e clicar no trigger do sl-dropdown (fresh query).
-    // Clicamos em sl-button[slot="trigger"] (não no sl-dropdown host) para evitar disparar
-    // selection-change inesperado que pode mover o menu para outro container.
-    cy.get('#' + id + ' div.container__menu > sl-dropdown').should('exist');
-    cy.get('#' + id + ' sl-button[slot="trigger"]')
-      .should('exist')
-      .click({ force: true });
-    // Passo 5: clicar no item desejado.
-    // Seletor global (sem prefixo #id) é mais robusto para o caso em que o panel
-    // do Shoelace foi movido para fora do container pelo mecanismo de hoist.
-    cy.contains('sl-menu-item', opcaoDeMenu).click({ force: true });
-  } else {
-    cy.wrap(subject).find('p.texto__dispositivo').should('exist');
-    cy.wrap(subject).click({ force: true });
-    cy.wrap(subject).find('p.texto__dispositivo').click({ force: true });
-    cy.wrap(subject).find('div.container__menu > sl-dropdown').should('exist');
-    cy.wrap(subject).find('sl-button[slot="trigger"]').click({ force: true });
-    cy.contains('sl-menu-item', opcaoDeMenu).click({ force: true });
-  }
+  };
+
+  // Tenta abrir o menu até 4 vezes. A cada tentativa falha, aguarda 500ms
+  // para dar tempo ao Parchment de registrar blots recém-criados.
+  const MAX_TENTATIVAS = 4;
+  const tentarAbrirMenu = (tentativa: number): void => {
+    if (tentativa > 0) {
+      cy.wait(500);
+    }
+    clicarEMontarMenu();
+    cy.get('#' + id).then($el => {
+      if ($el.find('div.container__menu > sl-dropdown').length === 0 && tentativa < MAX_TENTATIVAS) {
+        tentarAbrirMenu(tentativa + 1);
+      }
+    });
+  };
+  tentarAbrirMenu(0);
+
+  // Aguarda o dropdown com timeout generoso
+  cy.get('#' + id + ' div.container__menu > sl-dropdown', { timeout: 10000 }).should('exist');
+  cy.get('#' + id + ' sl-button[slot="trigger"]')
+    .should('exist')
+    .click({ force: true });
+  // Aguarda menu-items e clica no item desejado.
+  // Seletor global: Shoelace pode mover o panel para fora do container.
+  cy.get('sl-menu-item', { timeout: 8000 }).should('exist');
+  cy.contains('sl-menu-item', opcaoDeMenu, { timeout: 8000 }).click({ force: true });
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {

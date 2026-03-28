@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção absoluta: artigo simples e negativo', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -64,6 +65,7 @@ describe('Detecção absoluta: artigo simples e negativo', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção absoluta: referência composta 2 níveis sem duplicação', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -101,6 +103,7 @@ describe('Detecção absoluta: referência composta 2 níveis sem duplicação',
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Detecção absoluta: referência composta 3 níveis sem duplicação', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 

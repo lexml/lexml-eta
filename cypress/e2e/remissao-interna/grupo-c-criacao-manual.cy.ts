@@ -30,6 +30,7 @@ const SEL_BTN_CONFIRMAR = '#btn-confirmar';
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -101,6 +102,7 @@ describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Criação manual: confirmação via duplo clique no item do diálogo', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -109,27 +111,42 @@ describe('Criação manual: confirmação via duplo clique no item do diálogo',
   });
 
   it('Duplo clique no item confirma sem precisar clicar no botão "Confirmar"', () => {
-    // Posiciona cursor no Quill do art. 1
-    cy.getContainerArtigoByNumero(1).posicionarCursorNoDispositivo();
+    // Posiciona cursor e abre o diálogo via click nativo (mesmo padrão de CT-C-01).
+    // cy.click() despacha mousedown que limpa selection — click nativo preserva savedRange.
+    cy.getContainerArtigoByNumero(1).then($container => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
 
-    // Abre o diálogo
-    cy.get('.btn-remissao-interna').click();
+        const p = $container[0]?.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+        if (!p) return;
+
+        const EtaQuillClass = quill.constructor as any;
+        const blot = EtaQuillClass.find(p);
+        if (!blot) return;
+
+        const blotStart = blot.offset(quill.scroll);
+        quill.setSelection(blotStart, 0, 'user');
+
+        const btn = win.document.querySelector('.btn-remissao-interna') as HTMLElement;
+        btn?.click();
+      });
+    });
+
     cy.get(SEL_DIALOG).should('exist');
 
     // Busca o dispositivo
     cy.get(SEL_INPUT_BUSCA).shadow().find('input').type('Art. 2');
     cy.get(SEL_ITEM).should('have.length.gte', 1);
 
-    // Clique simples para habilitar o botão Confirmar (define disabled=false na prop do sl-button).
+    // Clique simples para habilitar o botão Confirmar
     cy.get(SEL_ITEM).first().click();
 
-    // Aguardar o LitElement aplicar a atualização ao shadow button.
-    // O sl-button sobrescreve click() para chamar this.button.click() (shadow <button>).
-    // Browsers ignoram .click() em elementos com disabled attribute (HTML spec §buttons).
-    // Sem este await, o dblclick dispara btnConfirmar.click() antes do Lit remover o disabled.
+    // Aguardar o shadow button ficar habilitado
     cy.get(SEL_BTN_CONFIRMAR).shadow().find('button').should('not.have.attr', 'disabled');
 
-    // Despachar dblclick nativamente: btnConfirmar.click() agora chama o shadow button habilitado
+    // Duplo clique nativo no item: aciona listener dblclick → btnConfirmar.click()
     cy.get(SEL_ITEM)
       .first()
       .then($item => {

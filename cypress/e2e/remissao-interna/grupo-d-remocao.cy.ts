@@ -29,6 +29,7 @@ export const SEL_LINK = 'a.lexml-remissao-interna';
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Remoção: seleção sobre link → botão habilitado → link removido', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -85,6 +86,7 @@ describe('Remoção: seleção sobre link → botão habilitado → link removid
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Remoção: seleção abrangendo dois links → ambos removidos', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
 
@@ -143,6 +145,7 @@ describe('Remoção: seleção abrangendo dois links → ambos removidos', () =>
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Remoção: botão disabled quando cursor está em texto sem link', () => {
   beforeEach(() => {
+    cy.visit('/');
     cy.novaProposicao();
     cy.getContainerArtigoByNumero(1).should('exist');
   });
