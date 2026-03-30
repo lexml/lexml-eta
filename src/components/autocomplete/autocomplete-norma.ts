@@ -125,7 +125,7 @@ export class AutocompleteNorma extends LitElement {
           .onSearch=${value => this._handleSearch(value)}
           .onSelect=${value => this._handleSelect(value)}
           .onChange=${value => this._handleChange(value)}
-        ></autocomplete-async>
+        ></lexml-eta-autocomplete-async>
         <span class="ajuda">Informar a identificação da norma com tipo e número ou o apelido da norma. São aceitas abreviações como LCP e MPV.</span>
         <label class="lb-ementa">Ementa:</label>
         <div class="wp-ementa"><span class="sp-ementa">${(this._selectedNorma.ementa || '').slice(0, 450)}</span></div>

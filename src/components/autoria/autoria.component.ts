@@ -188,7 +188,7 @@ export class AutoriaComponent extends LitElement {
             @autocomplete=${(ev: CustomEvent): void => this._atualizarParlamentar(ev, index)}
             @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
             @click=${this._handleClickAutoComplete}
-          ></lexml-autocomplete>
+          ></lexml-eta-autocomplete>
         </div>
 
         <div class="autoria-grid--col2">

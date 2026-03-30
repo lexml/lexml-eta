@@ -2,8 +2,17 @@ import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { terser } from "rollup-plugin-terser";
 
+const external = id =>
+  id === 'lit' ||
+  id.startsWith('lit/') ||
+  id === 'lit-html' ||
+  id.startsWith('lit-html/') ||
+  id === '@shoelace-style/shoelace' ||
+  id.startsWith('@shoelace-style/shoelace/');
+
 const configTs = {
 	input: 'src/index.ts',
+	external,
 	output: {
 		dir: 'dist',
 		sourcemap: true,
@@ -16,6 +25,7 @@ const configTs = {
 
 const configTsMin = {
 	input: 'src/index.ts',
+	external,
 	output: {
 		file: 'dist/index.min.js',
     sourcemap: true,
@@ -32,4 +42,3 @@ export default [
 	configTs,
   configTsMin,
 ]
-

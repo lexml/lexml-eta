@@ -194,7 +194,7 @@ export class DestinoComponent extends LitElement {
             .onClick="${() => this._exibirComissoes()}"
             @blur=${this._blurAutoComplete}
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
-          ></autocomplete-async>
+          ></lexml-eta-autocomplete-async>
           ${this.isErroComissaoSelecionada ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
         </div>
       </fieldset>
