@@ -76,5 +76,6 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
       events: eventosUi.build(),
       alertas: state.ui?.alertas,
     },
+    remissoes: state.remissoes,
   };
 };
