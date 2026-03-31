@@ -84,13 +84,15 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
         });
       });
       const lexmlEmenda = document.querySelector('lexml-eta') as LexmlEtaComponent;
-      lexmlEmenda.totalAlertas = this.alertas.length;
-      const oldValue = changedProperties.get('alertas')?.length || 0;
+      if (lexmlEmenda) {
+        lexmlEmenda.totalAlertas = this.alertas.length;
+        const oldValue = changedProperties.get('alertas')?.length || 0;
 
-      if (lexmlEmenda.totalAlertas > oldValue) {
-        const badge = document.querySelector('#contadorAvisos')?.querySelector('sl-badge') as SlBadge;
-        if (badge) {
-          badge.pulse = true;
+        if (lexmlEmenda.totalAlertas > oldValue) {
+          const badge = document.querySelector('#contadorAvisos')?.querySelector('sl-badge') as SlBadge;
+          if (badge) {
+            badge.pulse = true;
+          }
         }
       }
     }
