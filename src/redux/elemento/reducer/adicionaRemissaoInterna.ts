@@ -1,4 +1,5 @@
-import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
+import { getDispositivoFromElemento, createElemento, createElementoValidadoComExtras } from '../../../model/elemento/elementoUtil';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
@@ -77,8 +78,11 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
+  const oldEntries = state.remissoes?.[dispositivo.uuid!] ?? [];
+  const oldByTarget = new Map<string, string>(oldEntries.map((r: any) => [r.targetLexmlId, r.refId]));
+
   const novasRemissoes: RemissaoInternaValue[] = remissoesEncontradas.map(item => ({
-    refId: gerarRefId(),
+    refId: (item.dispositivoDestino.id && oldByTarget.get(item.dispositivoDestino.id)) ?? gerarRefId(),
     targetLexmlId: item.dispositivoDestino.id,
     targetUuid: item.dispositivoDestino.uuid,
     targetRotulo: item.dispositivoDestino.rotulo,
@@ -95,6 +99,15 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const elemento = createElemento(dispositivo, true);
   const eventosUi = new Eventos();
   eventosUi.add(StateType.AtualizaRemissaoInterna, [elemento]);
+
+  // Emite ElementoValidado com mensagem de remissão inválida quando há entradas preservadas
+  if (oldInvalidas.length > 0) {
+    const mensagemInvalida = {
+      tipo: TipoMensagem.ERROR,
+      descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.',
+    };
+    eventosUi.add(StateType.ElementoValidado, [createElementoValidadoComExtras(dispositivo, [mensagemInvalida])]);
+  }
 
   return {
     articulacao: state.articulacao,

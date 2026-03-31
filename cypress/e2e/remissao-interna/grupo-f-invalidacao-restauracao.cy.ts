@@ -126,6 +126,39 @@ describe('Invalidação e restauração de remissão', () => {
     cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 3);
     cy.getContainerArtigoByNumero(2).find(SEL_MENSAGEM_INVALIDA).should('not.exist');
   });
+
+  it('CT-F-07: mensagem persiste após digitar texto no dispositivo com remissão inválida', () => {
+    // Pré-condição: mensagem visível antes de digitar
+    cy.getContainerArtigoByNumero(1).find(SEL_MENSAGEM_INVALIDA).should('exist');
+
+    // Digita texto adicional no dispositivo com remissão inválida (sem remover o link)
+    cy.getContainerArtigoByNumero(1).digitarTextoRemissao(' Texto adicional digitado.');
+    cy.getContainerArtigoByNumero(1).dispararDeteccaoRemissao();
+
+    // Mensagem deve permanecer visível — a digitação não pode apagar o painel
+    cy.getContainerArtigoByNumero(1).find(SEL_MENSAGEM_INVALIDA).should('exist').and('contain.text', 'excluído');
+  });
+
+  it('CT-F-08: mensagem persiste após digitação real (cy.type) no dispositivo com remissão inválida', () => {
+    // Pré-condição: mensagem visível e link inválido presente
+    cy.getContainerArtigoByNumero(1).find(SEL_MENSAGEM_INVALIDA).should('exist');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO).should('have.length', 1);
+
+    // Foca no conteúdo do dispositivo para habilitar digitação real
+    cy.getContainerArtigoByNumero(1).find('p.texto__dispositivo').click({ force: true });
+
+    // Move cursor para o final do texto via tecla End
+    cy.getContainerArtigoByNumero(1).find('p.texto__dispositivo').type('{end}', { force: true });
+
+    // Digita texto adicional caractere por caractere (simula usuário real)
+    cy.getContainerArtigoByNumero(1).find('p.texto__dispositivo').type(' texto', { force: true });
+
+    // Espera o debounce de 1 segundo disparar
+    cy.wait(2000);
+
+    // Mensagem deve permanecer visível após a digitação real e debounce
+    cy.getContainerArtigoByNumero(1).find(SEL_MENSAGEM_INVALIDA).should('exist').and('contain.text', 'excluído');
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

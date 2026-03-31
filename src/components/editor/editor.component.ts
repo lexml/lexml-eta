@@ -1223,7 +1223,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
 
       if (linha) {
-        if (linha?.children.length === 2) {
+        // Corrige erro de multiplas instâncias da msg de erro
+        const hadPanel = linha?.children.length === 2;
+        if (hadPanel) {
           linha.children.tail.remove();
         }
 
@@ -1448,6 +1450,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.numero,
         linhaAtual.hierarquia
       );
+
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
 
       // Caminho B: limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
