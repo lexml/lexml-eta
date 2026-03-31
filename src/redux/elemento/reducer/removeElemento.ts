@@ -29,8 +29,53 @@ export const removeElemento = (state: any, action: any): State => {
     return state;
   }
 
+  const erroValidacao = validarRemocaoElemento(state, dispositivo, action);
+  if (erroValidacao) return erroValidacao;
+
+  const primeiroFilhoDoAgrupador = isAgrupador(dispositivo) ? dispositivo.filhos[0] || getDispositivoPosterior(dispositivo) || getDispositivoAnterior(dispositivo) : undefined;
+  const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
+  const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
+
+  // Guarda lexmlId antigo (valor) e a referência do objeto para ler o novo d.id após a renumeração.
+  const mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
+  listaDispositivosRenumerados(dispositivo).forEach(d => capturarComDescendentes(d, mapeamentoLexmlIds));
+
+  const lexmlIdRemovido = dispositivo.id;
+  const uuidRemovido = dispositivo.uuid;
+
+  const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
+
+  const { novoRegistroRemissoes, eventosRemissao } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, lexmlIdRemovido, uuidRemovido, mapeamentoLexmlIds);
+  events.push(...eventosRemissao);
+
+  if (elPrimeiroFilhoDoAgrupador) {
+    events.push({ stateType: StateType.ElementoMarcado, elementos: [elPrimeiroFilhoDoAgrupador] });
+    events.push({ stateType: StateType.ElementoReferenciado, elementos: [elPrimeiroFilhoDoAgrupador] });
+  }
+
+  if (isAtualizarElementoEmenta) {
+    events.push({ stateType: StateType.SituacaoElementoModificada, elementos: [createElemento(state.articulacao.projetoNorma.ementa)] });
+  }
+
+  return {
+    articulacao: state.articulacao,
+    modo: state.modo,
+    past: buildPast(state, events),
+    present: events,
+    future: [],
+    ui: {
+      events,
+      alertas: state.ui?.alertas,
+    },
+    remissoes: novoRegistroRemissoes,
+    mensagensCritical: state.mensagensCritical,
+  };
+};
+
+// Valida se a remoção é permitida. Retorna o state de erro se não for, ou null se for permitido.
+const validarRemocaoElemento = (state: any, dispositivo: Dispositivo, action: any): State | null => {
   if (isAgrupador(dispositivo) && !isDispositivoAlteracao(dispositivo)) {
-    // Só deixa remover agrupador se articulação permenecer consistente
+    // Só deixa remover agrupador se articulação permanecer consistente
     if (isArticulacao(dispositivo.pai!)) {
       const tipos = getTiposAgrupadorArtigoPermitidosNaArticulacao();
       if (!dispositivo.filhos.every(f => isArtigo(f) || tipos.includes(f.tipo))) {
@@ -84,44 +129,44 @@ export const removeElemento = (state: any, action: any): State => {
     });
   }
 
-  const primeiroFilhoDoAgrupador = isAgrupador(dispositivo) ? dispositivo.filhos[0] || getDispositivoPosterior(dispositivo) || getDispositivoAnterior(dispositivo) : undefined;
-  const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
-  const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
+  return null;
+};
 
-  // Guarda lexmlId antigo (valor) e a referência do objeto para ler o novo d.id após a renumeração.
-  const mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
-  const capturarComDescendentes = (d: Dispositivo): void => {
-    if (d.id && d.uuid) {
-      mapeamentoLexmlIds.push({ d, lexmlIdAntigo: d.id, uuidDispositivo: d.uuid });
-    }
-    d.filhos?.forEach(capturarComDescendentes);
-  };
-  listaDispositivosRenumerados(dispositivo).forEach(capturarComDescendentes);
+// Percorre o dispositivo e todos os seus descendentes, capturando pares {lexmlIdAntigo, uuid}
+// antes da renumeração, para que os eventos RemissaoRenumerada possam ser emitidos depois.
+const capturarComDescendentes = (d: Dispositivo, mapeamento: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }>): void => {
+  if (d.id && d.uuid) {
+    mapeamento.push({ d, lexmlIdAntigo: d.id, uuidDispositivo: d.uuid });
+  }
+  d.filhos?.forEach(filho => capturarComDescendentes(filho, mapeamento));
+};
 
-  const lexmlIdRemovido = dispositivo.id;
-  const uuidRemovido = dispositivo.uuid;
+export const construirEventosRemissaoParaRemocao = (
+  remissoes: Record<number, any[]> | undefined,
+  articulacao: any,
+  lexmlIdRemovido: string | undefined,
+  uuidRemovido: number | undefined,
+  mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }>
+): { novoRegistroRemissoes: Record<number, any[]> | undefined; eventosRemissao: any[] } => {
+  const novoRegistroRemissoes = marcarRemissoesComoInvalidas(remissoes, lexmlIdRemovido);
+  const eventosRemissao: any[] = [];
 
-  const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
-
-  const novoRegistroRemissoes = marcarRemissoesComoInvalidas(state.remissoes, lexmlIdRemovido);
-
-  // Emite ElementoValidado para cada dispositivo de origem com remissão inválida recém-marcada
   if (novoRegistroRemissoes && lexmlIdRemovido) {
     const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.' };
     const sourceUuidsAfetados = new Set<number>();
 
     for (const uuidStr of Object.keys(novoRegistroRemissoes)) {
       const uuid = Number(uuidStr);
-      const remissoes = novoRegistroRemissoes[uuid];
-      if (remissoes.some((r: any) => r.targetLexmlId === lexmlIdRemovido && r.valida === false)) {
+      const remissoesOrigem = novoRegistroRemissoes[uuid];
+      if (remissoesOrigem.some((r: any) => r.targetLexmlId === lexmlIdRemovido && r.valida === false)) {
         sourceUuidsAfetados.add(uuid);
       }
     }
 
     for (const sourceUuid of sourceUuidsAfetados) {
-      const dispositivoOrigem = findDispositivoByUuid(state.articulacao, sourceUuid, true);
+      const dispositivoOrigem = findDispositivoByUuid(articulacao, sourceUuid, true);
       if (dispositivoOrigem) {
-        events.push({
+        eventosRemissao.push({
           stateType: StateType.ElementoValidado,
           elementos: [createElementoValidadoComExtras(dispositivoOrigem, [mensagemInvalida])],
         });
@@ -130,7 +175,7 @@ export const removeElemento = (state: any, action: any): State => {
   }
 
   if (lexmlIdRemovido && uuidRemovido) {
-    events.push({
+    eventosRemissao.push({
       stateType: StateType.RemissaoInvalidada,
       remissaoInvalidacao: {
         lexmlId: lexmlIdRemovido,
@@ -142,7 +187,7 @@ export const removeElemento = (state: any, action: any): State => {
   mapeamentoLexmlIds.forEach(({ d, lexmlIdAntigo, uuidDispositivo }) => {
     const lexmlIdNovo = d.id;
     if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
-      events.push({
+      eventosRemissao.push({
         stateType: StateType.RemissaoRenumerada,
         elementos: [],
         remissaoRenumeracao: {
@@ -154,28 +199,7 @@ export const removeElemento = (state: any, action: any): State => {
     }
   });
 
-  if (elPrimeiroFilhoDoAgrupador) {
-    events.push({ stateType: StateType.ElementoMarcado, elementos: [elPrimeiroFilhoDoAgrupador] });
-    events.push({ stateType: StateType.ElementoReferenciado, elementos: [elPrimeiroFilhoDoAgrupador] });
-  }
-
-  if (isAtualizarElementoEmenta) {
-    events.push({ stateType: StateType.SituacaoElementoModificada, elementos: [createElemento(state.articulacao.projetoNorma.ementa)] });
-  }
-
-  return {
-    articulacao: state.articulacao,
-    modo: state.modo,
-    past: buildPast(state, events),
-    present: events,
-    future: [],
-    ui: {
-      events,
-      alertas: state.ui?.alertas,
-    },
-    remissoes: novoRegistroRemissoes,
-    mensagensCritical: state.mensagensCritical,
-  };
+  return { novoRegistroRemissoes, eventosRemissao };
 };
 
 const marcarRemissoesComoInvalidas = (registroAtual: Record<number, any[]> | undefined, lexmlIdRemovido: string | undefined): Record<number, any[]> | undefined => {

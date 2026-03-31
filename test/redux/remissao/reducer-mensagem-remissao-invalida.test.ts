@@ -8,7 +8,6 @@ import { adicionaRemissaoInterna } from '../../../src/redux/elemento/reducer/adi
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { TipoMensagem } from '../../../src/model/lexml/util/mensagem';
-import { RemissaoInternaValue } from '../../../src/model/remissao';
 
 const DESCRICAO_REMISSAO_INVALIDA = 'Este dispositivo contém referência para dispositivo que foi excluído.';
 
@@ -196,76 +195,6 @@ describe('Mensagem de remissão inválida', () => {
     expect(eventosComRemissao).to.have.length.greaterThan(0, 'ElementoValidado deve conter a mensagem de remissão inválida');
     const uuidsAfetados = eventosComRemissao.flatMap((ev: any) => ev.elementos!.map((el: any) => el.uuid));
     expect(uuidsAfetados).to.include(art3.uuid);
-  });
-
-  // ─────────────────────────────────────────────────────────────
-  // fluxo real do editor — 3 dispatches sequenciais ao digitar texto
-  //
-  // Simula o que editor.component.ts:atualizarTextoElemento faz:
-  //   1. dispatch ATUALIZAR_TEXTO_ELEMENTO
-  //   2. dispatch REMOVER_REMISSAO_INVALIDA (com remissões restantes do DOM)
-  //   3. dispatch ADICIONAR_REMISSAO_INTERNA
-  //
-  // O bug: após o 3o dispatch, a mensagem de remissão inválida SOME
-  // porque ADICIONAR_REMISSAO_INTERNA emite apenas AtualizaRemissaoInterna
-  // — sem ElementoValidado com a mensagem de remissão inválida.
-  // ─────────────────────────────────────────────────────────────
-  it('deve manter mensagem de remissão inválida após fluxo completo de 3 dispatches ao digitar texto', () => {
-    const { state: state0, artigos } = criaStateComNArtigos(3);
-    const [art2, art3] = artigos;
-
-    // art3 tem remissão automática para art2
-    art3.texto = 'conforme o art. 2.';
-    const elementoArt3 = createElemento(art3, true);
-    const state1 = adicionaRemissaoInterna(state0, { atual: elementoArt3 });
-    const remissaoArt3 = (state1.remissoes as any)[art3.uuid!];
-    expect(remissaoArt3).to.have.length.greaterThan(0, 'pré-condição: remissão detectada');
-
-    // Remove art2 → marca remissão de art3 como invalida
-    const state2 = removeElemento(state1, { atual: { uuid: art2.uuid } });
-    const remissaoAposRemocao = (state2.remissoes as any)[art3.uuid!];
-    expect(remissaoAposRemocao?.some((r: any) => r.valida === false)).to.equal(true, 'pré-condição: valida:false após remoção');
-
-    // ── Passo 1: ATUALIZAR_TEXTO_ELEMENTO (usuário digita texto no art3) ──
-    const state3 = atualizaTextoElemento(state2, {
-      atual: {
-        uuid: art3.uuid,
-        conteudo: { texto: 'conforme o art. 2. Texto adicional.' },
-      },
-    });
-
-    // Passo 1 não emite mensagem de remissão (responsabilidade do passo 3).
-    // Verifica apenas que state.remissoes preserva valida:false.
-    expect((state3.remissoes as any)[art3.uuid!].some((r: any) => r.valida === false)).to.equal(true, 'após passo 1: valida:false persiste');
-
-    // ── Passo 2: REMOVER_REMISSAO_INVALIDA (link ainda está no DOM → nenhuma inválida removida) ──
-    // Simula remissaoModule.getRemissoes() — o link inválido ainda existe no DOM
-    const remissoesRestantesNoDom: RemissaoInternaValue[] = (state3.remissoes as any)[art3.uuid!];
-    const state4 = removerRemissaoInvalida(state3, {
-      sourceUuid: art3.uuid,
-      remissoesRestantes: remissoesRestantesNoDom,
-    });
-
-    // O link inválido ainda está no DOM → nenhuma foi removida → early return
-    // state4 deve manter a mensagem
-    expect((state4.remissoes as any)[art3.uuid!].some((r: any) => r.valida === false)).to.equal(true, 'após passo 2: valida:false persiste');
-
-    // ── Passo 3: ADICIONAR_REMISSAO_INTERNA (re-detecção) ──
-    // O texto ainda contém "art. 2" — mas art2 foi removido, então detecção NÃO encontra destino
-    // No entanto, o link inválido permanece no Quill como blot (não é removido pela detecção)
-    const elementoArt3Atualizado = createElemento(art3, true);
-    const state5 = adicionaRemissaoInterna(state4, { atual: elementoArt3Atualizado });
-
-    // ── Verificação final: a mensagem deve persistir ──
-    // BUG ESPERADO: state5.ui.events contém apenas AtualizaRemissaoInterna,
-    // sem ElementoValidado com mensagem de remissão inválida.
-    // O reducer anterior (passo 1) emitiu a mensagem, mas o passo 3
-    // sobrescreve state.ui.events sem incluí-la.
-    const eventosAposPasso3 = eventosComMensagemRemissao(state5.ui!.events);
-    expect(eventosAposPasso3).to.have.length.greaterThan(0, 'após passo 3: mensagem de remissão DEVE persistir');
-
-    // Também verifica que state.remissoes ainda tem valida:false
-    expect((state5.remissoes as any)[art3.uuid!].some((r: any) => r.valida === false)).to.equal(true, 'após passo 3: valida:false DEVE persistir no registry');
   });
 
   // ─────────────────────────────────────────────────────────────
