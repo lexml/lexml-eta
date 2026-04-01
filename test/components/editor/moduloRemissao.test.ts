@@ -34,16 +34,6 @@ function criarMockQuill(rootElement: HTMLElement): any {
   };
 }
 
-describe('ModuloRemissao - Constantes de Eventos', () => {
-  it('deve definir evento de mudança corretamente', () => {
-    expect('remissao-interna-change').to.equal('remissao-interna-change');
-  });
-
-  it('deve definir evento de remoção corretamente', () => {
-    expect('remissao-interna-remove').to.equal('remissao-interna-remove');
-  });
-});
-
 describe('RemissaoInternaValue - Interface', () => {
   it('deve aceitar valores válidos com todos os campos', () => {
     const value: RemissaoInternaValue = {

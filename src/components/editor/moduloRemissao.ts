@@ -16,8 +16,7 @@ const cfgInline = {
 const DataLexmlRefAttribute = new Parchment.Attributor.Attribute('data-lexml-ref', 'data-lexml-ref', cfgInline);
 const DataRefIdAttribute = new Parchment.Attributor.Attribute('data-ref-id', 'data-ref-id', cfgInline);
 
-export const REMISSAO_INTERNA_CHANGE_EVENT = 'remissao-interna-change';
-export const REMISSAO_INTERNA_REMOVE_EVENT = 'remissao-interna-remove';
+export const REMISSAO_INTERNA_REMOVE_EVENT = 'remover-remissao-interna';
 
 class ModuloRemissao extends Module {
   quill: any;
@@ -146,17 +145,6 @@ class ModuloRemissao extends Module {
     } catch {
       return false;
     }
-  }
-
-  emitirEventoRemissaoChange(): void {
-    const event = new CustomEvent(REMISSAO_INTERNA_CHANGE_EVENT, {
-      bubbles: true,
-      composed: true,
-      detail: {
-        remissoes: this.getRemissoes(),
-      },
-    });
-    this.quill.root.dispatchEvent(event);
   }
 
   emitirEventoRemissaoRemove(): void {
@@ -556,8 +544,6 @@ class ModuloRemissao extends Module {
         this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-interna', remissao, 'silent');
       }
     }
-
-    this.emitirEventoRemissaoChange();
   }
 }
 
