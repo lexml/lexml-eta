@@ -550,6 +550,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   configAbrindoTexto = (valor: boolean): void => {
     (this.quill as any).revisao.isAbrindoTexto = valor;
     (this.quill as any).notasRodape.isAbrindoTexto = valor;
+    if ((this.quill as any).remissaoInterna) {
+      (this.quill as any).remissaoInterna.isAbrindoTexto = valor;
+    }
     const emRevisao = (this.quill as any).revisao.emRevisao;
     if (!valor) {
       if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
