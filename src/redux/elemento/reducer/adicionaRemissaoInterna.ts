@@ -9,6 +9,7 @@ import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { stripHtml } from '../../../util/html-util';
+import { percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 
 interface ReferenciaEncontrada {
   texto: string;
@@ -419,4 +420,35 @@ const buscarFilhoPorTipoENumero = (dispositivo: Dispositivo, tipo: string, numer
 const normalizarNumero = (numero: string | undefined): string => {
   if (!numero) return '';
   return numero.toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
+/**
+ * Garante que o registry de remissões está completo para todos os dispositivos com texto.
+ * Dispositivos não editados na sessão atual não têm entradas no registry;
+ */
+export const completarRegistroRemissoes = (articulacao: Articulacao, registroExistente: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
+  if (!articulacao) return registroExistente;
+
+  const registroCompleto = { ...registroExistente };
+
+  percorreHierarquiaDispositivos(articulacao as unknown as Dispositivo, dispositivo => {
+    if (!dispositivo.texto || dispositivo.uuid === undefined) return;
+    if (registroCompleto[dispositivo.uuid] !== undefined) return;
+
+    const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao);
+    if (remissoesEncontradas.length > 0) {
+      registroCompleto[dispositivo.uuid] = remissoesEncontradas.map(item => ({
+        refId: gerarRefId(),
+        targetLexmlId: item.dispositivoDestino.id,
+        targetUuid: item.dispositivoDestino.uuid,
+        targetRotulo: item.dispositivoDestino.rotulo,
+        sourceUuid: dispositivo.uuid,
+        sourceLexmlId: dispositivo.id,
+        textoRef: item.texto,
+        inicio: item.inicio,
+      }));
+    }
+  });
+
+  return registroCompleto;
 };
