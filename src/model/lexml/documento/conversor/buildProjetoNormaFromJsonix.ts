@@ -297,6 +297,11 @@ export const buildContent = (content: any): string => {
 
 const montaTag = (name: any, value: any): string => {
   const localPart = name.localPart;
+  //TODO Tentar montar com span.
+  if (localPart === 'Remissao' && value.href) {
+    const lexmlId = value.href;
+    return `<a href="${lexmlId}" data-lexml-ref="${lexmlId}" class="lexml-remissao-interna" target="_self">${buildContent(value.content)}</a>`;
+  }
   if (localPart === 'span' && value.href) {
     return `<a href="${value.href}">${buildContent(value.content)}</a>`;
   }

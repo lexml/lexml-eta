@@ -78,3 +78,153 @@ describe('Parser de norma com preâmbulo contendo HTML', () => {
     expect(documentoHtml?.preambulo).to.include(', com força de lei:');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Testes de desserialização de Remissao (Etapa 2 — PLANO_REMISSAO_SAVE_LOAD)
+// ---------------------------------------------------------------------------
+
+const montarDocumentoComRemissao = (contentArray: any[]): any => ({
+  name: { localPart: 'LexML' },
+  value: {
+    TYPE_NAME: 'br_gov_lexml__1.LexML',
+    metadado: { identificacao: { urn: '' } },
+    projetoNorma: {
+      norma: {
+        parteInicial: {
+          epigrafe: { content: [''] },
+          ementa: { content: [''] },
+          preambulo: { p: [] },
+        },
+        articulacao: {
+          lXhier: [
+            {
+              name: { localPart: 'Artigo' },
+              value: {
+                TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                id: 'art1',
+                rotulo: 'Art. 1º',
+                lXcontainersOmissis: [
+                  {
+                    name: { localPart: 'Caput' },
+                    value: {
+                      TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+                      id: 'art1_cpt',
+                      p: [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: contentArray }],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    },
+  },
+});
+
+describe('Desserialização de elemento Remissao', () => {
+  it('deve converter Remissao em link com class lexml-remissao-interna', () => {
+    const doc = montarDocumentoComRemissao([
+      'Conforme o ',
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art5_cpt', content: ['art. 5'] },
+      },
+      ' desta lei.',
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('class="lexml-remissao-interna"');
+  });
+
+  it('deve usar o lexmlId como data-lexml-ref', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art5_cpt', content: ['art. 5'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('data-lexml-ref="art5_cpt"');
+  });
+
+  it('deve usar o lexmlId como href temporário', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art10_par1', content: ['§ 1º do art. 10'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('href="art10_par1"');
+  });
+
+  it('deve preservar o conteúdo textual do link', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art5_cpt', content: ['art. 5'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('>art. 5<');
+  });
+
+  it('deve incluir target="_self"', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art3_cpt', content: ['art. 3'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('target="_self"');
+  });
+
+  it('não deve afetar elemento span convencional', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'span' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'https://externo.gov.br', content: ['link externo'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('href="https://externo.gov.br"');
+    expect(texto).to.not.include('lexml-remissao-interna');
+    expect(texto).to.not.include('data-lexml-ref');
+  });
+
+  it('deve preservar texto ao redor da remissão', () => {
+    const doc = montarDocumentoComRemissao([
+      'Conforme o ',
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art5_cpt', content: ['art. 5'] },
+      },
+      ' desta lei.',
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('Conforme o ');
+    expect(texto).to.include(' desta lei.');
+  });
+});
