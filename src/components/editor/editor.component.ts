@@ -1986,7 +1986,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const callback = (value: RemissaoInternaValue): void => {
       const remissaoModule = this.quill.getModule('remissaoInterna');
       if (remissaoModule) {
+        // Captura a linha ANTES de criarRemissao: setSelection(oldRange=null) pode chamar
+        // marcarLinhaAtual e sincronizar htmlAnt=html, zerando o flag alterado.
+        const linhaParaAtualizar = this.quill.linhaAtual;
+
         remissaoModule.criarRemissao(value, savedRange);
+
+        // Despacha diretamente sem confiar em alterado: o htmlAnt já pode ter sido
+        // sincronizado pelo setSelection ao retornar o foco do diálogo para o Quill.
+        if (linhaParaAtualizar?.blotConteudo) {
+          const elemento = this.criarElemento(
+            linhaParaAtualizar.uuid,
+            linhaParaAtualizar.uuid2,
+            linhaParaAtualizar.lexmlId,
+            linhaParaAtualizar.tipo,
+            linhaParaAtualizar.blotConteudo.html ?? '',
+            linhaParaAtualizar.numero,
+            linhaParaAtualizar.hierarquia
+          );
+          rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+          rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+        }
       }
     };
 
