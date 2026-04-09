@@ -6,12 +6,20 @@ import { gerarRefId } from '../../../model/remissao/refId';
 // Regex para detectar links de remissão interna pelo atributo data-lexml-ref
 const REGEX_REMISSAO_LINK = /<a\b[^>]*data-lexml-ref="([^"]+)"[^>]*>([^<]*)<\/a>/gi;
 
+// Substitui apenas a primeira ocorrência de `busca` em `texto`
+const substituirPrimeiraOcorrencia = (texto: string, busca: string, substituto: string): string => {
+  const idx = texto.indexOf(busca);
+  if (idx === -1) return texto;
+  return texto.substring(0, idx) + substituto + texto.substring(idx + busca.length);
+};
+
 /**
  * Reconstrói o registry de remissões internas ao abrir um documento,
  * varrendo o HTML de todos os dispositivos em busca de links com data-lexml-ref.
- *
- * Cobre tanto remissões auto-detectáveis quanto manuais com texto não-padrão,
- * eliminando a dependência da detecção por regex incremental no momento da abertura.
+ * Corrige dispositivo.texto substituindo href="lexmlId" por
+ * href="#lxEtaId{uuid}" e adicionando data-ref-id="{refId}"
+ * Deve ser chamado ANTES de load() em abreArticulacao para que
+ * a correção do texto seja refletida nos Elementos criados por getElementos().
  */
 export const inicializaRemissoesAoAbrir = (articulacao: Articulacao): Record<number, RemissaoInternaValue[]> => {
   const remissoes: Record<number, RemissaoInternaValue[]> = {};
@@ -43,6 +51,15 @@ export const inicializaRemissoesAoAbrir = (articulacao: Articulacao): Record<num
 
     if (entries.length > 0) {
       remissoes[dispositivo.uuid] = entries;
+
+      // Corrige href e adiciona data-ref-id em dispositivo.texto
+      let textoCorrigido = texto;
+      for (const entry of entries) {
+        const hrefAntigo = `href="${entry.targetLexmlId}"`;
+        const hrefNovo = `href="#lxEtaId${entry.targetUuid}" data-ref-id="${entry.refId}"`;
+        textoCorrigido = substituirPrimeiraOcorrencia(textoCorrigido, hrefAntigo, hrefNovo);
+      }
+      dispositivo.texto = textoCorrigido;
     }
   }
 
