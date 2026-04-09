@@ -269,9 +269,10 @@ export const elementoReducer = (state = {}, action: any): any => {
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
 
-  // Preserva remissões quando o reducer não as gerencia explicitamente
+  // Preserva remissões quando o reducer não as gerencia explicitamente.
+  // Em ABRIR_ARTICULACAO usa {} como fallback para evitar vazamento de remissões de sessão anterior.
   if (tempState.remissoes === undefined) {
-    tempState.remissoes = remissoes;
+    tempState.remissoes = actionType === ABRIR_ARTICULACAO ? {} : remissoes;
   }
 
   // Garante que a paginação esteja presente no estado
