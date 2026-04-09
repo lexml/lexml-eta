@@ -15,19 +15,12 @@ import { isValidText } from '../../../../util/string-util';
 import { RemissaoInternaValue } from '../../../remissao';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 
-// Contexto de remissões passado para serialização — evita propagar o parâmetro
-// por toda a cadeia de chamadas internas. Limpado no bloco finally de buildJsonixFromProjetoNorma.
-let _remissoesContext: Record<number, RemissaoInternaValue[]> | null = null;
+type Remissoes = Record<number, RemissaoInternaValue[]>;
 
-export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Record<number, RemissaoInternaValue[]>): any => {
-  _remissoesContext = remissoes ?? null;
-  try {
-    const resultado = montaCabecalho(urn);
-    resultado.value.projetoNorma = montaProjetoNorma(projetoNorma);
-    return resultado;
-  } finally {
-    _remissoesContext = null;
-  }
+export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes): any => {
+  const resultado = montaCabecalho(urn);
+  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes);
+  return resultado;
 };
 
 export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao): any => {
@@ -61,7 +54,7 @@ const montaCabecalho = (urn: string): any => {
   };
 };
 
-const montaProjetoNorma = (projetoNorma: any): any => {
+const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes): any => {
   const p = {
     TYPE_NAME: 'br_gov_lexml__1.ProjetoNorma',
   };
@@ -69,7 +62,7 @@ const montaProjetoNorma = (projetoNorma: any): any => {
   p[isNorma(projetoNorma) ? 'norma' : 'projeto'] = {
     TYPE_NAME: 'br_gov_lexml__1.HierarchicalStructure',
     parteInicial: montaParteInicial(projetoNorma),
-    articulacao: montaArticulacao(projetoNorma),
+    articulacao: montaArticulacao(projetoNorma, remissoes),
   };
 
   return p;
@@ -101,14 +94,14 @@ const montaParteInicial = (projetoNorma: any): any => {
   };
 };
 
-const montaArticulacao = (projetoNorma: any): any => {
+const montaArticulacao = (projetoNorma: any, remissoes?: Remissoes): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao),
+    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao, remissoes),
   };
 };
 
-const buildTree = (dispositivo: Dispositivo, obj: any): any => {
+const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes): any => {
   let tree;
   if (isAgrupador(dispositivo)) {
     tree = obj.lXhier = [];
@@ -117,19 +110,20 @@ const buildTree = (dispositivo: Dispositivo, obj: any): any => {
   }
 
   if (isArtigo(dispositivo)) {
-    const node = buildNode((dispositivo as Artigo).caput!);
-    buildAlteracaoSeNecessario(dispositivo, node.value);
+    const node = buildNode((dispositivo as Artigo).caput!, remissoes);
+    buildAlteracaoSeNecessario(dispositivo, node.value, remissoes);
 
     tree.push(node);
 
     buildFilhos(
       dispositivo.filhos?.filter(f => !isCaput(f.pai!)),
-      tree
+      tree,
+      remissoes
     );
 
-    buildTree((dispositivo as Artigo).caput!, node.value);
+    buildTree((dispositivo as Artigo).caput!, node.value, remissoes);
   } else {
-    buildFilhos(dispositivo.filhos, tree);
+    buildFilhos(dispositivo.filhos, tree, remissoes);
   }
 
   if (obj.lXcontainersOmissis && obj.lXcontainersOmissis.length === 0) delete obj.lXcontainersOmissis;
@@ -137,7 +131,7 @@ const buildTree = (dispositivo: Dispositivo, obj: any): any => {
   return tree;
 };
 
-const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any): void => {
+const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any, remissoes?: Remissoes): void => {
   if (dispositivo.hasAlteracao()) {
     node['alteracao'] = {
       TYPE_NAME: 'br_gov_lexml__1.Alteracao',
@@ -149,25 +143,25 @@ const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any): void =
     node.alteracao.id = buildIdAlteracao((dispositivo as Artigo).caput!);
 
     dispositivo.alteracoes!.filhos?.forEach(filho => {
-      const n = buildNode(filho);
+      const n = buildNode(filho, remissoes);
 
       node.alteracao.content.push(n);
 
-      buildTree(filho, n.value);
+      buildTree(filho, n.value, remissoes);
     });
   }
 };
 
-const buildFilhos = (filhos: Dispositivo[], tree: any): any => {
+const buildFilhos = (filhos: Dispositivo[], tree: any, remissoes?: Remissoes): any => {
   filhos?.forEach(filho => {
-    const node = buildNode(filho);
+    const node = buildNode(filho, remissoes);
     tree.push(node);
 
-    buildTree(filho, node.value);
+    buildTree(filho, node.value, remissoes);
   });
 };
 
-const buildNode = (dispositivo: Dispositivo): any => {
+const buildNode = (dispositivo: Dispositivo, remissoes?: Remissoes): any => {
   const node = {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -181,7 +175,7 @@ const buildNode = (dispositivo: Dispositivo): any => {
     },
   };
 
-  buildDispositivo(dispositivo, node.value);
+  buildDispositivo(dispositivo, node.value, remissoes);
 
   return node;
 };
@@ -193,7 +187,7 @@ const buildTypeName = (dispositivo: Dispositivo): string => {
   return 'br_gov_lexml__1.DispositivoType';
 };
 
-const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
+const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remissoes): void => {
   value['id'] = buildId(dispositivo);
   if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
     value.rotulo = dispositivo.rotulo;
@@ -271,7 +265,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
   if (isValidText(dispositivo.tituloDispositivo)) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-      content: buildStructuredContent(dispositivo, 'tituloDispositivo'),
+      content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes),
     };
   }
 
@@ -280,13 +274,13 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
   if (isAgrupador(dispositivo)) {
     value.nomeAgrupador = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-      content: buildStructuredContent(dispositivo, 'texto'),
+      content: buildStructuredContent(dispositivo, 'texto', remissoes),
     };
   } else if (!isArtigo(dispositivo) && !isOmissis(dispositivo)) {
     if (dispositivo.texto === TEXTO_OMISSIS) {
       value['textoOmitido'] = 's';
     } else {
-      value['p'] = [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildStructuredContent(dispositivo, 'texto') }];
+      value['p'] = [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildStructuredContent(dispositivo, 'texto', remissoes) }];
     }
   }
 };
@@ -517,15 +511,15 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
   return resultado;
 };
 
-const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] => {
+const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes): any[] => {
   let raw = dispositivo[campo];
   if (!raw && raw !== '') {
     return [dispositivo];
   }
 
   // Injeta links de remissão interna que ainda não estão no texto (ex: auto-detectadas via 'silent')
-  if (campo === 'texto' && _remissoesContext && dispositivo.uuid !== undefined) {
-    const entries = _remissoesContext[dispositivo.uuid];
+  if (campo === 'texto' && remissoes && dispositivo.uuid !== undefined) {
+    const entries = remissoes[dispositivo.uuid];
     if (entries?.length) {
       raw = injetarLinksRemissaoNoTexto(raw, entries);
     }
