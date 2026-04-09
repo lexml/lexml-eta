@@ -7,6 +7,7 @@ import { Anexo, DispositivosEmenda } from '../model/emenda/emenda';
 import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { completarRegistroRemissoes } from '../redux/elemento/reducer/adicionaRemissaoInterna';
 import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
@@ -49,7 +50,9 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
   getProjetoAtualizado(): any {
     const out = { ...this.projetoNorma };
-    const articulacaoAtualizada = buildJsonixFromProjetoNorma(rootStore.getState().elementoReducer.articulacao?.projetoNorma, this.urn);
+    const elementoState = rootStore.getState().elementoReducer;
+    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {});
+    const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto);
     const tipo = (out as any).value.projetoNorma.norma ? 'norma' : 'projeto';
     (out as any).value.projetoNorma[tipo].parteInicial = articulacaoAtualizada.value.projetoNorma[tipo].parteInicial;
     (out as any).value.projetoNorma[tipo].articulacao.lXhier = articulacaoAtualizada.value.projetoNorma[tipo].articulacao.lXhier;

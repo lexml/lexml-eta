@@ -12,13 +12,22 @@ import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
+import { RemissaoInternaValue } from '../../../remissao';
+import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 
-export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string): any => {
-  const resultado = montaCabecalho(urn);
+// Contexto de remissões passado para serialização — evita propagar o parâmetro
+// por toda a cadeia de chamadas internas. Limpado no bloco finally de buildJsonixFromProjetoNorma.
+let _remissoesContext: Record<number, RemissaoInternaValue[]> | null = null;
 
-  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma);
-
-  return resultado;
+export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Record<number, RemissaoInternaValue[]>): any => {
+  _remissoesContext = remissoes ?? null;
+  try {
+    const resultado = montaCabecalho(urn);
+    resultado.value.projetoNorma = montaProjetoNorma(projetoNorma);
+    return resultado;
+  } finally {
+    _remissoesContext = null;
+  }
 };
 
 export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao): any => {
@@ -340,13 +349,11 @@ const parseHTMLTags = (html: string): ParsedElement[] => {
 
 const parseContentWithLinks = (html: string): ParsedElement[] => {
   const result: ParsedElement[] = [];
-  // Regex mais flexível para capturar href, independente do tipo de aspas
-  const linkRegex = /<a[^>]+href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
+  const linkRegex = /(<a\b[^>]*>)([\s\S]*?)<\/a>/gi;
   let lastIndex = 0;
   let match;
 
   while ((match = linkRegex.exec(html)) !== null) {
-    // Texto antes do link
     if (match.index > lastIndex) {
       const textBefore = html.substring(lastIndex, match.index);
       if (textBefore.trim()) {
@@ -354,30 +361,40 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
       }
     }
 
-    // O link - normalizar aspas curvas no href
-    let href = match[2];
-    // Remover aspas curvas (Unicode U+201C, U+201D, U+2018, U+2019) e aspas normais
-    href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
+    const openingTag = match[1];
+    const content = match[2];
 
-    const content = match[3];
-    result.push({
-      type: 'element',
-      tag: 'span',
-      attributes: { href },
-      content,
-    });
+    // Remissão interna: detectar pelo atributo data-lexml-ref
+    const dataLexmlRefMatch = openingTag.match(/data-lexml-ref=(["'])([^"']+)\1/i);
+    if (dataLexmlRefMatch) {
+      result.push({
+        type: 'element',
+        tag: 'Remissao',
+        attributes: { href: dataLexmlRefMatch[2] },
+        content,
+      });
+    } else {
+      // Link externo: extrair href normalizando aspas curvas
+      const hrefMatch = openingTag.match(/href=(["'])(.*?)\1/i);
+      let href = hrefMatch ? hrefMatch[2] : '';
+      href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
+      result.push({
+        type: 'element',
+        tag: 'span',
+        attributes: { href },
+        content,
+      });
+    }
 
     lastIndex = linkRegex.lastIndex;
   }
 
-  // Texto após o último link
   if (lastIndex < html.length) {
     const remainingText = html.substring(lastIndex);
     if (remainingText.trim()) {
       result.push({ type: 'text', content: remainingText });
     }
   } else if (result.length === 0) {
-    // Não encontramos links, retornar o texto completo
     result.push({ type: 'text', content: html });
   }
 
@@ -409,8 +426,8 @@ const buildStructuredContentWithInlineElements = (html: string): any[] => {
     if (item.type === 'text') {
       return item.content;
     } else if (item.type === 'element') {
-      if (item.tag === 'span') {
-        return buildInlineElement('span', [item.content], item.attributes?.href);
+      if (item.tag === 'span' || item.tag === 'Remissao') {
+        return buildInlineElement(item.tag, [item.content], item.attributes?.href);
       } else {
         // Tags de formatação (b, i, u, sub, sup)
         let innerContent: any[];
@@ -451,7 +468,7 @@ const buildStructuredContentWithLinks = (conteudo: string): any[] => {
   ocorrencias?.forEach((m, i) => {
     const http = m.match(regex) ? m : '';
 
-    result.push(buildSpan(http ?? ''));
+    result.push(buildRemissaoOuSpan(http ?? ''));
 
     const from = conteudo.indexOf(m) + m.length;
 
@@ -473,11 +490,49 @@ const buildStructuredContentWithLinks = (conteudo: string): any[] => {
   return result;
 };
 
+/**
+ * Injeta tags <a data-lexml-ref> no texto do dispositivo para entradas do registry
+ * que ainda não estejam representadas como link (caso típico: remissões auto-detectadas
+ * renderizadas via 'silent' no Quill, que não atualizam dispositivo.texto no Redux).
+ */
+const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValue[]): string => {
+  if (!texto) return texto;
+  const faltando = entries.filter(e => e.valida !== false && e.textoRef && e.targetLexmlId && !texto.includes(`data-lexml-ref="${e.targetLexmlId}"`));
+  if (faltando.length === 0) return texto;
+
+  // Ordena descendentemente pelo início para que injeções posteriores não desloquem índices anteriores
+  const ordenados = [...faltando].sort((a, b) => (b.inicio ?? 0) - (a.inicio ?? 0));
+
+  let resultado = texto;
+  for (const entry of ordenados) {
+    const link = `<a href="${entry.targetLexmlId}" data-lexml-ref="${entry.targetLexmlId}" class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
+    // texto simples — inicio aponta diretamente para a posição no texto
+    if (entry.inicio !== undefined && resultado.substring(entry.inicio, entry.inicio + entry.textoRef!.length) === entry.textoRef) {
+      resultado = resultado.substring(0, entry.inicio) + link + resultado.substring(entry.inicio + entry.textoRef!.length);
+      continue;
+    }
+    // HTML com links existentes — substituir fora dos <a> existentes
+    resultado = substituirTextoRefForaDeLinks(resultado, entry.textoRef!, entry.targetLexmlId!);
+  }
+  return resultado;
+};
+
 const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] => {
-  const conteudo = dispositivo[campo];
-  if (!conteudo && conteudo !== '') {
+  let raw = dispositivo[campo];
+  if (!raw && raw !== '') {
     return [dispositivo];
   }
+
+  // Injeta links de remissão interna que ainda não estão no texto (ex: auto-detectadas via 'silent')
+  if (campo === 'texto' && _remissoesContext && dispositivo.uuid !== undefined) {
+    const entries = _remissoesContext[dispositivo.uuid];
+    if (entries?.length) {
+      raw = injetarLinksRemissaoNoTexto(raw, entries);
+    }
+  }
+
+  // Normaliza spans do Parchment Attributor antes de qualquer análise
+  const conteudo = removerSpanParchmentRemissao(raw);
 
   // Verifica se há links
   const hasLinks = /<a[^>]+href=/.test(conteudo);
@@ -527,4 +582,32 @@ const buildSpan = (m: string): any => {
       content,
     },
   };
+};
+
+const buildRemissao = (m: string, lexmlRef: string): any => {
+  const contentMatch = m.match(/<a[^>]*>(.*?)<\/a>/i);
+  const content = contentMatch ? [contentMatch[1]?.trim()] : [''];
+
+  return {
+    name: {
+      namespaceURI: 'http://www.lexml.gov.br/1.0',
+      localPart: 'Remissao',
+      prefix: '',
+      key: '{http://www.lexml.gov.br/1.0}Remissao',
+      string: '{http://www.lexml.gov.br/1.0}Remissao',
+    },
+    value: {
+      TYPE_NAME: 'br_gov_lexml__1.GenInline',
+      href: lexmlRef,
+      content,
+    },
+  };
+};
+
+const buildRemissaoOuSpan = (m: string): any => {
+  const dataLexmlRefMatch = m.match(/data-lexml-ref="([^"]+)"/i);
+  if (dataLexmlRefMatch) {
+    return buildRemissao(m, dataLexmlRefMatch[1]);
+  }
+  return buildSpan(m);
 };
