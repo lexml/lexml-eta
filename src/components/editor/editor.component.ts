@@ -907,6 +907,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.RemissaoRestaurada:
           this.restaurarRemissoes(event);
           break;
+        case StateType.RemissaoTextoFixoRestaurada:
+          this.marcarTextoFixoNoDOM(event);
+          break;
       }
 
       this.disabledParagrafoElementoRemovido(event);
@@ -1971,6 +1974,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     // Restaura todas as remissões que apontam para o dispositivo restaurado
     remissaoModule.restaurarRemissoesPorLexmlId(lexmlId);
+  }
+
+  private marcarTextoFixoNoDOM(event: StateEvent): void {
+    const items = event.remissoesTextoFixoRestauradas;
+    if (!items?.length) {
+      return;
+    }
+
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) {
+      return;
+    }
+
+    remissaoModule.marcarTextoFixoEmLinks(items);
   }
 
   private abrirDialogoRemissaoInterna = async (): Promise<void> => {

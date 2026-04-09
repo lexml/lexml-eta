@@ -462,6 +462,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this._lexmlData.data = proposicao.dataUltimaModificacao;
     this._lexmlEta!.setDispositivosERevisoesEmenda(proposicao.revisoes);
     this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
+    this._lexmlEta!.setRemissoesTextoFixo(proposicao.remissoesTextoFixo);
   }
 
   private resetaProposicao(params: LexmlEtaParametrosEdicao): void {

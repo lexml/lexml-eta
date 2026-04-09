@@ -471,6 +471,18 @@ class ModuloRemissao extends Module {
     return count;
   }
 
+  marcarTextoFixoEmLinks(items: { sourceUuid: number; targetLexmlId: string }[]): void {
+    for (const { sourceUuid, targetLexmlId } of items) {
+      const domEl = this.quill.root.querySelector(`#texto__dispositivo${sourceUuid}`);
+      if (!domEl) continue;
+
+      const links = domEl.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(targetLexmlId)}"]`);
+      links.forEach((link: Element) => {
+        (link as HTMLElement).setAttribute('data-texto-fixo', 'true');
+      });
+    }
+  }
+
   private atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
     return atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
   }

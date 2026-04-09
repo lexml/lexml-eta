@@ -15,6 +15,8 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
+import { RemissaoTextoFixo } from '../model/remissao';
+import { restaurarTextoFixoRemissoesAction } from '../model/lexml/acao/restaurarTextoFixoRemissoesAction';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -86,6 +88,14 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     this._timerLoadEmenda = window.setTimeout(() => {
       rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!, this.revisoes));
     }, 1000);
+  }
+
+  setRemissoesTextoFixo(remissoesTextoFixo?: RemissaoTextoFixo[]): void {
+    if (remissoesTextoFixo?.length) {
+      setTimeout(() => {
+        rootStore.dispatch(restaurarTextoFixoRemissoesAction(remissoesTextoFixo));
+      }, 0);
+    }
   }
 
   render(): TemplateResult {
