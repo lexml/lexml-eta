@@ -767,7 +767,6 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
 // Verifica o mecanismo de marcação CSS de remissões inválidas.
 // Estes testes documentam o comportamento ATUAL (apenas CSS) e servem de base
 // para a futura integração com o campo `valida` de RemissaoInternaValue
-// (ver PLANO_REMISSAO_INVALIDA_MENSAGEM.md, seção 0.1).
 // ─────────────────────────────────────────────────────────────────────────────
 describe('marcarRemissoesComoInvalidas / restaurarRemissoesPorLexmlId', () => {
   let moduloRemissao: ModuloRemissao;
