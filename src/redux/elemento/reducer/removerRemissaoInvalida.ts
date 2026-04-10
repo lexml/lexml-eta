@@ -2,6 +2,7 @@ import { State, StateType } from '../../state';
 import { findDispositivoByUuid } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElementoValidado, createElementoValidadoComExtras } from '../../../model/elemento/elementoUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { MENSAGEM_REMISSAO_INVALIDA } from '../../../model/remissao/remissao';
 
 export const removerRemissaoInvalida = (state: any, action: any): State => {
   const oldEntries = state.remissoes?.[action.sourceUuid] ?? [];
@@ -33,7 +34,7 @@ export const removerRemissaoInvalida = (state: any, action: any): State => {
   let elementoValidado;
   if (invalidasRestantes.length > 0) {
     // Ainda há links inválidos — mantém a mensagem
-    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.' };
+    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
     elementoValidado = createElementoValidadoComExtras(dispositivo, [mensagemInvalida]);
   } else {
     // Todos os links inválidos foram removidos — sem mensagem extra

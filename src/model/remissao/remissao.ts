@@ -32,6 +32,8 @@ export interface ReferenciaDetectada {
 
 export type TipoAtualizacaoRemissao = 'renumeracao' | 'remocao' | 'adicao';
 
+export const MENSAGEM_REMISSAO_INVALIDA = 'Este dispositivo contém referência para dispositivo que foi excluído.';
+
 export interface AtualizacaoRemissao {
   tipo: TipoAtualizacaoRemissao;
   oldId?: string;

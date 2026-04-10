@@ -5,6 +5,7 @@ import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../model/remissao';
+import { MENSAGEM_REMISSAO_INVALIDA } from '../../../model/remissao/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -105,7 +106,7 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   if (oldInvalidas.length > 0) {
     const mensagemInvalida = {
       tipo: TipoMensagem.ERROR,
-      descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.',
+      descricao: MENSAGEM_REMISSAO_INVALIDA,
     };
     eventosUi.add(StateType.ElementoValidado, [createElementoValidadoComExtras(dispositivo, [mensagemInvalida])]);
   }

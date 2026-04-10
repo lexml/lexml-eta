@@ -1,4 +1,5 @@
 import { RemissaoInternaValue } from '../../model/remissao';
+import { EtaContainerTable } from './eta-container-table';
 
 const Inline = Quill.import('blots/inline');
 
@@ -56,7 +57,7 @@ export class RemissaoInternaBlot extends Inline {
   static valueToAttributes(value: RemissaoInternaValue, domNode: HTMLElement): void {
     if (!value) return;
 
-    const href = `#lxEtaId${value.targetUuid}`;
+    const href = `#${EtaContainerTable.criarId(value.targetUuid)}`;
     domNode.setAttribute('href', href);
 
     if (value.targetLexmlId) {
@@ -74,8 +75,11 @@ export class RemissaoInternaBlot extends Inline {
     }
   }
 
+  // Regex correspondente ao formato gerado por EtaContainerTable.criarId()
+  private static readonly REGEX_UUID_FROM_HREF = /#lxEtaId(\d+)/;
+
   static extractUuidFromHref(href: string): number {
-    const match = href.match(/#lxEtaId(\d+)/);
+    const match = href.match(RemissaoInternaBlot.REGEX_UUID_FROM_HREF);
     return match ? parseInt(match[1], 10) : 0;
   }
 }

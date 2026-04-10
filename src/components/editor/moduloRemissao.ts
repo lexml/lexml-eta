@@ -1,5 +1,5 @@
 import { RemissaoInternaValue } from '../../model/remissao';
-import { atualizarTextoRemissao } from '../../model/remissao/lexmlIdUtil';
+import { atualizarTextoRemissao as atualizarTextoRemissaoUtil } from '../../model/remissao/lexmlIdUtil';
 import { gerarRefId } from '../../model/remissao/refId';
 import { rootStore } from '../../redux/store';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
@@ -484,9 +484,10 @@ class ModuloRemissao extends Module {
   }
 
   private atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
-    return atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
+    return atualizarTextoRemissaoUtil(textoAtual, lexmlIdAntigo, lexmlIdNovo);
   }
 
+  //chamado em remissaoModule.renderizarRemissoesDoState
   renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {
     const remissoesDoDispositivo = remissoesDoState[uuidDispositivoAtual] || [];
 
