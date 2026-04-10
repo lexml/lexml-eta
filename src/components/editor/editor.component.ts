@@ -83,10 +83,12 @@ import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexm
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
-import { iconeRemissaoInterna } from '../../../assets/icons/icons';
+import { iconeRemissaoInterna, iconeIr, iconeEditar, lixeiro } from '../../../assets/icons/icons';
 import { remissaoInternaDialog } from './remissaoInternaDialog';
 import { RemissaoInternaValue } from '../../model/remissao';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
+import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
+import { criarPopup, mostrarPopup, esconderPopup } from '../popup-inline/popupInline';
 import { removerRemissaoInvalidaAction } from '../../model/lexml/acao/removerRemissaoInvalidaAction';
 
 @customElement('lexml-eta-proposicao-editor')
@@ -117,6 +119,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private get quill(): EtaQuill {
     return this._quill as EtaQuill;
   }
+
+  private _remissaoPopup?: HTMLDivElement;
+  private _popupRefIdAtual?: string;
 
   private eventosOnChange: StateType[] = [];
 
@@ -402,6 +407,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (range?.length === 0 && source === Quill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
+    this.atualizarPopupRemissao();
   };
 
   private ajustarLinkParaNorma(): void {
@@ -1305,6 +1311,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     EtaQuill.configurar();
     this._quill = new EtaQuill(editorHtml, bufferHtml, op);
+    this._remissaoPopup = criarPopup();
+    document.body.appendChild(this._remissaoPopup);
     this.quill.on('selection-change', this.onSelectionChange);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
@@ -1634,6 +1642,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private destroiQuill(): void {
     this.removeListenersEta();
+
+    if (this._remissaoPopup) {
+      this._remissaoPopup.remove();
+      this._remissaoPopup = undefined;
+      this._popupRefIdAtual = undefined;
+    }
 
     this.getHtmlElement('lx-eta-editor')!.innerHTML = '';
     this.getHtmlElement('lx-eta-buffer')!.innerHTML = '';
@@ -1985,6 +1999,94 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     remissaoModule.marcarTextoFixoEmLinks(items);
   }
+
+  private atualizarPopupRemissao(): void {
+    if (!this._remissaoPopup) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    const resultado = remissaoModule?.getRemissaoNoCursor();
+
+    if (!resultado) {
+      esconderPopup(this._remissaoPopup);
+      this._popupRefIdAtual = undefined;
+      return;
+    }
+
+    const { value, linkEl } = resultado;
+    if (value.refId === this._popupRefIdAtual) return;
+    this._popupRefIdAtual = value.refId;
+
+    const invalido = linkEl.classList.contains('lexml-remissao-invalida');
+    mostrarPopup(this._remissaoPopup, linkEl, {
+      rotulo: value.targetRotulo ?? '',
+      preview: this.obterPreviewDispositivo(value.targetUuid),
+      invalido,
+      botoes: [
+        {
+          titulo: 'Ir para dispositivo',
+          icone: iconeIr,
+          desabilitado: invalido,
+          acao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
+        },
+        {
+          titulo: 'Editar remissão',
+          icone: iconeEditar,
+          acao: () => this.editarRemissao(value),
+        },
+        {
+          titulo: 'Excluir remissão',
+          icone: lixeiro,
+          classe: 'remissao-popup__btn--excluir',
+          acao: () => {
+            remissaoModule.removerRemissaoPorId(value.refId!);
+            this.quill.focus();
+          },
+        },
+      ],
+    });
+  }
+
+  private obterPreviewDispositivo(uuid?: number): string | undefined {
+    if (!uuid) return undefined;
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    if (!articulacao) return undefined;
+    const elementos = getElementos(articulacao);
+    const el = elementos.find(e => e.uuid === uuid);
+    const texto = el?.conteudo?.texto;
+    if (!texto) return undefined;
+    return texto.length > 80 ? texto.substring(0, 80) + '…' : texto;
+  }
+
+  private editarRemissao = async (value: RemissaoInternaValue): Promise<void> => {
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) return;
+
+    const resultado = remissaoModule.findBlotByRefId(value.refId!);
+    if (!resultado) return;
+
+    const range = { index: resultado.index, length: resultado.blot.length() };
+
+    const callback = (novoValue: RemissaoInternaValue): void => {
+      const linhaParaAtualizar = this.quill.linhaAtual;
+      // Preserva o refId original — Etapa 4 refinará com modoEdicao no dialog
+      novoValue.refId = value.refId!;
+      remissaoModule.adicionarRemissao(value.refId!, novoValue);
+      if (linhaParaAtualizar?.blotConteudo) {
+        const elemento = this.criarElemento(
+          linhaParaAtualizar.uuid,
+          linhaParaAtualizar.uuid2,
+          linhaParaAtualizar.lexmlId,
+          linhaParaAtualizar.tipo,
+          linhaParaAtualizar.blotConteudo.html ?? '',
+          linhaParaAtualizar.numero,
+          linhaParaAtualizar.hierarquia
+        );
+        rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+        rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+      }
+    };
+
+    await remissaoInternaDialog(this.quill, range, callback);
+  };
 
   private abrirDialogoRemissaoInterna = async (): Promise<void> => {
     const range = this.quill.getSelection();
