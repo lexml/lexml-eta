@@ -50,7 +50,18 @@ function filtrarDispositivos(dispositivos: DispositivoRemissao[], filtro: string
   });
 }
 
-export async function remissaoInternaDialog(quill: any, range: { index: number; length: number }, onRemissaoCriada: (value: RemissaoInternaValue) => void): Promise<void> {
+export interface ModoEdicaoRemissao {
+  refId: string;
+  value: RemissaoInternaValue;
+}
+
+export async function remissaoInternaDialog(
+  quill: any,
+  range: { index: number; length: number },
+  onRemissaoCriada: (value: RemissaoInternaValue) => void,
+  modoEdicao?: ModoEdicaoRemissao
+): Promise<void> {
+  const isEdicao = !!modoEdicao;
   const state = rootStore.getState().elementoReducer;
   const articulacao = state.articulacao;
 
@@ -64,7 +75,7 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
 
-  dialogElem.label = 'Adicionar Remissão Interna';
+  dialogElem.label = isEdicao ? 'Editar Remissão Interna' : 'Adicionar Remissão Interna';
   dialogElem.style.setProperty('--sl-dialog-width', '550px');
   dialogElem.style.setProperty('--sl-dialog-max-height', '70vh');
 
@@ -208,7 +219,7 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
     </div>
 
     <sl-button slot="footer" variant="default" id="btn-cancelar">Cancelar</sl-button>
-    <sl-button slot="footer" variant="primary" id="btn-confirmar" disabled>Confirmar</sl-button>
+    <sl-button slot="footer" variant="primary" id="btn-confirmar" disabled>${isEdicao ? 'Salvar' : 'Confirmar'}</sl-button>
   `);
 
   const listaContainer = content.querySelector('#lista-dispositivos') as HTMLElement;
@@ -335,7 +346,7 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
       return;
     }
 
-    const refId = gerarRefId();
+    const refId = modoEdicao ? modoEdicao.refId : gerarRefId();
 
     const remissaoValue: RemissaoInternaValue = {
       refId,
@@ -352,12 +363,26 @@ export async function remissaoInternaDialog(quill: any, range: { index: number; 
     fecharDialogo();
   };
 
-  // Não renderiza lista inicial - aguarda digitação no campo de busca
-  // A lista começa vazia para evitar lentidão em proposições grandes
-
   quill.blur();
   dialogElem.appendChild(content);
   await dialogElem.show();
+
+  if (modoEdicao) {
+    // Pré-preenche o campo de busca e seleciona o dispositivo atual
+    inputBusca.value = modoEdicao.value.targetRotulo ?? '';
+    const filtrados = filtrarDispositivos(dispositivos, inputBusca.value);
+    renderizarDispositivos(filtrados);
+
+    const itemAtual = listaContainer.querySelector(`[data-uuid="${modoEdicao.value.targetUuid}"]`) as HTMLElement | null;
+
+    if (itemAtual) {
+      itemAtual.classList.add('selected');
+      selectedItemElement = itemAtual;
+      dispositivoSelecionado = filtrados.find(d => d.uuid === modoEdicao!.value.targetUuid) ?? null;
+      btnConfirmar.disabled = !dispositivoSelecionado;
+      setTimeout(() => itemAtual.scrollIntoView({ block: 'nearest' }), 50);
+    }
+  }
 
   setTimeout(() => {
     inputBusca.focus();

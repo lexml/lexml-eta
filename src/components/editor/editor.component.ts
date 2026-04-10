@@ -2067,7 +2067,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const callback = (novoValue: RemissaoInternaValue): void => {
       const linhaParaAtualizar = this.quill.linhaAtual;
-      // Preserva o refId original — Etapa 4 refinará com modoEdicao no dialog
       novoValue.refId = value.refId!;
       remissaoModule.adicionarRemissao(value.refId!, novoValue);
       if (linhaParaAtualizar?.blotConteudo) {
@@ -2085,7 +2084,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     };
 
-    await remissaoInternaDialog(this.quill, range, callback);
+    await remissaoInternaDialog(this.quill, range, callback, { refId: value.refId!, value });
   };
 
   private abrirDialogoRemissaoInterna = async (): Promise<void> => {
