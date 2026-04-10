@@ -83,7 +83,7 @@ import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexm
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
-import { iconeRemissaoInterna, iconeRemoverRemissao } from '../../../assets/icons/icons';
+import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoInternaDialog } from './remissaoInternaDialog';
 import { RemissaoInternaValue } from '../../model/remissao';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
@@ -107,9 +107,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @query('#btnRejeitarTodasRevisoes')
   private btnRejeitarTodasRevisoes!: HTMLButtonElement;
-
-  @query('.btn-remover-remissao')
-  private btnRemoverRemissao!: HTMLButtonElement;
 
   @query('proposicao-dividida-modal')
   private proposicaoDivididaDialog!: ProposicaoDivididaDialog;
@@ -328,10 +325,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
 
-          <button type="button" class="btn-remover-remissao" title="Remover remissão interna" @click=${this.removerRemissaoInterna} disabled>
-            ${unsafeHTML(iconeRemoverRemissao)}
-          </button>
-
           <span id="pos-select-paginacao"></span>
 
           <lexml-switch-revisao
@@ -409,14 +402,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (range?.length === 0 && source === Quill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
-    this.atualizarBotaoRemoverRemissao();
   };
-
-  private atualizarBotaoRemoverRemissao(): void {
-    if (!this.btnRemoverRemissao) return;
-    const remissaoModule = this.quill?.getModule('remissaoInterna');
-    this.btnRemoverRemissao.disabled = !remissaoModule?.temRemissaoNaCursorOuSelecao();
-  }
 
   private ajustarLinkParaNorma(): void {
     const linkTooltip = document.querySelector('a.ql-preview');
@@ -2038,13 +2024,5 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     };
 
     await remissaoInternaDialog(this.quill, savedRange, callback);
-  };
-
-  private removerRemissaoInterna = (): void => {
-    const remissaoModule = this.quill.getModule('remissaoInterna');
-    if (remissaoModule) {
-      remissaoModule.removerRemissao();
-      this.atualizarBotaoRemoverRemissao();
-    }
   };
 }

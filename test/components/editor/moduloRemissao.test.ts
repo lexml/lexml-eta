@@ -899,34 +899,105 @@ describe('marcarRemissoesComoInvalidas / restaurarRemissoesPorLexmlId', () => {
     expect((rootElement.querySelector('[data-ref-id="ref_A"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.false;
     expect((rootElement.querySelector('[data-ref-id="ref_B"]') as HTMLElement).classList.contains('lexml-remissao-invalida')).to.be.false;
   });
+});
 
-  // ── RemissaoInternaValue: campo valida (GAP documentado) ─────────────────
-  //
-  // ATENÇÃO: os testes abaixo documentam o comportamento ESPERADO após a
-  // implementação do campo `valida` em RemissaoInternaValue.
-  // Hoje o campo só existe em RemissaoInterna (interface não utilizada).
-  // Ao adicionar `valida?: boolean` em RemissaoInternaValue, descomente os testes.
-  //
-  // it('RemissaoInternaValue deve aceitar campo valida: false', () => {
-  //   const value: RemissaoInternaValue = {
-  //     refId: 'ref_1',
-  //     targetLexmlId: 'art1',
-  //     valida: false,
-  //   };
-  //   expect(value.valida).to.be.false;
-  // });
-  //
-  // it('RemissaoInternaValue deve aceitar campo valida: true', () => {
-  //   const value: RemissaoInternaValue = {
-  //     refId: 'ref_1',
-  //     targetLexmlId: 'art1',
-  //     valida: true,
-  //   };
-  //   expect(value.valida).to.be.true;
-  // });
-  //
-  // it('campo valida deve ser opcional (undefined = sem informação de validade)', () => {
-  //   const value: RemissaoInternaValue = { refId: 'ref_1' };
-  //   expect(value.valida).to.be.undefined;
-  // });
+describe('ModuloRemissao.getRemissaoNoCursor()', () => {
+  let moduloRemissao: ModuloRemissao;
+  let rootElement: HTMLElement;
+  let mockQuill: any;
+
+  beforeEach(() => {
+    rootElement = document.createElement('div');
+    mockQuill = criarMockQuill(rootElement);
+    moduloRemissao = new ModuloRemissao(mockQuill, {});
+  });
+
+  it('retorna null quando getSelection retorna null', () => {
+    mockQuill.getSelection = () => null;
+
+    expect(moduloRemissao.getRemissaoNoCursor()).to.be.null;
+  });
+
+  it('retorna null quando cursor nao esta sobre remissao (getFormat vazio)', () => {
+    mockQuill.getSelection = () => ({ index: 5, length: 0 });
+    mockQuill.getFormat = () => ({});
+    mockQuill.getLeaf = () => [{ parent: { statics: { blotName: 'text' } } }, 0];
+
+    expect(moduloRemissao.getRemissaoNoCursor()).to.be.null;
+  });
+
+  it('retorna null quando getFormat tem remissao-interna mas link nao existe no DOM', () => {
+    const value: RemissaoInternaValue = { refId: 'ref_abc', targetLexmlId: 'art1', targetUuid: 10 };
+    mockQuill.getSelection = () => ({ index: 5, length: 0 });
+    mockQuill.getFormat = () => ({ 'remissao-interna': value });
+    // rootElement sem nenhum link
+
+    expect(moduloRemissao.getRemissaoNoCursor()).to.be.null;
+  });
+
+  it('retorna value e linkEl via caminho principal (getFormat + link no DOM)', () => {
+    const value: RemissaoInternaValue = { refId: 'ref_xyz', targetLexmlId: 'art2', targetUuid: 20 };
+    const linkEl = document.createElement('a');
+    linkEl.className = 'lexml-remissao-interna';
+    linkEl.setAttribute('data-ref-id', 'ref_xyz');
+    rootElement.appendChild(linkEl);
+
+    mockQuill.getSelection = () => ({ index: 3, length: 0 });
+    mockQuill.getFormat = () => ({ 'remissao-interna': value });
+
+    const resultado = moduloRemissao.getRemissaoNoCursor();
+
+    expect(resultado).to.not.be.null;
+    expect(resultado!.value).to.equal(value);
+    expect(resultado!.linkEl).to.equal(linkEl);
+  });
+
+  it('retorna null via fallback quando leaf nao e blot de remissao', () => {
+    mockQuill.getSelection = () => ({ index: 5, length: 0 });
+    mockQuill.getFormat = () => ({});
+    mockQuill.getLeaf = () => [{ parent: { statics: { blotName: 'outro-blot' } } }, 0];
+
+    expect(moduloRemissao.getRemissaoNoCursor()).to.be.null;
+  });
+
+  it('retorna value e linkEl via fallback leaf quando getFormat nao detecta o blot', () => {
+    const value: RemissaoInternaValue = { refId: 'ref_fallback', targetLexmlId: 'art3', targetUuid: 30 };
+    const linkEl = document.createElement('a');
+    linkEl.className = 'lexml-remissao-interna';
+    linkEl.setAttribute('data-ref-id', 'ref_fallback');
+
+    const mockLeaf = {
+      parent: {
+        statics: { blotName: 'remissao-interna' },
+        formats: () => ({ 'remissao-interna': value }),
+        domNode: linkEl,
+      },
+    };
+
+    mockQuill.getSelection = () => ({ index: 5, length: 0 });
+    mockQuill.getFormat = () => ({});
+    mockQuill.getLeaf = () => [mockLeaf, 0];
+
+    const resultado = moduloRemissao.getRemissaoNoCursor();
+
+    expect(resultado).to.not.be.null;
+    expect(resultado!.value).to.equal(value);
+    expect(resultado!.linkEl).to.equal(linkEl);
+  });
+
+  it('retorna null via fallback quando blotValue nao tem refId', () => {
+    const mockLeaf = {
+      parent: {
+        statics: { blotName: 'remissao-interna' },
+        formats: () => ({ 'remissao-interna': { targetLexmlId: 'art4' } }), // sem refId
+        domNode: document.createElement('a'),
+      },
+    };
+
+    mockQuill.getSelection = () => ({ index: 5, length: 0 });
+    mockQuill.getFormat = () => ({});
+    mockQuill.getLeaf = () => [mockLeaf, 0];
+
+    expect(moduloRemissao.getRemissaoNoCursor()).to.be.null;
+  });
 });

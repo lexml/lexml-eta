@@ -56,18 +56,3 @@ export const iconeRemissaoInterna = `
   </g>
 </svg>
 `;
-
-export const iconeRemoverRemissao = `
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-  <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Primeiro elo (esquerda) -->
-    <path d="M6.5 4.5L5 3C4.2 2.2 2.8 2.2 2 3C1.2 3.8 1.2 5.2 2 6L3.5 7.5"/>
-    <!-- Segundo elo (direita) -->
-    <path d="M9.5 11.5L11 13C11.8 13.8 13.2 13.8 14 13C14.8 12.2 14.8 10.8 14 10L12.5 8.5"/>
-    <!-- Conexão entre elos -->
-    <path d="M6 7L10 9"/>
-    <!-- X de remoção -->
-    <line x1="2" y1="14" x2="14" y2="2"/>
-  </g>
-</svg>
-`;

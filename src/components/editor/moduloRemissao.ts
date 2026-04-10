@@ -1,8 +1,6 @@
 import { RemissaoInternaValue } from '../../model/remissao';
 import { atualizarTextoRemissao as atualizarTextoRemissaoUtil } from '../../model/remissao/lexmlIdUtil';
 import { gerarRefId } from '../../model/remissao/refId';
-import { rootStore } from '../../redux/store';
-import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
 
 const Delta = Quill.import('delta');
@@ -21,8 +19,6 @@ export const REMISSAO_INTERNA_REMOVE_EVENT = 'remover-remissao-interna';
 class ModuloRemissao extends Module {
   quill: any;
   options: any;
-
-  private _clickHandler: ((e: MouseEvent) => void) | null = null;
 
   _isAbrindoTexto = false;
 
@@ -49,20 +45,9 @@ class ModuloRemissao extends Module {
     const toolbar = this.quill.getModule('toolbar');
     if (toolbar) {
       toolbar.addHandler('remissao-interna', this.abrirDialogoRemissao.bind(this));
-      toolbar.addHandler('remover-remissao', this.removerRemissao.bind(this));
     }
 
     this.addClipboardMatcher();
-
-    this._clickHandler = this.onClick.bind(this);
-    this.quill.root.addEventListener('click', this._clickHandler);
-  }
-
-  destroy(): void {
-    if (this._clickHandler) {
-      this.quill.root.removeEventListener('click', this._clickHandler);
-      this._clickHandler = null;
-    }
   }
 
   addClipboardMatcher(): void {
@@ -103,25 +88,29 @@ class ModuloRemissao extends Module {
     });
   }
 
-  onClick(e: MouseEvent): void {
-    const el = e.target as HTMLElement;
-    const linkRemissao = el.closest('a.lexml-remissao-interna') as HTMLElement;
+  getRemissaoNoCursor(): { value: RemissaoInternaValue; linkEl: HTMLElement } | null {
+    const range = this.quill.getSelection();
+    if (!range) return null;
 
-    if (linkRemissao) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
+    const format = this.quill.getFormat(range);
+    const value = format['remissao-interna'] as RemissaoInternaValue;
 
-      const href = linkRemissao.getAttribute('href');
+    if (value?.refId) {
+      const linkEl = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${CSS.escape(value.refId)}"]`) as HTMLElement;
+      return linkEl ? { value, linkEl } : null;
+    }
 
-      if (href) {
-        const uuid = RemissaoInternaBlot.extractUuidFromHref(href);
-        if (uuid) {
-          const elemento = { uuid };
-          rootStore.dispatch(redirecionarRemissaoAction.execute(elemento));
-        }
+    // Fallback: cursor na borda do blot — getFormat pode não retornar o formato
+    const [leaf] = this.quill.getLeaf(range.index);
+    if (leaf?.parent?.statics?.blotName === 'remissao-interna') {
+      const blotValue = leaf.parent.formats()?.['remissao-interna'] as RemissaoInternaValue;
+      if (blotValue?.refId) {
+        const linkEl = leaf.parent.domNode as HTMLElement;
+        return { value: blotValue, linkEl };
       }
     }
+
+    return null;
   }
 
   private estaNoRotulo(index: number): boolean {
@@ -235,33 +224,6 @@ class ModuloRemissao extends Module {
 
     this.quill.format('remissao-interna', false, 'user');
     this.emitirEventoRemissaoRemove();
-  }
-
-  temRemissaoNaCursorOuSelecao(): boolean {
-    const range = this.quill.getSelection();
-    if (!range) return false;
-
-    if (range.length > 0) {
-      const endIndex = range.index + range.length;
-      const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna');
-      for (const link of links) {
-        const blot = Quill.find(link);
-        if (blot) {
-          const blotIndex = blot.offset(this.quill.scroll);
-          const blotLength = blot.length();
-          if (blotIndex >= range.index && blotIndex + blotLength <= endIndex) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    const format = this.quill.getFormat(range);
-    if (format['remissao-interna']) return true;
-
-    const [leaf] = this.quill.getLeaf(range.index);
-    return leaf?.parent?.statics?.blotName === 'remissao-interna';
   }
 
   private removerRemissoesNoRange(index: number, length: number): number {
