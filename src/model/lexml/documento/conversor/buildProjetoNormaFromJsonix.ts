@@ -247,10 +247,6 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
   return dispositivo;
 };
 
-// const montaReferencia = (value: any): string => {
-//   return `<a href="${value.href}"> ${value.content[0]} </a>`;
-// };
-
 const buildContentDispositivo = (el: any): string => {
   let texto = '';
   if (el.value?.nomeAgrupador) {

@@ -60,22 +60,8 @@ export const restauraTextoFixoRemissoes = (state: any, action: any): State => {
   const eventosUi = restauradas.length > 0 ? [{ stateType: StateType.RemissaoTextoFixoRestaurada, elementos: [], remissoesTextoFixoRestauradas: restauradas }] : [];
 
   return {
-    articulacao: state.articulacao,
-    modo: state.modo,
-    past: state.past,
-    present: state.present,
-    future: state.future,
-    ui: {
-      events: eventosUi,
-      alertas: state.ui?.alertas,
-      message: state.ui?.message,
-      paginacao: state.ui?.paginacao,
-    },
-    emRevisao: state.emRevisao,
-    usuario: state.usuario,
-    revisoes: state.revisoes,
-    numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
-    mensagensCritical: state.mensagensCritical,
+    ...state,
     remissoes: novoRegistro,
+    ui: { ...state.ui, events: eventosUi },
   };
 };

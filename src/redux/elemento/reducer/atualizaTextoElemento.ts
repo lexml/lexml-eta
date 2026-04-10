@@ -12,12 +12,6 @@ import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 
-// const houveAlteracaoNoTextoAposAcao = (dispositivo: Dispositivo, action: any): boolean => {
-//   const textoAtual = action.atual?.conteudo?.texto;
-//   const textoOriginal = dispositivo.situacao.dispositivoOriginal?.conteudo?.texto;
-//   return textoAtual !== dispositivo.texto && textoAtual !== textoOriginal;
-// };
-
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const textoOriginal = dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto;
@@ -47,10 +41,6 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
 
   const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
-
-  // if (houveAlteracaoNoTextoAposAcao(dispositivo, action)) {
-  //   eventosUi.add(StateType.ElementoModificado, [elemento]);
-  // }
 
   if (isTextoMaiusculo(dispositivo)) {
     dispositivo.texto = dispositivo.texto.toUpperCase();

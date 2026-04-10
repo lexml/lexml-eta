@@ -244,9 +244,6 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
     value['abreAspas'] = 's';
     value.rotulo = dispositivo.rotulo;
   } else if (isDispositivoAlteracao(dispositivo) && ((isCaput(dispositivo) && isCaputComIrmaoUnico(dispositivo)) || (isOmissis(dispositivo) && isOmissisIrmaoUnico(dispositivo)))) {
-    if (dispositivo.id === 'art2_cpt_alt1_art203_omi1') {
-      console.log('isDispositivoAlteracao(dispositivoTemp) && isUltimaAlteracao(dispositivoTemp)', isDispositivoAlteracao(dispositivo), isUltimaAlteracao(dispositivo, true));
-    }
     value['fechaAspas'] = 's';
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
     value['notaAlteracao'] = cabecaAlteracao.notaAlteracao || 'NR';

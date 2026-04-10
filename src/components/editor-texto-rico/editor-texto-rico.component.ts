@@ -74,8 +74,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   _textoAntesRevisao?: string;
   get textoAntesRevisao(): string | undefined {
-    // TODO: se contém revisão e texto antes da revisão for igual ao texto atual, ainda assim retorna texto antes da revisão
-    //return (!this.existeRevisaoByModo() && this._textoAntesRevisao === this.texto) || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
     return !this.existeRevisaoByModo() ? undefined : this._textoAntesRevisao;
   }
 
@@ -564,9 +562,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         }
       }
     }
-    // setTimeout(() => {
-    //   this.atualizaQuantidadeRevisao(this.getQuantidadeDeRevisoes());
-    // }, 0);
   };
 
   updateApenasTexto = (): void => {
@@ -737,10 +732,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private atualizaQuantidadeRevisao = (quantidade: number): void => {
     const elemento = this.querySelector(`#${this.getNomeBadge()}`) as any;
     atualizaQuantidadeRevisaoTextoRico(quantidade, elemento);
-
-    // if (elemento) {
-    //   elemento.innerHTML = quantidade;
-    // }
   };
 
   editarNotaRodape(idNotaRodape: string): void {

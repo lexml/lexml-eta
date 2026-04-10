@@ -111,23 +111,9 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   }
 
   return {
-    articulacao: state.articulacao,
-    modo: state.modo,
-    past: state.past,
-    present: state.present,
-    future: state.future,
-    ui: {
-      events: eventosUi.build(),
-      alertas: state.ui?.alertas,
-      message: state.ui?.message,
-      paginacao: state.ui?.paginacao,
-    },
-    emRevisao: state.emRevisao,
-    usuario: state.usuario,
-    revisoes: state.revisoes,
-    numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
-    mensagensCritical: state.mensagensCritical,
+    ...state,
     remissoes: remissaoRegistry,
+    ui: { ...state.ui, events: eventosUi.build() },
   };
 };
 

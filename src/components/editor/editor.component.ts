@@ -892,23 +892,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.RevisaoAdicionalRejeitada:
           this.removerLinhaQuill(event);
           break;
-        case StateType.RemissaoRedirecionar:
-          this.redirecionarParaDispositivoRemissao(event);
-          break;
-        case StateType.AtualizaRemissaoInterna:
-          this.renderizarRemissoesDoState(event);
-          break;
-        case StateType.RemissaoRenumerada:
-          this.atualizarRemissaoRenumerada(event);
-          break;
-        case StateType.RemissaoInvalidada:
-          this.marcarRemissoesComoInvalidas(event);
-          break;
-        case StateType.RemissaoRestaurada:
-          this.restaurarRemissoes(event);
-          break;
-        case StateType.RemissaoTextoFixoRestaurada:
-          this.marcarTextoFixoNoDOM(event);
+
+        default:
+          this.handleRemissaoEvent(event);
           break;
       }
 
@@ -916,9 +902,35 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.limparHistory();
     });
 
+    this.processarPosLoopEventos(events);
+  }
+
+  private handleRemissaoEvent(event: StateEvent): void {
+    switch (event.stateType) {
+      case StateType.RemissaoRedirecionar:
+        this.redirecionarParaDispositivoRemissao(event);
+        break;
+      case StateType.AtualizaRemissaoInterna:
+        this.renderizarRemissoesDoState(event);
+        break;
+      case StateType.RemissaoRenumerada:
+        this.atualizarRemissaoRenumerada(event);
+        break;
+      case StateType.RemissaoInvalidada:
+        this.marcarRemissoesComoInvalidas(event);
+        break;
+      case StateType.RemissaoRestaurada:
+        this.restaurarRemissoes(event);
+        break;
+      case StateType.RemissaoTextoFixoRestaurada:
+        this.marcarTextoFixoNoDOM(event);
+        break;
+    }
+  }
+
+  private processarPosLoopEventos(events: StateEvent[]): void {
     this.indicadorMarcaRevisao(events);
     this.indicadorTextoModificado(events);
-    //this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
 
     const eventosQueDevemEmitirTextChange = [
@@ -933,9 +945,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const eventosFiltrados = events?.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
 
     if (eventosFiltrados?.length) {
-      // TODO: Implementar lógica do atributo eventosFiltrados, sem repetir os itens
       this.eventosOnChange.push(...eventosFiltrados);
-
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
   }
