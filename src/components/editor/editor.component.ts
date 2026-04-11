@@ -83,7 +83,7 @@ import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexm
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
-import { iconeRemissaoInterna, iconeIr, iconeEditar, lixeiro } from '../../../assets/icons/icons';
+import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoInternaDialog } from './remissaoInternaDialog';
 import { RemissaoInternaValue } from '../../model/remissao';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
@@ -2018,23 +2018,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const invalido = linkEl.classList.contains('lexml-remissao-invalida');
     mostrarPopup(this._remissaoPopup, linkEl, {
       rotulo: value.targetRotulo ?? '',
-      preview: this.obterPreviewDispositivo(value.targetUuid),
       invalido,
+      acaoNavegacao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
       botoes: [
         {
-          titulo: 'Ir para dispositivo',
-          icone: iconeIr,
-          desabilitado: invalido,
-          acao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
-        },
-        {
-          titulo: 'Editar remissão',
-          icone: iconeEditar,
+          titulo: 'Editar',
           acao: () => this.editarRemissao(value),
         },
         {
-          titulo: 'Excluir remissão',
-          icone: lixeiro,
+          titulo: 'Excluir',
           classe: 'remissao-popup__btn--excluir',
           acao: () => {
             remissaoModule.removerRemissaoPorId(value.refId!);
@@ -2043,17 +2035,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         },
       ],
     });
-  }
-
-  private obterPreviewDispositivo(uuid?: number): string | undefined {
-    if (!uuid) return undefined;
-    const articulacao = rootStore.getState().elementoReducer.articulacao;
-    if (!articulacao) return undefined;
-    const elementos = getElementos(articulacao);
-    const el = elementos.find(e => e.uuid === uuid);
-    const texto = el?.conteudo?.texto;
-    if (!texto) return undefined;
-    return texto.length > 80 ? texto.substring(0, 80) + '…' : texto;
   }
 
   private editarRemissao = async (value: RemissaoInternaValue): Promise<void> => {

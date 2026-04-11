@@ -1,8 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { BotaoPopup, ConfiguracaoPopup, criarPopup, esconderPopup, mostrarPopup } from '../../../src/components/popup-inline/popupInline';
 
-const ICONE_TESTE = '<svg><circle/></svg>';
-
 function criarConfigBasica(overrides: Partial<ConfiguracaoPopup> = {}): ConfiguracaoPopup {
   return {
     rotulo: 'Art. 1º',
@@ -14,7 +12,6 @@ function criarConfigBasica(overrides: Partial<ConfiguracaoPopup> = {}): Configur
 function criarBotao(overrides: Partial<BotaoPopup> = {}): BotaoPopup {
   return {
     titulo: 'Ação',
-    icone: ICONE_TESTE,
     acao: () => {
       //empty
     },
@@ -28,19 +25,9 @@ describe('criarPopup()', () => {
     expect(popup).to.be.instanceOf(HTMLDivElement);
   });
 
-  it('contém o elemento de info', () => {
-    const popup = criarPopup();
-    expect(popup.querySelector('.remissao-popup__info')).to.not.be.null;
-  });
-
   it('contém o elemento de rotulo', () => {
     const popup = criarPopup();
     expect(popup.querySelector('.remissao-popup__rotulo')).to.not.be.null;
-  });
-
-  it('contém o elemento de preview', () => {
-    const popup = criarPopup();
-    expect(popup.querySelector('.remissao-popup__preview')).to.not.be.null;
   });
 
   it('contém o container de acoes', () => {
@@ -100,19 +87,25 @@ describe('mostrarPopup() — conteúdo', () => {
     expect(rotuloEl.textContent).to.equal('Art. 5º');
   });
 
-  it('exibe preview quando config.preview e fornecido', () => {
-    mostrarPopup(popup, anchorEl, criarConfigBasica({ preview: 'Texto do dispositivo...' }));
+  it('adiciona classe navegavel ao rotulo quando acaoNavegacao e fornecida e nao invalido', () => {
+    mostrarPopup(popup, anchorEl, criarConfigBasica({ acaoNavegacao: () => undefined }));
 
-    const previewEl = popup.querySelector('.remissao-popup__preview') as HTMLElement;
-    expect(previewEl.textContent).to.equal('Texto do dispositivo...');
-    expect(previewEl.style.display).to.not.equal('none');
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    expect(rotuloEl.classList.contains('remissao-popup__rotulo--navegavel')).to.be.true;
   });
 
-  it('oculta preview quando config.preview e undefined', () => {
-    mostrarPopup(popup, anchorEl, criarConfigBasica({ preview: undefined }));
+  it('nao adiciona classe navegavel ao rotulo quando invalido e true', () => {
+    mostrarPopup(popup, anchorEl, criarConfigBasica({ acaoNavegacao: () => undefined, invalido: true }));
 
-    const previewEl = popup.querySelector('.remissao-popup__preview') as HTMLElement;
-    expect(previewEl.style.display).to.equal('none');
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    expect(rotuloEl.classList.contains('remissao-popup__rotulo--navegavel')).to.be.false;
+  });
+
+  it('nao adiciona classe navegavel ao rotulo quando acaoNavegacao e undefined', () => {
+    mostrarPopup(popup, anchorEl, criarConfigBasica());
+
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    expect(rotuloEl.classList.contains('remissao-popup__rotulo--navegavel')).to.be.false;
   });
 
   it('adiciona classe invalido quando config.invalido e true', () => {
@@ -135,19 +128,19 @@ describe('mostrarPopup() — conteúdo', () => {
   });
 
   it('cria o numero correto de botoes', () => {
-    const config = criarConfigBasica({ botoes: [criarBotao(), criarBotao(), criarBotao()] });
+    const config = criarConfigBasica({ botoes: [criarBotao(), criarBotao()] });
     mostrarPopup(popup, anchorEl, config);
 
     const botoes = popup.querySelectorAll('.remissao-popup__btn');
-    expect(botoes.length).to.equal(3);
+    expect(botoes.length).to.equal(2);
   });
 
-  it('define title do botao conforme BotaoPopup.titulo', () => {
-    const config = criarConfigBasica({ botoes: [criarBotao({ titulo: 'Ir para dispositivo' })] });
+  it('exibe o titulo como texto do botao', () => {
+    const config = criarConfigBasica({ botoes: [criarBotao({ titulo: 'Editar' })] });
     mostrarPopup(popup, anchorEl, config);
 
     const btn = popup.querySelector('.remissao-popup__btn') as HTMLButtonElement;
-    expect(btn.title).to.equal('Ir para dispositivo');
+    expect(btn.textContent).to.equal('Editar');
   });
 
   it('adiciona classe extra quando BotaoPopup.classe e fornecida', () => {
@@ -166,7 +159,7 @@ describe('mostrarPopup() — conteúdo', () => {
     expect(btn.disabled).to.be.true;
   });
 
-  it('reconstroi botoes a cada chamada (callbacks atualizados)', () => {
+  it('reconstroi botoes a cada chamada', () => {
     mostrarPopup(popup, anchorEl, criarConfigBasica({ botoes: [criarBotao()] }));
     mostrarPopup(popup, anchorEl, criarConfigBasica({ botoes: [criarBotao(), criarBotao()] }));
 
@@ -292,6 +285,82 @@ describe('mostrarPopup() — interação com botões', () => {
     const btn = popup.querySelector('.remissao-popup__btn') as HTMLButtonElement;
     const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
     btn.dispatchEvent(event);
+
+    expect(event.defaultPrevented).to.be.true;
+  });
+});
+
+describe('mostrarPopup() — interação com rotulo navegável', () => {
+  let popup: HTMLDivElement;
+  let anchorEl: HTMLElement;
+
+  beforeEach(() => {
+    popup = criarPopup();
+    document.body.appendChild(popup);
+    anchorEl = document.createElement('span');
+    anchorEl.style.position = 'fixed';
+    anchorEl.style.top = '200px';
+    anchorEl.style.left = '200px';
+    document.body.appendChild(anchorEl);
+  });
+
+  afterEach(() => {
+    popup.remove();
+    anchorEl.remove();
+  });
+
+  it('chama acaoNavegacao ao clicar no rotulo navegavel', () => {
+    let chamado = false;
+    mostrarPopup(
+      popup,
+      anchorEl,
+      criarConfigBasica({
+        acaoNavegacao: () => {
+          chamado = true;
+        },
+      })
+    );
+
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    rotuloEl.click();
+
+    expect(chamado).to.be.true;
+  });
+
+  it('esconde popup ao clicar no rotulo navegavel', () => {
+    mostrarPopup(popup, anchorEl, criarConfigBasica({ acaoNavegacao: () => undefined }));
+
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    rotuloEl.click();
+
+    expect(popup.style.display).to.equal('none');
+  });
+
+  it('nao chama acaoNavegacao quando invalido', () => {
+    let chamado = false;
+    mostrarPopup(
+      popup,
+      anchorEl,
+      criarConfigBasica({
+        acaoNavegacao: () => {
+          chamado = true;
+        },
+        invalido: true,
+      })
+    );
+
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    rotuloEl.click();
+
+    expect(chamado).to.be.false;
+  });
+
+  it('mousedown no rotulo navegavel cancela o evento', () => {
+    mostrarPopup(popup, anchorEl, criarConfigBasica({ acaoNavegacao: () => undefined }));
+
+    const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
+    const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+    rotuloEl.dispatchEvent(event);
 
     expect(event.defaultPrevented).to.be.true;
   });

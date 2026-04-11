@@ -8,19 +8,14 @@ const ESTILOS_CSS = `
     border: 1px solid var(--sl-color-neutral-200, #e2e8f0);
     border-radius: var(--sl-border-radius-medium, 4px);
     box-shadow: var(--sl-shadow-medium, 0 4px 12px rgba(0, 0, 0, 0.15));
-    padding: var(--sl-spacing-x-small, 8px);
+    padding: 5px 10px;
     display: none;
-    flex-direction: column;
-    gap: var(--sl-spacing-2x-small, 4px);
-    max-width: 320px;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sl-spacing-x-small, 8px);
     font-size: var(--sl-font-size-small, 13px);
     font-family: var(--sl-font-sans, system-ui, sans-serif);
-  }
-
-  .remissao-popup__info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    white-space: nowrap;
   }
 
   .remissao-popup__rotulo {
@@ -28,23 +23,25 @@ const ESTILOS_CSS = `
     color: var(--sl-color-primary-600, #0066cc);
   }
 
-  .remissao-popup--invalido .remissao-popup__rotulo {
-    color: var(--sl-color-danger-600, #dc2626);
+  .remissao-popup__rotulo--navegavel {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
-  .remissao-popup__preview {
-    color: var(--sl-color-neutral-500, #64748b);
-    font-size: var(--sl-font-size-x-small, 12px);
-    max-width: 280px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .remissao-popup__rotulo--navegavel:hover {
+    color: var(--sl-color-primary-700, #0052a3);
+  }
+
+  .remissao-popup--invalido .remissao-popup__rotulo {
+    color: var(--sl-color-danger-600, #dc2626);
+    cursor: default;
+    text-decoration: none;
   }
 
   .remissao-popup__acoes {
     display: flex;
     gap: 4px;
-    justify-content: flex-end;
   }
 
   .remissao-popup__btn {
@@ -52,12 +49,11 @@ const ESTILOS_CSS = `
     border: 1px solid var(--sl-color-neutral-200, #e2e8f0);
     border-radius: var(--sl-border-radius-small, 3px);
     cursor: pointer;
-    padding: 3px 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 2px 8px;
+    font-size: var(--sl-font-size-x-small, 12px);
+    font-family: inherit;
     color: var(--sl-color-neutral-700, #334155);
-    line-height: 1;
+    line-height: 1.4;
   }
 
   .remissao-popup__btn:hover:not(:disabled) {
@@ -77,7 +73,6 @@ const ESTILOS_CSS = `
 
 export interface BotaoPopup {
   titulo: string;
-  icone: string;
   acao: () => void;
   desabilitado?: boolean;
   classe?: string;
@@ -85,8 +80,8 @@ export interface BotaoPopup {
 
 export interface ConfiguracaoPopup {
   rotulo: string;
-  preview?: string;
   invalido?: boolean;
+  acaoNavegacao?: () => void;
   botoes: BotaoPopup[];
 }
 
@@ -105,22 +100,13 @@ export function criarPopup(): HTMLDivElement {
   popup.id = 'remissao-popup';
   popup.style.display = 'none';
 
-  const info = document.createElement('div');
-  info.className = 'remissao-popup__info';
-
   const rotuloEl = document.createElement('span');
   rotuloEl.className = 'remissao-popup__rotulo';
-
-  const previewEl = document.createElement('span');
-  previewEl.className = 'remissao-popup__preview';
-
-  info.appendChild(rotuloEl);
-  info.appendChild(previewEl);
 
   const acoes = document.createElement('div');
   acoes.className = 'remissao-popup__acoes';
 
-  popup.appendChild(info);
+  popup.appendChild(rotuloEl);
   popup.appendChild(acoes);
 
   return popup;
@@ -128,28 +114,32 @@ export function criarPopup(): HTMLDivElement {
 
 export function mostrarPopup(popup: HTMLDivElement, anchorEl: HTMLElement, config: ConfiguracaoPopup): void {
   const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
-  const previewEl = popup.querySelector('.remissao-popup__preview') as HTMLElement;
   const acoesEl = popup.querySelector('.remissao-popup__acoes') as HTMLElement;
 
   rotuloEl.textContent = config.rotulo;
 
-  if (config.preview) {
-    previewEl.textContent = config.preview;
-    previewEl.style.display = '';
-  } else {
-    previewEl.textContent = '';
-    previewEl.style.display = 'none';
+  // Remove listeners antigos clonando o elemento
+  const rotuloNovo = rotuloEl.cloneNode(true) as HTMLElement;
+  rotuloEl.replaceWith(rotuloNovo);
+
+  const navegavel = !!config.acaoNavegacao && !config.invalido;
+  rotuloNovo.classList.toggle('remissao-popup__rotulo--navegavel', navegavel);
+
+  if (navegavel) {
+    rotuloNovo.addEventListener('mousedown', e => e.preventDefault());
+    rotuloNovo.addEventListener('click', () => {
+      config.acaoNavegacao!();
+      esconderPopup(popup);
+    });
   }
 
   popup.classList.toggle('remissao-popup--invalido', !!config.invalido);
 
-  // Reconstrói botões para garantir callbacks atualizados a cada chamada
   acoesEl.innerHTML = '';
   for (const botao of config.botoes) {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.title = botao.titulo;
-    btn.innerHTML = botao.icone;
+    btn.textContent = botao.titulo;
     btn.className = `remissao-popup__btn${botao.classe ? ' ' + botao.classe : ''}`;
 
     if (botao.desabilitado) {
@@ -173,17 +163,16 @@ export function esconderPopup(popup: HTMLDivElement): void {
 }
 
 function posicionarPopup(popup: HTMLElement, anchorEl: HTMLElement): void {
-  // Exibe temporariamente para medir dimensões reais
   popup.style.visibility = 'hidden';
   popup.style.display = 'flex';
 
   const anchorRect = anchorEl.getBoundingClientRect();
   const popupRect = popup.getBoundingClientRect();
 
-  let top = anchorRect.top - popupRect.height - 8;
+  let top = anchorRect.bottom + 8;
   let left = anchorRect.left + anchorRect.width / 2 - popupRect.width / 2;
 
-  if (top < 8) top = anchorRect.bottom + 8;
+  if (top + popupRect.height > window.innerHeight - 8) top = anchorRect.top - popupRect.height - 8;
   left = Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8));
 
   popup.style.top = `${top}px`;
