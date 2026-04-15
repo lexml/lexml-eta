@@ -53,9 +53,9 @@ describe('Testando carregamento da MPV 905/2019', () => {
       expect(d.filhos.every(f => f.tipo === 'Paragrafo')).to.be.true;
     });
 
-    it('Deveria apresentar ids art3_par1u e art3_par2 nos parágrafos', () => {
+    it('Deveria apresentar ids art3_par1 e art3_par2 nos parágrafos', () => {
       const d = buscaDispositivoById(state.articulacao!, 'art3')!;
-      expect(d.filhos[0].id).to.equal('art3_par1u'); // assume que apenas o texto foi alterado
+      expect(d.filhos[0].id).to.equal('art3_par1');
       expect(d.filhos[1].id).to.equal('art3_par2');
     });
   });
@@ -85,9 +85,9 @@ describe('Testando carregamento da MPV 905/2019', () => {
       expect(d.filhos.every(f => f.tipo === 'Paragrafo')).to.be.true;
     });
 
-    it('Deveria apresentar ids art3_par1u e art3_par2 nos parágrafos', () => {
+    it('Deveria apresentar ids art3_par1 e art3_par2 nos parágrafos', () => {
       const d = buscaDispositivoById(state.articulacao!, 'art26_cpt_alt1_art3')!;
-      expect(d.filhos[0].id).to.equal('art26_cpt_alt1_art3_par1u'); // assume que apenas o texto foi alterado
+      expect(d.filhos[0].id).to.equal('art26_cpt_alt1_art3_par1');
       expect(d.filhos[1].id).to.equal('art26_cpt_alt1_art3_par2');
     });
   });

@@ -51,9 +51,9 @@ describe('Testando carregamento da MPV 905/2019', () => {
       expect(state.articulacao?.artigos.length).to.equal(53);
     });
 
-    it('Deveria possuir artigo 1, 2 e 3 com situação Dispositivo Modificado', () => {
+    it('Deveria possuir artigo 1, 2 e 3 com situação Dispositivo Original', () => {
       expect(
-        state.articulacao?.artigos.filter(a => a.id === 'art1' || a.id === 'art2' || a.id === 'art3').every(a => a.situacao.descricaoSituacao === 'Dispositivo Modificado')
+        state.articulacao?.artigos.filter(a => a.id === 'art1' || a.id === 'art2' || a.id === 'art3').every(a => a.situacao.descricaoSituacao === 'Dispositivo Original')
       ).to.equal(true);
     });
 
