@@ -33,9 +33,6 @@ export class RemissaoInternaBlot extends Inline {
         targetUuid: this.extractUuidFromHref(href || ''),
         targetRotulo: domNode.textContent || undefined,
       };
-      if (domNode.getAttribute('data-texto-fixo') === 'true') {
-        value.textoFixo = true;
-      }
       return value;
     }
 
@@ -66,12 +63,6 @@ export class RemissaoInternaBlot extends Inline {
 
     if (value.refId) {
       domNode.setAttribute('data-ref-id', value.refId);
-    }
-
-    if (value.textoFixo) {
-      domNode.setAttribute('data-texto-fixo', 'true');
-    } else {
-      domNode.removeAttribute('data-texto-fixo');
     }
   }
 

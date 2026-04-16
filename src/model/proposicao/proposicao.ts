@@ -1,7 +1,6 @@
 import { Revisao } from '../revisao/revisao';
 import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { ProjetoNorma } from '../lexml/documento/projetoNorma';
-import { RemissaoTextoFixo } from '../remissao';
 
 export class Proposicao {
   // Metadados padronizados para o lexml-eta-proposicao
@@ -18,7 +17,6 @@ export class Proposicao {
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
   revisoes: Revisao[] = [];
-  remissoesTextoFixo: RemissaoTextoFixo[] = [];
   colegiadoApreciador = new ColegiadoApreciador();
   notasRodape: NotaRodape[] = [];
   projetoNorma?: ProjetoNorma;

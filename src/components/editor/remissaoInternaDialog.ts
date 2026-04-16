@@ -354,7 +354,6 @@ export async function remissaoInternaDialog(
       targetLexmlId: dispositivoSelecionado.lexmlId,
       targetRotulo: dispositivoSelecionado.rotulo,
       textoRef: textoSelecionado || dispositivoSelecionado.rotulo,
-      textoFixo: true,
     };
 
     onRemissaoCriada(remissaoValue);

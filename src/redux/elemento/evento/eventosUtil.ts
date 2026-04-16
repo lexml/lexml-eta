@@ -434,12 +434,6 @@ export const createEventos = (): StateEvent[] => {
       pai: undefined,
       elementos: [],
     },
-    {
-      stateType: StateType.RemissaoTextoFixoRestaurada,
-      referencia: undefined,
-      pai: undefined,
-      elementos: [],
-    },
   ];
 };
 

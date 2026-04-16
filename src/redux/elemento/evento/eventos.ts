@@ -15,10 +15,7 @@ export class Eventos {
   }
 
   build(): StateEvent[] {
-    return this.eventos.filter(
-      ev =>
-        (ev.elementos && ev.elementos.length > 0) || ev.remissaoRenumeracao !== undefined || ev.remissaoInvalidacao !== undefined || ev.remissoesTextoFixoRestauradas !== undefined
-    );
+    return this.eventos.filter(ev => (ev.elementos && ev.elementos.length > 0) || ev.remissaoRenumeracao !== undefined || ev.remissaoInvalidacao !== undefined);
   }
 
   get(stateType: StateType): StateEvent {

@@ -346,7 +346,7 @@ class ModuloRemissao extends Module {
     const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlIdAntigo)}"]`);
 
     // Coleta refIds e textos antes de qualquer modificação DOM para evitar referências obsoletas
-    const candidatos: { refId: string; textoAtual: string; textoFixo: boolean }[] = [];
+    const candidatos: { refId: string; textoAtual: string }[] = [];
     links.forEach((link: Element) => {
       const el = link as HTMLElement;
       const dataRefId = el.getAttribute('data-ref-id');
@@ -358,15 +358,13 @@ class ModuloRemissao extends Module {
         candidatos.push({
           refId: dataRefId,
           textoAtual: el.textContent || '',
-          textoFixo: el.getAttribute('data-texto-fixo') === 'true',
         });
       }
     });
 
     let count = 0;
-    for (const { refId, textoAtual, textoFixo } of candidatos) {
-      // textoFixo: remissão criada manualmente com texto arbitrário — preserva o texto original.
-      const novoTexto = textoFixo ? textoAtual : this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
+    for (const { refId, textoAtual } of candidatos) {
+      const novoTexto = this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
       const newValue: RemissaoInternaValue = {
         refId,
         targetLexmlId: lexmlIdNovo,
@@ -431,18 +429,6 @@ class ModuloRemissao extends Module {
     });
 
     return count;
-  }
-
-  marcarTextoFixoEmLinks(items: { sourceUuid: number; targetLexmlId: string }[]): void {
-    for (const { sourceUuid, targetLexmlId } of items) {
-      const domEl = this.quill.root.querySelector(`#texto__dispositivo${sourceUuid}`);
-      if (!domEl) continue;
-
-      const links = domEl.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(targetLexmlId)}"]`);
-      links.forEach((link: Element) => {
-        (link as HTMLElement).setAttribute('data-texto-fixo', 'true');
-      });
-    }
   }
 
   private atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {

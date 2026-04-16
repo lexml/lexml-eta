@@ -682,7 +682,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     });
   });
 
-  describe('caminho síncrono quando texto não muda (textoFixo=false)', () => {
+  describe('caminho síncrono quando texto não muda', () => {
     it('chama adicionarRemissao quando texto já é o canonical do novo lexmlId', () => {
       mockQuill.root.innerHTML = `
         <a class="lexml-remissao-interna"
@@ -716,11 +716,11 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     });
   });
 
-  describe('mix de textoFixo=true e textoFixo=false', () => {
-    it('conta ambos; apenas textoFixo=true chama adicionarRemissao de forma síncrona', () => {
+  describe('mix de texto customizado e canônico', () => {
+    it('texto customizado preserva texto; canônico vai para caminho assíncrono', () => {
       mockQuill.root.innerHTML = `
         <p>
-          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100" data-texto-fixo="true">texto livre</a>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100">texto livre</a>
           <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId100">art. 1º</a>
         </p>
       `;
@@ -728,6 +728,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
       const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
       expect(count).to.equal(2);
+      // "texto livre" não é rótulo canônico → texto preservado → caminho síncrono
       expect(adicionarRemissaoCalls.length).to.equal(1);
       expect(adicionarRemissaoCalls[0].refId).to.equal('ref_A');
       expect(adicionarRemissaoCalls[0].value.targetRotulo).to.equal('texto livre');
@@ -738,8 +739,8 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     it('ignora link com UUID incorreto mesmo que lexmlId coincida', () => {
       mockQuill.root.innerHTML = `
         <p>
-          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100" data-texto-fixo="true">texto A</a>
-          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId999" data-texto-fixo="true">texto B</a>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100">texto A</a>
+          <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_B" href="#lxEtaId999">texto B</a>
         </p>
       `;
 
@@ -752,7 +753,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
 
     it('retorna 0 quando todos os links têm UUID incorreto', () => {
       mockQuill.root.innerHTML = `
-        <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_1" href="#lxEtaId999" data-texto-fixo="true">texto</a>
+        <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_1" href="#lxEtaId999">texto</a>
       `;
 
       expect(moduloRemissao.atualizarReferencias('art1', 'art2', 100)).to.equal(0);

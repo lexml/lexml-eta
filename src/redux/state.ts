@@ -37,7 +37,6 @@ export enum StateType {
   RemissaoRenumerada = 'RemissaoRenumerada',
   RemissaoInvalidada = 'RemissaoInvalidada',
   RemissaoRestaurada = 'RemissaoRestaurada',
-  RemissaoTextoFixoRestaurada = 'RemissaoTextoFixoRestaurada',
 }
 export interface StateEvent {
   stateType: StateType;
@@ -47,7 +46,6 @@ export interface StateEvent {
   elementos?: Elemento[];
   remissaoRenumeracao?: { lexmlIdAntigo: string; lexmlIdNovo: string; novoUuid: number };
   remissaoInvalidacao?: { lexmlId: string; uuid: number };
-  remissoesTextoFixoRestauradas?: { sourceUuid: number; targetLexmlId: string }[];
 }
 
 export interface Paginacao {

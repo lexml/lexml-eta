@@ -93,8 +93,6 @@ import { ADICIONAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/adicionarR
 import { adicionaRemissaoInterna } from './adicionaRemissaoInterna';
 import { REMOVER_REMISSAO_INVALIDA } from '../../../model/lexml/acao/removerRemissaoInvalidaAction';
 import { removerRemissaoInvalida } from './removerRemissaoInvalida';
-import { RESTAURAR_TEXTO_FIXO_REMISSOES } from '../../../model/lexml/acao/restaurarTextoFixoRemissoesAction';
-import { restauraTextoFixoRemissoes } from './restauraTextoFixoRemissoes';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -247,9 +245,6 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case REMOVER_REMISSAO_INVALIDA:
       tempState = removerRemissaoInvalida(state, action);
-      break;
-    case RESTAURAR_TEXTO_FIXO_REMISSOES:
-      tempState = restauraTextoFixoRemissoes(state, action);
       break;
     default:
       actionType = undefined;

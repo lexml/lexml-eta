@@ -37,8 +37,6 @@ import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
-import { RemissaoInternaValue, RemissaoTextoFixo } from '../model/remissao';
-import { findDispositivoByUuid } from '../model/lexml/hierarquia/hierarquiaUtil';
 
 export interface DispositivoBloqueado {
   lexmlId: string;
@@ -230,7 +228,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     proposicao.ementa = this.getEmentaFromProjetoNorma(this.projetoNorma);
 
     proposicao.revisoes = this.getRevisoes();
-    proposicao.remissoesTextoFixo = this.getRemissoesTextoFixo();
     proposicao.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
     proposicao.pendenciasPreenchimento = this.getPendenciasPreenchimentoEmenda(proposicao);
     proposicao.epigrafe = this.getEpigrafe(this.projetoNorma);
@@ -267,31 +264,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
 
     return pendenciasPreenchimento;
-  }
-
-  private getRemissoesTextoFixo(): RemissaoTextoFixo[] {
-    const state = rootStore.getState().elementoReducer;
-    const remissoes = state.remissoes ?? {};
-    const articulacao = state.articulacao;
-    const result: RemissaoTextoFixo[] = [];
-
-    for (const [sourceUuidStr, entries] of Object.entries(remissoes) as [string, RemissaoInternaValue[]][]) {
-      const uuid = Number(sourceUuidStr);
-      const dispositivo = findDispositivoByUuid(articulacao, uuid, true);
-      if (!dispositivo?.id) continue;
-
-      for (const entry of entries) {
-        if (entry.textoFixo && entry.targetLexmlId && entry.textoRef) {
-          result.push({
-            sourceLexmlId: dispositivo.id,
-            targetLexmlId: entry.targetLexmlId,
-            textoRef: entry.textoRef,
-          });
-        }
-      }
-    }
-
-    return result;
   }
 
   private getRevisoes(): Revisao[] {
@@ -462,7 +434,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this._lexmlData.data = proposicao.dataUltimaModificacao;
     this._lexmlEta!.setDispositivosERevisoesEmenda(proposicao.revisoes);
     this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
-    this._lexmlEta!.setRemissoesTextoFixo(proposicao.remissoesTextoFixo);
   }
 
   private resetaProposicao(params: LexmlEtaParametrosEdicao): void {
