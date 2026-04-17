@@ -933,7 +933,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   tabIsVisible(tab: string): boolean {
-    return tab === 'notas';
+    return tab === 'notas' || tab === 'atalhos';
   }
 
   onChangeNotasRodape(): void {
