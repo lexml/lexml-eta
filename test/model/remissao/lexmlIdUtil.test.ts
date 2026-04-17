@@ -213,7 +213,7 @@ describe('lexmlIdUtil', () => {
     });
 
     describe('Artigo renumerado', () => {
-      it('deve detectar mudança de artigo simples (art1 → art2)', () => {
+      it('deve detectar mudança de artigo simples (art1 -> art2)', () => {
         const result = diffLexmlId('art1', 'art2');
         expect(result).to.deep.equal({
           tipo: 'art',
@@ -252,7 +252,7 @@ describe('lexmlIdUtil', () => {
       });
     });
 
-    describe('Inciso renumerado → exibição romana', () => {
+    describe('Inciso renumerado -> exibição romana', () => {
       it('deve detectar mudança de inciso (com conversão para romano)', () => {
         const result = diffLexmlId('art3_par2_inc2', 'art3_par2_inc3');
         expect(result).to.deep.equal({
@@ -273,14 +273,14 @@ describe('lexmlIdUtil', () => {
         });
       });
 
-      it('inc2 → inc5 exibe "V" em ID composto', () => {
+      it('inc2 -> inc5 exibe "V" em ID composto', () => {
         const result = diffLexmlId('art1_cpt_inc2', 'art1_cpt_inc5');
         expect(result!.exibicaoNova).to.equal('V');
       });
     });
 
     describe('Alínea e item renumerados', () => {
-      it('deve detectar mudança de alínea → exibição letra', () => {
+      it('deve detectar mudança de alínea -> exibição letra', () => {
         const result = diffLexmlId('art1_par1_inc1_ali1', 'art1_par1_inc1_ali3');
         expect(result!.tipo).to.equal('ali');
         expect(result!.exibicaoNova).to.equal('c');
@@ -314,7 +314,7 @@ describe('lexmlIdUtil', () => {
         });
       });
 
-      it('cap1_art1 → cap3_art1 exibe "III"', () => {
+      it('cap1_art1 -> cap3_art1 exibe "III"', () => {
         const result = diffLexmlId('cap1_art1', 'cap3_art1');
         expect(result!.tipo).to.equal('cap');
         expect(result!.exibicaoNova).to.equal('III');
@@ -322,7 +322,7 @@ describe('lexmlIdUtil', () => {
     });
 
     describe('Transições com número único', () => {
-      it('deve detectar transição parágrafo único → ordinal', () => {
+      it('deve detectar transição parágrafo único -> ordinal', () => {
         const result = diffLexmlId('art5_par1u', 'art5_par2');
         expect(result).to.deep.equal({
           tipo: 'par',
@@ -332,23 +332,23 @@ describe('lexmlIdUtil', () => {
         });
       });
 
-      it('art2 → art1u exibe "único"', () => {
+      it('art2 -> art1u exibe "único"', () => {
         expect(diffLexmlId('art2', 'art1u')!.exibicaoNova).to.equal('único');
       });
 
-      it('par1u → par3 exibe "3"', () => {
+      it('par1u -> par3 exibe "3"', () => {
         expect(diffLexmlId('par1u', 'par3')!.exibicaoNova).to.equal('3');
       });
     });
   });
   describe('lexmlIdParaTextoCanonico', () => {
     describe('Um nível — dispositivos', () => {
-      it('artigo n<10 → ordinal', () => {
+      it('artigo n<10 -> ordinal', () => {
         expect(lexmlIdParaTextoCanonico('art7')).to.equal('art. 7º');
         expect(lexmlIdParaTextoCanonico('art9')).to.equal('art. 9º');
       });
 
-      it('artigo n>=10 → sem ordinal', () => {
+      it('artigo n>=10 -> sem ordinal', () => {
         expect(lexmlIdParaTextoCanonico('art10')).to.equal('art. 10');
         expect(lexmlIdParaTextoCanonico('art25')).to.equal('art. 25');
       });
@@ -523,32 +523,33 @@ describe('lexmlIdUtil', () => {
         expect(atualizarTextoRemissao('art. 2º', 'art2', 'art2')).to.equal('art. 2º');
       });
 
-      it('art1 → art2', () => {
+      it('art1 -> art2', () => {
         expect(atualizarTextoRemissao('art. 1º', 'art1', 'art2')).to.equal('art. 2º');
       });
 
-      it('art9 → art10: ordinal desaparece', () => {
+      it('art9 -> art10: ordinal desaparece', () => {
         expect(atualizarTextoRemissao('art. 9º', 'art9', 'art10')).to.equal('art. 10');
       });
 
-      it('art10 → art9: ordinal reaparece', () => {
+      it('art10 -> art9: ordinal reaparece', () => {
         expect(atualizarTextoRemissao('art. 10', 'art10', 'art9')).to.equal('art. 9º');
       });
 
-      it('art2 → artigo único', () => {
+      it('art2 -> artigo único', () => {
         expect(atualizarTextoRemissao('art. 2º', 'art2', 'art1u')).to.equal('artigo único');
       });
 
-      it('artigo único → art1', () => {
+      it('artigo único -> art1', () => {
         expect(atualizarTextoRemissao('artigo único', 'art1u', 'art1')).to.equal('art. 1º');
       });
 
-      it('art25 → art26 (número alto)', () => {
+      it('art25 -> art26 (número alto)', () => {
         expect(atualizarTextoRemissao('art. 25', 'art25', 'art26')).to.equal('art. 26');
       });
 
-      it('textoAtual com variante tipográfica: gera canônico do novo ID', () => {
-        expect(atualizarTextoRemissao('artigo 5º', 'art5', 'art6')).to.equal('art. 6º');
+      it('textoAtual com variante tipográfica ("artigo 5º"): preservado como texto customizado', () => {
+        // "artigo 5º" != canônico "art. 5º" -> não é gerado automaticamente -> preservado
+        expect(atualizarTextoRemissao('artigo 5º', 'art5', 'art6')).to.equal('artigo 5º');
       });
 
       it('textoAtual abreviado diferente: sobreposto pelo canônico', () => {
@@ -561,72 +562,74 @@ describe('lexmlIdUtil', () => {
     });
 
     describe('Grupo B — Parágrafo renumerado', () => {
-      it('par1 → par2 dentro do mesmo artigo', () => {
+      it('par1 -> par2 dentro do mesmo artigo', () => {
         expect(atualizarTextoRemissao('§ 1º', 'art1_par1', 'art1_par2')).to.equal('§ 2º do art. 1º');
       });
 
-      it('parágrafo único → § 1', () => {
+      it('parágrafo único -> § 1', () => {
         expect(atualizarTextoRemissao('parágrafo único', 'art3_par1u', 'art3_par1')).to.equal('§ 1º do art. 3º');
       });
 
-      it('§ 1 → parágrafo único', () => {
+      it('§ 1 -> parágrafo único', () => {
         expect(atualizarTextoRemissao('§ 1º', 'art2_par1', 'art2_par1u')).to.equal('parágrafo único do art. 2º');
       });
 
-      it('CT-E-03: parágrafo mantém número, artigo-pai renumerou (art2 → art3)', () => {
+      it('CT-E-03: parágrafo mantém número, artigo-pai renumerou (art2 -> art3)', () => {
         expect(atualizarTextoRemissao('§ 2º do art. 2º', 'art2_par2', 'art3_par2')).to.equal('§ 2º do art. 3º');
       });
 
-      it('§ 9 → § 10: ordinal desaparece', () => {
+      it('§ 9 -> § 10: ordinal desaparece', () => {
         expect(atualizarTextoRemissao('§ 9º', 'art1_par9', 'art1_par10')).to.equal('§ 10 do art. 1º');
       });
 
-      it('ID sem artigo-pai: par1 → par2', () => {
+      it('ID sem artigo-pai: par1 -> par2', () => {
         expect(atualizarTextoRemissao('§ 1º', 'par1', 'par2')).to.equal('§ 2º');
       });
     });
 
     describe('Grupo C — Inciso, Alínea e Item renumerados', () => {
-      it('inciso II → III', () => {
+      it('inciso II -> III', () => {
         expect(atualizarTextoRemissao('inciso II', 'art1_cpt_inc2', 'art1_cpt_inc3')).to.equal('inciso III do art. 1º');
       });
 
-      it('inciso único → inciso I', () => {
+      it('inciso único -> inciso I', () => {
         expect(atualizarTextoRemissao('inciso único', 'art5_cpt_inc1u', 'art5_cpt_inc1')).to.equal('inciso I do art. 5º');
       });
 
-      it('alínea a → b', () => {
+      it('alínea a -> b', () => {
         expect(atualizarTextoRemissao('alínea a', 'art1_cpt_inc1_ali1', 'art1_cpt_inc1_ali2')).to.equal('alínea b do inciso I do art. 1º');
       });
 
-      it('item 3 → 5 (resultado contém novo item e artigo correto)', () => {
+      it('item 3 -> 5 (resultado contém novo item e artigo correto)', () => {
         const resultado = atualizarTextoRemissao('item 3', 'art2_par1_inc1_ali1_ite3', 'art2_par1_inc1_ali1_ite5');
         expect(resultado).to.include('item 5');
         expect(resultado).to.include('art. 2º');
       });
 
-      it('inciso quando artigo-pai renumera (art3 → art4)', () => {
+      it('inciso quando artigo-pai renumera (art3 -> art4): forma abreviada é preservada', () => {
+        // "inciso II do art. 3º" é forma abreviada — o canônico gerado seria
+        // "inciso II do § 1º do art. 3º". Como não coincide com nenhum sufixo
+        // canônico do ID, é tratado como texto customizado e preservado.
         const resultado = atualizarTextoRemissao('inciso II do art. 3º', 'art3_par1_inc2', 'art4_par1_inc2');
-        expect(resultado).to.include('inciso II');
-        expect(resultado).to.include('art. 4º');
+        expect(resultado).to.equal('inciso II do art. 3º');
       });
 
-      it('item quando artigo-pai renumera (art3 → art4)', () => {
+      it('item quando artigo-pai renumera (art3 -> art4)', () => {
         const resultado = atualizarTextoRemissao('item 1', 'art3_par1_inc1_ali1_ite1', 'art4_par1_inc1_ali1_ite1');
         expect(resultado).to.include('art. 4º');
       });
     });
 
     describe('Grupo D — Agrupadores renumerados', () => {
-      it('Capítulo I → II', () => {
+      it('Capítulo I -> II', () => {
         expect(atualizarTextoRemissao('Capítulo I', 'cap1', 'cap2')).to.equal('Capítulo II');
       });
 
-      it('Seção II → III dentro do mesmo capítulo', () => {
+      it('Seção II -> III dentro do mesmo capítulo', () => {
         expect(atualizarTextoRemissao('Seção II', 'cap1_sec2', 'cap1_sec3')).to.equal('Seção III do Capítulo I');
       });
 
-      it('Seção quando capítulo-pai renumerou (cap2 → cap3)', () => {
+      it('Seção quando capítulo-pai renumerou (cap2 -> cap3)', () => {
         expect(atualizarTextoRemissao('Seção I do Capítulo II', 'cap2_sec1', 'cap3_sec1')).to.equal('Seção I do Capítulo III');
       });
 
@@ -634,7 +637,7 @@ describe('lexmlIdUtil', () => {
         expect(atualizarTextoRemissao('Seção II', 'tit1_cap2_sec2', 'tit1_cap2_sec3')).to.equal('Seção III do Capítulo II do Título I');
       });
 
-      it('Capítulo único → Capítulo I', () => {
+      it('Capítulo único -> Capítulo I', () => {
         expect(atualizarTextoRemissao('Capítulo único', 'cap1u', 'cap1')).to.equal('Capítulo I');
       });
 
@@ -662,75 +665,125 @@ describe('lexmlIdUtil', () => {
         expect(atualizarTextoRemissao('  art. 1º  ', 'art1', 'art2')).to.equal('art. 2º');
       });
     });
+
+    // -------------------------------------------------------------------------
+    // Grupo F — Texto customizado deve ser preservado
+    //
+    // Demonstra o bug central que motivou o planejamento de remover textoFixo:
+    // qualquer texto que não seja o canônico exato (ou não tenha sufixo contextual
+    // reconhecido) acaba sobrescrito por lexmlIdParaTextoCanonico(lexmlIdNovo).
+    //
+    // Dois sub-casos críticos:
+    //  F-1: texto sem sufixo contextual -> cai direto no return final -> sobrescrito
+    //  F-2: texto com sufixo contextual mas palavras extras -> sobrescrito se
+    //       REGEX_INICIO_CANONICAL for colocado ANTES da verificação contextual
+    // -------------------------------------------------------------------------
+    describe('Grupo F — Texto customizado deve ser preservado', () => {
+      it('[F-1] texto sem sufixo contextual que começa com prefixo canônico -> deve preservar', () => {
+        // "inciso I do teste" começa com "inciso " (parece canônico) mas não é.
+        // BUG atual: cai no return lexmlIdParaTextoCanonico(lexmlIdNovo)
+        //            -> retorna 'inciso I do § 1º do art. 3º' em vez de preservar.
+        const result = atualizarTextoRemissao('inciso I do teste', 'art2_par1_inc1', 'art3_par1_inc1');
+        expect(result).to.equal('inciso I do teste');
+      });
+
+      it('[F-2] "§ 2º do relatório" (prefixo §, sem sufixo contextual) -> deve preservar', () => {
+        // BUG atual: retorna '§ 3º do art. 1º' em vez de preservar.
+        const result = atualizarTextoRemissao('§ 2º do relatório', 'art1_par2', 'art1_par3');
+        expect(result).to.equal('§ 2º do relatório');
+      });
+
+      it('[F-3] texto com sufixo contextual + palavras extras -> preservado pelo caminho contextual', () => {
+        // "inciso I do teste deste artigo" — extrairSufixoContextual detecta "deste artigo".
+        // relAntiga = relNova (apenas o artigo renumerou) -> deve preservar.
+        // Este caso JÁ PASSA com o código atual, mas quebra se REGEX_INICIO_CANONICAL
+        // for posicionado ANTES da verificação de sufixo contextual.
+        const result = atualizarTextoRemissao('inciso I do teste deste artigo', 'art2_par1u_inc1', 'art3_par1u_inc1');
+        expect(result).to.equal('inciso I do teste deste artigo');
+      });
+
+      it('[F-4] texto canônico contextual "inciso I deste parágrafo" -> ainda deve atualizar quando o inciso renumera', () => {
+        // Inciso I -> Inciso II: texto canônico contextual deve ser atualizado.
+        // Garante que a preservação de customizados não impede atualizações legítimas.
+        const result = atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par1_inc2');
+        expect(result).to.equal('inciso II deste parágrafo');
+      });
+
+      it('[F-5] texto canônico absoluto "art. 2º" -> deve atualizar para art. 3º', () => {
+        // Regressão: texto que é exatamente o canônico do ID antigo deve continuar sendo atualizado.
+        const result = atualizarTextoRemissao('art. 2º', 'art2', 'art3');
+        expect(result).to.equal('art. 3º');
+      });
+    });
   });
 
   describe('extrairSufixoContextual', () => {
     describe('Detecção de sufixos válidos', () => {
-      it('"inciso I deste parágrafo" → tipo par', () => {
+      it('"inciso I deste parágrafo" -> tipo par', () => {
         const r = extrairSufixoContextual('inciso I deste parágrafo');
         expect(r).to.deep.equal({ tipo: 'par', texto: 'deste parágrafo' });
       });
 
-      it('"§ 2º deste artigo" → tipo art', () => {
+      it('"§ 2º deste artigo" -> tipo art', () => {
         const r = extrairSufixoContextual('§ 2º deste artigo');
         expect(r).to.deep.equal({ tipo: 'art', texto: 'deste artigo' });
       });
 
-      it('"§ 2º do presente artigo" → tipo art', () => {
+      it('"§ 2º do presente artigo" -> tipo art', () => {
         const r = extrairSufixoContextual('§ 2º do presente artigo');
         expect(r).to.deep.equal({ tipo: 'art', texto: 'do presente artigo' });
       });
 
-      it('"caput deste artigo" → tipo art', () => {
+      it('"caput deste artigo" -> tipo art', () => {
         const r = extrairSufixoContextual('caput deste artigo');
         expect(r).to.deep.equal({ tipo: 'art', texto: 'deste artigo' });
       });
 
-      it('"Seção I deste Capítulo" → tipo cap (case-insensitive)', () => {
+      it('"Seção I deste Capítulo" -> tipo cap (case-insensitive)', () => {
         const r = extrairSufixoContextual('Seção I deste Capítulo');
         expect(r).to.deep.equal({ tipo: 'cap', texto: 'deste Capítulo' });
       });
 
-      it('"inciso I desta alínea" → tipo ali', () => {
+      it('"inciso I desta alínea" -> tipo ali', () => {
         const r = extrairSufixoContextual('inciso I desta alínea');
         expect(r).to.deep.equal({ tipo: 'ali', texto: 'desta alínea' });
       });
 
-      it('"alínea a deste inciso" → tipo inc', () => {
+      it('"alínea a deste inciso" -> tipo inc', () => {
         const r = extrairSufixoContextual('alínea a deste inciso');
         expect(r).to.deep.equal({ tipo: 'inc', texto: 'deste inciso' });
       });
 
-      it('"item 2 deste inciso" → tipo inc', () => {
+      it('"item 2 deste inciso" -> tipo inc', () => {
         const r = extrairSufixoContextual('item 2 deste inciso');
         expect(r).to.deep.equal({ tipo: 'inc', texto: 'deste inciso' });
       });
 
-      it('"Subseção I desta Seção" → tipo sec', () => {
+      it('"Subseção I desta Seção" -> tipo sec', () => {
         const r = extrairSufixoContextual('Subseção I desta Seção');
         expect(r).to.deep.equal({ tipo: 'sec', texto: 'desta Seção' });
       });
 
-      it('"Seção I desta Subseção" → tipo sub', () => {
+      it('"Seção I desta Subseção" -> tipo sub', () => {
         const r = extrairSufixoContextual('Seção I desta Subseção');
         expect(r).to.deep.equal({ tipo: 'sub', texto: 'desta Subseção' });
       });
     });
 
     describe('Rejeição de falsos positivos', () => {
-      it('"art. 5º" (referência absoluta) → null', () => {
+      it('"art. 5º" (referência absoluta) -> null', () => {
         expect(extrairSufixoContextual('art. 5º')).to.be.null;
       });
 
-      it('"§ 3º do art. 10" (referência absoluta composta) → null', () => {
+      it('"§ 3º do art. 10" (referência absoluta composta) -> null', () => {
         expect(extrairSufixoContextual('§ 3º do art. 10')).to.be.null;
       });
 
-      it('"inciso I do § 2º do art. 3º" (referência absoluta) → null', () => {
+      it('"inciso I do § 2º do art. 3º" (referência absoluta) -> null', () => {
         expect(extrairSufixoContextual('inciso I do § 2º do art. 3º')).to.be.null;
       });
 
-      it('"§ 2º desta Lei" (contexto externo, "Lei" não é tipo) → null', () => {
+      it('"§ 2º desta Lei" (contexto externo, "Lei" não é tipo) -> null', () => {
         expect(extrairSufixoContextual('§ 2º desta Lei')).to.be.null;
       });
     });
@@ -741,35 +794,35 @@ describe('lexmlIdUtil', () => {
   // ---------------------------------------------------------------------------
 
   describe('extrairParteRelativa', () => {
-    it('art6_par1_inc1 com contexto par → inc1', () => {
+    it('art6_par1_inc1 com contexto par -> inc1', () => {
       expect(extrairParteRelativa('art6_par1_inc1', 'par')).to.equal('inc1');
     });
 
-    it('art6_par1_inc2_ali1 com contexto par → inc2_ali1', () => {
+    it('art6_par1_inc2_ali1 com contexto par -> inc2_ali1', () => {
       expect(extrairParteRelativa('art6_par1_inc2_ali1', 'par')).to.equal('inc2_ali1');
     });
 
-    it('art6_par2 com contexto art → par2', () => {
+    it('art6_par2 com contexto art -> par2', () => {
       expect(extrairParteRelativa('art6_par2', 'art')).to.equal('par2');
     });
 
-    it('art6_cpt1 com contexto art → cpt1 (caput com número)', () => {
+    it('art6_cpt1 com contexto art -> cpt1 (caput com número)', () => {
       expect(extrairParteRelativa('art6_cpt1', 'art')).to.equal('cpt1');
     });
 
-    it('U-14b: art6 com contexto art → string vazia (artigo é o próprio alvo)', () => {
+    it('U-14b: art6 com contexto art -> string vazia (artigo é o próprio alvo)', () => {
       expect(extrairParteRelativa('art6', 'art')).to.equal('');
     });
 
-    it('cap3_sec2 com contexto cap → sec2', () => {
+    it('cap3_sec2 com contexto cap -> sec2', () => {
       expect(extrairParteRelativa('cap3_sec2', 'cap')).to.equal('sec2');
     });
 
-    it('art6_par1_inc1 com contexto inc → string vazia (inciso é folha)', () => {
+    it('art6_par1_inc1 com contexto inc -> string vazia (inciso é folha)', () => {
       expect(extrairParteRelativa('art6_par1_inc1', 'inc')).to.equal('');
     });
 
-    it('art6_par1_inc1 com contexto tit → null (nível não encontrado)', () => {
+    it('art6_par1_inc1 com contexto tit -> null (nível não encontrado)', () => {
       expect(extrairParteRelativa('art6_par1_inc1', 'tit')).to.be.null;
     });
   });
@@ -780,7 +833,7 @@ describe('lexmlIdUtil', () => {
 
   describe('atualizarTextoRemissao — preservação de texto contextual', () => {
     describe('Cenário A: ancestral renumerado — texto preservado', () => {
-      it('"inciso I deste parágrafo" com art1→art6, inciso inalterado', () => {
+      it('"inciso I deste parágrafo" com art1->art6, inciso inalterado', () => {
         expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art6_par1_inc1')).to.equal('inciso I deste parágrafo');
       });
 
@@ -806,40 +859,40 @@ describe('lexmlIdUtil', () => {
     });
 
     describe('Cenário B: alvo direto renumerado — regeneração parcial', () => {
-      it('inciso I→II deste parágrafo', () => {
+      it('inciso I->II deste parágrafo', () => {
         expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par1_inc2')).to.equal('inciso II deste parágrafo');
       });
 
-      it('§ 2→3 deste artigo', () => {
+      it('§ 2->3 deste artigo', () => {
         expect(atualizarTextoRemissao('§ 2º deste artigo', 'art1_par2', 'art1_par3')).to.equal('§ 3º deste artigo');
       });
 
-      it('Seção I→II deste Capítulo', () => {
+      it('Seção I->II deste Capítulo', () => {
         expect(atualizarTextoRemissao('Seção I deste Capítulo', 'cap1_sec1', 'cap1_sec2')).to.equal('Seção II deste Capítulo');
       });
     });
 
     describe('Cenário C: contexto renumerado — texto preservado', () => {
-      it('"inciso I deste parágrafo" quando parágrafo renumera (§1→§2)', () => {
+      it('"inciso I deste parágrafo" quando parágrafo renumera (§1->§2)', () => {
         // O parágrafo mudou de número, mas "deste parágrafo" é relativo: continua correto
         expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par2_inc1')).to.equal('inciso I deste parágrafo');
       });
     });
 
     describe('Regressão — referências absolutas continuam canônicas', () => {
-      it('"art. 1º" com art1→art6 → canônico (sem sufixo contextual)', () => {
+      it('"art. 1º" com art1->art6 -> canônico (sem sufixo contextual)', () => {
         expect(atualizarTextoRemissao('art. 1º', 'art1', 'art6')).to.equal('art. 6º');
       });
 
-      it('"§ 2º do art. 1º" com art1_par2→art6_par2 → canônico', () => {
+      it('"§ 2º do art. 1º" com art1_par2->art6_par2 -> canônico', () => {
         expect(atualizarTextoRemissao('§ 2º do art. 1º', 'art1_par2', 'art6_par2')).to.equal('§ 2º do art. 6º');
       });
 
-      it('"inciso I do § 1º do art. 1º" com art1_par1_inc1→art6_par1_inc1 → canônico', () => {
+      it('"inciso I do § 1º do art. 1º" com art1_par1_inc1->art6_par1_inc1 -> canônico', () => {
         expect(atualizarTextoRemissao('inciso I do § 1º do art. 1º', 'art1_par1_inc1', 'art6_par1_inc1')).to.equal('inciso I do § 1º do art. 6º');
       });
 
-      it('IDs iguais → texto inalterado mesmo com sufixo contextual', () => {
+      it('IDs iguais -> texto inalterado mesmo com sufixo contextual', () => {
         expect(atualizarTextoRemissao('inciso I deste parágrafo', 'art1_par1_inc1', 'art1_par1_inc1')).to.equal('inciso I deste parágrafo');
       });
     });

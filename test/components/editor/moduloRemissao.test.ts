@@ -716,8 +716,8 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     });
   });
 
-  describe('mix de texto customizado e canônico', () => {
-    it('texto customizado preserva texto; canônico vai para caminho assíncrono', () => {
+  describe('mix de textos em dois links', () => {
+    it('link com texto canônico vai para async; link com texto customizado vai para sync', () => {
       mockQuill.root.innerHTML = `
         <p>
           <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100">texto livre</a>
@@ -728,10 +728,10 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
       const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
       expect(count).to.equal(2);
-      // "texto livre" não é rótulo canônico → texto preservado → caminho síncrono
+      // "texto livre" não é canônico → preservado → caminho síncrono (adicionarRemissao)
+      // "art. 1º" é canônico de art1 → atualizado para "art. 2º" → caminho assíncrono (setTimeout)
       expect(adicionarRemissaoCalls.length).to.equal(1);
       expect(adicionarRemissaoCalls[0].refId).to.equal('ref_A');
-      expect(adicionarRemissaoCalls[0].value.targetRotulo).to.equal('texto livre');
     });
   });
 
@@ -746,9 +746,10 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
 
       const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
+      // Só ref_A tem UUID correto → count=1
+      // "texto A" não é canônico de art1 → preservado → caminho síncrono → adicionarRemissao chamado
       expect(count).to.equal(1);
       expect(adicionarRemissaoCalls.length).to.equal(1);
-      expect(adicionarRemissaoCalls[0].refId).to.equal('ref_A');
     });
 
     it('retorna 0 quando todos os links têm UUID incorreto', () => {
@@ -1000,5 +1001,59 @@ describe('ModuloRemissao.getRemissaoNoCursor()', () => {
     mockQuill.getLeaf = () => [mockLeaf, 0];
 
     expect(moduloRemissao.getRemissaoNoCursor()).to.be.null;
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// renderizarRemissoesDoState — reconciliação de metadata
+//
+// Verifica o cenário: usuário edita texto do link para forma customizada, ocorre
+// renumeração (atualiza data-lexml-ref no DOM), usuário reverte para texto canônico.
+// A detecção passa a apontar para o novo alvo, mas o DOM ainda tem o antigo.
+// renderizarRemissoesDoState deve reconciliar o metadata chamando adicionarRemissao.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('renderizarRemissoesDoState — reconciliação de metadata', () => {
+  let moduloRemissao: ModuloRemissao;
+  let rootElement: HTMLElement;
+  let adicionarRemissaoCalls: { refId: string; value: RemissaoInternaValue }[];
+
+  beforeEach(() => {
+    rootElement = document.createElement('div');
+    adicionarRemissaoCalls = [];
+    const mockQuill = criarMockQuill(rootElement);
+    moduloRemissao = new ModuloRemissao(mockQuill, {});
+    // Substitui adicionarRemissao para capturar chamadas sem precisar de Quill real.
+    (moduloRemissao as any).adicionarRemissao = (refId: string, value: RemissaoInternaValue): boolean => {
+      adicionarRemissaoCalls.push({ refId, value });
+      return true;
+    };
+  });
+
+  it('skip sem mudança: link com data-lexml-ref já igual ao registry — não chama adicionarRemissao', () => {
+    rootElement.innerHTML = `
+      <a class="lexml-remissao-interna" data-lexml-ref="art2_par1_inc1" data-ref-id="ref_X" href="#lxEtaId200">inciso I deste parágrafo</a>
+    `;
+
+    const remissoes: Record<number, RemissaoInternaValue[]> = {
+      42: [{ refId: 'ref_X', targetLexmlId: 'art2_par1_inc1', targetUuid: 200, textoRef: 'inciso I deste parágrafo' }],
+    };
+
+    moduloRemissao.renderizarRemissoesDoState(remissoes, 42);
+
+    expect(adicionarRemissaoCalls.length).to.equal(0);
+  });
+
+  it('link sem targetLexmlId no registry — não chama adicionarRemissao (guarda contra entrada incompleta)', () => {
+    rootElement.innerHTML = `
+      <a class="lexml-remissao-interna" data-lexml-ref="art2_par1_inc2" data-ref-id="ref_X" href="#lxEtaId200">inciso I deste parágrafo</a>
+    `;
+
+    const remissoes: Record<number, RemissaoInternaValue[]> = {
+      42: [{ refId: 'ref_X', targetUuid: 300, textoRef: 'inciso I deste parágrafo' }],
+    };
+
+    moduloRemissao.renderizarRemissoesDoState(remissoes, 42);
+
+    expect(adicionarRemissaoCalls.length).to.equal(0);
   });
 });

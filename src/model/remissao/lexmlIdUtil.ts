@@ -152,14 +152,14 @@ export function lexmlIdParaTextoCanonico(lexmlId: string): string {
 // Mapeamento de nome do dispositivo (como aparece no texto) → prefixo do lexmlId
 const SUFIXO_PARA_TIPO: Record<string, string> = {
   artigo: 'art',
-  parágrafo: 'par',
+  paragrafo: 'par',
   inciso: 'inc',
-  alínea: 'ali',
+  alinea: 'ali',
   item: 'ite',
-  subseção: 'sub', // subseção antes de seção para evitar match parcial
-  seção: 'sec',
-  capítulo: 'cap',
-  título: 'tit',
+  subsecao: 'sub', // subseção antes de seção para evitar match parcial
+  secao: 'sec',
+  capitulo: 'cap',
+  titulo: 'tit',
   livro: 'liv',
   parte: 'prt',
 };
@@ -197,6 +197,30 @@ export function extrairParteRelativa(lexmlId: string, nivelContexto: string): st
     .join('_');
 }
 
+function normalizarTexto(s: string): string {
+  return s.replace(/[ºª]/g, '').trim().toLowerCase();
+}
+
+// Retorna true se o texto é o canônico (ou variante trivial de capitalização/ordinal)
+// de algum sufixo do lexmlId.
+// Exemplos: "§ 1º" é canônico de "par1"; "Art. 3" é canônico de "art3".
+// "inciso I do teste" não é canônico de nenhum sufixo de "art2_par1_inc1".
+function isTextoCanonico(texto: string, lexmlId: string): boolean {
+  if (texto.trim() === '') return true;
+  const normalizado = normalizarTexto(texto);
+  const segs = parseLexmlId(lexmlId);
+  for (let i = 0; i < segs.length; i++) {
+    const sufixoId = segs
+      .slice(i)
+      .map(s => s.tipo + s.numero)
+      .join('_');
+    if (normalizarTexto(lexmlIdParaTextoCanonico(sufixoId)) === normalizado) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
   if (lexmlIdAntigo === lexmlIdNovo) return textoAtual;
 
@@ -212,6 +236,10 @@ export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string
         return lexmlIdParaTextoCanonico(relNova) + ' ' + sufixo.texto;
       }
     }
+  }
+
+  if (!isTextoCanonico(textoAtual, lexmlIdAntigo)) {
+    return textoAtual;
   }
 
   return lexmlIdParaTextoCanonico(lexmlIdNovo);
