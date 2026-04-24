@@ -372,24 +372,20 @@ class ModuloRemissao extends Module {
         targetRotulo: novoTexto || undefined,
       };
 
-      if (novoTexto !== textoAtual) {
-        // Aguarda o MutationObserver do Quill processar o insertInto pendente.
-        // Sem o setTimeout, o scroll.update() consome a fila prematuramente e quebra o delete+insert.
-        const refIdCaptura = refId;
-        const novoTextoCaptura = novoTexto;
-        const newValueCaptura = newValue;
-        setTimeout(() => {
-          const result = this.findBlotByRefId(refIdCaptura);
-          if (result) {
-            const length = result.blot.length();
-            const delta = new Delta().retain(result.index).delete(length).insert(novoTextoCaptura, { 'remissao-interna': newValueCaptura });
-            this.quill.updateContents(delta, 'silent');
-          }
-        }, 0);
-      } else {
-        // Texto inalterado — só atualiza metadados
-        this.adicionarRemissao(refId, newValue);
-      }
+      // Usa sempre setTimeout + updateContents para garantir que o delta interno do Quill
+      // seja atualizado — blot.format() direto não atualiza o delta e o MutationObserver
+      // pode reverter a mudança de atributo antes que o Cypress verifique o DOM.
+      const refIdCaptura = refId;
+      const textoCaptura = novoTexto;
+      const newValueCaptura = newValue;
+      setTimeout(() => {
+        const result = this.findBlotByRefId(refIdCaptura);
+        if (result) {
+          const length = result.blot.length();
+          const delta = new Delta().retain(result.index).delete(length).insert(textoCaptura, { 'remissao-interna': newValueCaptura });
+          this.quill.updateContents(delta, 'silent');
+        }
+      }, 0);
 
       count++;
     }

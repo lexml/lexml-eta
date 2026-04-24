@@ -574,45 +574,45 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     });
 
     describe('Alínea (art + par + inc + ali)', () => {
-      const textoBase = 'alínea b do inciso III do § 2º do art. 5º';
+      const textoBase = 'alínea b) do inciso III do § 2º do art. 5º';
 
       it('alínea renumera: ali2 → ali3', () => {
         mockQuill.root.innerHTML = link('art5_par2_inc3_ali2', 200, textoBase);
         const captura = capturaNovoTexto(moduloRemissao);
         moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2', 'art5_par2_inc3_ali3', 200);
-        expect(captura.valor).to.equal('alínea c do inciso III do § 2º do art. 5º');
+        expect(captura.valor).to.equal('alínea c) do inciso III do § 2º do art. 5º');
       });
 
       it('inciso-pai renumera: inc3 → inc4', () => {
         mockQuill.root.innerHTML = link('art5_par2_inc3_ali2', 200, textoBase);
         const captura = capturaNovoTexto(moduloRemissao);
         moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2', 'art5_par2_inc4_ali2', 200);
-        expect(captura.valor).to.equal('alínea b do inciso IV do § 2º do art. 5º');
+        expect(captura.valor).to.equal('alínea b) do inciso IV do § 2º do art. 5º');
       });
 
       it('artigo-pai renumera: art5 → art6', () => {
         mockQuill.root.innerHTML = link('art5_par2_inc3_ali2', 200, textoBase);
         const captura = capturaNovoTexto(moduloRemissao);
         moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2', 'art6_par2_inc3_ali2', 200);
-        expect(captura.valor).to.equal('alínea b do inciso III do § 2º do art. 6º');
+        expect(captura.valor).to.equal('alínea b) do inciso III do § 2º do art. 6º');
       });
     });
 
     describe('Item (art + par + inc + ali + ite)', () => {
-      const textoBase = 'item 1 da alínea b do inciso III do § 2º do art. 5º';
+      const textoBase = 'item 1 da alínea b) do inciso III do § 2º do art. 5º';
 
       it('item renumera: ite1 → ite2', () => {
         mockQuill.root.innerHTML = link('art5_par2_inc3_ali2_ite1', 200, textoBase);
         const captura = capturaNovoTexto(moduloRemissao);
         moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2_ite1', 'art5_par2_inc3_ali2_ite2', 200);
-        expect(captura.valor).to.equal('item 2 da alínea b do inciso III do § 2º do art. 5º');
+        expect(captura.valor).to.equal('item 2 da alínea b) do inciso III do § 2º do art. 5º');
       });
 
       it('artigo-pai renumera: art5 → art6', () => {
         mockQuill.root.innerHTML = link('art5_par2_inc3_ali2_ite1', 200, textoBase);
         const captura = capturaNovoTexto(moduloRemissao);
         moduloRemissao.atualizarReferencias('art5_par2_inc3_ali2_ite1', 'art6_par2_inc3_ali2_ite1', 200);
-        expect(captura.valor).to.equal('item 1 da alínea b do inciso III do § 2º do art. 6º');
+        expect(captura.valor).to.equal('item 1 da alínea b) do inciso III do § 2º do art. 6º');
       });
     });
 
@@ -682,8 +682,8 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
     });
   });
 
-  describe('caminho síncrono quando texto não muda', () => {
-    it('chama adicionarRemissao quando texto já é o canonical do novo lexmlId', () => {
+  describe('caminho assíncrono quando texto não muda', () => {
+    it('conta candidato e não chama adicionarRemissao sincronamente quando texto já é canonical do novo lexmlId', () => {
       mockQuill.root.innerHTML = `
         <a class="lexml-remissao-interna"
            data-lexml-ref="art2"
@@ -694,13 +694,11 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
       const count = moduloRemissao.atualizarReferencias('art2', 'art3', 100);
 
       expect(count).to.equal(1);
-      expect(adicionarRemissaoCalls.length).to.equal(1);
-      expect(adicionarRemissaoCalls[0].value.targetLexmlId).to.equal('art3');
-      expect(adicionarRemissaoCalls[0].value.targetRotulo).to.equal('art. 3º');
-      expect(adicionarRemissaoCalls[0].value.targetUuid).to.equal(100);
+      // Após a unificação para setTimeout+updateContents, adicionarRemissao não é mais chamado sincronamente
+      expect(adicionarRemissaoCalls.length).to.equal(0);
     });
 
-    it('parágrafo: chama adicionarRemissao quando texto já é canonical do novo lexmlId', () => {
+    it('parágrafo: conta candidato e não chama adicionarRemissao sincronamente quando texto não muda', () => {
       mockQuill.root.innerHTML = `
         <a class="lexml-remissao-interna"
            data-lexml-ref="art1_par1"
@@ -711,13 +709,12 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
       const count = moduloRemissao.atualizarReferencias('art1_par1', 'art1_par2', 50);
 
       expect(count).to.equal(1);
-      expect(adicionarRemissaoCalls.length).to.equal(1);
-      expect(adicionarRemissaoCalls[0].value.targetLexmlId).to.equal('art1_par2');
+      expect(adicionarRemissaoCalls.length).to.equal(0);
     });
   });
 
   describe('mix de textos em dois links', () => {
-    it('link com texto canônico vai para async; link com texto customizado vai para sync', () => {
+    it('ambos os links vão para o caminho assíncrono (setTimeout+updateContents)', () => {
       mockQuill.root.innerHTML = `
         <p>
           <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_A" href="#lxEtaId100">texto livre</a>
@@ -728,10 +725,8 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
       const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
       expect(count).to.equal(2);
-      // "texto livre" não é canônico → preservado → caminho síncrono (adicionarRemissao)
-      // "art. 1º" é canônico de art1 → atualizado para "art. 2º" → caminho assíncrono (setTimeout)
-      expect(adicionarRemissaoCalls.length).to.equal(1);
-      expect(adicionarRemissaoCalls[0].refId).to.equal('ref_A');
+      // Ambos os links vão para o caminho assíncrono após a unificação do caminho de atualização
+      expect(adicionarRemissaoCalls.length).to.equal(0);
     });
   });
 
@@ -746,10 +741,9 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
 
       const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
-      // Só ref_A tem UUID correto → count=1
-      // "texto A" não é canônico de art1 → preservado → caminho síncrono → adicionarRemissao chamado
+      // Só ref_A tem UUID correto → count=1; caminho assíncrono (adicionarRemissao não chamado sincronamente)
       expect(count).to.equal(1);
-      expect(adicionarRemissaoCalls.length).to.equal(1);
+      expect(adicionarRemissaoCalls.length).to.equal(0);
     });
 
     it('retorna 0 quando todos os links têm UUID incorreto', () => {
