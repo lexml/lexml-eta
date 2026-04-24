@@ -367,9 +367,9 @@ describe('lexmlIdUtil', () => {
         expect(lexmlIdParaTextoCanonico('inc14')).to.equal('inciso XIV');
       });
 
-      it('alínea com letra minúscula', () => {
-        expect(lexmlIdParaTextoCanonico('ali1')).to.equal('alínea a');
-        expect(lexmlIdParaTextoCanonico('ali26')).to.equal('alínea z');
+      it('alínea com letra minúscula e parêntese', () => {
+        expect(lexmlIdParaTextoCanonico('ali1')).to.equal('alínea a)');
+        expect(lexmlIdParaTextoCanonico('ali26')).to.equal('alínea z)');
       });
 
       it('item', () => {
@@ -461,8 +461,8 @@ describe('lexmlIdUtil', () => {
 
     describe('Quatro e cinco níveis', () => {
       it('cadeia completa: art + par + inc + ali', () => {
-        expect(lexmlIdParaTextoCanonico('art1_par2_inc1_ali1')).to.equal('alínea a do inciso I do § 2º do art. 1º');
-        expect(lexmlIdParaTextoCanonico('art5_par2_inc3_ali1')).to.equal('alínea a do inciso III do § 2º do art. 5º');
+        expect(lexmlIdParaTextoCanonico('art1_par2_inc1_ali1')).to.equal('alínea a) do inciso I do § 2º do art. 1º');
+        expect(lexmlIdParaTextoCanonico('art5_par2_inc3_ali1')).to.equal('alínea a) do inciso III do § 2º do art. 5º');
       });
 
       it('tit + cap + sec + art', () => {
@@ -470,7 +470,7 @@ describe('lexmlIdUtil', () => {
       });
 
       it('art + par + inc + ali + ite (cinco níveis)', () => {
-        expect(lexmlIdParaTextoCanonico('art1_par1_inc2_ali3_ite5')).to.equal('item 5 da alínea c do inciso II do § 1º do art. 1º');
+        expect(lexmlIdParaTextoCanonico('art1_par1_inc2_ali3_ite5')).to.equal('item 5 da alínea c) do inciso II do § 1º do art. 1º');
       });
     });
 
@@ -596,8 +596,8 @@ describe('lexmlIdUtil', () => {
         expect(atualizarTextoRemissao('inciso único', 'art5_cpt_inc1u', 'art5_cpt_inc1')).to.equal('inciso I do art. 5º');
       });
 
-      it('alínea a -> b', () => {
-        expect(atualizarTextoRemissao('alínea a', 'art1_cpt_inc1_ali1', 'art1_cpt_inc1_ali2')).to.equal('alínea b do inciso I do art. 1º');
+      it('alínea a) -> b)', () => {
+        expect(atualizarTextoRemissao('alínea a)', 'art1_cpt_inc1_ali1', 'art1_cpt_inc1_ali2')).to.equal('alínea b) do inciso I do art. 1º');
       });
 
       it('item 3 -> 5 (resultado contém novo item e artigo correto)', () => {
@@ -709,10 +709,106 @@ describe('lexmlIdUtil', () => {
         expect(result).to.equal('inciso II deste parágrafo');
       });
 
+      it('[F-6] texto contextual com palavras extras antes do sufixo — deve preservar', () => {
+        // "inciso I teste deste parágrafo": sufixo "deste parágrafo" é detectado,
+        // mas o prefixo "inciso I teste" não coincide com o canônico "inciso I".
+        // BUG atual: regenera como "inciso II deste parágrafo", perdendo "I teste".
+        // Esperado: preservar "inciso I teste deste parágrafo".
+        const result = atualizarTextoRemissao('inciso I teste deste parágrafo', 'art2_par1u_inc1', 'art2_par1u_inc2');
+        expect(result).to.equal('inciso I teste deste parágrafo');
+      });
+
+      it('[F-7] texto canônico contextual não atualiza quando lexmlId derivou de número (metadata drift)', () => {
+        // Cenário de drift:
+        // 1) link começa com "inciso I deste parágrafo", target = art2_par1u_inc1
+        // 2) usuário muda para texto customizado "inciso I deste teste parágrafo"
+        // 3) novo primeiro inciso adicionado → caminho síncrono preserva texto mas
+        //    atualiza data-lexml-ref para "art2_par1u_inc2"
+        // 4) usuário restaura "inciso I deste parágrafo" (canônico)
+        // 5) novo inciso adicionado → atualizarTextoRemissao é chamado com
+        //    lexmlIdAntigo="art2_par1u_inc2" (derivado), lexmlIdNovo="art2_par1u_inc3"
+        // BUG: relAntiga='inc2', prefixo="inciso I", canônico(inc2)="inciso II" ≠ "inciso I"
+        //      → isTextoCanonico falha → texto preservado incorretamente.
+        // Esperado: "inciso III deste parágrafo" (inciso canônico atualizado)
+        const result = atualizarTextoRemissao('inciso I deste parágrafo', 'art2_par1u_inc2', 'art2_par1u_inc3');
+        expect(result).to.equal('inciso III deste parágrafo');
+      });
+
       it('[F-5] texto canônico absoluto "art. 2º" -> deve atualizar para art. 3º', () => {
         // Regressão: texto que é exatamente o canônico do ID antigo deve continuar sendo atualizado.
         const result = atualizarTextoRemissao('art. 2º', 'art2', 'art3');
         expect(result).to.equal('art. 3º');
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // Grupo G — Referência contextual composta com sufixo "deste artigo"
+    //
+    // Cenário: Art. 2º > Parágrafo único > inciso I e inciso II.
+    // Inciso II tem remissão ao inciso I: texto "inciso I do parágrafo único deste artigo"
+    // lexmlId do alvo: art2_par1u_inc1
+    // Ao adicionar um novo primeiro inciso, inc1 → inc2 e inc2 → inc3.
+    // A remissão deve atualizar para "inciso II do parágrafo único deste artigo".
+    // -------------------------------------------------------------------------
+    describe('Grupo G — Referência contextual composta (inciso + parágrafo + deste artigo)', () => {
+      it('[G-1] "inciso I do parágrafo único deste artigo" com id par1u — inciso renumera: deve atualizar', () => {
+        // Parágrafo único carregado do LexML: informouParagrafoUnico=true → id='par1u'.
+        // Prefixo "inciso I do parágrafo único" é exatamente o canônico de 'par1u_inc1'.
+        const result = atualizarTextoRemissao('inciso I do parágrafo único deste artigo', 'art2_par1u_inc1', 'art2_par1u_inc2');
+        expect(result).to.equal('inciso II do parágrafo único deste artigo');
+      });
+
+      it('[G-1b] "inciso I do parágrafo único deste artigo" com id par1 — inciso renumera: deve atualizar', () => {
+        // Parágrafo único criado no editor: informouParagrafoUnico=false → id='par1'.
+        // Canônico de 'par1_inc1' é "inciso I do § 1º" (§ notation), mas o texto detectado
+        // usou "parágrafo único" (texto literal do usuário). isTextoCanonico falha por mismatch
+        // entre "parágrafo único" (texto) e "§ 1º" (canônico de par1).
+        // Esperado: atualiza para "inciso II do parágrafo único deste artigo" (mantém notação original).
+        const result = atualizarTextoRemissao('inciso I do parágrafo único deste artigo', 'art2_par1_inc1', 'art2_par1_inc2');
+        expect(result).to.equal('inciso II do parágrafo único deste artigo');
+      });
+
+      it('[G-2] "§ 1º do Capítulo I deste Título" — capítulo renumera: deve atualizar', () => {
+        // Prefixo "§ 1º do Capítulo I" é o canônico de 'cap1_par1' (via lexmlIdParaTextoCanonico).
+        // Ao renumerar cap1 → cap2, o resultado deve ser "§ 1º do Capítulo II deste Título".
+        const result = atualizarTextoRemissao('§ 1º do Capítulo I deste Título', 'tit1_cap1_par1', 'tit1_cap2_par1');
+        expect(result).to.equal('§ 1º do Capítulo II deste Título');
+      });
+
+      it('[G-3] "inciso I do parágrafo único deste artigo" com palavras extras — deve preservar', () => {
+        // Texto customizado: prefixo "inciso I do parágrafo único extra" não é canônico.
+        const result = atualizarTextoRemissao('inciso I do parágrafo único extra deste artigo', 'art2_par1u_inc1', 'art2_par1u_inc2');
+        expect(result).to.equal('inciso I do parágrafo único extra deste artigo');
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // Grupo G — parte 2: artigo único (art1 vs art1u)
+    //
+    // buildHref nunca gera 'art1u' para artigos (isParagrafoUnicoExplicito é
+    // sempre false para artigos). Porém o canônico de 'art1u' é "artigo único",
+    // enquanto o canônico de 'art1' é "art. 1º". A mesma assimetria do par1/par1u
+    // ocorre quando o texto detectado usa a literalidade "artigo único".
+    // -------------------------------------------------------------------------
+    describe('Grupo G — artigo único (art1 vs art1u)', () => {
+      it('[G-4a] "artigo único" com id art1 — renumera para art2: deve atualizar', () => {
+        // Editor cria artigo único com lexmlId='art1' (buildHref nunca usa '1u' para artigo).
+        // Canônico de 'art1' é "art. 1º", mas texto detectado é "artigo único".
+        // Ao adicionar segundo artigo, deve atualizar para "art. 2º".
+        const result = atualizarTextoRemissao('artigo único', 'art1', 'art2');
+        expect(result).to.equal('art. 2º');
+      });
+
+      it('[G-4b] "inciso I do artigo único deste capítulo" com id art1 — artigo renumera: deve atualizar', () => {
+        // Referência contextual: sufixo "deste capítulo", prefixo "inciso I do artigo único".
+        // Canônico de relAntiga='art1_inc1' usa "art. 1º", mas texto usa "artigo único".
+        const result = atualizarTextoRemissao('inciso I do artigo único deste capítulo', 'cap1_art1_inc1', 'cap1_art2_inc1');
+        expect(result).to.equal('inciso I do art. 2º deste capítulo');
+      });
+
+      it('[G-4c] "artigo único extra" — deve preservar (texto customizado)', () => {
+        const result = atualizarTextoRemissao('artigo único extra', 'art1', 'art2');
+        expect(result).to.equal('artigo único extra');
       });
     });
   });

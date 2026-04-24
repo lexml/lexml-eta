@@ -108,7 +108,7 @@ function segmentoParaTexto(tipo: string, numero: string): string {
     case 'inc':
       return `inciso ${converteNumeroArabicoParaRomano(numero)}`;
     case 'ali':
-      return `alínea ${converteNumeroArabicoParaLetra(numero)}`;
+      return `alínea ${converteNumeroArabicoParaLetra(numero)})`;
     case 'ite':
       return `item ${numero}`;
     case 'cpt':
@@ -150,19 +150,21 @@ export function lexmlIdParaTextoCanonico(lexmlId: string): string {
 }
 
 // Mapeamento de nome do dispositivo (como aparece no texto) → prefixo do lexmlId
+/* eslint-disable prettier/prettier */
 const SUFIXO_PARA_TIPO: Record<string, string> = {
   artigo: 'art',
-  paragrafo: 'par',
+  parágrafo: 'par',
   inciso: 'inc',
-  alinea: 'ali',
+  alínea: 'ali',
   item: 'ite',
-  subsecao: 'sub', // subseção antes de seção para evitar match parcial
-  secao: 'sec',
-  capitulo: 'cap',
-  titulo: 'tit',
+  subseção: 'sub', // subseção antes de seção para evitar match parcial
+  seção: 'sec',
+  capítulo: 'cap',
+  título: 'tit',
   livro: 'liv',
   parte: 'prt',
 };
+/* eslint-enable prettier/prettier */
 
 const TIPOS_SUFIXO = Object.keys(SUFIXO_PARA_TIPO).join('|');
 
@@ -198,7 +200,7 @@ export function extrairParteRelativa(lexmlId: string, nivelContexto: string): st
 }
 
 function normalizarTexto(s: string): string {
-  return s.replace(/[ºª]/g, '').trim().toLowerCase();
+  return s.replace(/[ºª)]/g, '').trim().toLowerCase();
 }
 
 // Retorna true se o texto é o canônico (ou variante trivial de capitalização/ordinal)
@@ -221,6 +223,30 @@ function isTextoCanonico(texto: string, lexmlId: string): boolean {
   return false;
 }
 
+// Verifica se o texto é a forma canônica de algum dispositivo do tipo dado (com qualquer numeração).
+// Usada para detectar drift: "inciso I" é canônico de 'inc1' mesmo que relAntiga tenha derivado para 'inc2'.
+function isTextoCanonicoPorTipo(texto: string, tipo: string): boolean {
+  if (texto.trim() === '') return true;
+  const normalizado = normalizarTexto(texto);
+  if (normalizarTexto(lexmlIdParaTextoCanonico(tipo + '1u')) === normalizado) return true;
+  for (let n = 1; n <= 150; n++) {
+    if (normalizarTexto(lexmlIdParaTextoCanonico(tipo + n)) === normalizado) return true;
+  }
+  return false;
+}
+
+// Troca X1 ↔ X1u para par e art, reconciliando ids gerados pelo editor com texto canônico
+// que usa "parágrafo único" / "artigo único".
+// buildHref só emite 'par1u' (quando informouParagrafoUnico=true) e nunca 'art1u'; o texto
+// detectado pode usar "parágrafo único" ou "artigo único" enquanto o id tem par1/art1.
+function swapPar1Variante(lexmlId: string): string {
+  if (/(^|_)par1u(?=_|$)/.test(lexmlId)) return lexmlId.replace(/(^|_)par1u(?=_|$)/g, '$1par1');
+  if (/(^|_)par1(?=_|$)/.test(lexmlId)) return lexmlId.replace(/(^|_)par1(?=_|$)/g, '$1par1u');
+  if (/(^|_)art1u(?=_|$)/.test(lexmlId)) return lexmlId.replace(/(^|_)art1u(?=_|$)/g, '$1art1');
+  if (/(^|_)art1(?=_|$)/.test(lexmlId)) return lexmlId.replace(/(^|_)art1(?=_|$)/g, '$1art1u');
+  return lexmlId;
+}
+
 export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
   if (lexmlIdAntigo === lexmlIdNovo) return textoAtual;
 
@@ -233,13 +259,36 @@ export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string
       if (relAntiga === relNova) return textoAtual;
 
       if (relNova !== '') {
-        return lexmlIdParaTextoCanonico(relNova) + ' ' + sufixo.texto;
+        const prefixo = textoAtual.slice(0, textoAtual.length - sufixo.texto.length - 1);
+        const relAntigaSegs = parseLexmlId(relAntiga);
+        const relAntigaVariante = swapPar1Variante(relAntiga);
+
+        let prefixoCanonico = isTextoCanonico(prefixo, relAntiga);
+        let relNovaParaGeracao = relNova;
+
+        if (!prefixoCanonico) {
+          if (relAntigaSegs.length === 1 && isTextoCanonicoPorTipo(prefixo, relAntigaSegs[0].tipo)) {
+            prefixoCanonico = true;
+          } else if (relAntigaVariante !== relAntiga && isTextoCanonico(prefixo, relAntigaVariante)) {
+            prefixoCanonico = true;
+            relNovaParaGeracao = swapPar1Variante(relNova);
+          }
+        }
+
+        if (!prefixoCanonico) {
+          return textoAtual;
+        }
+        return lexmlIdParaTextoCanonico(relNovaParaGeracao) + ' ' + sufixo.texto;
       }
     }
   }
 
   if (!isTextoCanonico(textoAtual, lexmlIdAntigo)) {
-    return textoAtual;
+    // Tenta variante par1 ↔ par1u antes de preservar como texto customizado
+    const varianteAntigo = swapPar1Variante(lexmlIdAntigo);
+    if (varianteAntigo === lexmlIdAntigo || !isTextoCanonico(textoAtual, varianteAntigo)) {
+      return textoAtual;
+    }
   }
 
   return lexmlIdParaTextoCanonico(lexmlIdNovo);
