@@ -36,6 +36,8 @@ describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
 
     cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(2).should('exist');
+
+    cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
   });
 
   it('Abrir diálogo, buscar dispositivo, clicar item e confirmar cria 1 link', () => {
@@ -108,6 +110,8 @@ describe('Criação manual: confirmação via duplo clique no item do diálogo',
 
     cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(2).should('exist');
+
+    cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
   });
 
   it('Duplo clique no item confirma sem precisar clicar no botão "Confirmar"', () => {

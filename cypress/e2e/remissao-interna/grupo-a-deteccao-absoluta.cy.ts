@@ -26,6 +26,8 @@ describe('Detecção absoluta: artigo simples e negativo', () => {
 
     cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(3).should('exist');
+
+    cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
   });
 
   it('Referência a artigo cria link e permite navegação por clique', () => {
@@ -41,8 +43,25 @@ describe('Detecção absoluta: artigo simples e negativo', () => {
     // Verifica que exatamente 1 link foi criado com o texto correto
     cy.getContainerArtigoByNumero(3).find('a.lexml-remissao-interna').should('have.length', 1).and('contain.text', 'art. 1');
 
-    // Clica no link e verifica destaque de navegação no Art. 1
-    cy.getContainerArtigoByNumero(3).find('a.lexml-remissao-interna').click();
+    // Posiciona cursor DENTRO do link → selection-change → popup aparece
+    // Clica no rótulo navegável do popup → redirecionarRemissaoAction → destaque
+    cy.getContainerArtigoByNumero(3).then($container => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
+        const link = $container[0].querySelector('a.lexml-remissao-interna');
+        if (!link) return;
+        const EtaQuillClass = quill.constructor as any;
+        const blot = EtaQuillClass.find(link);
+        if (!blot) return;
+        // linkIndex + 1 evita fronteira de Parchment (quill.getLeaf(linkIndex) retorna nó anterior)
+        quill.setSelection(blot.offset(quill.scroll) + 1, 0, 'user');
+        // selection-change é síncrono → popup já está visível; click no rótulo navega
+        const rotulo = win.document.querySelector('.remissao-popup__rotulo--navegavel') as HTMLElement;
+        rotulo?.click();
+      });
+    });
     cy.getDestinoRemissaoDestacado().should('exist');
   });
 
@@ -82,6 +101,9 @@ describe('Detecção absoluta: referência composta 2 níveis sem duplicação',
     // Adiciona § 2 — parágrafo usa adicionarParagrafoDepois ("Adicionar parágrafo depois")
     cy.get('div.container__elemento.elemento-tipo-paragrafo').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo depois');
     cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 2);
+
+    cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().alterarTextoDoDispositivo('O disposto no caput aplica-se igualmente às autarquias e fundações.');
   });
 
   it('"§ 2º do art. 3." cria exatamente 1 link, não 2', () => {
@@ -124,6 +146,9 @@ describe('Detecção absoluta: referência composta 3 níveis sem duplicação',
     // Adiciona inciso I ao § 2 — parágrafo usa adicionarIncisoFilho ("Adicionar inciso")
     cy.get('div.container__elemento.elemento-tipo-paragrafo').eq(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso');
     cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length.gte', 1);
+
+    cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().alterarTextoDoDispositivo('O disposto no caput aplica-se igualmente às autarquias e fundações.');
   });
 
   it('"inciso I do § 2º do art. 3." cria exatamente 1 link, não 3', () => {

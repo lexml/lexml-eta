@@ -4,7 +4,7 @@
  * CT-F-01: excluir dispositivo referenciado → link recebe classe lexml-remissao-invalida
  * CT-F-02: undo da exclusão → link volta a lexml-remissao-interna; Art. 2 restaurado
  * CT-F-03: mensagem de erro aparece no painel do dispositivo de origem
- * CT-F-04: remover o link inválido via botão → link e mensagem desaparecem
+ * CT-F-04: remover o link inválido via popup Excluir → link e mensagem desaparecem
  * CT-F-05: undo da exclusão → mensagem de erro desaparece
  * CT-F-06: excluir dispositivo não referenciado → nenhuma mensagem; link permanece válido
  *
@@ -23,7 +23,6 @@
 const SEL_LINK = 'a.lexml-remissao-interna';
 const SEL_LINK_INVALIDO = 'a.lexml-remissao-interna.lexml-remissao-invalida';
 const SEL_MENSAGEM_INVALIDA = '.container__texto--mensagem .mensagem--danger';
-const SEL_BTN_REMOVER = '.btn-remover-remissao';
 const SEL_BTN_DESFAZER = '.lx-eta-btn-desfazer';
 
 /**
@@ -56,6 +55,8 @@ function configurarEstadoComRemissaoInvalida(): void {
   cy.getContainerArtigoByNumero(2).dispararDeteccaoRemissao();
   cy.getContainerArtigoByNumero(2).find(SEL_LINK).should('have.length', 1);
 
+  cy.getContainerArtigoByNumero(3).alterarTextoDoDispositivo('Ficam revogadas as disposições contrárias.');
+
   // Exclui Art. 1 (referenciado); ex-Art. 2 → Art. 1 com link inválido; ex-Art. 3 → Art. 2
   cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Remover');
 
@@ -79,14 +80,13 @@ describe('Invalidação e restauração de remissão', () => {
     cy.getContainerArtigoByNumero(1).find(SEL_MENSAGEM_INVALIDA).should('exist').and('contain.text', 'excluído');
   });
 
-  it('CT-F-04: remover link inválido via botão apaga link e mensagem simultaneamente', () => {
+  it('CT-F-04: remover link inválido via popup Excluir apaga link e mensagem simultaneamente', () => {
     cy.getContainerArtigoByNumero(1).then($container => {
       return cy.window().then(win => {
         const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
         const quill = editorEl?.quill;
         if (!quill) return;
 
-        // O link tem ambas as classes; basta localizar pelo seletor lexml-remissao-interna
         const link = $container[0].querySelector('a.lexml-remissao-interna');
         if (!link) return;
 
@@ -94,14 +94,12 @@ describe('Invalidação e restauração de remissão', () => {
         const blot = EtaQuillClass.find(link);
         if (!blot) return;
 
-        // Seleciona o link inteiro — range.length > 0 ativa branch de seleção em temRemissaoNaCursorOuSelecao
-        const linkIndex = blot.offset(quill.scroll);
-        const blotLength = blot.length();
-        quill.setSelection(linkIndex, blotLength, 'user');
+        // linkIndex + 1 evita fronteira de Parchment; selection-change → mostrarPopup() com invalido=true
+        quill.setSelection(blot.offset(quill.scroll) + 1, 0, 'user');
 
-        // Click nativo: não despacha mousedown, preserva seleção ativa
-        const btnRemover = win.document.querySelector(SEL_BTN_REMOVER) as HTMLElement;
-        btnRemover?.click();
+        // selection-change é síncrono → popup já visível; click nativo preserva foco no Quill
+        const btnExcluir = win.document.querySelector('.remissao-popup__btn--excluir') as HTMLElement;
+        btnExcluir?.click();
       });
     });
 
@@ -194,3 +192,5 @@ describe('Invalidação: excluir dispositivo não referenciado não afeta remiss
     cy.getContainerArtigoByNumero(2).find(SEL_MENSAGEM_INVALIDA).should('not.exist');
   });
 });
+
+export {};

@@ -24,6 +24,9 @@ describe('Detecção contextual: referências relativas ao artigo corrente', () 
     // § 2 do Art. 1
     cy.get('div.container__elemento.elemento-tipo-paragrafo').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo depois');
     cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 2);
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').eq(1).alterarTextoDoDispositivo('As exceções serão regulamentadas por ato do Poder Executivo.');
   });
 
   it('"§ 2º deste artigo" detectado a partir do § 1 cria 1 link', () => {
@@ -80,6 +83,9 @@ describe('Detecção contextual: referência ao parágrafo a partir de inciso no
     // § 2 do Art. 1
     cy.get('div.container__elemento.elemento-tipo-paragrafo').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo depois');
     cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 2);
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().alterarTextoDoDispositivo('O disposto no caput aplica-se igualmente às autarquias e fundações.');
   });
 
   it('"§ 2º deste artigo" detectado a partir de inciso do caput cria 1 link', () => {
@@ -110,6 +116,8 @@ describe('Detecção contextual: referências a inciso e parágrafo único do ar
     // § 1 do Art. 1 (parágrafo único pois é o único)
     cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo');
     cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 1);
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
   });
 
   it('"inciso I deste artigo" detectado no § 1 cria 1 link', () => {
@@ -155,6 +163,9 @@ describe('Detecção contextual: referência a inciso do parágrafo corrente', (
     // Alínea a no inciso I
     cy.get('div.container__elemento.elemento-tipo-inciso').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar alínea');
     cy.get('div.container__elemento.elemento-tipo-alinea').should('have.length.gte', 1);
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().alterarTextoDoDispositivo('O disposto no caput aplica-se igualmente às autarquias e fundações.');
   });
 
   it('"inciso I deste parágrafo" detectado na alínea a cria 1 link', () => {
@@ -189,6 +200,8 @@ describe('Detecção contextual: cadeia composta inciso + parágrafo do artigo',
     // Inciso I no § 2
     cy.get('div.container__elemento.elemento-tipo-paragrafo').eq(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso');
     cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length.gte', 1);
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
   });
 
   it('"inciso I do § 2º deste artigo" detectado no § 1 cria 1 link', () => {
@@ -226,6 +239,10 @@ describe('Detecção contextual: referência a inciso do caput deste artigo', ()
 
     // Inciso I no § 1
     cy.get('div.container__elemento.elemento-tipo-paragrafo').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso');
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.get('div.container__elemento.elemento-tipo-inciso').first().alterarTextoDoDispositivo('à administração direta');
+    cy.get('div.container__elemento.elemento-tipo-inciso').eq(1).alterarTextoDoDispositivo('à administração indireta');
   });
 
   it('"inciso II do caput deste artigo" detectado no § 1 cria 1 link', () => {
