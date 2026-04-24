@@ -265,7 +265,8 @@ const construirSinteseAteArtigo = (prefixText: string, ancestorInicial: Disposit
 
   if (partes.length === 0) return null;
 
-  return `${prefixText.trim()} do ${partes.join(' do ')}`;
+  const prefixNorm = prefixText.trim().replace(/\s*\)\s*$/, '');
+  return `${prefixNorm} do ${partes.join(' do ')}`;
 };
 
 const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
