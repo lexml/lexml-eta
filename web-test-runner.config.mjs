@@ -63,7 +63,21 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
           window.Quill = {
             import: (path) => {
               if (path === 'blots/inline') return mockBlot;
-              if (path === 'delta') return class Delta {};
+              if (path === 'delta') return class Delta {
+                constructor(ops) { this.ops = ops ? [...ops] : []; }
+                retain(length, attrs) {
+                  if (length > 0) this.ops.push(attrs ? { retain: length, attributes: attrs } : { retain: length });
+                  return this;
+                }
+                delete(length) {
+                  if (length > 0) this.ops.push({ delete: length });
+                  return this;
+                }
+                insert(text, attrs) {
+                  this.ops.push(attrs ? { insert: text, attributes: attrs } : { insert: text });
+                  return this;
+                }
+              };
               if (path === 'core/module') return class {};
               if (path === 'parchment') return {
                 Scope: { INLINE_ATTRIBUTE: 1 },
