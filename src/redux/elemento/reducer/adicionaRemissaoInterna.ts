@@ -22,7 +22,7 @@ interface ReferenciaEncontrada {
 const P_ARTIGO = `(?:art\\.?\\s*|artigo\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
 const P_PARAGRAFO = `(?:§\\s*|par[aá]grafo\\s+|par\\.?\\s*)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
 const P_INCISO = `(?:inc\\.?\\s*|inciso\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
-const P_ALINEA = `(?:al[ií]\\.?\\s*|al[ií]nea\\s+)(?:[a-z]+(?:-[a-z]+)?)`;
+const P_ALINEA = `(?:al[ií]\\.?\\s*|al[ií]nea\\s+)(?:[a-z]+(?:-[a-z]+)?)\\)?`;
 const P_ITEM = `(?:item\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)`;
 const CONECTOR = `\\s+d[ao]\\s+`;
 const P_CAPUT = `caput`;
@@ -59,7 +59,7 @@ const REGEX_CONTEXTUAL = new RegExp(
     `|(?:${P_ITEM})` +
     // 5: agrupador simples (ex: "Seção II deste Capítulo")
     `|(?:${P_QUALQUER_AGRUPADOR})` +
-    `)\\s+d(?:este|esta|o\\s+presente|a\\s+presente)\\s+(artigo|par[aá]grafo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o|t[ií]tulo|livro|parte)`,
+    `)\\s+d(?:este|esta|o\\s+presente|a\\s+presente)\\s+(artigo|par[aá]grafo|inciso|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o|t[ií]tulo|livro|parte)`,
   'gi'
 );
 
@@ -220,6 +220,7 @@ const buscarAgrupadorFilhoPorPrefixo = (prefixText: string, ancestor: Dispositiv
 const MAPA_CONTEXTUAL_PARA_TIPO: Record<string, string> = {
   artigo: TipoDispositivo.artigo.tipo, //         'Artigo'
   paragrafo: TipoDispositivo.paragrafo.tipo, // 'Paragrafo'
+  inciso: TipoDispositivo.inciso.tipo, //       'Inciso'
   capitulo: TipoDispositivo.capitulo.tipo, //   'Capitulo'
   secao: TipoDispositivo.secao.tipo, //         'Secao'
   subsecao: TipoDispositivo.subsecao.tipo, //   'Subsecao'
@@ -259,6 +260,8 @@ const construirSinteseAteArtigo = (prefixText: string, ancestorInicial: Disposit
     }
     if (atual.tipo === TipoDispositivo.paragrafo.tipo) {
       partes.push(numeroParaSinteseParagrafo(atual.numero || ''));
+    } else if (atual.tipo === TipoDispositivo.inciso.tipo) {
+      partes.push(`inciso ${converteNumeroArabicoParaRomano(atual.numero || '')}`);
     }
     atual = atual.pai;
   }
