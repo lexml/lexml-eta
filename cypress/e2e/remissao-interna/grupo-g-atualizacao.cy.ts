@@ -540,4 +540,222 @@ describe('Atualização: texto não-canônico preservado; após restaurar canôn
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CT-G-09 — Renumeração simultânea: múltiplos tipos em um único evento
+//
+// Uma única inserção (art. antes de Art. 1) dispara RemissaoRenumerada para
+// art1, art1_par1 e art1_par2. Cinco remissões apontando para esses alvos
+// são atualizadas simultaneamente, cada uma com comportamento distinto:
+//
+//   A) Absoluta simples    "art. 1º"                   → ref e texto atualizados
+//   B) Absoluta em cadeia  "§ 1º do art. 1º"           → ref e texto atualizados
+//   C) Manual canônica     "art. 1º" (via Quill)       → ref e texto atualizados
+//                           (sem textoFixo desde c5184d59, comportamento igual a A)
+//   D) Manual não-canônica "o artigo primeiro"          → ref atualiza, texto preservado
+//   E) Contextual §        "§ 2º deste artigo"          → ref atualiza, texto preservado
+//   F) Contextual inc      "inciso II deste parágrafo"  → ref atualiza, texto preservado
+//   G) Contextual ali      "alínea b) deste inciso"     → ref atualiza, texto preservado
+//
+// Nota: agrupador único (Seção Única / Capítulo Único) não está incluído —
+// a adição de agrupadores requer UI diferente da de dispositivos e não há
+// comando Cypress padronizado para esse fluxo ainda.
+//
+// Setup:
+//   Art. 1 (→ Art. 2)
+//     § 1 (→ art2_par1)  ← fonte E: "§ 2º deste artigo"
+//       Inciso I  (→ art2_par1_inc1)          ← fonte F: "inciso II deste parágrafo"
+//       Inciso II (→ art2_par1_inc2)          ← destino F
+//         Alínea a) (→ art2_par1_inc2_ali1)   ← fonte G: "alínea b) deste inciso"
+//         Alínea b) (→ art2_par1_inc2_ali2)   ← destino G
+//     § 2 (→ art2_par2)  ← destino E
+//   Art. 2 (→ Art. 3)    ← fonte A (abs. simples)
+//   Art. 3 (→ Art. 4)    ← fonte B (abs. em cadeia)
+//   Art. 4 (→ Art. 5)    ← fonte C (manual canônica)
+//   Art. 5 (→ Art. 6)    ← fonte D (manual não-canônica, modificada no it())
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Atualização simultânea: absoluta simples, em cadeia, contextual e manual na mesma renumeração', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao();
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    // ── Art. 1: adiciona § 1 e § 2 ──────────────────────────────────────────
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 1);
+
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo depois');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length.gte', 2);
+
+    // ── § 1: adiciona Inciso I e Inciso II ──────────────────────────────────
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso');
+    cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length.gte', 1);
+
+    cy.get('div.container__elemento.elemento-tipo-inciso').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso depois');
+    cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length.gte', 2);
+
+    // ── Inciso II: adiciona Alínea a) e Alínea b) ───────────────────────────
+    cy.get('div.container__elemento.elemento-tipo-inciso').eq(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar alínea');
+    cy.get('div.container__elemento.elemento-tipo-alinea').should('have.length.gte', 1);
+
+    cy.get('div.container__elemento.elemento-tipo-alinea').first().selecionarOpcaoDeMenuDoDispositivo('Adicionar alínea depois');
+    cy.get('div.container__elemento.elemento-tipo-alinea').should('have.length.gte', 2);
+
+    // § 1 referencia § 2 contextualmente — detecção antes de criar Arts. 2-5
+    // para isolar a detecção ao escopo de Art. 1
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().digitarTextoRemissao('Aplica-se o § 2º deste artigo, conforme estabelecido.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().find('p.texto__dispositivo').should('contain.text', '§ 2º deste artigo');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().dispararDeteccaoRemissao();
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').first().find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1_par2');
+
+    // F: Inciso I referencia Inciso II contextualmente ("inciso II deste parágrafo")
+    // Inciso I é filho de § 1 → buscarAncestralPorTipo('par') encontra § 1 → resolve inc2
+    cy.get('div.container__elemento.elemento-tipo-inciso').first().digitarTextoRemissao('Conforme o inciso II deste parágrafo, aplica-se.');
+    cy.get('div.container__elemento.elemento-tipo-inciso').first().find('p.texto__dispositivo').should('contain.text', 'inciso II deste parágrafo');
+    cy.get('div.container__elemento.elemento-tipo-inciso').first().dispararDeteccaoRemissao();
+    cy.get('div.container__elemento.elemento-tipo-inciso').first().find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1_par1_inc2');
+
+    // G: Alínea a) referencia Alínea b) contextualmente ("alínea b) deste inciso")
+    // Alínea a) é filha de Inciso II → buscarAncestralPorTipo('inc') encontra Inciso II → resolve ali2
+    cy.get('div.container__elemento.elemento-tipo-alinea').first().digitarTextoRemissao('Conforme a alínea b) deste inciso, aplica-se.');
+    cy.get('div.container__elemento.elemento-tipo-alinea').first().find('p.texto__dispositivo').should('contain.text', 'alínea b) deste inciso');
+    cy.get('div.container__elemento.elemento-tipo-alinea').first().dispararDeteccaoRemissao();
+    cy.get('div.container__elemento.elemento-tipo-alinea').first().find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1_par1_inc2_ali2');
+
+    // ── Art. 2: absoluta simples "art. 1º" ──────────────────────────────────
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(2).should('exist');
+    cy.getContainerArtigoByNumero(2).digitarTextoRemissao('Conforme o art. 1º, aplica-se o seguinte.');
+    cy.getContainerArtigoByNumero(2).find('p.texto__dispositivo').should('contain.text', 'art. 1');
+    cy.getContainerArtigoByNumero(2).dispararDeteccaoRemissao();
+    cy.getContainerArtigoByNumero(2).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1');
+
+    // ── Art. 3: absoluta em cadeia "§ 1º do art. 1º" ───────────────────────
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(3).should('exist');
+    cy.getContainerArtigoByNumero(3).digitarTextoRemissao('Conforme o § 1º do art. 1º, aplica-se.');
+    cy.getContainerArtigoByNumero(3).find('p.texto__dispositivo').should('contain.text', '§ 1º do art. 1');
+    cy.getContainerArtigoByNumero(3).dispararDeteccaoRemissao();
+    cy.getContainerArtigoByNumero(3).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1_par1');
+
+    // ── Art. 4: manual canônico — detectado como "art. 1º" ──────────────────
+    // Representa remissão criada via diálogo com texto canônico.
+    // Após remoção de textoFixo (c5184d59), texto canônico de remissão manual
+    // é atualizado da mesma forma que remissão auto-detectada.
+    cy.getContainerArtigoByNumero(3).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(4).should('exist');
+    cy.getContainerArtigoByNumero(4).digitarTextoRemissao('Ver o art. 1º para mais detalhes.');
+    cy.getContainerArtigoByNumero(4).find('p.texto__dispositivo').should('contain.text', 'art. 1');
+    cy.getContainerArtigoByNumero(4).dispararDeteccaoRemissao();
+    cy.getContainerArtigoByNumero(4).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1');
+
+    // ── Art. 5: manual não-canônico — detectado como "art. 1º", modificado no it() ──
+    // Representa remissão criada via diálogo com texto personalizado ("o artigo primeiro").
+    // O texto não-canônico será preservado após renumeração.
+    cy.getContainerArtigoByNumero(4).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(5).should('exist');
+    cy.getContainerArtigoByNumero(5).digitarTextoRemissao('Conforme previsto no art. 1º, observa-se o seguinte.');
+    cy.getContainerArtigoByNumero(5).find('p.texto__dispositivo').should('contain.text', 'art. 1');
+    cy.getContainerArtigoByNumero(5).dispararDeteccaoRemissao();
+    cy.getContainerArtigoByNumero(5).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1');
+
+    // Fillers nos dispositivos de suporte
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').eq(1).alterarTextoDoDispositivo('As exceções serão regulamentadas por ato do Poder Executivo.');
+    cy.get('div.container__elemento.elemento-tipo-inciso').eq(1).alterarTextoDoDispositivo('à administração indireta');
+    cy.get('div.container__elemento.elemento-tipo-alinea').eq(1).alterarTextoDoDispositivo('entidades constituídas no exterior');
+  });
+
+  it('CT-G-09: renumeração simultânea — abs. simples/cadeia/manual-canônica atualizam; contextual (§, inc, ali) e manual-não-canônica preservam texto', () => {
+    // ── Fase 1: tornar Art. 5 não-canônico ──────────────────────────────────
+    // Substitui "art. 1º" por "o artigo primeiro" no link de Art. 5.
+    // data-ref-id e targetUuid copiados do link existente para que atualizarReferencias
+    // localize o link corretamente pelo UUID ao processar RemissaoRenumerada.
+    cy.getContainerArtigoByNumero(5).then($art => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
+
+        const link = $art[0].querySelector('a[data-lexml-ref="art1"]') as HTMLElement;
+        if (!link) return;
+
+        const EtaQuillClass = quill.constructor as any;
+        const blot = EtaQuillClass.find(link);
+        if (!blot) return;
+
+        const refId = link.getAttribute('data-ref-id');
+        const href = link.getAttribute('href') || '';
+        const uuidMatch = href.match(/#lxEtaId(\d+)/);
+        const targetUuid = uuidMatch ? parseInt(uuidMatch[1], 10) : 0;
+
+        const offset = blot.offset(quill.scroll);
+        const len = blot.length();
+        const Delta = EtaQuillClass.import('delta');
+
+        quill.updateContents(
+          new Delta([{ retain: offset }, { delete: len }, { insert: 'o artigo primeiro', attributes: { 'remissao-interna': { refId, targetLexmlId: 'art1', targetUuid } } }]),
+          'silent'
+        );
+      });
+    });
+
+    // Pré-condição: Art. 5 tem link não-canônico apontando para art1
+    cy.getContainerArtigoByNumero(5).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1').and('contain.text', 'o artigo primeiro');
+
+    // ── Fase 2: renumeração — insere art. antes de Art. 1 ───────────────────
+    // Novo Art. 1 (vazio); ex-Art. 1 → Art. 2 (e filhos); ex-Art. 2 → Art. 3 etc.
+    // Dispara RemissaoRenumerada: art1→art2, art1_par1→art2_par1, art1_par2→art2_par2,
+    // art1_par1_inc1→art2_par1_inc1, art1_par1_inc2→art2_par1_inc2,
+    // art1_par1_inc2_ali1→art2_par1_inc2_ali1, art1_par1_inc2_ali2→art2_par1_inc2_ali2
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo antes');
+    cy.getContainerArtigoByNumero(6).should('exist'); // âncora: 6 artigos
+
+    // ── Fase 3: asserções ────────────────────────────────────────────────────
+
+    // A) Absoluta simples — Art. 3 (ex-Art. 2): ref e texto atualizados
+    cy.getContainerArtigoByNumero(3).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2').and('contain.text', 'art. 2º');
+
+    // B) Absoluta em cadeia — Art. 4 (ex-Art. 3): ref e texto atualizados
+    cy.getContainerArtigoByNumero(4).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_par1').and('contain.text', '§ 1º do art. 2º');
+
+    // C) Manual canônica — Art. 5 (ex-Art. 4): ref e texto atualizados
+    // Demonstra que, após remoção de textoFixo, remissão manual com texto
+    // canônico se comporta igual a remissão auto-detectada
+    cy.getContainerArtigoByNumero(5).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2').and('contain.text', 'art. 2º');
+
+    // D) Manual não-canônica — Art. 6 (ex-Art. 5): ref atualiza, texto preservado
+    cy.getContainerArtigoByNumero(6).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2').and('contain.text', 'o artigo primeiro');
+
+    // E) Contextual § — § 1 de Art. 2 (ex-§ 1 de Art. 1): ref atualiza, texto preservado
+    // "§ 2º deste artigo" é relativo ao artigo pai — semanticamente correto em Art. 2
+    cy.get('div.container__elemento.elemento-tipo-paragrafo')
+      .first()
+      .find(SEL_LINK)
+      .should('have.length', 1)
+      .and('have.attr', 'data-lexml-ref', 'art2_par2')
+      .and('contain.text', '§ 2º deste artigo');
+
+    // F) Contextual inc — Inciso I (em Art. 2): ref atualiza, texto preservado
+    // "inciso II deste parágrafo" não muda — o inciso não foi renumerado, só o artigo-pai
+    cy.get('div.container__elemento.elemento-tipo-inciso')
+      .first()
+      .find(SEL_LINK)
+      .should('have.length', 1)
+      .and('have.attr', 'data-lexml-ref', 'art2_par1_inc2')
+      .and('contain.text', 'inciso II deste parágrafo');
+
+    // G) Contextual ali — Alínea a) (em Art. 2): ref atualiza, texto preservado
+    // "alínea b) deste inciso" não muda — a alínea não foi renumerada, só o artigo-pai
+    cy.get('div.container__elemento.elemento-tipo-alinea')
+      .first()
+      .find(SEL_LINK)
+      .should('have.length', 1)
+      .and('have.attr', 'data-lexml-ref', 'art2_par1_inc2_ali2')
+      .and('contain.text', 'alínea b) deste inciso');
+
+    // Renumeração nunca invalida links
+    cy.get(SEL_LINK_INVALIDO).should('not.exist');
+  });
+});
+
 export {};

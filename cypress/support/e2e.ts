@@ -32,6 +32,12 @@ before(() => {
   cy.ignorarErro('removeEventListener');
 });
 
+afterEach(() => {
+  if (Cypress.config('isInteractive')) {
+    cy.wait(2000);
+  }
+});
+
 const app = window.top;
 if (app && !app?.document.head.querySelector('[data-hide-command-log-request]')) {
   const style = app.document.createElement('style');
