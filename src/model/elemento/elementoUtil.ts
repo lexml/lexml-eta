@@ -126,7 +126,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
     mensagens: isOriginal(dispositivo) && !isBloqueado(dispositivo) ? [] : dispositivo.mensagens,
-    abreAspas: isDispositivoCabecaAlteracao(dispositivo),
+    abreAspas: isDispositivoCabecaAlteracao(dispositivo) || !!dispositivo.cabecaAlteracao,
     fechaAspas,
     notaAlteracao,
     dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
