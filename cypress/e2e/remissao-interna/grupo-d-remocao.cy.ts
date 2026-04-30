@@ -91,4 +91,65 @@ describe('Remoção: popup oculto quando cursor está em texto sem link', () => 
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CT-D-04 — Dois links no mesmo dispositivo; remover um preserva o outro
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Remoção: dispositivo com dois links; remover um via popup preserva o outro', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao();
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(2).should('exist');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(3).should('exist');
+
+    // Art. 3 referencia Art. 1 e Art. 2 no mesmo texto
+    cy.getContainerArtigoByNumero(3).digitarTextoRemissao('Conforme o art. 1º e o art. 2º, aplica-se o seguinte.');
+    cy.getContainerArtigoByNumero(3).find('p.texto__dispositivo').should('contain.text', 'art. 1');
+
+    cy.getContainerArtigoByNumero(3).dispararDeteccaoRemissao();
+    cy.getContainerArtigoByNumero(3).find(SEL_LINK).should('have.length', 2);
+    cy.getContainerArtigoByNumero(3).find('a[data-lexml-ref="art1"]').should('exist');
+    cy.getContainerArtigoByNumero(3).find('a[data-lexml-ref="art2"]').should('exist');
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
+  });
+
+  it('CT-D-04: remover link "art. 1º" via popup → link "art. 2º" permanece intacto', () => {
+    // Posiciona cursor especificamente dentro do link art1 e aciona Excluir
+    cy.getContainerArtigoByNumero(3).then($container => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        if (!quill) return;
+
+        const link = $container[0].querySelector('a[data-lexml-ref="art1"]') as HTMLElement;
+        if (!link) return;
+
+        const EtaQuillClass = quill.constructor as any;
+        const blot = EtaQuillClass.find(link);
+        if (!blot) return;
+
+        // linkIndex + 1 evita fronteira de Parchment; selection-change → popup
+        quill.setSelection(blot.offset(quill.scroll) + 1, 0, 'user');
+
+        const btnExcluir = win.document.querySelector('.remissao-popup__btn--excluir') as HTMLElement;
+        btnExcluir?.click();
+      });
+    });
+
+    // Link art1 removido; link art2 intacto
+    cy.getContainerArtigoByNumero(3).find('a[data-lexml-ref="art1"]').should('not.exist');
+    cy.getContainerArtigoByNumero(3).find(SEL_LINK).should('have.length', 1);
+    cy.getContainerArtigoByNumero(3).find('a[data-lexml-ref="art2"]').should('exist');
+
+    // Texto "art. 2" permanece visível como texto simples no trecho não-linkado e no link restante
+    cy.getContainerArtigoByNumero(3).find('p.texto__dispositivo').should('contain.text', 'art. 2');
+  });
+});
+
 export {};

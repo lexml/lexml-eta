@@ -137,11 +137,10 @@ describe('Mensagem de remissão inválida', () => {
   // ─────────────────────────────────────────────────────────────
   // usuário digita texto no dispositivo de origem → mensagem NÃO deve sumir
   // ─────────────────────────────────────────────────────────────
-  it('adicionaRemissaoInterna deve emitir ElementoValidado com mensagem quando há entradas inválidas preservadas', () => {
+  it('atualizaTextoElemento deve incluir mensagem de remissão inválida no ElementoValidado quando o dispositivo tem entradas inválidas', () => {
     const { state, artigos } = criaStateComNArtigos(3);
     const [art1, art2] = artigos;
 
-    // Estado com remissão inválida (destino excluído)
     const stateComInvalida: State = {
       ...state,
       remissoes: {
@@ -149,10 +148,11 @@ describe('Mensagem de remissão inválida', () => {
       },
     };
 
-    // adicionaRemissaoInterna re-detecta referências; art2 não existe mais → 0 novas detecções
-    // Mas oldInvalidas.length > 0 → deve emitir ElementoValidado com mensagem
-    const elementoArt1 = createElemento(art1, true);
-    const newState = adicionaRemissaoInterna(stateComInvalida, { atual: elementoArt1 });
+    // Simula usuário digitando: art1.texto muda → atualizaTextoElemento deve incluir a mensagem
+    art1.texto = 'texto atualizado pelo usuário';
+    const newState = atualizaTextoElemento(stateComInvalida, {
+      atual: { uuid: art1.uuid, conteudo: { texto: 'texto atualizado pelo usuário' } },
+    });
 
     const eventosComRemissao = eventosComMensagemRemissao(newState.ui!.events);
     expect(eventosComRemissao).to.have.length.greaterThan(0);
@@ -186,12 +186,9 @@ describe('Mensagem de remissão inválida', () => {
       },
     });
 
-    // Simula dispatch 3: re-detecção de remissões (art2 não existe → 0 novas, mas oldInvalidas > 0)
-    const elementoArt3Atualizado = createElemento(art3, true);
-    const newState = adicionaRemissaoInterna(state3, { atual: elementoArt3Atualizado });
-
-    // A mensagem de remissão inválida deve estar no ElementoValidado emitido por adicionaRemissaoInterna
-    const eventosComRemissao = eventosComMensagemRemissao(newState.ui!.events);
+    // A mensagem de remissão inválida deve estar no ElementoValidado emitido por atualizaTextoElemento
+    // (não por adicionaRemissaoInterna — responsabilidade migrada para evitar duplicação)
+    const eventosComRemissao = eventosComMensagemRemissao(state3.ui!.events);
     expect(eventosComRemissao).to.have.length.greaterThan(0, 'ElementoValidado deve conter a mensagem de remissão inválida');
     const uuidsAfetados = eventosComRemissao.flatMap((ev: any) => ev.elementos!.map((el: any) => el.uuid));
     expect(uuidsAfetados).to.include(art3.uuid);
