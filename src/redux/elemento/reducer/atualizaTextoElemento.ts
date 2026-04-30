@@ -1,12 +1,13 @@
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isTextoMaiusculo } from '../../../model/dispositivo/tipo';
-import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidadoComExtras, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { MENSAGEM_REMISSAO_INVALIDA } from '../../../model/remissao/remissao';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
@@ -49,11 +50,22 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   eventosUi.add(StateType.ElementoModificado, [elemento]);
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
+  // Preserva a mensagem de remissão inválida quando o dispositivo tem entradas com valida:false.
+  // ElementoSelecionado é processado após ElementoValidado por atualizarMensagemQuill; sem a
+  // mensagem no elemento de seleção, o painel seria apagado imediatamente após ser criado.
+  const remissoesDoDispositivo = (state.remissoes as any)?.[dispositivo.uuid!] ?? [];
+  let elementoParaSelecionado = elemento;
+  if (remissoesDoDispositivo.some((r: any) => r.valida === false)) {
+    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
+    elementoParaSelecionado = createElementoValidadoComExtras(dispositivo, [mensagemInvalida]);
+    eventosUi.add(StateType.ElementoValidado, [elementoParaSelecionado]);
+  }
+
   if (textoAtual === '') {
     eventosUi.add(StateType.ElementoMarcado, [elemento]);
   }
 
-  eventosUi.eventos.push({ stateType: StateType.ElementoSelecionado, elementos: [elemento] });
+  eventosUi.eventos.push({ stateType: StateType.ElementoSelecionado, elementos: [elementoParaSelecionado] });
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {

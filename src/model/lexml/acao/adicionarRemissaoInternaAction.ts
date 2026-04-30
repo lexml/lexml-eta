@@ -12,10 +12,14 @@ class AdicionarRemissaoInterna implements ElementoAction {
   }
 
   execute(atual: Referencia): any {
-    return {
-      type: ADICIONAR_REMISSAO_INTERNA,
-      atual,
-    };
+    return { type: ADICIONAR_REMISSAO_INTERNA, atual, precisaReemitirMensagemInvalida: false };
+  }
+
+  // Usar quando precedido por atualizarTextoElementoAction no mesmo fluxo (digitação,
+  // desmembramento, criação/edição de remissão manual). Permite re-emissão da mensagem
+  // de remissão inválida, que foi limpa pelo ElementoValidado sem mensagens do atualizarTexto.
+  executeComReemissao(atual: Referencia): any {
+    return { type: ADICIONAR_REMISSAO_INTERNA, atual, precisaReemitirMensagemInvalida: true };
   }
 }
 
