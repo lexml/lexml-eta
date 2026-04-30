@@ -1,11 +1,9 @@
-import { getDispositivoFromElemento, createElemento, createElementoValidadoComExtras } from '../../../model/elemento/elementoUtil';
-import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../model/remissao';
-import { MENSAGEM_REMISSAO_INVALIDA } from '../../../model/remissao/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -102,14 +100,9 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const eventosUi = new Eventos();
   eventosUi.add(StateType.AtualizaRemissaoInterna, [elemento]);
 
-  // Emite ElementoValidado com mensagem de remissão inválida quando há entradas preservadas
-  if (oldInvalidas.length > 0) {
-    const mensagemInvalida = {
-      tipo: TipoMensagem.ERROR,
-      descricao: MENSAGEM_REMISSAO_INVALIDA,
-    };
-    eventosUi.add(StateType.ElementoValidado, [createElementoValidadoComExtras(dispositivo, [mensagemInvalida])]);
-  }
+  // A mensagem de remissão inválida é emitida por construirEventosRemissaoParaRemocao (remoção)
+  // e preservada por atualizaTextoElemento (digitação). adicionaRemissaoInterna não a re-emite
+  // para evitar duplicação quando chamado em outros contextos (ex: reposicionamento de cursor).
 
   return {
     ...state,
