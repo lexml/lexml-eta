@@ -247,7 +247,8 @@ export const getDispositivoPosteriorNaSequenciaDeLeitura = (disp: Dispositivo, a
         proximo = filhos[0];
       }
     }
-    if (!proximo && current?.hasAlteracao() && current.alteracoes?.filhos.length) {
+    const veioDaAlteracao = aPartirDe !== undefined && isArticulacaoAlteracao(aPartirDe) && aPartirDe === current?.alteracoes;
+    if (!proximo && !veioDaAlteracao && current?.hasAlteracao() && current.alteracoes?.filhos.length) {
       proximo = current.alteracoes.filhos[0];
     }
     if (proximo) {

@@ -1,8 +1,14 @@
 import { expect } from '@open-wc/testing';
 import { Articulacao, Artigo } from '../../../../src/model/dispositivo/dispositivo';
-import { createArticulacao, criaDispositivo } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
-import { isUltimaAlteracao, getDispositivoAndFilhosAsLista } from '../../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import {
+  isUltimaAlteracao,
+  getDispositivoAndFilhosAsLista,
+  getDispositivoPosteriorNaSequenciaDeLeitura,
+  isDispositivoAlteracao,
+} from '../../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { isArtigo } from '../../../../src/model/dispositivo/tipo';
 import { DispositivoNovo } from '../../../../src/model/lexml/situacao/dispositivoNovo';
 
 describe('getDispositivoAndFilhosAsLista', () => {
@@ -151,5 +157,67 @@ describe('isUltimaAlteracao', () => {
       expect(isUltimaAlteracao(par6)).to.be.false;
       expect(isUltimaAlteracao(par7)).to.be.true;
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regressão: loop infinito em getDispositivoPosteriorNaSequenciaDeLeitura
+// quando artigo possui alteracao com dispositivos de alteracao
+// ---------------------------------------------------------------------------
+
+describe('getDispositivoPosteriorNaSequenciaDeLeitura — regressão loop infinito', function () {
+  this.timeout(5000);
+
+  // Monta estrutura equivalente ao altera_norma_trava_editor.json:
+  // articulacao → art1, art2, art3
+  // art3.alteracoes → art5 (isDispositivoAlteracao=true)
+  //   art5.caput → inciso, omissis
+  const montarArticulacaoComAlteracao = (): Articulacao => {
+    const articulacao = createArticulacao();
+    criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const art3 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+
+    createAlteracao(art3);
+    const art5 = criaDispositivo(art3.alteracoes!, TipoDispositivo.artigo.tipo) as Artigo;
+    art5.isDispositivoAlteracao = true;
+    criaDispositivo(art5.caput!, TipoDispositivo.inciso.tipo);
+    criaDispositivo(art5.caput!, TipoDispositivo.omissis.tipo);
+
+    return articulacao;
+  };
+
+  it('deve retornar undefined ao buscar artigo posterior ao último artigo com alteracao (sem travar)', () => {
+    const articulacao = montarArticulacaoComAlteracao();
+    const art3 = articulacao.filhos[2] as Artigo;
+
+    const resultado = getDispositivoPosteriorNaSequenciaDeLeitura(art3, d => isArtigo(d) && !isDispositivoAlteracao(d));
+
+    expect(resultado).to.be.undefined;
+  });
+
+  it('deve retornar o próximo artigo corretamente quando há artigo após o que tem alteracao', () => {
+    const articulacao = createArticulacao();
+    const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+
+    createAlteracao(art1);
+    const art5 = criaDispositivo(art1.alteracoes!, TipoDispositivo.artigo.tipo) as Artigo;
+    art5.isDispositivoAlteracao = true;
+    criaDispositivo(art5.caput!, TipoDispositivo.inciso.tipo);
+    criaDispositivo(art5.caput!, TipoDispositivo.omissis.tipo);
+
+    const resultado = getDispositivoPosteriorNaSequenciaDeLeitura(art1, d => isArtigo(d) && !isDispositivoAlteracao(d));
+
+    expect(resultado).to.equal(art2);
+  });
+
+  it('deve retornar undefined quando não há artigo posterior (artigo único sem alteracao)', () => {
+    const articulacao = createArticulacao();
+    const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+
+    const resultado = getDispositivoPosteriorNaSequenciaDeLeitura(art1, d => isArtigo(d) && !isDispositivoAlteracao(d));
+
+    expect(resultado).to.be.undefined;
   });
 });
