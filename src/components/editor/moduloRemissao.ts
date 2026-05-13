@@ -439,6 +439,10 @@ class ModuloRemissao extends Module {
       return;
     }
 
+    // Preserva a posição do cursor: formatText provoca mutação no DOM (envolve o texto
+    // em um blot <a>), e o browser reposiciona o caret para o início do trecho modificado.
+    const savedSelection = this.quill.getSelection();
+
     // Localiza o blot de conteúdo do dispositivo pelo id do DOM para escopar a busca.
     // Isso evita que textoRef seja encontrado em outros dispositivos do editor.
     let blotStart = -1;
@@ -500,6 +504,16 @@ class ModuloRemissao extends Module {
 
         this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-interna', remissao, 'silent');
       }
+    }
+
+    // Restaura o cursor após as microtasks do MutationObserver do Quill processarem as
+    // mutações DOM causadas pelo formatText — sem o setTimeout o MutationObserver sobrescreve
+    // o setSelection síncrono e reposiciona o caret para o início do blot criado.
+    if (savedSelection) {
+      const sel = savedSelection;
+      setTimeout(() => {
+        this.quill.setSelection(sel.index, sel.length, 'silent');
+      }, 0);
     }
   }
 }
