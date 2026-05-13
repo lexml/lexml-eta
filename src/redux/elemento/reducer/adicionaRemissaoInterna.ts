@@ -61,6 +61,31 @@ const REGEX_CONTEXTUAL = new RegExp(
   'gi'
 );
 
+// Lookahead estendido para detecção implícita: bloqueia quando seguido de "do/da",
+// "deste/desta", "do presente/da presente" — inclusive quando precedido de º/° para
+// impedir que o motor faça backtrack para "§ 2" (sem º) quando "§ 2º deste" seria bloqueado.
+const LOOKAHEAD_IMPL = `(?!(?:[º°])?\\s+d(?:[ao]\\s|este|esta|o\\s+presente|a\\s+presente))`;
+
+// Padrões estritos exclusivos para detecção implícita:
+// – Inciso/Alínea: formas abreviadas exigem ponto ("inc.", "alí.") para não gerar match
+//   parcial dentro de "inciso" (→ "inci") ou "alínea" (→ "alín").
+const P_INC_IMPL_PAT = `(?:inciso\\s+|inc\\.\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_ALI_IMPL_PAT = `(?:al[ií]nea\\s+|al[ií]\\.\\s+)(?:[a-z]+(?:-[a-z]+)?)\\)?`;
+
+const REGEX_PAR_IMPL = new RegExp(`${P_PARAGRAFO}${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_INC_IMPL = new RegExp(`${P_INC_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ALI_IMPL = new RegExp(`${P_ALI_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ITEM_IMPL = new RegExp(`${P_ITEM}${LOOKAHEAD_IMPL}`, 'gi');
+
+// Ordem: parágrafo primeiro para evitar matches parciais dentro de padrões maiores.
+// Inciso usa cascata [parágrafo → artigo]: prefere o parágrafo mais próximo, faz fallback para artigo.
+const TIPOS_IMPLICITOS: Array<{ regex: RegExp; tiposAncestral: string[] }> = [
+  { regex: REGEX_PAR_IMPL, tiposAncestral: [TipoDispositivo.artigo.tipo] },
+  { regex: REGEX_INC_IMPL, tiposAncestral: [TipoDispositivo.paragrafo.tipo, TipoDispositivo.artigo.tipo] },
+  { regex: REGEX_ALI_IMPL, tiposAncestral: [TipoDispositivo.inciso.tipo] },
+  { regex: REGEX_ITEM_IMPL, tiposAncestral: [TipoDispositivo.alinea.tipo] },
+];
+
 export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const textoAtual = dispositivo?.texto;
@@ -115,7 +140,8 @@ const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulaca
   const absolutas = detectarReferenciasAbsolutas(texto, articulacao);
   const agrupadores = detectarReferenciasAgrupadores(texto, articulacao);
   const contextuais = detectarReferenciasContextuais(texto, dispositivo, articulacao);
-  return [...absolutas, ...agrupadores, ...contextuais];
+  const implicitas = detectarReferenciasImplicitasSemQualificador(texto, dispositivo, articulacao);
+  return deduplicarPorPosicao([...absolutas, ...agrupadores, ...contextuais, ...implicitas]);
 };
 
 // Captura referências absolutas encadeadas exigindo a âncora do artigo (ex: "§ 2º do art. 5º").
@@ -255,6 +281,8 @@ const construirSinteseAteArtigo = (prefixText: string, ancestorInicial: Disposit
       partes.push(numeroParaSinteseParagrafo(atual.numero || ''));
     } else if (atual.tipo === TipoDispositivo.inciso.tipo) {
       partes.push(`inciso ${converteNumeroArabicoParaRomano(atual.numero || '')}`);
+    } else if (atual.tipo === TipoDispositivo.alinea.tipo) {
+      partes.push(`alínea ${converteNumeroArabicoParaLetra(atual.numero || '')}`);
     }
     atual = atual.pai;
   }
@@ -317,6 +345,61 @@ const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo,
   }
 
   return resultado;
+};
+
+// Tenta resolver uma referência implícita bare percorrendo a lista de ancestrais em ordem.
+// Retorna a primeira resolução bem-sucedida ou null se nenhum ancestral produzir alvo válido.
+const resolverImplicito = (textoRef: string, inicio: number, dispositivo: Dispositivo, articulacao: Articulacao, tiposAncestral: string[]): ReferenciaEncontrada | null => {
+  for (const tipoAncestral of tiposAncestral) {
+    const ancestor = buscarAncestralPorTipo(dispositivo, tipoAncestral);
+    if (!ancestor) continue;
+
+    const textSintetizado = construirSinteseAteArtigo(textoRef, ancestor);
+    if (!textSintetizado) continue;
+
+    const parser = new ReferenciaDispositivoParser(textSintetizado);
+    if (!parser.valido || parser.referencias.length === 0) continue;
+
+    const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
+    if (dispositivoDestino) return { texto: textoRef, dispositivoDestino, inicio };
+  }
+  return null;
+};
+
+// Detecta referências bare sem qualificador contextual (ex: "§ 1º", "inciso II", "alínea b").
+// Ignora dispositivos em blocos de alteração para evitar falsos positivos.
+// Usa negative lookahead para não sobrepor detecções contextuais ("deste artigo") e absolutas ("do art.").
+const detectarReferenciasImplicitasSemQualificador = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  if (dispositivo.isDispositivoAlteracao) return [];
+
+  const resultado: ReferenciaEncontrada[] = [];
+
+  for (const { regex, tiposAncestral } of TIPOS_IMPLICITOS) {
+    regex.lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(texto)) !== null) {
+      const ref = resolverImplicito(match[0], match.index, dispositivo, articulacao, tiposAncestral);
+      if (ref) resultado.push(ref);
+    }
+  }
+
+  return resultado;
+};
+
+// Quando detecção implícita e explícita colidem no mesmo offset, o match mais longo vence
+// (ex: "§ 1º deste artigo" contextual ganha sobre "§ 1º" implícita no mesmo offset).
+const deduplicarPorPosicao = (refs: ReferenciaEncontrada[]): ReferenciaEncontrada[] => {
+  const porPosicao = new Map<number, ReferenciaEncontrada>();
+  for (const ref of refs) {
+    if (ref.inicio === undefined) continue;
+    const existente = porPosicao.get(ref.inicio);
+    if (!existente || ref.texto.length > existente.texto.length) {
+      porPosicao.set(ref.inicio, ref);
+    }
+  }
+  const semPosicao = refs.filter(r => r.inicio === undefined);
+  return [...porPosicao.values(), ...semPosicao];
 };
 
 const buscarDispositivoPorReferencia = (articulacao: Articulacao | undefined, referencias: any[]): Dispositivo | null => {
