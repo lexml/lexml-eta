@@ -149,7 +149,6 @@ describe('Mensagem de remissão inválida', () => {
     };
 
     // Simula usuário digitando: art1.texto muda → atualizaTextoElemento deve incluir a mensagem
-    art1.texto = 'texto atualizado pelo usuário';
     const newState = atualizaTextoElemento(stateComInvalida, {
       atual: { uuid: art1.uuid, conteudo: { texto: 'texto atualizado pelo usuário' } },
     });

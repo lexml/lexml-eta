@@ -48,11 +48,9 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   }
 
   eventosUi.add(StateType.ElementoModificado, [elemento]);
-  eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
-  // Preserva a mensagem de remissão inválida quando o dispositivo tem entradas com valida:false.
-  // ElementoSelecionado é processado após ElementoValidado por atualizarMensagemQuill; sem a
-  // mensagem no elemento de seleção, o painel seria apagado imediatamente após ser criado.
+  // Executa ANTES de criaListaElementosAfinsValidados para garantir que a mensagem de remissão inválida
+  // tenha prioridade e não seja descartada pelo dedup.
   const remissoesDoDispositivo = (state.remissoes as any)?.[dispositivo.uuid!] ?? [];
   let elementoParaSelecionado = elemento;
   if (remissoesDoDispositivo.some((r: any) => r.valida === false)) {
@@ -60,6 +58,7 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
     elementoParaSelecionado = createElementoValidadoComExtras(dispositivo, [mensagemInvalida]);
     eventosUi.add(StateType.ElementoValidado, [elementoParaSelecionado]);
   }
+  eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
   if (textoAtual === '') {
     eventosUi.add(StateType.ElementoMarcado, [elemento]);
