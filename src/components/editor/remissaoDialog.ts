@@ -411,7 +411,8 @@ export async function remissaoDialog(
     if (v.targetTextoDispositivo) {
       dispositivoExtInput.value = v.targetTextoDispositivo;
     }
-    // normaExternaSelecionada será preenchida via onSelect disparado pelo urnInicial do autocomplete
+    normaExternaSelecionada = new Norma(v.targetUrn, v.targetNomeNorma);
+    atualizarEstadoBotao();
   }
 
   setTimeout(() => {
