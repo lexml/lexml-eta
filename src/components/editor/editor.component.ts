@@ -215,18 +215,21 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           padding: 3px 5px;
           margin: 5px 5px 5px 4px;
         }
-        lexml-eta-proposicao-editor a.lexml-remissao-interna {
+        lexml-eta-proposicao-editor a.lexml-remissao-interna,
+        lexml-eta-proposicao-editor a.lexml-remissao-externa {
           color: #0066cc;
           text-decoration: underline;
           cursor: pointer;
         }
 
-        lexml-eta-proposicao-editor a.lexml-remissao-interna:hover {
+        lexml-eta-proposicao-editor a.lexml-remissao-interna:hover,
+        lexml-eta-proposicao-editor a.lexml-remissao-externa:hover {
           color: #004499;
           text-decoration: underline;
         }
 
-        lexml-eta-proposicao-editor a.lexml-remissao-interna:visited {
+        lexml-eta-proposicao-editor a.lexml-remissao-interna:visited,
+        lexml-eta-proposicao-editor a.lexml-remissao-externa:visited {
           color: #660099;
         }
 
@@ -1554,7 +1557,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptionsStatic {
     return {
-      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis', 'remissao-interna'],
+      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis', 'remissao-interna', 'remissao-externa'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
@@ -2095,6 +2098,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     };
 
     const callbackExterna = (value: RemissaoExternaValue): void => {
+      const remissaoModule = this.quill.getModule('remissaoInterna');
+      if (remissaoModule) {
+        remissaoModule.criarRemissaoExterna(value, savedRange);
+      }
       rootStore.dispatch(adicionarRemissaoExternaAction(value));
     };
 

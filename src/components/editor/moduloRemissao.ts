@@ -1,4 +1,4 @@
-import { RemissaoInternaValue } from '../../model/remissao';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { atualizarTextoRemissao as atualizarTextoRemissaoUtil } from '../../model/remissao/lexmlIdUtil';
 import { gerarRefId } from '../../model/remissao/refId';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
@@ -51,6 +51,32 @@ class ModuloRemissao extends Module {
   }
 
   addClipboardMatcher(): void {
+    this.quill.clipboard.addMatcher('A.lexml-remissao-externa', (node: HTMLElement, delta: any) => {
+      const dataRefId = node.getAttribute('data-ref-id');
+      const dataUrn = node.getAttribute('data-urn');
+
+      if (!dataRefId || !dataUrn) return delta;
+
+      const refId = this.isAbrindoTexto ? dataRefId : gerarRefId();
+      const value: RemissaoExternaValue = {
+        refId,
+        targetUrn: dataUrn,
+        targetNomeNorma: node.getAttribute('data-nome-norma') ?? '',
+        targetTextoDispositivo: node.getAttribute('data-texto-dispositivo') ?? undefined,
+        targetFragmento: node.getAttribute('data-fragmento') ?? undefined,
+        textoRef: node.textContent ?? undefined,
+      };
+
+      const ops = delta.ops.map((op: any) => {
+        if (op.insert && typeof op.insert === 'string') {
+          return { ...op, attributes: { ...op.attributes, 'remissao-externa': value } };
+        }
+        return op;
+      });
+
+      return new Delta(ops);
+    });
+
     this.quill.clipboard.addMatcher('A.lexml-remissao-interna', (node: HTMLElement, delta: any) => {
       const dataLexmlRef = node.getAttribute('data-lexml-ref');
       const dataRefId = node.getAttribute('data-ref-id');
@@ -309,6 +335,70 @@ class ModuloRemissao extends Module {
 
     const { blot } = result;
     blot.format('remissao-interna', newValue);
+    return true;
+  }
+
+  criarRemissaoExterna(value: RemissaoExternaValue, range?: { index: number; length: number }): void {
+    const selectionRange = range || this.quill.getSelection();
+    if (!selectionRange || selectionRange.length === 0) return;
+
+    const textoSelecionado = this.quill.getText(selectionRange.index, selectionRange.length);
+    const delta = new Delta().retain(selectionRange.index).delete(selectionRange.length).insert(textoSelecionado, {
+      'remissao-externa': value,
+    });
+
+    this.quill.updateContents(delta, 'user');
+    this.quill.setSelection(selectionRange.index + textoSelecionado.length, 0);
+  }
+
+  getRemissaoExternaEmCursor(): { value: RemissaoExternaValue; linkEl: HTMLElement } | null {
+    const range = this.quill.getSelection();
+    if (!range) return null;
+
+    const format = this.quill.getFormat(range);
+    const value = format['remissao-externa'] as RemissaoExternaValue;
+
+    if (value?.refId) {
+      const linkEl = this.quill.root.querySelector(`a.lexml-remissao-externa[data-ref-id="${CSS.escape(value.refId)}"]`) as HTMLElement;
+      return linkEl ? { value, linkEl } : null;
+    }
+
+    const [leaf] = this.quill.getLeaf(range.index);
+    if (leaf?.parent?.statics?.blotName === 'remissao-externa') {
+      const blotValue = leaf.parent.formats()?.['remissao-externa'] as RemissaoExternaValue;
+      if (blotValue?.refId) {
+        return { value: blotValue, linkEl: leaf.parent.domNode as HTMLElement };
+      }
+    }
+
+    return null;
+  }
+
+  findBlotExternoByRefId(refId: string): { blot: any; index: number } | null {
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-externa[data-ref-id="${CSS.escape(refId)}"]`);
+    if (links.length === 0) return null;
+
+    const link = links[0] as HTMLElement;
+    const blot = Quill.find(link);
+    if (!blot) return null;
+
+    return { blot, index: blot.offset(this.quill.scroll) };
+  }
+
+  adicionarRemissaoExterna(refId: string, newValue: RemissaoExternaValue): boolean {
+    const result = this.findBlotExternoByRefId(refId);
+    if (!result) return false;
+
+    result.blot.format('remissao-externa', newValue);
+    return true;
+  }
+
+  removerRemissaoExternaPorId(refId: string): boolean {
+    const result = this.findBlotExternoByRefId(refId);
+    if (!result) return false;
+
+    const { blot, index } = result;
+    this.quill.formatText(index, blot.length(), 'remissao-externa', false, 'user');
     return true;
   }
 
