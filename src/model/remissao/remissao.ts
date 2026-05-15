@@ -1,3 +1,13 @@
+export interface RemissaoExternaValue {
+  refId: string;
+  targetUrn: string;
+  targetNomeNorma: string;
+  targetTextoDispositivo?: string;
+  targetFragmento?: string;
+  textoRef?: string;
+  sourceUuid?: number;
+}
+
 export interface RemissaoInternaValue {
   refId: string;
 

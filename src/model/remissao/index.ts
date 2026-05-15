@@ -1,1 +1,1 @@
-export { RemissaoInternaValue, ReferenciaDetectada, TipoAtualizacaoRemissao, AtualizacaoRemissao } from './remissao';
+export { RemissaoExternaValue, RemissaoInternaValue, ReferenciaDetectada, TipoAtualizacaoRemissao, AtualizacaoRemissao } from './remissao';

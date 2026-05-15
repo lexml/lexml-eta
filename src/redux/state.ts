@@ -5,7 +5,7 @@ import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
 import { Revisao } from '../model/revisao/revisao';
 import { Usuario } from '../model/revisao/usuario';
-import { RemissaoInternaValue } from '../model/remissao';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../model/remissao';
 
 export enum StateType {
   ArticulacaoAtualizada = 'ArticulacaoAtualizada',
@@ -72,6 +72,7 @@ export interface State {
   numEventosPassadosAntesDaRevisao?: number;
   mensagensCritical?: Array<string>;
   remissoes?: Record<number, RemissaoInternaValue[]>;
+  remissoesExternas?: Record<string, RemissaoExternaValue>;
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {
