@@ -84,8 +84,9 @@ import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
 import { iconeRemissaoInterna } from '../../../assets/icons/icons';
-import { remissaoInternaDialog } from './remissaoInternaDialog';
-import { RemissaoInternaValue } from '../../model/remissao';
+import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
+import { adicionarRemissaoExternaAction } from '../../model/lexml/acao/adicionarRemissaoExternaAction';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 import { criarPopup, mostrarPopup, esconderPopup } from '../popup-inline/popupInline';
@@ -326,7 +327,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </span>
           </button>
 
-          <button type="button" class="btn-remissao-interna" title="Adicionar remissão interna" @click=${this.abrirDialogoRemissaoInterna}>
+          <button type="button" class="btn-remissao-interna" title="Adicionar remissão" @click=${this.abrirDialogoRemissao}>
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
 
@@ -2029,7 +2030,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const range = { index: resultado.index, length: resultado.blot.length() };
 
-    const callback = (novoValue: RemissaoInternaValue): void => {
+    const callbackInterna = (novoValue: RemissaoInternaValue): void => {
       const linhaParaAtualizar = this.quill.linhaAtual;
       novoValue.refId = value.refId!;
       remissaoModule.adicionarRemissao(value.refId!, novoValue);
@@ -2048,10 +2049,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     };
 
-    await remissaoInternaDialog(this.quill, range, callback, { refId: value.refId!, value });
+    const callbackExterna = (novoValue: RemissaoExternaValue): void => {
+      rootStore.dispatch(adicionarRemissaoExternaAction(novoValue));
+    };
+
+    const modoEdicao: ModoEdicaoRemissao = { tipo: 'interna', refId: value.refId!, valueInterna: value };
+    await remissaoDialog(this.quill, range, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna, modoEdicao);
   };
 
-  private abrirDialogoRemissaoInterna = async (): Promise<void> => {
+  private abrirDialogoRemissao = async (): Promise<void> => {
     const range = this.quill.getSelection();
     if (!range) {
       this.quill.focus();
@@ -2061,7 +2067,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     // Salva o range para usar no callback (pois o foco pode ser perdido ao fechar o diálogo)
     const savedRange = { index: range.index, length: range.length };
 
-    const callback = (value: RemissaoInternaValue): void => {
+    const callbackInterna = (value: RemissaoInternaValue): void => {
       const remissaoModule = this.quill.getModule('remissaoInterna');
       if (remissaoModule) {
         // Captura a linha ANTES de criarRemissao: setSelection(oldRange=null) pode chamar
@@ -2088,6 +2094,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     };
 
-    await remissaoInternaDialog(this.quill, savedRange, callback);
+    const callbackExterna = (value: RemissaoExternaValue): void => {
+      rootStore.dispatch(adicionarRemissaoExternaAction(value));
+    };
+
+    await remissaoDialog(this.quill, savedRange, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna);
   };
 }
