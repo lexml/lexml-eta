@@ -93,6 +93,10 @@ import { ADICIONAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/adicionarR
 import { adicionaRemissaoInterna } from './adicionaRemissaoInterna';
 import { REMOVER_REMISSAO_INVALIDA } from '../../../model/lexml/acao/removerRemissaoInvalidaAction';
 import { removerRemissaoInvalida } from './removerRemissaoInvalida';
+import { ADICIONAR_REMISSAO_EXTERNA } from '../../../model/lexml/acao/adicionarRemissaoExternaAction';
+import { adicionaRemissaoExterna } from './adicionaRemissaoExterna';
+import { REMOVER_REMISSAO_EXTERNA } from '../../../model/lexml/acao/removerRemissaoExternaAction';
+import { removeRemissaoExterna } from './removeRemissaoExterna';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -245,6 +249,12 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case REMOVER_REMISSAO_INVALIDA:
       tempState = removerRemissaoInvalida(state, action);
+      break;
+    case ADICIONAR_REMISSAO_EXTERNA:
+      tempState = adicionaRemissaoExterna(state, action);
+      break;
+    case REMOVER_REMISSAO_EXTERNA:
+      tempState = removeRemissaoExterna(state, action);
       break;
     default:
       actionType = undefined;
