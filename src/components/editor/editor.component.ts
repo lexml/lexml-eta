@@ -87,6 +87,7 @@ import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { adicionarRemissaoExternaAction } from '../../model/lexml/acao/adicionarRemissaoExternaAction';
+import { removerRemissaoExternaAction } from '../../model/lexml/acao/removerRemissaoExternaAction';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 import { criarPopup, mostrarPopup, esconderPopup } from '../popup-inline/popupInline';
@@ -1990,38 +1991,70 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private atualizarPopupRemissao(): void {
     if (!this._remissaoPopup) return;
     const remissaoModule = this.quill?.getModule('remissaoInterna');
-    const resultado = remissaoModule?.getRemissaoNoCursor();
 
-    if (!resultado) {
-      esconderPopup(this._remissaoPopup);
-      this._popupRefIdAtual = undefined;
+    const resultadoInterno = remissaoModule?.getRemissaoNoCursor();
+    if (resultadoInterno) {
+      const { value, linkEl } = resultadoInterno;
+      if (value.refId === this._popupRefIdAtual) return;
+      this._popupRefIdAtual = value.refId;
+
+      const invalido = linkEl.classList.contains('lexml-remissao-invalida');
+      mostrarPopup(this._remissaoPopup, linkEl, {
+        rotulo: value.targetRotulo ?? '',
+        invalido,
+        acaoNavegacao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
+        botoes: [
+          {
+            titulo: 'Editar',
+            acao: () => this.editarRemissao(value),
+          },
+          {
+            titulo: 'Excluir',
+            classe: 'remissao-popup__btn--excluir',
+            acao: () => {
+              remissaoModule.removerRemissaoPorId(value.refId!);
+              this.quill.focus();
+            },
+          },
+        ],
+      });
       return;
     }
 
-    const { value, linkEl } = resultado;
-    if (value.refId === this._popupRefIdAtual) return;
-    this._popupRefIdAtual = value.refId;
+    const resultadoExterno = remissaoModule?.getRemissaoExternaEmCursor();
+    if (resultadoExterno) {
+      const { value, linkEl } = resultadoExterno;
+      if (value.refId === this._popupRefIdAtual) return;
+      this._popupRefIdAtual = value.refId;
 
-    const invalido = linkEl.classList.contains('lexml-remissao-invalida');
-    mostrarPopup(this._remissaoPopup, linkEl, {
-      rotulo: value.targetRotulo ?? '',
-      invalido,
-      acaoNavegacao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
-      botoes: [
-        {
-          titulo: 'Editar',
-          acao: () => this.editarRemissao(value),
-        },
-        {
-          titulo: 'Excluir',
-          classe: 'remissao-popup__btn--excluir',
-          acao: () => {
-            remissaoModule.removerRemissaoPorId(value.refId!);
-            this.quill.focus();
+      const urlPortal = `${this.lexmlEtaConfig.urlPortalNormas}/?urn=${value.targetUrn}`;
+      mostrarPopup(this._remissaoPopup, linkEl, {
+        rotulo: value.targetNomeNorma || linkEl.textContent || '',
+        botoes: [
+          {
+            titulo: 'Abrir',
+            acao: () => window.open(urlPortal, '_blank', 'noopener'),
           },
-        },
-      ],
-    });
+          {
+            titulo: 'Editar',
+            acao: () => this.editarRemissaoExterna(value),
+          },
+          {
+            titulo: 'Excluir',
+            classe: 'remissao-popup__btn--excluir',
+            acao: () => {
+              remissaoModule.removerRemissaoExternaPorId(value.refId!);
+              rootStore.dispatch(removerRemissaoExternaAction(value.refId!));
+              this.quill.focus();
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    esconderPopup(this._remissaoPopup);
+    this._popupRefIdAtual = undefined;
   }
 
   private editarRemissao = async (value: RemissaoInternaValue): Promise<void> => {
@@ -2057,6 +2090,48 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     };
 
     const modoEdicao: ModoEdicaoRemissao = { tipo: 'interna', refId: value.refId!, valueInterna: value };
+    await remissaoDialog(this.quill, range, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna, modoEdicao);
+  };
+
+  private editarRemissaoExterna = async (value: RemissaoExternaValue): Promise<void> => {
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) return;
+
+    const resultado = remissaoModule.findBlotExternoByRefId(value.refId!);
+    if (!resultado) return;
+
+    const range = { index: resultado.index, length: resultado.blot.length() };
+
+    const callbackExterna = (novoValue: RemissaoExternaValue): void => {
+      novoValue.refId = value.refId!;
+      remissaoModule.adicionarRemissaoExterna(value.refId!, novoValue);
+      rootStore.dispatch(adicionarRemissaoExternaAction(novoValue));
+    };
+
+    const callbackInterna = (novoValue: RemissaoInternaValue): void => {
+      // Troca de tipo: substitui blot externo por interno
+      remissaoModule.removerRemissaoExternaPorId(value.refId!);
+      rootStore.dispatch(removerRemissaoExternaAction(value.refId!));
+
+      const linhaParaAtualizar = this.quill.linhaAtual;
+      remissaoModule.criarRemissao(novoValue, range);
+
+      if (linhaParaAtualizar?.blotConteudo) {
+        const elemento = this.criarElemento(
+          linhaParaAtualizar.uuid,
+          linhaParaAtualizar.uuid2,
+          linhaParaAtualizar.lexmlId,
+          linhaParaAtualizar.tipo,
+          linhaParaAtualizar.blotConteudo.html ?? '',
+          linhaParaAtualizar.numero,
+          linhaParaAtualizar.hierarquia
+        );
+        rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+        rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+      }
+    };
+
+    const modoEdicao: ModoEdicaoRemissao = { tipo: 'externa', refId: value.refId!, valueExterna: value };
     await remissaoDialog(this.quill, range, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna, modoEdicao);
   };
 
