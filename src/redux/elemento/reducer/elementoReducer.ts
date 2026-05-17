@@ -284,6 +284,9 @@ export const elementoReducer = (state = {}, action: any): any => {
   if (tempState.remissoes === undefined) {
     tempState.remissoes = actionType === ABRIR_ARTICULACAO ? {} : remissoes;
   }
+  if (tempState.remissoesExternas === undefined) {
+    tempState.remissoesExternas = actionType === ABRIR_ARTICULACAO ? {} : (state as State).remissoesExternas;
+  }
 
   // Garante que a paginação esteja presente no estado
   if (![SELECIONAR_PAGINA_ARTICULACAO, ABRIR_ARTICULACAO, NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS].includes(actionType)) {

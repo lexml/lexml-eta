@@ -12,14 +12,15 @@ import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
-import { RemissaoInternaValue } from '../../../remissao';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
+type RemissoesExternas = Record<string, RemissaoExternaValue>;
 
-export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes): any => {
+export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   const resultado = montaCabecalho(urn);
-  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes);
+  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas);
   return resultado;
 };
 
@@ -54,7 +55,7 @@ const montaCabecalho = (urn: string): any => {
   };
 };
 
-const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes): any => {
+const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   const p = {
     TYPE_NAME: 'br_gov_lexml__1.ProjetoNorma',
   };
@@ -62,7 +63,7 @@ const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes): any => {
   p[isNorma(projetoNorma) ? 'norma' : 'projeto'] = {
     TYPE_NAME: 'br_gov_lexml__1.HierarchicalStructure',
     parteInicial: montaParteInicial(projetoNorma),
-    articulacao: montaArticulacao(projetoNorma, remissoes),
+    articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
   };
 
   return p;
@@ -94,14 +95,14 @@ const montaParteInicial = (projetoNorma: any): any => {
   };
 };
 
-const montaArticulacao = (projetoNorma: any, remissoes?: Remissoes): any => {
+const montaArticulacao = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao, remissoes),
+    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao, remissoes, remissoesExternas),
   };
 };
 
-const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes): any => {
+const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   let tree;
   if (isAgrupador(dispositivo)) {
     tree = obj.lXhier = [];
@@ -110,20 +111,21 @@ const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes): a
   }
 
   if (isArtigo(dispositivo)) {
-    const node = buildNode((dispositivo as Artigo).caput!, remissoes);
-    buildAlteracaoSeNecessario(dispositivo, node.value, remissoes);
+    const node = buildNode((dispositivo as Artigo).caput!, remissoes, remissoesExternas);
+    buildAlteracaoSeNecessario(dispositivo, node.value, remissoes, remissoesExternas);
 
     tree.push(node);
 
     buildFilhos(
       dispositivo.filhos?.filter(f => !isCaput(f.pai!)),
       tree,
-      remissoes
+      remissoes,
+      remissoesExternas
     );
 
-    buildTree((dispositivo as Artigo).caput!, node.value, remissoes);
+    buildTree((dispositivo as Artigo).caput!, node.value, remissoes, remissoesExternas);
   } else {
-    buildFilhos(dispositivo.filhos, tree, remissoes);
+    buildFilhos(dispositivo.filhos, tree, remissoes, remissoesExternas);
   }
 
   if (obj.lXcontainersOmissis && obj.lXcontainersOmissis.length === 0) delete obj.lXcontainersOmissis;
@@ -131,7 +133,7 @@ const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes): a
   return tree;
 };
 
-const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any, remissoes?: Remissoes): void => {
+const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): void => {
   if (dispositivo.hasAlteracao()) {
     node['alteracao'] = {
       TYPE_NAME: 'br_gov_lexml__1.Alteracao',
@@ -143,25 +145,25 @@ const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any, remisso
     node.alteracao.id = buildIdAlteracao((dispositivo as Artigo).caput!);
 
     dispositivo.alteracoes!.filhos?.forEach(filho => {
-      const n = buildNode(filho, remissoes);
+      const n = buildNode(filho, remissoes, remissoesExternas);
 
       node.alteracao.content.push(n);
 
-      buildTree(filho, n.value, remissoes);
+      buildTree(filho, n.value, remissoes, remissoesExternas);
     });
   }
 };
 
-const buildFilhos = (filhos: Dispositivo[], tree: any, remissoes?: Remissoes): any => {
+const buildFilhos = (filhos: Dispositivo[], tree: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   filhos?.forEach(filho => {
-    const node = buildNode(filho, remissoes);
+    const node = buildNode(filho, remissoes, remissoesExternas);
     tree.push(node);
 
-    buildTree(filho, node.value, remissoes);
+    buildTree(filho, node.value, remissoes, remissoesExternas);
   });
 };
 
-const buildNode = (dispositivo: Dispositivo, remissoes?: Remissoes): any => {
+const buildNode = (dispositivo: Dispositivo, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   const node = {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -175,7 +177,7 @@ const buildNode = (dispositivo: Dispositivo, remissoes?: Remissoes): any => {
     },
   };
 
-  buildDispositivo(dispositivo, node.value, remissoes);
+  buildDispositivo(dispositivo, node.value, remissoes, remissoesExternas);
 
   return node;
 };
@@ -187,7 +189,7 @@ const buildTypeName = (dispositivo: Dispositivo): string => {
   return 'br_gov_lexml__1.DispositivoType';
 };
 
-const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remissoes): void => {
+const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): void => {
   value['id'] = buildId(dispositivo);
   if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
     value.rotulo = dispositivo.rotulo;
@@ -262,7 +264,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
   if (isValidText(dispositivo.tituloDispositivo)) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-      content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes),
+      content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes, remissoesExternas),
     };
   }
 
@@ -271,13 +273,13 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
   if (isAgrupador(dispositivo)) {
     value.nomeAgrupador = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-      content: buildStructuredContent(dispositivo, 'texto', remissoes),
+      content: buildStructuredContent(dispositivo, 'texto', remissoes, remissoesExternas),
     };
   } else if (!isArtigo(dispositivo) && !isOmissis(dispositivo)) {
     if (dispositivo.texto === TEXTO_OMISSIS) {
       value['textoOmitido'] = 's';
     } else {
-      value['p'] = [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildStructuredContent(dispositivo, 'texto', remissoes) }];
+      value['p'] = [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildStructuredContent(dispositivo, 'texto', remissoes, remissoesExternas) }];
     }
   }
 };
@@ -365,16 +367,31 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
         content,
       });
     } else {
-      // Link externo: extrair href normalizando aspas curvas
-      const hrefMatch = openingTag.match(/href=(["'])(.*?)\1/i);
-      let href = hrefMatch ? hrefMatch[2] : '';
-      href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
-      result.push({
-        type: 'element',
-        tag: 'span',
-        attributes: { href },
-        content,
-      });
+      // Remiss\u00E3o externa: detectar pelo atributo data-urn
+      const dataUrnMatch = openingTag.match(/data-urn=(["'])([^"']+)\1/i);
+      if (dataUrnMatch) {
+        const urn = dataUrnMatch[2];
+        const fragmentoMatch = openingTag.match(/data-fragmento=(["'])([^"']+)\1/i);
+        const fragmento = fragmentoMatch ? fragmentoMatch[2] : '';
+        const href = fragmento ? `${urn}!${fragmento}` : urn;
+        result.push({
+          type: 'element',
+          tag: 'Remissao',
+          attributes: { href },
+          content,
+        });
+      } else {
+        // Link gen\u00E9rico: extrair href normalizando aspas curvas
+        const hrefMatch = openingTag.match(/href=(["'])(.*?)\1/i);
+        let href = hrefMatch ? hrefMatch[2] : '';
+        href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
+        result.push({
+          type: 'element',
+          tag: 'span',
+          attributes: { href },
+          content,
+        });
+      }
     }
 
     lastIndex = linkRegex.lastIndex;
@@ -482,6 +499,38 @@ const buildStructuredContentWithLinks = (conteudo: string): any[] => {
 };
 
 /**
+ * Injeta tags <a data-urn> no texto do dispositivo para entradas do registry
+ * que ainda não estejam representadas como link (caso típico: remissão criada
+ * sem que atualizarTextoElementoAction tenha sido disparado).
+ */
+const substituirTextoExternoForaDeLinks = (html: string, textoRef: string, link: string): string => {
+  if (!html.includes(textoRef)) return html;
+  const partes = html.split(/(<a\b[^>]*>[\s\S]*?<\/a>)/gi);
+  for (let i = 0; i < partes.length; i += 2) {
+    if (partes[i].includes(textoRef)) {
+      partes[i] = partes[i].replace(textoRef, link);
+      break;
+    }
+  }
+  return partes.join('');
+};
+
+const injetarLinksRemissaoExternaNoTexto = (texto: string, entries: RemissaoExternaValue[]): string => {
+  if (!texto) return texto;
+  const faltando = entries.filter(e => e.textoRef && e.targetUrn && !texto.includes(`data-urn="${e.targetUrn}"`));
+  if (faltando.length === 0) return texto;
+
+  let resultado = texto;
+  for (const entry of faltando) {
+    if (!entry.textoRef) continue;
+    const attrFragmento = entry.targetFragmento ? ` data-fragmento="${entry.targetFragmento}"` : '';
+    const link = `<a data-urn="${entry.targetUrn}"${attrFragmento} class="lexml-remissao-externa" href="#" target="_self">${entry.textoRef}</a>`;
+    resultado = substituirTextoExternoForaDeLinks(resultado, entry.textoRef, link);
+  }
+  return resultado;
+};
+
+/**
  * Injeta tags <a data-lexml-ref> no texto do dispositivo para entradas do registry
  * que ainda não estejam representadas como link (caso típico: remissões auto-detectadas
  * renderizadas via 'silent' no Quill, que não atualizam dispositivo.texto no Redux).
@@ -508,7 +557,7 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
   return resultado;
 };
 
-const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes): any[] => {
+const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any[] => {
   let raw = dispositivo[campo];
   if (!raw && raw !== '') {
     return [dispositivo];
@@ -519,6 +568,15 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
     const entries = remissoes[dispositivo.uuid];
     if (entries?.length) {
       raw = injetarLinksRemissaoNoTexto(raw, entries);
+    }
+  }
+
+  // Injeta links de remissão externa que ainda não estão no texto
+  if (campo === 'texto' && remissoesExternas && dispositivo.uuid !== undefined) {
+    const uuid = dispositivo.uuid;
+    const entriesExt = Object.values(remissoesExternas).filter(e => e.sourceUuid === uuid);
+    if (entriesExt.length) {
+      raw = injetarLinksRemissaoExternaNoTexto(raw, entriesExt);
     }
   }
 
