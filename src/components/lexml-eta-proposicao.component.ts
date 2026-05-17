@@ -52,7 +52,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     const out = { ...this.projetoNorma };
     const elementoState = rootStore.getState().elementoReducer;
     const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {});
-    const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto);
+    const remissoesExternas = elementoState.remissoesExternas ?? {};
+    const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto, remissoesExternas);
     const tipo = (out as any).value.projetoNorma.norma ? 'norma' : 'projeto';
     (out as any).value.projetoNorma[tipo].parteInicial = articulacaoAtualizada.value.projetoNorma[tipo].parteInicial;
     (out as any).value.projetoNorma[tipo].articulacao.lXhier = articulacaoAtualizada.value.projetoNorma[tipo].articulacao.lXhier;

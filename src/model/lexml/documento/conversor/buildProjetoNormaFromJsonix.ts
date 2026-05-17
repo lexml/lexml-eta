@@ -295,7 +295,16 @@ const montaTag = (name: any, value: any): string => {
   const localPart = name.localPart;
   //TODO Tentar montar com span.
   if (localPart === 'Remissao' && value.href) {
-    const lexmlId = value.href;
+    const href = value.href as string;
+    if (href.startsWith('urn:lex:')) {
+      // Remissão externa: href = "urn:lex:...!fragmento" ou "urn:lex:..."
+      const sepIdx = href.indexOf('!');
+      const urn = sepIdx >= 0 ? href.substring(0, sepIdx) : href;
+      const fragmento = sepIdx >= 0 ? href.substring(sepIdx + 1) : '';
+      const attrFragmento = fragmento ? ` data-fragmento="${fragmento}"` : '';
+      return `<a data-urn="${urn}"${attrFragmento} class="lexml-remissao-externa" href="#" target="_self">${buildContent(value.content)}</a>`;
+    }
+    const lexmlId = href;
     return `<a href="${lexmlId}" data-lexml-ref="${lexmlId}" class="lexml-remissao-interna" target="_self">${buildContent(value.content)}</a>`;
   }
   if (localPart === 'span' && value.href) {

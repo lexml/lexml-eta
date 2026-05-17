@@ -2175,7 +2175,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const callbackExterna = (value: RemissaoExternaValue): void => {
       const remissaoModule = this.quill.getModule('remissaoInterna');
       if (remissaoModule) {
+        const linhaParaAtualizar = this.quill.linhaAtual;
         remissaoModule.criarRemissaoExterna(value, savedRange);
+        if (linhaParaAtualizar?.blotConteudo) {
+          const elemento = this.criarElemento(
+            linhaParaAtualizar.uuid,
+            linhaParaAtualizar.uuid2,
+            linhaParaAtualizar.lexmlId,
+            linhaParaAtualizar.tipo,
+            linhaParaAtualizar.blotConteudo.html ?? '',
+            linhaParaAtualizar.numero,
+            linhaParaAtualizar.hierarquia
+          );
+          rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+        }
       }
       rootStore.dispatch(adicionarRemissaoExternaAction(value));
     };
