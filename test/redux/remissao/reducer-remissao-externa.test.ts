@@ -3,6 +3,11 @@ import { State } from '../../../src/redux/state';
 import { RemissaoExternaValue } from '../../../src/model/remissao';
 import { adicionaRemissaoExterna } from '../../../src/redux/elemento/reducer/adicionaRemissaoExterna';
 import { removeRemissaoExterna } from '../../../src/redux/elemento/reducer/removeRemissaoExterna';
+import { ADICIONAR_REMISSAO_EXTERNA } from '../../../src/model/lexml/acao/adicionarRemissaoExternaAction';
+import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { UNDO } from '../../../src/model/lexml/acao/undoAction';
+import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
+import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 
 const criaRemissaoExterna = (refId: string, urn = 'urn:lex:br:federal:lei:1990-07-13;8069'): RemissaoExternaValue => ({
   refId,
@@ -111,6 +116,43 @@ describe('Remissão Externa — Reducers', () => {
       removeRemissaoExterna(state, { refId: 'ref_001' });
 
       expect(state.remissoesExternas!['ref_001']).to.exist;
+    });
+  });
+
+  describe('undo de remissão externa', () => {
+    const TEXTO_COM_LINK = 'Veja <a class="lexml-remissao-externa" data-urn="urn:lex:br:federal:lei:1990-07-13;8069" data-ref-id="ref_001" href="#">Lei 8.069/1990</a>.';
+
+    let state: any;
+    let artigo: any;
+
+    beforeEach(() => {
+      const { state: s, artigos } = criaStateComNArtigos(2);
+      artigo = artigos[0];
+      state = { ...s, remissoesExternas: {} };
+
+      state = elementoReducer(state, {
+        type: ATUALIZAR_TEXTO_ELEMENTO,
+        atual: { uuid: artigo.uuid, conteudo: { texto: TEXTO_COM_LINK } },
+      });
+
+      state = elementoReducer(state, {
+        type: ADICIONAR_REMISSAO_EXTERNA,
+        value: { ...criaRemissaoExterna('ref_001'), sourceUuid: artigo.uuid },
+      });
+
+      state = elementoReducer(state, { type: UNDO });
+    });
+
+    it('undo foi executado — past está vazio', () => {
+      expect(state.past?.length).to.equal(0);
+    });
+
+    it('texto do dispositivo foi revertido pelo undo', () => {
+      expect(artigo.texto).to.equal('Artigo 1.');
+    });
+
+    it('remissoesExternas é reconstruída a partir do texto revertido — ref_001 não existe', () => {
+      expect(state.remissoesExternas?.['ref_001']).to.be.undefined;
     });
   });
 });
