@@ -1,5 +1,6 @@
 import { agrupaElemento } from './agrupaElemento';
 import { removeElemento } from './removeElemento';
+import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
 import {
   ajustarAtributosAgrupadorIncluidoPorUndoRedo,
   isUndoRedoInclusaoExclusaoAgrupador,
@@ -75,6 +76,7 @@ export const undo = (state: any): State => {
 
     retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
     retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
     return retorno;
   }
@@ -193,6 +195,7 @@ export const undo = (state: any): State => {
 
   retorno.ui!.events = [...eventosRevisao, ...events.build()];
   retorno.present = [...eventosRevisao, ...events.build()];
+  retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
   return retorno;
 };

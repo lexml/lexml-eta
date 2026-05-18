@@ -4,6 +4,7 @@ import {
   isUndoRedoInclusaoExclusaoAgrupador,
   processarRestaurados,
 } from './../util/undoRedoReducerUtil';
+import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
 import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -81,6 +82,7 @@ export const redo = (state: any): State => {
 
     retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
     retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
     return retorno;
   }
@@ -128,6 +130,7 @@ export const redo = (state: any): State => {
 
   retorno.ui!.events = [...eventosRevisao, ...events.build()];
   retorno.present = [...eventosRevisao, ...events.build()];
+  retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
   return retorno;
 };
