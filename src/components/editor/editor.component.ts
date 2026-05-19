@@ -2027,14 +2027,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (value.refId === this._popupRefIdAtual) return;
       this._popupRefIdAtual = value.refId;
 
-      const urlPortal = `${this.lexmlEtaConfig.urlPortalNormas}/?urn=${value.targetUrn}`;
+      const fragmento = value.targetFragmento ? `!${value.targetFragmento}` : '';
+      const urlPortal = `${this.lexmlEtaConfig.urlPortalNormas}/?urn=${value.targetUrn}${fragmento}`;
       mostrarPopup(this._remissaoPopup, linkEl, {
         rotulo: value.targetNomeNorma || linkEl.textContent || '',
+        acaoNavegacao: () => window.open(urlPortal, '_blank', 'noopener'),
         botoes: [
-          {
-            titulo: 'Abrir',
-            acao: () => window.open(urlPortal, '_blank', 'noopener'),
-          },
           {
             titulo: 'Editar',
             acao: () => this.editarRemissaoExterna(value),
