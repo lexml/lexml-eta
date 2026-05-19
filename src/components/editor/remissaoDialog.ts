@@ -5,7 +5,7 @@ import { Articulacao } from '../../model/dispositivo/dispositivo';
 import { rootStore } from '../../redux/store';
 import { escapeHtml } from '../../util/html-util';
 import { gerarRefId } from '../../model/remissao/refId';
-import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
+import { textoParaFragmentoLexmlId } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Norma } from '../../model/emenda/norma';
 import '../autocomplete/autocomplete-norma';
 
@@ -360,10 +360,10 @@ export async function remissaoDialog(
         return;
       }
       const textoDispositivo = dispositivoExtInput.value?.trim();
+      let targetFragmento: string | undefined;
       if (textoDispositivo) {
-        try {
-          validaDispositivoAssistente(textoDispositivo);
-        } catch {
+        targetFragmento = textoParaFragmentoLexmlId(textoDispositivo);
+        if (!targetFragmento) {
           msgAlertaExt.textContent = 'Dispositivo não identificado. Informe no formato: "art. 5º", "inciso I do § 3º do art. 12"...';
           alertaExt.show();
           return;
@@ -376,6 +376,7 @@ export async function remissaoDialog(
         targetUrn: normaExternaSelecionada.urn,
         targetNomeNorma: normaExternaSelecionada.nomePreferido,
         targetTextoDispositivo: textoDispositivo || undefined,
+        targetFragmento,
         textoRef: textoSelecionado,
       };
       onRemissaoExternaCriada(value);

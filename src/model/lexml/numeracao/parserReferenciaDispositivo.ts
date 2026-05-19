@@ -103,6 +103,37 @@ export const validaDispositivoAssistente = (texto: string): Dispositivo => {
   return buildDispositivosAssistente(texto, criaDispositivo(createArticulacao(), TipoDispositivo.artigo.tipo));
 };
 
+const TIPO_TAG_ID: Partial<Record<string, string>> = {
+  Artigo: 'art',
+  Paragrafo: 'par',
+  Inciso: 'inc',
+  Alinea: 'ali',
+  Item: 'ite',
+};
+
+/**
+ * Converte texto de dispositivo (ex: "§ 3º do art. 12") em fragmento LexML
+ * (ex: "art12_par3") apto a ser usado como âncora em URN de norma externa.
+ * Retorna undefined se o texto não for reconhecido.
+ */
+export const textoParaFragmentoLexmlId = (texto: string): string | undefined => {
+  const refs = identificaReferencias(texto);
+  if (!refs?.length) return undefined;
+
+  // O parser devolve na ordem em que aparecem no texto (mais específico → artigo).
+  // Garante artigo primeiro para montar o fragmento do geral ao específico.
+  const ordenado = refs[refs.length - 1].tipo === TipoDispositivo.artigo ? [...refs].reverse() : [...refs];
+
+  const partes = ordenado
+    .map(r => {
+      const tag = TIPO_TAG_ID[r.tipo.tipo];
+      return tag && r.numero ? `${tag}${r.numero}` : undefined;
+    })
+    .filter((p): p is string => !!p);
+
+  return partes.length > 0 ? partes.join('_') : undefined;
+};
+
 const identificaTipo = (texto: string): Tipo | undefined => {
   if (texto.trim().match(/ali|al[ií]nea.*/i)) {
     return TipoDispositivo.alinea;
