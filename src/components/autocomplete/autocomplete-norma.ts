@@ -72,6 +72,16 @@ export class AutocompleteNorma extends LitElement {
     });
   }
 
+  setNorma(norma: Norma): void {
+    this._selectedNorma = norma;
+    this.onSelect(norma);
+    this.updateComplete.then(() => {
+      if (this._autoCompleteAsync && norma.nomePreferido) {
+        this._autoCompleteAsync.value = norma.nomePreferido;
+      }
+    });
+  }
+
   firstUpdated(): void {
     if (this.urnInicial) {
       this._getNormaByURN(this.urnInicial);

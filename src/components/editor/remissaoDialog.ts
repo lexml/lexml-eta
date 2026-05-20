@@ -7,7 +7,7 @@ import { escapeHtml } from '../../util/html-util';
 import { gerarRefId } from '../../model/remissao/refId';
 import { textoParaFragmentoLexmlId } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Norma } from '../../model/emenda/norma';
-import '../autocomplete/autocomplete-norma';
+import { AutocompleteNorma } from '../autocomplete/autocomplete-norma';
 
 export type TipoRemissao = 'interna' | 'externa';
 
@@ -66,7 +66,8 @@ export async function remissaoDialog(
   const state = rootStore.getState().elementoReducer;
   const articulacao = state.articulacao as Articulacao | undefined;
   const textoSelecionado = quill.getText(range.index, range.length).trim();
-  const urnInicialExt = isEdicaoExterna ? modoEdicao?.valueExterna?.targetUrn ?? '' : '';
+  // Em modo edição, não usar urnInicial — a norma será setada diretamente via setNorma()
+  const urnInicialExt = '';
 
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
@@ -87,7 +88,7 @@ export async function remissaoDialog(
         gap: 16px;
         padding-top: 8px;
       }
-      .texto-selecionado-label { font-size: 0.85em; color: var(--sl-color-neutral-500); margin-bottom: -8px; }
+      .texto-selecionado-label { font-size: 0.85em; color: var(--sl-color-neutral-500); }
       .texto-selecionado-valor {
         background-color: var(--sl-color-primary-50);
         padding: 8px 12px;
@@ -390,36 +391,43 @@ export async function remissaoDialog(
   dialogElem.appendChild(content);
   await dialogElem.show();
 
-  // Modo edição — preencher aba interna
-  if (modoEdicao?.tipo === 'interna' && modoEdicao.valueInterna) {
-    const v = modoEdicao.valueInterna;
-    inputBuscaInt.value = v.targetRotulo ?? '';
-    const filtrados = filtrarDispositivos(dispositivos, inputBuscaInt.value);
-    renderizarDispositivos(filtrados);
-    const itemAtual = listaInt.querySelector(`[data-uuid="${v.targetUuid}"]`) as HTMLElement | null;
-    if (itemAtual) {
-      itemAtual.classList.add('selected');
-      selectedItemElement = itemAtual;
-      dispositivoInternoSelecionado = filtrados.find(d => d.uuid === v.targetUuid) ?? null;
-      atualizarEstadoBotao();
-      setTimeout(() => itemAtual.scrollIntoView({ block: 'nearest' }), 50);
-    }
-  }
-
-  // Modo edição — preencher aba externa
-  if (modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna) {
-    const v = modoEdicao.valueExterna;
-    if (v.targetTextoDispositivo) {
-      dispositivoExtInput.value = v.targetTextoDispositivo;
-    }
-    normaExternaSelecionada = new Norma(v.targetUrn, v.targetNomeNorma);
-    atualizarEstadoBotao();
-  }
-
+  // Troca para a aba correta e preenche os dados DEPOIS da troca,
+  // garantindo que os elementos estejam visíveis e inicializados.
   setTimeout(() => {
     if (abaInicial === 'externa') {
       (tabGroup as any).show('externa');
+      abaAtiva = 'externa'; // garante que atualizarEstadoBotao usa a aba correta
+      if (modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna) {
+        const v = modoEdicao.valueExterna;
+        if (v.targetTextoDispositivo) {
+          dispositivoExtInput.value = v.targetTextoDispositivo;
+        }
+        const norma = new Norma(v.targetUrn, v.targetNomeNorma);
+        (autocompleteNormaExt as AutocompleteNorma).setNorma(norma);
+      }
     } else {
+      if (modoEdicao?.tipo === 'interna' && modoEdicao.valueInterna) {
+        const v = modoEdicao.valueInterna;
+        // Busca o dispositivo pelo uuid (ou pelo lexmlId como fallback para remissões carregadas do XML)
+        const targetDispositivo =
+          (v.targetUuid ? dispositivos.find(d => d.uuid === v.targetUuid) : null) ?? (v.targetLexmlId ? dispositivos.find(d => d.lexmlId === v.targetLexmlId) : null);
+
+        const filtroInicial = targetDispositivo?.rotulo ?? v.targetRotulo ?? '';
+        inputBuscaInt.value = filtroInicial;
+        const filtrados = filtroInicial ? filtrarDispositivos(dispositivos, filtroInicial) : dispositivos;
+        renderizarDispositivos(filtrados);
+
+        if (targetDispositivo) {
+          const itemAtual = listaInt.querySelector(`[data-uuid="${targetDispositivo.uuid}"]`) as HTMLElement | null;
+          if (itemAtual) {
+            itemAtual.classList.add('selected');
+            selectedItemElement = itemAtual;
+            dispositivoInternoSelecionado = targetDispositivo;
+            atualizarEstadoBotao();
+            setTimeout(() => itemAtual.scrollIntoView({ block: 'nearest' }), 50);
+          }
+        }
+      }
       inputBuscaInt.focus();
     }
   }, 100);
