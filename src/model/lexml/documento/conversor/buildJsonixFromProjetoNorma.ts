@@ -611,7 +611,7 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
 };
 
 const buildSpan = (m: string): any => {
-  const resultHref = m.match(/href="(.*?)"*>/i);
+  const resultHref = m.match(/href="([^"]*)"/i);
   const href = resultHref && resultHref[1] ? resultHref[1] : '';
 
   const contentHref = m.match(/<a[^>]+href=".*?"[^>]*>(.*?)<\/a>/);
@@ -657,6 +657,13 @@ const buildRemissaoOuSpan = (m: string): any => {
   const dataLexmlRefMatch = m.match(/data-lexml-ref="([^"]+)"/i);
   if (dataLexmlRefMatch) {
     return buildRemissao(m, dataLexmlRefMatch[1]);
+  }
+  const dataUrnMatch = m.match(/data-urn="([^"]+)"/i);
+  if (dataUrnMatch) {
+    const urn = dataUrnMatch[1];
+    const fragmentoMatch = m.match(/data-fragmento="([^"]+)"/i);
+    const fragmento = fragmentoMatch ? fragmentoMatch[1] : '';
+    return buildRemissao(m, fragmento ? `${urn}!${fragmento}` : urn);
   }
   return buildSpan(m);
 };
