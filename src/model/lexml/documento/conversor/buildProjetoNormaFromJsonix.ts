@@ -308,7 +308,16 @@ const montaTag = (name: any, value: any): string => {
     return `<a href="${lexmlId}" data-lexml-ref="${lexmlId}" class="lexml-remissao-interna" target="_self">${buildContent(value.content)}</a>`;
   }
   if (localPart === 'span' && value.href) {
-    return `<a href="${value.href}">${buildContent(value.content)}</a>`;
+    const spanHref = value.href as string;
+    if (spanHref.startsWith('urn:lex:')) {
+      // GenInline com URN: tratar como remissão externa (mesmo caminho que Remissao)
+      const sepIdx = spanHref.indexOf('!');
+      const urn = sepIdx >= 0 ? spanHref.substring(0, sepIdx) : spanHref;
+      const fragmento = sepIdx >= 0 ? spanHref.substring(sepIdx + 1) : '';
+      const attrFragmento = fragmento ? ` data-fragmento="${fragmento}"` : '';
+      return `<a data-urn="${urn}"${attrFragmento} class="lexml-remissao-externa" href="#" target="_self">${buildContent(value.content)}</a>`;
+    }
+    return `<a href="${spanHref}">${buildContent(value.content)}</a>`;
   }
   if (localPart === 'b' || localPart === 'i' || localPart === 'sub' || localPart === 'sup') {
     return `<${localPart}>${buildContent(value.content)}</${localPart}>`;
