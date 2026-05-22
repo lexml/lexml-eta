@@ -813,6 +813,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.inicializar(this.configEditor());
           this.configurarSeletorPaginacao();
           this.carregarArticulacao(event.elementos ?? [], false, ui.paginacao);
+          setTimeout(() => this.ativarRemissoesExternas(), 0);
           break;
 
         case StateType.InformarDadosAssistente:
@@ -1921,6 +1922,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.quill.atualizarLinhaCorrente(linha);
       }
     }
+  }
+
+  private ativarRemissoesExternas(): void {
+    const remissoesExternas = rootStore.getState()?.elementoReducer?.remissoesExternas;
+    if (!remissoesExternas || Object.keys(remissoesExternas).length === 0) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
   }
 
   private renderizarRemissoesDoState(event: StateEvent): void {

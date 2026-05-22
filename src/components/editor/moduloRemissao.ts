@@ -77,6 +77,36 @@ class ModuloRemissao extends Module {
       return new Delta(ops);
     });
 
+    // Detecta links simples com URN LexML no href (formato legado de documentos existentes).
+    // Esses links não têm class nem data-* — são convertidos para o formato de remissão externa.
+    this.quill.clipboard.addMatcher('A[href^="urn:lex:"]', (node: HTMLElement, delta: any) => {
+      if (node.classList.contains('lexml-remissao-externa')) return delta;
+
+      const href = node.getAttribute('href') ?? '';
+      const sepIdx = href.indexOf('!');
+      const urn = sepIdx >= 0 ? href.substring(0, sepIdx) : href;
+      const fragmento = sepIdx >= 0 ? href.substring(sepIdx + 1) : undefined;
+
+      if (!urn) return delta;
+
+      const value: RemissaoExternaValue = {
+        refId: gerarRefId(),
+        targetUrn: urn,
+        targetNomeNorma: '',
+        targetFragmento: fragmento || undefined,
+        textoRef: node.textContent ?? undefined,
+      };
+
+      const ops = delta.ops.map((op: any) => {
+        if (op.insert && typeof op.insert === 'string') {
+          return { ...op, attributes: { ...op.attributes, 'remissao-externa': value } };
+        }
+        return op;
+      });
+
+      return new Delta(ops);
+    });
+
     this.quill.clipboard.addMatcher('A.lexml-remissao-interna', (node: HTMLElement, delta: any) => {
       const dataLexmlRef = node.getAttribute('data-lexml-ref');
       const dataRefId = node.getAttribute('data-ref-id');
@@ -522,6 +552,47 @@ class ModuloRemissao extends Module {
   }
 
   //chamado em remissaoModule.renderizarRemissoesDoState
+  renderizarRemissoesExternasDoState(remissoesExternas: Record<string, RemissaoExternaValue>): void {
+    if (!remissoesExternas || Object.keys(remissoesExternas).length === 0) return;
+
+    const savedSelection = this.quill.getSelection();
+
+    for (const value of Object.values(remissoesExternas)) {
+      const { sourceUuid, textoRef, refId } = value;
+      if (!sourceUuid || !textoRef || !refId) continue;
+
+      // Verifica se o link já está registrado como blot Quill correto
+      const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-externa[data-ref-id="${CSS.escape(refId)}"]`);
+      if (linkExistente) {
+        const blot = Quill.find(linkExistente);
+        if (blot?.statics?.blotName === 'remissao-externa') continue;
+      }
+
+      const domEl = this.quill.root.querySelector(`#texto__dispositivo${sourceUuid}`);
+      if (!domEl) continue;
+
+      const blot = Quill.find(domEl);
+      if (!blot) continue;
+
+      const blotStart = blot.offset(this.quill.scroll);
+      const blotLength = blot.length();
+
+      const texto = this.quill.getText(blotStart, blotLength);
+      const textOffset = texto.indexOf(textoRef);
+      if (textOffset === -1) continue;
+
+      const absoluteIndex = blotStart + textOffset;
+      this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-externa', value, 'silent');
+    }
+
+    if (savedSelection) {
+      const sel = savedSelection;
+      setTimeout(() => {
+        this.quill.setSelection(sel.index, sel.length, 'silent');
+      }, 0);
+    }
+  }
+
   renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {
     const remissoesDoDispositivo = remissoesDoState[uuidDispositivoAtual] || [];
 
