@@ -77,7 +77,8 @@ import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUti
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { getElementos } from '../../model/elemento/elementoUtil';
+import { getElementos, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
+import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
@@ -1449,6 +1450,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento, statesType), 1000);
   }
 
+  private verificarSomenteFormatoMudou(elemento: Elemento, linhaAtual: EtaContainerTable): boolean {
+    // Compara texto plano antes de atualizar o estado para detectar mudança apenas de formato
+    // (ex: exclusão manual de remissão). Nesse caso, a re-detecção não deve rodar para
+    // evitar recriar o link que o usuário acabou de excluir.
+    const storeState = rootStore.getState().elementoReducer;
+    let textoAnteriorPlano = '';
+    if (storeState.articulacao) {
+      const dispositivoAnterior = getDispositivoFromElemento(storeState.articulacao, elemento, true);
+      textoAnteriorPlano = stripHtml(dispositivoAnterior?.texto ?? '');
+    }
+    const textoAtualPlano = stripHtml(linhaAtual.blotConteudo?.html ?? '');
+    return textoAtualPlano === textoAnteriorPlano;
+  }
+
   private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
     if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(
@@ -1461,6 +1476,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.hierarquia
       );
 
+      const somenteFormatoMudou = this.verificarSomenteFormatoMudou(elemento, linhaAtual);
+
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
 
       // Caminho B: limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
@@ -1469,7 +1486,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(removerRemissaoInvalidaAction(linhaAtual.uuid, remissaoModule.getRemissoes()));
       }
 
-      rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+      if (!somenteFormatoMudou) {
+        rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+      }
     }
   }
 
