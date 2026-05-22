@@ -21,6 +21,11 @@ export const inicializaRemissoesExternasAoAbrir = (articulacao: Articulacao): Re
   const remissoesExternas: Record<string, RemissaoExternaValue> = {};
   const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
 
+  const ementa = articulacao.projetoNorma?.ementa;
+  if (ementa) {
+    dispositivos.push(ementa);
+  }
+
   for (const dispositivo of dispositivos) {
     const texto = dispositivo.texto;
     if (!texto || dispositivo.uuid === undefined) continue;
