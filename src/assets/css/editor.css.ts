@@ -170,6 +170,8 @@ export const editorStyles = html`
       display: none;
     }
 
+    //Remove em favor do tooltip da remissão externa
+    /*
     .ql-snow .ql-tooltip::before {
       content: 'Acesse a norma:';
     }
@@ -184,7 +186,7 @@ export const editorStyles = html`
 
     .ql-snow .ql-tooltip a.ql-preview {
       max-width: 300px;
-    }
+    }*/
 
     .btn--artigoOndeCouber {
     }
