@@ -35,9 +35,11 @@ import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
 import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
 import { MPV_1170_2023_ALTERADA } from '../doc/mpv_1170_2023_alterada';
 import { PL_4_2025 } from '../doc/pl_4_2025';
+import { SBT_2_PEC_18_2025 } from '../doc/sbt_2_pec_18_2025';
 import { validarRecursivo } from './jsonValidator';
 
 const mapProjetosNormas = {
+  sbt_2_pec_18_2025: SBT_2_PEC_18_2025,
   mpv_885_2019: MPV_885_2019,
   mpv_905_2019: MPV_905_2019,
   mpv_930_2020: MPV_930_2020,

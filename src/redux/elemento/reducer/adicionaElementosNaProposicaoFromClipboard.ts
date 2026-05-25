@@ -1,16 +1,12 @@
 import { validaDispositivo } from './../../../model/lexml/dispositivo/dispositivoValidator';
 import { InfoTextoColado } from './../util/colarUtil';
-import { DispositivoSuprimido } from './../../../model/lexml/situacao/dispositivoSuprimido';
-import { DispositivoModificado } from './../../../model/lexml/situacao/dispositivoModificado';
 import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
-import { isArtigo, isOmissis, isInciso, isParagrafo, isCaput } from './../../../model/dispositivo/tipo';
+import { isArtigo, isOmissis, isInciso, isParagrafo } from './../../../model/dispositivo/tipo';
 import {
   buscaDispositivoById,
   getArticulacao,
-  isModificado,
   isAdicionado,
-  isSuprimido,
   isDispositivoAlteracao,
   getDispositivoCabecaAlteracao,
   getUltimoFilho,
@@ -22,25 +18,16 @@ import { createElemento, createElementoValidado, getDispositivoFromElemento } fr
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
+import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { ajustaIdsNaArticulacaoColada } from '../util/colarUtil';
-import { removeAllHtmlTags } from '../../../util/string-util';
 import { Elemento } from '../../../model/elemento/elemento';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { isBloqueado } from '../../../model/lexml/regras/regrasUtil';
 
 const REGEX_OMISSIS = /^\.{2,}/;
-
-interface InfoOmissis {
-  omissis: Dispositivo;
-  anterior: Dispositivo;
-  posterior: Dispositivo;
-  omitidos: Dispositivo[];
-}
 
 export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -102,7 +89,8 @@ const existeDispositivoBloqueadoSendoColado = (articulacaoColada: Articulacao, a
 
   const idsBloqueados = getDispositivoAndFilhosAsLista(articulacao)
     .filter(isBloqueado)
-    .map(d => d.id);
+    .map(d => d.id)
+    .filter(Boolean);
 
   return idsColados.some(id => idsBloqueados.includes(id));
 };
@@ -121,47 +109,66 @@ const colarDispositivos = (
   const isColandoEmAlteracaoDeNorma = isDispositivoAlteracao(atual);
   let refAux = referencia;
 
-  const adicionados: Dispositivo[] = [];
-  const modificados: Dispositivo[] = [];
-  const suprimidos: Dispositivo[] = [];
+  const novos: Dispositivo[] = [];
+  const substitutos: Dispositivo[] = [];
+  const substituidos: Dispositivo[] = []; // dispositivos que serão removidos para dar lugar aos substitutos
+
+  const eventos: StateEvent[] = [];
+  const elementosRemovidos: Elemento[] = [];
+  const elementosRenumerados: Elemento[] = [];
 
   articulacaoColada.filhos.forEach(f => {
     if (isColandoEmAlteracaoDeNorma || !isOmissis(f)) {
       const d = buscarDispositivoByIdTratandoParagrafoUnico(articulacao, f.id!);
+      refAux = d && isColarSubstituindo ? d : refAux;
+      const auxPosicao = d && isColarSubstituindo ? 'antes' : posicao === 'antes' && refAux === referencia ? posicao : undefined;
+      const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, auxPosicao);
+      refAux = d2;
+
       if (d && isColarSubstituindo) {
-        const d2 = colarDispositivoSubstituindo(d, f, modo, isColandoEmAlteracaoDeNorma);
-        modificados.push(...getDispositivoAndFilhosAsLista(d2).filter(isModificado));
-        adicionados.push(...getDispositivoAndFilhosAsLista(d2).filter(isAdicionado));
-        suprimidos.push(...getDispositivoAndFilhosAsLista(d2).filter(isSuprimido));
-        refAux = d2;
+        substitutos.push(d2);
+        substituidos.push(d);
+
+        // Se o dispositivo a ser substituído for o mesmo que a referência, a referência passa a ser o dispositivo substituto
+        if (d.uuid === referencia.uuid) {
+          referencia = d2;
+        }
+
+        // Se o dispositivo a ser substituído for o mesmo que o atual, o atual passa a ser o dispositivo substituto
+        if (d.uuid === atual.uuid) {
+          atual = d2;
+        }
       } else {
-        refAux = d && isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao ? d : refAux;
-        const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, posicao === 'antes' && refAux === referencia ? posicao : undefined);
-        adicionados.push(...getDispositivoAndFilhosAsLista(d2));
-        suprimidos.push(...getDispositivoAndFilhosAsLista(d2).filter(isSuprimido));
-        refAux = d2;
+        novos.push(d2);
       }
     }
   });
 
-  const eventos: StateEvent[] = [];
-  let eventoElementoRemovido: StateEvent | undefined;
+  const substituidosESeusFilhos = substituidos
+    .map(d => getDispositivoAndFilhosAsLista(d))
+    .flat()
+    .map(d => createElemento(d));
+  elementosRemovidos.push(...substituidosESeusFilhos);
 
-  if (isAdicionarNaPosicaoAtual(articulacaoColada, atual, referencia)) {
-    eventoElementoRemovido = buildEventoElementoRemovido(referencia);
+  substituidos.forEach(d => d.pai!.removeFilho(d));
 
-    referencia.pai!.removeFilho(referencia);
-    referencia.pai!.renumeraFilhos();
-    adicionados.forEach(d => (d.id = buildId(d)));
-  }
+  novos[0]?.pai!.renumeraFilhos();
 
-  eventos.push(buildEventoElementoIncluido(adicionados, referencia));
-  eventoElementoRemovido && eventos.push(eventoElementoRemovido);
-  eventos.push(...buildEventosElementoModificado(modificados));
-  eventos.push(buildEventoElementosRenumerados(adicionados, referencia, tipoColado));
-  processaEventosSuprimidos(eventos, modificados, suprimidos);
-  eventos.push(buildEventoSituacaoElementoModificada(adicionados, isColandoEmAlteracaoDeNorma));
-  adicionados[0] && eventos.push(buildEventoElementoMarcado([adicionados[0], atual]));
+  novos.forEach(d => {
+    getDispositivoAndFilhosAsLista(d).forEach(d => {
+      d.id = buildId(d);
+      isArtigo(d) && buildIdCaputEAlteracao(d);
+    });
+  });
+
+  const substitutosESeusFilhos = substitutos.map(d => getDispositivoAndFilhosAsLista(d)).flat();
+  const novosESeusFilhos = novos.map(d => getDispositivoAndFilhosAsLista(d)).flat();
+  eventos.push(buildEventoElementoIncluido([...substitutosESeusFilhos, ...novosESeusFilhos], referencia));
+  eventos.push({ stateType: StateType.ElementoRemovido, elementos: elementosRemovidos });
+  eventos.push({ stateType: StateType.ElementoRenumerado, elementos: elementosRenumerados });
+  eventos.push(buildEventoElementosRenumerados(novos, referencia, tipoColado));
+  eventos.push(buildEventoSituacaoElementoModificada(novos, isColandoEmAlteracaoDeNorma));
+  novos[0] && eventos.push(buildEventoElementoMarcado([novos[0], atual]));
 
   return eventos.filter(ev => ev.elementos?.length);
 };
@@ -173,18 +180,6 @@ const buildEventoElementosRenumerados = (adicionados: Dispositivo[], referencia:
   return {
     stateType: StateType.ElementoRenumerado,
     elementos: filhosASeremRenumerados.map(f => createElemento(f)),
-  };
-};
-
-const isAdicionarNaPosicaoAtual = (articulacaoColada: Articulacao, atual: Dispositivo, referencia: Dispositivo): boolean => {
-  const primeiroDispositivoColado = getDispositivoAndFilhosAsLista(articulacaoColada).filter(d => !['Articulacao', 'Omissis'].includes(d.tipo))[0];
-  return atual === referencia && primeiroDispositivoColado.tipo === referencia.tipo && !referencia.texto && isAdicionado(referencia);
-};
-
-const buildEventoElementoRemovido = (dispositivo: Dispositivo): StateEvent => {
-  return {
-    stateType: StateType.ElementoRemovido,
-    elementos: [createElementoValidado(dispositivo)],
   };
 };
 
@@ -217,54 +212,6 @@ const buildEventoElementoIncluido = (adicionados: Dispositivo[], referencia: Dis
   };
 };
 
-const buildEventosElementoModificado = (modificados: Dispositivo[]): StateEvent[] => {
-  const eventos: StateEvent[] = [];
-  modificados.forEach(d => {
-    eventos.push({
-      stateType: StateType.ElementoModificado,
-      elementos: [(d.situacao as DispositivoModificado).dispositivoOriginal, createElementoValidado(d)],
-    });
-  });
-  return eventos;
-};
-
-const processaEventosSuprimidos = (eventos: StateEvent[], modificados: Dispositivo[], suprimidos: Dispositivo[]): void => {
-  const dispositivosProcessar = [] as any;
-
-  // if(modificados.length > 0){
-  //   modificados.forEach(m => {
-  //     dispositivosProcessar.push(m);
-  //   });
-  // }
-
-  if (suprimidos.length > 0) {
-    suprimidos.forEach(s => {
-      dispositivosProcessar.push(s);
-    });
-  }
-
-  if (dispositivosProcessar.length > 0) {
-    const suprimidos: Dispositivo[] = [];
-    dispositivosProcessar.forEach(d => {
-      getDispositivosToElementoSuprimido(d).forEach(d => {
-        if (suprimidos.filter(s => s.id === d.id).length === 0) {
-          suprimidos.push(d);
-        }
-      });
-    });
-    eventos.push({ stateType: StateType.ElementoSuprimido, elementos: suprimidos.map(d => createElementoValidado(d)) });
-  }
-};
-
-const getDispositivosToElementoSuprimido = (referencia: Dispositivo): Dispositivo[] => {
-  const suprimidos = getDispositivoAndFilhosAsLista(referencia.pai!)
-    .filter(isSuprimido)
-    .map(d => getDispositivoAndFilhosAsLista(d))
-    .flat();
-
-  return suprimidos;
-};
-
 const buildEventoSituacaoElementoModificada = (dispositivos: Dispositivo[], isColandoEmAlteracaoDeNorma: boolean): StateEvent => {
   const elementosComSituacaoModificada: Elemento[] = []; // elementos a serem atualizados na UI
   if (isColandoEmAlteracaoDeNorma) {
@@ -291,72 +238,6 @@ const getParagrafosDeNumero1 = (dispositivos: Dispositivo[]): Dispositivo[] => {
 
 const getArtigosComAlteracaoDeNorma = (dispositivos: Dispositivo[]): Dispositivo[] => {
   return dispositivos.filter(d => isArtigo(d) && !isArticulacaoAlteracao(d) && d.alteracoes?.filhos.length);
-};
-
-const colarDispositivoSubstituindo = (
-  dOriginal: Dispositivo,
-  dColado: Dispositivo,
-  modo: ClassificacaoDocumento,
-  isColandoEmAlteracaoDeNorma: boolean,
-  colecaoInfoOmissis: InfoOmissis[] = []
-): Dispositivo => {
-  let refAux = dOriginal;
-
-  if (removeAllHtmlTags(dOriginal.texto) !== removeAllHtmlTags(dColado.texto) && !dColado.texto.match(REGEX_OMISSIS) && dColado.texto.trim()) {
-    dOriginal.situacao = new DispositivoModificado(createElementoValidado(dOriginal));
-    // dOriginal.isDispositivoAlteracao = false;
-    dOriginal.texto = dColado.texto;
-  }
-
-  let omissisImediatamenteAnterior: Dispositivo | undefined;
-
-  const filhosColados = dColado.alteracoes?.filhos || dColado.filhos;
-
-  filhosColados.forEach(fColado => {
-    if (isOmissis(fColado)) {
-      colecaoInfoOmissis.push(montarInfoOmissis(dOriginal, fColado));
-    }
-
-    if (!isOmissis(fColado) || isColandoEmAlteracaoDeNorma) {
-      const fOriginal = buscarDispositivoByIdTratandoParagrafoUnico(getArticulacao(dOriginal), fColado.id!);
-      if (fOriginal) {
-        refAux = fOriginal;
-        colarDispositivoSubstituindo(fOriginal, fColado, modo, isColandoEmAlteracaoDeNorma || isDispositivoAlteracao(fColado), colecaoInfoOmissis);
-      } else {
-        refAux = (omissisImediatamenteAnterior && getUltimoDispositivoDoIntervaloOmitido(omissisImediatamenteAnterior, colecaoInfoOmissis, fColado)) || refAux;
-        colarDispositivoAdicionando(refAux, fColado, isColandoEmAlteracaoDeNorma || isDispositivoAlteracao(fColado), !!omissisImediatamenteAnterior, modo, 'depois');
-        refAux = fColado;
-      }
-    }
-    omissisImediatamenteAnterior = isOmissis(fColado) ? fColado : undefined;
-  });
-
-  if (!isColandoEmAlteracaoDeNorma) {
-    suprimirDispositivosForaDosIntervalosOmitidos(dOriginal, dColado, colecaoInfoOmissis);
-  }
-
-  return dOriginal;
-};
-
-const getUltimoDispositivoDoIntervaloOmitido = (omissis: Dispositivo, colecaoInfoOmissis: InfoOmissis[], dColado: Dispositivo): Dispositivo | undefined => {
-  return colecaoInfoOmissis
-    .find(i => i.omissis === omissis)
-    ?.omitidos.filter(o => o.tipo === dColado.tipo)
-    .slice(-1)[0];
-};
-
-const suprimirDispositivosForaDosIntervalosOmitidos = (dOriginal: Dispositivo, dColado: Dispositivo, colecaoInfoOmissis: InfoOmissis[]): void => {
-  const articulacaoColada = getArticulacao(dColado);
-  const dispositivosOriginaisOmitidosNaArticulacaoColada = colecaoInfoOmissis.map(i => i.omitidos).flat();
-
-  dOriginal.filhos.forEach(fOriginal => {
-    const fColado =
-      buscarDispositivoByIdTratandoParagrafoUnico(articulacaoColada, fOriginal.id!) || buscaDispositivoById(articulacaoColada, fOriginal.id!.replace('par1u', 'par1'));
-
-    if (!fColado && !dispositivosOriginaisOmitidosNaArticulacaoColada.find(d => d.id === fOriginal.id)) {
-      getDispositivoAndFilhosAsLista(fOriginal).forEach(d => (d.situacao = new DispositivoSuprimido(createElementoValidado(d))));
-    }
-  });
 };
 
 const buscarDispositivoByIdTratandoParagrafoUnico = (articulacao: Articulacao, id: string): Dispositivo | undefined => {
@@ -408,8 +289,6 @@ const colarDispositivoAdicionando = (
     dColado.texto = '';
   }
 
-  ajustaSituacaoDispositivoAdicionado(dColado, modo);
-
   if (isColandoEmAlteracaoDeNorma) {
     dColado.notaAlteracao = isDispositivoCabecaAlteracao(dColado) ? 'NR' : undefined;
   } else {
@@ -420,22 +299,7 @@ const colarDispositivoAdicionando = (
     throw new Error('Erro ao colar dispositivo adicionado');
   }
 
-  renumerarEAjustarIds(dColado);
   return dColado;
-};
-
-const renumerarEAjustarIds = (dispositivo: Dispositivo): void => {
-  dispositivo.pai?.renumeraFilhos();
-  updateIdDispositivoAndFilhos(dispositivo.pai!);
-};
-
-const criaAtributosComunsAdicionado = (filho: Dispositivo, modo: ClassificacaoDocumento): void => {
-  filho.situacao = new DispositivoAdicionado();
-  filho.isDispositivoAlteracao = isDispositivoAlteracao(filho);
-  (filho.situacao as DispositivoAdicionado).tipoEmenda = modo;
-  if (filho.isDispositivoAlteracao && !isOmissis(filho)) {
-    (filho.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
-  }
 };
 
 const removeOmissis = (atual: Dispositivo): void => {
@@ -444,72 +308,6 @@ const removeOmissis = (atual: Dispositivo): void => {
   atual.filhos.forEach(removeOmissis);
   atual.id = buildId(atual);
   atual.renumeraFilhos();
-};
-
-const ajustaSituacaoDispositivoAdicionado = (atual: Dispositivo, modo: ClassificacaoDocumento): void => {
-  criaAtributosComunsAdicionado(atual, modo);
-  atual.filhos.forEach(filho => {
-    criaAtributosComunsAdicionado(filho, modo);
-    filho.filhos && ajustaSituacaoDispositivoAdicionado(filho, modo);
-  });
-
-  if (atual.alteracoes) {
-    criaAtributosComunsAdicionado(atual.alteracoes, modo);
-    atual.alteracoes.filhos.forEach(filho => {
-      criaAtributosComunsAdicionado(filho, modo);
-      filho.filhos && ajustaSituacaoDispositivoAdicionado(filho, modo);
-    });
-  }
-};
-
-const montarInfoOmissis = (dOriginal: Dispositivo, omissisColado: Dispositivo): InfoOmissis => {
-  const dispositivosDaArvoreDoOmisses = getDispositivoAndFilhosAsLista(isCaput(omissisColado.pai!) ? omissisColado.pai!.pai! : omissisColado.pai!);
-  const dispositivosDaArvoreDoOriginal = getDispositivoAndFilhosAsLista(isArtigo(dOriginal) ? dOriginal : dOriginal.pai!);
-
-  const indexOmissis = dispositivosDaArvoreDoOmisses.indexOf(omissisColado);
-  const anteriorOmissis = dispositivosDaArvoreDoOmisses[indexOmissis - 1];
-  const posteriorOmissis = dispositivosDaArvoreDoOmisses[indexOmissis + 1];
-
-  const anteriorOmissisNaArvoreDoOriginal = dispositivosDaArvoreDoOriginal.find(d => d.id === anteriorOmissis.id)!;
-  const posteriorOmissisNaArvoreDoOriginal = posteriorOmissis && dispositivosDaArvoreDoOriginal.find(d => d.id === posteriorOmissis.id);
-
-  const omitidos = getDispositivosOriginais(dispositivosDaArvoreDoOriginal, anteriorOmissisNaArvoreDoOriginal, posteriorOmissisNaArvoreDoOriginal, posteriorOmissis);
-
-  const prefixos = [...new Set(omitidos.map(d => d.id!.split('_')[0]))];
-  if (prefixos.length > 1) {
-    throw new Error('Erro ao montar lista de dispositivos omitidos');
-  }
-
-  return {
-    omissis: omissisColado,
-    anterior: anteriorOmissis,
-    posterior: posteriorOmissis,
-    omitidos,
-  };
-};
-
-const getDispositivosOriginais = (
-  dispositivosDaArvoreDoOriginal: Dispositivo[],
-  anteriorOmissisNaArvoreDoOriginal: Dispositivo,
-  posteriorOmissisNaArvoreDoOriginal: Dispositivo | undefined,
-  posteriorOmissisNaArvoreDoOmissis: Dispositivo | undefined
-): Dispositivo[] => {
-  const result: Dispositivo[] = [];
-
-  if (posteriorOmissisNaArvoreDoOriginal) {
-    const indexAnteriorNaListaOriginal = dispositivosDaArvoreDoOriginal.findIndex(d => d.id === anteriorOmissisNaArvoreDoOriginal.id);
-    const indexPosteriorNaListaOriginal = dispositivosDaArvoreDoOriginal.findIndex(d => d.id === posteriorOmissisNaArvoreDoOriginal.id);
-    result.push(...dispositivosDaArvoreDoOriginal.filter((_, index) => index > indexAnteriorNaListaOriginal && index < indexPosteriorNaListaOriginal));
-  } else {
-    const indexAnteriorNaListaOriginal = dispositivosDaArvoreDoOriginal.findIndex(d => d.id === anteriorOmissisNaArvoreDoOriginal.id);
-    result.push(
-      ...dispositivosDaArvoreDoOriginal.filter(
-        (d, index) => index > indexAnteriorNaListaOriginal && (!posteriorOmissisNaArvoreDoOmissis || d.id!.startsWith(posteriorOmissisNaArvoreDoOmissis.pai!.id!))
-      )
-    );
-  }
-
-  return result;
 };
 
 const getDispositivosEmAlteracaoDeNormaASeremAtualizados = (dispositivos: Dispositivo[]): Dispositivo[] => {

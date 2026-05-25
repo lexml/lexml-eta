@@ -5,14 +5,7 @@ import { Elemento } from './../../../model/elemento/elemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo, isInciso, isOmissis } from '../../../model/dispositivo/tipo';
-import {
-  getArticulacao,
-  getDispositivoAndFilhosAsLista,
-  isDispositivoAlteracao,
-  irmaosMesmoTipo,
-  isModificadoOuSuprimido,
-  isOriginal,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getArticulacao, getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo, isModificadoOuSuprimido } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { escapeRegex, removeAllHtmlTags, removeAllHtmlTagsExcept } from '../../../util/string-util';
@@ -285,7 +278,7 @@ export const montarListaDispositivosExistentes = (articulacao: Articulacao, arti
       }
       return acc;
     }, [] as string[]);
-  return getDispositivoAndFilhosAsLista(articulacao).filter(d => isOriginal(d) && idsColados.includes(d.id!));
+  return getDispositivoAndFilhosAsLista(articulacao).filter(d => idsColados.includes(d.id!));
 };
 
 export const montarListaDispositivosNovos = (articulacao: Articulacao, articulacaoColada: Articulacao, referencia?: Dispositivo): Dispositivo[] => {

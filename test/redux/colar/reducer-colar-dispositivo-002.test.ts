@@ -56,11 +56,11 @@ describe('Testando carregamento da MPV 885/2019', () => {
       expect(state.articulacao?.filhos[3].alteracoes?.filhos.length).to.equal(3);
     });
 
-    it('Deveria possuir artigos 1º e 2º, dentro do artigo 4º, com situação Dispositivo Adicionado', () => {
+    it('Deveria possuir artigos 1º e 2º, dentro do artigo 4º, com situação Dispositivo Original', () => {
       const disp1 = buscaDispositivoById(state.articulacao!, 'art4_cpt_alt1_art1')!;
       const disp2 = buscaDispositivoById(state.articulacao!, 'art4_cpt_alt1_art2')!;
-      expect(disp1.situacao.descricaoSituacao).to.equal('Dispositivo Adicionado');
-      expect(disp2.situacao.descricaoSituacao).to.equal('Dispositivo Adicionado');
+      expect(disp1.situacao.descricaoSituacao).to.equal('Dispositivo Original');
+      expect(disp2.situacao.descricaoSituacao).to.equal('Dispositivo Original');
     });
 
     it('Deveria possuir todos os artigos com situação Dispositivo Original', () => {
@@ -71,9 +71,8 @@ describe('Testando carregamento da MPV 885/2019', () => {
       it('Deveria possuir evento ElementoIncluido com 5 elementos', () => {
         const evIncluidos = eventos.filter(e => e.stateType === StateType.ElementoIncluido)[0];
         expect(evIncluidos.elementos?.length).to.equal(5);
-        expect(evIncluidos.elementos?.every(e => e.descricaoSituacao === 'Dispositivo Adicionado')).to.be.true;
+        expect(evIncluidos.elementos?.every(e => e.descricaoSituacao === 'Dispositivo Original')).to.be.true;
         expect(evIncluidos.elementos?.every(e => e.dispositivoAlteracao)).to.be.true;
-        expect(evIncluidos.elementos?.filter(e => e.tipo !== 'Omissis').every(e => e.existeNaNormaAlterada)).to.be.true;
       });
 
       it('Deveria possuir nota de alteração (NR) no último dispositivo de cada alteração incluída', () => {

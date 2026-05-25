@@ -8,6 +8,7 @@ import {
   processarSuprimidos,
   processarRevisoesAceitasOuRejeitadas,
   ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
+  isUndoRedoColarSubstituindo,
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -42,6 +43,21 @@ export const undo = (state: any): State => {
     revisoes: state.revisoes,
     numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
   };
+
+  if (isUndoRedoColarSubstituindo(eventos)) {
+    const events = new Eventos();
+
+    // inclui removidos
+    events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
+
+    // remove incluídos
+    events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
+
+    retorno.ui!.events = [...events.build(), ...retorno.ui!.events];
+    retorno.present = [...events.build(), ...retorno.present];
+
+    return retorno;
+  }
 
   if (isUndoRedoInclusaoExclusaoAgrupador(eventos)) {
     let tempState: State;
