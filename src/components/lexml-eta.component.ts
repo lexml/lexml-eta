@@ -252,7 +252,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
-    if (isHtmlSemTexto(emenda.justificativa)) {
+    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(emenda.justificativa)) {
       pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
     }
 
@@ -644,7 +644,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.buildAlertaJustificativa();
   }
 
+  private isJustificacaoObrigatoria(): boolean {
+    return this.lexmlEmendaConfig?.justificacaoObrigatoria !== false;
+  }
+
   buildAlertaJustificativa(): void {
+    if (!this.isJustificacaoObrigatoria()) {
+      rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
+      return;
+    }
+
     if (this._lexmlJustificativa.isEditorVazio()) {
       this.disparaAlerta();
     } else {
@@ -656,7 +665,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const alerta = {
       id: 'alerta-global-justificativa',
       tipo: TipoMensagem.CRITICAL,
-      mensagem: 'A emenda não possui uma justificação',
+      mensagem: 'A proposição não possui uma justificação',
       podeFechar: false,
     };
     rootStore.dispatch(adicionarAlerta(alerta));

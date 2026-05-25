@@ -124,6 +124,7 @@ export class DemoView extends LitElement {
     this.emendaConfig = new LexmlEtaConfig();
     this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
     this.emendaConfig.urlComissoes = '/comissoes';
+    this.emendaConfig.justificacaoObrigatoria = true;
   }
 
   createRenderRoot(): LitElement {
