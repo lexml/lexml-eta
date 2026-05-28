@@ -280,6 +280,13 @@ const getTextoSemHtml = (c: any): string => {
 const substituiAspasRetasPorCurvas = (html: string): string => {
   const div = document.createElement('div');
   div.innerHTML = html;
+  const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT);
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    if (node.textContent && node.textContent.indexOf('"') !== -1) {
+      node.textContent = node.textContent.replace(/"(?=\w|$)/g, '\u201C').replace(/(?=[\w,.?!\-\u201C]|^)"/g, '\u201D');
+    }
+  }
   return div.innerHTML.replace(/&nbsp;/g, ' ');
 };
 
