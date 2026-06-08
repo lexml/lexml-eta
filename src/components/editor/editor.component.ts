@@ -815,6 +815,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.configurarSeletorPaginacao();
           this.carregarArticulacao(event.elementos ?? [], false, ui.paginacao);
           setTimeout(() => this.ativarRemissoesExternas(), 0);
+          setTimeout(() => this.ativarRemissoesInternas(), 0);
           break;
 
         case StateType.InformarDadosAssistente:
@@ -1948,6 +1949,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (!remissoesExternas || Object.keys(remissoesExternas).length === 0) return;
     const remissaoModule = this.quill?.getModule('remissaoInterna');
     remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+  }
+
+  private ativarRemissoesInternas(): void {
+    const remissoes = rootStore.getState()?.elementoReducer?.remissoes;
+    if (!remissoes || Object.keys(remissoes).length === 0) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    if (!remissaoModule) return;
+    for (const uuid of Object.keys(remissoes)) {
+      remissaoModule.renderizarRemissoesDoState(remissoes, parseInt(uuid, 10));
+    }
   }
 
   private renderizarRemissoesDoState(event: StateEvent): void {

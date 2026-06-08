@@ -620,7 +620,10 @@ class ModuloRemissao extends Module {
     for (const remissao of remissoesDoDispositivo) {
       const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${CSS.escape(remissao.refId!)}"]`);
       if (linkExistente) {
-        continue;
+        const blot = Quill.find(linkExistente);
+        if (blot?.statics?.blotName === 'remissao-interna') {
+          continue;
+        }
       }
 
       const textoRef = remissao.textoRef;
