@@ -5,6 +5,7 @@ const Inline = Quill.import('blots/inline');
 export class RemissaoExternaBlot extends Inline {
   static blotName = 'remissao-externa';
   static tagName = 'A';
+  static className = 'lexml-remissao-externa';
 
   static create(value: RemissaoExternaValue): HTMLElement {
     const node = super.create(value) as HTMLElement;
