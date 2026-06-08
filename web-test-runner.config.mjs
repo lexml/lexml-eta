@@ -86,7 +86,7 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
               return class {};
             },
             register: () => {},
-            find: () => null,
+            find: (node) => (node && node['__blot'] ? node['__blot'].blot : null),
           };
         </script>
         <script type="module" src="${testFramework}"></script>

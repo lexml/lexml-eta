@@ -1027,6 +1027,8 @@ describe('renderizarRemissoesDoState — reconciliação de metadata', () => {
     rootElement.innerHTML = `
       <a class="lexml-remissao-interna" data-lexml-ref="art2_par1_inc1" data-ref-id="ref_X" href="#lxEtaId200">inciso I deste parágrafo</a>
     `;
+    const linkEl = rootElement.querySelector('a.lexml-remissao-interna[data-ref-id="ref_X"]') as any;
+    linkEl['__blot'] = { blot: { statics: { blotName: 'remissao-interna' } } };
 
     const remissoes: Record<number, RemissaoInternaValue[]> = {
       42: [{ refId: 'ref_X', targetLexmlId: 'art2_par1_inc1', targetUuid: 200, textoRef: 'inciso I deste parágrafo' }],
@@ -1041,6 +1043,8 @@ describe('renderizarRemissoesDoState — reconciliação de metadata', () => {
     rootElement.innerHTML = `
       <a class="lexml-remissao-interna" data-lexml-ref="art2_par1_inc2" data-ref-id="ref_X" href="#lxEtaId200">inciso I deste parágrafo</a>
     `;
+    const linkEl = rootElement.querySelector('a.lexml-remissao-interna[data-ref-id="ref_X"]') as any;
+    linkEl['__blot'] = { blot: { statics: { blotName: 'remissao-interna' } } };
 
     const remissoes: Record<number, RemissaoInternaValue[]> = {
       42: [{ refId: 'ref_X', targetUuid: 300, textoRef: 'inciso I deste parágrafo' }],
