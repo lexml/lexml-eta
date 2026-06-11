@@ -1,3 +1,4 @@
+import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
@@ -121,6 +122,7 @@ export class DemoView extends LitElement {
 
   constructor() {
     super();
+    setBasePath('./');
     this.emendaConfig = new LexmlEtaConfig();
     this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
     this.emendaConfig.urlComissoes = '/comissoes';
