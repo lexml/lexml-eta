@@ -15,6 +15,7 @@ const configSpa = merge(baseConfigSpa, {
 			targets: [
 				{ src: 'assets/css/editor.css', dest: 'prod/assets/css' },
 				{ src: 'assets/fonts/**', dest: 'prod/assets/fonts' },
+				{ src: 'assets/icons/**', dest: 'prod/assets/icons' },
 			],
 		}),
 	],
