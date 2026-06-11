@@ -33,15 +33,26 @@ const ESTILOS_CSS = `
     color: var(--sl-color-primary-700, #0052a3);
   }
 
+  .remissao-popup__previa {
+    color: var(--sl-color-neutral-500, #64748b);
+    font-style: italic;
+  }
+
+  .remissao-popup__previa--navegavel {
+    cursor: pointer;
+    color: var(--sl-color-primary-600, #0066cc);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .remissao-popup__previa--navegavel:hover {
+    color: var(--sl-color-primary-700, #0052a3);
+  }
+
   .remissao-popup--invalido .remissao-popup__rotulo {
     color: var(--sl-color-danger-600, #dc2626);
     cursor: default;
     text-decoration: none;
-  }
-
-  .remissao-popup__previa {
-    color: var(--sl-color-neutral-500, #64748b);
-    font-style: italic;
   }
 
   .remissao-popup__acoes {
@@ -126,7 +137,7 @@ export function mostrarPopup(popup: HTMLDivElement, anchorEl: HTMLElement, confi
   const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
   const acoesEl = popup.querySelector('.remissao-popup__acoes') as HTMLElement;
 
-  rotuloEl.textContent = config.rotulo;
+  rotuloEl.textContent = config.rotulo + ':';
 
   const previaEl = popup.querySelector('.remissao-popup__previa') as HTMLElement;
   if (config.textoPrevia) {
@@ -137,12 +148,15 @@ export function mostrarPopup(popup: HTMLDivElement, anchorEl: HTMLElement, confi
     previaEl.style.display = 'none';
   }
 
-  // Remove listeners antigos clonando o elemento
+  // Remove listeners antigos clonando os elementos
   const rotuloNovo = rotuloEl.cloneNode(true) as HTMLElement;
   rotuloEl.replaceWith(rotuloNovo);
+  const previaNova = previaEl.cloneNode(true) as HTMLElement;
+  previaEl.replaceWith(previaNova);
 
   const navegavel = !!config.acaoNavegacao && !config.invalido;
   rotuloNovo.classList.toggle('remissao-popup__rotulo--navegavel', navegavel);
+  previaNova.classList.toggle('remissao-popup__previa--navegavel', navegavel && !!config.textoPrevia);
 
   if (navegavel) {
     rotuloNovo.addEventListener('mousedown', e => e.preventDefault());
@@ -150,6 +164,14 @@ export function mostrarPopup(popup: HTMLDivElement, anchorEl: HTMLElement, confi
       config.acaoNavegacao!();
       esconderPopup(popup);
     });
+
+    if (config.textoPrevia) {
+      previaNova.addEventListener('mousedown', e => e.preventDefault());
+      previaNova.addEventListener('click', () => {
+        config.acaoNavegacao!();
+        esconderPopup(popup);
+      });
+    }
   }
 
   popup.classList.toggle('remissao-popup--invalido', !!config.invalido);

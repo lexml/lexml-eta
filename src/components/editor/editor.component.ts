@@ -2046,7 +2046,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         const textoRaw = dispositivoDestino?.texto ?? '';
         const textoPlano = textoRaw.replace(/<[^>]*>/g, '').trim();
         if (!textoPlano) return undefined;
-        return textoPlano.length > 20 ? textoPlano.slice(0, 20) + '...' : textoPlano;
+        return textoPlano.length > 60 ? textoPlano.slice(0, 60) + '...' : textoPlano;
       })();
       mostrarPopup(this._remissaoPopup, linkEl, {
         rotulo: rotuloDestino,
