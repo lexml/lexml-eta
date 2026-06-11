@@ -539,7 +539,12 @@ const injetarLinksRemissaoExternaNoTexto = (texto: string, entries: RemissaoExte
  */
 const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValue[]): string => {
   if (!texto) return texto;
-  const faltando = entries.filter(e => e.valida !== false && e.textoRef && e.targetLexmlId && !texto.includes(`data-lexml-ref="${e.targetLexmlId}"`));
+  const faltando = entries.filter(e => {
+    if (e.valida === false || !e.textoRef || !e.targetLexmlId) return false;
+    // Permite múltiplos links para o mesmo alvo se houver posição exata; caso contrário, evita reinjeção.
+    if (e.inicio !== undefined) return true;
+    return !texto.includes(`data-lexml-ref="${e.targetLexmlId}"`);
+  });
   if (faltando.length === 0) return texto;
 
   // Ordena descendentemente pelo início para que injeções posteriores não desloquem índices anteriores

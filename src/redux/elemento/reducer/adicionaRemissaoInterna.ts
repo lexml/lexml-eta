@@ -104,19 +104,34 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
-  const oldEntries = state.remissoes?.[dispositivo.uuid!] ?? [];
-  const oldByTarget = new Map<string, string>(oldEntries.map((r: any) => [r.targetLexmlId, r.refId]));
+  const oldEntries: RemissaoInternaValue[] = state.remissoes?.[dispositivo.uuid!] ?? [];
 
-  const novasRemissoes: RemissaoInternaValue[] = remissoesEncontradas.map(item => ({
-    refId: (item.dispositivoDestino.id && oldByTarget.get(item.dispositivoDestino.id)) ?? gerarRefId(),
-    targetLexmlId: item.dispositivoDestino.id,
-    targetUuid: item.dispositivoDestino.uuid,
-    targetRotulo: item.dispositivoDestino.rotulo,
-    sourceUuid: dispositivo.uuid,
-    sourceLexmlId: dispositivo.id,
-    textoRef: item.texto,
-    inicio: item.inicio,
-  }));
+  // Indexa por (targetLexmlId:inicio) para preservar refIds distintos quando há múltiplas
+  // remissões apontando para o mesmo destino em posições diferentes do texto.
+  const oldByPositionKey = new Map<string, string>();
+  for (const r of oldEntries) {
+    if (r.targetLexmlId && r.inicio !== undefined && r.refId) {
+      oldByPositionKey.set(`${r.targetLexmlId}:${r.inicio}`, r.refId);
+    }
+  }
+  const claimedRefIds = new Set<string>();
+
+  const novasRemissoes: RemissaoInternaValue[] = remissoesEncontradas.map(item => {
+    const posKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}` : undefined;
+    const candidato = posKey ? oldByPositionKey.get(posKey) : undefined;
+    const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? gerarRefId();
+    claimedRefIds.add(refId);
+    return {
+      refId,
+      targetLexmlId: item.dispositivoDestino.id,
+      targetUuid: item.dispositivoDestino.uuid,
+      targetRotulo: item.dispositivoDestino.rotulo,
+      sourceUuid: dispositivo.uuid,
+      sourceLexmlId: dispositivo.id,
+      textoRef: item.texto,
+      inicio: item.inicio,
+    };
+  });
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
   // Merge: novas detecções válidas + inválidas preservadas
