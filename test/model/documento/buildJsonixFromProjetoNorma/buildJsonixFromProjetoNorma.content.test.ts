@@ -1101,4 +1101,97 @@ describe('Injeção de remissões a partir do registry', () => {
       expect(content[0]).to.equal(texto);
     });
   });
+
+  // Self-healing da serialização: corrige `data-lexml-ref` obsoleto quando o destino
+  // foi renumerado fora do fluxo de digitação (updateContents 'silent' do Quill não
+  // propaga para `caput.texto` no Redux).
+  describe('16.4. Auto-correção de data-lexml-ref obsoleto', () => {
+    it('deve atualizar data-lexml-ref obsoleto usando o href como id estável', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      art1.rotulo = 'Art. 1º';
+      (art1 as any).id = 'art1';
+      const caput1 = criaDispositivo(art1, TipoDispositivo.caput.tipo);
+      (caput1 as any).texto = 'Texto base.';
+
+      const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      art2.rotulo = 'Art. 2º';
+      (art2 as any).id = 'art2';
+      const caput2 = criaDispositivo(art2, TipoDispositivo.caput.tipo);
+      // O destino real (uuid de art2) corresponde ao id atual 'art2',
+      // mas o link armazenado em texto referencia 'artX' (lexmlId obsoleto).
+      const uuidDestino = (art2 as any).uuid;
+      (
+        caput2 as any
+      ).texto = `Conforme o <a href="#lxEtaId${uuidDestino}" data-ref-id="r1" data-lexml-ref="artX" class="lexml-remissao-interna" target="_self">art. 99º</a> desta lei.`;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste');
+      const content = resultado.value.projetoNorma.norma.articulacao.lXhier[1].value.lXcontainersOmissis[0].value.p[0].content;
+
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao, 'deve haver um nó Remissao').to.exist;
+      expect(remissao.value.href).to.equal('art2');
+    });
+
+    it('deve preservar texto canônico antigo quando atualiza o link', () => {
+      // Texto canônico do destino antigo é convertido para o canônico do novo via
+      // atualizarTextoRemissao — neste caso "art. 99º" não é canônico de "artX",
+      // portanto o conteúdo do link permanece intacto.
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      (artigo as any).id = 'art1';
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const uuidDestino = (artigo as any).uuid;
+      (caput as any).texto = `Ver o <a href="#lxEtaId${uuidDestino}" data-lexml-ref="art2" class="lexml-remissao-interna" target="_self">art. 2º</a> desta lei.`;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste');
+      const content = resultado.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao.value.href).to.equal('art1');
+      // texto visível é o canônico do novo lexmlId
+      expect(remissao.value.content[0]).to.equal('art. 1º');
+    });
+
+    it('não deve alterar links sem href no formato #lxEtaId', () => {
+      // Sem o href estável, não há como localizar o destino com confiança — preserva como está.
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = `Ver <a href="art2" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2º</a>.`;
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao.value.href).to.equal('art2');
+    });
+
+    it('não deve tocar links cujo destino aponta para uuid inexistente na articulação', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = `Ver <a href="#lxEtaId99999" data-lexml-ref="artObsoleto" class="lexml-remissao-interna">art. 99º</a>.`;
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao.value.href).to.equal('artObsoleto');
+    });
+  });
 });

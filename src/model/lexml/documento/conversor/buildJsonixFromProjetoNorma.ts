@@ -5,6 +5,7 @@ import {
   isDispositivoCabecaAlteracao,
   isCaputComIrmaoUnico,
   isOmissisIrmaoUnico,
+  findDispositivoByUuid,
 } from '../../hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
@@ -13,6 +14,7 @@ import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
+import { atualizarTextoRemissao } from '../../../remissao/lexmlIdUtil';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
@@ -557,10 +559,62 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
   return resultado;
 };
 
+// Sobe pela cadeia de pais até localizar a articulação raiz. Retorna null para nós
+// fora da árvore (ex: epigrafe/ementa do parteInicial, que não têm `pai`).
+const obterArticulacaoRaiz = (dispositivo: Dispositivo): Articulacao | null => {
+  let atual: Dispositivo | undefined = dispositivo;
+  while (atual) {
+    if (isArticulacao(atual)) return atual as Articulacao;
+    atual = atual.pai;
+  }
+  return null;
+};
+
+// Regex para capturar tags <a ...>texto</a> preservando atributos e conteúdo (não-aninhado).
+const REGEX_LINK_REMISSAO_INTERNA = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+const REGEX_DATA_LEXML_REF = /data-lexml-ref="([^"]+)"/i;
+const REGEX_HREF_LXETAID = /href="#lxEtaId(\d+)"/i;
+
+// Atualiza `data-lexml-ref` (e texto visível) de links cujo destino foi renumerado.
+// Usa o `href="#lxEtaId{uuid}"` como ID estável para localizar o dispositivo atual
+// na articulação. Se o `id` corrente do dispositivo destino diferir do `data-lexml-ref`
+// armazenado, ambos são atualizados. Links sem href no formato esperado são preservados.
+const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositivo): string => {
+  if (!html || !html.includes('data-lexml-ref=')) return html;
+
+  const articulacao = obterArticulacaoRaiz(dispositivo);
+  if (!articulacao) return html;
+
+  return html.replace(REGEX_LINK_REMISSAO_INTERNA, (match, atributos, conteudo) => {
+    const lexmlRefMatch = atributos.match(REGEX_DATA_LEXML_REF);
+    if (!lexmlRefMatch) return match;
+
+    const hrefMatch = atributos.match(REGEX_HREF_LXETAID);
+    if (!hrefMatch) return match;
+
+    const lexmlIdAntigo = lexmlRefMatch[1];
+    const targetUuid = parseInt(hrefMatch[1], 10);
+    if (!targetUuid) return match;
+
+    const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, targetUuid, true);
+    if (!destino?.id || destino.id === lexmlIdAntigo) return match;
+
+    const lexmlIdNovo = destino.id;
+    const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, `data-lexml-ref="${lexmlIdNovo}"`);
+    const novoConteudo = atualizarTextoRemissao(conteudo, lexmlIdAntigo, lexmlIdNovo);
+    return `<a${novosAtributos}>${novoConteudo}</a>`;
+  });
+};
+
 const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any[] => {
   let raw = dispositivo[campo];
   if (!raw && raw !== '') {
     return [dispositivo];
+  }
+
+  // Self-healing: corrige data-lexml-ref no HTML para evitar salvar IDs antigos, pois o update visual do Quill não atualiza o Redux.
+  if (campo === 'texto') {
+    raw = corrigirLexmlRefsObsoletosNoTexto(raw, dispositivo);
   }
 
   // Injeta links de remissão interna que ainda não estão no texto (ex: auto-detectadas via 'silent')

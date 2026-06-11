@@ -8,7 +8,8 @@ import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { stripHtml } from '../../../util/html-util';
-import { percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { atualizarTextoRemissao } from '../../../model/remissao/lexmlIdUtil';
 
 interface ReferenciaEncontrada {
   texto: string;
@@ -489,14 +490,63 @@ const normalizarNumero = (numero: string | undefined): string => {
   return numero.toLowerCase().replace(/[^a-z0-9]/g, '');
 };
 
+// 1. Atualiza `lexmlId` e `textoRef` dos destinos renumerados usando o `targetUuid` (ID estável).
+// 2. Sincroniza o Redux: cobre os 'silent updates' do Quill para evitar que o save processe textos defasados e re-detecte remissões para o alvo errado.
+// Sem este passo, ao salvar:
+//   1) `injetarLinksRemissaoNoTexto` não localiza o textoRef atualizado no texto stale;
+//   2) `completarRegistroRemissoes`, ao visitar o caput sem entrada, re-detecta pelo
+//      texto antigo ("art. 2º") e resolve para o destino errado (o NOVO art2 — que
+//      antes era art1).
+const atualizarRegistryAposRenumeracao = (articulacao: Articulacao, registro: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
+  const atualizado: Record<number, RemissaoInternaValue[]> = {};
+  for (const [uuidStr, entries] of Object.entries(registro)) {
+    atualizado[Number(uuidStr)] = entries.map(entry => {
+      if (entry.valida === false || entry.targetUuid === undefined) return entry;
+      const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, entry.targetUuid, true);
+      if (!destino?.id || destino.id === entry.targetLexmlId) return entry;
+
+      const lexmlIdNovo = destino.id;
+      const lexmlIdAntigo = entry.targetLexmlId;
+      const textoRefAntigo = entry.textoRef;
+      const textoRefNovo = textoRefAntigo && lexmlIdAntigo ? atualizarTextoRemissao(textoRefAntigo, lexmlIdAntigo, lexmlIdNovo) : textoRefAntigo;
+
+      sincronizarTextoFonte(articulacao, entry, textoRefAntigo, textoRefNovo);
+
+      return {
+        ...entry,
+        targetLexmlId: lexmlIdNovo,
+        textoRef: textoRefNovo,
+      };
+    });
+  }
+  return atualizado;
+};
+
+// Atualiza in-place o `dispositivo.texto` do source da remissão para refletir o novo
+// `textoRef` quando a substring no `inicio` registrado ainda corresponde ao textoRef
+// antigo. No-op quando o texto já foi atualizado por outro caminho (ex: usuário digitou
+// no dispositivo após a renumeração).
+const sincronizarTextoFonte = (articulacao: Articulacao, entry: RemissaoInternaValue, textoRefAntigo: string | undefined, textoRefNovo: string | undefined): void => {
+  if (entry.sourceUuid === undefined || entry.inicio === undefined || !textoRefAntigo || !textoRefNovo || textoRefAntigo === textoRefNovo) {
+    return;
+  }
+  const source = findDispositivoByUuid(articulacao as unknown as Dispositivo, entry.sourceUuid, true);
+  if (!source?.texto) return;
+  const inicio = entry.inicio;
+  if (source.texto.substring(inicio, inicio + textoRefAntigo.length) !== textoRefAntigo) return;
+  source.texto = source.texto.substring(0, inicio) + textoRefNovo + source.texto.substring(inicio + textoRefAntigo.length);
+};
+
 /**
  * Garante que o registry de remissões está completo para todos os dispositivos com texto.
  * Dispositivos não editados na sessão atual não têm entradas no registry;
+ * adicionalmente, entradas existentes têm seus `targetLexmlId` atualizados quando o
+ * destino foi renumerado fora do fluxo de digitação (atualizações 'silent' do Quill).
  */
 export const completarRegistroRemissoes = (articulacao: Articulacao, registroExistente: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
   if (!articulacao) return registroExistente;
 
-  const registroCompleto = { ...registroExistente };
+  const registroCompleto = atualizarRegistryAposRenumeracao(articulacao, registroExistente);
 
   percorreHierarquiaDispositivos(articulacao as unknown as Dispositivo, dispositivo => {
     if (!dispositivo.texto || dispositivo.uuid === undefined) return;
