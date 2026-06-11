@@ -39,6 +39,11 @@ const ESTILOS_CSS = `
     text-decoration: none;
   }
 
+  .remissao-popup__previa {
+    color: var(--sl-color-neutral-500, #64748b);
+    font-style: italic;
+  }
+
   .remissao-popup__acoes {
     display: flex;
     gap: 4px;
@@ -80,6 +85,7 @@ export interface BotaoPopup {
 
 export interface ConfiguracaoPopup {
   rotulo: string;
+  textoPrevia?: string;
   invalido?: boolean;
   acaoNavegacao?: () => void;
   botoes: BotaoPopup[];
@@ -103,10 +109,14 @@ export function criarPopup(): HTMLDivElement {
   const rotuloEl = document.createElement('span');
   rotuloEl.className = 'remissao-popup__rotulo';
 
+  const previaEl = document.createElement('span');
+  previaEl.className = 'remissao-popup__previa';
+
   const acoes = document.createElement('div');
   acoes.className = 'remissao-popup__acoes';
 
   popup.appendChild(rotuloEl);
+  popup.appendChild(previaEl);
   popup.appendChild(acoes);
 
   return popup;
@@ -117,6 +127,15 @@ export function mostrarPopup(popup: HTMLDivElement, anchorEl: HTMLElement, confi
   const acoesEl = popup.querySelector('.remissao-popup__acoes') as HTMLElement;
 
   rotuloEl.textContent = config.rotulo;
+
+  const previaEl = popup.querySelector('.remissao-popup__previa') as HTMLElement;
+  if (config.textoPrevia) {
+    previaEl.textContent = config.textoPrevia;
+    previaEl.style.display = '';
+  } else {
+    previaEl.textContent = '';
+    previaEl.style.display = 'none';
+  }
 
   // Remove listeners antigos clonando o elemento
   const rotuloNovo = rotuloEl.cloneNode(true) as HTMLElement;

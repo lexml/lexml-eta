@@ -72,8 +72,9 @@ import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAct
 import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
+import { isCaput } from '../../model/dispositivo/tipo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
-import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
@@ -2037,8 +2038,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this._popupRefIdAtual = value.refId;
 
       const invalido = linkEl.classList.contains('lexml-remissao-invalida');
+      const articulacao = rootStore.getState().elementoReducer.articulacao;
+      const dispositivoDestino = articulacao && value.targetUuid ? findDispositivoByUuid(articulacao, value.targetUuid, true) : undefined;
+      const dispositivoParaRotulo = dispositivoDestino && isCaput(dispositivoDestino) ? dispositivoDestino.pai : dispositivoDestino;
+      const rotuloDestino = dispositivoParaRotulo?.rotulo ?? value.targetRotulo ?? '';
+      const textoPrevia = (() => {
+        const textoRaw = dispositivoDestino?.texto ?? '';
+        const textoPlano = textoRaw.replace(/<[^>]*>/g, '').trim();
+        if (!textoPlano) return undefined;
+        return textoPlano.length > 20 ? textoPlano.slice(0, 20) + '...' : textoPlano;
+      })();
       mostrarPopup(this._remissaoPopup, linkEl, {
-        rotulo: value.targetRotulo ?? '',
+        rotulo: rotuloDestino,
+        textoPrevia,
         invalido,
         acaoNavegacao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
         botoes: [
