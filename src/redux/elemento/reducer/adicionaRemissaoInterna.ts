@@ -447,13 +447,14 @@ const buscarArtigo = (articulacao: Articulacao, numero: string): Dispositivo | n
     return null;
   }
 
-  const numeroNormalizado = normalizarNumero(numero);
+  // Diferencia "Artigo único" do primeiro artigo contando o total na articulação, já que ambos usam numero='1'.
+  if (numero && numero.toLowerCase() === 'único') {
+    return articulacao.artigos.length === 1 ? articulacao.artigos[0] : null;
+  }
 
+  const numeroNormalizado = normalizarNumero(numero);
   for (const artigo of articulacao.artigos) {
     if (normalizarNumero(artigo.numero) === numeroNormalizado) {
-      return artigo;
-    }
-    if (numero && numero.toLowerCase() === 'único' && artigo.numero === '1') {
       return artigo;
     }
   }
@@ -494,7 +495,11 @@ const buscarFilhoPorTipoENumero = (dispositivo: Dispositivo, tipo: string, numer
   if (encontradoFilho) return encontradoFilho;
 
   if (tipo === TipoDispositivo.paragrafo.tipo && numero && numero.toLowerCase() === 'único') {
-    return filhos.find(f => f.tipo === tipo) ?? null;
+    // "Parágrafo único" é válido apenas quando existe exatamente 1 parágrafo (numero='1').
+    // Igual à lógica de createRotulo em NumeracaoParagrafo: o rótulo "Parágrafo único."
+    // só é gerado quando há um único filho do tipo Paragrafo.
+    const paragrafos = filhos.filter(f => f.tipo === tipo);
+    return paragrafos.length === 1 && paragrafos[0].numero === '1' ? paragrafos[0] : null;
   }
 
   return null;
