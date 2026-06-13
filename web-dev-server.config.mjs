@@ -7,6 +7,7 @@ import path from 'path';
 
 const fileParlamentaresMock = path.resolve(process.cwd(), 'parlamentares.json');
 const fileComissoesMock = path.resolve(process.cwd(), 'comissoes.json');
+const fileNormasMock = path.resolve(process.cwd(), 'normas.json');
 
 async function mockApiMiddleware(context, next) {
   try {
@@ -19,11 +20,27 @@ async function mockApiMiddleware(context, next) {
       fileContent = fs.readFileSync(fileComissoesMock, 'utf8');
       context.set('Content-Type', 'application/json');
       context.body = fileContent;
+    } else if (/^\/api\/autocomplete-norma(\?.*)?$/.test(context.url)) {
+      const normas = JSON.parse(fs.readFileSync(fileNormasMock, 'utf8'));
+      const urlParams = new URL(context.url, 'http://localhost');
+      const normalizar = str => str.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[,;]| n[oº] /gi, ' ').replace(/\./g, '').toLowerCase().trim();
+      const query = normalizar(urlParams.searchParams.get('query') || '');
+      const resultado = query
+        ? normas.filter(n =>
+            normalizar(n.nomePreferido).includes(query) ||
+            normalizar(n.ementa || '').includes(query) ||
+            n.urn.toLowerCase().includes(query)
+          )
+        : normas;
+      context.set('Content-Type', 'application/json');
+      context.body = JSON.stringify(resultado);
+      return; // não passa para o proxy
     }
   } catch (error) {
-    console.error('Erro ao ler teste.json:', error);
+    console.error('Erro ao ler mock:', error);
     context.status = 500;
     context.body = { error: 'Failed to read mock file' };
+    return;
   }
 
   return next();
