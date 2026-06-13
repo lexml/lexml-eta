@@ -7,7 +7,7 @@ import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
@@ -194,6 +194,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean })
   exibirBotoesParaTratarTodas = false;
 
+  @state() private _temSelecao = false;
+
   render(): TemplateResult {
     return html`
       <style>
@@ -269,11 +271,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           height: 16px;
         }
 
+        lexml-eta-proposicao-editor .btn-remissao-interna:disabled,
         lexml-eta-proposicao-editor .btn-remover-remissao:disabled {
           opacity: 0.35;
           cursor: not-allowed;
         }
 
+        lexml-eta-proposicao-editor .btn-remissao-interna:disabled:hover,
         lexml-eta-proposicao-editor .btn-remover-remissao:disabled:hover {
           background-color: transparent;
         }
@@ -333,7 +337,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </span>
           </button>
 
-          <button type="button" class="btn-remissao-interna" title="Adicionar remissão" @click=${this.abrirDialogoRemissao}>
+          <button type="button" class="btn-remissao-interna" title="Adicionar remissão" ?disabled=${!this._temSelecao} @click=${this.abrirDialogoRemissao}>
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
 
@@ -414,6 +418,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (range?.length === 0 && source === Quill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
+    this._temSelecao = (range?.length ?? 0) > 0;
     this.atualizarPopupRemissao();
   };
 
