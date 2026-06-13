@@ -48,6 +48,61 @@ class ModuloRemissao extends Module {
     }
 
     this.addClipboardMatcher();
+    this.quill.on('text-change', this._absorverOrdinalEmRemissao.bind(this));
+  }
+
+  // TODO Avaliar mudança arquitetural da detecção da remissão
+  // Quando o usuário digita "º"/"°" logo após um blot de remissão-interna, absorve o
+  // caractere dentro do blot sem esperar pelo blur da linha.
+  private _absorverOrdinalEmRemissao(delta: any, _oldDelta: any, source: string): void {
+    if (source !== 'user') return;
+
+    const ops = delta?.ops;
+    if (!Array.isArray(ops) || ops.length < 1) return;
+
+    // Identifica inserção de único caractere ordinal
+    const insertOp = ops.find((op: any) => typeof op?.insert === 'string');
+    if (!insertOp || !/^[º°]$/.test(insertOp.insert)) return;
+
+    const retainOp = ops.find((op: any) => typeof op?.retain === 'number');
+    const insertIndex = (retainOp?.retain ?? 0) + (insertOp.insert?.length ?? 0);
+
+    // Posição ANTERIOR ao "º" recém-inserido
+    const posFimInsercao = insertIndex - 1;
+    if (posFimInsercao <= 0) return;
+
+    // Verifica se o blot imediatamente antes é um blot de remissão-interna
+    const [leaf] = this.quill.getLeaf(posFimInsercao - 1);
+    const blot = leaf?.parent;
+    if (blot?.statics?.blotName !== 'remissao-interna') return;
+
+    const blotIdx = blot.offset(this.quill.scroll);
+    const blotLen = blot.length();
+    const valorAtual: RemissaoInternaValue = blot.formats()['remissao-interna'];
+    if (!valorAtual) return;
+
+    const textoAtual = blot.domNode?.textContent ?? '';
+    const novoTexto = textoAtual + insertOp.insert;
+    const novoValor: RemissaoInternaValue = { ...valorAtual, textoRef: novoTexto };
+
+    // Verifica se o "º" ainda está fora do blot (posição blotIdx+blotLen)
+    const textoPosBlot = this.quill.getText(blotIdx + blotLen, 1);
+    const ordinalForaDoBlot = textoPosBlot === insertOp.insert;
+
+    setTimeout(() => {
+      if (ordinalForaDoBlot) {
+        // Absorve: remove blot + "º" solto, reinseriu blot com texto estendido
+        const correcao = new Delta()
+          .retain(blotIdx)
+          .delete(blotLen + 1)
+          .insert(novoTexto, { 'remissao-interna': novoValor });
+        this.quill.updateContents(correcao, 'silent');
+      } else {
+        // "º" já está dentro do blot (ex: reinserção via undo/redo) — só atualiza textoRef
+        const correcao = new Delta().retain(blotIdx).delete(blotLen).insert(novoTexto, { 'remissao-interna': novoValor });
+        this.quill.updateContents(correcao, 'silent');
+      }
+    }, 0);
   }
 
   addClipboardMatcher(): void {
@@ -622,6 +677,20 @@ class ModuloRemissao extends Module {
       if (linkExistente) {
         const blot = Quill.find(linkExistente);
         if (blot?.statics?.blotName === 'remissao-interna') {
+          // Se textoRef cresceu por sufixo (ex: "Art. 1" → "Art. 1º"), atualiza o blot.
+          // Usa 'silent' para não disparar observableSelectionChange (que só notifica ao mudar de linha).
+          const textoBlot = (linkExistente.textContent || '').trim();
+          const textoNovo = (remissao.textoRef || '').trim();
+          if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
+            const blotIdx = blot.offset(this.quill.scroll);
+            const blotLen = blot.length();
+            // Apaga também os caracteres do sufixo que ficaram soltos fora do blot
+            const sufixo = textoNovo.slice(textoBlot.length);
+            const textoPosBlot = this.quill.getText(blotIdx + blotLen, sufixo.length);
+            const deleteLen = textoPosBlot === sufixo ? blotLen + sufixo.length : blotLen;
+            const delta = new Delta().retain(blotIdx).delete(deleteLen).insert(textoNovo, { 'remissao-interna': remissao });
+            this.quill.updateContents(delta, 'silent');
+          }
           continue;
         }
       }
