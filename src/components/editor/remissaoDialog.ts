@@ -7,7 +7,6 @@ import { escapeHtml } from '../../util/html-util';
 import { gerarRefId } from '../../model/remissao/refId';
 import { textoParaFragmentoLexmlId } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Norma } from '../../model/emenda/norma';
-import { AutocompleteNorma } from '../autocomplete/autocomplete-norma';
 
 export type TipoRemissao = 'interna' | 'externa';
 
@@ -66,8 +65,6 @@ export async function remissaoDialog(
   const state = rootStore.getState().elementoReducer;
   const articulacao = state.articulacao as Articulacao | undefined;
   const textoSelecionado = quill.getText(range.index, range.length).trim();
-  // Em modo edição, não usar urnInicial — a norma será setada diretamente via setNorma()
-  const urnInicialExt = '';
 
   const dialogElem = document.createElement('sl-dialog');
   document.body.appendChild(dialogElem);
@@ -80,7 +77,12 @@ export async function remissaoDialog(
 
   const dispositivos = articulacao ? buildListaDispositivos(articulacao) : [];
 
-  const content = document.createRange().createContextualFragment(`
+  // Dados atuais para exibição read-only no modo edição externa
+  const normaAtualEdit =
+    isEdicao && modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna ? modoEdicao.valueExterna.targetNomeNorma || modoEdicao.valueExterna.targetUrn || '' : '';
+  const dispositivoAtualEdit = isEdicao && modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna ? modoEdicao.valueExterna.targetTextoDispositivo || '' : '';
+
+  const estilos = `
     <style>
       .remissao-tab-panel {
         display: flex;
@@ -136,108 +138,156 @@ export async function remissaoDialog(
       .empty-state { text-align: center; padding: 24px; color: var(--sl-color-neutral-400); }
       .ajuda-ext { font-size: var(--sl-font-size-small); color: var(--sl-color-neutral-500); }
       .ajuda-ext ul { margin-block-start: 0.3em; margin-block-end: 0; }
+      .edit-tipo-header {
+        display: flex;
+        align-items: center;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--sl-color-neutral-200);
+      }
+      .edit-tipo-badge {
+        display: inline-block;
+        background: var(--sl-color-primary-100);
+        color: var(--sl-color-primary-700);
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        font-weight: 600;
+      }
+      .remissao-resumo {
+        background: var(--sl-color-neutral-50);
+        border: 1px solid var(--sl-color-neutral-200);
+        border-radius: 6px;
+        padding: 10px 14px;
+      }
+      .resumo-label {
+        font-size: 0.8em;
+        color: var(--sl-color-neutral-500);
+        margin-bottom: 4px;
+      }
+      .resumo-norma { font-weight: 600; font-size: 0.95em; }
+      .resumo-dispositivo {
+        font-size: 0.85em;
+        color: var(--sl-color-neutral-600);
+        margin-top: 2px;
+      }
     </style>
+  `;
 
-    <sl-tab-group id="remissao-tab-group">
-      <sl-tab slot="nav" panel="interna">Interna</sl-tab>
-      <sl-tab slot="nav" panel="externa">Externa</sl-tab>
+  const textoSelecionadoHtml = textoSelecionado
+    ? `<div>
+         <div class="texto-selecionado-label">Texto selecionado:</div>
+         <div class="texto-selecionado-valor">"${escapeHtml(textoSelecionado)}"</div>
+       </div>`
+    : '';
 
-      <sl-tab-panel name="interna">
-        <div class="remissao-tab-panel">
-          ${
-            textoSelecionado
-              ? `
-            <div>
-              <div class="texto-selecionado-label">Texto selecionado:</div>
-              <div class="texto-selecionado-valor">"${escapeHtml(textoSelecionado)}"</div>
-            </div>`
-              : ''
-          }
-          <sl-input id="busca-int" placeholder="Digite para buscar dispositivo (ex: art. 1º, § 2º)" clearable size="medium">
-            <span slot="prefix" style="color: var(--sl-color-neutral-500);">🔍</span>
-          </sl-input>
-          <div class="dispositivo-count" id="count-int">Digite para buscar dispositivos</div>
-          <div class="dispositivo-list" id="lista-int">
-            <div class="empty-state">Digite no campo acima para buscar dispositivos</div>
-          </div>
-          <sl-alert id="alerta-int" variant="warning" closable>
-            <span slot="icon" style="color: var(--sl-color-warning-500);">⚠</span>
-            <span id="msg-alerta-int"></span>
-          </sl-alert>
-        </div>
-      </sl-tab-panel>
+  const painelInternaHtml = `
+    <div class="remissao-tab-panel">
+      ${textoSelecionadoHtml}
+      <sl-input id="busca-int" placeholder="Digite para buscar dispositivo (ex: art. 1º, § 2º)" clearable size="medium">
+        <span slot="prefix" style="color: var(--sl-color-neutral-500);">🔍</span>
+      </sl-input>
+      <div class="dispositivo-count" id="count-int">Digite para buscar dispositivos</div>
+      <div class="dispositivo-list" id="lista-int">
+        <div class="empty-state">Digite no campo acima para buscar dispositivos</div>
+      </div>
+      <sl-alert id="alerta-int" variant="warning" closable>
+        <span slot="icon" style="color: var(--sl-color-warning-500);">⚠</span>
+        <span id="msg-alerta-int"></span>
+      </sl-alert>
+    </div>
+  `;
 
-      <sl-tab-panel name="externa">
-        <div class="remissao-tab-panel">
-          ${
-            textoSelecionado
-              ? `
-            <div>
-              <div class="texto-selecionado-label">Texto selecionado:</div>
-              <div class="texto-selecionado-valor">"${escapeHtml(textoSelecionado)}"</div>
-            </div>`
-              : `
-            <div class="sem-selecao-aviso">
-              ⚠ Selecione um trecho do texto no editor antes de criar uma remissão externa.
-            </div>`
-          }
-          <autocomplete-norma id="auto-norma-ext"
-            urlAutocomplete="${urlAutocomplete}"
-            ${urnInicialExt ? `urnInicial="${urnInicialExt}"` : ''}>
-          </autocomplete-norma>
-          <sl-input id="dispositivo-ext"
-            label="Dispositivo (opcional)"
-            placeholder="ex: art. 5º, inciso I do § 3º do art. 12"
-            clearable>
-          </sl-input>
-          <div class="ajuda-ext">
-            Exemplos de formatos aceitos:
-            <ul>
-              <li>art. 5º</li>
-              <li>inciso I do § 3º do art. 12</li>
-              <li>parágrafo único do art. 7º</li>
-              <li>§ 8 art 32</li>
-            </ul>
-          </div>
-          <sl-alert id="alerta-ext" variant="warning" closable>
-            <span slot="icon" style="color: var(--sl-color-warning-500);">⚠</span>
-            <span id="msg-alerta-ext"></span>
-          </sl-alert>
-        </div>
-      </sl-tab-panel>
-    </sl-tab-group>
+  const semSelecaoAvisoHtml =
+    !textoSelecionado && !isEdicao ? `<div class="sem-selecao-aviso">⚠ Selecione um trecho do texto no editor antes de criar uma remissão externa.</div>` : '';
 
+  const resumoExternaHtml =
+    isEdicao && isEdicaoExterna && normaAtualEdit
+      ? `<div class="remissao-resumo">
+         <div class="resumo-label">Remissão atual:</div>
+         <div class="resumo-norma">${escapeHtml(normaAtualEdit)}</div>
+         ${dispositivoAtualEdit ? `<div class="resumo-dispositivo">${escapeHtml(dispositivoAtualEdit)}</div>` : ''}
+       </div>`
+      : '';
+
+  const painelExternaHtml = `
+    <div class="remissao-tab-panel">
+      ${textoSelecionadoHtml}
+      ${semSelecaoAvisoHtml}
+      ${resumoExternaHtml}
+      <autocomplete-norma id="auto-norma-ext" urlAutocomplete="${urlAutocomplete}"></autocomplete-norma>
+      <sl-input id="dispositivo-ext"
+        label="Dispositivo (opcional)"
+        placeholder="ex: art. 5º, inciso I do § 3º do art. 12"
+        clearable>
+      </sl-input>
+      <div class="ajuda-ext">
+        Exemplos de formatos aceitos:
+        <ul>
+          <li>art. 5º</li>
+          <li>inciso I do § 3º do art. 12</li>
+          <li>parágrafo único do art. 7º</li>
+          <li>§ 8 art 32</li>
+        </ul>
+      </div>
+      <sl-alert id="alerta-ext" variant="warning" closable>
+        <span slot="icon" style="color: var(--sl-color-warning-500);">⚠</span>
+        <span id="msg-alerta-ext"></span>
+      </sl-alert>
+    </div>
+  `;
+
+  // Em modo edição: painel único com badge de tipo fixo (sem sl-tab-group).
+  // Em modo criação: sl-tab-group normal com ambas as abas.
+  const corpoHtml = isEdicao
+    ? `<div class="remissao-tab-panel" style="padding-top:0">
+         <div class="edit-tipo-header">
+           <span class="edit-tipo-badge">Remissão ${isEdicaoExterna ? 'Externa' : 'Interna'}</span>
+         </div>
+         ${isEdicaoExterna ? painelExternaHtml : painelInternaHtml}
+       </div>`
+    : `<sl-tab-group id="remissao-tab-group">
+         <sl-tab slot="nav" panel="interna">Interna</sl-tab>
+         <sl-tab slot="nav" panel="externa">Externa</sl-tab>
+         <sl-tab-panel name="interna">${painelInternaHtml}</sl-tab-panel>
+         <sl-tab-panel name="externa">${painelExternaHtml}</sl-tab-panel>
+       </sl-tab-group>`;
+
+  const content = document.createRange().createContextualFragment(`
+    ${estilos}
+    ${corpoHtml}
     <sl-button slot="footer" variant="default" id="btn-cancelar">Cancelar</sl-button>
     <sl-button slot="footer" variant="primary" id="btn-confirmar" disabled>${isEdicao ? 'Salvar' : 'Confirmar'}</sl-button>
   `);
 
   // --- Refs ---
   const listaInt = content.querySelector('#lista-int') as HTMLElement;
-  const inputBuscaInt = content.querySelector('#busca-int') as SlInput;
+  const inputBuscaInt = content.querySelector('#busca-int') as SlInput | null;
   const countInt = content.querySelector('#count-int') as HTMLElement;
   const alertaInt = content.querySelector('#alerta-int') as any;
   const msgAlertaInt = content.querySelector('#msg-alerta-int') as HTMLElement;
 
   const autocompleteNormaExt = content.querySelector('#auto-norma-ext');
-  const dispositivoExtInput = content.querySelector('#dispositivo-ext') as SlInput;
+  const dispositivoExtInput = content.querySelector('#dispositivo-ext') as SlInput | null;
   const alertaExt = content.querySelector('#alerta-ext') as any;
   const msgAlertaExt = content.querySelector('#msg-alerta-ext') as HTMLElement;
 
   const btnCancelar = content.querySelector('#btn-cancelar') as SlButton;
   const btnConfirmar = content.querySelector('#btn-confirmar') as SlButton;
-  const tabGroup = content.querySelector('#remissao-tab-group') as SlTabGroup;
+  const tabGroup = content.querySelector('#remissao-tab-group') as SlTabGroup | null;
 
   // --- State ---
   let abaAtiva: TipoRemissao = abaInicial;
   let dispositivoInternoSelecionado: DispositivoRemissao | null = null;
   let selectedItemElement: HTMLElement | null = null;
-  let normaExternaSelecionada: Norma = new Norma();
+  // Pré-inicializa com os dados existentes para que o botão Salvar seja habilitado imediatamente
+  let normaExternaSelecionada: Norma =
+    isEdicao && modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna ? new Norma(modoEdicao.valueExterna.targetUrn, modoEdicao.valueExterna.targetNomeNorma) : new Norma();
 
   function atualizarEstadoBotao(): void {
     if (abaAtiva === 'interna') {
       btnConfirmar.disabled = !dispositivoInternoSelecionado;
     } else {
-      btnConfirmar.disabled = !textoSelecionado || !normaExternaSelecionada.urn;
+      btnConfirmar.disabled = !normaExternaSelecionada.urn;
     }
   }
 
@@ -294,7 +344,7 @@ export async function remissaoDialog(
   }
 
   function atualizarListaInt(): void {
-    const filtro = inputBuscaInt.value || '';
+    const filtro = inputBuscaInt?.value || '';
     if (!filtro.trim()) {
       listaInt.innerHTML = '<div class="empty-state">Digite no campo acima para buscar dispositivos</div>';
       countInt.textContent = 'Digite para buscar dispositivos';
@@ -310,20 +360,26 @@ export async function remissaoDialog(
     atualizarEstadoBotao();
   }
 
-  inputBuscaInt.addEventListener('sl-input', () => atualizarListaInt());
-  inputBuscaInt.addEventListener('sl-clear', () => atualizarListaInt());
+  if (inputBuscaInt) {
+    inputBuscaInt.addEventListener('sl-input', () => atualizarListaInt());
+    inputBuscaInt.addEventListener('sl-clear', () => atualizarListaInt());
+  }
 
   // --- Aba externa ---
-  autocompleteNormaExt!['onSelect'] = (norma: Norma): void => {
-    normaExternaSelecionada = norma;
-    atualizarEstadoBotao();
-  };
+  if (autocompleteNormaExt) {
+    (autocompleteNormaExt as any)['onSelect'] = (norma: Norma): void => {
+      normaExternaSelecionada = norma;
+      atualizarEstadoBotao();
+    };
+  }
 
-  // --- Troca de aba ---
-  tabGroup.addEventListener('sl-tab-show', (event: any) => {
-    abaAtiva = event.detail.name as TipoRemissao;
-    atualizarEstadoBotao();
-  });
+  // --- Troca de aba (apenas no modo criação) ---
+  if (tabGroup) {
+    tabGroup.addEventListener('sl-tab-show', (event: any) => {
+      abaAtiva = event.detail.name as TipoRemissao;
+      atualizarEstadoBotao();
+    });
+  }
 
   // --- Fechar ---
   function fecharDialogo(): void {
@@ -341,7 +397,7 @@ export async function remissaoDialog(
     if (abaAtiva === 'interna') {
       if (!dispositivoInternoSelecionado) {
         msgAlertaInt.textContent = 'Selecione um dispositivo para criar a remissão.';
-        alertaInt.show();
+        alertaInt?.show();
         return;
       }
       alertaInt?.hide();
@@ -355,30 +411,31 @@ export async function remissaoDialog(
       };
       onRemissaoInternaCriada(value);
     } else {
-      if (!textoSelecionado || !normaExternaSelecionada.urn) {
-        msgAlertaExt.textContent = !textoSelecionado ? 'Selecione um trecho do texto no editor antes de criar uma remissão externa.' : 'Selecione uma norma antes de confirmar.';
-        alertaExt.show();
+      if (!normaExternaSelecionada.urn) {
+        msgAlertaExt.textContent = 'Selecione uma norma antes de confirmar.';
+        alertaExt?.show();
         return;
       }
-      const textoDispositivo = dispositivoExtInput.value?.trim();
+      const textoDispositivo = dispositivoExtInput?.value?.trim();
       let targetFragmento: string | undefined;
       if (textoDispositivo) {
         targetFragmento = textoParaFragmentoLexmlId(textoDispositivo);
         if (!targetFragmento) {
           msgAlertaExt.textContent = 'Dispositivo não identificado. Informe no formato: "art. 5º", "inciso I do § 3º do art. 12"...';
-          alertaExt.show();
+          alertaExt?.show();
           return;
         }
       }
       alertaExt?.hide();
       const refId = modoEdicao?.tipo === 'externa' ? modoEdicao.refId : gerarRefId();
+      const textoRef = textoSelecionado || modoEdicao?.valueExterna?.textoRef || '';
       const value: RemissaoExternaValue = {
         refId,
         targetUrn: normaExternaSelecionada.urn,
         targetNomeNorma: normaExternaSelecionada.nomePreferido,
         targetTextoDispositivo: textoDispositivo || undefined,
         targetFragmento,
-        textoRef: textoSelecionado,
+        textoRef,
       };
       onRemissaoExternaCriada(value);
     }
@@ -389,43 +446,49 @@ export async function remissaoDialog(
   // --- Montar e exibir ---
   quill.blur();
   dialogElem.appendChild(content);
+
+  // Pré-popular lista interna ANTES da animação do diálogo abrir.
+  if (abaInicial === 'interna' && modoEdicao?.tipo === 'interna' && modoEdicao.valueInterna) {
+    const v = modoEdicao.valueInterna;
+    const targetDispositivo =
+      (v.targetUuid ? dispositivos.find(d => d.uuid === v.targetUuid) : null) ?? (v.targetLexmlId ? dispositivos.find(d => d.lexmlId === v.targetLexmlId) : null);
+
+    const filtroInicial = targetDispositivo?.rotulo ?? v.targetRotulo ?? '';
+    const filtrados = filtroInicial ? filtrarDispositivos(dispositivos, filtroInicial) : dispositivos;
+    renderizarDispositivos(filtrados);
+
+    if (targetDispositivo) {
+      const itemAtual = listaInt.querySelector(`[data-uuid="${targetDispositivo.uuid}"]`) as HTMLElement | null;
+      if (itemAtual) {
+        itemAtual.classList.add('selected');
+        selectedItemElement = itemAtual;
+        dispositivoInternoSelecionado = targetDispositivo;
+      }
+    }
+  }
+
+  // Pré-preencher dispositivo para edição externa (sl-input simples, sem dependência async)
+  if (isEdicao && modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna?.targetTextoDispositivo && dispositivoExtInput) {
+    dispositivoExtInput.value = modoEdicao.valueExterna.targetTextoDispositivo;
+  }
+
+  // Habilitar Salvar imediatamente no modo edição (estado já pré-inicializado)
+  if (isEdicao) {
+    atualizarEstadoBotao();
+  }
+
   await dialogElem.show();
 
-  // Troca para a aba correta e preenche os dados DEPOIS da troca,
-  // garantindo que os elementos estejam visíveis e inicializados.
+  // Após a animação: foco e scroll para o item selecionado (modo interna).
   setTimeout(() => {
-    if (abaInicial === 'externa') {
-      (tabGroup as any).show('externa');
-      abaAtiva = 'externa'; // garante que atualizarEstadoBotao usa a aba correta
-      if (modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna) {
-        const v = modoEdicao.valueExterna;
-        if (v.targetTextoDispositivo) {
-          dispositivoExtInput.value = v.targetTextoDispositivo;
-        }
-        const norma = new Norma(v.targetUrn, v.targetNomeNorma);
-        (autocompleteNormaExt as AutocompleteNorma).setNorma(norma);
-      }
-    } else {
+    if (inputBuscaInt) {
       if (modoEdicao?.tipo === 'interna' && modoEdicao.valueInterna) {
         const v = modoEdicao.valueInterna;
-        // Busca o dispositivo pelo uuid (ou pelo lexmlId como fallback para remissões carregadas do XML)
         const targetDispositivo =
           (v.targetUuid ? dispositivos.find(d => d.uuid === v.targetUuid) : null) ?? (v.targetLexmlId ? dispositivos.find(d => d.lexmlId === v.targetLexmlId) : null);
-
-        const filtroInicial = targetDispositivo?.rotulo ?? v.targetRotulo ?? '';
-        inputBuscaInt.value = filtroInicial;
-        const filtrados = filtroInicial ? filtrarDispositivos(dispositivos, filtroInicial) : dispositivos;
-        renderizarDispositivos(filtrados);
-
-        if (targetDispositivo) {
-          const itemAtual = listaInt.querySelector(`[data-uuid="${targetDispositivo.uuid}"]`) as HTMLElement | null;
-          if (itemAtual) {
-            itemAtual.classList.add('selected');
-            selectedItemElement = itemAtual;
-            dispositivoInternoSelecionado = targetDispositivo;
-            atualizarEstadoBotao();
-            setTimeout(() => itemAtual.scrollIntoView({ block: 'nearest' }), 50);
-          }
+        inputBuscaInt.value = targetDispositivo?.rotulo ?? v.targetRotulo ?? '';
+        if (selectedItemElement) {
+          setTimeout(() => selectedItemElement?.scrollIntoView({ block: 'nearest' }), 50);
         }
       }
       inputBuscaInt.focus();
