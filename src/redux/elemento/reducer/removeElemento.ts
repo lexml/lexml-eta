@@ -1,4 +1,5 @@
 import { createElemento, createElementoValidadoComExtras, listaDispositivosRenumerados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { Alerta } from '../../../model/alerta/alerta';
 import { State, StateType } from '../../state';
 import {
   findDispositivoByUuid,
@@ -46,7 +47,12 @@ export const removeElemento = (state: any, action: any): State => {
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  const { novoRegistroRemissoes, eventosRemissao } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds, mapeamentoLexmlIds);
+  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(
+    state.remissoes,
+    state.articulacao,
+    dispositivosRemovidosIds,
+    mapeamentoLexmlIds
+  );
   events.push(...eventosRemissao);
 
   if (elPrimeiroFilhoDoAgrupador) {
@@ -58,6 +64,10 @@ export const removeElemento = (state: any, action: any): State => {
     events.push({ stateType: StateType.SituacaoElementoModificada, elementos: [createElemento(state.articulacao.projetoNorma.ementa)] });
   }
 
+  const alertasExistentes: Alerta[] = state.ui?.alertas ?? [];
+  const alertasNovosDeduplicados = novosAlertas.filter(a => !alertasExistentes.some(e => e.id === a.id));
+  const alertas = alertasNovosDeduplicados.length > 0 ? [...alertasExistentes, ...alertasNovosDeduplicados] : alertasExistentes;
+
   return {
     articulacao: state.articulacao,
     modo: state.modo,
@@ -66,7 +76,7 @@ export const removeElemento = (state: any, action: any): State => {
     future: [],
     ui: {
       events,
-      alertas: state.ui?.alertas,
+      alertas,
     },
     remissoes: novoRegistroRemissoes,
     mensagensCritical: state.mensagensCritical,
@@ -161,10 +171,11 @@ export const construirEventosRemissaoParaRemocao = (
   articulacao: any,
   dispositivosRemovidosIds: Array<{ lexmlId: string; uuid: number }>,
   mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }>
-): { novoRegistroRemissoes: Record<number, any[]> | undefined; eventosRemissao: any[] } => {
+): { novoRegistroRemissoes: Record<number, any[]> | undefined; eventosRemissao: any[]; novosAlertas: Alerta[] } => {
   const lexmlIdsRemovidos = dispositivosRemovidosIds.map(d => d.lexmlId);
   const novoRegistroRemissoes = marcarRemissoesComoInvalidas(remissoes, lexmlIdsRemovidos);
   const eventosRemissao: any[] = [];
+  const novosAlertas: Alerta[] = [];
 
   if (novoRegistroRemissoes && lexmlIdsRemovidos.length > 0) {
     const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.' };
@@ -184,6 +195,13 @@ export const construirEventosRemissaoParaRemocao = (
         eventosRemissao.push({
           stateType: StateType.ElementoValidado,
           elementos: [createElementoValidadoComExtras(dispositivoOrigem, [mensagemInvalida])],
+        });
+        const rotulo = dispositivoOrigem.rotulo ?? 'Dispositivo';
+        novosAlertas.push({
+          id: `alerta-remissao-invalida-${sourceUuid}`,
+          tipo: TipoMensagem.ERROR,
+          mensagem: `${rotulo} contém remissão inválida para dispositivo excluído.`,
+          podeFechar: true,
         });
       }
     }
@@ -211,7 +229,7 @@ export const construirEventosRemissaoParaRemocao = (
     }
   });
 
-  return { novoRegistroRemissoes, eventosRemissao };
+  return { novoRegistroRemissoes, eventosRemissao, novosAlertas };
 };
 
 const marcarRemissoesComoInvalidas = (registroAtual: Record<number, any[]> | undefined, lexmlIdsRemovidos: string[]): Record<number, any[]> | undefined => {

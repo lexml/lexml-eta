@@ -32,13 +32,16 @@ export const removerRemissaoInvalida = (state: any, action: any): State => {
   }
 
   let elementoValidado;
+  let alertas = state.ui?.alertas ?? [];
   if (invalidasRestantes.length > 0) {
-    // Ainda há links inválidos — mantém a mensagem
+    // Ainda há links inválidos — mantém a mensagem e o alerta
     const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
     elementoValidado = createElementoValidadoComExtras(dispositivo, [mensagemInvalida]);
   } else {
-    // Todos os links inválidos foram removidos — sem mensagem extra
+    // Todos os links inválidos foram removidos — sem mensagem extra, remove o alerta
     elementoValidado = createElementoValidado(dispositivo);
+    const idAlerta = `alerta-remissao-invalida-${action.sourceUuid}`;
+    alertas = alertas.filter((a: any) => a.id !== idAlerta);
   }
 
   const events = [{ stateType: StateType.ElementoValidado, elementos: [elementoValidado] }];
@@ -46,6 +49,6 @@ export const removerRemissaoInvalida = (state: any, action: any): State => {
   return {
     ...state,
     remissoes: novoRegistro,
-    ui: { ...state.ui, events },
+    ui: { ...state.ui, events, alertas },
   };
 };

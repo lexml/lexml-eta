@@ -2123,7 +2123,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const linhaParaAtualizar = this.quill.linhaAtual;
       novoValue.refId = value.refId!;
       remissaoModule.adicionarRemissao(value.refId!, novoValue);
+      // Remove CSS inválido do blot editado para restaurar navegação e visual
+      remissaoModule.restaurarRemissao(value.refId!);
       if (linhaParaAtualizar?.blotConteudo) {
+        // Força a limpeza da entrada inválida para garantir a consistência (evita bloqueio no adicionarRemissaoInterna).
+        rootStore.dispatch(
+          removerRemissaoInvalidaAction(
+            linhaParaAtualizar.uuid!,
+            remissaoModule.getRemissoes().filter((r: RemissaoInternaValue) => r.refId !== value.refId!)
+          )
+        );
         const elemento = this.criarElemento(
           linhaParaAtualizar.uuid,
           linhaParaAtualizar.uuid2,
