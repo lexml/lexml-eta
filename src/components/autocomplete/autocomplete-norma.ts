@@ -80,6 +80,24 @@ export class AutocompleteNorma extends LitElement {
         this._autoCompleteAsync.value = norma.nomePreferido;
       }
     });
+    // Busca dados completos (inclui ementa) se não disponíveis
+    if (!norma.ementa && norma.urn) {
+      this._buscarEPreencherNorma(norma.urn);
+    }
+  }
+
+  private _buscarEPreencherNorma(urn: string): void {
+    const aux = new Norma(urn);
+    const query = `${aux.sData()} ${aux.numero()}`;
+    this._searchNormas(query).then(normas => {
+      const encontrada = normas.find(n => n.urn === urn);
+      if (encontrada) {
+        this._selectedNorma = encontrada;
+        if (this._autoCompleteAsync) {
+          this._autoCompleteAsync.value = encontrada.nomePreferido;
+        }
+      }
+    });
   }
 
   firstUpdated(): void {
