@@ -116,7 +116,7 @@ export class AutocompleteAsync extends LitElement {
           type="text"
           label=${this.label}
           placeholder=${this.placeholder}
-          .value=${this.value?.description || ''}
+          .value=${this.value?.description ?? this.value ?? ''}
           @change=${e => this._handleChange(e.target.value)}
           @click=${e => this._handleClick(e.target.value)}
           ?disabled=${this.disabled}
