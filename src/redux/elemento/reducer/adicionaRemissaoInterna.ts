@@ -9,6 +9,7 @@ import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from 
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { stripHtml } from '../../../util/html-util';
 import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isCaput } from '../../../model/dispositivo/tipo';
 import { atualizarTextoRemissao } from '../../../model/remissao/lexmlIdUtil';
 
 interface ReferenciaEncontrada {
@@ -571,6 +572,17 @@ export const completarRegistroRemissoes = (articulacao: Articulacao, registroExi
   percorreHierarquiaDispositivos(articulacao as unknown as Dispositivo, dispositivo => {
     if (!dispositivo.texto || dispositivo.uuid === undefined) return;
     if (registroCompleto[dispositivo.uuid] !== undefined) return;
+
+    // Caput: o registry runtime usa artigo.uuid como chave (não caput.uuid). Propagar
+    // evita re-detecção do texto plain que criaria entradas válidas falsas quando o
+    // artigo pai já tem entradas (inclusive inválidas após exclusão do destino).
+    if (isCaput(dispositivo) && dispositivo.pai?.uuid !== undefined) {
+      const entriesArtigoPai = registroCompleto[dispositivo.pai.uuid];
+      if (entriesArtigoPai !== undefined) {
+        registroCompleto[dispositivo.uuid] = entriesArtigoPai;
+        return;
+      }
+    }
 
     const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao);
     if (remissoesEncontradas.length > 0) {

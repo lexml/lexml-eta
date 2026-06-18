@@ -540,7 +540,12 @@ const injetarLinksRemissaoExternaNoTexto = (texto: string, entries: RemissaoExte
 const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValue[]): string => {
   if (!texto) return texto;
   const faltando = entries.filter(e => {
-    if (e.valida === false || !e.textoRef || !e.targetLexmlId) return false;
+    if (!e.textoRef) return false;
+    // Entradas inválidas: injetar sentinel @invalido no texto plain; em HTML já corrigido
+    // por corrigirLexmlRefsObsoletosNoTexto, a injeção falhará silenciosamente (posição
+    // não coincide com o textoRef dentro do <a>, e substituirTextoRefForaDeLinks é pulado).
+    if (e.valida === false) return true;
+    if (!e.targetLexmlId) return false;
     // Permite múltiplos links para o mesmo alvo se houver posição exata; caso contrário, evita reinjeção.
     if (e.inicio !== undefined) return true;
     return !texto.includes(`data-lexml-ref="${e.targetLexmlId}"`);
@@ -552,14 +557,18 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
 
   let resultado = texto;
   for (const entry of ordenados) {
-    const link = `<a href="${entry.targetLexmlId}" data-lexml-ref="${entry.targetLexmlId}" class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
+    const targetId = entry.valida === false ? '@invalido' : entry.targetLexmlId!;
+    const link = `<a href="${targetId}" data-lexml-ref="${targetId}" class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
     // texto simples — inicio aponta diretamente para a posição no texto
     if (entry.inicio !== undefined && resultado.substring(entry.inicio, entry.inicio + entry.textoRef!.length) === entry.textoRef) {
       resultado = resultado.substring(0, entry.inicio) + link + resultado.substring(entry.inicio + entry.textoRef!.length);
       continue;
     }
-    // HTML com links existentes — substituir fora dos <a> existentes
-    resultado = substituirTextoRefForaDeLinks(resultado, entry.textoRef!, entry.targetLexmlId!);
+    // HTML com links existentes — substituir fora dos <a> existentes (apenas para entradas válidas;
+    // inválidas já foram corrigidas por corrigirLexmlRefsObsoletosNoTexto ou texto é plain sem link).
+    if (entry.valida !== false) {
+      resultado = substituirTextoRefForaDeLinks(resultado, entry.textoRef!, targetId);
+    }
   }
   return resultado;
 };
@@ -602,7 +611,12 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
     if (!targetUuid) return match;
 
     const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, targetUuid, true);
-    if (!destino?.id || destino.id === lexmlIdAntigo) return match;
+    if (!destino) {
+      // Dispositivo excluído — usar sentinela para evitar confusão com IDs reciclados após renumeração.
+      const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, 'data-lexml-ref="@invalido"').replace(REGEX_HREF_LXETAID, 'href="@invalido"');
+      return `<a${novosAtributos}>${conteudo}</a>`;
+    }
+    if (!destino.id || destino.id === lexmlIdAntigo) return match;
 
     const lexmlIdNovo = destino.id;
     const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, `data-lexml-ref="${lexmlIdNovo}"`);
