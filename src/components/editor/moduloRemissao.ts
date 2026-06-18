@@ -569,7 +569,9 @@ class ModuloRemissao extends Module {
   }
 
   marcarRemissoesComoInvalidas(lexmlId: string): number {
-    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlId)}"]`);
+    const escapedId = CSS.escape(lexmlId);
+    // Fallback por href: após recriação do blot, data-lexml-ref é removido quando não há data-ref-id.
+    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${escapedId}"], a.lexml-remissao-interna[href="${escapedId}"]`);
     let count = 0;
 
     links.forEach((link: Element) => {
@@ -578,8 +580,11 @@ class ModuloRemissao extends Module {
 
       if (dataRefId) {
         this.marcarComoInvalida(dataRefId);
-        count++;
+      } else {
+        // Link carregado do disco sem data-ref-id (destino excluído): aplica CSS diretamente no elemento.
+        el.classList.add('lexml-remissao-invalida');
       }
+      count++;
     });
 
     return count;
@@ -693,6 +698,15 @@ class ModuloRemissao extends Module {
           }
           continue;
         }
+      }
+
+      // Entrada inválida carregada do disco: blot existe no DOM com data-lexml-ref, mas sem data-ref-id do registry.
+      // Aplica a marcação CSS usando targetLexmlId (que corresponde ao data-lexml-ref no DOM).
+      if (remissao.valida === false) {
+        if (remissao.targetLexmlId) {
+          this.marcarRemissoesComoInvalidas(remissao.targetLexmlId);
+        }
+        continue;
       }
 
       const textoRef = remissao.textoRef;

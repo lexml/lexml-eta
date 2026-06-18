@@ -78,7 +78,7 @@ import { buscaDispositivoById, findDispositivoByUuid } from '../../model/lexml/h
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { getElementos, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
+import { getElementos, getDispositivoFromElemento, createElementoValidadoComExtras } from '../../model/elemento/elementoUtil';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
@@ -88,6 +88,7 @@ import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionar
 import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
+import { MENSAGEM_REMISSAO_INVALIDA } from '../../model/remissao/remissao';
 import { adicionarRemissaoExternaAction } from '../../model/lexml/acao/adicionarRemissaoExternaAction';
 import { removerRemissaoExternaAction } from '../../model/lexml/acao/removerRemissaoExternaAction';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
@@ -1958,12 +1959,25 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private ativarRemissoesInternas(): void {
-    const remissoes = rootStore.getState()?.elementoReducer?.remissoes;
+    const elementoState = rootStore.getState()?.elementoReducer;
+    const remissoes = elementoState?.remissoes;
     if (!remissoes || Object.keys(remissoes).length === 0) return;
     const remissaoModule = this.quill?.getModule('remissaoInterna');
     if (!remissaoModule) return;
+    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
     for (const uuid of Object.keys(remissoes)) {
-      remissaoModule.renderizarRemissoesDoState(remissoes, parseInt(uuid, 10));
+      const uuidNum = parseInt(uuid, 10);
+      remissaoModule.renderizarRemissoesDoState(remissoes, uuidNum);
+      // Aplica mensagem de pendência para remissões inválidas carregadas do disco
+      // (os eventos ElementoValidado emitidos por load() chegam antes do DOM do Quill existir)
+      const temInvalidas = remissoes[uuidNum]?.some((r: any) => r.valida === false);
+      if (temInvalidas) {
+        const dispositivo = findDispositivoByUuid(elementoState.articulacao, uuidNum, true);
+        if (dispositivo) {
+          const elementoValidado = createElementoValidadoComExtras(dispositivo, [mensagemInvalida]);
+          this.atualizarMensagemQuill({ stateType: StateType.ElementoValidado, elementos: [elementoValidado] });
+        }
+      }
     }
   }
 
