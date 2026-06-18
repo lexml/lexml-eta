@@ -1,4 +1,4 @@
-# Editor de Textos Articulados
+# uEditor de Textos Articulados
 
 <p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas, inclusive emendas.</p>
 
