@@ -717,7 +717,7 @@ describe('Serialização de remissão interna', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
-      (caput as any).texto = '<a href="#lxEtaId42" data-lexml-ref="art5_cpt" class="lexml-remissao-interna" target="_self">art. 5</a>';
+      (caput as any).texto = '<a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna" target="_self">art. 5</a>';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
@@ -789,7 +789,7 @@ describe('Serialização de remissão interna', () => {
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
       (caput as any).texto =
-        'Ver o <a href="#lxEtaId5" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a> e o <a href="#lxEtaId10" data-lexml-ref="art10_cpt" class="lexml-remissao-interna">art. 10</a> desta lei.';
+        'Ver o <a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a> e o <a href="art10_cpt" data-lexml-ref="art10_cpt" class="lexml-remissao-interna">art. 10</a> desta lei.';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
@@ -808,7 +808,7 @@ describe('Serialização de remissão interna', () => {
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
       (caput as any).texto =
-        'Veja <a href="#lxEtaId5" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a> e <a href="urn:lex:br:federal:lei:2020-01-01;123">Lei 123</a>.';
+        'Veja <a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a> e <a href="urn:lex:br:federal:lei:2020-01-01;123">Lei 123</a>.';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
@@ -829,7 +829,7 @@ describe('Serialização de remissão interna', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
-      (caput as any).texto = '<b>o <a href="#lxEtaId5" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a></b>';
+      (caput as any).texto = '<b>o <a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a></b>';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
@@ -853,7 +853,7 @@ describe('Serialização de remissão interna', () => {
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
       (caput as any).texto =
         'No <span data-lexml-ref="art2_cpt_inc2" data-ref-id="ref_123">' +
-        '<a href="#lxEtaId42" data-lexml-ref="art2_cpt_inc2" class="lexml-remissao-interna" target="_self">' +
+        '<a href="art2_cpt_inc2" data-lexml-ref="art2_cpt_inc2" class="lexml-remissao-interna" target="_self">' +
         'inciso II deste artigo</a></span> bla bla bla.';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
@@ -875,7 +875,7 @@ describe('Serialização de remissão interna', () => {
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
       (caput as any).texto =
         'Esebla bla bla no <span data-lexml-ref="art2_cpt_inc2" data-ref-id="ref_abc">' +
-        '<a href="#lxEtaId10" data-lexml-ref="art2_cpt_inc2" class="lexml-remissao-interna" target="_self">' +
+        '<a href="art2_cpt_inc2" data-lexml-ref="art2_cpt_inc2" class="lexml-remissao-interna" target="_self">' +
         'inciso II deste artigo</a></span> bla bla bla.';
 
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
@@ -997,7 +997,7 @@ describe('Injeção de remissões a partir do registry', () => {
       expect(content[2]).to.equal(' desta lei.');
     });
 
-    it('não deve injetar entradas com valida === false', () => {
+    it('deve injetar sentinel @invalido para entradas com valida === false (texto plain)', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
@@ -1022,7 +1022,8 @@ describe('Injeção de remissões a partir do registry', () => {
       const content = getCaputContent(resultado);
 
       const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
-      expect(remissao).to.be.undefined;
+      expect(remissao, 'deve existir nó Remissao com sentinel @invalido').to.exist;
+      expect(remissao.value.href).to.equal('@invalido');
     });
 
     it('não deve duplicar link já presente no texto', () => {
@@ -1182,7 +1183,7 @@ describe('Injeção de remissões a partir do registry', () => {
       expect(remissao.value.href).to.equal('art2');
     });
 
-    it('não deve tocar links cujo destino aponta para uuid inexistente na articulação', () => {
+    it('deve usar sentinela quando uuid não existe na articulação (dispositivo excluído)', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
@@ -1191,7 +1192,7 @@ describe('Injeção de remissões a partir do registry', () => {
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
       const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
-      expect(remissao.value.href).to.equal('artObsoleto');
+      expect(remissao.value.href).to.equal('@invalido');
     });
   });
 });
