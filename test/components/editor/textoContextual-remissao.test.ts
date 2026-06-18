@@ -26,6 +26,9 @@ function criarMockQuill(rootElement: HTMLElement): any {
     updateContents: (): void => {
       /* empty */
     },
+    on: (): void => {
+      /* empty */
+    },
     clipboard: {
       addMatcher: (): void => {
         /* empty */

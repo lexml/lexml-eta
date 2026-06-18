@@ -30,6 +30,9 @@ describe('Remover Remissão - Etapa 5', () => {
         //empty
       },
       getIndex: () => 0,
+      on: (): void => {
+        //empty
+      },
       clipboard: {
         addMatcher: (): void => {
           //empty
@@ -412,13 +415,21 @@ describe('Remover Remissão - Interação com Registry', () => {
       getFormat: () => ({
         'remissao-interna': { refId: 'ref_para_remover' },
       }),
+      getLeaf: () => [null, 0],
+      getIndex: () => 0,
       format: (): void => {
+        //empty
+      },
+      on: (): void => {
         //empty
       },
       clipboard: {
         addMatcher: (): void => {
           //empty
         },
+      },
+      scroll: {
+        descendant: () => [null, 0],
       },
     };
 

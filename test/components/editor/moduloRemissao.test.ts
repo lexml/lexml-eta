@@ -25,6 +25,9 @@ function criarMockQuill(rootElement: HTMLElement): any {
     updateContents: (): void => {
       //empty
     },
+    on: (): void => {
+      //empty
+    },
     clipboard: {
       addMatcher: (): void => {
         //empty
@@ -787,6 +790,9 @@ describe('marcarRemissoesComoInvalidas / restaurarRemissoesPorLexmlId', () => {
       },
       getIndex: () => 0,
       updateContents: (): void => {
+        /* vazio */
+      },
+      on: (): void => {
         /* vazio */
       },
       clipboard: {
