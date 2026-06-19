@@ -36,6 +36,23 @@ describe('Detecção de Remissões Compostas', () => {
       expect(ids).to.include('art2');
       expect(ids).to.include('art3');
     });
+
+    it('[CT-R4] "artigo 2" (por extenso, sem ordinal) → 1 remissão para art2', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Ver o artigo 2 desta lei.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2');
+      expect(remissoes[0].textoRef).to.equal('artigo 2');
+    });
+
+    it('[CT-R5] "artigo 2º" (por extenso, com ordinal) → 1 remissão para art2', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Ver o artigo 2º desta lei.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2');
+    });
   });
 
   // ── Composto: artigo + parágrafo ───────────────────────────────────────────

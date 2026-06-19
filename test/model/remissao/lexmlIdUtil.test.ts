@@ -547,9 +547,16 @@ describe('lexmlIdUtil', () => {
         expect(atualizarTextoRemissao('art. 25', 'art25', 'art26')).to.equal('art. 26');
       });
 
-      it('textoAtual com variante tipográfica ("artigo 5º"): preservado como texto customizado', () => {
-        // "artigo 5º" != canônico "art. 5º" -> não é gerado automaticamente -> preservado
-        expect(atualizarTextoRemissao('artigo 5º', 'art5', 'art6')).to.equal('artigo 5º');
+      it('"artigo 5º" (por extenso, com ordinal): atualiza para "artigo 6º" ao renumerar', () => {
+        expect(atualizarTextoRemissao('artigo 5º', 'art5', 'art6')).to.equal('artigo 6º');
+      });
+
+      it('"artigo 2" (por extenso, sem ordinal): deve atualizar para "artigo 3" ao renumerar', () => {
+        expect(atualizarTextoRemissao('artigo 2', 'art2', 'art3')).to.equal('artigo 3');
+      });
+
+      it('"artigo 2º" (por extenso, com ordinal): deve atualizar para "artigo 3º" ao renumerar', () => {
+        expect(atualizarTextoRemissao('artigo 2º', 'art2', 'art3')).to.equal('artigo 3º');
       });
 
       it('textoAtual abreviado diferente: sobreposto pelo canônico', () => {
