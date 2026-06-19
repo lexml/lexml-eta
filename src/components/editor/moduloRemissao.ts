@@ -682,18 +682,24 @@ class ModuloRemissao extends Module {
       if (linkExistente) {
         const blot = Quill.find(linkExistente);
         if (blot?.statics?.blotName === 'remissao-interna') {
-          // Se textoRef cresceu por sufixo (ex: "Art. 1" → "Art. 1º"), atualiza o blot.
           // Usa 'silent' para não disparar observableSelectionChange (que só notifica ao mudar de linha).
           const textoBlot = (linkExistente.textContent || '').trim();
           const textoNovo = (remissao.textoRef || '').trim();
           if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
+            // Caso 1: texto cresceu por sufixo (ex: "art. 1" → "art. 1º").
+            // Apaga também os caracteres do sufixo que ficaram soltos fora do blot.
             const blotIdx = blot.offset(this.quill.scroll);
             const blotLen = blot.length();
-            // Apaga também os caracteres do sufixo que ficaram soltos fora do blot
             const sufixo = textoNovo.slice(textoBlot.length);
             const textoPosBlot = this.quill.getText(blotIdx + blotLen, sufixo.length);
             const deleteLen = textoPosBlot === sufixo ? blotLen + sufixo.length : blotLen;
             const delta = new Delta().retain(blotIdx).delete(deleteLen).insert(textoNovo, { 'remissao-interna': remissao });
+            this.quill.updateContents(delta, 'silent');
+          } else if (textoNovo !== textoBlot && textoNovo.length > 0) {
+            // Caso 2: texto mudou sem crescer por sufixo (ex: "artigo 2" → "artigo 3").
+            const blotIdx = blot.offset(this.quill.scroll);
+            const blotLen = blot.length();
+            const delta = new Delta().retain(blotIdx).delete(blotLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
           }
           continue;
