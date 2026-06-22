@@ -173,7 +173,8 @@ export const construirEventosRemissaoParaRemocao = (
   mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }>
 ): { novoRegistroRemissoes: Record<number, any[]> | undefined; eventosRemissao: any[]; novosAlertas: Alerta[] } => {
   const lexmlIdsRemovidos = dispositivosRemovidosIds.map(d => d.lexmlId);
-  const novoRegistroRemissoes = marcarRemissoesComoInvalidas(remissoes, lexmlIdsRemovidos);
+  const uuidsRemovidos = new Set(dispositivosRemovidosIds.map(d => d.uuid));
+  const novoRegistroRemissoes = marcarRemissoesComoInvalidas(remissoes, lexmlIdsRemovidos, uuidsRemovidos);
   const eventosRemissao: any[] = [];
   const novosAlertas: Alerta[] = [];
 
@@ -184,7 +185,7 @@ export const construirEventosRemissaoParaRemocao = (
     for (const uuidStr of Object.keys(novoRegistroRemissoes)) {
       const uuid = Number(uuidStr);
       const remissoesOrigem = novoRegistroRemissoes[uuid];
-      if (remissoesOrigem.some((r: any) => lexmlIdsRemovidos.includes(r.targetLexmlId) && r.valida === false)) {
+      if (remissoesOrigem.some((r: any) => r.valida === false && (r.targetUuid === undefined || uuidsRemovidos.has(r.targetUuid)))) {
         sourceUuidsAfetados.add(uuid);
       }
     }
@@ -232,7 +233,11 @@ export const construirEventosRemissaoParaRemocao = (
   return { novoRegistroRemissoes, eventosRemissao, novosAlertas };
 };
 
-const marcarRemissoesComoInvalidas = (registroAtual: Record<number, any[]> | undefined, lexmlIdsRemovidos: string[]): Record<number, any[]> | undefined => {
+const marcarRemissoesComoInvalidas = (
+  registroAtual: Record<number, any[]> | undefined,
+  lexmlIdsRemovidos: string[],
+  uuidsRemovidos: Set<number>
+): Record<number, any[]> | undefined => {
   if (!lexmlIdsRemovidos.length || !registroAtual) {
     return registroAtual;
   }
@@ -243,7 +248,9 @@ const marcarRemissoesComoInvalidas = (registroAtual: Record<number, any[]> | und
   for (const uuid of Object.keys(registroAtual)) {
     const remissoes = registroAtual[Number(uuid)];
     novoRegistro[Number(uuid)] = remissoes.map((r: any) => {
-      if (lexmlIdsRemovidos.includes(r.targetLexmlId) && r.valida !== false) {
+      // Valida a exclusão pelo targetUuid (imutável), pois lexmlIds defasados no state podem gerar falsos positivos de remoção.
+      const destinoFoiRemovido = lexmlIdsRemovidos.includes(r.targetLexmlId) && (r.targetUuid === undefined || uuidsRemovidos.has(r.targetUuid));
+      if (destinoFoiRemovido && r.valida !== false) {
         houveAlteracao = true;
         return { ...r, valida: false };
       }

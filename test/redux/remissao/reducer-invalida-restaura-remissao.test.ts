@@ -3,6 +3,9 @@ import { State, StateType } from '../../../src/redux/state';
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
+import { adicionarArtigoAntes } from '../../../src/model/lexml/acao/adicionarElementoAction';
+import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
+import { createElemento } from '../../../src/model/elemento/elementoUtil';
 
 describe('Invalidação e Restauração de Remissões', () => {
   let state: State;
@@ -197,6 +200,77 @@ describe('Invalidação e Restauração de Remissões', () => {
       const novoArt2 = stateRemoved.articulacao!.filhos.find((d: any) => d.id === 'art2');
       expect(novoArt2?.uuid).to.not.equal(uuidArt2, 'o novo art2 é o antigo art3, com uuid diferente');
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Regressão: remissão válida não deve ser invalidada após inserção + exclusão
+// Cenário: Art. 3 → Art. 2 | insere novo Art. 2 (antigo Art. 2 vira Art. 3,
+// Art. 3 vira Art. 4) | exclui novo Art. 2 → Art. 3 volta a existir, remissão
+// do Art. 3 (antigo Art. 4) para Art. 2 (antigo Art. 3) continua válida.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Regressão: remissão válida não deve ser invalidada por exclusão de art. intercalado', () => {
+  it('não deve marcar como inválida remissão cujo targetUuid não é o dispositivo excluído', () => {
+    // Monta: Art. 1, Art. 2 (uuid=uuidArt2), Art. 3 (uuid=uuidArt3)
+    const { state: estadoInicial, artigos } = criaStateComNArtigos(3);
+    const art2Original = artigos[1]; // uuid estável mesmo após renumeração
+    const art3Original = artigos[2]; // contém a remissão para Art. 2
+
+    // Simula o registry de remissões: Art. 3 aponta para Art. 2 (pelo lexmlId pré-inserção)
+    const estadoComRemissao: State = {
+      ...estadoInicial,
+      remissoes: {
+        [art3Original.uuid!]: [{ refId: 'ref-art2', targetLexmlId: art2Original.id, targetUuid: art2Original.uuid }],
+      },
+    };
+
+    // Insere novo Art. 2 antes do Art. 2 existente
+    // Resultado: Art. 1 | Novo Art. 2 | Art. 3 (antigo Art. 2) | Art. 4 (antigo Art. 3)
+    // adicionaElemento emite RemissaoRenumerada mas NÃO atualiza state.remissoes.
+    const elementoArt2 = createElemento(art2Original, true);
+    const acaoAdicionar = adicionarArtigoAntes.execute(elementoArt2);
+    const estadoAposInsercao = elementoReducer(estadoComRemissao, acaoAdicionar);
+
+    // Localiza o novo Art. 2 recém-inserido (lexmlId="art2" na articulação pós-inserção)
+    const novoArt2 = estadoAposInsercao.articulacao!.artigos.find((a: any) => a.id === 'art2');
+    expect(novoArt2).to.exist;
+    expect(novoArt2!.uuid).to.not.equal(art2Original.uuid, 'novo art2 deve ter uuid distinto do original');
+
+    // Remove o recém-criado Art. 2
+    const estadoAposRemocao = removeElemento(estadoAposInsercao, { atual: { uuid: novoArt2!.uuid } });
+
+    // A remissão em art3Original (agora Art. 3 novamente) ainda aponta para art2Original (agora Art. 2 novamente).
+    // Deve permanecer válida — targetUuid é o art2Original, não o novoArt2.
+    const remissoes = (estadoAposRemocao.remissoes as any)?.[art3Original.uuid!];
+    expect(remissoes).to.exist;
+    expect(remissoes[0].valida).to.not.equal(false, 'remissão para dispositivo existente não deve ser marcada como inválida');
+  });
+
+  it('não deve emitir ElementoValidado com mensagem de remissão inválida para o dispositivo de origem', () => {
+    const { state: estadoInicial, artigos } = criaStateComNArtigos(3);
+    const art2Original = artigos[1];
+    const art3Original = artigos[2];
+
+    const estadoComRemissao: State = {
+      ...estadoInicial,
+      remissoes: {
+        [art3Original.uuid!]: [{ refId: 'ref-art2', targetLexmlId: art2Original.id, targetUuid: art2Original.uuid }],
+      },
+    };
+
+    const elementoArt2 = createElemento(art2Original, true);
+    const acaoAdicionar = adicionarArtigoAntes.execute(elementoArt2);
+    const estadoAposInsercao = elementoReducer(estadoComRemissao, acaoAdicionar);
+
+    const novoArt2 = estadoAposInsercao.articulacao!.artigos.find((a: any) => a.id === 'art2');
+    const estadoAposRemocao = removeElemento(estadoAposInsercao, { atual: { uuid: novoArt2!.uuid } });
+
+    // Não deve haver ElementoValidado com mensagem de remissão inválida para art3Original
+    const eventosValidado = estadoAposRemocao.ui?.events.filter(
+      (ev: any) => ev.stateType === StateType.ElementoValidado && ev.elementos?.some((el: any) => el.uuid === art3Original.uuid)
+    );
+    const temMensagemInvalida = eventosValidado?.some((ev: any) => ev.elementos?.some((el: any) => el.mensagensValidacao?.some((m: any) => m.descricao?.includes('excluído'))));
+    expect(temMensagemInvalida).to.equal(false, 'não deve emitir alerta de remissão inválida para dispositivo cujo alvo ainda existe');
   });
 });
 
