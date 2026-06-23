@@ -118,6 +118,9 @@ export const undo = (state: any): State => {
 
       if (sourceUuidsAfetados.length > 0) {
         retorno.remissoes = novoRegistro;
+        // Remove os alertas de remissão inválida dos dispositivos cujas remissões foram restauradas.
+        const idsAlertasRestaurados = new Set(sourceUuidsAfetados.map(uuid => `alerta-remissao-invalida-${uuid}`));
+        retorno.ui!.alertas = (retorno.ui!.alertas ?? []).filter((a: any) => !idsAlertasRestaurados.has(a.id));
         for (const sourceUuid of sourceUuidsAfetados) {
           const dispositivoOrigem = findDispositivoByUuid(state.articulacao, sourceUuid, true);
           if (dispositivoOrigem) {

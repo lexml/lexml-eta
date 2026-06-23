@@ -5,9 +5,11 @@ import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { removerRemissaoInvalida } from '../../../src/redux/elemento/reducer/removerRemissaoInvalida';
 import { atualizaTextoElemento } from '../../../src/redux/elemento/reducer/atualizaTextoElemento';
 import { adicionaRemissaoInterna } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
-import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
+import { criaStateComNArtigos, montaState, marcaAdicionado } from '../../helpers/dispositivo-helper';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { TipoMensagem } from '../../../src/model/lexml/util/mensagem';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 
 const DESCRICAO_REMISSAO_INVALIDA = 'Este dispositivo contém referência para dispositivo que foi excluído.';
 
@@ -216,5 +218,108 @@ describe('Mensagem de remissão inválida', () => {
     const uuidsAfetados = eventos.map((ev: any) => ev.elementos![0].uuid);
     expect(uuidsAfetados).to.include(art1.uuid);
     expect(uuidsAfetados).to.include(art3.uuid);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Problema 1: Rótulo completo no alerta (ui.alertas)
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Mensagem de alerta de remissão inválida — rótulo completo', () => {
+  it('deve usar apenas o rótulo do artigo quando o dispositivo de origem é um artigo', () => {
+    // Usa 3 artigos para que art1 não vire "Artigo único" após remover art3
+    const { state, artigos } = criaStateComNArtigos(3);
+    const [art1, , art3] = artigos;
+
+    const stateComRemissoes: State = {
+      ...state,
+      remissoes: { [art1.uuid!]: [{ refId: 'ref1', targetLexmlId: art3.id, targetUuid: art3.uuid }] },
+    };
+
+    const newState = removeElemento(stateComRemissoes, { atual: { uuid: art3.uuid } });
+
+    const alerta = newState.ui?.alertas?.find((a: any) => a.id === `alerta-remissao-invalida-${art1.uuid}`);
+    expect(alerta).to.exist;
+    // "Art. 1º." → "Art. 1º" (sem ponto final)
+    expect(alerta!.mensagem).to.include('Art. 1º');
+    expect(alerta!.mensagem).to.not.include('Art. 1º.');
+  });
+
+  it('deve exibir caminho completo "Art. Xº, inciso Y" quando o dispositivo de origem é um inciso', () => {
+    // Monta articulação com 3 artigos + inciso no caput do art. 1
+    // 3 artigos evitam que art1 vire "Artigo único" após remover o alvo
+    const articulacao = createArticulacao();
+    const art1 = criaDispositivo(articulacao, 'Artigo');
+    const art2 = criaDispositivo(articulacao, 'Artigo');
+    const art3 = criaDispositivo(articulacao, 'Artigo');
+    const inciso = criaDispositivo((art1 as any).caput!, 'Inciso');
+
+    articulacao.renumeraFilhos();
+    articulacao.artigos.forEach((a: any) => a.createRotulo(a));
+    (art1 as any).caput!.renumeraFilhos();
+    inciso.createRotulo(inciso);
+    updateIdDispositivoAndFilhos(articulacao);
+    [art1, art2, art3, inciso].forEach(marcaAdicionado);
+
+    const state = montaState(articulacao);
+    const stateComRemissoes: State = {
+      ...state,
+      remissoes: { [inciso.uuid!]: [{ refId: 'ref1', targetLexmlId: (art3 as any).id, targetUuid: art3.uuid }] },
+    };
+
+    const newState = removeElemento(stateComRemissoes, { atual: { uuid: art3.uuid } });
+
+    const alerta = newState.ui?.alertas?.find((a: any) => a.id === `alerta-remissao-invalida-${inciso.uuid}`);
+    expect(alerta).to.exist;
+    // Deve conter o artigo E o inciso, não apenas o rótulo isolado do inciso ("I –")
+    expect(alerta!.mensagem).to.include('Art. 1º');
+    expect(alerta!.mensagem).to.include('inciso I');
+    expect(alerta!.mensagem).to.not.include('I –', 'não deve exibir o rótulo bruto do inciso sem contexto');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Problema 2: Alerta removido do ui.alertas após undo
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Remoção de alerta de remissão inválida no undo', () => {
+  it('deve remover o alerta de ui.alertas ao fazer undo da exclusão', () => {
+    const { state, artigos } = criaStateComNArtigos(2);
+    const [art1, art2] = artigos;
+
+    const stateComRemissoes: State = {
+      ...state,
+      remissoes: { [art1.uuid!]: [{ refId: 'ref1', targetLexmlId: art2.id, targetUuid: art2.uuid }] },
+    };
+
+    const stateRemovido = removeElemento(stateComRemissoes, { atual: { uuid: art2.uuid } });
+
+    const alertaId = `alerta-remissao-invalida-${art1.uuid}`;
+    const alertaAposRemocao = stateRemovido.ui?.alertas?.find((a: any) => a.id === alertaId);
+    expect(alertaAposRemocao).to.exist;
+
+    const stateUndo = undo(stateRemovido);
+
+    const alertaAposUndo = stateUndo.ui?.alertas?.find((a: any) => a.id === alertaId);
+    expect(alertaAposUndo).to.not.exist;
+  });
+
+  it('deve manter outros alertas ao remover apenas o alerta de remissão inválida no undo', () => {
+    const { state, artigos } = criaStateComNArtigos(2);
+    const [art1, art2] = artigos;
+
+    const alertaOutro = { id: 'alerta-outro', tipo: TipoMensagem.ERROR, mensagem: 'Outro alerta', podeFechar: true };
+    const stateComRemissoes: State = {
+      ...state,
+      remissoes: { [art1.uuid!]: [{ refId: 'ref1', targetLexmlId: art2.id, targetUuid: art2.uuid }] },
+      ui: { events: [], alertas: [alertaOutro] },
+    };
+
+    const stateRemovido = removeElemento(stateComRemissoes, { atual: { uuid: art2.uuid } });
+    const stateUndo = undo(stateRemovido);
+
+    // Alerta de remissão inválida removido, mas o outro permanece
+    const alertaRemissao = stateUndo.ui?.alertas?.find((a: any) => a.id === `alerta-remissao-invalida-${art1.uuid}`);
+    const alertaMantifo = stateUndo.ui?.alertas?.find((a: any) => a.id === 'alerta-outro');
+    expect(alertaRemissao).to.not.exist;
+    expect(alertaMantifo).to.exist;
   });
 });

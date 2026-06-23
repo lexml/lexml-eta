@@ -13,7 +13,7 @@ import {
   isArtigoUnico,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { isAgrupador, isArticulacao, isArtigo, isEmenta } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isEmenta } from '../../../model/dispositivo/tipo';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
@@ -197,7 +197,7 @@ export const construirEventosRemissaoParaRemocao = (
           stateType: StateType.ElementoValidado,
           elementos: [createElementoValidadoComExtras(dispositivoOrigem, [mensagemInvalida])],
         });
-        const rotulo = dispositivoOrigem.rotulo ?? 'Dispositivo';
+        const rotulo = construirRotuloCompleto(dispositivoOrigem);
         novosAlertas.push({
           id: `alerta-remissao-invalida-${sourceUuid}`,
           tipo: TipoMensagem.ERROR,
@@ -231,6 +231,30 @@ export const construirEventosRemissaoParaRemocao = (
   });
 
   return { novoRegistroRemissoes, eventosRemissao, novosAlertas };
+};
+
+// Limpa pontuação de listagem do rótulo e, quando necessário, adiciona o nome do tipo como prefixo.
+const limparRotuloParaAlerta = (rotulo: string): string => {
+  const r = rotulo.trim();
+  if (r.endsWith(' –')) return `inciso ${r.slice(0, -2).trim()}`;
+  if (r.endsWith(')')) return `alínea ${r.slice(0, -1).trim()}`;
+  return r.endsWith('.') ? r.slice(0, -1).trim() : r;
+};
+
+// Constrói o caminho legível do dispositivo subindo a hierarquia (ex: "Art. 1º, inciso II").
+const construirRotuloCompleto = (dispositivo: Dispositivo): string => {
+  const partes: string[] = [];
+  let atual: Dispositivo | undefined = dispositivo;
+  while (atual && !isArticulacao(atual)) {
+    if (!isCaput(atual) && atual.rotulo) {
+      partes.push(limparRotuloParaAlerta(atual.rotulo));
+    }
+    atual = atual.pai;
+  }
+  if (partes.length === 0) {
+    return dispositivo.rotulo?.trim() ?? 'Dispositivo';
+  }
+  return partes.reverse().join(', ');
 };
 
 const marcarRemissoesComoInvalidas = (
