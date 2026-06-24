@@ -696,7 +696,7 @@ class ModuloRemissao extends Module {
             const delta = new Delta().retain(blotIdx).delete(deleteLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
           } else if (textoNovo !== textoBlot && textoNovo.length > 0) {
-            // Caso 2: texto mudou sem crescer por sufixo (ex: "artigo 2" → "artigo 3").
+            // Caso 2: texto mudou sem crescer por sufixo (ex: "artigo 2" → "art. 3º" após normalização).
             const blotIdx = blot.offset(this.quill.scroll);
             const blotLen = blot.length();
             const delta = new Delta().retain(blotIdx).delete(blotLen).insert(textoNovo, { 'remissao-interna': remissao });

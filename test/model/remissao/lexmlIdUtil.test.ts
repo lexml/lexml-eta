@@ -547,16 +547,16 @@ describe('lexmlIdUtil', () => {
         expect(atualizarTextoRemissao('art. 25', 'art25', 'art26')).to.equal('art. 26');
       });
 
-      it('"artigo 5º" (por extenso, com ordinal): atualiza para "artigo 6º" ao renumerar', () => {
-        expect(atualizarTextoRemissao('artigo 5º', 'art5', 'art6')).to.equal('artigo 6º');
+      it('"artigo 5º" (por extenso, com ordinal): normaliza para forma canônica ao renumerar', () => {
+        expect(atualizarTextoRemissao('artigo 5º', 'art5', 'art6')).to.equal('art. 6º');
       });
 
-      it('"artigo 2" (por extenso, sem ordinal): deve atualizar para "artigo 3" ao renumerar', () => {
-        expect(atualizarTextoRemissao('artigo 2', 'art2', 'art3')).to.equal('artigo 3');
+      it('"artigo 2" (por extenso, sem ordinal): normaliza para forma canônica ao renumerar', () => {
+        expect(atualizarTextoRemissao('artigo 2', 'art2', 'art3')).to.equal('art. 3º');
       });
 
-      it('"artigo 2º" (por extenso, com ordinal): deve atualizar para "artigo 3º" ao renumerar', () => {
-        expect(atualizarTextoRemissao('artigo 2º', 'art2', 'art3')).to.equal('artigo 3º');
+      it('"artigo 2º" (por extenso, com ordinal): normaliza para forma canônica ao renumerar', () => {
+        expect(atualizarTextoRemissao('artigo 2º', 'art2', 'art3')).to.equal('art. 3º');
       });
 
       it('textoAtual abreviado diferente: sobreposto pelo canônico', () => {
@@ -613,12 +613,10 @@ describe('lexmlIdUtil', () => {
         expect(resultado).to.include('art. 2º');
       });
 
-      it('inciso quando artigo-pai renumera (art3 -> art4): forma abreviada é preservada', () => {
-        // "inciso II do art. 3º" é forma abreviada — o canônico gerado seria
-        // "inciso II do § 1º do art. 3º". Como não coincide com nenhum sufixo
-        // canônico do ID, é tratado como texto customizado e preservado.
+      it('inciso quando artigo-pai renumera (art3 -> art4): forma abreviada é normalizada para canônica', () => {
+        // "inciso II do art. 3º" é forma parcial (omite o §). Normaliza para canônica completa.
         const resultado = atualizarTextoRemissao('inciso II do art. 3º', 'art3_par1_inc2', 'art4_par1_inc2');
-        expect(resultado).to.equal('inciso II do art. 3º');
+        expect(resultado).to.equal('inciso II do § 1º do art. 4º');
       });
 
       it('item quando artigo-pai renumera (art3 -> art4)', () => {
@@ -685,19 +683,15 @@ describe('lexmlIdUtil', () => {
     //  F-2: texto com sufixo contextual mas palavras extras -> sobrescrito se
     //       REGEX_INICIO_CANONICAL for colocado ANTES da verificação contextual
     // -------------------------------------------------------------------------
-    describe('Grupo F — Texto customizado deve ser preservado', () => {
-      it('[F-1] texto sem sufixo contextual que começa com prefixo canônico -> deve preservar', () => {
-        // "inciso I do teste" começa com "inciso " (parece canônico) mas não é.
-        // BUG atual: cai no return lexmlIdParaTextoCanonico(lexmlIdNovo)
-        //            -> retorna 'inciso I do § 1º do art. 3º' em vez de preservar.
+    describe('Grupo F — Texto não canônico é normalizado para a forma canônica', () => {
+      it('[F-1] texto sem sufixo contextual: qualquer forma não canônica → forma canônica do novo ID', () => {
         const result = atualizarTextoRemissao('inciso I do teste', 'art2_par1_inc1', 'art3_par1_inc1');
-        expect(result).to.equal('inciso I do teste');
+        expect(result).to.equal('inciso I do § 1º do art. 3º');
       });
 
-      it('[F-2] "§ 2º do relatório" (prefixo §, sem sufixo contextual) -> deve preservar', () => {
-        // BUG atual: retorna '§ 3º do art. 1º' em vez de preservar.
+      it('[F-2] "§ 2º do relatório" (prefixo §, sem sufixo contextual) → forma canônica do novo ID', () => {
         const result = atualizarTextoRemissao('§ 2º do relatório', 'art1_par2', 'art1_par3');
-        expect(result).to.equal('§ 2º do relatório');
+        expect(result).to.equal('§ 3º do art. 1º');
       });
 
       it('[F-3] texto com sufixo contextual + palavras extras -> preservado pelo caminho contextual', () => {
@@ -813,9 +807,9 @@ describe('lexmlIdUtil', () => {
         expect(result).to.equal('inciso I do art. 2º deste capítulo');
       });
 
-      it('[G-4c] "artigo único extra" — deve preservar (texto customizado)', () => {
+      it('[G-4c] "artigo único extra" — normaliza para forma canônica do novo ID', () => {
         const result = atualizarTextoRemissao('artigo único extra', 'art1', 'art2');
-        expect(result).to.equal('artigo único extra');
+        expect(result).to.equal('art. 2º');
       });
     });
   });

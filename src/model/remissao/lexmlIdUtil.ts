@@ -235,19 +235,6 @@ function isTextoCanonicoPorTipo(texto: string, tipo: string): boolean {
   return false;
 }
 
-// Trata a forma por extenso "artigo N[º]" como atualizável, preservando prefixo e ordinal do usuário.
-const REGEX_ARTIGO_EXTENSO = /^(artigo\s+)(\d+(?:-[a-z]+)?)([º°]?)$/i;
-function atualizarArtigoPorExtenso(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string | null {
-  const match = REGEX_ARTIGO_EXTENSO.exec(textoAtual.trim());
-  if (!match) return null;
-  const segsAntigo = parseLexmlId(lexmlIdAntigo);
-  const segsNovo = parseLexmlId(lexmlIdNovo);
-  if (segsAntigo.length !== 1 || segsAntigo[0].tipo !== 'art') return null;
-  if (segsNovo.length !== 1 || segsNovo[0].tipo !== 'art') return null;
-  if (match[2] !== segsAntigo[0].numero) return null;
-  return `${match[1]}${segsNovo[0].numero}${match[3]}`;
-}
-
 // Troca X1 ↔ X1u para par e art, reconciliando ids gerados pelo editor com texto canônico
 // que usa "parágrafo único" / "artigo único".
 // buildHref só emite 'par1u' (quando informouParagrafoUnico=true) e nunca 'art1u'; o texto
@@ -293,17 +280,6 @@ export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string
         }
         return lexmlIdParaTextoCanonico(relNovaParaGeracao) + ' ' + sufixo.texto;
       }
-    }
-  }
-
-  if (!isTextoCanonico(textoAtual, lexmlIdAntigo)) {
-    // Tenta variante par1 ↔ par1u antes de preservar como texto customizado
-    const varianteAntigo = swapPar1Variante(lexmlIdAntigo);
-    if (varianteAntigo === lexmlIdAntigo || !isTextoCanonico(textoAtual, varianteAntigo)) {
-      // Forma por extenso "artigo N[º]": atualiza o número preservando o estilo
-      const extenso = atualizarArtigoPorExtenso(textoAtual, lexmlIdAntigo, lexmlIdNovo);
-      if (extenso !== null) return extenso;
-      return textoAtual;
     }
   }
 
