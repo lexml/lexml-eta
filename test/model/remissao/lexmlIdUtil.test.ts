@@ -7,6 +7,7 @@ import {
   atualizarTextoRemissao,
   extrairSufixoContextual,
   extrairParteRelativa,
+  isTextoReconhecivel,
   SegmentoLexmlId,
 } from '../../../src/model/remissao/lexmlIdUtil';
 
@@ -1027,6 +1028,64 @@ describe('lexmlIdUtil', () => {
       expect(segs).to.have.length(2);
       expect(segs[0].numero).to.equal('1-a');
       expect(segs[1].numero).to.equal('1');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // isTextoReconhecivel
+  // ---------------------------------------------------------------------------
+
+  describe('isTextoReconhecivel', () => {
+    describe('Artigo', () => {
+      it('"art. 1º" → true', () => expect(isTextoReconhecivel('art. 1º')).to.be.true);
+      it('"art. 1" → true (sem ordinal)', () => expect(isTextoReconhecivel('art. 1')).to.be.true);
+      it('"art 2" → true (sem ponto)', () => expect(isTextoReconhecivel('art 2')).to.be.true);
+      it('"artigo 2" → true (por extenso)', () => expect(isTextoReconhecivel('artigo 2')).to.be.true);
+      it('"artigo 2º" → true', () => expect(isTextoReconhecivel('artigo 2º')).to.be.true);
+      it('"artigo único" → true', () => expect(isTextoReconhecivel('artigo único')).to.be.true);
+      it('"art. único" → true', () => expect(isTextoReconhecivel('art. único')).to.be.true);
+    });
+
+    describe('Parágrafo', () => {
+      it('"§ 1º" → true', () => expect(isTextoReconhecivel('§ 1º')).to.be.true);
+      it('"§ único" → true', () => expect(isTextoReconhecivel('§ único')).to.be.true);
+      it('"parágrafo 1" → true', () => expect(isTextoReconhecivel('parágrafo 1')).to.be.true);
+      it('"par. 1" → true', () => expect(isTextoReconhecivel('par. 1')).to.be.true);
+    });
+
+    describe('Inciso, alínea, item e caput', () => {
+      it('"inciso II" → true', () => expect(isTextoReconhecivel('inciso II')).to.be.true);
+      it('"inc. III" → true', () => expect(isTextoReconhecivel('inc. III')).to.be.true);
+      it('"alínea a)" → true', () => expect(isTextoReconhecivel('alínea a)')).to.be.true);
+      it('"alí. b)" → true', () => expect(isTextoReconhecivel('alí. b)')).to.be.true);
+      it('"item 3" → true', () => expect(isTextoReconhecivel('item 3')).to.be.true);
+      it('"caput" → true', () => expect(isTextoReconhecivel('caput')).to.be.true);
+    });
+
+    describe('Agrupadores', () => {
+      it('"Capítulo I" → true', () => expect(isTextoReconhecivel('Capítulo I')).to.be.true);
+      it('"Seção II" → true', () => expect(isTextoReconhecivel('Seção II')).to.be.true);
+      it('"Subseção única" → true', () => expect(isTextoReconhecivel('Subseção única')).to.be.true);
+      it('"Título III" → true', () => expect(isTextoReconhecivel('Título III')).to.be.true);
+      it('"Livro I" → true', () => expect(isTextoReconhecivel('Livro I')).to.be.true);
+      it('"Parte única" → true', () => expect(isTextoReconhecivel('Parte única')).to.be.true);
+    });
+
+    describe('Com sufixo contextual', () => {
+      it('"§ 1º deste artigo" → true', () => expect(isTextoReconhecivel('§ 1º deste artigo')).to.be.true);
+      it('"art. 2º deste cap." → true', () => expect(isTextoReconhecivel('art. 2º deste cap.')).to.be.true);
+      it('"caput deste artigo" → true', () => expect(isTextoReconhecivel('caput deste artigo')).to.be.true);
+      it('"inciso II do art." → true', () => expect(isTextoReconhecivel('inciso II do art.')).to.be.true);
+    });
+
+    describe('Textos não reconhecíveis', () => {
+      it('"o artigo primeiro" → false', () => expect(isTextoReconhecivel('o artigo primeiro')).to.be.false);
+      it('"o presente artigo" → false', () => expect(isTextoReconhecivel('o presente artigo')).to.be.false);
+      it('"o dispositivo acima" → false', () => expect(isTextoReconhecivel('o dispositivo acima')).to.be.false);
+      it('"artigo primeiro" → false (ordinal por extenso sem número)', () => expect(isTextoReconhecivel('artigo primeiro')).to.be.false);
+      it('"o § único deste" → false (prefixo espúrio)', () => expect(isTextoReconhecivel('o § único deste')).to.be.false);
+      it('"" → false', () => expect(isTextoReconhecivel('')).to.be.false);
+      it('"   " → false', () => expect(isTextoReconhecivel('   ')).to.be.false);
     });
   });
 });

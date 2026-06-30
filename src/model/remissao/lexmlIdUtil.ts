@@ -247,6 +247,45 @@ function swapPar1Variante(lexmlId: string): string {
   return lexmlId;
 }
 
+const ROMANO = '(?:[uú]nic[ao]|[MDCLXVI]+)';
+const NUM = `(?:[uú]nic[ao]|\\d+(?:-[a-z]+)?º?)`;
+
+const REGEX_TEXTO_RECONHECIVEL = new RegExp(
+  `^(?:` +
+    `art\\.?\\s*${NUM}` + // art. 1º, art 2, art.único
+    `|artigo\\s+${NUM}` + // artigo 2, artigo único
+    `|§\\s*${NUM}` + // § 1º, § único
+    `|par\\.\\s*${NUM}` + // par. 1
+    `|parágrafo\\s+${NUM}` + // parágrafo 1
+    `|inciso\\s+${ROMANO}` + // inciso II
+    `|inc\\.\\s*${ROMANO}` + // inc. III
+    `|alínea\\s+[a-z]\\)?` + // alínea a)
+    `|alí\\.\\s*[a-z]\\)?` + // alí. b)
+    `|item\\s+${NUM}` + // item 3
+    `|caput` + // caput
+    `|capítulo\\s+${ROMANO}` + // Capítulo I
+    `|seção\\s+${ROMANO}` + // Seção II
+    `|subseção\\s+${ROMANO}` + // Subseção única
+    `|título\\s+${ROMANO}` + // Título III
+    `|livro\\s+${ROMANO}` + // Livro I
+    `|parte\\s+${ROMANO}` + // Parte única
+    `)`,
+  'i'
+);
+
+// Retorna true se o texto é uma referência reconhecível a um dispositivo legal
+// (forma canônica ou variante trivial). Textos livres como "o artigo primeiro"
+// retornam false e devem ser marcados para revisão após renumeração.
+export function isTextoReconhecivel(texto: string): boolean {
+  const trimmed = texto.trim();
+  if (!trimmed) return false;
+
+  const sufixo = extrairSufixoContextual(trimmed);
+  const nucleo = sufixo ? trimmed.slice(0, trimmed.length - sufixo.texto.length).trim() : trimmed;
+
+  return REGEX_TEXTO_RECONHECIVEL.test(nucleo);
+}
+
 export function atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
   if (lexmlIdAntigo === lexmlIdNovo) return textoAtual;
 
