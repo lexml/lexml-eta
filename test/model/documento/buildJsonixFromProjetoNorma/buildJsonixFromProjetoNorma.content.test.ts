@@ -1196,3 +1196,100 @@ describe('Injeção de remissões a partir do registry', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Serialização com @revisar (Etapa 4 — PLANO_REVISAR_REMISSAO_TEXTO)
+// ---------------------------------------------------------------------------
+
+describe('corrigirLexmlRefsObsoletosNoTexto — @revisar', () => {
+  let articulacao: any;
+  let artigo1: any, artigo2: any, caput1: any;
+  let art2Uuid: number, caput1Uuid: number;
+
+  beforeEach(() => {
+    articulacao = createArticulacao();
+    artigo1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    caput1 = criaDispositivo(artigo1, TipoDispositivo.caput.tipo);
+    artigo2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(artigo2, TipoDispositivo.caput.tipo);
+    (artigo1 as any).id = 'art1';
+    (artigo2 as any).id = 'art2';
+    art2Uuid = (artigo2 as any).uuid;
+    caput1Uuid = (caput1 as any).uuid;
+  });
+
+  const criaLinkParaArt2 = (lexmlIdNoLink: string, textoLink: string): string =>
+    `texto <a href="#lxEtaId${art2Uuid}" data-lexml-ref="${lexmlIdNoLink}" class="lexml-remissao-interna" target="_self">${textoLink}</a> fim.`;
+
+  const getHrefRemissao = (resultado: any): string => {
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+    return remissao?.value?.href ?? '';
+  };
+
+  const getTextoRemissao = (resultado: any): string => {
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+    return remissao?.value?.content?.[0] ?? '';
+  };
+
+  it('entry com revisao:true e LexML ID mudou → href com @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'o artigo antigo');
+    const remissoes: Record<number, any[]> = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art1', revisao: true as const }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2@revisar');
+  });
+
+  it('entry com revisao:true e LexML ID igual → href com @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art2', 'o artigo atual');
+    const remissoes: Record<number, any[]> = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art2', revisao: true as const }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2@revisar');
+  });
+
+  it('entry SEM revisao (já revisado) → href sem @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'o artigo antigo');
+    const remissoes = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art1' }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2');
+  });
+
+  it('state stale + texto arbitrário → href com @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'o artigo central');
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, {});
+    expect(getHrefRemissao(resultado)).to.equal('art2@revisar');
+  });
+
+  it('texto canônico "art. 1º" sem revisão → atualizado para novo ID', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'art. 1º');
+    const remissoes = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art1' }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2');
+    expect(getTextoRemissao(resultado)).to.equal('art. 2º');
+  });
+
+  it('JSONIX gerado não contém strings começando com <span', () => {
+    // span com data-ref-id — NÃO removido pelo regex antigo (Bug A)
+    (caput1 as any).texto = `<span data-ref-id="ref_1"><a href="#lxEtaId${art2Uuid}" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2</a></span> fim.`;
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const comSpan = content.filter((c: any) => typeof c === 'string' && c.startsWith('<span'));
+    expect(comSpan).to.have.length(0);
+  });
+
+  it('JSONIX gerado não contém strings terminando com </span>', () => {
+    (caput1 as any).texto = `texto <span data-ref-id="ref_1"><a href="#lxEtaId${art2Uuid}" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2</a></span>`;
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const comSpanFim = content.filter((c: any) => typeof c === 'string' && c.endsWith('</span>'));
+    expect(comSpanFim).to.have.length(0);
+  });
+});

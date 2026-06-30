@@ -14,7 +14,8 @@ export function stripHtml(texto: string): string {
  * attributors, o que faz o serializer criar um <span> envolvendo o <a> do blot.
  */
 export function removerSpanParchmentRemissao(html: string): string {
-  return html.replace(/<span\b[^>]*\bdata-lexml-ref="[^"]*"[^>]*>(<a\b[\s\S]*?<\/a>)<\/span>/gi, '$1');
+  // Casa spans com data-lexml-ref OU data-ref-id (ambos criados por Parchment Inline Attributors)
+  return html.replace(/<span\b[^>]*\b(?:data-lexml-ref|data-ref-id)="[^"]*"[^>]*>(<a\b[\s\S]*?<\/a>)<\/span>/gi, '$1');
 }
 
 /**

@@ -14,8 +14,9 @@ import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
-import { atualizarTextoRemissao } from '../../../remissao/lexmlIdUtil';
+import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/lexmlIdUtil';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
+import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -26,10 +27,10 @@ export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: str
   return resultado;
 };
 
-export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao): any => {
+export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao, remissoes?: Remissoes): any => {
   const articulacao = {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }),
+    lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }, remissoes),
   };
 
   return articulacao;
@@ -589,15 +590,16 @@ const REGEX_LINK_REMISSAO_INTERNA = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
 const REGEX_DATA_LEXML_REF = /data-lexml-ref="([^"]+)"/i;
 const REGEX_HREF_LXETAID = /href="#lxEtaId(\d+)"/i;
 
-// Atualiza `data-lexml-ref` (e texto visível) de links cujo destino foi renumerado.
-// Usa o `href="#lxEtaId{uuid}"` como ID estável para localizar o dispositivo atual
-// na articulação. Se o `id` corrente do dispositivo destino diferir do `data-lexml-ref`
-// armazenado, ambos são atualizados. Links sem href no formato esperado são preservados.
-const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositivo): string => {
+// Atualiza `data-lexml-ref` de links cujo destino foi renumerado, aplicando o sufixo
+// @revisar quando o texto não é reconhecível e não foi confirmado pelo usuário.
+// Usa o `href="#lxEtaId{uuid}"` como ID estável para localizar o dispositivo atual.
+const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositivo, remissoes?: Remissoes): string => {
   if (!html || !html.includes('data-lexml-ref=')) return html;
 
   const articulacao = obterArticulacaoRaiz(dispositivo);
   if (!articulacao) return html;
+
+  const entriesParaDispositivo: RemissaoInternaValue[] = dispositivo.uuid !== undefined ? remissoes?.[dispositivo.uuid] ?? [] : [];
 
   return html.replace(REGEX_LINK_REMISSAO_INTERNA, (match, atributos, conteudo) => {
     const lexmlRefMatch = atributos.match(REGEX_DATA_LEXML_REF);
@@ -616,11 +618,23 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
       const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, 'data-lexml-ref="@invalido"').replace(REGEX_HREF_LXETAID, 'href="@invalido"');
       return `<a${novosAtributos}>${conteudo}</a>`;
     }
-    if (!destino.id || destino.id === lexmlIdAntigo) return match;
 
     const lexmlIdNovo = destino.id;
-    const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, `data-lexml-ref="${lexmlIdNovo}"`);
-    const novoConteudo = atualizarTextoRemissao(conteudo, lexmlIdAntigo, lexmlIdNovo);
+    if (!lexmlIdNovo) return match;
+
+    // Determina se o link precisa de @revisar: estado marcado explicitamente, ou
+    // state stale (sem entry) com texto não-reconhecível (usuário ainda não revisou).
+    const entry = entriesParaDispositivo.find(r => r.targetUuid === targetUuid);
+    const textoNaoReconhecivel = !isTextoReconhecivel(conteudo);
+    const temRevisaoPendente = entry?.revisao === true || (entry === undefined && textoNaoReconhecivel);
+
+    const sufixo = temRevisaoPendente ? SUFIXO_REVISAO : '';
+    const lexmlIdFinal = lexmlIdNovo + sufixo;
+
+    if (lexmlIdAntigo === lexmlIdFinal) return match;
+
+    const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, `data-lexml-ref="${lexmlIdFinal}"`);
+    const novoConteudo = temRevisaoPendente ? conteudo : atualizarTextoRemissao(conteudo, lexmlIdAntigo, lexmlIdNovo);
     return `<a${novosAtributos}>${novoConteudo}</a>`;
   });
 };
@@ -633,7 +647,7 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
 
   // Self-healing: corrige data-lexml-ref no HTML para evitar salvar IDs antigos, pois o update visual do Quill não atualiza o Redux.
   if (campo === 'texto') {
-    raw = corrigirLexmlRefsObsoletosNoTexto(raw, dispositivo);
+    raw = corrigirLexmlRefsObsoletosNoTexto(raw, dispositivo, remissoes);
   }
 
   // Injeta links de remissão interna que ainda não estão no texto (ex: auto-detectadas via 'silent')
