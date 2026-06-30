@@ -1,6 +1,7 @@
 import { Articulacao } from '../../../model/dispositivo/dispositivo';
 import { buscaDispositivoById, getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { RemissaoInternaValue } from '../../../model/remissao';
+import { SUFIXO_REVISAO } from '../../../model/remissao/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 
 // Regex para detectar links de remissão interna pelo atributo data-lexml-ref
@@ -34,19 +35,24 @@ export const inicializaRemissoesAoAbrir = (articulacao: Articulacao): Record<num
     let match: RegExpExecArray | null;
 
     while ((match = REGEX_REMISSAO_LINK.exec(texto)) !== null) {
-      const targetLexmlId = match[1];
+      const rawLexmlId = match[1];
       const textoLink = match[2].trim();
+
+      const isRevisao = rawLexmlId.endsWith(SUFIXO_REVISAO);
+      const targetLexmlId = isRevisao ? rawLexmlId.slice(0, -SUFIXO_REVISAO.length) : rawLexmlId;
 
       const target = buscaDispositivoById(articulacao, targetLexmlId);
       if (target?.uuid === undefined) continue;
 
-      entries.push({
+      const entry: RemissaoInternaValue = {
         refId: gerarRefId(),
         targetLexmlId,
         targetUuid: target.uuid,
         sourceUuid: dispositivo.uuid,
         textoRef: textoLink,
-      });
+      };
+      if (isRevisao) entry.revisao = true;
+      entries.push(entry);
     }
 
     if (entries.length > 0) {
@@ -55,9 +61,15 @@ export const inicializaRemissoesAoAbrir = (articulacao: Articulacao): Record<num
       // Corrige href e adiciona data-ref-id em dispositivo.texto
       let textoCorrigido = texto;
       for (const entry of entries) {
-        const hrefAntigo = `href="${entry.targetLexmlId}"`;
+        const rawId = entry.revisao ? `${entry.targetLexmlId}${SUFIXO_REVISAO}` : entry.targetLexmlId!;
+        const hrefAntigo = `href="${rawId}"`;
         const hrefNovo = `href="#lxEtaId${entry.targetUuid}" data-ref-id="${entry.refId}"`;
         textoCorrigido = substituirPrimeiraOcorrencia(textoCorrigido, hrefAntigo, hrefNovo);
+
+        // Limpa @revisar do data-lexml-ref no texto vivo
+        if (entry.revisao) {
+          textoCorrigido = substituirPrimeiraOcorrencia(textoCorrigido, `data-lexml-ref="${entry.targetLexmlId}${SUFIXO_REVISAO}"`, `data-lexml-ref="${entry.targetLexmlId}"`);
+        }
       }
       dispositivo.texto = textoCorrigido;
     }
