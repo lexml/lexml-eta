@@ -26,6 +26,8 @@ export interface RemissaoInternaValue {
   inicio?: number; // posição de início no texto do dispositivo de origem
 
   valida?: boolean; // false = dispositivo destino foi excluído; undefined = sem informação de validade
+
+  revisao?: true; // presente apenas quando texto não pôde ser atualizado após renumeração
 }
 
 export interface ReferenciaDetectada {
@@ -41,6 +43,11 @@ export interface ReferenciaDetectada {
 export type TipoAtualizacaoRemissao = 'renumeracao' | 'remocao' | 'adicao';
 
 export const MENSAGEM_REMISSAO_INVALIDA = 'Este dispositivo contém referência para dispositivo que foi excluído.';
+
+export const SUFIXO_REVISAO = '@revisar';
+
+export const MENSAGEM_REMISSAO_TEXTO_PRESERVADO =
+  'Este dispositivo contém remissão com texto personalizado que não pôde ser atualizado ' + 'após renumeração. Revise o texto do link.';
 
 export interface AtualizacaoRemissao {
   tipo: TipoAtualizacaoRemissao;
