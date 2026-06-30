@@ -694,7 +694,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
            href="#lxEtaId100">art. 3º</a>
       `;
 
-      const count = moduloRemissao.atualizarReferencias('art2', 'art3', 100);
+      const { count } = moduloRemissao.atualizarReferencias('art2', 'art3', 100);
 
       expect(count).to.equal(1);
       // Após a unificação para setTimeout+updateContents, adicionarRemissao não é mais chamado sincronamente
@@ -709,7 +709,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
            href="#lxEtaId50">§ 2º do art. 1º</a>
       `;
 
-      const count = moduloRemissao.atualizarReferencias('art1_par1', 'art1_par2', 50);
+      const { count } = moduloRemissao.atualizarReferencias('art1_par1', 'art1_par2', 50);
 
       expect(count).to.equal(1);
       expect(adicionarRemissaoCalls.length).to.equal(0);
@@ -725,7 +725,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
         </p>
       `;
 
-      const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
+      const { count } = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
       expect(count).to.equal(2);
       // Ambos os links vão para o caminho assíncrono após a unificação do caminho de atualização
@@ -742,7 +742,7 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
         </p>
       `;
 
-      const count = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
+      const { count } = moduloRemissao.atualizarReferencias('art1', 'art2', 100);
 
       // Só ref_A tem UUID correto → count=1; caminho assíncrono (adicionarRemissao não chamado sincronamente)
       expect(count).to.equal(1);
@@ -754,8 +754,83 @@ describe('ModuloRemissao.atualizarReferencias()', () => {
         <a class="lexml-remissao-interna" data-lexml-ref="art1" data-ref-id="ref_1" href="#lxEtaId999">texto</a>
       `;
 
-      expect(moduloRemissao.atualizarReferencias('art1', 'art2', 100)).to.equal(0);
+      expect(moduloRemissao.atualizarReferencias('art1', 'art2', 100).count).to.equal(0);
       expect(adicionarRemissaoCalls.length).to.equal(0);
+    });
+  });
+
+  describe('atualizarReferencias — preservados (textos não reconhecíveis)', () => {
+    let rootElement2: HTMLElement;
+    let moduloRemissao2: ModuloRemissao;
+
+    beforeEach(() => {
+      rootElement2 = document.createElement('div');
+      const mq = criarMockQuill(rootElement2);
+      mq.updateContents = (): void => {
+        /* vazio */
+      };
+      moduloRemissao2 = new ModuloRemissao(mq, {});
+      (moduloRemissao2 as any).findBlotByRefId = (refId: string) => {
+        const link = rootElement2.querySelector(`a[data-ref-id="${CSS.escape(refId)}"]`) as HTMLElement | null;
+        if (!link) return null;
+        return { blot: { length: () => link.textContent!.length }, index: 0 };
+      };
+    });
+
+    it('texto canônico "art. 2º" → preservados vazio', () => {
+      rootElement2.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_1" href="#lxEtaId100">art. 2º</a>
+      `;
+      const { count, preservados } = moduloRemissao2.atualizarReferencias('art2', 'art3', 100);
+      expect(count).to.equal(1);
+      expect(preservados).to.have.length(0);
+    });
+
+    it('texto arbitrário "o artigo" → preservados com 1 elemento', () => {
+      rootElement2.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_1" href="#lxEtaId100">o artigo</a>
+      `;
+      const { count, preservados } = moduloRemissao2.atualizarReferencias('art2', 'art3', 100);
+      expect(count).to.equal(1);
+      expect(preservados).to.have.length(1);
+    });
+
+    it('2 links: 1 canônico + 1 arbitrário → preservados com 1 elemento', () => {
+      rootElement2.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_A" href="#lxEtaId100">art. 2º</a>
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_B" href="#lxEtaId100">o artigo segundo</a>
+      `;
+      const { count, preservados } = moduloRemissao2.atualizarReferencias('art2', 'art3', 100);
+      expect(count).to.equal(2);
+      expect(preservados).to.have.length(1);
+    });
+
+    it('retorna count=0 e preservados=[] quando UUID errado', () => {
+      rootElement2.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_1" href="#lxEtaId999">o artigo</a>
+      `;
+      const { count, preservados } = moduloRemissao2.atualizarReferencias('art2', 'art3', 100);
+      expect(count).to.equal(0);
+      expect(preservados).to.have.length(0);
+    });
+
+    it('o elemento em preservados tem o data-ref-id correto', () => {
+      rootElement2.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_X" href="#lxEtaId100">o artigo segundo</a>
+      `;
+      const { preservados } = moduloRemissao2.atualizarReferencias('art2', 'art3', 100);
+      expect(preservados).to.have.length(1);
+      expect(preservados[0].getAttribute('data-ref-id')).to.equal('ref_X');
+    });
+
+    it('texto arbitrário permanece inalterado no DOM após atualizarReferencias', () => {
+      const textoOriginal = 'o dispositivo em tela';
+      rootElement2.innerHTML = `
+        <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_1" href="#lxEtaId100">${textoOriginal}</a>
+      `;
+      moduloRemissao2.atualizarReferencias('art2', 'art3', 100);
+      const link = rootElement2.querySelector('a') as HTMLElement;
+      expect(link.textContent).to.equal(textoOriginal);
     });
   });
 });

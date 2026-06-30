@@ -1,5 +1,5 @@
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
-import { atualizarTextoRemissao as atualizarTextoRemissaoUtil } from '../../model/remissao/lexmlIdUtil';
+import { atualizarTextoRemissao as atualizarTextoRemissaoUtil, isTextoReconhecivel } from '../../model/remissao/lexmlIdUtil';
 import { gerarRefId } from '../../model/remissao/refId';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
 
@@ -517,11 +517,11 @@ class ModuloRemissao extends Module {
     return true;
   }
 
-  atualizarReferencias(lexmlIdAntigo: string, lexmlIdNovo: string, novoUuid: number): number {
+  atualizarReferencias(lexmlIdAntigo: string, lexmlIdNovo: string, novoUuid: number): { count: number; preservados: HTMLElement[] } {
     const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlIdAntigo)}"]`);
 
-    // Coleta refIds e textos antes de qualquer modificação DOM para evitar referências obsoletas
-    const candidatos: { refId: string; textoAtual: string }[] = [];
+    // Coleta candidatos antes de qualquer modificação DOM para evitar referências obsoletas
+    const candidatos: { refId: string; textoAtual: string; el: HTMLElement }[] = [];
     links.forEach((link: Element) => {
       const el = link as HTMLElement;
       const dataRefId = el.getAttribute('data-ref-id');
@@ -530,16 +530,21 @@ class ModuloRemissao extends Module {
 
       // Match de UUID evita que eventos antigos ou defasados sobrescrevam a remissão.
       if (dataRefId && currentUuid === novoUuid) {
-        candidatos.push({
-          refId: dataRefId,
-          textoAtual: el.textContent || '',
-        });
+        candidatos.push({ refId: dataRefId, textoAtual: el.textContent || '', el });
       }
     });
 
+    const preservados: HTMLElement[] = [];
     let count = 0;
-    for (const { refId, textoAtual } of candidatos) {
-      const novoTexto = this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo);
+
+    for (const { refId, textoAtual, el } of candidatos) {
+      const reconhecivel = isTextoReconhecivel(textoAtual);
+      const novoTexto = reconhecivel ? this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo) : textoAtual;
+
+      if (!reconhecivel) {
+        preservados.push(el);
+      }
+
       const newValue: RemissaoInternaValue = {
         refId,
         targetLexmlId: lexmlIdNovo,
@@ -565,7 +570,7 @@ class ModuloRemissao extends Module {
       count++;
     }
 
-    return count;
+    return { count, preservados };
   }
 
   marcarRemissoesComoInvalidas(lexmlId: string): number {

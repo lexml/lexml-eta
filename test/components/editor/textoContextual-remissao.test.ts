@@ -101,7 +101,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_1', lexmlRef: 'art1_par1_inc1', uuid: 100, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1_par1_inc1', 'art6_par1_inc1', 100);
+    const { count } = moduloRemissao.atualizarReferencias('art1_par1_inc1', 'art6_par1_inc1', 100);
     expect(count).to.equal(1);
     expect(updateContentsCalls.length).to.equal(0); // ainda não executou
 
@@ -121,7 +121,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_2', lexmlRef: 'art1_par2', uuid: 200, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1_par2', 'art6_par2', 200);
+    const { count } = moduloRemissao.atualizarReferencias('art1_par2', 'art6_par2', 200);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
@@ -138,7 +138,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_3', lexmlRef: 'art1_cpt1', uuid: 300, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1_cpt1', 'art6_cpt1', 300);
+    const { count } = moduloRemissao.atualizarReferencias('art1_cpt1', 'art6_cpt1', 300);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
@@ -155,7 +155,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_4', lexmlRef: 'art1_par2', uuid: 400, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1_par2', 'art6_par2', 400);
+    const { count } = moduloRemissao.atualizarReferencias('art1_par2', 'art6_par2', 400);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
@@ -172,7 +172,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_5', lexmlRef: 'cap1_sec1', uuid: 500, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('cap1_sec1', 'cap3_sec1', 500);
+    const { count } = moduloRemissao.atualizarReferencias('cap1_sec1', 'cap3_sec1', 500);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
@@ -194,7 +194,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_6', lexmlRef: 'art1_par1_inc1', uuid: 100, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1_par1_inc1', 'art1_par1_inc2', 100);
+    const { count } = moduloRemissao.atualizarReferencias('art1_par1_inc1', 'art1_par1_inc2', 100);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
@@ -216,7 +216,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_7', lexmlRef: 'art1', uuid: 100, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1', 'art6', 100);
+    const { count } = moduloRemissao.atualizarReferencias('art1', 'art6', 100);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
@@ -237,7 +237,7 @@ describe('textoContextual — ModuloRemissao.atualizarReferencias()', () => {
     mockQuill.root.innerHTML = criarLinkContextual({ refId: 'ref_8', lexmlRef: 'art1_par1_inc1', uuid: 100, texto: textoOriginal });
     mockFindBlotByRefId();
 
-    const count = moduloRemissao.atualizarReferencias('art1_par1_inc1', 'art1_par2_inc1', 100);
+    const { count } = moduloRemissao.atualizarReferencias('art1_par1_inc1', 'art1_par2_inc1', 100);
     expect(count).to.equal(1);
 
     await new Promise(r => setTimeout(r, 0));
