@@ -42,6 +42,11 @@ export class RemissaoInternaBlot extends Inline {
 
   format(name: string, value: RemissaoInternaValue | string | boolean): void {
     if (name !== this.statics.blotName || !value) {
+      if (name === this.statics.blotName && !value) {
+        // Remove os atributos residuais ANTES do unformat padrão do Quill (InlineBlot.format):
+        this.domNode.removeAttribute('data-lexml-ref');
+        this.domNode.removeAttribute('data-ref-id');
+      }
       return super.format(name, value);
     }
 
