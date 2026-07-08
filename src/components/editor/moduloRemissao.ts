@@ -49,6 +49,7 @@ class ModuloRemissao extends Module {
 
     this.addClipboardMatcher();
     this.quill.on('text-change', this._absorverOrdinalEmRemissao.bind(this));
+    this.quill.on('text-change', this._removerRemissaoEditadaEmTempoReal.bind(this));
   }
 
   // TODO Avaliar mudança arquitetural da detecção da remissão
@@ -103,6 +104,110 @@ class ModuloRemissao extends Module {
         this.quill.updateContents(correcao, 'silent');
       }
     }, 0);
+  }
+
+  // Cache do último texto conhecido de cada link (refId -> texto), usado para detectar
+  // edição interna por comparação de conteúdo em vez de aritmética de posição do delta.
+  //
+  // Por quê: em documentos com muitos blots estruturais (rótulo, menu, ⋮), o índice
+  // acumulado a partir das operações do delta não bate de forma confiável com o índice
+  // que quill.getLeaf()/blot.offset(scroll) usam para o MESMO ponto do documento — foi
+  // observado empiricamente (via Cypress, com Quill real) que os dois podem divergir em
+  // vários caracteres para o mesmo texto editado. Comparar o texto do link diretamente é
+  // imune a essa divergência.
+  private cacheTextoRemissao = new Map<string, string>();
+
+  // Se uma edição (inserir ou apagar caracteres) atingir o interior de um link de
+  // remissão-interna já existente, remove o link imediatamente — o texto permanece, só o
+  // link desaparece. A próxima redetecção (blur/debounce) recria o link automaticamente se
+  // o texto resultante ainda casar com um padrão canônico válido; caso contrário, permanece
+  // texto plano. A exclusão manual pelo botão "Excluir" é tratada à parte (tombstone no
+  // registry, ver adicionaRemissaoInterna.ts) — este método não interfere nela.
+  //
+  // Não conflita com _absorverOrdinalEmRemissao: a absorção de ordinal insere o caractere
+  // FORA do blot nesta mesma passada de 'text-change' (o texto do link em si não muda
+  // ainda), então não há divergência aqui — só depois, quando a absorção roda em seu
+  // próprio setTimeout com source 'silent', o que apenas atualiza o cache (não dispara
+  // remoção, pois a checagem de divergência só vale para source === 'user').
+  //
+  // Importante: operações estruturais (adicionar/renumerar dispositivo) reconstroem o
+  // documento inteiro do Quill via um diff extenso, também marcado como source 'user' —
+  // confirmado empiricamente (Cypress + Quill real): um delta assim pode conter centenas
+  // de ops e alterar o texto de um link já existente (ex.: renumeração "art. 1º" → "art.
+  // 2º") sem que o usuário tenha digitado nada dentro dele. `pareceEdicaoPontual` distingue
+  // uma digitação real (poucos ops, sem quebra de linha, tamanho pequeno) desse tipo de
+  // reconstrução em massa — a divergência só é tratada como edição quando o delta passa
+  // nesse filtro; caso contrário, o cache é apenas atualizado (sem remover o link).
+  private _removerRemissaoEditadaEmTempoReal(delta: any, _oldDelta: any, source: string): void {
+    const podeSerEdicaoDoUsuario = source === 'user' && this.pareceEdicaoPontual(delta);
+
+    const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id]');
+    const refIdsAtuais = new Set<string>();
+    const elementosEditados: HTMLElement[] = [];
+
+    links.forEach((link: Element) => {
+      const el = link as HTMLElement;
+      const refId = el.getAttribute('data-ref-id');
+      if (!refId) return;
+      refIdsAtuais.add(refId);
+
+      const textoAtual = el.textContent || '';
+      const textoConhecido = this.cacheTextoRemissao.get(refId);
+
+      if (podeSerEdicaoDoUsuario && textoConhecido !== undefined && textoConhecido !== textoAtual) {
+        elementosEditados.push(el);
+      } else {
+        this.cacheTextoRemissao.set(refId, textoAtual);
+      }
+    });
+
+    // Remove do cache refIds de links que não existem mais no DOM (evita leak de memória).
+    for (const refId of this.cacheTextoRemissao.keys()) {
+      if (!refIdsAtuais.has(refId)) this.cacheTextoRemissao.delete(refId);
+    }
+
+    if (elementosEditados.length === 0) return;
+
+    setTimeout(() => {
+      let removeuAlgum = false;
+      for (const el of elementosEditados) {
+        if (!el.isConnected) continue;
+        const blot = Quill.find(el);
+        if (blot?.statics?.blotName !== 'remissao-interna') continue;
+
+        const refId = el.getAttribute('data-ref-id');
+        if (refId) this.cacheTextoRemissao.delete(refId);
+
+        const index = blot.offset(this.quill.scroll);
+        const length = blot.length();
+        this.quill.formatText(index, length, 'remissao-interna', false, 'silent');
+        removeuAlgum = true;
+      }
+      // Mesmo evento usado pelo botão "Excluir" — aciona o listener que fecha o popup e
+      // limpa o registry (ver editor.component.ts:listenerRemoveRemissao).
+      if (removeuAlgum) {
+        this.emitirEventoRemissaoRemove();
+      }
+    }, 0);
+  }
+
+  // Heurística para distinguir uma digitação real (poucos ops, sem quebra de linha,
+  // conteúdo pequeno) de uma reconstrução estrutural do documento inteiro (centenas de
+  // ops, inclui '\n' de blocos, trechos grandes) — ver comentário em
+  // _removerRemissaoEditadaEmTempoReal para o contexto empírico completo.
+  private pareceEdicaoPontual(delta: any): boolean {
+    const ops = delta?.ops;
+    if (!Array.isArray(ops) || ops.length === 0 || ops.length > 6) return false;
+
+    for (const op of ops) {
+      if (typeof op.insert === 'string') {
+        if (op.insert.includes('\n') || op.insert.length > 20) return false;
+      } else if (op.insert !== undefined) {
+        return false; // embed inesperado numa digitação simples
+      }
+      if (typeof op.delete === 'number' && op.delete > 20) return false;
+    }
+    return true;
   }
 
   addClipboardMatcher(): void {

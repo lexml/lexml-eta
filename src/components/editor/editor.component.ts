@@ -90,6 +90,7 @@ import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { MENSAGEM_REMISSAO_INVALIDA, MENSAGEM_REMISSAO_TEXTO_PRESERVADO } from '../../model/remissao/remissao';
 import { marcarRemissaoPendenteRevisaoAction, marcarRemissaoRevisadaAction } from '../../model/lexml/acao/marcarRemissaoRevisaoAction';
+import { excluirRemissaoManualAction } from '../../model/lexml/acao/excluirRemissaoManualAction';
 import { adicionarRemissaoExternaAction } from '../../model/lexml/acao/adicionarRemissaoExternaAction';
 import { removerRemissaoExternaAction } from '../../model/lexml/acao/removerRemissaoExternaAction';
 import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
@@ -1736,7 +1737,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (linha?.uuid !== undefined) {
       rootStore.dispatch(removerRemissaoInvalidaAction(linha.uuid, event.detail.remissoes ?? []));
     }
+    // Fecha o popup imediata e assincronamente para evitar que um 'selection-change' atrasado do Quill o reabra com dados obsoletos.
+    this.fecharPopupRemissao();
+    setTimeout(() => this.fecharPopupRemissao(), 0);
   };
+
+  private fecharPopupRemissao(): void {
+    if (!this._remissaoPopup) return;
+    esconderPopup(this._remissaoPopup);
+    this._popupRefIdAtual = undefined;
+  }
 
   private configListenersEta(): void {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
@@ -2124,6 +2134,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       if (pendenteRevisao && sourceUuid !== undefined && value.refId) {
         rootStore.dispatch(marcarRemissaoRevisadaAction({ sourceUuid, refId: value.refId }));
       }
+      // Resolução própria para o botão Excluir: precisa do sourceUuid mesmo fora do fluxo de
+      // revisão pendente, para marcar o tombstone que impede a recriação do link.
+      let sourceUuidParaExclusao: number | undefined = value.sourceUuid;
+      if (sourceUuidParaExclusao === undefined && value.refId) {
+        for (const [uuidStr, entries] of Object.entries(stateRemissoes)) {
+          if ((entries as RemissaoInternaValue[]).some((r: any) => r.refId === value.refId)) {
+            sourceUuidParaExclusao = parseInt(uuidStr, 10);
+            break;
+          }
+        }
+      }
       mostrarPopup(this._remissaoPopup, linkEl, {
         rotulo: rotuloDestino,
         textoPrevia,
@@ -2139,6 +2160,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             classe: 'remissao-popup__btn--excluir',
             acao: () => {
               remissaoModule.removerRemissaoPorId(value.refId!);
+              if (sourceUuidParaExclusao !== undefined) {
+                rootStore.dispatch(excluirRemissaoManualAction({ sourceUuid: sourceUuidParaExclusao, refId: value.refId! }));
+              }
+              this.fecharPopupRemissao();
+              setTimeout(() => this.fecharPopupRemissao(), 0);
               this.quill.focus();
             },
           },
@@ -2169,6 +2195,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             acao: () => {
               remissaoModule.removerRemissaoExternaPorId(value.refId!);
               rootStore.dispatch(removerRemissaoExternaAction(value.refId!));
+              this.fecharPopupRemissao();
+              setTimeout(() => this.fecharPopupRemissao(), 0);
               this.quill.focus();
             },
           },
@@ -2177,8 +2205,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    esconderPopup(this._remissaoPopup);
-    this._popupRefIdAtual = undefined;
+    this.fecharPopupRemissao();
   }
 
   private editarRemissao = async (value: RemissaoInternaValue): Promise<void> => {

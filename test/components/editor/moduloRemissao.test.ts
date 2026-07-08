@@ -1136,3 +1136,156 @@ describe('renderizarRemissoesDoState — reconciliação de metadata', () => {
     expect(adicionarRemissaoCalls.length).to.equal(0);
   });
 });
+
+describe('ModuloRemissao — exclusão em tempo real ao editar texto dentro de um link', () => {
+  let mockQuill: any;
+  let moduloRemissao: ModuloRemissao;
+  let rootElement: HTMLElement;
+  let formatTextCalls: any[];
+
+  beforeEach(() => {
+    formatTextCalls = [];
+    rootElement = document.createElement('div');
+    // Anexado ao document: o método real checa el.isConnected antes de remover o formato
+    // (guarda contra o link ter sido removido do DOM entre a detecção e o setTimeout).
+    document.body.appendChild(rootElement);
+    mockQuill = criarMockQuill(rootElement);
+    mockQuill.formatText = (...args: any[]): void => {
+      formatTextCalls.push(args);
+    };
+    moduloRemissao = new ModuloRemissao(mockQuill, {});
+  });
+
+  afterEach(() => {
+    rootElement.remove();
+  });
+
+  // Cria um <a class="lexml-remissao-interna"> real no DOM, com __blot para que
+  // Quill.find() (mockado em web-test-runner.config.mjs) resolva o blot fake.
+  function criarLink(refId: string, texto: string): HTMLAnchorElement {
+    const link = document.createElement('a');
+    link.className = 'lexml-remissao-interna';
+    link.setAttribute('data-ref-id', refId);
+    link.textContent = texto;
+    (link as any)['__blot'] = {
+      blot: {
+        statics: { blotName: 'remissao-interna' },
+        offset: () => 0,
+        length: () => link.textContent?.length ?? 0,
+      },
+    };
+    rootElement.appendChild(link);
+    return link;
+  }
+
+  // Delta padrão no formato de uma digitação simples (passa no filtro pareceEdicaoPontual).
+  const DELTA_EDICAO_SIMPLES = { ops: [{ retain: 5 }, { insert: 'x' }] };
+
+  function disparar(source: string, delta: any = DELTA_EDICAO_SIMPLES): Promise<void> {
+    (moduloRemissao as any)._removerRemissaoEditadaEmTempoReal(delta, {}, source);
+    return new Promise(resolve => setTimeout(resolve, 10));
+  }
+
+  it('primeira observação de um link apenas alimenta o cache — não remove nada', async () => {
+    criarLink('ref1', 'art. 1º');
+    await disparar('user');
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  it('texto inalterado entre duas observações não remove o formato', async () => {
+    criarLink('ref1', 'art. 1º');
+    await disparar('user');
+    await disparar('user');
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  it('texto do link mudou desde a última observação (source "user") remove o formato', async () => {
+    const link = criarLink('ref1', 'art. 1º');
+    await disparar('user'); // alimenta o cache com o texto original
+
+    link.textContent = 'art. 21º'; // simula edição interna do usuário
+    await disparar('user');
+
+    expect(formatTextCalls).to.have.length(1);
+    expect(formatTextCalls[0][2]).to.equal('remissao-interna');
+    expect(formatTextCalls[0][3]).to.equal(false);
+    expect(formatTextCalls[0][4]).to.equal('silent');
+  });
+
+  it('mudança de texto com source "silent" (ex: renumeração) não remove — só atualiza o cache', async () => {
+    const link = criarLink('ref1', 'art. 1º');
+    await disparar('user');
+
+    link.textContent = 'art. 2º'; // ex: atualização programática após renumeração
+    await disparar('silent');
+    expect(formatTextCalls).to.have.length(0);
+
+    // O cache já reflete o novo texto — uma checagem subsequente sem mudança não remove.
+    await disparar('user');
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  it('link removido do DOM some do cache sem chamar formatText', async () => {
+    const link = criarLink('ref1', 'art. 1º');
+    await disparar('user');
+
+    link.remove();
+    await disparar('user');
+
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  it('dois links distintos: editar só um deles remove apenas o formato daquele', async () => {
+    const link1 = criarLink('ref1', 'art. 1º');
+    criarLink('ref2', 'art. 2º');
+    await disparar('user');
+
+    link1.textContent = 'art. 11º';
+    await disparar('user');
+
+    expect(formatTextCalls).to.have.length(1);
+  });
+
+  it('sem nenhum link no DOM, não chama formatText', async () => {
+    await disparar('user');
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  // Reprodução de um bug real: reconstruções estruturais do documento (adicionar/renumerar
+  // dispositivo) disparam um delta gigante marcado como source 'user', que pode alterar o
+  // texto de um link já existente (renumeração) sem que o usuário tenha digitado nada.
+  it('delta de reconstrução em massa (muitos ops, source "user") não remove mesmo com texto divergente', async () => {
+    const link = criarLink('ref1', 'art. 1º');
+    await disparar('user'); // alimenta o cache
+
+    link.textContent = 'art. 2º'; // renumeração reconstruiu o texto do link
+
+    const deltaEmMassa = { ops: Array.from({ length: 10 }, () => ({ retain: 1 })) };
+    await disparar('user', deltaEmMassa);
+
+    expect(formatTextCalls).to.have.length(0);
+    // O cache deve ter sido atualizado para o novo texto (não sinaliza divergência de novo).
+    await disparar('user');
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  it('delta que insere quebra de linha não é tratado como edição pontual', async () => {
+    const link = criarLink('ref1', 'art. 1º');
+    await disparar('user');
+
+    link.textContent = 'art. 2º';
+    await disparar('user', { ops: [{ retain: 5 }, { insert: '\n' }] });
+
+    expect(formatTextCalls).to.have.length(0);
+  });
+
+  it('delta que insere um trecho grande não é tratado como edição pontual', async () => {
+    const link = criarLink('ref1', 'art. 1º');
+    await disparar('user');
+
+    link.textContent = 'art. 2º';
+    await disparar('user', { ops: [{ retain: 5 }, { insert: 'um texto bem mais longo que uma digitação normal' }] });
+
+    expect(formatTextCalls).to.have.length(0);
+  });
+});
