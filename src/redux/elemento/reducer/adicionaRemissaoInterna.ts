@@ -98,31 +98,49 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
 
   const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao);
 
-  // Preserva entradas inválidas existentes — só saem via REMOVER_REMISSAO_INVALIDA
-  const oldInvalidas = (state.remissoes?.[dispositivo.uuid!] ?? []).filter((r: any) => r.valida === false);
+  const todasEntriesAntigas: RemissaoInternaValue[] = state.remissoes?.[dispositivo.uuid!] ?? [];
 
-  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0) {
+  // Preserva entradas inválidas existentes — só saem via REMOVER_REMISSAO_INVALIDA
+  const oldInvalidas = todasEntriesAntigas.filter(r => r.valida === false);
+
+  // Preserva deleção lógica de exclusão manual (botão "Excluir") — só saem quando o texto deixar de ser idêntico
+  const oldExcluidas = todasEntriesAntigas.filter(r => r.excluidaManualmente === true);
+
+  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0 && oldExcluidas.length === 0) {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
-
-  const oldEntries: RemissaoInternaValue[] = state.remissoes?.[dispositivo.uuid!] ?? [];
 
   // Indexa por (targetLexmlId:inicio) para preservar refIds distintos quando há múltiplas
   // remissões apontando para o mesmo destino em posições diferentes do texto.
   const oldByPositionKey = new Map<string, string>();
-  for (const r of oldEntries) {
+  for (const r of todasEntriesAntigas) {
+    if (r.excluidaManualmente) continue;
     if (r.targetLexmlId && r.inicio !== undefined && r.refId) {
       oldByPositionKey.set(`${r.targetLexmlId}:${r.inicio}`, r.refId);
     }
   }
+
+  // Chave tripla (destino+posição+texto) na deleção lógica: qualquer edição no trecho altera a chave e libera a redetecção.
+  const oldExcluidaKeys = new Set(
+    oldExcluidas.filter(r => r.targetLexmlId !== undefined && r.inicio !== undefined && r.textoRef !== undefined).map(r => `${r.targetLexmlId}:${r.inicio}:${r.textoRef}`)
+  );
+  const confirmedTripleKeys = new Set<string>();
   const claimedRefIds = new Set<string>();
 
-  const novasRemissoes: RemissaoInternaValue[] = remissoesEncontradas.map(item => {
+  const novasRemissoes: RemissaoInternaValue[] = [];
+  for (const item of remissoesEncontradas) {
+    const tripleKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}:${item.texto}` : undefined;
+
+    if (tripleKey && oldExcluidaKeys.has(tripleKey)) {
+      confirmedTripleKeys.add(tripleKey);
+      continue; // exclusão manual ainda vigente para este trecho — não recria o link
+    }
+
     const posKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}` : undefined;
     const candidato = posKey ? oldByPositionKey.get(posKey) : undefined;
     const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? gerarRefId();
     claimedRefIds.add(refId);
-    return {
+    novasRemissoes.push({
       refId,
       targetLexmlId: item.dispositivoDestino.id,
       targetUuid: item.dispositivoDestino.uuid,
@@ -131,12 +149,19 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
       sourceLexmlId: dispositivo.id,
       textoRef: item.texto,
       inicio: item.inicio,
-    };
+    });
+  }
+
+  // Mantém apenas os tombstones cuja posição/texto ainda foram redetectados identicamente —
+  // os demais são descartados (o trecho mudou, então a exclusão manual não se aplica mais).
+  const tombstonesRestantes = oldExcluidas.filter(r => {
+    const key = r.targetLexmlId !== undefined && r.inicio !== undefined ? `${r.targetLexmlId}:${r.inicio}:${r.textoRef}` : undefined;
+    return key !== undefined && confirmedTripleKeys.has(key);
   });
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
-  // Merge: novas detecções válidas + inválidas preservadas
-  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldInvalidas];
+  // Merge: novas detecções válidas + inválidas preservadas + tombstones ainda vigentes
+  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldInvalidas, ...tombstonesRestantes];
 
   const elemento = createElemento(dispositivo, true);
   const eventosUi = new Eventos();

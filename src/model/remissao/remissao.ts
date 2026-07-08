@@ -28,6 +28,8 @@ export interface RemissaoInternaValue {
   valida?: boolean; // false = dispositivo destino foi excluído; undefined = sem informação de validade
 
   revisao?: true; // presente apenas quando texto não pôde ser atualizado após renumeração
+
+  excluidaManualmente?: true; // presente quando o usuário excluiu o link via botão "Excluir" — bloqueia recriação enquanto o texto não mudar
 }
 
 export interface ReferenciaDetectada {
