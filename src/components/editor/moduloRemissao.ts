@@ -106,38 +106,19 @@ class ModuloRemissao extends Module {
     }, 0);
   }
 
-  // Cache do último texto conhecido de cada link (refId -> texto), usado para detectar
-  // edição interna por comparação de conteúdo em vez de aritmética de posição do delta.
-  //
-  // Por quê: em documentos com muitos blots estruturais (rótulo, menu, ⋮), o índice
-  // acumulado a partir das operações do delta não bate de forma confiável com o índice
-  // que quill.getLeaf()/blot.offset(scroll) usam para o MESMO ponto do documento — foi
-  // observado empiricamente (via Cypress, com Quill real) que os dois podem divergir em
-  // vários caracteres para o mesmo texto editado. Comparar o texto do link diretamente é
-  // imune a essa divergência.
+  // Cache (refId -> texto) para detectar edições por comparação direta de conteúdo.
+  // Evita a aritmética de posições via Delta, cujos índices divergem dos offsets do Quill na presença de blots estruturais.
   private cacheTextoRemissao = new Map<string, string>();
 
-  // Se uma edição (inserir ou apagar caracteres) atingir o interior de um link de
-  // remissão-interna já existente, remove o link imediatamente — o texto permanece, só o
-  // link desaparece. A próxima redetecção (blur/debounce) recria o link automaticamente se
-  // o texto resultante ainda casar com um padrão canônico válido; caso contrário, permanece
-  // texto plano. A exclusão manual pelo botão "Excluir" é tratada à parte (tombstone no
-  // registry, ver adicionaRemissaoInterna.ts) — este método não interfere nela.
-  //
-  // Não conflita com _absorverOrdinalEmRemissao: a absorção de ordinal insere o caractere
-  // FORA do blot nesta mesma passada de 'text-change' (o texto do link em si não muda
-  // ainda), então não há divergência aqui — só depois, quando a absorção roda em seu
-  // próprio setTimeout com source 'silent', o que apenas atualiza o cache (não dispara
-  // remoção, pois a checagem de divergência só vale para source === 'user').
-  //
-  // Importante: operações estruturais (adicionar/renumerar dispositivo) reconstroem o
-  // documento inteiro do Quill via um diff extenso, também marcado como source 'user' —
-  // confirmado empiricamente (Cypress + Quill real): um delta assim pode conter centenas
-  // de ops e alterar o texto de um link já existente (ex.: renumeração "art. 1º" → "art.
-  // 2º") sem que o usuário tenha digitado nada dentro dele. `pareceEdicaoPontual` distingue
-  // uma digitação real (poucos ops, sem quebra de linha, tamanho pequeno) desse tipo de
-  // reconstrução em massa — a divergência só é tratada como edição quando o delta passa
-  // nesse filtro; caso contrário, o cache é apenas atualizado (sem remover o link).
+  // Alimenta o cache manualmente na criação/atualização porque operações 'silent' do Quill não disparam 'text-change', evitando falsas "primeiras observações".
+  private seedCacheRemissao(refId: string | undefined, texto: string): void {
+    if (!refId) return;
+    this.cacheTextoRemissao.set(refId, texto);
+  }
+
+  // Remove o link (preservando o texto) ao detectar edições pontuais pelo usuário.
+  // Delega a recriação ao blur/debounce e ignora exclusões manuais (lógicas).
+  // Filtra renumerações em massa (diffs extensos) e eventos 'silent' (ordinais).
   private _removerRemissaoEditadaEmTempoReal(delta: any, _oldDelta: any, source: string): void {
     const podeSerEdicaoDoUsuario = source === 'user' && this.pareceEdicaoPontual(delta);
 
@@ -191,10 +172,8 @@ class ModuloRemissao extends Module {
     }, 0);
   }
 
-  // Heurística para distinguir uma digitação real (poucos ops, sem quebra de linha,
-  // conteúdo pequeno) de uma reconstrução estrutural do documento inteiro (centenas de
-  // ops, inclui '\n' de blocos, trechos grandes) — ver comentário em
-  // _removerRemissaoEditadaEmTempoReal para o contexto empírico completo.
+  // Desfaz o link nas edições manuais (source 'user' pontuais), deixando o blur avaliar o texto final.
+  // Filtra reconstruções do DOM (renumeração em massa) e eventos 'silent' (ordinais), onde o cache é apenas atualizado.
   private pareceEdicaoPontual(delta: any): boolean {
     const ops = delta?.ops;
     if (!Array.isArray(ops) || ops.length === 0 || ops.length > 6) return false;
@@ -805,12 +784,14 @@ class ModuloRemissao extends Module {
             const deleteLen = textoPosBlot === sufixo ? blotLen + sufixo.length : blotLen;
             const delta = new Delta().retain(blotIdx).delete(deleteLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
+            this.seedCacheRemissao(remissao.refId, textoNovo);
           } else if (textoNovo !== textoBlot && textoNovo.length > 0) {
             // Caso 2: texto mudou sem crescer por sufixo (ex: "artigo 2" → "art. 3º" após normalização).
             const blotIdx = blot.offset(this.quill.scroll);
             const blotLen = blot.length();
             const delta = new Delta().retain(blotIdx).delete(blotLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
+            this.seedCacheRemissao(remissao.refId, textoNovo);
           }
           continue;
         }
@@ -866,6 +847,7 @@ class ModuloRemissao extends Module {
         }
 
         this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-interna', remissao, 'silent');
+        this.seedCacheRemissao(remissao.refId, textoRef);
       }
     }
 

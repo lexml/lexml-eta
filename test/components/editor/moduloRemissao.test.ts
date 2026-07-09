@@ -1212,6 +1212,22 @@ describe('ModuloRemissao — exclusão em tempo real ao editar texto dentro de u
     expect(formatTextCalls[0][4]).to.equal('silent');
   });
 
+  it('[BUG] apagar o último caractere do link (backspace no boundary) remove o formato imediatamente', async () => {
+    // Reprodução da lógica pura: cache guarda "art. 1", backspace apaga o "1" e o
+    // textContent do <a> passa a ser "art. " — a divergência deve disparar a remoção
+    // na mesma passada, sem esperar o usuário apagar também o espaço seguinte.
+    const link = criarLink('ref1', 'art. 1');
+    await disparar('user'); // alimenta o cache com o texto original ("art. 1")
+
+    link.textContent = 'art. '; // simula backspace apagando o "1" (último caractere do link)
+    await disparar('user', { ops: [{ retain: 5 }, { delete: 1 }] });
+
+    expect(formatTextCalls).to.have.length(1);
+    expect(formatTextCalls[0][2]).to.equal('remissao-interna');
+    expect(formatTextCalls[0][3]).to.equal(false);
+    expect(formatTextCalls[0][4]).to.equal('silent');
+  });
+
   it('mudança de texto com source "silent" (ex: renumeração) não remove — só atualiza o cache', async () => {
     const link = criarLink('ref1', 'art. 1º');
     await disparar('user');
