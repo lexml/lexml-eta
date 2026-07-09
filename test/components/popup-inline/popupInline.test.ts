@@ -80,11 +80,11 @@ describe('mostrarPopup() — conteúdo', () => {
     anchorEl.remove();
   });
 
-  it('preenche o rotulo com config.rotulo', () => {
+  it('preenche o rotulo com config.rotulo seguido de dois-pontos', () => {
     mostrarPopup(popup, anchorEl, criarConfigBasica({ rotulo: 'Art. 5º' }));
 
     const rotuloEl = popup.querySelector('.remissao-popup__rotulo') as HTMLElement;
-    expect(rotuloEl.textContent).to.equal('Art. 5º');
+    expect(rotuloEl.textContent).to.equal('Art. 5º:');
   });
 
   it('adiciona classe navegavel ao rotulo quando acaoNavegacao e fornecida e nao invalido', () => {

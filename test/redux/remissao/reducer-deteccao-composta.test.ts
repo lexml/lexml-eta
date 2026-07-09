@@ -94,12 +94,25 @@ describe('Detecção de Remissões Compostas', () => {
 
       expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 2 (uma para § e outra para art)');
     });
+  });
 
-    it('[CT-C3] "parágrafo único do art. 5º" → 1 remissão para art5 (parágrafo 1)', () => {
-      // "parágrafo único" referencia o primeiro parágrafo
+  describe('Composto: artigo + parágrafo único', () => {
+    it('[CT-C3] "parágrafo único do art. 5º" → 1 remissão para art5 (parágrafo único)', () => {
+      const setup = criaStateComNArtigos(5);
+      const state = setup.state;
+      const art1 = setup.artigos[0];
+      const art5 = setup.artigos[4];
+
+      // Adiciona apenas 1 parágrafo ao art. 5 — "parágrafo único" só resolve quando há exatamente 1
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      par1.texto = 'Parágrafo único.';
+      art5.renumeraFilhos();
+      par1.createRotulo(par1);
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      marcaAdicionado(par1);
+
       const remissoes = detectaRemissoes(state, art1, 'Conforme o parágrafo único do art. 5º.');
 
-      // Deve criar 1 remissão (o parser resolve "parágrafo único" → busca parágrafo único)
       expect(remissoes).to.have.length(1);
       expect(remissoes[0].targetLexmlId).to.match(/^art5_par/);
     });
