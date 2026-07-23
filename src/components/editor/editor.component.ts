@@ -812,6 +812,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
+    // Transformação de tipo (TAB/SHIFT_TAB) preserva o uuid do dispositivo convertido (para que
+    // remissões continuem resolvendo — ver Fase 0 do plano de simplificação de remissão). Isso faz
+    // com que ElementoIncluido e ElementoRemovido do MESMO lote carreguem os MESMOS uuids: o handler
+    // de ElementoIncluido reaproveita a linha existente no Quill (atualiza em vez de inserir), e o
+    // de ElementoRemovido, rodando em seguida, apagaria essa linha recém-atualizada — o dispositivo
+    // transformado desaparece do editor mesmo com o estado/registro de remissões corretos. O uuid
+    // continua presente no evento ElementoRemovido em si (necessário para o undo/redo, que inverte
+    // esses eventos para reconstruir o estado anterior) — só a repintura do DOM ignora esses uuids.
+    const uuidsIncluidosNoLote = new Set(
+      events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).flatMap((ev: StateEvent) => ev.elementos?.map(e => e.uuid) ?? [])
+    );
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.PaginaArticulacaoSelecionada:
@@ -857,7 +868,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoRemovido:
-          this.removerLinhaQuill(event);
+          this.removerLinhaQuill(event, uuidsIncluidosNoLote);
           break;
 
         case StateType.ElementoRenumerado:
@@ -1036,10 +1047,18 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const linhaASerReinserida = this.quill.getLinha(elemento.uuid!);
 
-    if (linhaASerReinserida) {
+    if (linhaASerReinserida && linhaASerReinserida.tipo === elemento.tipo) {
       linhaASerReinserida.atualizarElemento(elemento);
       selecionarLinha && fnSelecionarNovaLinha(linhaASerReinserida, this.quill.linhaAtual);
       return;
+    }
+
+    if (linhaASerReinserida) {
+      // Transformação de tipo (TAB/SHIFT_TAB) preserva o uuid do dispositivo convertido (Fase 0 do
+      // plano de simplificação de remissão), mas atualizarElemento() não reconstrói as classes/
+      // estrutura do container para o novo tipo (ex.: elemento-tipo-artigo → elemento-tipo-paragrafo)
+      // — só reaproveita a linha quando o tipo é o mesmo. Quando o tipo muda, remove e recria do zero.
+      linhaASerReinserida.remove();
     }
 
     const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia?.uuid || 0);
@@ -1192,11 +1211,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return false;
   }
 
-  private removerLinhaQuill(event: StateEvent): void {
+  private removerLinhaQuill(event: StateEvent, uuidsParaIgnorar?: Set<number | undefined>): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
+      // uuid reaproveitado por uma transformação de tipo (TAB/SHIFT_TAB) na mesma ação: a linha já
+      // foi atualizada pelo handler de ElementoIncluido — remover agora apagaria essa atualização.
+      if (uuidsParaIgnorar?.has(elemento.uuid)) return;
+
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
         const isRevisaoDeExclusaoOuTransformacao =

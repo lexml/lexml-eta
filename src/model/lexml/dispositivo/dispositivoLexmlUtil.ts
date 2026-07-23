@@ -23,7 +23,10 @@ const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
   atual.filhos.forEach((filho, index) => {
     const novo = criaDispositivo(
       isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
-      destino.tipoProvavelFilho!
+      destino.tipoProvavelFilho!,
+      undefined,
+      undefined,
+      filho.uuid
     );
     novo.texto = filho.texto ?? '';
     novo.situacao = filho.situacao;
@@ -45,7 +48,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformarIncisoParagrafoEmAlinea':
     case 'transformarParagrafoEmIncisoParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     case 'transformarDispositivoGenericoEmInciso':
     case 'transformarDispositivoGenericoEmAlinea':
@@ -63,28 +66,28 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformarIncisoCaputEmOmissisIncisoCaput':
     case 'transformarIncisoParagrafoEmOmissisIncisoParagrafo':
       paiNovo = paiAtual!;
-      novo = criaDispositivo(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
+      novo = criaDispositivo(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual), atual.uuid);
       break;
     case 'transformarParagrafoEmInciso':
       if (isParagrafo(atual) && (isPrimeiroMesmoTipo(atual) || isUnicoMesmoTipo(atual))) {
         paiNovo = paiAtual!;
-        novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo);
+        novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo, undefined, undefined, atual.uuid);
         break;
       }
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     case 'transformarParagrafoEmIncisoCaput':
       paiNovo = paiAtual!;
-      novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo);
+      novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     case 'transformarArtigoEmParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     default:
       paiNovo = atual.pai!.pai!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo, atual.pai!);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, atual.pai!, undefined, atual.uuid);
       break;
   }
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;

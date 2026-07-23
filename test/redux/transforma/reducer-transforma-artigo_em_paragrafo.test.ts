@@ -14,6 +14,11 @@ import { EXEMPLO_ARTIGOS } from '../../doc/exemplo-artigos';
 
 let state: any;
 
+// Coleta recursiva de uuids (dispositivo + descendentes), usada para comprovar que a transformação
+// de tipo preserva identidade (uuid) em vez de gerar dispositivos novos — sem isso, remissões que
+// apontam para o uuid antigo ficam órfãs.
+const coletaUuids = (dispositivo: any): number[] => [dispositivo.uuid, ...(dispositivo.filhos ?? []).flatMap(coletaUuids)];
+
 describe('Testando a transformação de artigo em parágrafo', () => {
   beforeEach(function () {
     const articulacao = ArticulacaoParser.load(EXEMPLO_ARTIGOS);
@@ -26,8 +31,12 @@ describe('Testando a transformação de artigo em parágrafo', () => {
     expect(state.articulacao.artigos.length).to.equal(5);
   });
   describe('Testando a mudança do artigo 4, com filhos, em parágrafo do artigo anterior que possui filhos', () => {
+    let uuidsOriginais: number[];
+    let uuidArtigoOriginal: number;
     beforeEach(function () {
       const artigo = state.articulacao.artigos[3];
+      uuidArtigoOriginal = artigo.uuid!;
+      uuidsOriginais = coletaUuids(artigo);
       const action = transformarArtigoEmParagrafo.execute({ tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! });
 
       state = transformaTipoElemento(state, action);
@@ -37,6 +46,15 @@ describe('Testando a transformação de artigo em parágrafo', () => {
     });
     it('Deveria apresentar mais um parágrafo no artigo 3, depois da transformação', () => {
       expect(state.articulacao.artigos[2].filhos.length).to.equal(2);
+    });
+    it('Deveria preservar o uuid do artigo original no novo parágrafo (remissões continuam resolvendo)', () => {
+      const novoParagrafo = state.articulacao.artigos[2].filhos.find((f: any) => f.uuid === uuidArtigoOriginal);
+      expect(novoParagrafo).to.exist;
+    });
+    it('Deveria preservar o uuid de todos os descendentes (incisos/alíneas/itens) do artigo original', () => {
+      const novoParagrafo = state.articulacao.artigos[2].filhos.find((f: any) => f.uuid === uuidArtigoOriginal);
+      const uuidsNovos = coletaUuids(novoParagrafo);
+      expect(uuidsNovos.sort()).to.deep.equal(uuidsOriginais.sort());
     });
     describe('Testando eventos', () => {
       it('Deveria apresentar 4 eventos', () => {

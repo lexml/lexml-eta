@@ -98,14 +98,17 @@ const OmissisLexml = SituacaoDispositivo(RegrasOmissis(GeneroFeminino(BlocoAlter
 
 const EmentaLexml = SituacaoDispositivo(RegrasEmenta(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
 
-export const criaDispositivo = (parent: Dispositivo, tipo: string, referencia?: Dispositivo, posicao?: number): Dispositivo => {
-  const dispositivo = create(tipo, parent);
+// uuidPreservado: usado por converteDispositivo/converteFilhos para que o dispositivo resultante de
+// uma transformação de tipo mantenha a identidade do original — sem isso, remissões que apontam para
+// o uuid antigo ficam órfãs (o uuid novo, gerado por Counter.next(), nunca é resolvido).
+export const criaDispositivo = (parent: Dispositivo, tipo: string, referencia?: Dispositivo, posicao?: number, uuidPreservado?: number): Dispositivo => {
+  const dispositivo = create(tipo, parent, uuidPreservado);
   posicao !== undefined && posicao >= 0 ? parent!.addFilhoOnPosition(dispositivo, posicao) : referencia ? parent!.addFilho(dispositivo, referencia) : parent!.addFilho(dispositivo);
 
   return dispositivo;
 };
 
-const create = (name: string, parent: Dispositivo): Dispositivo => {
+const create = (name: string, parent: Dispositivo, uuidPreservado?: number): Dispositivo => {
   let dispositivo: Dispositivo;
 
   switch (name.toLowerCase()) {
@@ -159,7 +162,7 @@ const create = (name: string, parent: Dispositivo): Dispositivo => {
     }
   }
 
-  dispositivo.uuid = Counter.next();
+  dispositivo.uuid = uuidPreservado ?? Counter.next();
   dispositivo.uuid2 = generateUUID();
   dispositivo.name = name;
   dispositivo.pai = isInciso(dispositivo) && isArtigo(parent) ? (parent as Artigo).caput : parent;
