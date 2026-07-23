@@ -702,6 +702,12 @@ describe('Atualização simultânea: absoluta simples, em cadeia, contextual e m
     // Pré-condição: Art. 5 tem link não-canônico apontando para art1
     cy.getContainerArtigoByNumero(5).find(SEL_LINK).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1').and('contain.text', 'o artigo primeiro');
 
+    // Sincroniza dispositivo.texto com o HTML real do Quill (edição via 'silent' não passa pelo
+    // caminho normal de text-change, que numa digitação real do usuário sempre sincronizaria
+    // imediatamente — sem isso, a Fase 2 veria o texto ORIGINAL "art. 1º" ainda gravado no estado
+    // e sobrescreveria incorretamente o texto manual "o artigo primeiro" preservado no DOM).
+    cy.getContainerArtigoByNumero(5).sincronizarTextoComQuill();
+
     // ── Fase 2: renumeração — insere art. antes de Art. 1 ───────────────────
     // Novo Art. 1 (vazio); ex-Art. 1 → Art. 2 (e filhos); ex-Art. 2 → Art. 3 etc.
     // Dispara RemissaoRenumerada: art1→art2, art1_par1→art2_par1, art1_par2→art2_par2,

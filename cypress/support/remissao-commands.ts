@@ -127,6 +127,59 @@ Cypress.Commands.add('dispararDeteccaoRemissao', { prevSubject: 'element' }, (su
 });
 
 /**
+ * Sincroniza dispositivo.texto (estado Redux) com o HTML atualmente presente no Quill do
+ * dispositivo, SEM rodar a detecção automática de remissão (diferente de dispararDeteccaoRemissao).
+ *
+ * Uso: depois de editar um link de remissão diretamente via quill.updateContents(..., 'silent')
+ * (necessário para simular remissão manual/não-canônica sem passar pela UI de digitação real),
+ * o estado nunca vê essa edição — 'silent' é o único source do Quill que não dispara 'text-change'.
+ * Numa digitação REAL do usuário, isso sempre sincronizaria imediatamente (mesmo sem trocar de
+ * dispositivo depois); este comando reproduz esse efeito colateral sem o risco de rodar a
+ * redetecção (que reescreveria o registro de remissões com base só no que for reconhecível).
+ */
+Cypress.Commands.add('sincronizarTextoComQuill', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
+  cy.window().then(async win => {
+    const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+    const quill = editorEl?.quill;
+    const p = subject[0]?.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+    if (!quill || !p) return;
+
+    const uuidStr = p.id?.replace('texto__dispositivo', '');
+    const uuid = uuidStr ? parseInt(uuidStr, 10) : NaN;
+    const linha = quill.getLinha?.(uuid);
+    if (!linha?.blotConteudo) return;
+
+    const store = (win as any).__rootStore;
+    if (!store) return;
+
+    // @ts-expect-error caminho absoluto servido pelo wds em runtime, sem declaração de tipos
+    const { createElemento } = await import('/out-tsc/src/model/elemento/elementoUtil.js');
+
+    const buscarPorUuid = (no: any): any => {
+      if (!no) return undefined;
+      if (no.uuid === uuid) return no;
+      if (no.caput) {
+        const achadoCaput = buscarPorUuid(no.caput);
+        if (achadoCaput) return achadoCaput;
+      }
+      for (const filho of no.filhos || no.artigos || []) {
+        const achado = buscarPorUuid(filho);
+        if (achado) return achado;
+      }
+      return undefined;
+    };
+
+    const dispositivo = buscarPorUuid(store.getState().elementoReducer.articulacao);
+    if (!dispositivo) return;
+
+    dispositivo.texto = linha.blotConteudo.html;
+    const elemento = createElemento(dispositivo, true);
+    store.dispatch({ type: 'ATUALIZAR_TEXTO_ELEMENTO', atual: elemento });
+  });
+  return cy.wrap(subject);
+});
+
+/**
  * Posiciona o cursor do Quill no início do p.texto__dispositivo do container (subject).
  * Pré-condição para `cy.get('.btn-remissao-interna').click()`: o Quill precisa ter uma
  * seleção ativa (quill.getSelection() != null) antes do clique. Clicar num <button> fora
@@ -166,6 +219,7 @@ declare global {
       getDestinoRemissaoDestacado(): Cypress.Chainable<JQuery<HTMLElement>>;
       digitarTextoRemissao(texto: string): Cypress.Chainable<JQuery<HTMLElement>>;
       dispararDeteccaoRemissao(): Cypress.Chainable<JQuery<HTMLElement>>;
+      sincronizarTextoComQuill(): Cypress.Chainable<JQuery<HTMLElement>>;
       posicionarCursorNoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
     }
   }
