@@ -111,9 +111,9 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
   // `adicionaRemissaoInterna` registra a entrada mas `renderizarRemissoesDoState`
   // formata o link via Quill `formatText('silent')` — o link existe apenas no DOM
   // do Quill, e `dispositivo.texto` no Redux permanece como texto plano sem `<a>`.
-  // Após renumeração subsequente, o caput.texto continua "stale" (sem link, com
-  // o número antigo). Sem dependência de auto-correção de `data-lexml-ref`, é
-  // necessário sincronizar o texto plano com o novo número antes de serializar.
+  // Desde a Fase 5 do plano de simplificação, `sincronizarRemissoesPosAcao` corrige
+  // `caput.texto` em tempo real (na própria ação de renumeração), não só ao salvar —
+  // este teste confirma que o resultado final salvo continua correto mesmo assim.
   it('runtime: deve serializar href atualizado quando remissão veio de digitação (sem <a> em caput.texto)', () => {
     const articulacao = createArticulacao();
 
@@ -164,8 +164,11 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
 
     const artigoRenumerado = stateRenumerado.articulacao!.artigos.find(a => a.uuid === art2UuidOriginal)!;
     expect(artigoRenumerado.id).to.equal('art3');
-    // Confirma o comportamento "silent" do Quill: caput.texto permanece com "art. 2º".
-    expect(artigoRenumerado.caput!.texto).to.contain('art. 2º');
+    // Fase 5 do plano de simplificação: `sincronizarRemissoesPosAcao` (elementoReducer.ts) já
+    // corrige `caput.texto` em tempo real, na própria ação de renumeração — não é mais preciso
+    // esperar o salvamento para isso. Antes desta fase, o texto ficava "stale" até salvar; agora
+    // já reflete o número atualizado imediatamente.
+    expect(artigoRenumerado.caput!.texto).to.contain('art. 3º');
 
     // Save sem digitação intermediária.
     const registroCompleto = completarRegistroRemissoes(stateRenumerado.articulacao!, stateRenumerado.remissoes ?? {});

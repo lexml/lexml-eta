@@ -67,6 +67,7 @@ import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosN
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
+import { sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
 import { State, StateType } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
@@ -312,6 +313,7 @@ export const elementoReducer = (state = {}, action: any): any => {
 
   tempState = atualizaMensagemCritical(tempState);
   tempState = atualizaRevisao(tempState, actionType);
+  tempState = sincronizarRemissoesPosAcao(tempState, actionType);
   tempState = adicionaDiffMenuOpcoes(tempState);
   return atualizaPaginacao(tempState, action);
 };

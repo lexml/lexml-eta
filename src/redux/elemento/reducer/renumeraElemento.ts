@@ -5,7 +5,7 @@ import { RenumerarElemento } from '../../../model/lexml/acao/renumerarElementoAc
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
-import { State, StateType } from '../../state';
+import { State } from '../../state';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { formatarMilhares } from '../../../model/lexml/numeracao/numeracaoUtil';
@@ -41,10 +41,6 @@ export const renumeraElemento = (state: any, action: any): State => {
 
   const past = buildPast(state, buildUpdateEvent(dispositivo));
 
-  // Captura o lexmlId antigo antes de renumerar
-  const lexmlIdAntigo = dispositivo.id;
-  const uuidDispositivo = dispositivo.uuid;
-
   try {
     const numero = ajustarNumero(dispositivo, action.novo?.numero);
     dispositivo.createNumeroFromRotulo(numero);
@@ -59,24 +55,6 @@ export const renumeraElemento = (state: any, action: any): State => {
   dispositivo.createRotulo(dispositivo);
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
-
-  const lexmlIdNovo = dispositivo.id;
-  if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
-    const index = eventos.eventos.findIndex(ev => ev.stateType === StateType.RemissaoRenumerada);
-    if (index !== -1) {
-      eventos.eventos.splice(index, 1);
-    }
-
-    eventos.eventos.push({
-      stateType: StateType.RemissaoRenumerada,
-      elementos: [],
-      remissaoRenumeracao: {
-        lexmlIdAntigo,
-        lexmlIdNovo,
-        novoUuid: uuidDispositivo,
-      },
-    });
-  }
 
   const builtEvents = eventos.build();
 

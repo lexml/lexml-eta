@@ -1,5 +1,4 @@
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
-import { atualizarTextoRemissao as atualizarTextoRemissaoUtil, isTextoReconhecivel } from '../../model/remissao/lexmlIdUtil';
 import { gerarRefId } from '../../model/remissao/refId';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
 
@@ -601,62 +600,6 @@ class ModuloRemissao extends Module {
     return true;
   }
 
-  atualizarReferencias(lexmlIdAntigo: string, lexmlIdNovo: string, novoUuid: number): { count: number; preservados: HTMLElement[] } {
-    const links = this.quill.root.querySelectorAll(`a.lexml-remissao-interna[data-lexml-ref="${CSS.escape(lexmlIdAntigo)}"]`);
-
-    // Coleta candidatos antes de qualquer modificação DOM para evitar referências obsoletas
-    const candidatos: { refId: string; textoAtual: string; el: HTMLElement }[] = [];
-    links.forEach((link: Element) => {
-      const el = link as HTMLElement;
-      const dataRefId = el.getAttribute('data-ref-id');
-      const href = el.getAttribute('href') || '';
-      const currentUuid = RemissaoInternaBlot.extractUuidFromHref(href);
-
-      // Match de UUID evita que eventos antigos ou defasados sobrescrevam a remissão.
-      if (dataRefId && currentUuid === novoUuid) {
-        candidatos.push({ refId: dataRefId, textoAtual: el.textContent || '', el });
-      }
-    });
-
-    const preservados: HTMLElement[] = [];
-    let count = 0;
-
-    for (const { refId, textoAtual, el } of candidatos) {
-      const reconhecivel = isTextoReconhecivel(textoAtual);
-      const novoTexto = reconhecivel ? this.atualizarTextoRemissao(textoAtual, lexmlIdAntigo, lexmlIdNovo) : textoAtual;
-
-      if (!reconhecivel) {
-        preservados.push(el);
-      }
-
-      const newValue: RemissaoInternaValue = {
-        refId,
-        targetLexmlId: lexmlIdNovo,
-        targetUuid: novoUuid,
-        targetRotulo: novoTexto || undefined,
-      };
-
-      // Usa sempre setTimeout + updateContents para garantir que o delta interno do Quill
-      // seja atualizado — blot.format() direto não atualiza o delta e o MutationObserver
-      // pode reverter a mudança de atributo antes que o Cypress verifique o DOM.
-      const refIdCaptura = refId;
-      const textoCaptura = novoTexto;
-      const newValueCaptura = newValue;
-      setTimeout(() => {
-        const result = this.findBlotByRefId(refIdCaptura);
-        if (result) {
-          const length = result.blot.length();
-          const delta = new Delta().retain(result.index).delete(length).insert(textoCaptura, { 'remissao-interna': newValueCaptura });
-          this.quill.updateContents(delta, 'silent');
-        }
-      }, 0);
-
-      count++;
-    }
-
-    return { count, preservados };
-  }
-
   marcarRemissoesComoInvalidas(lexmlId: string): number {
     const escapedId = CSS.escape(lexmlId);
     // Fallback por href: após recriação do blot, data-lexml-ref é removido quando não há data-ref-id.
@@ -694,10 +637,6 @@ class ModuloRemissao extends Module {
     });
 
     return count;
-  }
-
-  private atualizarTextoRemissao(textoAtual: string, lexmlIdAntigo: string, lexmlIdNovo: string): string {
-    return atualizarTextoRemissaoUtil(textoAtual, lexmlIdAntigo, lexmlIdNovo);
   }
 
   //chamado em remissaoModule.renderizarRemissoesDoState
@@ -774,7 +713,14 @@ class ModuloRemissao extends Module {
           // Usa 'silent' para não disparar observableSelectionChange (que só notifica ao mudar de linha).
           const textoBlot = (linkExistente.textContent || '').trim();
           const textoNovo = (remissao.textoRef || '').trim();
-          if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
+          if (remissao.revisao) {
+            // Entrada marcada para revisão (Fase 5): o `textoRef` gravado é um baseline antigo,
+            // não o texto atual — nunca deve sobrescrever o texto que o usuário preservou/editou.
+            // Só reatribui os atributos do link (ex.: data-lexml-ref) quando necessário.
+            if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
+              blot.format('remissao-interna', remissao);
+            }
+          } else if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
             // Caso 1: texto cresceu por sufixo (ex: "art. 1" → "art. 1º").
             // Apaga também os caracteres do sufixo que ficaram soltos fora do blot.
             const blotIdx = blot.offset(this.quill.scroll);
@@ -792,6 +738,11 @@ class ModuloRemissao extends Module {
             const delta = new Delta().retain(blotIdx).delete(blotLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
             this.seedCacheRemissao(remissao.refId, textoNovo);
+          } else if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
+            // Caso 3 (Fase 5 do plano de simplificação): texto igual, mas o lexmlId do destino mudou
+            // (ex.: referência contextual "deste artigo" cujo texto relativo não muda, só o ancestral
+            // renumerou) — só reatribui os atributos do link, sem mexer no texto/Delta.
+            blot.format('remissao-interna', remissao);
           }
           continue;
         }

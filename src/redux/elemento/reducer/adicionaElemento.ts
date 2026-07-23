@@ -181,16 +181,6 @@ export const adicionaElemento = (state: any, action: any): State => {
     (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai);
   }
 
-  // Salva lexmlIds (pai e descendentes) antes de renumerar para atualizar remissões compostas em cascata (ex: art1_par2 → art2_par2).
-  const mapeamentoLexmlIds: Array<{ dispositivo: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
-  const capturarComDescendentes = (d: Dispositivo): void => {
-    if (d.id && d.uuid) {
-      mapeamentoLexmlIds.push({ dispositivo: d, lexmlIdAntigo: d.id, uuidDispositivo: d.uuid });
-    }
-    d.filhos?.forEach(capturarComDescendentes);
-  };
-  listaDispositivosRenumerados(novo).forEach(capturarComDescendentes);
-
   novo.pai!.renumeraFilhos();
 
   updateIdDispositivoAndFilhos(novo.pai!);
@@ -227,22 +217,6 @@ export const adicionaElemento = (state: any, action: any): State => {
     eventos.add(StateType.ElementoValidado, [elementoAtualAtualizado]);
     eventos.add(StateType.ElementoRenumerado, [elementoAtualAtualizado]);
   }
-
-  // Emite RemissaoRenumerada para todos os dispositivos renumerados, independente da posicao.
-  mapeamentoLexmlIds.forEach(({ dispositivo, lexmlIdAntigo, uuidDispositivo }) => {
-    const lexmlIdNovo = dispositivo.id;
-    if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
-      eventos.eventos.push({
-        stateType: StateType.RemissaoRenumerada,
-        elementos: [],
-        remissaoRenumeracao: {
-          lexmlIdAntigo,
-          lexmlIdNovo,
-          novoUuid: uuidDispositivo,
-        },
-      });
-    }
-  });
 
   if (action.posicao && action.posicao === 'antes') {
     eventos.add(

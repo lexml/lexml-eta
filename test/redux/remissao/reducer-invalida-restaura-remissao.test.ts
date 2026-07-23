@@ -4,6 +4,8 @@ import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemen
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 import { adicionarArtigoAntes } from '../../../src/model/lexml/acao/adicionarElementoAction';
+import { removerElementoAction } from '../../../src/model/lexml/acao/removerElementoAction';
+import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 
@@ -137,36 +139,51 @@ describe('Invalidação e Restauração de Remissões', () => {
     });
   });
 
-  // M1 — undo não reverte RemissaoRenumerada
-  describe('RemissaoRenumerada no undo', () => {
-    it('deve emitir RemissaoRenumerada invertida ao fazer undo de remoção que causou renumeração', () => {
-      const art1 = state.articulacao!.filhos[0]; // art1 → será removido; art2→art1, art3→art2
-      const stateRemoved = removeElemento(state, { atual: { uuid: art1.uuid } });
+  // Fase 5 do plano de simplificação (docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md): o mecanismo de
+  // RemissaoRenumerada (evento emitido pelos reducers, invertido manualmente em undo.ts) foi
+  // substituído por sincronizarRemissoesPosAcao — que recalcula o registro a partir do estado ATUAL
+  // da árvore, e roda de novo automaticamente após UNDO/REDO (ambos estão na lista de ações
+  // estruturais). Não há mais "evento a inverter": o recálculo pós-undo já reflete a árvore restaurada.
+  describe('Atualização de remissão sobrevive a undo (registro reflete a árvore atual, não um evento invertido)', () => {
+    it('undo de remoção que causou renumeração restaura targetLexmlId/textoRef ao valor original', () => {
+      const [art1, art2, art3] = state.articulacao!.artigos;
 
-      const renumerados = stateRemoved.ui?.events.filter(ev => ev.stateType === StateType.RemissaoRenumerada) ?? [];
-      expect(renumerados.length).to.be.greaterThan(0, 'remoção de art1 deve gerar RemissaoRenumerada');
+      // art3 referencia art2; ao remover art1, art2 vira art1 (a entrada deve refletir isso);
+      // ao desfazer, art2 volta a ser art2 e a entrada deve refletir isso de novo.
+      const prefixo = 'Conforme o ';
+      art3.texto = `${prefixo}art. 2º, aplica-se o disposto.`;
+      state.remissoes = {
+        [art3.uuid!]: [
+          {
+            refId: 'ref_teste',
+            sourceUuid: art3.uuid,
+            targetUuid: art2.uuid,
+            targetLexmlId: art2.id,
+            textoRef: 'art. 2º',
+            inicio: prefixo.length,
+          },
+        ],
+      };
 
-      // BUG: undo não emite RemissaoRenumerada invertida — deve FALHAR até a correção
-      const stateUndo = undo(stateRemoved);
-      const renumeradosUndo = stateUndo.ui?.events.filter(ev => ev.stateType === StateType.RemissaoRenumerada) ?? [];
+      const elementoArt1 = createElemento(art1, true);
+      const stateRemoved = elementoReducer(state, removerElementoAction.execute(elementoArt1, elementoArt1));
 
-      expect(renumeradosUndo.length).to.equal(renumerados.length, 'undo deve emitir mesmo número de RemissaoRenumerada que a operação original');
-    });
+      expect(art2.id).to.equal('art1');
+      expect(stateRemoved.remissoes![art3.uuid!][0].targetLexmlId).to.equal('art1');
+      expect(stateRemoved.remissoes![art3.uuid!][0].textoRef).to.equal('art. 1º');
 
-    it('RemissaoRenumerada do undo deve inverter lexmlIdAntigo e lexmlIdNovo', () => {
-      const art1 = state.articulacao!.filhos[0];
-      const stateRemoved = removeElemento(state, { atual: { uuid: art1.uuid } });
+      // Vai por elementoReducer (não undo() direto) — sincronizarRemissoesPosAcao só roda no hook
+      // de pós-processamento do reducer, não seria acionado chamando o reducer de undo isoladamente.
+      const stateUndo = elementoReducer(stateRemoved, { type: UNDO });
 
-      // remoção emite: art2→art1 (lexmlIdAntigo='art2', lexmlIdNovo='art1')
-      const eventoOriginal = stateRemoved.ui?.events.find(ev => ev.stateType === StateType.RemissaoRenumerada && ev.remissaoRenumeracao?.lexmlIdAntigo === 'art2');
-      expect(eventoOriginal).to.exist;
+      // undo restaura a árvore a partir de um snapshot em `past` — os objetos são outros (mesmo
+      // uuid, referência diferente), então relocalizamos pelo uuid em vez de reusar `art2`.
+      const art2AposUndo = stateUndo.articulacao!.artigos.find(a => a.uuid === art2.uuid);
+      expect(art2AposUndo?.id).to.equal('art2');
 
-      const stateUndo = undo(stateRemoved);
-
-      // BUG: undo deveria emitir o inverso — art1→art2 (lexmlIdAntigo='art1', lexmlIdNovo='art2')
-      const eventoInvertido = stateUndo.ui?.events.find(ev => ev.stateType === StateType.RemissaoRenumerada && ev.remissaoRenumeracao?.lexmlIdAntigo === 'art1');
-      expect(eventoInvertido).to.exist;
-      expect(eventoInvertido!.remissaoRenumeracao!.lexmlIdNovo).to.equal('art2');
+      const entradaAposUndo = stateUndo.remissoes![art3.uuid!][0];
+      expect(entradaAposUndo.targetLexmlId).to.equal('art2');
+      expect(entradaAposUndo.textoRef).to.equal('art. 2º');
     });
   });
 

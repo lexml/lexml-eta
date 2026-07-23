@@ -1,3 +1,6 @@
+import { Dispositivo } from '../dispositivo/dispositivo';
+import { isArticulacao, isCaput } from '../dispositivo/tipo';
+import { buildHref, buildId } from '../lexml/util/idUtil';
 import { converteNumeroArabicoParaLetra, converteNumeroArabicoParaRomano } from '../lexml/numeracao/numeracaoUtil';
 
 export interface SegmentoLexmlId {
@@ -149,6 +152,31 @@ export function lexmlIdParaTextoCanonico(lexmlId: string): string {
   return result;
 }
 
+// Recalcula o texto canônico absoluto direto do grafo de objetos: buildId lê .pai/.numero/.tipo
+// ao vivo, então isso nunca depende de um id "antigo"/"novo" pré-computado passado por evento.
+//
+// Caso especial caput: buildId(caput) gera um segmento "cpt" sem dígito (ex.: "art1_cpt"), que
+// parseLexmlId descarta silenciosamente (a regex de segmento exige ao menos um dígito) — sem este
+// tratamento, o texto gerado seria só "art. 1º", perdendo a palavra "caput".
+export function textoCanonicoDoDispositivo(dispositivo: Dispositivo): string {
+  if (isCaput(dispositivo) && dispositivo.pai) {
+    return `caput do ${textoCanonicoDoDispositivo(dispositivo.pai)}`;
+  }
+  return lexmlIdParaTextoCanonico(buildId(dispositivo));
+}
+
+// D4 do plano de simplificação: gera só o segmento LOCAL do dispositivo (ex.: "inciso I"), sem
+// nenhuma cadeia de ancestrais — usado para referências "enxutas" (sem qualificador, ex.: "inciso I"
+// sozinho, sem "do art. X"), que nunca devem ganhar uma cadeia que não tinham originalmente ao
+// renumerar; só o próprio segmento local é corrigido, se a posição do dispositivo dentro do seu pai
+// imediato mudar de fato.
+export function textoCanonicoLocal(dispositivo: Dispositivo): string {
+  if (isCaput(dispositivo)) return 'caput';
+  const href = buildHref(dispositivo);
+  const seg = href ? parseLexmlId(href)[0] : undefined;
+  return seg ? segmentoParaTexto(seg.tipo, seg.numero) : dispositivo.rotulo?.trim() ?? '';
+}
+
 // Mapeamento de nome do dispositivo (como aparece no texto) → prefixo do lexmlId
 /* eslint-disable prettier/prettier */
 const SUFIXO_PARA_TIPO: Record<string, string> = {
@@ -183,6 +211,85 @@ export function extrairSufixoContextual(texto: string): SufixoContextual | null 
   const tipo = SUFIXO_PARA_TIPO[nomeDispositivo];
   if (!tipo) return null;
   return { tipo, texto: match[1] };
+}
+
+const REGEX_QUALIFICADOR_EXPLICITO = /\bd[ao]\b/i;
+
+// D4 do plano de simplificação: distingue uma referência ABSOLUTA (sem sufixo "deste/desta") já
+// escrita com uma cadeia de qualificadores explícita (ex.: "inciso II do art. 2", "item 1 da alínea
+// b)") de uma forma "enxuta" (ex.: "inciso I" sozinho, sem "do art. X"). Referências enxutas nunca
+// devem ganhar uma cadeia que não tinham originalmente ao renumerar — ver textoCanonicoLocal.
+export function possuiQualificadorExplicito(texto: string): boolean {
+  return REGEX_QUALIFICADOR_EXPLICITO.test(texto);
+}
+
+// Prefixo do lexmlId (o mesmo retornado por extrairSufixoContextual) → tipo do TipoDispositivo,
+// para localizar o ancestral correspondente na árvore de objetos.
+const PREFIXO_PARA_TIPO_DISPOSITIVO: Record<string, string> = {
+  art: 'Artigo',
+  par: 'Paragrafo',
+  inc: 'Inciso',
+  ali: 'Alinea',
+  ite: 'Item',
+  cap: 'Capitulo',
+  sec: 'Secao',
+  sub: 'Subsecao',
+  tit: 'Titulo',
+  liv: 'Livro',
+  prt: 'Parte',
+};
+
+function buscarAncestralPorTipo(dispositivo: Dispositivo, tipo: string): Dispositivo | null {
+  let atual = dispositivo.pai;
+  while (atual) {
+    if (atual.tipo === tipo) return atual;
+    atual = atual.pai;
+  }
+  return null;
+}
+
+// Decide, de forma estrutural (subindo .pai — sem regex sobre id), se uma frase contextual
+// ("deste artigo"/"desta seção") ainda se sustenta: origem e destino precisam compartilhar o MESMO
+// ancestral do tipo indicado pelo prefixo (D5: o mesmo que extrairSufixoContextual retorna em `tipo`).
+export function compartilhamAncestralDoTipo(origem: Dispositivo, destino: Dispositivo, tipoPrefixo: string): boolean {
+  const tipoDispositivo = PREFIXO_PARA_TIPO_DISPOSITIVO[tipoPrefixo];
+  if (!tipoDispositivo) return false;
+
+  const ancestralOrigem = buscarAncestralPorTipo(origem, tipoDispositivo);
+  const ancestralDestino = buscarAncestralPorTipo(destino, tipoDispositivo);
+
+  return !!ancestralOrigem && ancestralOrigem === ancestralDestino;
+}
+
+const TIPO_DISPOSITIVO_PARA_PREFIXO: Record<string, string> = Object.fromEntries(Object.entries(PREFIXO_PARA_TIPO_DISPOSITIVO).map(([prefixo, tipo]) => [tipo, prefixo]));
+
+// Gera o texto canônico de `dispositivo`, mas parando (excluindo) o ancestral do tipo indicado pelo
+// prefixo — usado para reconstruir só a parte relativa de uma referência contextual (ex.: "inciso II"
+// sem "do art. 5º", pra reanexar depois o sufixo "deste artigo" literal, ver D5).
+// Análogo ao antigo extrairParteRelativa, mas caminhando a árvore de objetos em vez de uma string de id.
+export function textoCanonicoRelativoATipo(dispositivo: Dispositivo, tipoPrefixoParar: string): string {
+  if (isCaput(dispositivo)) return 'caput';
+
+  const href = buildHref(dispositivo);
+  const seg = href ? parseLexmlId(href)[0] : undefined;
+  const textoNivel = seg ? segmentoParaTexto(seg.tipo, seg.numero) : dispositivo.rotulo?.trim() ?? '';
+
+  const tipoDispositivoParar = PREFIXO_PARA_TIPO_DISPOSITIVO[tipoPrefixoParar];
+  const pai = dispositivo.pai;
+
+  // Caput é transparente para fins de parada: um dispositivo filho direto do caput de um artigo já
+  // está "no artigo" — sem isso, pedir para parar em 'art' geraria "inciso I do caput" em vez de
+  // simplesmente "inciso I" quando o dispositivo é filho direto do caput (sem parágrafo no meio).
+  const paiEfetivamenteNoTipoParar = !!pai && (pai.tipo === tipoDispositivoParar || (isCaput(pai) && pai.pai?.tipo === tipoDispositivoParar));
+
+  if (!pai || paiEfetivamenteNoTipoParar || isArticulacao(pai)) {
+    return textoNivel;
+  }
+
+  const prefixoPai = TIPO_DISPOSITIVO_PARA_PREFIXO[pai.tipo];
+  const conector = (prefixoPai && CONECTOR[prefixoPai]) ?? 'do';
+
+  return `${textoNivel} ${conector} ${textoCanonicoRelativoATipo(pai, tipoPrefixoParar)}`;
 }
 
 // Retorna os segmentos do lexmlId ABAIXO do nível do contexto.
@@ -233,6 +340,37 @@ function isTextoCanonicoPorTipo(texto: string, tipo: string): boolean {
     if (normalizarTexto(lexmlIdParaTextoCanonico(tipo + n)) === normalizado) return true;
   }
   return false;
+}
+
+// Fase 3 do plano de simplificação: substitui isTextoCanonico/isTextoCanonicoPorTipo (heurística que
+// tentava adivinhar, por regex, se o texto "parece" canônico para um id) por uma comparação de
+// igualdade contra o último texto que o próprio sistema gravou (textoRef). Mais preciso: pega
+// exatamente "isso é o que nós geramos da última vez?" em vez de "isso parece uma referência válida?"
+// (o que falha, por exemplo, quando o usuário troca "§ 2º" por "§ 5º" à mão — ambos "parecem"
+// canônicos, mas só um bate com o que o sistema gerou).
+//
+// NÃO substitui isTextoReconhecivel — esse gate continua protegendo texto arbitrário/livre (ex.:
+// remissão manual com texto "o dispositivo mencionado acima"), que nunca teve um textoRef canônico
+// para começar. Ver nota D6 no plano.
+export function foiEditadoManualmente(textoAtual: string, textoRefGravado: string | undefined): boolean {
+  if (textoRefGravado === undefined) return true;
+  return textoAtual.trim() !== textoRefGravado.trim();
+}
+
+// Complementa foiEditadoManualmente: cobre o caso em que o usuário restaura manualmente o texto
+// para a forma canônica esperada do alvo ANTES da renumeração corrente (lexmlIdAntigo), mesmo que
+// isso não bata com o textoRef gravado (que fica congelado desde a última divergência registrada).
+// Sem isso, uma vez marcada revisao:true, a entrada nunca mais sairia desse estado sozinha — mesmo
+// que o texto já esteja de volta ao padrão canônico correto.
+export function isTextoCanonicoParaId(textoAtual: string, lexmlIdAntigo: string): boolean {
+  const sufixo = extrairSufixoContextual(textoAtual);
+  if (!sufixo) return isTextoCanonico(textoAtual, lexmlIdAntigo);
+
+  const relAntiga = extrairParteRelativa(lexmlIdAntigo, sufixo.tipo);
+  if (relAntiga === null) return false;
+
+  const prefixo = textoAtual.slice(0, textoAtual.length - sufixo.texto.length - 1);
+  return isTextoCanonico(prefixo, relAntiga);
 }
 
 // Troca X1 ↔ X1u para par e art, reconciliando ids gerados pelo editor com texto canônico

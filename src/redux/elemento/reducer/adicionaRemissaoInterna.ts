@@ -543,7 +543,9 @@ const normalizarNumero = (numero: string | undefined): string => {
 //   2) `completarRegistroRemissoes`, ao visitar o caput sem entrada, re-detecta pelo
 //      texto antigo ("art. 2º") e resolve para o destino errado (o NOVO art2 — que
 //      antes era art1).
-const atualizarRegistryAposRenumeracao = (articulacao: Articulacao, registro: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
+// Exportada para permitir teste de paridade contra o mecanismo novo (Fase 4 do plano de
+// simplificação, ver sincronizarRemissoes.ts) — uso em produção continua só interno a este arquivo.
+export const atualizarRegistryAposRenumeracao = (articulacao: Articulacao, registro: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
   const atualizado: Record<number, RemissaoInternaValue[]> = {};
   for (const [uuidStr, entries] of Object.entries(registro)) {
     atualizado[Number(uuidStr)] = entries.map(entry => {

@@ -1,4 +1,4 @@
-import { createElemento, createElementoValidadoComExtras, listaDispositivosRenumerados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidadoComExtras, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { Alerta } from '../../../model/alerta/alerta';
 import { State, StateType } from '../../state';
 import {
@@ -37,22 +37,13 @@ export const removeElemento = (state: any, action: any): State => {
   const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
   const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
 
-  // Guarda lexmlId antigo (valor) e a referência do objeto para ler o novo d.id após a renumeração.
-  const mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }> = [];
-  listaDispositivosRenumerados(dispositivo).forEach(d => capturarComDescendentes(d, mapeamentoLexmlIds));
-
   // Captura o dispositivo removido e todos os seus descendentes ANTES da remoção,
   // para que RemissaoInvalidada seja emitida para cada um deles.
   const dispositivosRemovidosIds = capturarRemovidosEDescendentes(dispositivo);
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(
-    state.remissoes,
-    state.articulacao,
-    dispositivosRemovidosIds,
-    mapeamentoLexmlIds
-  );
+  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
   events.push(...eventosRemissao);
 
   if (elPrimeiroFilhoDoAgrupador) {
@@ -143,15 +134,6 @@ const validarRemocaoElemento = (state: any, dispositivo: Dispositivo, action: an
   return null;
 };
 
-// Percorre o dispositivo e todos os seus descendentes, capturando pares {lexmlIdAntigo, uuid}
-// antes da renumeração, para que os eventos RemissaoRenumerada possam ser emitidos depois.
-const capturarComDescendentes = (d: Dispositivo, mapeamento: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }>): void => {
-  if (d.id && d.uuid) {
-    mapeamento.push({ d, lexmlIdAntigo: d.id, uuidDispositivo: d.uuid });
-  }
-  d.filhos?.forEach(filho => capturarComDescendentes(filho, mapeamento));
-};
-
 // Captura o dispositivo removido e todos os seus descendentes (via filhos) com lexmlId e uuid,
 // para que RemissaoInvalidada seja emitida para cada um deles.
 const capturarRemovidosEDescendentes = (d: Dispositivo): Array<{ lexmlId: string; uuid: number }> => {
@@ -169,8 +151,7 @@ const capturarRemovidosEDescendentes = (d: Dispositivo): Array<{ lexmlId: string
 export const construirEventosRemissaoParaRemocao = (
   remissoes: Record<number, any[]> | undefined,
   articulacao: any,
-  dispositivosRemovidosIds: Array<{ lexmlId: string; uuid: number }>,
-  mapeamentoLexmlIds: Array<{ d: Dispositivo; lexmlIdAntigo: string; uuidDispositivo: number }>
+  dispositivosRemovidosIds: Array<{ lexmlId: string; uuid: number }>
 ): { novoRegistroRemissoes: Record<number, any[]> | undefined; eventosRemissao: any[]; novosAlertas: Alerta[] } => {
   const lexmlIdsRemovidos = dispositivosRemovidosIds.map(d => d.lexmlId);
   const uuidsRemovidos = new Set(dispositivosRemovidosIds.map(d => d.uuid));
@@ -214,21 +195,6 @@ export const construirEventosRemissaoParaRemocao = (
       remissaoInvalidacao: { lexmlId, uuid },
     });
   }
-
-  mapeamentoLexmlIds.forEach(({ d, lexmlIdAntigo, uuidDispositivo }) => {
-    const lexmlIdNovo = d.id;
-    if (lexmlIdAntigo && lexmlIdNovo && lexmlIdAntigo !== lexmlIdNovo && uuidDispositivo) {
-      eventosRemissao.push({
-        stateType: StateType.RemissaoRenumerada,
-        elementos: [],
-        remissaoRenumeracao: {
-          lexmlIdAntigo,
-          lexmlIdNovo,
-          novoUuid: uuidDispositivo,
-        },
-      });
-    }
-  });
 
   return { novoRegistroRemissoes, eventosRemissao, novosAlertas };
 };

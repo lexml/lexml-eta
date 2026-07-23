@@ -89,7 +89,7 @@ import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { MENSAGEM_REMISSAO_INVALIDA, MENSAGEM_REMISSAO_TEXTO_PRESERVADO } from '../../model/remissao/remissao';
-import { marcarRemissaoPendenteRevisaoAction, marcarRemissaoRevisadaAction } from '../../model/lexml/acao/marcarRemissaoRevisaoAction';
+import { marcarRemissaoRevisadaAction } from '../../model/lexml/acao/marcarRemissaoRevisaoAction';
 import { excluirRemissaoManualAction } from '../../model/lexml/acao/excluirRemissaoManualAction';
 import { adicionarRemissaoExternaAction } from '../../model/lexml/acao/adicionarRemissaoExternaAction';
 import { removerRemissaoExternaAction } from '../../model/lexml/acao/removerRemissaoExternaAction';
@@ -932,9 +932,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         break;
       case StateType.AtualizaRemissaoInterna:
         this.renderizarRemissoesDoState(event);
-        break;
-      case StateType.RemissaoRenumerada:
-        this.atualizarRemissaoRenumerada(event);
         break;
       case StateType.RemissaoInvalidada:
         this.marcarRemissoesComoInvalidas(event);
@@ -2035,56 +2032,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const remissoes = state.remissoes || {};
 
     remissaoModule.renderizarRemissoesDoState(remissoes, elemento.uuid);
-  }
-
-  private atualizarRemissaoRenumerada(event: StateEvent): void {
-    if (!event.remissaoRenumeracao) {
-      return;
-    }
-
-    const { lexmlIdAntigo, lexmlIdNovo, novoUuid } = event.remissaoRenumeracao;
-    const remissaoModule = this.quill.getModule('remissaoInterna');
-
-    if (!remissaoModule) {
-      return;
-    }
-
-    // Atualiza as remissões no DOM que apontam para o lexmlId antigo
-    const { preservados } = remissaoModule.atualizarReferencias(lexmlIdAntigo, lexmlIdNovo, novoUuid);
-    if (preservados.length > 0) {
-      const stateRemissoes: Record<number, RemissaoInternaValue[]> = rootStore.getState().elementoReducer.remissoes || {};
-      const porUuid = new Map<number, string[]>();
-      for (const linkEl of preservados) {
-        const refId = linkEl.getAttribute('data-ref-id');
-        if (!refId) continue;
-
-        // Tenta encontrar o sourceUuid pelo registry do state
-        let srcUuid: number | undefined;
-        for (const [uuidStr, entries] of Object.entries(stateRemissoes)) {
-          if ((entries as RemissaoInternaValue[]).some(e => e.refId === refId)) {
-            srcUuid = parseInt(uuidStr, 10);
-            break;
-          }
-        }
-
-        // Fallback DOM: links criados via diálogo com texto não-canônico não passam por detectarReferencias
-        // e portanto não têm entrada no registry — sobe no DOM até o container do dispositivo para obter o UUID
-        if (srcUuid === undefined) {
-          const container = linkEl.closest('[id^="lxEtaId"]') as HTMLElement | null;
-          if (container) {
-            const parsed = parseInt(container.id.replace('lxEtaId', ''), 10);
-            if (!isNaN(parsed)) srcUuid = parsed;
-          }
-        }
-
-        if (srcUuid === undefined) continue;
-        if (!porUuid.has(srcUuid)) porUuid.set(srcUuid, []);
-        porUuid.get(srcUuid)!.push(refId);
-      }
-      for (const [srcUuid, refIds] of porUuid.entries()) {
-        rootStore.dispatch(marcarRemissaoPendenteRevisaoAction({ sourceUuid: srcUuid, refIds }));
-      }
-    }
   }
 
   private marcarRemissoesComoInvalidas(event: StateEvent): void {
