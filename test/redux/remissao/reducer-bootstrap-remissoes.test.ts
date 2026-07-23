@@ -8,6 +8,8 @@ import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { criaDispositivo, createArticulacao } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { Articulacao, Artigo } from '../../../src/model/dispositivo/dispositivo';
+import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
+import { sincronizarRemissoesComEstadoAtual } from '../../../src/model/remissao/sincronizarRemissoes';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -89,7 +91,13 @@ describe('Bootstrap de remissões ao abrir documento', () => {
     expect(remissoes[sourceUuid]).to.have.length(1);
   });
 
-  it('deve resolver o targetUuid pelo lexmlId da articulação', () => {
+  it('deve resolver o targetUuid pelo lexmlId da articulação, apontando para o CAPUT (não o Artigo inteiro) quando o id termina em "_cpt"', () => {
+    // buscaDispositivoById trata "art{N}_cpt" como sinônimo do próprio Artigo — comportamento
+    // intencional para o fluxo de aplicação de emendas (mod/sup), mas incorreto para remissão: uma
+    // remissão para "art1_cpt" refere-se ao CAPUT, não ao artigo inteiro. Sem a correção em
+    // inicializaRemissoesAoAbrir.ts (resolveCaputSeNecessario), targetUuid nascia como o uuid do
+    // Artigo, e a atualização por renumeração gerava o texto do artigo inteiro (ex.: "art. 4º") em
+    // vez de preservar referências contextuais como "caput deste artigo".
     const articulacao = criarArticulacaoComRemissao();
     const remissoes = inicializaRemissoesAoAbrir(articulacao);
 
@@ -97,7 +105,8 @@ describe('Bootstrap de remissões ao abrir documento', () => {
     const art1 = articulacao.artigos[0] as Artigo;
 
     const entry = remissoes[art2.uuid!][0];
-    expect(entry.targetUuid).to.equal(art1.uuid);
+    expect(entry.targetUuid).to.equal(art1.caput!.uuid);
+    expect(entry.targetUuid).to.not.equal(art1.uuid);
   });
 
   it('deve preencher targetLexmlId corretamente', () => {
@@ -183,5 +192,47 @@ describe('Bootstrap de remissões ao abrir documento', () => {
     const lexmlIds = remissoes[art3.uuid!].map(e => e.targetLexmlId);
     expect(lexmlIds).to.include('art1_cpt');
     expect(lexmlIds).to.include('art2_cpt');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regressão: remissão contextual "caput deste artigo", carregada de documento salvo, não deve
+// virar "art. Nº" ao renumerar por causa de um artigo alheio inserido antes.
+// ---------------------------------------------------------------------------
+
+describe('Bug: remissão "caput deste artigo" carregada de documento vira "art. Nº" ao renumerar', () => {
+  it('preserva "caput deste artigo" quando um artigo alheio é inserido antes (documento carregado via inicializaRemissoesAoAbrir)', () => {
+    // Reproduz o cenário relatado: um § do art. 3 referencia "caput deste artigo" (o próprio caput
+    // do art. 3). O documento é "carregado" (não criado ao vivo pela UI) — o link já vem pronto no
+    // HTML, como viria de um arquivo salvo, e é bootstrapado via inicializaRemissoesAoAbrir (mesmo
+    // caminho usado por abreArticulacao ao abrir um arquivo).
+    const articulacao = createArticulacao();
+    criaDispositivo(articulacao, TipoDispositivo.artigo.tipo); // filler: art1
+    criaDispositivo(articulacao, TipoDispositivo.artigo.tipo); // filler: art2
+    const art3 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    articulacao.renumeraFilhos();
+    updateIdDispositivoAndFilhos(articulacao);
+    art3.caput!.texto = 'Esta seção regula os procedimentos administrativos de fiscalização.';
+
+    const par1 = criaDispositivo(art3, TipoDispositivo.paragrafo.tipo);
+    updateIdDispositivoAndFilhos(articulacao);
+    expect(art3.id).to.equal('art3'); // âncora: confirma a numeração inicial antes da inserção
+    par1.texto = `Conforme o <a href="art3_cpt" data-lexml-ref="art3_cpt" class="lexml-remissao-interna">caput deste artigo</a>, observam-se as seguintes regras:`;
+
+    const remissoes = inicializaRemissoesAoAbrir(articulacao);
+
+    // Insere um artigo alheio antes de tudo — art3 (e seu caput/parágrafos) renumeram para art4.
+    criaDispositivo(articulacao, TipoDispositivo.artigo.tipo, undefined, 0);
+    articulacao.renumeraFilhos();
+    updateIdDispositivoAndFilhos(articulacao);
+
+    expect(art3.id).to.equal('art4'); // âncora: confirma que a renumeração de fato ocorreu
+
+    const remissoesAtualizadas = sincronizarRemissoesComEstadoAtual(articulacao, remissoes);
+    const entrada = remissoesAtualizadas[par1.uuid!][0];
+
+    expect(par1.texto).to.contain('caput deste artigo');
+    expect(par1.texto).to.not.contain('art. 4');
+    expect(entrada.textoRef).to.equal('caput deste artigo');
   });
 });
