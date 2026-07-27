@@ -6,7 +6,10 @@
  * um link de remissão com texto fixo (textoFixo: true).
  *
  * Pré-condição para abrir o diálogo: quill.getSelection() != null.
- * Usamos posicionarCursorNoDispositivo() para definir a seleção antes do clique.
+ * Pré-condição para o botão ".btn-remissao-interna" ficar habilitado (desde 107df031,
+ * 12/06/2026): _temSelecao = range.length > 0 — precisa de TEXTO selecionado, não só cursor
+ * posicionado. Por isso os testes abaixo selecionam um trecho real (setSelection com length > 0),
+ * não apenas posicionam o cursor.
  *
  * Nota sobre o botão "Confirmar" (sl-button):
  *   cy.click() despacha mousedown → browser limpa document.getSelection() → quill.getSelection()
@@ -20,8 +23,12 @@
  */
 
 // Seletores estáveis do diálogo de remissão
-const SEL_DIALOG = 'sl-dialog[label="Adicionar Remissão Interna"]';
-const SEL_INPUT_BUSCA = '#busca-dispositivo';
+// label é "Adicionar Remissão" desde 04980188 (14/05/2026), quando o diálogo passou a suportar
+// também remissão externa (abas interna/externa) — antes era "Adicionar Remissão Interna".
+const SEL_DIALOG = 'sl-dialog[label="Adicionar Remissão"]';
+// id é "busca-int" desde 04980188 (14/05/2026) — aba "interna" ganhou um id próprio quando a
+// aba "externa" (remissão a outra norma) foi adicionada ao mesmo diálogo.
+const SEL_INPUT_BUSCA = '#busca-int';
 const SEL_ITEM = '.dispositivo-item';
 const SEL_BTN_CONFIRMAR = '#btn-confirmar';
 
@@ -37,16 +44,20 @@ describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
     cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(2).should('exist');
 
+    // alterarTextoDoDispositivo bypassa o Quill (seta DOM direto); precisa vir DEPOIS do clique de
+    // menu no mesmo elemento (Art. 1), senão quebra com IndexSizeError no selection-change do Quill
+    // (ver invariante em CLAUDE.md).
     cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
   });
 
   it('Abrir diálogo, buscar dispositivo, clicar item e confirmar cria 1 link', () => {
-    // Posiciona cursor e abre o diálogo no mesmo bloco síncrono para evitar race conditions:
+    // Seleciona texto e abre o diálogo no mesmo bloco síncrono para evitar race conditions:
     // um setTimeout(..., 100) de StateType.ElementoMarcado pode alterar quill.getSelection()
     // entre posicionarCursorNoDispositivo() e o click() do botão. Ao combinar os dois em um
     // único cy.window().then(), nenhuma tarefa assíncrona pode interferir.
     cy.getContainerArtigoByNumero(1).then($container => {
-      return cy.window().then(win => {
+      return cy.window().then(async win => {
         const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
         const quill = editorEl?.quill;
         if (!quill) return;
@@ -59,9 +70,13 @@ describe('Criação manual: fluxo completo via botão "Confirmar"', () => {
         if (!blot) return;
 
         const blotStart = blot.offset(quill.scroll);
-        quill.setSelection(blotStart, 0, 'user');
+        // Seleciona texto de verdade (length > 0) — desde 107df031 o botão só habilita com _temSelecao.
+        quill.setSelection(blotStart, 4, 'user');
 
-        // Abre o diálogo imediatamente após setSelection, no mesmo tick síncrono.
+        // _temSelecao já é true aqui, mas o Lit só reflete em disabled=false após um microtask —
+        // updateComplete resolve antes de qualquer setTimeout (mesmo 0ms), preservando o savedRange.
+        await editorEl.updateComplete;
+
         // Click nativo: não despacha mousedown, não interfere com document.getSelection().
         const btn = win.document.querySelector('.btn-remissao-interna') as HTMLElement;
         btn?.click();
@@ -111,14 +126,18 @@ describe('Criação manual: confirmação via duplo clique no item do diálogo',
     cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
     cy.getContainerArtigoByNumero(2).should('exist');
 
+    // alterarTextoDoDispositivo bypassa o Quill (seta DOM direto); precisa vir DEPOIS do clique de
+    // menu no mesmo elemento (Art. 1), senão quebra com IndexSizeError no selection-change do Quill
+    // (ver invariante em CLAUDE.md).
     cy.getContainerArtigoByNumero(2).alterarTextoDoDispositivo('As disposições previstas aplicam-se à administração pública direta e indireta.');
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
   });
 
   it('Duplo clique no item confirma sem precisar clicar no botão "Confirmar"', () => {
-    // Posiciona cursor e abre o diálogo via click nativo (mesmo padrão de CT-C-01).
+    // Seleciona texto e abre o diálogo via click nativo (mesmo padrão de CT-C-01).
     // cy.click() despacha mousedown que limpa selection — click nativo preserva savedRange.
     cy.getContainerArtigoByNumero(1).then($container => {
-      return cy.window().then(win => {
+      return cy.window().then(async win => {
         const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
         const quill = editorEl?.quill;
         if (!quill) return;
@@ -131,7 +150,11 @@ describe('Criação manual: confirmação via duplo clique no item do diálogo',
         if (!blot) return;
 
         const blotStart = blot.offset(quill.scroll);
-        quill.setSelection(blotStart, 0, 'user');
+        // Seleciona texto de verdade (length > 0) — desde 107df031 o botão só habilita com _temSelecao.
+        quill.setSelection(blotStart, 4, 'user');
+
+        // _temSelecao já é true aqui, mas o Lit só reflete em disabled=false após um microtask.
+        await editorEl.updateComplete;
 
         const btn = win.document.querySelector('.btn-remissao-interna') as HTMLElement;
         btn?.click();
