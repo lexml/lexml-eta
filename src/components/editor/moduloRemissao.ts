@@ -52,8 +52,7 @@ class ModuloRemissao extends Module {
   }
 
   // TODO Avaliar mudança arquitetural da detecção da remissão
-  // Quando o usuário digita "º"/"°" logo após um blot de remissão-interna, absorve o
-  // caractere dentro do blot sem esperar pelo blur da linha.
+  // Absorve "º"/"°" digitado logo após um blot de remissão, sem esperar o blur da linha.
   private _absorverOrdinalEmRemissao(delta: any, _oldDelta: any, source: string): void {
     if (source !== 'user') return;
 
@@ -105,19 +104,18 @@ class ModuloRemissao extends Module {
     }, 0);
   }
 
-  // Cache (refId -> texto) para detectar edições por comparação direta de conteúdo.
-  // Evita a aritmética de posições via Delta, cujos índices divergem dos offsets do Quill na presença de blots estruturais.
+  // Cache refId → texto, para detectar edição por comparação direta (aritmética de posição via
+  // Delta diverge dos offsets do Quill quando há blots estruturais).
   private cacheTextoRemissao = new Map<string, string>();
 
-  // Alimenta o cache manualmente na criação/atualização porque operações 'silent' do Quill não disparam 'text-change', evitando falsas "primeiras observações".
+  // Alimenta na criação/atualização, pois 'silent' não dispara 'text-change'.
   private seedCacheRemissao(refId: string | undefined, texto: string): void {
     if (!refId) return;
     this.cacheTextoRemissao.set(refId, texto);
   }
 
-  // Remove o link (preservando o texto) ao detectar edições pontuais pelo usuário.
-  // Delega a recriação ao blur/debounce e ignora exclusões manuais (lógicas).
-  // Filtra renumerações em massa (diffs extensos) e eventos 'silent' (ordinais).
+  // Remove o link (preservando o texto) em edições pontuais do usuário; recriação fica a
+  // cargo do blur/debounce. Ignora renumerações em massa e eventos 'silent'.
   private _removerRemissaoEditadaEmTempoReal(delta: any, _oldDelta: any, source: string): void {
     const podeSerEdicaoDoUsuario = source === 'user' && this.pareceEdicaoPontual(delta);
 
@@ -163,16 +161,14 @@ class ModuloRemissao extends Module {
         this.quill.formatText(index, length, 'remissao-interna', false, 'silent');
         removeuAlgum = true;
       }
-      // Mesmo evento usado pelo botão "Excluir" — aciona o listener que fecha o popup e
-      // limpa o registry (ver editor.component.ts:listenerRemoveRemissao).
+      // Mesmo evento do botão "Excluir" (fecha popup + limpa registry, ver editor.component.ts).
       if (removeuAlgum) {
         this.emitirEventoRemissaoRemove();
       }
     }, 0);
   }
 
-  // Desfaz o link nas edições manuais (source 'user' pontuais), deixando o blur avaliar o texto final.
-  // Filtra reconstruções do DOM (renumeração em massa) e eventos 'silent' (ordinais), onde o cache é apenas atualizado.
+  // Distingue digitação pontual de reconstrução em massa do DOM (renumeração).
   private pareceEdicaoPontual(delta: any): boolean {
     const ops = delta?.ops;
     if (!Array.isArray(ops) || ops.length === 0 || ops.length > 6) return false;
@@ -215,8 +211,7 @@ class ModuloRemissao extends Module {
       return new Delta(ops);
     });
 
-    // Detecta links simples com URN LexML no href (formato legado de documentos existentes).
-    // Esses links não têm class nem data-* — são convertidos para o formato de remissão externa.
+    // Links legados com URN no href, sem class/data-* — convertidos para remissão externa.
     this.quill.clipboard.addMatcher('A[href^="urn:lex:"]', (node: HTMLElement, delta: any) => {
       if (node.classList.contains('lexml-remissao-externa')) return delta;
 
@@ -688,12 +683,10 @@ class ModuloRemissao extends Module {
       return;
     }
 
-    // Preserva a posição do cursor: formatText provoca mutação no DOM (envolve o texto
-    // em um blot <a>), e o browser reposiciona o caret para o início do trecho modificado.
+    // formatText muta o DOM e o browser reposiciona o caret — preserva a seleção para restaurar depois.
     const savedSelection = this.quill.getSelection();
 
-    // Localiza o blot de conteúdo do dispositivo pelo id do DOM para escopar a busca.
-    // Isso evita que textoRef seja encontrado em outros dispositivos do editor.
+    // Escopa a busca ao blot do dispositivo — evita achar textoRef em outro dispositivo.
     let blotStart = -1;
     let blotLength = -1;
     const domEl = this.quill.root.querySelector(`#texto__dispositivo${uuidDispositivoAtual}`);
@@ -714,15 +707,12 @@ class ModuloRemissao extends Module {
           const textoBlot = (linkExistente.textContent || '').trim();
           const textoNovo = (remissao.textoRef || '').trim();
           if (remissao.revisao) {
-            // Entrada marcada para revisão (Fase 5): o `textoRef` gravado é um baseline antigo,
-            // não o texto atual — nunca deve sobrescrever o texto que o usuário preservou/editou.
-            // Só reatribui os atributos do link (ex.: data-lexml-ref) quando necessário.
+            // Marcada para revisão: textoRef é um baseline antigo, não sobrescrever texto do usuário.
             if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
               blot.format('remissao-interna', remissao);
             }
           } else if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
-            // Caso 1: texto cresceu por sufixo (ex: "art. 1" → "art. 1º").
-            // Apaga também os caracteres do sufixo que ficaram soltos fora do blot.
+            // Caso 1: cresceu por sufixo ("art. 1" → "art. 1º") — apaga também o sufixo solto fora do blot.
             const blotIdx = blot.offset(this.quill.scroll);
             const blotLen = blot.length();
             const sufixo = textoNovo.slice(textoBlot.length);
@@ -739,17 +729,14 @@ class ModuloRemissao extends Module {
             this.quill.updateContents(delta, 'silent');
             this.seedCacheRemissao(remissao.refId, textoNovo);
           } else if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
-            // Caso 3 (Fase 5 do plano de simplificação): texto igual, mas o lexmlId do destino mudou
-            // (ex.: referência contextual "deste artigo" cujo texto relativo não muda, só o ancestral
-            // renumerou) — só reatribui os atributos do link, sem mexer no texto/Delta.
+            // Caso 3: texto igual, só o lexmlId do destino mudou — reatribui só os atributos.
             blot.format('remissao-interna', remissao);
           }
           continue;
         }
       }
 
-      // Entrada inválida carregada do disco: blot existe no DOM com data-lexml-ref, mas sem data-ref-id do registry.
-      // Aplica a marcação CSS usando targetLexmlId (que corresponde ao data-lexml-ref no DOM).
+      // Entrada inválida carregada do disco (sem data-ref-id) — marca CSS pelo targetLexmlId.
       if (remissao.valida === false) {
         if (remissao.targetLexmlId) {
           this.marcarRemissoesComoInvalidas(remissao.targetLexmlId);
@@ -767,8 +754,7 @@ class ModuloRemissao extends Module {
       const texto = blotStart >= 0 ? this.quill.getText(blotStart, blotLength) : this.quill.getText();
       const indexOffset = blotStart >= 0 ? blotStart : 0;
 
-      // Se a posição de início está disponível, aplica apenas naquela ocorrência específica.
-      // Caso contrário, percorre todas as ocorrências (compatibilidade com remissões manuais).
+      // Com posição conhecida, aplica só naquela ocorrência; senão percorre todas (remissão manual).
       const indicesParaFormatar: number[] =
         remissao.inicio !== undefined
           ? [remissao.inicio]
@@ -802,9 +788,7 @@ class ModuloRemissao extends Module {
       }
     }
 
-    // Restaura o cursor após as microtasks do MutationObserver do Quill processarem as
-    // mutações DOM causadas pelo formatText — sem o setTimeout o MutationObserver sobrescreve
-    // o setSelection síncrono e reposiciona o caret para o início do blot criado.
+    // setTimeout(0): sem ele, o MutationObserver do Quill sobrescreve o setSelection síncrono.
     if (savedSelection) {
       const sel = savedSelection;
       setTimeout(() => {
