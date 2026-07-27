@@ -104,9 +104,8 @@ Cypress.Commands.add('digitarTextoRemissao', { prevSubject: 'element' }, (subjec
 });
 
 /**
- * Dispara detecção de remissão via cy.window(), chamando emitirEventoOnChange no componente
- * editor. Esta abordagem é mais robusta que depender de cursor move em elementos de largura 0
- * ou de bugs no Quill (verificarMudouLinha retorna false em range.index === 0).
+ * Dispara detecção de remissão via cy.window(), simulando a saída da linha sem depender de
+ * cursor move em elementos de largura 0 (docs/PLANO_DETECCAO_BLUR.md).
  *
  * Pré-condição: quill.linhaAtual deve ser o dispositivo cujo texto queremos detectar.
  * Após selecionarOpcaoDeMenuDoDispositivo, o linhaAtual é automaticamente o novo dispositivo.
@@ -120,7 +119,10 @@ Cypress.Commands.add('dispararDeteccaoRemissao', { prevSubject: 'element' }, (su
       if (lc?.blotConteudo) {
         lc.blotConteudo.htmlAnt = '';
       }
+      // somenteFormatoMudouNaLinha precisa vir antes de emitirEventoOnChange, que já muta o estado contra o qual ele compara.
+      const somenteFormatoMudou = editorEl.somenteFormatoMudouNaLinha?.(lc);
       editorEl.emitirEventoOnChange?.('cypress');
+      editorEl.detectarRemissoesAoSairDaLinha?.(lc, somenteFormatoMudou);
     }
   });
   return cy.wrap(subject);
@@ -205,6 +207,28 @@ Cypress.Commands.add('posicionarCursorNoDispositivo', { prevSubject: 'element' }
   return cy.wrap(subject);
 });
 
+/**
+ * Simula o Gatilho B (docs/PLANO_DETECCAO_BLUR.md §2.3): foco saindo do editor inteiro, clicando
+ * numa aba do painel lateral fora do editor de texto — dispara um focusout real de DOM.
+ *
+ * Antes de clicar, reforça htmlAnt='' na linha atual: o clique num sl-tab (sem force) passa pelas
+ * checagens de "actionability" do Cypress, o que dá tempo para o pipeline reativo de seleção
+ * (elementoSelecionado → atualizarAtributos, ver eta-quill.ts:marcarLinhaAtual) sincronizar
+ * htmlAnt=html de forma assíncrona e zerar "alterado" antes do clique acontecer — o mesmo problema
+ * que dispararDeteccaoRemissao já contorna forçando htmlAnt=''.
+ */
+Cypress.Commands.add('forcarSaidaDoEditor', (): void => {
+  // Espera o pipeline assíncrono de seleção (ver comentário acima) se assentar ANTES do reforço —
+  // resetar htmlAnt cedo demais não adianta se o reset reativo ainda vai rodar depois.
+  cy.wait(300);
+  cy.window().then((win: any) => {
+    const editorEl = win.document.querySelector('lexml-eta-proposicao-editor');
+    const linha = editorEl?.quill?.linhaAtual;
+    if (linha?.blotConteudo) linha.blotConteudo.htmlAnt = '';
+  });
+  cy.get('sl-tab[panel="autoria"]').click();
+});
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -221,6 +245,7 @@ declare global {
       dispararDeteccaoRemissao(): Cypress.Chainable<JQuery<HTMLElement>>;
       sincronizarTextoComQuill(): Cypress.Chainable<JQuery<HTMLElement>>;
       posicionarCursorNoDispositivo(): Cypress.Chainable<JQuery<HTMLElement>>;
+      forcarSaidaDoEditor(): void;
     }
   }
 }

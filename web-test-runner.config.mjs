@@ -50,8 +50,7 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
       <body>
         <script>window.process = { env: { NODE_ENV: "development", testMode: true } }</script>
         <script>
-          // Mock global do Quill para testes que precisam importar módulos dependentes do Quill
-          // Deve ser definido antes de qualquer import de módulo que use Quill
+          // Mock global do Quill, definido antes de qualquer import que o use. É uma classe (não objeto) porque EtaQuill/EtaQuillBuffer fazem "class X extends Quill".
           const mockBlot = class {
             static blotName = 'mock-blot';
             static create() { return document.createElement('span'); }
@@ -60,34 +59,39 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
             length() { return 0; }
             offset() { return 0; }
           };
-          window.Quill = {
-            import: (path) => {
-              if (path === 'blots/inline') return mockBlot;
-              if (path === 'delta') return class Delta {
-                constructor(ops) { this.ops = ops ? [...ops] : []; }
-                retain(length, attrs) {
-                  if (length > 0) this.ops.push(attrs ? { retain: length, attributes: attrs } : { retain: length });
-                  return this;
-                }
-                delete(length) {
-                  if (length > 0) this.ops.push({ delete: length });
-                  return this;
-                }
-                insert(text, attrs) {
-                  this.ops.push(attrs ? { insert: text, attributes: attrs } : { insert: text });
-                  return this;
-                }
-              };
-              if (path === 'core/module') return class {};
-              if (path === 'parchment') return {
-                Scope: { INLINE_ATTRIBUTE: 1 },
-                Attributor: { Attribute: class {} },
-              };
-              return class {};
-            },
-            register: () => {},
-            find: (node) => (node && node['__blot'] ? node['__blot'].blot : null),
+          class MockQuill {
+            constructor() {
+              //empty — testes que precisam de comportamento real stubam a instância diretamente
+            }
+          }
+          MockQuill.sources = { API: 'api', USER: 'user', SILENT: 'silent' };
+          MockQuill.import = (path) => {
+            if (path === 'blots/inline') return mockBlot;
+            if (path === 'delta') return class Delta {
+              constructor(ops) { this.ops = ops ? [...ops] : []; }
+              retain(length, attrs) {
+                if (length > 0) this.ops.push(attrs ? { retain: length, attributes: attrs } : { retain: length });
+                return this;
+              }
+              delete(length) {
+                if (length > 0) this.ops.push({ delete: length });
+                return this;
+              }
+              insert(text, attrs) {
+                this.ops.push(attrs ? { insert: text, attributes: attrs } : { insert: text });
+                return this;
+              }
+            };
+            if (path === 'core/module') return class {};
+            if (path === 'parchment') return {
+              Scope: { INLINE_ATTRIBUTE: 1 },
+              Attributor: { Attribute: class {} },
+            };
+            return class {};
           };
+          MockQuill.register = () => {};
+          MockQuill.find = (node) => (node && node['__blot'] ? node['__blot'].blot : null);
+          window.Quill = MockQuill;
         </script>
         <script type="module" src="${testFramework}"></script>
       </body>

@@ -49,6 +49,7 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   getProjetoAtualizado(): any {
+    this.editorComponent.flushEdicaoPendente();
     const out = { ...this.projetoNorma };
     const elementoState = rootStore.getState().elementoReducer;
     const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {});

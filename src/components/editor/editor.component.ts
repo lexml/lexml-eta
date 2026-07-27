@@ -812,14 +812,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
-    // Transformação de tipo (TAB/SHIFT_TAB) preserva o uuid do dispositivo convertido (para que
-    // remissões continuem resolvendo — ver Fase 0 do plano de simplificação de remissão). Isso faz
-    // com que ElementoIncluido e ElementoRemovido do MESMO lote carreguem os MESMOS uuids: o handler
-    // de ElementoIncluido reaproveita a linha existente no Quill (atualiza em vez de inserir), e o
-    // de ElementoRemovido, rodando em seguida, apagaria essa linha recém-atualizada — o dispositivo
-    // transformado desaparece do editor mesmo com o estado/registro de remissões corretos. O uuid
-    // continua presente no evento ElementoRemovido em si (necessário para o undo/redo, que inverte
-    // esses eventos para reconstruir o estado anterior) — só a repintura do DOM ignora esses uuids.
+    // Transformações (TAB) preservam o UUID, gerando inclusão e remoção no mesmo lote.
+    // Ignora a remoção no DOM para não apagar a linha recém-atualizada, mas o UUID segue no evento para o undo/redo.
     const uuidsIncluidosNoLote = new Set(
       events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).flatMap((ev: StateEvent) => ev.elementos?.map(e => e.uuid) ?? [])
     );
@@ -1051,10 +1045,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
 
     if (linhaASerReinserida) {
-      // Transformação de tipo (TAB/SHIFT_TAB) preserva o uuid do dispositivo convertido (Fase 0 do
-      // plano de simplificação de remissão), mas atualizarElemento() não reconstrói as classes/
-      // estrutura do container para o novo tipo (ex.: elemento-tipo-artigo → elemento-tipo-paragrafo)
-      // — só reaproveita a linha quando o tipo é o mesmo. Quando o tipo muda, remove e recria do zero.
+      // Recria o elemento do zero em transformações (TAB), pois atualizarElemento() não adapta as classes do container para o novo tipo.
       linhaASerReinserida.remove();
     }
 
@@ -1360,7 +1351,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 
-    this.inscricoes.push(this.quill.observableSelectionChange.subscribe(this.atualizarTextoElemento.bind(this)));
+    this.inscricoes.push(
+      this.quill.observableSelectionChange.subscribe((linhaAnterior: EtaContainerTable) => {
+        const somenteFormatoMudou = this.somenteFormatoMudouNaLinha(linhaAnterior);
+        this.atualizarTextoElemento(linhaAnterior);
+        this.detectarRemissoesAoSairDaLinha(linhaAnterior, somenteFormatoMudou);
+      })
+    );
     this.inscricoes.push(this.quill.keyboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(this.quill.clipboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(onChangeColarDialog.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
@@ -1416,7 +1413,23 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       event.stopImmediatePropagation();
       this.exibirModalSufixos();
     });
+
+    // Gatilho B (docs/PLANO_DETECCAO_BLUR.md §2.3/§4.3): foco saindo do editor inteiro.
+    editorHtml.addEventListener('focusout', this.onFocusoutEditor.bind(this));
+
     this.configListenersEta();
+  }
+
+  // Compara contra blotConteudo, não editorHtml inteiro: EtaBlotMenu é irmão de blotConteudo, então clicar nele já tira o foco da área de texto.
+  private onFocusoutEditor(event: FocusEvent): void {
+    const linhaAtual = this.quill.linhaAtual;
+    const conteudoAtivo = linhaAtual?.blotConteudo?.domNode;
+    const novoFoco = event.relatedTarget as Node | null;
+
+    const permaneceNoDispositivo = !!conteudoAtivo && !!novoFoco && conteudoAtivo.contains(novoFoco);
+    if (!permaneceNoDispositivo) {
+      setTimeout(() => this.flushEdicaoPendente(), 0);
+    }
   }
 
   exibirModalSufixos(): void {
@@ -1494,6 +1507,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return textoAtualPlano === textoAnteriorPlano;
   }
 
+  // Deve ser chamado ANTES de atualizarTextoElemento() — este muta o texto em state.articulacao, que é exatamente contra o que a comparação abaixo é feita.
+  private somenteFormatoMudouNaLinha(linha: EtaContainerTable): boolean {
+    if (!linha?.blotConteudo?.alterado) return true;
+
+    const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, linha.blotConteudo?.html ?? '', linha.numero, linha.hierarquia);
+    return this.verificarSomenteFormatoMudou(elemento, linha);
+  }
+
   private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
     if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(
@@ -1506,20 +1527,45 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.hierarquia
       );
 
-      const somenteFormatoMudou = this.verificarSomenteFormatoMudou(elemento, linhaAtual);
-
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
 
-      // Caminho B: limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
+      // Limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
       const remissaoModule = this.quill.getModule('remissaoInterna');
       if (remissaoModule && linhaAtual.uuid !== undefined) {
         rootStore.dispatch(removerRemissaoInvalidaAction(linhaAtual.uuid, remissaoModule.getRemissoes()));
       }
-
-      if (!somenteFormatoMudou) {
-        rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
-      }
     }
+  }
+
+  // Criação de remissão só ao sair do dispositivo (docs/PLANO_DETECCAO_BLUR.md §4.1), evitando capturar referência incompleta em pausas de digitação; somenteFormatoMudou vem de somenteFormatoMudouNaLinha(), calculado antes de atualizarTextoElemento() mutar o estado.
+  // Não reavalia blotConteudo.alterado aqui: atualizarTextoElemento() já rodou e reseta esse flag via atualizarAtributos() (eta-blot-conteudo.ts), então a única fonte confiável de "houve mudança real" é o somenteFormatoMudou pré-calculado.
+  private detectarRemissoesAoSairDaLinha(linhaAnterior: EtaContainerTable, somenteFormatoMudou: boolean): void {
+    if (somenteFormatoMudou) return;
+
+    const elemento: Elemento = this.criarElemento(
+      linhaAnterior.uuid,
+      linhaAnterior.uuid2,
+      linhaAnterior.lexmlId,
+      linhaAnterior.tipo,
+      linhaAnterior.blotConteudo?.html ?? '',
+      linhaAnterior.numero,
+      linhaAnterior.hierarquia
+    );
+
+    rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+  }
+
+  // Rede de segurança determinística (docs/PLANO_DETECCAO_BLUR.md §2.4/§4.4), chamada por getProjetoAtualizado() para garantir sincronismo mesmo sem sair da linha antes de salvar.
+  public flushEdicaoPendente(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = null;
+
+    const linha = this.quill?.linhaAtual;
+    if (!linha) return;
+
+    const somenteFormatoMudou = this.somenteFormatoMudouNaLinha(linha);
+    this.atualizarTextoElemento(linha);
+    this.detectarRemissoesAoSairDaLinha(linha, somenteFormatoMudou);
   }
 
   private alertaGlobalRevisao(): void {
