@@ -56,4 +56,13 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
+  overrides: [
+    {
+      // test/collab é compilado pelo harness Node (tsconfig.collab-test.json), fora do tsconfig.json principal.
+      files: ['test/collab/**/*.ts'],
+      parserOptions: {
+        project: './tsconfig.collab-test.json',
+      },
+    },
+  ],
 };

@@ -19,6 +19,7 @@
 /_site/
 /dist/
 /out-tsc/
+/out-collab-test/
 /.settings/
 /.project
 .scannerwork/

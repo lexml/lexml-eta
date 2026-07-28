@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2019",
+    "esModuleInterop": true,
+    "outDir": "out-collab-test",
+    "noEmitOnError": true
+  },
+  "include": ["src/collab/**/*.ts", "test/collab/**/*.ts", "test/collab/shoelace-shim.d.ts", "src/typings.d.ts", "src/model/lexml/util/mixin.ts"],
+  "exclude": ["node_modules", "out-collab-test"]
+}
