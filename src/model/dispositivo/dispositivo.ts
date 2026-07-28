@@ -15,6 +15,7 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
   id?: string;
   uuid?: number;
   uuid2?: string;
+  gid?: string;
   cabecaAlteracao?: boolean;
   notaAlteracao?: string;
   motivosOperacaoNaoPermitida?: string[];

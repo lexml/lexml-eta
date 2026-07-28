@@ -1,3 +1,4 @@
+import { gidAleatorio } from '../../../collab/gid';
 import { Counter } from '../../../util/counter';
 import { generateUUID } from '../../../util/uuid';
 import { Alteracoes } from '../../dispositivo/blocoAlteracao';
@@ -162,6 +163,7 @@ const create = (name: string, parent: Dispositivo, uuidPreservado?: number): Dis
 
   dispositivo.uuid = uuidPreservado ?? Counter.next();
   dispositivo.uuid2 = generateUUID();
+  dispositivo.gid = gidAleatorio();
   dispositivo.name = name;
   dispositivo.pai = isInciso(dispositivo) && isArtigo(parent) ? (parent as Artigo).caput : parent;
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
@@ -178,6 +180,7 @@ export const createArticulacao = (texto?: string): Articulacao => {
   articulacao.bloqueado = !!texto;
   articulacao.uuid = Counter.next();
   articulacao.uuid2 = generateUUID();
+  articulacao.gid = gidAleatorio();
   return articulacao;
 };
 
