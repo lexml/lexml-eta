@@ -15,6 +15,7 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
+import { YjsCollabService } from '../collab/yjsCollabService';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -26,6 +27,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   private urn = '';
 
   private projetoNorma?: any;
+
+  private colabService?: YjsCollabService;
 
   private dispositivosEmenda: DispositivosEmenda | undefined;
   private revisoes: Revisao[] | undefined;
@@ -41,6 +44,32 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     }
     this.loadProjetoNorma(params);
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
+    void this.ligarColaboracao(params);
+  }
+
+  // Overlay de colaboração (Fase 1): liga em paralelo, sem bloquear o render. OFF ⇒ no-op.
+  // Falha em ligar/carregar o transporte nunca afeta a edição single-user nem o salvar.
+  private async ligarColaboracao(params?: LexmlEtaParametrosEdicao): Promise<void> {
+    if (!YjsCollabService.deveLigar(params?.colaboracao, params?.usuario)) {
+      return;
+    }
+    const projetoNorma = rootStore.getState().elementoReducer?.articulacao?.projetoNorma;
+    if (!projetoNorma) {
+      return;
+    }
+    try {
+      const { criarProviderReal, criarPersistenciaReal } = await import('../collab/transporteReal');
+      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal });
+      this.colabService.attach(params!.colaboracao, projetoNorma, params!.usuario);
+    } catch {
+      this.colabService = undefined;
+    }
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this.colabService?.destruir();
+    this.colabService = undefined;
   }
 
   setDispositivosERevisoesEmenda(revisoes?: Revisao[]): void {

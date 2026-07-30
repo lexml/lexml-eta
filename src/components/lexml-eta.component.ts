@@ -18,6 +18,7 @@ import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, OpcoesImpr
 import { buildFakeUrn, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
+import { ParametrosColaboracao } from '../collab/yjsCollabService';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
 import { limparAlertas } from '../model/alerta/acao/limparAlertas';
 import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
@@ -89,6 +90,10 @@ export class LexmlEtaParametrosEdicao {
 
   // Casa legislativa resposavel pela apreciaçao da matéria
   casaLegislativa?: TipoCasaLegislativa;
+
+  // Overlay de colaboração em tempo real. Ausente ⇒ feature OFF (app single-user idêntico ao de hoje).
+  // O host só deve passar isto para usuário autenticado e autorizado (nunca anônimo).
+  colaboracao?: ParametrosColaboracao;
 }
 
 @customElement('lexml-eta')
