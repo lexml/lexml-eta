@@ -3,6 +3,7 @@ import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { Elemento } from '../model/elemento';
 import { AdicionarElemento } from '../model/lexml/acao/adicionarElementoAction';
+import { moverElementoAbaixoAction } from '../model/lexml/acao/moverElementoAbaixoAction';
 import { removerElementoAction } from '../model/lexml/acao/removerElementoAction';
 import { restaurarElementoAction } from '../model/lexml/acao/restaurarElemento';
 import { suprimirElementoAction } from '../model/lexml/acao/suprimirElemento';
@@ -37,6 +38,26 @@ export const lerSituacoes = (arr: YArrayDisp): Map<string, string | undefined> =
   return m;
 };
 
+// gid → paiGid de cada Y.Map, para detectar reordenação de irmãos (mover) remota.
+export const lerPaiGids = (arr: YArrayDisp): Map<string, string | null> => {
+  const m = new Map<string, string | null>();
+  arr.forEach(ymap => m.set(ymap.get('gid') as string, (ymap.get('paiGid') as string | null) ?? null));
+  return m;
+};
+
+// Agrupa os gids por pai, preservando a ordem canônica (⇒ ordem entre irmãos).
+const agruparFilhos = (ordem: string[], paiGids: Map<string, string | null>): Map<string | null, string[]> => {
+  const grupos = new Map<string | null, string[]>();
+  ordem.forEach(g => {
+    const pai = paiGids.get(g) ?? null;
+    (grupos.get(pai) ?? grupos.set(pai, []).get(pai)!).push(g);
+  });
+  return grupos;
+};
+
+const mesmoConjunto = (a: string[], b: string[]): boolean => a.length === b.length && new Set([...a, ...b]).size === a.length;
+const mesmaOrdem = (a: string[], b: string[]): boolean => a.length === b.length && a.every((g, i) => g === b[i]);
+
 export const diffGids = (antes: string[], depois: string[]): { adicionados: string[]; removidos: string[] } => {
   const setAntes = new Set(antes);
   const setDepois = new Set(depois);
@@ -65,6 +86,7 @@ export class SincronizadorEstrutural {
   private aplicandoRemoto = false;
   private gidsShadow: string[] = [];
   private situacaoShadow = new Map<string, string | undefined>();
+  private paiGidShadow = new Map<string, string | null>();
 
   constructor(private doc: Y.Doc, private store: StoreColaboracao, private registry: GidRegistry) {
     this.arr = doc.getArray<Y.Map<unknown>>('articulacao');
@@ -72,8 +94,7 @@ export class SincronizadorEstrutural {
 
   ligar(): void {
     this.popularRegistry();
-    this.gidsShadow = lerGids(this.arr);
-    this.situacaoShadow = lerSituacoes(this.arr);
+    this.atualizarShadows();
     this.unsubscribe = this.store.subscribe(() => this.onStoreChange());
     this.observer = (_events, tx): void => this.onYArrayChange(tx);
     this.arr.observeDeep(this.observer);
@@ -119,24 +140,20 @@ export class SincronizadorEstrutural {
       return;
     }
     const articulacao: Articulacao = state.articulacao;
+    // Um lote de "mover" emite Incluido ANTES de Removido com os mesmos gids; processar removes
+    // primeiro evita duplicar o gid transitoriamente (deleta a posição antiga, depois reinsere).
     this.doc.transact(() => {
-      estruturais.forEach(ev => {
-        switch (ev.stateType) {
-          case StateType.ElementoIncluido:
-            this.incluirNoYArray(ev, articulacao);
-            break;
-          case StateType.ElementoRemovido:
-            this.removerDoYArray(ev);
-            break;
-          case StateType.ElementoSuprimido:
-          case StateType.ElementoRestaurado:
-            this.atualizarSituacaoNoYArray(ev);
-            break;
-        }
-      });
+      estruturais.filter(e => e.stateType === StateType.ElementoRemovido).forEach(ev => this.removerDoYArray(ev));
+      estruturais.filter(e => e.stateType === StateType.ElementoIncluido).forEach(ev => this.incluirNoYArray(ev, articulacao));
+      estruturais.filter(e => e.stateType === StateType.ElementoSuprimido || e.stateType === StateType.ElementoRestaurado).forEach(ev => this.atualizarSituacaoNoYArray(ev));
     }, ORIGEM_LOCAL);
+    this.atualizarShadows();
+  }
+
+  private atualizarShadows(): void {
     this.gidsShadow = lerGids(this.arr);
     this.situacaoShadow = lerSituacoes(this.arr);
+    this.paiGidShadow = lerPaiGids(this.arr);
   }
 
   private atualizarSituacaoNoYArray(ev: StateEvent): void {
@@ -187,7 +204,8 @@ export class SincronizadorEstrutural {
     }
     const { adicionados, removidos } = diffGids(this.gidsShadow, lerGids(this.arr));
     const situacoesMudadas = this.diffSituacoes(lerSituacoes(this.arr));
-    if (!adicionados.length && !removidos.length && !situacoesMudadas.length) {
+    const movidos = this.diffReorder(lerGids(this.arr), lerPaiGids(this.arr));
+    if (!adicionados.length && !removidos.length && !situacoesMudadas.length && !movidos.length) {
       return;
     }
     this.aplicandoRemoto = true;
@@ -195,11 +213,41 @@ export class SincronizadorEstrutural {
       removidos.forEach(gid => this.aplicarRemocaoRemota(gid));
       adicionados.forEach(gid => this.aplicarInclusaoRemota(gid));
       situacoesMudadas.forEach(({ gid, situacao }) => this.aplicarSituacaoRemota(gid, situacao));
+      movidos.forEach(gid => this.aplicarMoveRemoto(gid));
     } finally {
       this.aplicandoRemoto = false;
-      this.gidsShadow = lerGids(this.arr);
-      this.situacaoShadow = lerSituacoes(this.arr);
+      this.atualizarShadows();
+      this.popularRegistry(); // uuids da subárvore movida/criada podem ter mudado
     }
+  }
+
+  // Reorder de irmãos: para cada pai com o MESMO conjunto de filhos em ordem diferente,
+  // devolve o filho que "desceu" (novo índice > antigo) — reproduzido via moverElementoAbaixo.
+  private diffReorder(gidsDepois: string[], paiGidsDepois: Map<string, string | null>): string[] {
+    const antes = agruparFilhos(this.gidsShadow, this.paiGidShadow);
+    const depois = agruparFilhos(gidsDepois, paiGidsDepois);
+    const movidos: string[] = [];
+    depois.forEach((seqDepois, pai) => {
+      const seqAntes = antes.get(pai) ?? [];
+      if (!mesmoConjunto(seqAntes, seqDepois) || mesmaOrdem(seqAntes, seqDepois)) {
+        return; // add/remove sob esse pai, ou ordem inalterada
+      }
+      const desceu = seqDepois.find((g, i) => seqAntes.indexOf(g) < i);
+      if (desceu) {
+        movidos.push(desceu);
+      }
+    });
+    return movidos;
+  }
+
+  private aplicarMoveRemoto(gid: string): void {
+    const articulacao = this.store.getState().elementoReducer?.articulacao;
+    const disp = articulacao ? buscarPorGid(articulacao, gid) : null;
+    if (!disp) {
+      return;
+    }
+    const el = { uuid: disp.uuid, gid } as Elemento;
+    this.store.dispatch(moverElementoAbaixoAction.execute(el));
   }
 
   // Só considera gids presentes antes E depois (add/remove já são tratados à parte).
