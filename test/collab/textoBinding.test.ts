@@ -37,6 +37,43 @@ test('paraDeltaQuill reposiciona as ops locais no offset absoluto', () => {
   assert.deepStrictEqual(paraDeltaQuill([{ retain: 3 }, { insert: 'x' }], 0), [{ retain: 3 }, { insert: 'x' }]);
 });
 
+test('preserva atributos em retain (operação de formato) recortado ao blot', () => {
+  assert.deepStrictEqual(recortarParaYText([{ retain: 8 }, { retain: 3, attributes: { bold: true } }], OFFSET, TAM), [{ retain: 3 }, { retain: 3, attributes: { bold: true } }]);
+});
+
+test('preserva atributos em insert', () => {
+  assert.deepStrictEqual(recortarParaYText([{ retain: 8 }, { insert: 'x', attributes: { italic: true } }], OFFSET, TAM), [
+    { retain: 3 },
+    { insert: 'x', attributes: { italic: true } },
+  ]);
+});
+
+test('formato no fim do blot não é descartado pelo pop de retain', () => {
+  assert.deepStrictEqual(recortarParaYText([{ retain: 12 }, { retain: 3, attributes: { bold: true } }], OFFSET, TAM), [{ retain: 7 }, { retain: 3, attributes: { bold: true } }]);
+});
+
+test('convergência: formatações concorrentes no mesmo Y.Text convergem preservando os formatos', () => {
+  const docA = new Y.Doc();
+  const docB = new Y.Doc();
+  const tA = docA.getText('t');
+  tA.insert(0, 'foobar');
+  Y.applyUpdate(docB, Y.encodeStateAsUpdate(docA));
+  const tB = docB.getText('t');
+
+  // A: negrito em [0,3); B: itálico em [3,6) — concorrentes, via o tradutor.
+  tA.applyDelta(recortarParaYText([{ retain: 3, attributes: { bold: true } }], 0, 6));
+  tB.applyDelta(recortarParaYText([{ retain: 3 }, { retain: 3, attributes: { italic: true } }], 0, 6));
+
+  Y.applyUpdate(docA, Y.encodeStateAsUpdate(docB, Y.encodeStateVector(docA)));
+  Y.applyUpdate(docB, Y.encodeStateAsUpdate(docA, Y.encodeStateVector(docB)));
+
+  assert.deepStrictEqual(tA.toDelta(), tB.toDelta(), 'réplicas convergem com formato');
+  assert.deepStrictEqual(tA.toDelta(), [
+    { insert: 'foo', attributes: { bold: true } },
+    { insert: 'bar', attributes: { italic: true } },
+  ]);
+});
+
 test('convergência: dois usuários editando o mesmo Y.Text convergem', () => {
   const docA = new Y.Doc();
   const docB = new Y.Doc();
