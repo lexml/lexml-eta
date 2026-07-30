@@ -1,8 +1,11 @@
 import * as Y from 'yjs';
 import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
+import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { Elemento } from '../model/elemento';
 import { AdicionarElemento } from '../model/lexml/acao/adicionarElementoAction';
 import { removerElementoAction } from '../model/lexml/acao/removerElementoAction';
+import { restaurarElementoAction } from '../model/lexml/acao/restaurarElemento';
+import { suprimirElementoAction } from '../model/lexml/acao/suprimirElemento';
 import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
 import { StateEvent, StateType } from '../redux/state';
@@ -26,6 +29,13 @@ type YArrayDisp = Y.Array<Y.Map<unknown>>;
 export const lerGids = (arr: YArrayDisp): string[] => arr.map(m => m.get('gid') as string);
 
 export const indiceDoGid = (arr: YArrayDisp, gid: string): number => lerGids(arr).indexOf(gid);
+
+// gid → situacao (de meta.situacao) de cada Y.Map, para detectar supressão/restauração remota.
+export const lerSituacoes = (arr: YArrayDisp): Map<string, string | undefined> => {
+  const m = new Map<string, string | undefined>();
+  arr.forEach(ymap => m.set(ymap.get('gid') as string, (ymap.get('meta') as Y.Map<unknown> | undefined)?.get('situacao') as string | undefined));
+  return m;
+};
 
 export const diffGids = (antes: string[], depois: string[]): { adicionados: string[]; removidos: string[] } => {
   const setAntes = new Set(antes);
@@ -54,6 +64,7 @@ export class SincronizadorEstrutural {
   private observer?: (events: Array<Y.YEvent<any>>, tx: Y.Transaction) => void;
   private aplicandoRemoto = false;
   private gidsShadow: string[] = [];
+  private situacaoShadow = new Map<string, string | undefined>();
 
   constructor(private doc: Y.Doc, private store: StoreColaboracao, private registry: GidRegistry) {
     this.arr = doc.getArray<Y.Map<unknown>>('articulacao');
@@ -62,6 +73,7 @@ export class SincronizadorEstrutural {
   ligar(): void {
     this.popularRegistry();
     this.gidsShadow = lerGids(this.arr);
+    this.situacaoShadow = lerSituacoes(this.arr);
     this.unsubscribe = this.store.subscribe(() => this.onStoreChange());
     this.observer = (_events, tx): void => this.onYArrayChange(tx);
     this.arr.observeDeep(this.observer);
@@ -96,15 +108,48 @@ export class SincronizadorEstrutural {
     }
     const state = this.store.getState().elementoReducer;
     const eventos: StateEvent[] = state?.ui?.events ?? [];
-    const estruturais = eventos.filter(e => e.stateType === StateType.ElementoIncluido || e.stateType === StateType.ElementoRemovido);
+    const estruturais = eventos.filter(
+      e =>
+        e.stateType === StateType.ElementoIncluido ||
+        e.stateType === StateType.ElementoRemovido ||
+        e.stateType === StateType.ElementoSuprimido ||
+        e.stateType === StateType.ElementoRestaurado
+    );
     if (!estruturais.length) {
       return;
     }
     const articulacao: Articulacao = state.articulacao;
     this.doc.transact(() => {
-      estruturais.forEach(ev => (ev.stateType === StateType.ElementoIncluido ? this.incluirNoYArray(ev, articulacao) : this.removerDoYArray(ev)));
+      estruturais.forEach(ev => {
+        switch (ev.stateType) {
+          case StateType.ElementoIncluido:
+            this.incluirNoYArray(ev, articulacao);
+            break;
+          case StateType.ElementoRemovido:
+            this.removerDoYArray(ev);
+            break;
+          case StateType.ElementoSuprimido:
+          case StateType.ElementoRestaurado:
+            this.atualizarSituacaoNoYArray(ev);
+            break;
+        }
+      });
     }, ORIGEM_LOCAL);
     this.gidsShadow = lerGids(this.arr);
+    this.situacaoShadow = lerSituacoes(this.arr);
+  }
+
+  private atualizarSituacaoNoYArray(ev: StateEvent): void {
+    (ev.elementos ?? []).forEach(el => {
+      if (!el.gid || !el.descricaoSituacao) {
+        return;
+      }
+      const idx = indiceDoGid(this.arr, el.gid);
+      if (idx < 0) {
+        return;
+      }
+      (this.arr.get(idx).get('meta') as Y.Map<unknown> | undefined)?.set('situacao', el.descricaoSituacao);
+    });
   }
 
   private incluirNoYArray(ev: StateEvent, articulacao: Articulacao): void {
@@ -141,16 +186,44 @@ export class SincronizadorEstrutural {
       return; // é o próprio eco das ops locais
     }
     const { adicionados, removidos } = diffGids(this.gidsShadow, lerGids(this.arr));
-    if (!adicionados.length && !removidos.length) {
+    const situacoesMudadas = this.diffSituacoes(lerSituacoes(this.arr));
+    if (!adicionados.length && !removidos.length && !situacoesMudadas.length) {
       return;
     }
     this.aplicandoRemoto = true;
     try {
       removidos.forEach(gid => this.aplicarRemocaoRemota(gid));
       adicionados.forEach(gid => this.aplicarInclusaoRemota(gid));
+      situacoesMudadas.forEach(({ gid, situacao }) => this.aplicarSituacaoRemota(gid, situacao));
     } finally {
       this.aplicandoRemoto = false;
       this.gidsShadow = lerGids(this.arr);
+      this.situacaoShadow = lerSituacoes(this.arr);
+    }
+  }
+
+  // Só considera gids presentes antes E depois (add/remove já são tratados à parte).
+  private diffSituacoes(depois: Map<string, string | undefined>): Array<{ gid: string; situacao: string | undefined }> {
+    const mudou: Array<{ gid: string; situacao: string | undefined }> = [];
+    depois.forEach((sit, gid) => {
+      if (this.situacaoShadow.has(gid) && this.situacaoShadow.get(gid) !== sit) {
+        mudou.push({ gid, situacao: sit });
+      }
+    });
+    return mudou;
+  }
+
+  private aplicarSituacaoRemota(gid: string, situacao: string | undefined): void {
+    const articulacao = this.store.getState().elementoReducer?.articulacao;
+    const disp = articulacao ? buscarPorGid(articulacao, gid) : null;
+    if (!disp) {
+      return;
+    }
+    const el = { uuid: disp.uuid, gid } as Elemento;
+    if (situacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
+      this.store.dispatch(suprimirElementoAction.execute(el));
+    } else if (situacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+      this.store.dispatch(restaurarElementoAction.execute(el));
     }
   }
 
