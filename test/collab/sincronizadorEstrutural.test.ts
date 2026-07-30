@@ -269,6 +269,77 @@ test('convergência: reordenação em A propaga a nova ordem para B', () => {
   assert.ok(gidsB.indexOf(par2.gid!) < gidsB.indexOf(par1.gid!), 'B vê par2 antes de par1');
 });
 
+// Base com um parágrafo (par1) já semeado, para transformar em inciso (TAB).
+const montarComParagrafo = (): { articulacao: Articulacao; art1: Artigo; par1: Dispositivo; doc: Y.Doc } => {
+  const articulacao = createArticulacao();
+  const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+  art1.texto = 'Caput.';
+  const par1 = criaDispositivo(art1, TipoDispositivo.paragrafo.tipo);
+  par1.texto = 'Parágrafo a transformar.';
+  const projetoNorma = { classificacao: ClassificacaoDocumento.PROJETO, articulacao } as ProjetoNorma;
+  articulacao.projetoNorma = projetoNorma;
+  const doc = projetoNormaToYDoc(projetoNorma);
+  return { articulacao, art1, par1, doc };
+};
+
+test('local: transform (TAB) remove o gid antigo e insere o gid novo, mesmo com uuid preservado', () => {
+  const { articulacao, art1, par1, doc } = montarComParagrafo();
+  const gidAntigo = par1.gid!;
+
+  // transforma par1 (Parágrafo) em Inciso sob o caput, preservando o uuid (novo gid).
+  const novo = criaDispositivo(art1.caput!, TipoDispositivo.inciso.tipo, undefined, undefined, par1.uuid);
+  novo.texto = 'inciso transformado;';
+  art1.removeFilho(par1);
+
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  // ordem realista: Incluido antes de Removido, com o MESMO uuid nos dois.
+  store.setEvents([
+    { stateType: StateType.ElementoIncluido, elementos: [createElemento(novo, false)], referencia: createElemento(art1.caput!, false) },
+    { stateType: StateType.ElementoRemovido, elementos: [{ gid: gidAntigo, uuid: par1.uuid } as any] },
+  ]);
+  store.notificar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  const gids = lerGids(arr);
+  assert.ok(!gids.includes(gidAntigo), 'gid antigo (Parágrafo) removido');
+  assert.ok(gids.includes(novo.gid!), 'gid novo (Inciso) inserido');
+  const ymap = arr.get(gids.indexOf(novo.gid!));
+  assert.strictEqual(ymap.get('tipo'), 'Inciso');
+});
+
+test('remoto: transform externo (remove G_old + add G_new) dispara REMOVER e ADICIONAR', () => {
+  const { articulacao, art1, par1, doc } = montarComParagrafo();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  doc.transact(() => {
+    const i = lerGids(arr).indexOf(par1.gid!);
+    arr.delete(i, 1);
+    const m = new Y.Map<unknown>();
+    m.set('gid', 'inc-transformado');
+    m.set('tipo', 'Inciso');
+    m.set('paiGid', art1.caput!.gid);
+    const t = new Y.Text();
+    t.insert(0, 'inciso remoto');
+    m.set('conteudo', t);
+    m.set('meta', new Y.Map());
+    arr.insert(i, [m]);
+  }, 'remote');
+
+  const tipos = store.dispatched.map(a => a.type);
+  assert.ok(tipos.includes(REMOVER_ELEMENTO), 'remove o dispositivo antigo');
+  assert.ok(tipos.includes(ADICIONAR_ELEMENTO), 'adiciona o dispositivo do novo tipo');
+  const remover = store.dispatched.find(a => a.type === REMOVER_ELEMENTO);
+  const adicionar = store.dispatched.find(a => a.type === ADICIONAR_ELEMENTO);
+  assert.strictEqual(remover.atual.uuid, par1.uuid);
+  assert.strictEqual(adicionar.novo.tipo, 'Inciso');
+});
+
 test('convergência: inclusão local em A propaga para o Y.Doc de B pelo sync', () => {
   const { articulacao, art1, doc: docA } = montarBase();
   const par1 = criaDispositivo(art1, TipoDispositivo.paragrafo.tipo);
