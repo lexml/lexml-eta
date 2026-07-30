@@ -2,6 +2,7 @@ import * as Y from 'yjs';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { GidRegistry } from './gid';
 import { SincronizadorEstrutural, StoreColaboracao } from './sincronizadorEstrutural';
+import { EditorTextoColab, TextoSincronizador } from './textoSincronizador';
 import { projetoNormaToYDoc } from './ydocConverter';
 
 // Overlay de colaboração no cliente. Fase 1: ciclo de vida + degradação graciosa (keep-local-Y.Doc).
@@ -42,6 +43,7 @@ export interface FabricasColaboracao {
   timeoutConexaoMs?: number;
   clientId?: number; // identidade CRDT deste cliente para edições ao vivo (padrão: aleatório)
   store?: StoreColaboracao; // store Redux para a sincronização estrutural (Fase 2)
+  editorTexto?: EditorTextoColab; // adaptador do Quill para a co-edição de texto (Fase 3)
 }
 
 const TIMEOUT_CONEXAO_PADRAO_MS = 5000;
@@ -55,6 +57,7 @@ export class YjsCollabService {
   private provider?: ProviderColaboracao;
   private persistencia?: PersistenciaColaboracao;
   private sincronizador?: SincronizadorEstrutural;
+  private textoSincronizador?: TextoSincronizador;
   private timerConexao?: ReturnType<typeof setTimeout>;
   private _estado = EstadoColaboracao.DESLIGADO;
 
@@ -70,6 +73,11 @@ export class YjsCollabService {
 
   get ativo(): boolean {
     return this._estado !== EstadoColaboracao.DESLIGADO;
+  }
+
+  // Exposto para o editor (browser) dirigir a co-edição de texto: rotear deltas locais e re-observar na troca de página.
+  get sincronizadorTexto(): TextoSincronizador | undefined {
+    return this.textoSincronizador;
   }
 
   // Gate de UX (nunca de segurança): sem params completos ou anônimo ⇒ OFF.
@@ -101,6 +109,12 @@ export class YjsCollabService {
     if (this.fabricas.store) {
       this.sincronizador = new SincronizadorEstrutural(this.doc, this.fabricas.store, new GidRegistry());
       this.sincronizador.ligar();
+    }
+
+    // co-edição de texto Quill↔Y.Text por dispositivo (Fase 3).
+    if (this.fabricas.editorTexto) {
+      this.textoSincronizador = new TextoSincronizador(this.doc, this.fabricas.editorTexto);
+      this.textoSincronizador.observarRenderizados();
     }
 
     this.persistencia = this.fabricas.criarPersistencia?.(colaboracao!.roomId, this.doc);
@@ -147,6 +161,8 @@ export class YjsCollabService {
     this.detach();
     this.sincronizador?.desligar();
     this.sincronizador = undefined;
+    this.textoSincronizador?.desobservar();
+    this.textoSincronizador = undefined;
     this.persistencia?.destroy();
     this.persistencia = undefined;
     this.doc?.destroy();
