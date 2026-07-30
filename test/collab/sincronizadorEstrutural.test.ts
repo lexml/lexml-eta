@@ -9,6 +9,9 @@ import { ClassificacaoDocumento } from '../../src/model/documento/classificacao'
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElementoAction';
 import { REMOVER_ELEMENTO } from '../../src/model/lexml/acao/removerElementoAction';
+import { SUPRIMIR_ELEMENTO } from '../../src/model/lexml/acao/suprimirElemento';
+import { RESTAURAR_ELEMENTO } from '../../src/model/lexml/acao/restaurarElemento';
+import { DescricaoSituacao } from '../../src/model/dispositivo/situacao';
 import { StateEvent, StateType } from '../../src/redux/state';
 import { GidRegistry } from '../../src/collab/gid';
 import { projetoNormaToYDoc } from '../../src/collab/ydocConverter';
@@ -145,6 +148,58 @@ test('remoto: deleção externa no Y.Array dispara REMOVER_ELEMENTO do dispositi
   assert.strictEqual(store.dispatched.length, 1);
   assert.strictEqual(store.dispatched[0].type, REMOVER_ELEMENTO);
   assert.strictEqual(store.dispatched[0].atual.uuid, par1.uuid);
+});
+
+const metaSituacao = (doc: Y.Doc, gid: string): string | undefined => {
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  const idx = lerGids(arr).indexOf(gid);
+  return (arr.get(idx).get('meta') as Y.Map<unknown>).get('situacao') as string | undefined;
+};
+
+test('local: ElementoSuprimido/Restaurado atualiza meta.situacao no Y.Map', () => {
+  const { articulacao, art1, doc } = montarBase();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  store.setEvents([{ stateType: StateType.ElementoSuprimido, elementos: [{ gid: art1.gid, descricaoSituacao: DescricaoSituacao.DISPOSITIVO_SUPRIMIDO } as any] }]);
+  store.notificar();
+  assert.strictEqual(metaSituacao(doc, art1.gid!), DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
+  assert.strictEqual(store.dispatched.length, 0, 'anti-eco: supressão local não redispacha');
+
+  store.setEvents([{ stateType: StateType.ElementoRestaurado, elementos: [{ gid: art1.gid, descricaoSituacao: DescricaoSituacao.DISPOSITIVO_ORIGINAL } as any] }]);
+  store.notificar();
+  assert.strictEqual(metaSituacao(doc, art1.gid!), DescricaoSituacao.DISPOSITIVO_ORIGINAL);
+});
+
+test('remoto: meta.situacao → Suprimido dispara SUPRIMIR_ELEMENTO do dispositivo certo', () => {
+  const { articulacao, art1, doc } = montarBase();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  const idx = lerGids(arr).indexOf(art1.gid!);
+  doc.transact(() => (arr.get(idx).get('meta') as Y.Map<unknown>).set('situacao', DescricaoSituacao.DISPOSITIVO_SUPRIMIDO), 'remote');
+
+  assert.strictEqual(store.dispatched.length, 1);
+  assert.strictEqual(store.dispatched[0].type, SUPRIMIR_ELEMENTO);
+  assert.strictEqual(store.dispatched[0].atual.uuid, art1.uuid);
+});
+
+test('remoto: meta.situacao → Original dispara RESTAURAR_ELEMENTO', () => {
+  const { articulacao, art1, doc } = montarBase();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  const idx = lerGids(arr).indexOf(art1.gid!);
+  doc.transact(() => (arr.get(idx).get('meta') as Y.Map<unknown>).set('situacao', DescricaoSituacao.DISPOSITIVO_ORIGINAL), 'remote');
+
+  assert.strictEqual(store.dispatched.length, 1);
+  assert.strictEqual(store.dispatched[0].type, RESTAURAR_ELEMENTO);
+  assert.strictEqual(store.dispatched[0].atual.uuid, art1.uuid);
 });
 
 test('convergência: inclusão local em A propaga para o Y.Doc de B pelo sync', () => {
