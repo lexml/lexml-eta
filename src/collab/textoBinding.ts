@@ -6,6 +6,8 @@ export interface OpDelta {
   retain?: number;
   insert?: string;
   delete?: number;
+  // atributos de formatação inline (negrito/itálico/…); null remove um formato. Fase 3b.
+  attributes?: Record<string, unknown> | null;
 }
 
 // Recorta um delta do Quill para as ops locais de UM blot de conteúdo [offset, offset+tamanho).
@@ -15,20 +17,17 @@ export const recortarParaYText = (delta: OpDelta[], offset: number, tamanho: num
   let abs = 0; // posição no documento antigo (Quill)
   const ops: OpDelta[] = [];
 
-  const emitirRetain = (n: number): void => {
-    if (n > 0) {
-      ops.push({ retain: n });
-    }
-  };
-
   for (const op of delta) {
     if (op.retain !== undefined) {
+      // retain COM atributos é uma operação de formato; sem atributos, só avança o cursor.
       const dentro = Math.min(abs + op.retain, fim) - Math.max(abs, offset);
-      emitirRetain(dentro);
+      if (dentro > 0) {
+        ops.push(op.attributes ? { retain: dentro, attributes: op.attributes } : { retain: dentro });
+      }
       abs += op.retain;
     } else if (op.insert !== undefined) {
       if (abs >= offset && abs <= fim) {
-        ops.push({ insert: op.insert });
+        ops.push(op.attributes ? { insert: op.insert, attributes: op.attributes } : { insert: op.insert });
       }
       // insert não avança a posição no documento antigo
     } else if (op.delete !== undefined) {
@@ -40,9 +39,14 @@ export const recortarParaYText = (delta: OpDelta[], offset: number, tamanho: num
     }
   }
 
-  // retain final não muda nada num Y.Text — descarta para uma delta mínima.
-  while (ops.length && ops[ops.length - 1].retain !== undefined && ops[ops.length - 1].insert === undefined) {
-    ops.pop();
+  // retain final SEM atributos não muda nada num Y.Text — descarta (mas preserva formato no fim).
+  while (ops.length) {
+    const ultimo = ops[ops.length - 1];
+    if (ultimo.retain !== undefined && ultimo.insert === undefined && ultimo.attributes === undefined) {
+      ops.pop();
+    } else {
+      break;
+    }
   }
   return ops;
 };
