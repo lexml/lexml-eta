@@ -69,30 +69,34 @@ export const projetoNormaToYDoc = (projetoNorma: ProjetoNorma): Y.Doc => {
 
   const articulacao = projetoNorma.articulacao!;
   const nodes = ordemCanonica(articulacao);
-  const gidPorDisp = new Map<Dispositivo, string>();
-  nodes.forEach((d, i) => gidPorDisp.set(d, gidDeterministico(i)));
+  // Grava os gids determinísticos de volta na árvore em memória: mantém dispositivo.gid consistente
+  // com o Y.Doc e idêntico entre clientes (pré-requisito para paiGid de inserções ao vivo, Fase 2).
+  nodes.forEach((d, i) => (d.gid = gidDeterministico(i)));
 
   doc.transact(() => {
     const arr = doc.getArray<Y.Map<unknown>>('articulacao');
-    nodes.forEach(d => {
-      const m = new Y.Map<unknown>();
-      m.set('gid', gidPorDisp.get(d));
-      m.set('tipo', d.tipo);
-      m.set('paiGid', d.pai ? gidPorDisp.get(d.pai) ?? null : null);
-
-      // Artigo delega texto ao caput; o texto real viaja no nó do caput (evita duplicação).
-      const conteudo = new Y.Text();
-      conteudo.insert(0, isArtigo(d) ? '' : d.texto ?? '');
-      m.set('conteudo', conteudo);
-
-      m.set('meta', construirMeta(d));
-      arr.push([m]);
-    });
-
+    nodes.forEach(d => arr.push([dispositivoParaYMap(d)]));
     escreverDocumento(doc, projetoNorma);
   }, 'seed');
 
   return doc;
+};
+
+// Monta o Y.Map de um dispositivo (gid/tipo/paiGid/conteudo/meta). Reusado pelo seed e pela
+// sincronização estrutural ao vivo (Fase 2) — garante formato idêntico ao do seed.
+export const dispositivoParaYMap = (d: Dispositivo): Y.Map<unknown> => {
+  const m = new Y.Map<unknown>();
+  m.set('gid', d.gid);
+  m.set('tipo', d.tipo);
+  m.set('paiGid', d.pai?.gid ?? null);
+
+  // Artigo delega texto ao caput; o texto real viaja no nó do caput (evita duplicação).
+  const conteudo = new Y.Text();
+  conteudo.insert(0, isArtigo(d) ? '' : d.texto ?? '');
+  m.set('conteudo', conteudo);
+
+  m.set('meta', construirMeta(d));
+  return m;
 };
 
 const escreverDocumento = (doc: Y.Doc, projetoNorma: ProjetoNorma): void => {
