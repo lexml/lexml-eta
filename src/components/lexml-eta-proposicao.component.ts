@@ -59,7 +59,7 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     }
     try {
       const { criarProviderReal, criarPersistenciaReal } = await import('../collab/transporteReal');
-      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal });
+      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal, store: rootStore });
       this.colabService.attach(params!.colaboracao, projetoNorma, params!.usuario);
     } catch {
       this.colabService = undefined;

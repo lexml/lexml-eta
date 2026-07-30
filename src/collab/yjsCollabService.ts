@@ -1,5 +1,7 @@
 import * as Y from 'yjs';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
+import { GidRegistry } from './gid';
+import { SincronizadorEstrutural, StoreColaboracao } from './sincronizadorEstrutural';
 import { projetoNormaToYDoc } from './ydocConverter';
 
 // Overlay de colaboração no cliente. Fase 1: ciclo de vida + degradação graciosa (keep-local-Y.Doc).
@@ -39,6 +41,7 @@ export interface FabricasColaboracao {
   criarPersistencia?: (roomId: string, doc: Y.Doc) => PersistenciaColaboracao;
   timeoutConexaoMs?: number;
   clientId?: number; // identidade CRDT deste cliente para edições ao vivo (padrão: aleatório)
+  store?: StoreColaboracao; // store Redux para a sincronização estrutural (Fase 2)
 }
 
 const TIMEOUT_CONEXAO_PADRAO_MS = 5000;
@@ -51,6 +54,7 @@ export class YjsCollabService {
   private doc?: Y.Doc;
   private provider?: ProviderColaboracao;
   private persistencia?: PersistenciaColaboracao;
+  private sincronizador?: SincronizadorEstrutural;
   private timerConexao?: ReturnType<typeof setTimeout>;
   private _estado = EstadoColaboracao.DESLIGADO;
 
@@ -92,6 +96,13 @@ export class YjsCollabService {
     // adota identidade CRDT própria para as edições ao vivo (o seed permanece sob clientID=0).
     this.doc.clientID = this.fabricas.clientId ?? gerarClientId();
     this._estado = EstadoColaboracao.LOCAL;
+
+    // sincronização estrutural Redux↔Y.Array (ativa já em LOCAL, antes de qualquer rede).
+    if (this.fabricas.store) {
+      this.sincronizador = new SincronizadorEstrutural(this.doc, this.fabricas.store, new GidRegistry());
+      this.sincronizador.ligar();
+    }
+
     this.persistencia = this.fabricas.criarPersistencia?.(colaboracao!.roomId, this.doc);
     this.conectar(colaboracao!);
   }
@@ -131,9 +142,11 @@ export class YjsCollabService {
     }
   }
 
-  // Encerramento total (fechar o editor): libera transporte, persistência e Y.Doc.
+  // Encerramento total (fechar o editor): libera transporte, sincronizador, persistência e Y.Doc.
   destruir(): void {
     this.detach();
+    this.sincronizador?.desligar();
+    this.sincronizador = undefined;
     this.persistencia?.destroy();
     this.persistencia = undefined;
     this.doc?.destroy();
