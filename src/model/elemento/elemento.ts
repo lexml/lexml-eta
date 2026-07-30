@@ -7,6 +7,7 @@ export class Referencia {
   tipo?: string;
   uuid?: number;
   uuid2?: string;
+  gid?: string;
   lexmlId?: string;
   conteudo?: Partial<Conteudo>;
   descricaoSituacao?: string;
