@@ -9,5 +9,5 @@
     "noEmitOnError": true
   },
   "include": ["src/collab/**/*.ts", "test/collab/**/*.ts", "test/collab/shoelace-shim.d.ts", "src/typings.d.ts", "src/model/lexml/util/mixin.ts"],
-  "exclude": ["node_modules", "out-collab-test"]
+  "exclude": ["node_modules", "out-collab-test", "src/collab/transporteReal.ts"]
 }
