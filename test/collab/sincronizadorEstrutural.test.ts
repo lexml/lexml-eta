@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { test } from 'node:test';
 import * as Y from 'yjs';
-import { Articulacao, Artigo } from '../../src/model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
 import { createArticulacao, criaDispositivo } from '../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
@@ -11,10 +11,11 @@ import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElemento
 import { REMOVER_ELEMENTO } from '../../src/model/lexml/acao/removerElementoAction';
 import { SUPRIMIR_ELEMENTO } from '../../src/model/lexml/acao/suprimirElemento';
 import { RESTAURAR_ELEMENTO } from '../../src/model/lexml/acao/restaurarElemento';
+import { MOVER_ELEMENTO_ABAIXO } from '../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { DescricaoSituacao } from '../../src/model/dispositivo/situacao';
 import { StateEvent, StateType } from '../../src/redux/state';
 import { GidRegistry } from '../../src/collab/gid';
-import { projetoNormaToYDoc } from '../../src/collab/ydocConverter';
+import { dispositivoParaYMap, projetoNormaToYDoc } from '../../src/collab/ydocConverter';
 import { diffGids, lerGids, SincronizadorEstrutural, StoreColaboracao } from '../../src/collab/sincronizadorEstrutural';
 
 // Fake store: guarda estado + eventos, registra dispatches, e permite notificar assinantes.
@@ -53,6 +54,21 @@ const montarBase = (): { articulacao: Articulacao; art1: Artigo; doc: Y.Doc } =>
   articulacao.projetoNorma = projetoNorma;
   const doc = projetoNormaToYDoc(projetoNorma);
   return { articulacao, art1, doc };
+};
+
+// Base com dois parágrafos irmãos (par1, par2) já semeados, para testar reordenação.
+const montarComDoisParagrafos = (): { articulacao: Articulacao; art1: Artigo; par1: Dispositivo; par2: Dispositivo; doc: Y.Doc } => {
+  const articulacao = createArticulacao();
+  const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+  art1.texto = 'Caput.';
+  const par1 = criaDispositivo(art1, TipoDispositivo.paragrafo.tipo);
+  par1.texto = 'Parágrafo primeiro.';
+  const par2 = criaDispositivo(art1, TipoDispositivo.paragrafo.tipo);
+  par2.texto = 'Parágrafo segundo.';
+  const projetoNorma = { classificacao: ClassificacaoDocumento.PROJETO, articulacao } as ProjetoNorma;
+  articulacao.projetoNorma = projetoNorma;
+  const doc = projetoNormaToYDoc(projetoNorma);
+  return { articulacao, art1, par1, par2, doc };
 };
 
 test('helper diffGids identifica adicionados e removidos', () => {
@@ -200,6 +216,57 @@ test('remoto: meta.situacao → Original dispara RESTAURAR_ELEMENTO', () => {
   assert.strictEqual(store.dispatched.length, 1);
   assert.strictEqual(store.dispatched[0].type, RESTAURAR_ELEMENTO);
   assert.strictEqual(store.dispatched[0].atual.uuid, art1.uuid);
+});
+
+test('local: mover (Removido+Incluido no mesmo lote) reposiciona o gid, sem duplicar', () => {
+  const { articulacao, par1, par2, doc } = montarComDoisParagrafos();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  // ordem realista do reducer de mover: Incluido ANTES de Removido, mesmos gids.
+  store.setEvents([
+    { stateType: StateType.ElementoIncluido, elementos: [createElemento(par1, false)], referencia: createElemento(par2, false) },
+    { stateType: StateType.ElementoRemovido, elementos: [createElemento(par1, false)] },
+  ]);
+  store.notificar();
+
+  const gids = lerGids(doc.getArray<Y.Map<unknown>>('articulacao'));
+  assert.strictEqual(gids.filter(g => g === par1.gid).length, 1, 'par1 não pode ficar duplicado');
+  assert.ok(gids.indexOf(par2.gid!) < gids.indexOf(par1.gid!), 'par1 passou para depois de par2');
+});
+
+test('remoto: reordenação de irmãos no Y.Array dispara MOVER_ELEMENTO_ABAIXO no gid que desceu', () => {
+  const { articulacao, par1, par2, doc } = montarComDoisParagrafos();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  doc.transact(() => {
+    const i1 = lerGids(arr).indexOf(par1.gid!);
+    arr.delete(i1, 2); // par1, par2 são adjacentes
+    arr.insert(i1, [dispositivoParaYMap(par2), dispositivoParaYMap(par1)]); // trocados
+  }, 'remote');
+
+  assert.strictEqual(store.dispatched.length, 1);
+  assert.strictEqual(store.dispatched[0].type, MOVER_ELEMENTO_ABAIXO);
+  assert.strictEqual(store.dispatched[0].atual.uuid, par1.uuid, 'move o par1 (que desceu) para baixo');
+});
+
+test('convergência: reordenação em A propaga a nova ordem para B', () => {
+  const { par1, par2, doc: docA } = montarComDoisParagrafos();
+  const arr = docA.getArray<Y.Map<unknown>>('articulacao');
+  docA.transact(() => {
+    const i1 = lerGids(arr).indexOf(par1.gid!);
+    arr.delete(i1, 2);
+    arr.insert(i1, [dispositivoParaYMap(par2), dispositivoParaYMap(par1)]);
+  }, 'remote');
+
+  const docB = new Y.Doc();
+  Y.applyUpdate(docB, Y.encodeStateAsUpdate(docA));
+  const gidsB = lerGids(docB.getArray<Y.Map<unknown>>('articulacao'));
+  assert.ok(gidsB.indexOf(par2.gid!) < gidsB.indexOf(par1.gid!), 'B vê par2 antes de par1');
 });
 
 test('convergência: inclusão local em A propaga para o Y.Doc de B pelo sync', () => {
