@@ -58,6 +58,7 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EditorTextoColab, RangeBlot, TextoSincronizador } from '../../collab/textoSincronizador';
 import { OpDelta } from '../../collab/textoBinding';
+import { cursorParaIndiceAbsoluto, indiceAbsolutoParaCursor, PresencaSincronizador } from '../../collab/presencaSincronizador';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
@@ -137,6 +138,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private inscricoes: Subscription[] = [];
   private sincTexto?: TextoSincronizador; // co-edição de texto (Fase 3 fiação); definido só em colaboração
+  private presenca?: PresencaSincronizador; // cursores/presença (Fase 4 fiação)
+  private cursors?: any; // instância de quill-cursors (carregado sob demanda)
+  private desobservarPresenca?: () => void;
   private timerOnChange?: any;
 
   private _idSwitchRevisao = 'chk-em-revisao';
@@ -1359,6 +1363,52 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.sincTexto.observarRenderizados();
   }
 
+  // Publica a posição do cursor local (traduzida para {gid, index}) na awareness.
+  private onSelectionChangeCursor = (range: RangeStatic): void => {
+    if (!this.presenca) {
+      return;
+    }
+    const cursor = range ? indiceAbsolutoParaCursor(range.index, this.criarAdaptadorTextoColab().rangesRenderizados()) : null;
+    this.presenca.publicarCursor(cursor);
+  };
+
+  // Ativa os cursores remotos: carrega o quill-cursors sob demanda e renderiza a cada mudança de presença.
+  async ativarColaboracaoCursores(presenca: PresencaSincronizador): Promise<void> {
+    this.presenca = presenca;
+    // quill-cursors 2.x é UMD: sob ESM cai no fallback global (window.QuillCursors). O import garante o load.
+    const mod: any = await import('quill-cursors');
+    const QuillCursors = mod.default ?? (window as any).QuillCursors;
+    this.cursors = new QuillCursors(this.quill);
+    this.desobservarPresenca = presenca.observar(() => this.renderizarCursores());
+    this.renderizarCursores();
+  }
+
+  private renderizarCursores(): void {
+    if (!this.cursors || !this.presenca) {
+      return;
+    }
+    const ranges = this.criarAdaptadorTextoColab().rangesRenderizados();
+    const ativos = new Set<string>();
+    this.presenca.presencas().forEach(p => {
+      if (!p.cursor) {
+        return;
+      }
+      const idx = cursorParaIndiceAbsoluto(p.cursor, ranges);
+      if (idx === null) {
+        return;
+      }
+      const id = String(p.user.id);
+      ativos.add(id);
+      this.cursors.createCursor(id, p.user.nome, p.user.cor);
+      this.cursors.moveCursor(id, { index: idx, length: 0 });
+    });
+    (this.cursors.cursors?.() ?? []).forEach((c: any) => {
+      if (!ativos.has(c.id)) {
+        this.cursors.removeCursor(c.id);
+      }
+    });
+  }
+
   // Adaptador do Quill para o TextoSincronizador: ranges dos blots de conteúdo e aplicação remota silent.
   criarAdaptadorTextoColab(): EditorTextoColab {
     return {
@@ -1394,6 +1444,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     document.body.appendChild(this._remissaoPopup);
     this.quill.on('selection-change', this.onSelectionChange);
     this.quill.on('text-change', this.onTextChangeColab);
+    this.quill.on('selection-change', this.onSelectionChangeCursor);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.moveElemento.subscribe(this.moverElemento.bind(this)));

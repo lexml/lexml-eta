@@ -1,6 +1,8 @@
 import * as Y from 'yjs';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
+import { Awareness } from 'y-protocols/awareness';
 import { GidRegistry } from './gid';
+import { corDeUsuario, PresencaSincronizador } from './presencaSincronizador';
 import { SincronizadorEstrutural, StoreColaboracao } from './sincronizadorEstrutural';
 import { EditorTextoColab, TextoSincronizador } from './textoSincronizador';
 import { projetoNormaToYDoc } from './ydocConverter';
@@ -31,6 +33,7 @@ export interface ProviderColaboracao {
   on(evento: 'status', cb: (e: { status: string }) => void): void;
   disconnect(): void;
   destroy(): void;
+  awareness?: unknown; // y-protocols Awareness (o WebsocketProvider já sincroniza a awareness)
 }
 
 export interface PersistenciaColaboracao {
@@ -58,6 +61,8 @@ export class YjsCollabService {
   private persistencia?: PersistenciaColaboracao;
   private sincronizador?: SincronizadorEstrutural;
   private textoSincronizador?: TextoSincronizador;
+  private presenca?: PresencaSincronizador;
+  private usuario?: UsuarioColaboracao;
   private timerConexao?: ReturnType<typeof setTimeout>;
   private _estado = EstadoColaboracao.DESLIGADO;
 
@@ -80,6 +85,11 @@ export class YjsCollabService {
     return this.textoSincronizador;
   }
 
+  // Exposto para o editor dirigir os cursores/presença (Fase 4 fiação).
+  get sincronizadorPresenca(): PresencaSincronizador | undefined {
+    return this.presenca;
+  }
+
   // Gate de UX (nunca de segurança): sem params completos ou anônimo ⇒ OFF.
   static deveLigar(colaboracao?: ParametrosColaboracao, usuario?: UsuarioColaboracao): boolean {
     return !!colaboracao?.roomId && !!colaboracao?.wsUrl && !!colaboracao?.token && !YjsCollabService.isAnonimo(usuario);
@@ -98,6 +108,7 @@ export class YjsCollabService {
       this._estado = EstadoColaboracao.DESLIGADO;
       return;
     }
+    this.usuario = usuario;
 
     // seed determinístico (Fase 0): o Y.Doc vive mesmo sem rede (keep-local, §3.10.1).
     this.doc = projetoNormaToYDoc(projetoNorma);
@@ -127,6 +138,17 @@ export class YjsCollabService {
       return; // sem transporte configurado ⇒ permanece LOCAL (degradação)
     }
     this.provider = provider;
+
+    // presença/cursores: usa a Awareness do provider (ele já a sincroniza). Identidade validada é do host.
+    if (provider.awareness && this.usuario) {
+      const id = this.usuario.id ?? this.usuario.nome ?? '';
+      this.presenca = new PresencaSincronizador(provider.awareness as Awareness, {
+        nome: this.usuario.nome ?? 'Usuário',
+        id: id as string | number,
+        sigla: this.usuario.sigla,
+        cor: corDeUsuario(id as string | number),
+      });
+    }
 
     const timeoutMs = this.fabricas.timeoutConexaoMs ?? TIMEOUT_CONEXAO_PADRAO_MS;
     // timeout de conexão: não conectou a tempo ⇒ segue LOCAL (nunca bloqueia edição/salvar).
@@ -163,6 +185,8 @@ export class YjsCollabService {
     this.sincronizador = undefined;
     this.textoSincronizador?.desobservar();
     this.textoSincronizador = undefined;
+    this.presenca?.destruir();
+    this.presenca = undefined;
     this.persistencia?.destroy();
     this.persistencia = undefined;
     this.doc?.destroy();

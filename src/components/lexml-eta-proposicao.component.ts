@@ -65,6 +65,9 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
       if (this.colabService.sincronizadorTexto) {
         this.editorComponent.ativarColaboracaoTexto(this.colabService.sincronizadorTexto);
       }
+      if (this.colabService.sincronizadorPresenca) {
+        void this.editorComponent.ativarColaboracaoCursores(this.colabService.sincronizadorPresenca);
+      }
     } catch {
       this.colabService = undefined;
     }
