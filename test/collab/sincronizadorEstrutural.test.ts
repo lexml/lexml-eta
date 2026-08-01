@@ -146,6 +146,32 @@ test('remoto: inserção externa no Y.Array dispara ADICIONAR_ELEMENTO com tipo 
   assert.strictEqual(acao.atual.uuid, art1.caput!.uuid, 'referência = caput (predecessor de mesmo pai)');
 });
 
+test('remoto: inclusão como primeiro-filho usa o sucessor com posicao "antes" (guard-safe)', () => {
+  const { articulacao, art1, par1, doc } = montarComDoisParagrafos();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  // parágrafo remoto inserido ANTES de par1 (mesmo pai art1): não há predecessor de mesmo pai imediato.
+  const novo = new Y.Map<unknown>();
+  novo.set('gid', 'par-primeiro');
+  novo.set('tipo', 'Paragrafo');
+  novo.set('paiGid', art1.gid);
+  const t = new Y.Text();
+  t.insert(0, 'primeiro parágrafo');
+  novo.set('conteudo', t);
+  novo.set('meta', new Y.Map());
+  doc.transact(() => arr.insert(lerGids(arr).indexOf(par1.gid!), [novo]), 'remote');
+
+  assert.strictEqual(store.dispatched.length, 1);
+  const acao = store.dispatched[0];
+  assert.strictEqual(acao.type, ADICIONAR_ELEMENTO);
+  assert.strictEqual(acao.novo.tipo, 'Paragrafo');
+  assert.strictEqual(acao.posicao, 'antes', 'insere antes do sucessor (evita o no-op do reducer)');
+  assert.strictEqual(acao.atual.uuid, par1.uuid, 'referência = par1 (sucessor de mesmo pai)');
+});
+
 test('remoto: deleção externa no Y.Array dispara REMOVER_ELEMENTO do dispositivo certo', () => {
   const { articulacao, art1, doc } = montarBase();
   const par1 = criaDispositivo(art1, TipoDispositivo.paragrafo.tipo);

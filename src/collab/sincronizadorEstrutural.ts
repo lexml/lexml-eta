@@ -296,16 +296,30 @@ export class SincronizadorEstrutural {
     const conteudo = (ymap.get('conteudo') as Y.Text).toString();
     const articulacao = this.store.getState().elementoReducer?.articulacao;
 
-    // referência de inserção: irmão predecessor de mesmo pai; na falta, o próprio pai.
-    const refGid = this.gidPredecessorMesmoPai(idx, paiGid) ?? paiGid ?? undefined;
+    // Referência de inserção guard-safe (o reducer só adiciona irmão de mesmo tipo, exceto com posicao='antes'):
+    //  (1) sucessor de mesmo pai ⇒ inserir 'antes' dele (sempre aceito); (2) predecessor ⇒ inserir depois;
+    //  (3) sem irmãos ⇒ 'filho' do próprio pai.
+    const predecessor = this.gidPredecessorMesmoPai(idx, paiGid);
+    const sucessor = this.gidSucessorMesmoPai(idx, paiGid);
+    let refGid: string | undefined;
+    let posicao: string | undefined;
+    if (sucessor) {
+      refGid = sucessor;
+      posicao = 'antes';
+    } else if (predecessor) {
+      refGid = predecessor;
+      posicao = undefined;
+    } else {
+      refGid = paiGid ?? undefined;
+      posicao = 'filho';
+    }
     const refDisp = refGid && articulacao ? buscarPorGid(articulacao, refGid) : null;
     if (!refDisp) {
       return;
     }
     const refEl = { uuid: refDisp.uuid, gid: refDisp.gid } as Elemento;
 
-    const acao = new AdicionarElemento(tipoDispositivoPorNome(tipo));
-    this.store.dispatch(acao.execute(refEl, conteudo));
+    this.store.dispatch(new AdicionarElemento(tipoDispositivoPorNome(tipo), posicao).execute(refEl, conteudo));
     this.reconciliarGidRecemCriado(gid);
   }
 
@@ -326,6 +340,16 @@ export class SincronizadorEstrutural {
 
   private gidPredecessorMesmoPai(idx: number, paiGid: string | null): string | undefined {
     for (let i = idx - 1; i >= 0; i--) {
+      const m = this.arr.get(i);
+      if ((m.get('paiGid') as string | null) === paiGid) {
+        return m.get('gid') as string;
+      }
+    }
+    return undefined;
+  }
+
+  private gidSucessorMesmoPai(idx: number, paiGid: string | null): string | undefined {
+    for (let i = idx + 1; i < this.arr.length; i++) {
       const m = this.arr.get(i);
       if ((m.get('paiGid') as string | null) === paiGid) {
         return m.get('gid') as string;
