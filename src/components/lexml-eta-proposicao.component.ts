@@ -59,8 +59,12 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     }
     try {
       const { criarProviderReal, criarPersistenciaReal } = await import('../collab/transporteReal');
-      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal, store: rootStore });
+      const editorTexto = this.editorComponent?.criarAdaptadorTextoColab();
+      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal, store: rootStore, editorTexto });
       this.colabService.attach(params!.colaboracao, projetoNorma, params!.usuario);
+      if (this.colabService.sincronizadorTexto) {
+        this.editorComponent.ativarColaboracaoTexto(this.colabService.sincronizadorTexto);
+      }
     } catch {
       this.colabService = undefined;
     }

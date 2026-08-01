@@ -26,7 +26,8 @@ export const recortarParaYText = (delta: OpDelta[], offset: number, tamanho: num
       }
       abs += op.retain;
     } else if (op.insert !== undefined) {
-      if (abs >= offset && abs <= fim) {
+      // ignora inserts não-string (embeds/blots estruturais) — só texto puro entra no Y.Text.
+      if (typeof op.insert === 'string' && abs >= offset && abs <= fim) {
         ops.push(op.attributes ? { insert: op.insert, attributes: op.attributes } : { insert: op.insert });
       }
       // insert não avança a posição no documento antigo

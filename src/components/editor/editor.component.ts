@@ -56,6 +56,8 @@ import { EtaBlotRotulo } from '../../util/eta-quill/eta-blot-rotulo';
 import { EtaContainerTable } from '../../util/eta-quill/eta-container-table';
 import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
+import { EditorTextoColab, RangeBlot, TextoSincronizador } from '../../collab/textoSincronizador';
+import { OpDelta } from '../../collab/textoBinding';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
@@ -72,7 +74,8 @@ import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAct
 import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
 import { DescricaoSituacao } from '../../model/dispositivo/situacao';
-import { isCaput } from '../../model/dispositivo/tipo';
+import { isArtigo, isCaput } from '../../model/dispositivo/tipo';
+import { Artigo } from '../../model/dispositivo/dispositivo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { buscaDispositivoById, findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
@@ -133,6 +136,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private eventosOnChange: StateType[] = [];
 
   private inscricoes: Subscription[] = [];
+  private sincTexto?: TextoSincronizador; // co-edição de texto (Fase 3 fiação); definido só em colaboração
   private timerOnChange?: any;
 
   private _idSwitchRevisao = 'chk-em-revisao';
@@ -1330,6 +1334,56 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return elemento;
   }
 
+  // Roteia a digitação local (source='user') para os Y.Text; ignora 'silent'/'api' (remoto/estrutural).
+  private onTextChangeColab = (delta: DeltaStatic, _old: DeltaStatic, source: Sources): void => {
+    if (source === 'user' && this.sincTexto && this.pareceEdicaoDeTexto(delta.ops ?? [])) {
+      this.sincTexto.onDeltaLocal((delta.ops ?? []) as OpDelta[]);
+    }
+  };
+
+  // Descarta deltas estruturais (render, menu de contexto, rótulo, quebra de linha) que também chegam
+  // como source='user' — só edição de TEXTO puro (retain/insert-string/delete, com formatação inline) passa.
+  private pareceEdicaoDeTexto(ops: DeltaOperation[]): boolean {
+    return ops.every(op => {
+      if (op.insert !== undefined && typeof op.insert !== 'string') {
+        return false; // embed (blot)
+      }
+      const chaves = op.attributes ? Object.keys(op.attributes) : [];
+      return !chaves.some(k => k.startsWith('Eta') || k === 'dataRotulo' || k === 'id');
+    });
+  }
+
+  // Ativa a co-edição de texto: guarda o sincronizador e liga os observers dos Y.Text renderizados.
+  ativarColaboracaoTexto(sinc: TextoSincronizador): void {
+    this.sincTexto = sinc;
+    this.sincTexto.observarRenderizados();
+  }
+
+  // Adaptador do Quill para o TextoSincronizador: ranges dos blots de conteúdo e aplicação remota silent.
+  criarAdaptadorTextoColab(): EditorTextoColab {
+    return {
+      rangesRenderizados: (): RangeBlot[] => {
+        const ranges: RangeBlot[] = [];
+        const articulacao = rootStore.getState().elementoReducer?.articulacao;
+        let linha: EtaContainerTable | undefined = this.quill?.getPrimeiraLinha();
+        while (linha) {
+          const disp = articulacao && linha.uuid !== undefined ? findDispositivoByUuid(articulacao, linha.uuid, true) : null;
+          // Linha de artigo renderiza o texto do CAPUT (delegação); o Y.Text real é o do caput.
+          const dispConteudo = disp && isArtigo(disp) ? (disp as Artigo).caput : disp;
+          if (linha.blotConteudo && dispConteudo?.gid) {
+            ranges.push({ gid: dispConteudo.gid, offset: this.quill.getIndex(linha.blotConteudo), tamanho: linha.blotConteudo.tamanho });
+          }
+          linha = linha.next as EtaContainerTable | undefined;
+        }
+        return ranges;
+      },
+      aplicarDeltaSilent: (ops: OpDelta[]): void => {
+        const Delta = Quill.import('delta');
+        this.quill.updateContents(new Delta(ops), 'silent' as Sources);
+      },
+    };
+  }
+
   private inicializar(op: QuillOptionsStatic): void {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     const bufferHtml: HTMLElement = this.getHtmlElement('lx-eta-buffer');
@@ -1339,6 +1393,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this._remissaoPopup = criarPopup();
     document.body.appendChild(this._remissaoPopup);
     this.quill.on('selection-change', this.onSelectionChange);
+    this.quill.on('text-change', this.onTextChangeColab);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.moveElemento.subscribe(this.moverElemento.bind(this)));
