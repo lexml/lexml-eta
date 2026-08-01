@@ -19,5 +19,5 @@
     "noImplicitAny": false
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "*.d.ts", "**/*.js", "test/collab"],
+  "exclude": ["node_modules", "*.d.ts", "**/*.js", "test/collab", "e2e-collab", "playwright.config.ts"],
 }

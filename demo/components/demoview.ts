@@ -167,6 +167,20 @@ export class DemoView extends LitElement {
     // }
   }
 
+  // Harness de dev/teste: modelo "link de sessão" (share-link). Sem ?doc ⇒ solo (colaboração OFF).
+  // Com ?doc=X, entra na sessão X (mesma URL noutro browser = mesma sessão). Nunca chega ao LexEdit.
+  private aplicarColaboracao(params: LexmlEtaParametrosEdicao): void {
+    const q = new URLSearchParams(window.location.search);
+    const doc = q.get('doc');
+    if (!doc) {
+      return;
+    }
+    const nome = q.get('user') || 'Demo';
+    const id = q.get('userId') || nome;
+    params.usuario = new Usuario(nome, id);
+    params.colaboracao = { roomId: doc, wsUrl: q.get('ws') || 'ws://localhost:1234', token: 'dev' };
+  }
+
   limparTela(): void {
     this.elLexmlEta.style.display = 'none';
     this.projetoNorma = {};
@@ -209,6 +223,7 @@ export class DemoView extends LitElement {
             params.ano = new Date().getFullYear().toString();
           }
           // params.casaLegislativa = 'SF';
+          this.aplicarColaboracao(params);
           this.elLexmlEta.inicializarEdicao(params);
 
           this.atualizarProposicaoCorrente(this.projetoNorma);

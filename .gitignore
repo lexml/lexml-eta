@@ -24,3 +24,6 @@
 /.project
 .scannerwork/
 .externalToolBuilders/
+/test-results/
+/playwright-report/
+.ws-server.pid
