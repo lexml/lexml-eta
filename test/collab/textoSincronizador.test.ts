@@ -14,12 +14,16 @@ const OFFSET = 5; // início fictício do blot de conteúdo no Quill
 
 class FakeEditor implements EditorTextoColab {
   aplicados: OpDelta[][] = [];
+  redetectados: string[] = [];
   constructor(private ranges: RangeBlot[]) {}
   rangesRenderizados(): RangeBlot[] {
     return this.ranges;
   }
   aplicarDeltaSilent(ops: OpDelta[]): void {
     this.aplicados.push(ops);
+  }
+  redetectarRemissoes(gid: string): void {
+    this.redetectados.push(gid);
   }
 }
 
@@ -61,6 +65,19 @@ test('remoto: mudança externa no Y.Text é aplicada ao Quill em coords absoluta
 
   assert.strictEqual(editor.aplicados.length, 1);
   assert.deepStrictEqual(editor.aplicados[0], [{ retain: OFFSET }, { retain: 2 }, { insert: 'Z' }]);
+});
+
+test('remoto: texto externo dispara redetectarRemissoes do gid (A2.a); edição local não', () => {
+  const { doc, caputGid, tamanho } = montar();
+  const editor = new FakeEditor([{ gid: caputGid, offset: OFFSET, tamanho }]);
+  const sinc = new TextoSincronizador(doc, editor);
+  sinc.observarRenderizados();
+
+  doc.transact(() => yTextDe(doc, caputGid).insert(2, 'Z'), 'remote');
+  assert.deepStrictEqual(editor.redetectados, [caputGid], 'texto remoto re-detecta as remissões do dispositivo');
+
+  sinc.onDeltaLocal([{ retain: OFFSET }, { insert: 'X' }]);
+  assert.deepStrictEqual(editor.redetectados, [caputGid], 'edição local (eco) não dispara re-detecção');
 });
 
 test('anti-eco: edição local não é reaplicada ao Quill pelo observer', () => {
