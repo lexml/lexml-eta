@@ -3,11 +3,12 @@ import { Articulacao, Dispositivo } from '../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../model/dispositivo/situacao';
 import { Elemento } from '../model/elemento';
 import { AdicionarElemento } from '../model/lexml/acao/adicionarElementoAction';
+import { AtualizarNotaAlteracao } from '../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { moverElementoAbaixoAction } from '../model/lexml/acao/moverElementoAbaixoAction';
 import { removerElementoAction } from '../model/lexml/acao/removerElementoAction';
 import { restaurarElementoAction } from '../model/lexml/acao/restaurarElemento';
 import { suprimirElementoAction } from '../model/lexml/acao/suprimirElemento';
-import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoByUuid, getDispositivoCabecaAlteracao, percorreHierarquiaDispositivos } from '../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
 import { StateEvent, StateType } from '../redux/state';
 import { GidRegistry } from './gid';
@@ -35,6 +36,14 @@ export const indiceDoGid = (arr: YArrayDisp, gid: string): number => lerGids(arr
 export const lerSituacoes = (arr: YArrayDisp): Map<string, string | undefined> => {
   const m = new Map<string, string | undefined>();
   arr.forEach(ymap => m.set(ymap.get('gid') as string, (ymap.get('meta') as Y.Map<unknown> | undefined)?.get('situacao') as string | undefined));
+  return m;
+};
+
+// gid → notaAlteracao (de meta.notaAlteracao) de cada Y.Map, para detectar mudança de nota remota.
+// A nota é canônica no gid da cabeça-de-alteração (só ela carrega o campo no domínio).
+export const lerNotas = (arr: YArrayDisp): Map<string, string | undefined> => {
+  const m = new Map<string, string | undefined>();
+  arr.forEach(ymap => m.set(ymap.get('gid') as string, (ymap.get('meta') as Y.Map<unknown> | undefined)?.get('notaAlteracao') as string | undefined));
   return m;
 };
 
@@ -86,6 +95,7 @@ export class SincronizadorEstrutural {
   private aplicandoRemoto = false;
   private gidsShadow: string[] = [];
   private situacaoShadow = new Map<string, string | undefined>();
+  private notaShadow = new Map<string, string | undefined>();
   private paiGidShadow = new Map<string, string | null>();
 
   constructor(private doc: Y.Doc, private store: StoreColaboracao, private registry: GidRegistry) {
@@ -136,7 +146,12 @@ export class SincronizadorEstrutural {
         e.stateType === StateType.ElementoSuprimido ||
         e.stateType === StateType.ElementoRestaurado
     );
-    if (!estruturais.length) {
+    // Mudança de nota de alteração chega como ElementoModificado [original, alterado]; detecta pela
+    // diferença de notaAlteracao entre os dois (O(1), distingue de edição de texto, que não muda a nota).
+    const notaEventos = eventos.filter(
+      e => e.stateType === StateType.ElementoModificado && (e.elementos?.length ?? 0) >= 2 && e.elementos![0].notaAlteracao !== e.elementos![1].notaAlteracao
+    );
+    if (!estruturais.length && !notaEventos.length) {
       return;
     }
     const articulacao: Articulacao = state.articulacao;
@@ -146,6 +161,7 @@ export class SincronizadorEstrutural {
       estruturais.filter(e => e.stateType === StateType.ElementoRemovido).forEach(ev => this.removerDoYArray(ev));
       estruturais.filter(e => e.stateType === StateType.ElementoIncluido).forEach(ev => this.incluirNoYArray(ev, articulacao));
       estruturais.filter(e => e.stateType === StateType.ElementoSuprimido || e.stateType === StateType.ElementoRestaurado).forEach(ev => this.atualizarSituacaoNoYArray(ev));
+      notaEventos.forEach(ev => this.atualizarNotaNoYArray(ev, articulacao));
     }, ORIGEM_LOCAL);
     this.atualizarShadows();
   }
@@ -153,6 +169,7 @@ export class SincronizadorEstrutural {
   private atualizarShadows(): void {
     this.gidsShadow = lerGids(this.arr);
     this.situacaoShadow = lerSituacoes(this.arr);
+    this.notaShadow = lerNotas(this.arr);
     this.paiGidShadow = lerPaiGids(this.arr);
   }
 
@@ -167,6 +184,32 @@ export class SincronizadorEstrutural {
       }
       (this.arr.get(idx).get('meta') as Y.Map<unknown> | undefined)?.set('situacao', el.descricaoSituacao);
     });
+  }
+
+  private atualizarNotaNoYArray(ev: StateEvent, articulacao: Articulacao): void {
+    const alterado = ev.elementos?.[1];
+    if (alterado?.uuid === undefined) {
+      return;
+    }
+    const disp = findDispositivoByUuid(articulacao, alterado.uuid, true);
+    // A nota é canônica na cabeça-de-alteração; o dispositivo do evento pode ser um membro do bloco.
+    const cabeca = disp ? getDispositivoCabecaAlteracao(disp) : null;
+    if (!cabeca?.gid) {
+      return;
+    }
+    const idx = indiceDoGid(this.arr, cabeca.gid);
+    if (idx < 0) {
+      return;
+    }
+    const meta = this.arr.get(idx).get('meta') as Y.Map<unknown> | undefined;
+    if (!meta) {
+      return;
+    }
+    if (cabeca.notaAlteracao) {
+      meta.set('notaAlteracao', cabeca.notaAlteracao);
+    } else {
+      meta.delete('notaAlteracao');
+    }
   }
 
   private incluirNoYArray(ev: StateEvent, articulacao: Articulacao): void {
@@ -204,8 +247,9 @@ export class SincronizadorEstrutural {
     }
     const { adicionados, removidos } = diffGids(this.gidsShadow, lerGids(this.arr));
     const situacoesMudadas = this.diffSituacoes(lerSituacoes(this.arr));
+    const notasMudadas = this.diffNotas(lerNotas(this.arr));
     const movidos = this.diffReorder(lerGids(this.arr), lerPaiGids(this.arr));
-    if (!adicionados.length && !removidos.length && !situacoesMudadas.length && !movidos.length) {
+    if (!adicionados.length && !removidos.length && !situacoesMudadas.length && !notasMudadas.length && !movidos.length) {
       return;
     }
     this.aplicandoRemoto = true;
@@ -213,6 +257,7 @@ export class SincronizadorEstrutural {
       removidos.forEach(gid => this.aplicarRemocaoRemota(gid));
       adicionados.forEach(gid => this.aplicarInclusaoRemota(gid));
       situacoesMudadas.forEach(({ gid, situacao }) => this.aplicarSituacaoRemota(gid, situacao));
+      notasMudadas.forEach(({ gid, nota }) => this.aplicarNotaRemota(gid, nota));
       movidos.forEach(gid => this.aplicarMoveRemoto(gid));
     } finally {
       this.aplicandoRemoto = false;
@@ -259,6 +304,28 @@ export class SincronizadorEstrutural {
       }
     });
     return mudou;
+  }
+
+  // Só considera gids presentes antes E depois (add/remove já são tratados à parte).
+  private diffNotas(depois: Map<string, string | undefined>): Array<{ gid: string; nota: string | undefined }> {
+    const mudou: Array<{ gid: string; nota: string | undefined }> = [];
+    depois.forEach((nota, gid) => {
+      if (this.notaShadow.has(gid) && this.notaShadow.get(gid) !== nota) {
+        mudou.push({ gid, nota });
+      }
+    });
+    return mudou;
+  }
+
+  private aplicarNotaRemota(gid: string, nota: string | undefined): void {
+    const articulacao = this.store.getState().elementoReducer?.articulacao;
+    const disp = articulacao ? buscarPorGid(articulacao, gid) : null;
+    if (!disp) {
+      return;
+    }
+    const el = { uuid: disp.uuid, gid } as Elemento;
+    // '' limpa a nota no reducer (action.notaAlteracao || undefined).
+    this.store.dispatch(new AtualizarNotaAlteracao().execute(el, nota ?? ''));
   }
 
   private aplicarSituacaoRemota(gid: string, situacao: string | undefined): void {
