@@ -46,6 +46,7 @@ Trata-se de uma proposta inicial, a ser discutida com todos os interessados em s
 - Promover mudança estrutural de artigos e dispositivos de artigo, considerando os dispositivos dependentes;
 - Suporte a emendamento de proposições, inclusive com geração automática do comando de emenda;
 - Manter histórico das modificações efetuadas sobre a articulação, permitindo desfazer e refazer operações efetuadas no documento;
+- Suportar edição colaborativa multiusuário em tempo real (Yjs/CRDT), como recurso opcional — estrutura, texto, cursores e desfazer/refazer sincronizam entre os participantes (ver seção abaixo);
 - Validar a situação do dispositivo;
 - Permitir a incorporação dos componentes desenvolvidos em página HTML e sua utilização em frameworks JavaScript;
 - Permitir a edição de um texto articulado independente do seu tamanho;
@@ -67,6 +68,30 @@ npm start
 Será aberta uma janela do browser com uma aplicação exemplo que permite testar o componente. Em breve, iremos disponibilizar um link aqui para testar a aplicação sem necessidade de baixar o projeto.
 
 Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
+
+## Modo colaborativo (edição multiusuário)
+
+A edição colaborativa é um *overlay opcional*: sem configuração, o editor funciona exatamente como antes. Para experimentá-la no demo local, suba o servidor de sincronização de desenvolvimento (WebSocket, porta 1234) e o demo em terminais separados:
+
+```
+npm run collab:ws
+npm start
+```
+
+Abra a **mesma sala** em dois navegadores (ou duas janelas anônimas), com usuários diferentes, e carregue o mesmo documento nos dois:
+
+```
+http://localhost:8000/demo?doc=sala1&user=Ana
+http://localhost:8000/demo?doc=sala1&user=Bia
+```
+
+Estrutura, texto, cursores e desfazer/refazer passam a sincronizar entre os participantes. Sem `?doc`, o editor abre em modo solo (colaboração desligada). O uso em produção exige um servidor de sincronização e autorização próprios (fora deste repositório).
+
+Testes E2E colaborativos (dois navegadores, via Playwright — sobem o servidor WS automaticamente):
+
+```
+npm run e2e:collab
+```
 
 ## Teste
 
