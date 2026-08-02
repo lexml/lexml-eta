@@ -8,6 +8,7 @@ import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElementoAction';
+import { ATUALIZAR_NOTA_ALTERACAO } from '../../src/model/lexml/acao/atualizarNotaAlteracaoAction';
 import { REMOVER_ELEMENTO } from '../../src/model/lexml/acao/removerElementoAction';
 import { SUPRIMIR_ELEMENTO } from '../../src/model/lexml/acao/suprimirElemento';
 import { RESTAURAR_ELEMENTO } from '../../src/model/lexml/acao/restaurarElemento';
@@ -364,6 +365,102 @@ test('remoto: transform externo (remove G_old + add G_new) dispara REMOVER e ADI
   const adicionar = store.dispatched.find(a => a.type === ADICIONAR_ELEMENTO);
   assert.strictEqual(remover.atual.uuid, par1.uuid);
   assert.strictEqual(adicionar.novo.tipo, 'Inciso');
+});
+
+const metaNota = (doc: Y.Doc, gid: string): string | undefined => {
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  const idx = lerGids(arr).indexOf(gid);
+  return (arr.get(idx).get('meta') as Y.Map<unknown>).get('notaAlteracao') as string | undefined;
+};
+
+// art1 vira sua própria cabeça-de-alteração (cabecaAlteracao truthy ⇒ getDispositivoCabecaAlteracao o retorna).
+const montarComCabecaAlteracao = (): { articulacao: Articulacao; art1: Artigo; doc: Y.Doc } => {
+  const base = montarBase();
+  (base.art1 as any).cabecaAlteracao = base.art1;
+  return base;
+};
+
+test('local: ElementoModificado com mudança de nota grava meta.notaAlteracao na cabeça (anti-eco)', () => {
+  const { articulacao, art1, doc } = montarComCabecaAlteracao();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  art1.notaAlteracao = 'NR 1, de 2020';
+  store.setEvents([
+    { stateType: StateType.ElementoModificado, elementos: [{ uuid: art1.uuid, notaAlteracao: undefined } as any, { uuid: art1.uuid, notaAlteracao: 'NR 1, de 2020' } as any] },
+  ]);
+  store.notificar();
+
+  assert.strictEqual(metaNota(doc, art1.gid!), 'NR 1, de 2020');
+  assert.strictEqual(store.dispatched.length, 0, 'anti-eco: nota local não redispacha ao Redux');
+});
+
+test('local: limpar a nota (alterado sem nota) remove meta.notaAlteracao', () => {
+  const { articulacao, art1, doc } = montarComCabecaAlteracao();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  art1.notaAlteracao = 'NR 1';
+  store.setEvents([
+    { stateType: StateType.ElementoModificado, elementos: [{ uuid: art1.uuid, notaAlteracao: undefined } as any, { uuid: art1.uuid, notaAlteracao: 'NR 1' } as any] },
+  ]);
+  store.notificar();
+  assert.strictEqual(metaNota(doc, art1.gid!), 'NR 1');
+
+  art1.notaAlteracao = undefined;
+  store.setEvents([
+    { stateType: StateType.ElementoModificado, elementos: [{ uuid: art1.uuid, notaAlteracao: 'NR 1' } as any, { uuid: art1.uuid, notaAlteracao: undefined } as any] },
+  ]);
+  store.notificar();
+  assert.strictEqual(metaNota(doc, art1.gid!), undefined, 'nota removida do meta');
+});
+
+test('local: edição de texto (ElementoModificado sem mudar a nota) NÃO toca a nota nem dispara sync', () => {
+  const { articulacao, art1, doc } = montarComCabecaAlteracao();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  store.setEvents([{ stateType: StateType.ElementoModificado, elementos: [{ uuid: art1.uuid, notaAlteracao: 'NR 1' } as any, { uuid: art1.uuid, notaAlteracao: 'NR 1' } as any] }]);
+  store.notificar();
+
+  assert.strictEqual(metaNota(doc, art1.gid!), undefined, 'meta.notaAlteracao intocado (nota igual nos dois lados)');
+  assert.strictEqual(store.dispatched.length, 0);
+});
+
+test('remoto: meta.notaAlteracao alterado externamente dispara ATUALIZAR_NOTA_ALTERACAO', () => {
+  const { articulacao, art1, doc } = montarComCabecaAlteracao();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(doc, store, new GidRegistry());
+  sinc.ligar();
+
+  const arr = doc.getArray<Y.Map<unknown>>('articulacao');
+  const idx = lerGids(arr).indexOf(art1.gid!);
+  doc.transact(() => (arr.get(idx).get('meta') as Y.Map<unknown>).set('notaAlteracao', 'NR 9, de 2021'), 'remote');
+
+  assert.strictEqual(store.dispatched.length, 1);
+  assert.strictEqual(store.dispatched[0].type, ATUALIZAR_NOTA_ALTERACAO);
+  assert.strictEqual(store.dispatched[0].atual.uuid, art1.uuid);
+  assert.strictEqual(store.dispatched[0].notaAlteracao, 'NR 9, de 2021');
+});
+
+test('convergência: nota de alteração criada em A propaga para o Y.Doc de B', () => {
+  const { articulacao, art1, doc: docA } = montarComCabecaAlteracao();
+  const store = new FakeStore(articulacao);
+  const sinc = new SincronizadorEstrutural(docA, store, new GidRegistry());
+  sinc.ligar();
+
+  art1.notaAlteracao = 'NR 3, de 2019';
+  store.setEvents([
+    { stateType: StateType.ElementoModificado, elementos: [{ uuid: art1.uuid, notaAlteracao: undefined } as any, { uuid: art1.uuid, notaAlteracao: 'NR 3, de 2019' } as any] },
+  ]);
+  store.notificar();
+
+  const docB = new Y.Doc();
+  Y.applyUpdate(docB, Y.encodeStateAsUpdate(docA));
+  assert.strictEqual(metaNota(docB, art1.gid!), 'NR 3, de 2019', 'B vê a nota de alteração');
 });
 
 test('convergência: inclusão local em A propaga para o Y.Doc de B pelo sync', () => {
