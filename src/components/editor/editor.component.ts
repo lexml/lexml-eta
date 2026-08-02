@@ -59,6 +59,7 @@ import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EditorTextoColab, RangeBlot, TextoSincronizador } from '../../collab/textoSincronizador';
 import { OpDelta } from '../../collab/textoBinding';
 import { cursorParaIndiceAbsoluto, indiceAbsolutoParaCursor, PresencaSincronizador } from '../../collab/presencaSincronizador';
+import { UndoColaboracao } from '../../collab/undoColaboracao';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
 import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
@@ -141,6 +142,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private presenca?: PresencaSincronizador; // cursores/presença (Fase 4 fiação)
   private cursors?: any; // instância de quill-cursors (carregado sob demanda)
   private desobservarPresenca?: () => void;
+  private undoColab?: UndoColaboracao; // undo por modo (Fase 5 fiação)
+  private reconstruindoEstruturaColab = false; // guarda anti-leak do rebuild estrutural no Y.Text
   private timerOnChange?: any;
 
   private _idSwitchRevisao = 'chk-em-revisao';
@@ -316,7 +319,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               />
             </svg>
           </button>
-          <button @click=${this.onClickRedo} class="lx-eta-ql-button" title="Refazer (Ctrl+y)">
+          <button @click=${this.onClickRedo} class="lx-eta-ql-button lx-eta-btn-refazer" title="Refazer (Ctrl+y)">
             <svg class="icon-undo-redo lx-eta-rebate-180-graus" id="redo" viewBox="0 0 512 512">
               <path
                 d="M488,256c0,123.4-100.5,223.9-223.9,223.9c-48.8,0-95.2-15.6-134.2-44.9c-14.1-10.6-17-30.7-6.4-44.8 c10.6-14.1,30.6-16.9,44.8-6.4c27.8,20.9,61,31.9,95.9,31.9c88.1,0,159.8-71.7,159.8-159.8S352.3,96.2,264.2,96.2 c-37.5,0-73.1,13.5-101.3,36.6L208,178c17,17,5,46.1-19.1,46.1H43.2c-10.6,0-19.2-8.6-19.2-19.2V59C24,35,53.1,23,70.1,40l47.6,47.6 c40.2-34.9,91.8-55.5,146.4-55.5C387.5,32.1,488,132.6,488,256z"
@@ -752,10 +755,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  // Ativa o undo por modo: em colaboração, o Ctrl+Z/Ctrl+Y é servido pelo Y.UndoManager.
+  ativarColaboracaoUndo(undo: UndoColaboracao): void {
+    this.undoColab = undo;
+    if (this.quill) {
+      this.quill.undoRedoColaboracaoAtivo = true;
+    }
+  }
+
   private undoRedoEstrutura(tipo: string): void {
-    //
-    // TODO: Chamar action para undo ou redo - estrutura.
-    //
+    // Em colaboração, a autoridade do undo é o Y.UndoManager (desfaz só o próprio, propaga); o undo Redux é suspenso.
+    if (this.undoColab) {
+      tipo === 'undo' ? this.undoColab.undo() : this.undoColab.redo();
+      return;
+    }
     if (tipo === 'undo') {
       rootStore.dispatch(UndoAction());
     } else {
@@ -819,6 +832,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
+    // Inclusão/remoção de linha no rebuild estrutural emite text-changes 'user' espúrios (mutation
+    // observer do Quill) que não são edição de texto real; em colaboração eles poluiriam o Y.Text/
+    // Y.UndoManager (quebravam o redo). Guarda o onTextChangeColab só nesses lotes, durante este tick +
+    // a microtask em que o Quill emite (setTimeout 0). NÃO ativar em edição de texto pura (converge a co-edição).
+    const temAddRemoveEstrutural = events?.some(e => e.stateType === StateType.ElementoIncluido || e.stateType === StateType.ElementoRemovido);
+    if (this.sincTexto && temAddRemoveEstrutural) {
+      this.reconstruindoEstruturaColab = true;
+      setTimeout(() => (this.reconstruindoEstruturaColab = false), 0);
+    }
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
     // Transformações (TAB) preservam o UUID, gerando inclusão e remoção no mesmo lote.
     // Ignora a remoção no DOM para não apagar a linha recém-atualizada, mas o UUID segue no evento para o undo/redo.
@@ -1340,7 +1362,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // Roteia a digitação local (source='user') para os Y.Text; ignora 'silent'/'api' (remoto/estrutural).
   private onTextChangeColab = (delta: DeltaStatic, _old: DeltaStatic, source: Sources): void => {
-    if (source === 'user' && this.sincTexto && this.pareceEdicaoDeTexto(delta.ops ?? [])) {
+    if (source === 'user' && !this.reconstruindoEstruturaColab && this.sincTexto && this.pareceEdicaoDeTexto(delta.ops ?? [])) {
       this.sincTexto.onDeltaLocal((delta.ops ?? []) as OpDelta[]);
     }
   };
@@ -1455,6 +1477,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.toggleExistencia.subscribe(this.toggleExistencia.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaAgrupador.subscribe(this.adicionaAgrupador.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
+    if (this.undoColab) {
+      this.quill.undoRedoColaboracaoAtivo = true; // colaboração já ligada antes do quill existir
+    }
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 
     this.inscricoes.push(

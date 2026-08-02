@@ -93,6 +93,14 @@ export class EtaQuill extends Quill {
     this._redoEstruturaVazio = redoVazio;
   }
 
+  // Em colaboração, o undo/redo é servido pelo Y.UndoManager (texto + estrutura): desvia direto para
+  // o bridge, pulando a história interna do Quill e o gate de Redux.future. O caminho single-user
+  // permanece intocado enquanto este flag for false.
+  private _undoRedoColaboracaoAtivo = false;
+  set undoRedoColaboracaoAtivo(ativo: boolean) {
+    this._undoRedoColaboracaoAtivo = ativo;
+  }
+
   // Utilizado no modulo keyboard para anular eventos subrepostos durante o
   // processamento da mudança de elemento atual. Isso acontece quando o usuário
   // aperta as teclas que provocam a mudança de elemento muito rápido
@@ -304,6 +312,10 @@ export class EtaQuill extends Quill {
   }
 
   undo(): void {
+    if (this._undoRedoColaboracaoAtivo) {
+      this.undoRedoEstrutura.notify(EtaQuill.UNDO);
+      return;
+    }
     if (this.history.stack.undo.length === 0) {
       if (!this.isUndoEstruturaVazio) {
         this.undoRedoEstrutura.notify(EtaQuill.UNDO);
@@ -315,6 +327,10 @@ export class EtaQuill extends Quill {
   }
 
   redo(): void {
+    if (this._undoRedoColaboracaoAtivo) {
+      this.undoRedoEstrutura.notify(EtaQuill.REDO);
+      return;
+    }
     if (this.history.stack.redo.length === 0) {
       if (!this.isRedoEstruturaVazio) {
         this.undoRedoEstrutura.notify(EtaQuill.REDO);

@@ -5,6 +5,7 @@ import { GidRegistry } from './gid';
 import { corDeUsuario, PresencaSincronizador } from './presencaSincronizador';
 import { SincronizadorEstrutural, StoreColaboracao } from './sincronizadorEstrutural';
 import { EditorTextoColab, TextoSincronizador } from './textoSincronizador';
+import { UndoColaboracao } from './undoColaboracao';
 import { projetoNormaToYDoc } from './ydocConverter';
 
 // Overlay de colaboração no cliente. Fase 1: ciclo de vida + degradação graciosa (keep-local-Y.Doc).
@@ -62,6 +63,7 @@ export class YjsCollabService {
   private sincronizador?: SincronizadorEstrutural;
   private textoSincronizador?: TextoSincronizador;
   private presenca?: PresencaSincronizador;
+  private undo?: UndoColaboracao;
   private usuario?: UsuarioColaboracao;
   private timerConexao?: ReturnType<typeof setTimeout>;
   private _estado = EstadoColaboracao.DESLIGADO;
@@ -90,6 +92,11 @@ export class YjsCollabService {
     return this.presenca;
   }
 
+  // Exposto para o editor rotear Ctrl+Z/Ctrl+Y quando em colaboração (Fase 5 fiação).
+  get undoColaboracao(): UndoColaboracao | undefined {
+    return this.undo;
+  }
+
   // Gate de UX (nunca de segurança): sem params completos ou anônimo ⇒ OFF.
   static deveLigar(colaboracao?: ParametrosColaboracao, usuario?: UsuarioColaboracao): boolean {
     return !!colaboracao?.roomId && !!colaboracao?.wsUrl && !!colaboracao?.token && !YjsCollabService.isAnonimo(usuario);
@@ -115,6 +122,9 @@ export class YjsCollabService {
     // adota identidade CRDT própria para as edições ao vivo (o seed permanece sob clientID=0).
     this.doc.clientID = this.fabricas.clientId ?? gerarClientId();
     this._estado = EstadoColaboracao.LOCAL;
+
+    // undo por modo: um Y.UndoManager rastreia as ops locais (estrutura + texto) desde já.
+    this.undo = new UndoColaboracao(this.doc);
 
     // sincronização estrutural Redux↔Y.Array (ativa já em LOCAL, antes de qualquer rede).
     if (this.fabricas.store) {
@@ -187,6 +197,8 @@ export class YjsCollabService {
     this.textoSincronizador = undefined;
     this.presenca?.destruir();
     this.presenca = undefined;
+    this.undo?.destruir();
+    this.undo = undefined;
     this.persistencia?.destroy();
     this.persistencia = undefined;
     this.doc?.destroy();

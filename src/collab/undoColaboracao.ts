@@ -14,7 +14,10 @@ export class UndoColaboracao {
   constructor(doc: Y.Doc) {
     this.undoManager = new Y.UndoManager(doc.getArray('articulacao'), {
       trackedOrigins: new Set<unknown>([ORIGEM_LOCAL, TEXTO_LOCAL]),
-      captureTimeout: 0, // cada transação = 1 passo (ver também novaAcao); evita merges por tempo
+      // Sem merge por tempo: cada transação Yjs vira um passo próprio de undo. Garante "1 ação
+      // estrutural = 1 passo" (duas inclusões seguidas não se fundem). Efeito colateral aceito: a
+      // digitação é desfeita por transação de texto (granularidade fina) — agrupar por blur é evolução futura.
+      captureTimeout: 0,
     });
   }
 
@@ -32,11 +35,6 @@ export class UndoColaboracao {
 
   podeRefazer(): boolean {
     return this.undoManager.canRedo();
-  }
-
-  // Separa a ação anterior da próxima — "1 ação do usuário = 1 passo de undo".
-  novaAcao(): void {
-    this.undoManager.stopCapturing();
   }
 
   destruir(): void {

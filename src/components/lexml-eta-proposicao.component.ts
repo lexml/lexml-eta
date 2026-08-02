@@ -68,6 +68,9 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
       if (this.colabService.sincronizadorPresenca) {
         void this.editorComponent.ativarColaboracaoCursores(this.colabService.sincronizadorPresenca);
       }
+      if (this.colabService.undoColaboracao) {
+        this.editorComponent.ativarColaboracaoUndo(this.colabService.undoColaboracao);
+      }
     } catch {
       this.colabService = undefined;
     }
