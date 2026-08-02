@@ -1453,7 +1453,37 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         const Delta = Quill.import('delta');
         this.quill.updateContents(new Delta(ops), 'silent' as Sources);
       },
+      // A2.a: após texto remoto, re-detecta as remissões do dispositivo (link derivado do texto).
+      redetectarRemissoes: (gid: string): void => {
+        setTimeout(() => {
+          const linha = this.encontrarLinhaPorGid(gid);
+          if (!linha?.blotConteudo || linha.uuid === undefined) return;
+          const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, linha.blotConteudo.html ?? '', linha.numero, linha.hierarquia);
+          // Sobe o texto remoto pro Redux direto (o update 'silent' não marca blotConteudo.alterado, então
+          // o flush por alterado não dispararia). Nenhuma dessas ações reescreve o Y.Text ⇒ sem eco.
+          rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+          const remissaoModule = this.quill.getModule('remissaoInterna');
+          if (remissaoModule) {
+            rootStore.dispatch(removerRemissaoInvalidaAction(linha.uuid, remissaoModule.getRemissoes()));
+          }
+          rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+        }, 0);
+      },
     };
+  }
+
+  // Localiza a linha do Quill de um gid (artigo delega ao caput, como em rangesRenderizados).
+  private encontrarLinhaPorGid(gid: string): EtaContainerTable | undefined {
+    const articulacao = rootStore.getState().elementoReducer?.articulacao;
+    if (!articulacao) return undefined;
+    let linha: EtaContainerTable | undefined = this.quill?.getPrimeiraLinha();
+    while (linha) {
+      const disp = linha.uuid !== undefined ? findDispositivoByUuid(articulacao, linha.uuid, true) : null;
+      const dispConteudo = disp && isArtigo(disp) ? (disp as Artigo).caput : disp;
+      if (dispConteudo?.gid === gid) return linha;
+      linha = linha.next as EtaContainerTable | undefined;
+    }
+    return undefined;
   }
 
   private inicializar(op: QuillOptionsStatic): void {

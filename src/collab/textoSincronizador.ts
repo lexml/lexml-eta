@@ -17,6 +17,9 @@ export interface EditorTextoColab {
   rangesRenderizados(): RangeBlot[];
   // aplica ops ao Quill em coordenadas absolutas, de forma 'silent' (não redispara onTextChange como 'user')
   aplicarDeltaSilent(ops: OpDelta[]): void;
+  // re-detecta as remissões do dispositivo após texto remoto (A2.a): o link é DERIVADO do texto, cada
+  // cliente o re-detecta localmente; sem isso o link só apareceria quando o receptor interagisse.
+  redetectarRemissoes?(gid: string): void;
 }
 
 type YArrayDisp = Y.Array<Y.Map<unknown>>;
@@ -75,6 +78,8 @@ export class TextoSincronizador {
     } finally {
       this.aplicandoRemoto = false;
     }
+    // fora do guard: a re-detecção despacha no Redux (não é eco do Y.Text) e agenda-se sozinha.
+    this.editor.redetectarRemissoes?.(gid);
   }
 
   private yTextDe(gid: string): Y.Text | undefined {
