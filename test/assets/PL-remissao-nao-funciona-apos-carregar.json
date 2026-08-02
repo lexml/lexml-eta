@@ -1,0 +1,190 @@
+{
+	"dataUltimaModificacao": "2026-06-08T16:01:13.051Z",
+	"aplicacao": "",
+	"versaoAplicacao": "",
+	"metadados": {},
+	"epigrafe": {
+		"texto": "PROJETO DE LEI Nº , DE 2025",
+		"complemento": ""
+	},
+	"pendenciasPreenchimento": [
+		"Não foi informado um texto de justificação."
+	],
+	"anexos": [],
+	"justificativa": "<p class=\"align-justify\"><br></p>",
+	"local": "Sala das sessões",
+	"autoria": {
+		"tipo": "Parlamentar",
+		"imprimirPartidoUF": true,
+		"quantidadeAssinaturasAdicionaisSenadores": 0,
+		"quantidadeAssinaturasAdicionaisDeputados": 0,
+		"parlamentares": []
+	},
+	"opcoesImpressao": {
+		"imprimirBrasao": true,
+		"textoCabecalho": "",
+		"reduzirEspacoEntreLinhas": false,
+		"tamanhoFonte": 14
+	},
+	"revisoes": [],
+	"colegiadoApreciador": {
+		"siglaCasaLegislativa": "CN",
+		"tipoColegiado": "Plenário",
+		"siglaComissao": ""
+	},
+	"notasRodape": [],
+	"urn": "urn:lex:br:senado.federal:projeto.lei;pl:2026;1",
+	"sigla": "PL",
+	"numero": "1",
+	"ano": "2026",
+	"ementa": "",
+	"substitutivo": false,
+	"projetoNorma": {
+		"name": {
+			"namespaceURI": "http://www.lexml.gov.br/1.0",
+			"localPart": "LexML",
+			"prefix": "",
+			"key": "{http://www.lexml.gov.br/1.0}LexML",
+			"string": "{http://www.lexml.gov.br/1.0}LexML"
+		},
+		"value": {
+			"TYPE_NAME": "br_gov_lexml__1.LexML",
+			"metadado": {
+				"TYPE_NAME": "br_gov_lexml__1.Metadado",
+				"identificacao": {
+					"TYPE_NAME": "br_gov_lexml__1.Identificacao",
+					"urn": "urn:lex:br:senado.federal:projeto.lei;pl:2026;1"
+				}
+			},
+			"projetoNorma": {
+				"TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+				"norma": {
+					"TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+					"parteInicial": {
+						"TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+						"epigrafe": {
+							"TYPE_NAME": "br_gov_lexml__1.GenInline",
+							"id": "epigrafe",
+							"content": [
+								"PROJETO DE LEI Nº , DE 2025"
+							]
+						},
+						"ementa": {
+							"TYPE_NAME": "br_gov_lexml__1.GenInline",
+							"id": "ementa",
+							"content": [
+								""
+							]
+						},
+						"preambulo": {
+							"TYPE_NAME": "br_gov_lexml__1.TextoType",
+							"id": "preambulo",
+							"p": [
+								{
+									"TYPE_NAME": "br_gov_lexml__1.GenInline",
+									"content": []
+								}
+							]
+						}
+					},
+					"articulacao": {
+						"TYPE_NAME": "br_gov_lexml__1.Articulacao",
+						"lXhier": [
+							{
+								"name": {
+									"namespaceURI": "http://www.lexml.gov.br/1.0",
+									"localPart": "Artigo",
+									"prefix": "",
+									"key": "{http://www.lexml.gov.br/1.0}Artigo",
+									"string": "{http://www.lexml.gov.br/1.0}Artigo"
+								},
+								"value": {
+									"TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+									"id": "art1",
+									"rotulo": "Art. 1º",
+									"lXcontainersOmissis": [
+										{
+											"name": {
+												"namespaceURI": "http://www.lexml.gov.br/1.0",
+												"localPart": "Caput",
+												"prefix": "",
+												"key": "{http://www.lexml.gov.br/1.0}Caput",
+												"string": "{http://www.lexml.gov.br/1.0}Caput"
+											},
+											"value": {
+												"TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+												"id": "art1_cpt",
+												"p": [
+													{
+														"TYPE_NAME": "br_gov_lexml__1.GenInline",
+														"content": [
+															"Teste."
+														]
+													}
+												]
+											}
+										}
+									]
+								}
+							},
+							{
+								"name": {
+									"namespaceURI": "http://www.lexml.gov.br/1.0",
+									"localPart": "Artigo",
+									"prefix": "",
+									"key": "{http://www.lexml.gov.br/1.0}Artigo",
+									"string": "{http://www.lexml.gov.br/1.0}Artigo"
+								},
+								"value": {
+									"TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+									"id": "art2",
+									"rotulo": "Art. 2º",
+									"lXcontainersOmissis": [
+										{
+											"name": {
+												"namespaceURI": "http://www.lexml.gov.br/1.0",
+												"localPart": "Caput",
+												"prefix": "",
+												"key": "{http://www.lexml.gov.br/1.0}Caput",
+												"string": "{http://www.lexml.gov.br/1.0}Caput"
+											},
+											"value": {
+												"TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+												"id": "art2_cpt",
+												"p": [
+													{
+														"TYPE_NAME": "br_gov_lexml__1.GenInline",
+														"content": [
+															"No ",
+															{
+																"name": {
+																	"namespaceURI": "http://www.lexml.gov.br/1.0",
+																	"localPart": "Remissao",
+																	"prefix": "",
+																	"key": "{http://www.lexml.gov.br/1.0}Remissao",
+																	"string": "{http://www.lexml.gov.br/1.0}Remissao"
+																},
+																"value": {
+																	"TYPE_NAME": "br_gov_lexml__1.GenInline",
+																	"href": "art1",
+																	"content": [
+																		"art. 1"
+																	]
+																}
+															},
+															" é assim e assado."
+														]
+													}
+												]
+											}
+										}
+									]
+								}
+							}
+						]
+					}
+				}
+			}
+		}
+	}
+}
