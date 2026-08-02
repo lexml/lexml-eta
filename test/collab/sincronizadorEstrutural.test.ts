@@ -32,6 +32,11 @@ class FakeStore implements StoreColaboracao {
   }
   dispatch(action: any): any {
     this.dispatched.push(action);
+    // Simula o efeito do reducer real: ADICIONAR_ELEMENTO emite ElementoIncluido — o sync usa esse
+    // evento para confirmar que a inserção funcionou (senão cai no fallback de reparent).
+    if (action?.type === ADICIONAR_ELEMENTO) {
+      this.state.elementoReducer.ui.events = [{ stateType: StateType.ElementoIncluido, elementos: [{}] } as StateEvent];
+    }
     return action;
   }
   subscribe(l: () => void): () => void {

@@ -380,14 +380,32 @@ export class SincronizadorEstrutural {
       refGid = paiGid ?? undefined;
       posicao = 'filho';
     }
+    // Tenta a inserção por irmão; se o reducer não resolver a referência (ex.: transform que reparenta,
+    // cuja reconstrução como AdicionarElemento 'antes' pode até crashar o reducer), cai para inserir sob o
+    // paiGid real. Garante que o elemento nunca some nem que uma exceção aborte o sync (§ transform/reparent).
     const refDisp = refGid && articulacao ? buscarPorGid(articulacao, refGid) : null;
-    if (!refDisp) {
-      return;
+    let ok = refDisp ? this.tentarAdicionar(tipo, posicao, refDisp, conteudo) : false;
+    if (!ok && paiGid) {
+      const pai = articulacao ? buscarPorGid(articulacao, paiGid) : null;
+      ok = pai ? this.tentarAdicionar(tipo, 'filho', pai, conteudo) : false;
     }
-    const refEl = { uuid: refDisp.uuid, gid: refDisp.gid } as Elemento;
+    if (ok) {
+      this.reconciliarGidRecemCriado(gid);
+    }
+  }
 
-    this.store.dispatch(new AdicionarElemento(tipoDispositivoPorNome(tipo), posicao).execute(refEl, conteudo));
-    this.reconciliarGidRecemCriado(gid);
+  // Despacha um AdicionarElemento e confirma que produziu um ElementoIncluido novo; nunca propaga
+  // exceção (a reconstrução remota pode gerar referência que o reducer não resolve).
+  private tentarAdicionar(tipo: string, posicao: string | undefined, refDisp: Dispositivo, conteudo: string): boolean {
+    const refEl = { uuid: refDisp.uuid, gid: refDisp.gid } as Elemento;
+    const antes = this.store.getState().elementoReducer?.ui?.events;
+    try {
+      this.store.dispatch(new AdicionarElemento(tipoDispositivoPorNome(tipo), posicao).execute(refEl, conteudo));
+    } catch {
+      return false;
+    }
+    const depois = this.store.getState().elementoReducer?.ui?.events;
+    return depois !== antes && (depois ?? []).some((e: StateEvent) => e.stateType === StateType.ElementoIncluido && (e.elementos?.length ?? 0) > 0);
   }
 
   // O dispositivo recém-criado localmente (uuid novo) adota o gid remoto — identidade compartilhada.
@@ -405,10 +423,16 @@ export class SincronizadorEstrutural {
     }
   }
 
+  // Omissis é um marcador (blot), não um dispositivo referenciável pelo AdicionarElemento — usá-lo como
+  // referência 'antes'/'depois' quebra o reducer. Pulado ao escolher irmão de referência.
+  private ehReferenciavel(m: Y.Map<unknown>): boolean {
+    return m.get('tipo') !== TipoDispositivo.omissis.tipo;
+  }
+
   private gidPredecessorMesmoPai(idx: number, paiGid: string | null): string | undefined {
     for (let i = idx - 1; i >= 0; i--) {
       const m = this.arr.get(i);
-      if ((m.get('paiGid') as string | null) === paiGid) {
+      if ((m.get('paiGid') as string | null) === paiGid && this.ehReferenciavel(m)) {
         return m.get('gid') as string;
       }
     }
@@ -418,7 +442,7 @@ export class SincronizadorEstrutural {
   private gidSucessorMesmoPai(idx: number, paiGid: string | null): string | undefined {
     for (let i = idx + 1; i < this.arr.length; i++) {
       const m = this.arr.get(i);
-      if ((m.get('paiGid') as string | null) === paiGid) {
+      if ((m.get('paiGid') as string | null) === paiGid && this.ehReferenciavel(m)) {
         return m.get('gid') as string;
       }
     }
