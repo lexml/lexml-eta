@@ -57,6 +57,7 @@ import { EtaContainerTable } from '../../util/eta-quill/eta-container-table';
 import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EditorTextoColab, RangeBlot, TextoSincronizador } from '../../collab/textoSincronizador';
+import { chaveRemissao } from '../../collab/remissaoMetaBinding';
 import { OpDelta } from '../../collab/textoBinding';
 import { cursorParaIndiceAbsoluto, indiceAbsolutoParaCursor, PresencaSincronizador } from '../../collab/presencaSincronizador';
 import { UndoColaboracao } from '../../collab/undoColaboracao';
@@ -144,6 +145,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private desobservarPresenca?: () => void;
   private undoColab?: UndoColaboracao; // undo por modo (Fase 5 fiação)
   private reconstruindoEstruturaColab = false; // guarda anti-leak do rebuild estrutural no Y.Text
+  private aplicandoTombstoneRemoto = false; // guarda anti-eco ao remover link por tombstone remoto (A2.b)
   private timerOnChange?: any;
 
   private _idSwitchRevisao = 'chk-em-revisao';
@@ -1362,10 +1364,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // Roteia a digitação local (source='user') para os Y.Text; ignora 'silent'/'api' (remoto/estrutural).
   private onTextChangeColab = (delta: DeltaStatic, _old: DeltaStatic, source: Sources): void => {
-    if (source === 'user' && !this.reconstruindoEstruturaColab && this.sincTexto && this.pareceEdicaoDeTexto(delta.ops ?? [])) {
+    if (source === 'user' && !this.reconstruindoEstruturaColab && !this.aplicandoTombstoneRemoto && this.sincTexto && this.pareceEdicaoDeTexto(delta.ops ?? [])) {
       this.sincTexto.onDeltaLocal((delta.ops ?? []) as OpDelta[]);
     }
   };
+
+  // A2.b: aplica no editor os tombstones de remissão vindos de outro cliente — acha o link local pela
+  // identidade semântica (o refId é local) e reusa o fluxo de exclusão manual (remove do DOM + marca o state).
+  aplicarTombstonesRemotos(uuid: number, chaves: string[]): void {
+    const remissoes: RemissaoInternaValue[] = rootStore.getState().elementoReducer?.remissoes?.[uuid] ?? [];
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    chaves.forEach(chave => {
+      const local = remissoes.find(r => chaveRemissao(r) === chave && !r.excluidaManualmente && r.refId);
+      if (!local?.refId) {
+        return; // já tombstoned localmente ou ainda não detectado — idempotente
+      }
+      this.aplicandoTombstoneRemoto = true;
+      remissaoModule?.removerRemissaoPorId(local.refId);
+      setTimeout(() => (this.aplicandoTombstoneRemoto = false), 0);
+      rootStore.dispatch(excluirRemissaoManualAction({ sourceUuid: uuid, refId: local.refId }));
+    });
+  }
 
   // Descarta deltas estruturais (render, menu de contexto, rótulo, quebra de linha) que também chegam
   // como source='user' — só edição de TEXTO puro (retain/insert-string/delete, com formatação inline) passa.

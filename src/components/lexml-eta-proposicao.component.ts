@@ -60,7 +60,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     try {
       const { criarProviderReal, criarPersistenciaReal } = await import('../collab/transporteReal');
       const editorTexto = this.editorComponent?.criarAdaptadorTextoColab();
-      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal, store: rootStore, editorTexto });
+      const aplicadorTombstone = { aplicarTombstonesRemotos: (uuid: number, chaves: string[]): void => this.editorComponent.aplicarTombstonesRemotos(uuid, chaves) };
+      this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal, store: rootStore, editorTexto, aplicadorTombstone });
       this.colabService.attach(params!.colaboracao, projetoNorma, params!.usuario);
       if (this.colabService.sincronizadorTexto) {
         this.editorComponent.ativarColaboracaoTexto(this.colabService.sincronizadorTexto);

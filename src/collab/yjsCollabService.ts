@@ -3,6 +3,7 @@ import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { Awareness } from 'y-protocols/awareness';
 import { GidRegistry } from './gid';
 import { corDeUsuario, PresencaSincronizador } from './presencaSincronizador';
+import { AplicadorTombstone, RemissaoMetaSincronizador } from './remissaoMetaSincronizador';
 import { SincronizadorEstrutural, StoreColaboracao } from './sincronizadorEstrutural';
 import { EditorTextoColab, TextoSincronizador } from './textoSincronizador';
 import { UndoColaboracao } from './undoColaboracao';
@@ -48,6 +49,7 @@ export interface FabricasColaboracao {
   clientId?: number; // identidade CRDT deste cliente para edições ao vivo (padrão: aleatório)
   store?: StoreColaboracao; // store Redux para a sincronização estrutural (Fase 2)
   editorTexto?: EditorTextoColab; // adaptador do Quill para a co-edição de texto (Fase 3)
+  aplicadorTombstone?: AplicadorTombstone; // aplica no editor os tombstones de remissão remotos (A2.b)
 }
 
 const TIMEOUT_CONEXAO_PADRAO_MS = 5000;
@@ -61,6 +63,7 @@ export class YjsCollabService {
   private provider?: ProviderColaboracao;
   private persistencia?: PersistenciaColaboracao;
   private sincronizador?: SincronizadorEstrutural;
+  private remissaoSync?: RemissaoMetaSincronizador;
   private textoSincronizador?: TextoSincronizador;
   private presenca?: PresencaSincronizador;
   private undo?: UndoColaboracao;
@@ -128,8 +131,14 @@ export class YjsCollabService {
 
     // sincronização estrutural Redux↔Y.Array (ativa já em LOCAL, antes de qualquer rede).
     if (this.fabricas.store) {
-      this.sincronizador = new SincronizadorEstrutural(this.doc, this.fabricas.store, new GidRegistry());
+      const registry = new GidRegistry(); // compartilhado com o sync de remissão (mesmo mapa gid↔uuid)
+      this.sincronizador = new SincronizadorEstrutural(this.doc, this.fabricas.store, registry);
       this.sincronizador.ligar();
+      // sync dos flags não-deriváveis da remissão (A2.b — tombstone): reusa o registry populado acima.
+      if (this.fabricas.aplicadorTombstone) {
+        this.remissaoSync = new RemissaoMetaSincronizador(this.doc, this.fabricas.store, registry, this.fabricas.aplicadorTombstone);
+        this.remissaoSync.ligar();
+      }
     }
 
     // co-edição de texto Quill↔Y.Text por dispositivo (Fase 3).
@@ -193,6 +202,8 @@ export class YjsCollabService {
     this.detach();
     this.sincronizador?.desligar();
     this.sincronizador = undefined;
+    this.remissaoSync?.desligar();
+    this.remissaoSync = undefined;
     this.textoSincronizador?.desobservar();
     this.textoSincronizador = undefined;
     this.presenca?.destruir();
