@@ -43,8 +43,18 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
       this.projetoNorma = params.projetoNorma;
     }
     this.loadProjetoNorma(params);
-    document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
+    void this.revelarArticulacao();
     void this.ligarColaboracao(params);
+  }
+
+  // O host pode chamar inicializarEdicao antes de o Light DOM ter renderizado (init oculto/
+  // assíncrono): aguarda o render antes de revelar a articulação, sem assumir o elemento presente.
+  private async revelarArticulacao(): Promise<void> {
+    await this.updateComplete;
+    const articulacao = this.querySelector('lexml-eta-articulacao') as HTMLElement | null;
+    if (articulacao) {
+      articulacao.style.display = 'block';
+    }
   }
 
   // Overlay de colaboração (Fase 1): liga em paralelo, sem bloquear o render. OFF ⇒ no-op.
@@ -59,22 +69,37 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     }
     try {
       const { criarProviderReal, criarPersistenciaReal } = await import('../collab/transporteReal');
-      const editorTexto = this.editorComponent?.criarAdaptadorTextoColab();
-      const aplicadorTombstone = { aplicarTombstonesRemotos: (uuid: number, chaves: string[]): void => this.editorComponent.aplicarTombstonesRemotos(uuid, chaves) };
+      // O editor é um neto (renderizado por lexml-eta-articulacao); espera a cadeia flushar
+      // para a colaboração ligar mesmo quando o host inicializa com o componente ainda oculto.
+      const editor = await this.aguardarEditor();
+      if (!editor) {
+        return;
+      }
+      const editorTexto = editor.criarAdaptadorTextoColab();
+      const aplicadorTombstone = { aplicarTombstonesRemotos: (uuid: number, chaves: string[]): void => editor.aplicarTombstonesRemotos(uuid, chaves) };
       this.colabService = new YjsCollabService({ criarProvider: criarProviderReal, criarPersistencia: criarPersistenciaReal, store: rootStore, editorTexto, aplicadorTombstone });
       this.colabService.attach(params!.colaboracao, projetoNorma, params!.usuario);
       if (this.colabService.sincronizadorTexto) {
-        this.editorComponent.ativarColaboracaoTexto(this.colabService.sincronizadorTexto);
+        editor.ativarColaboracaoTexto(this.colabService.sincronizadorTexto);
       }
       if (this.colabService.sincronizadorPresenca) {
-        void this.editorComponent.ativarColaboracaoCursores(this.colabService.sincronizadorPresenca);
+        void editor.ativarColaboracaoCursores(this.colabService.sincronizadorPresenca);
       }
       if (this.colabService.undoColaboracao) {
-        this.editorComponent.ativarColaboracaoUndo(this.colabService.undoColaboracao);
+        editor.ativarColaboracaoUndo(this.colabService.undoColaboracao);
       }
     } catch {
       this.colabService = undefined;
     }
+  }
+
+  // Aguarda o render descer até o editor (neto): proposicao → lexml-eta-articulacao → editor.
+  private async aguardarEditor(): Promise<EditorComponent | undefined> {
+    await this.updateComplete;
+    const articulacao = this.querySelector('lexml-eta-articulacao') as LitElement | null;
+    await articulacao?.updateComplete;
+    await this.editorComponent?.updateComplete;
+    return this.editorComponent ?? undefined;
   }
 
   disconnectedCallback(): void {
