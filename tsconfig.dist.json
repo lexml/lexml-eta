@@ -6,5 +6,5 @@
     "noImplicitAny": false
   },
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "*.d.ts"]
+  "exclude": ["node_modules", "*.d.ts", "test"]
 }

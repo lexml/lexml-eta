@@ -19,6 +19,9 @@ const configTsMin = {
 	output: {
 		file: 'dist/index.min.js',
     sourcemap: true,
+    // bundle único standalone: inline dos import() dinâmicos (transporteReal/quill-cursors).
+    // O entry do pacote (dist/index.js) segue code-split, preservando o lazy-load da colaboração.
+    inlineDynamicImports: true,
 	},
 	plugins: [
 		typescript({tsconfig: 'tsconfig.dist.json'}),
