@@ -395,6 +395,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
     }
+    this.cancelarTimerOnChangePendente();
     rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
   }
 
@@ -591,6 +592,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
+      this.cancelarTimerOnChangePendente();
       if (ev.key === 'ArrowUp') {
         rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
       } else if (ev.key === 'ArrowDown') {
@@ -626,6 +628,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     //
     // TODO: Chamar action para undo ou redo - estrutura.
     //
+    this.cancelarTimerOnChangePendente();
     if (tipo === 'undo') {
       rootStore.dispatch(UndoAction());
     } else {
@@ -753,7 +756,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoMarcado:
-          setTimeout(() => this.marcarLinha(event), 100);
+          setTimeout(() => this.marcarLinha(event), 0);
           break;
 
         case StateType.SituacaoElementoModificada:
@@ -1306,6 +1309,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private agendarEmissaoEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
     clearTimeout(this.timerOnChange);
     this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento, statesType), 1000);
+  }
+
+  // Evita que inserirNovoElementoNoQuill pule o reposicionamento síncrono do cursor
+  // (guarda "!this.timerOnChange") quando um novo elemento é criado logo após digitar.
+  private cancelarTimerOnChangePendente(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = undefined;
   }
 
   private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
