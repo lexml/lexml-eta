@@ -7,8 +7,8 @@
     "lib": ["es2017", "es2019", "es2021", "dom"],
     "strict": true,
     "skipLibCheck": true,
-    "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "importHelpers": true,
@@ -18,6 +18,6 @@
     "rootDir": "./",
     "noImplicitAny": false
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "*.d.ts", "**/*.js"],
+  "include": ["**/*.ts", "src/**/*.js"],
+  "exclude": ["node_modules", "*.d.ts"]
 }

@@ -1,4 +1,4 @@
-// import Quill from 'quill';
+import Quill from '../../../internal/quill/private-quill';
 // import Delta from 'quill-delta';
 // import './css/quill.table.css';
 import TableCell from './js/TableCellBlot';
@@ -37,13 +37,6 @@ const emitirEventoTableInTable = (quill) => {
 };
 
 export default class TableModule {
-  static register() {
-    Quill.register(TableCell, true);
-    Quill.register(TableRow, true);
-    Quill.register(Table, true);
-    Quill.register(Contain, true);
-  }
-
   constructor(quill, options) {
     quill.history.tableStack = {};
     quill.table = {
