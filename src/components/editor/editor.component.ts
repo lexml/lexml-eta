@@ -1407,14 +1407,30 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
-          const el = primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
+          // No carregamento inicial (não em troca de página), o cursor deve começar na ementa, não no 1º artigo.
+          const elementoEmenta = !isMudancaDePagina ? elementos.find(elemento => elemento.tipo === 'Ementa') : undefined;
+          const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
             this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
+            this.focarQuillQuandoVisivel();
           }
         }, 0);
       }
       !isMudancaDePagina && rootStore.dispatch(validarArticulacaAction.execute());
     }, 0);
+  }
+
+  // No carregamento inicial, o container do editor pode ainda estar oculto (ex.: aba ainda não exibida
+  // pelo componente pai), quando o quill.focus() é chamado o foco não "pega" (root.focus() é no-op em
+  // elemento oculto). Reaplica o foco (preservando a seleção já definida) até o editor ficar visível.
+  private focarQuillQuandoVisivel(tentativasRestantes = 30): void {
+    if (!this.quill?.root?.isConnected) return;
+
+    if (this.quill.root.offsetParent) {
+      this.quill.focus();
+    } else if (tentativasRestantes > 0) {
+      setTimeout(() => this.focarQuillQuandoVisivel(tentativasRestantes - 1), 70);
+    }
   }
 
   private configEditor(): QuillOptionsStatic {

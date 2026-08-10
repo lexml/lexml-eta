@@ -557,7 +557,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       (this.quill as any).notasRodape.associar(notasRodape);
     }, 100); // A linha anterior gera um history, então é necessário limpar novamente.
 
-    if (!textoAjustado) this.quill.format('align', 'justify');
+    // formatLine (não format): "format" força foco via getSelection(true), o que rouba o foco de
+    // outro editor (ex.: articulação) quando a justificativa é carregada vazia em segundo plano.
+    if (!textoAjustado) this.quill.formatLine(0, this.quill.getLength(), 'align', 'justify', 'silent');
 
     this.atualizaStatusElementosRevisao();
   };
