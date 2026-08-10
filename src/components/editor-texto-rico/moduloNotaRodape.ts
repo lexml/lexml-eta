@@ -3,16 +3,17 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable prefer-const */
 import { decodeHtml, encodeHtml } from '../../util/string-util';
+import PrivateQuill from '../../internal/quill/private-quill';
 import { NotaRodapeModal } from './nota-rodape-modal';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_INPUT_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 
 const PREFIXO_ID = 'nr';
 
-const Delta = Quill.import('delta');
-const Module = Quill.import('core/module');
-const Embed = Quill.import('blots/embed'); // Inline Embed
-const Text = Quill.import('blots/text'); // Inline Text
-const Parchment = Quill.import('parchment');
+const Delta = PrivateQuill.import('delta');
+const Module = PrivateQuill.import('core/module');
+const Embed = PrivateQuill.import('blots/embed'); // Inline Embed
+const Text = PrivateQuill.import('blots/text'); // Inline Text
+const Parchment = PrivateQuill.import('parchment');
 
 const cfgInline = {
   scope: Parchment.Scope.INLINE_ATTRIBUTE,
@@ -87,10 +88,6 @@ class ModuloNotaRodape extends Module {
   }
 
   static register() {
-    Quill.register(NotaRodapeBlot);
-    Quill.register(IdNotaRodapeAttribute);
-    Quill.register(NumeroAttribute);
-    Quill.register(TextoAttribute);
   }
 
   constructor(quill, options) {
@@ -212,7 +209,7 @@ class ModuloNotaRodape extends Module {
 
   atualizarTexto(notaRodape, novoTexto) {
     const elemento = this.findNodeById(notaRodape.id);
-    const blot = Quill.find(elemento);
+    const blot = PrivateQuill.find(elemento);
     blot.format('lexml-eta-nota-rodape', { ...notaRodape, texto: novoTexto });
     return blot.domNode.notaRodape;
   }
@@ -235,7 +232,7 @@ class ModuloNotaRodape extends Module {
 
   remover(idNotaRodape) {
     const elemento = this.findNodeById(idNotaRodape);
-    const blot = Quill.find(elemento);
+    const blot = PrivateQuill.find(elemento);
     blot?.remove();
   }
 
@@ -267,7 +264,7 @@ class ModuloNotaRodape extends Module {
 
   findBlotsNotaRodape() {
     return Array.from(this.quill.root.querySelectorAll('lexml-eta-nota-rodape')).map(domNode => {
-      const blot = Quill.find(domNode as any);
+      const blot = PrivateQuill.find(domNode as any);
       const index = blot.offset(this.quill.scroll);
       return {
         index,
@@ -297,4 +294,4 @@ class ModuloNotaRodape extends Module {
   }
 }
 
-export { ModuloNotaRodape };
+export { IdNotaRodapeAttribute, ModuloNotaRodape, NotaRodapeBlot, NumeroAttribute, TextoAttribute };

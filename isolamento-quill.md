@@ -6,6 +6,8 @@ Fazer com que a biblioteca use uma cópia privada do `quill/dist/quill` em desen
 
 O desenho de referência é o dos commits `d512a96f` e `3e0c944e` de `../lexml-emenda`. A infraestrutura já trazida ao ETA (dependências, Rollup, TypeScript, servidores de desenvolvimento/teste, `private-quill.mjs`, `quill1-table` e `src/internal/quill`) corresponde àquela implementação; portanto, o trabalho restante é adaptar os consumidores e a cobertura ao comportamento específico do ETA.
 
+Como regra de implementação, manter a estrutura e o código o mais semelhantes possível aos do Emenda. Quando não houver uma diferença funcional própria do ETA, reutilizar os mesmos caminhos, nomes de arquivos, nomes de testes, organização e lógica; adaptar somente os seletores, componentes, classes, registros ou cenários que realmente diferirem entre os projetos.
+
 ## Estado encontrado
 
 - `src/internal/quill/private-quill.ts`, `quill-types.ts` e `configure-private-quill.ts` já existem e são iguais aos equivalentes do Emenda.
@@ -52,4 +54,4 @@ O desenho de referência é o dos commits `d512a96f` e `3e0c944e` de `../lexml-e
 
 ## Ordem sugerida
 
-Implementar as etapas 1 a 4 em uma única mudança coerente, compilar, depois portar os testes da etapa 5 e rodar a verificação da etapa 6. Os testes não devem ser copiados cegamente: os nomes de elementos, o entrypoint e o conjunto de blots do ETA precisam permanecer os do ETA, embora a estratégia de isolamento seja a mesma do Emenda.
+Implementar as etapas 1 a 4 em uma única mudança coerente, compilar, depois portar os testes da etapa 5 e rodar a verificação da etapa 6. Copiar a estrutura e o código dos testes do Emenda sempre que forem equivalentes — inclusive as pastas `test/integracao` e `test/distribuicao` e seus nomes de arquivo —, alterando apenas os nomes de elementos, o entrypoint e o conjunto de blots próprios do ETA.

@@ -1,6 +1,7 @@
+import PrivateQuill from '../../internal/quill/private-quill';
 import { EtaContainerTable } from './eta-container-table';
 
-const Block = Quill.import('blots/block');
+const Block = PrivateQuill.import('blots/block');
 
 export class EtaBlot extends Block {
   [key: string]: any;

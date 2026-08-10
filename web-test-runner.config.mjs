@@ -1,5 +1,9 @@
-import { playwrightLauncher } from '@web/test-runner-playwright';
+// import { playwrightLauncher } from '@web/test-runner-playwright';
+import { chromeLauncher } from '@web/test-runner-chrome';
+import { fileURLToPath } from 'node:url';
 import { createPrivateQuillDevPlugin } from './private-quill.mjs';
+
+const chromeProfileDir = fileURLToPath(new URL('./node_modules/.cache/web-test-runner/chrome-profile', import.meta.url));
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   files: [
@@ -36,8 +40,14 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
 
   /** Browsers to run tests on */
   browsers: [
-    playwrightLauncher({ product: 'chromium' }),
+    chromeLauncher({
+      launchOptions: {
+        userDataDir: chromeProfileDir,
+      },
+      concurrency: 1,
+    }),
   ],
+  concurrency: 1,
 
   testFramework: {
     config: {

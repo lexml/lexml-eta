@@ -1,5 +1,7 @@
+import PrivateQuill from '../../internal/quill/private-quill';
+
 export class QuillUtil {
-  static configurarAcoesLink(quill: Quill): void {
+  static configurarAcoesLink(quill: InstanceType<typeof PrivateQuill>): void {
     const theme = (quill as any).theme;
 
     const div = document.createElement('div');

@@ -37,6 +37,7 @@
     "lint": "eslint --ext .ts . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
     "format": "eslint --ext .ts . --fix --ignore-path .gitignore && prettier \"**/*.ts\" --write --ignore-path .gitignore",
     "test": "rimraf out-tsc && tsc && wtr --coverage",
+    "test:bundle-isolation": "npm run prepublish && wtr test/distribuicao/quill-bundle-isolado.test.js --coverage=false",
     "test:watch": "rimraf out-tsc && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr --watch\"",
     "test:watch:build-jsonix-assets": "rimraf out-tsc && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr ./out-tsc/test/model/documento/buildJsonixFromProjetoNorma/buildJsonixFromProjetoNorma.assets.test.js --watch\"",
     "test:watch:build-jsonix-directory": "rimraf out-tsc && tsc && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wtr ./out-tsc/test/model/documento/buildJsonixFromProjetoNorma/*.test.js --watch\"",
