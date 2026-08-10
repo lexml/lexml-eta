@@ -374,9 +374,22 @@ export class EtaContainerTable extends EtaContainer {
   }
 
   limparContainerDireito(): void {
-    if (this.blotInsideContainerDireito instanceof EtaBlotMenu) {
-      this.blotInsideContainerDireito?.remove();
-      new EtaBlotEspaco().insertInto(this.containerDireito);
+    const blot = this.blotInsideContainerDireito;
+    if (blot instanceof EtaBlotMenu) {
+      const dropdown = blot.domNode as any;
+      // sl-dropdown (LitElement) lança erro no disconnectedCallback se removido antes de concluir
+      // seu primeiro ciclo de render (this.panel ainda não populado) — erro esse não capturável via
+      // try/catch, pois o navegador invoca disconnectedCallback fora da nossa pilha de chamada.
+      // Adia a remoção até o dropdown terminar de renderizar, nesse caso.
+      if (dropdown?.hasUpdated === false && typeof dropdown.updateComplete?.then === 'function') {
+        dropdown.updateComplete.then(() => {
+          blot.remove();
+          new EtaBlotEspaco().insertInto(this.containerDireito);
+        });
+      } else {
+        blot.remove();
+        new EtaBlotEspaco().insertInto(this.containerDireito);
+      }
     }
   }
 
