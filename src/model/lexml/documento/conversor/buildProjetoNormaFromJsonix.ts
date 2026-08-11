@@ -7,7 +7,7 @@ import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispo
 import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
 import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
-import { getTipo, getTipoDocumentoUrn } from '../urnUtil';
+import { getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { isArtigo } from './../../../dispositivo/tipo';
 
 export let isEmendamento = false;
@@ -121,7 +121,7 @@ const buildTextoEpigrafeFromDocument = (documentoLexml: any): string => {
 
 const buildTextoEpigrafe = (urn: string): string => {
   const tipo = getTipoDocumentoUrn(urn);
-  return tipo ? `${tipo.descricao.toUpperCase()} Nº , DE 2025` : '';
+  return tipo ? `${tipo.descricao.toUpperCase()} Nº , DE ${getAno(urn)}` : '';
 };
 
 const buildArticulacao = (tree: any, textoArticulacao?: string): Articulacao => {
