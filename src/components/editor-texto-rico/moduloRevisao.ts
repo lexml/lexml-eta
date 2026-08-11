@@ -3,14 +3,15 @@
 /* eslint-disable eqeqeq */
 
 import { generateUUID } from '../../util/uuid';
+import PrivateQuill from '../../internal/quill/private-quill';
 
 /* eslint-disable prefer-const */
-const Delta = Quill.import('delta');
-const Parchment = Quill.import('parchment');
-const Module = Quill.import('core/module');
-const Inline = Quill.import('blots/inline');
-const Clipboard = Quill.import('modules/clipboard');
-const Keyboard = Quill.import('modules/keyboard');
+const Delta = PrivateQuill.import('delta');
+const Parchment = PrivateQuill.import('parchment');
+const Module = PrivateQuill.import('core/module');
+const Inline = PrivateQuill.import('blots/inline');
+const Clipboard = PrivateQuill.import('modules/clipboard');
+const Keyboard = PrivateQuill.import('modules/keyboard');
 
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
@@ -202,10 +203,6 @@ class ModuloRevisao extends Module {
   isAbrindoTexto = false;
 
   static register() {
-    Quill.register('modules/keyboard', CustomKeyboard, true);
-    Quill.register('modules/clipboard', CustomClipboard, true);
-    Quill.register(InsBlot, true);
-    Quill.register(DelBlot, true);
   }
 
   constructor(quill, options) {
@@ -276,7 +273,7 @@ class ModuloRevisao extends Module {
       .filter(el => this.isTagRevisao(el))
       .forEach(elRevisao => {
         const isTagIns = elRevisao.tagName === 'INS';
-        const blot = Quill.find(elRevisao);
+        const blot = PrivateQuill.find(elRevisao);
         this.ignorarEventoTextChange = true;
 
         if (blot !== null) {
@@ -736,8 +733,7 @@ class ModuloRevisao extends Module {
 // --------------------------------------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------------------------------------
 
-Quill.register('modules/revisao', ModuloRevisao, true);
 
 // --------------------------------------------------------------------------------------------------------------------
 
-export { ModuloRevisao };
+export { CustomClipboard, CustomKeyboard, DelBlot, InsBlot, ModuloRevisao };

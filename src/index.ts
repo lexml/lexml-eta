@@ -4,8 +4,6 @@
 // import 'quill/dist/quill.snow.css';
 // import 'font-awesome/css/font-awesome.css';
 
-import 'quill/dist/quill';
-
 import '@shoelace-style/shoelace/dist/components/radio-group/radio-group.js';
 import '@shoelace-style/shoelace/dist/components/radio-button/radio-button';
 import '@shoelace-style/shoelace/dist/components/input/input';
@@ -20,9 +18,7 @@ import '@shoelace-style/shoelace/dist/components/checkbox/checkbox';
 import '@shoelace-style/shoelace/dist/components/switch/switch';
 import '@shoelace-style/shoelace/dist/components/tooltip/tooltip';
 import '@shoelace-style/shoelace/dist/components/card/card';
-import { ModuloAspasCurvas } from './components/editor-texto-rico/moduloAspasCurvas';
-import { ModuloRevisao } from './components/editor-texto-rico/moduloRevisao';
-import { ModuloNotaRodape } from './components/editor-texto-rico/moduloNotaRodape';
+import { configurePrivateQuill } from './internal/quill/configure-private-quill';
 
 // ---------------------------------------------------
 
@@ -52,6 +48,4 @@ export { Usuario } from './model/revisao/usuario';
 export { ProposicaoDivididaDialog } from './components/editor/proposicaoDivididaDialog';
 export { Proposicao } from './model/proposicao/proposicao';
 
-Quill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
-Quill.register('modules/revisao', ModuloRevisao, true);
-Quill.register('modules/notaRodape', ModuloNotaRodape, true);
+configurePrivateQuill();

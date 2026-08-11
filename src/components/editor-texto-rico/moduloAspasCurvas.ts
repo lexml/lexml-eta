@@ -1,7 +1,9 @@
-const Delta = Quill.import('delta');
+import PrivateQuill from '../../internal/quill/private-quill';
+
+const Delta = PrivateQuill.import('delta');
 
 class ModuloAspasCurvas {
-  quill: Quill;
+  quill: InstanceType<typeof PrivateQuill>;
   options: any;
   enabled = true;
 
@@ -41,14 +43,14 @@ class ModuloAspasCurvas {
 
     // Insere o caracter normalmente
     let delta = new Delta().retain(range.index).delete(range.length).insert(caracter, format);
-    this.quill?.updateContents(delta as any, Quill.sources.USER);
+    this.quill?.updateContents(delta as any, PrivateQuill.sources.USER);
     this.quill?.history.cutoff();
 
     // Troca por aspas curvas
     delta = new Delta().retain(range.index).delete(1).insert(aspasTransformada, format);
-    this.quill?.updateContents(delta as any, Quill.sources.USER);
+    this.quill?.updateContents(delta as any, PrivateQuill.sources.USER);
 
-    this.quill?.setSelection(range.index + 1, Quill.sources.SILENT);
+    this.quill?.setSelection(range.index + 1, PrivateQuill.sources.SILENT);
 
     return false;
   }

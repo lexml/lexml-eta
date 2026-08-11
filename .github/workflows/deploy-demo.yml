@@ -5,6 +5,7 @@ name: deploy-demo
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: 
 
 # Specify the tasks to run when this script gets triggered
 jobs:

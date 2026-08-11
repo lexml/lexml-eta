@@ -101,7 +101,7 @@ export class EtaContainerTable extends EtaContainer {
     return this.findBlot(EtaBlotConteudo.blotName) as EtaBlotConteudo;
   }
 
-  get blotAbreAspas(): EtaBlotAbreAspas {
+  get blotAbreAspas(): EtaBlotAbreAspas | undefined {
     const blot = this.blotRotulo?.prev;
     return blot?.instanceBlotName === EtaBlotAbreAspas.blotName ? blot : undefined;
   }

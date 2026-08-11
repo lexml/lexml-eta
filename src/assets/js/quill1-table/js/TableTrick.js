@@ -1,4 +1,4 @@
-// import Quill from 'quill';
+import Quill from '../../../../internal/quill/private-quill';
 import TableHistory from './TableHistory';
 import TableSelection from './TableSelection';
 

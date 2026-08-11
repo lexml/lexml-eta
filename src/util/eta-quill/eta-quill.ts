@@ -1,33 +1,20 @@
-import { negrito } from '../../../assets/icons/icons';
+import PrivateQuill from '../../internal/quill/private-quill';
+import { QuillDelta, QuillDeltaOperation, QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource, QuillTextChangeHandler } from '../../internal/quill/quill-types';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { Observable } from '../observable';
 import { EtaBlot } from './eta-blot';
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
 import { EtaBlotConteudo } from './eta-blot-conteudo';
-import { EtaBlotConteudoOmissis } from './eta-blot-conteudo-omissis';
 import { EtaBlotEspaco } from './eta-blot-espaco';
 import { EtaBlotExistencia } from './eta-blot-existencia';
 import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
-import { EtaBlotMensagem } from './eta-blot-mensagem';
 import { EtaBlotMensagens } from './eta-blot-mensagens';
 import { EtaBlotMenu } from './eta-blot-menu';
-import { EtaBlotMenuBotao } from './eta-blot-menu-botao';
-import { EtaBlotMenuConteudo } from './eta-blot-menu-conteudo';
-import { EtaBlotMenuItem } from './eta-blot-menu-item';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
-import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
-import { EtaBlotRevisao } from './eta-blot-revisao';
-import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
-import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaClipboard } from './eta-clipboard';
-import { EtaContainerOpcoes } from './eta-container-opcoes';
-import { EtaContainerRevisao } from './eta-container-revisao';
 import { EtaContainerTable } from './eta-container-table';
-import { EtaContainerTdDireito } from './eta-container-td-direito';
-import { EtaContainerTdEsquerdo } from './eta-container-td-esquerdo';
-import { EtaContainerTr } from './eta-container-tr';
 import { EtaKeyboard } from './eta-keyboard';
 import { EtaQuillBuffer } from './eta-quill-buffer';
 
@@ -36,9 +23,19 @@ export interface TextoSelecionado {
   quantidadeCR: number;
 }
 
-export class EtaQuill extends Quill {
+export class EtaQuill extends PrivateQuill {
   static readonly UNDO: string = 'undo';
   static readonly REDO: string = 'redo';
+
+  static import(path: string): any {
+    if (path === 'modules/keyboard') {
+      return EtaKeyboard;
+    }
+    if (path === 'modules/clipboard') {
+      return EtaClipboard;
+    }
+    return PrivateQuill.import(path);
+  }
 
   private _mudouDeLinha?: boolean;
   get mudouDeLinha(): boolean {
@@ -108,66 +105,7 @@ export class EtaQuill extends Quill {
 
   private buffer: EtaQuillBuffer;
 
-  static configurar(): void {
-    const Parchment: any = EtaQuill.import('parchment');
-    const id = new Parchment.Attributor.Attribute('id', 'id', { scope: Parchment.Scope.BLOCK });
-    const paddingLeft = new Parchment.Attributor.Style('paddingLeft', 'padding-left', { scope: Parchment.Scope.BLOCK });
-    const border = new Parchment.Attributor.Style('border', 'border', { scope: Parchment.Scope.BLOCK });
-    const borderColor = new Parchment.Attributor.Style('borderColor', 'border-color', { scope: Parchment.Scope.BLOCK });
-    const display = new Parchment.Attributor.Style('display', 'display', { scope: Parchment.Scope.BLOCK });
-    const ariaLabel = new Parchment.Attributor.Style('aria-label', 'aria-label', { scope: Parchment.Scope.BLOCK });
-    const DataRotulo = new Parchment.Attributor.Attribute('dataRotulo', 'data-rotulo', { scope: Parchment.Scope.BLOCK });
-
-    const icons = Quill.import('ui/icons');
-    icons['bold'] = negrito;
-
-    // set Quill to use <b> and <i>, not <strong> and <em>
-
-    const bold = Quill.import('formats/bold');
-    bold.tagName = 'b'; // Quill uses <strong> by default
-    Quill.register(bold, true);
-
-    const italic = Quill.import('formats/italic');
-    italic.tagName = 'i'; // Quill uses <em> by default
-    Quill.register(italic, true);
-
-    EtaQuill.register('modules/clipboard', EtaClipboard, true);
-    EtaQuill.register('modules/keyboard', EtaKeyboard, true);
-    EtaQuill.register(EtaBlotConteudoOmissis, true);
-    EtaQuill.register(EtaBlotAbreAspas, true);
-    EtaQuill.register(EtaBlotFechaAspas, true);
-    EtaQuill.register(EtaBlotNotaAlteracao, true);
-    EtaQuill.register(EtaBlotExistencia, true);
-    EtaQuill.register(EtaBlotTipoOmissis, true);
-    EtaQuill.register(EtaBlotConteudo, true);
-    EtaQuill.register(EtaBlotEspaco, true);
-    EtaQuill.register(EtaBlotMensagem, true);
-    EtaQuill.register(EtaBlotMensagens, true);
-    EtaQuill.register(EtaBlotMenuBotao, true);
-    EtaQuill.register(EtaBlotMenuConteudo, true);
-    EtaQuill.register(EtaBlotMenuItem, true);
-    EtaQuill.register(EtaBlotMenu, true);
-    EtaQuill.register(EtaBlotRotulo, true);
-    EtaQuill.register(EtaContainerTable, true);
-    EtaQuill.register(EtaContainerTdEsquerdo, true);
-    EtaQuill.register(EtaContainerTdDireito, true);
-    EtaQuill.register(EtaContainerTr, true);
-    EtaQuill.register(EtaContainerRevisao, true);
-    EtaQuill.register(EtaBlotRevisao, true);
-    EtaQuill.register(EtaBlotRevisaoAceitar, true);
-    EtaQuill.register(EtaBlotRevisaoRecusar, true);
-    EtaQuill.register(EtaContainerOpcoes, true);
-    EtaQuill.register(EtaBlotOpcoesDiff, true);
-    EtaQuill.register(id, true);
-    EtaQuill.register(paddingLeft, true);
-    EtaQuill.register(border, true);
-    EtaQuill.register(borderColor, true);
-    EtaQuill.register(display, true);
-    EtaQuill.register(ariaLabel, true);
-    EtaQuill.register(DataRotulo, true);
-  }
-
-  constructor(editorHtml: HTMLElement, bufferHtml: HTMLElement, op: QuillOptionsStatic) {
+  constructor(editorHtml: HTMLElement, bufferHtml: HTMLElement, op: QuillOptions) {
     super(editorHtml, op);
     this.on('text-change', this.onTextChange);
     this.on('selection-change', this.onSelectionChange);
@@ -239,11 +177,11 @@ export class EtaQuill extends Quill {
   }
 
   getLinhaPorId(uuid: number): EtaContainerTable {
-    return Quill.find(this.getHtmlElement(EtaContainerTable.criarId(uuid)), false);
+    return PrivateQuill.find(this.getHtmlElement(EtaContainerTable.criarId(uuid)), false);
   }
 
-  setIndex(index: number, source: Sources = Quill.sources.USER): void {
-    const range: RangeStatic = this.getSelection(true) ?? { index: 0, length: 0 };
+  setIndex(index: number, source: QuillSource = PrivateQuill.sources.USER): void {
+    const range: QuillRange = this.getSelection(true) ?? { index: 0, length: 0 };
     if (index !== range.index || range.length !== 0) {
       try {
         this.setSelection(index, 0, source);
@@ -253,30 +191,30 @@ export class EtaQuill extends Quill {
     }
   }
 
-  setConteudoLinha(blotConteudo: EtaBlotConteudo, delta: DeltaStatic, source?: Sources): void {
+  setConteudoLinha(blotConteudo: EtaBlotConteudo, delta: QuillDelta, source?: QuillSource): void {
     let index = this.getIndex(blotConteudo);
 
     if (blotConteudo.length() > 1) {
-      this.deleteText(index, blotConteudo.length() - 1, source ?? Quill.sources.SILENT);
+      this.deleteText(index, blotConteudo.length() - 1, source ?? PrivateQuill.sources.SILENT);
     }
-    this.insertText(index, ' ', Quill.sources.SILENT);
+    this.insertText(index, ' ', PrivateQuill.sources.SILENT);
 
-    delta.ops?.forEach((op: DeltaOperation): void => {
+    delta.ops?.forEach((op: QuillDeltaOperation): void => {
       if (op.attributes) {
-        this.insertText(index, op.insert, op.attributes, source ?? Quill.sources.SILENT);
+        this.insertText(index, op.insert, op.attributes, source ?? PrivateQuill.sources.SILENT);
       } else {
-        this.insertText(index, op.insert, source ?? Quill.sources.SILENT);
+        this.insertText(index, op.insert, source ?? PrivateQuill.sources.SILENT);
       }
       index += op.insert.length;
     });
-    this.deleteText(index, 1, Quill.sources.SILENT);
+    this.deleteText(index, 1, PrivateQuill.sources.SILENT);
   }
 
-  converterHtmlParaDelta(html: string): DeltaStatic {
+  converterHtmlParaDelta(html: string): QuillDelta {
     return this.buffer.converterHtmlParaDelta(html);
   }
 
-  converterDeltaParaHtml(delta: DeltaStatic): string {
+  converterDeltaParaHtml(delta: QuillDelta): string {
     return this.buffer.converterDeltaParaHtml(delta);
   }
 
@@ -332,7 +270,7 @@ export class EtaQuill extends Quill {
     });
   }
 
-  private verificarMudouLinha(range: RangeStatic, oldRange?: RangeStatic): boolean {
+  private verificarMudouLinha(range: QuillRange, oldRange?: QuillRange): boolean {
     // correção bug: cursor se perde ao teclar ↑ na primeira linha
     if (oldRange && range?.index === 0 && range?.length === 0) {
       this.setSelection(oldRange.index, 0);
@@ -352,9 +290,9 @@ export class EtaQuill extends Quill {
         blotCursor.tagName === EtaBlotTipoOmissis.tagName ||
         blotCursor.tagName === EtaBlotExistencia.tagName
       ) {
-        if (blotCursor.linha.blotConteudo) this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, Quill.sources.SILENT);
+        if (blotCursor.linha.blotConteudo) this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, PrivateQuill.sources.SILENT);
       } else if (blotCursor.tagName === EtaBlotFechaAspas.tagName || blotCursor.tagName === EtaBlotNotaAlteracao.tagName) {
-        this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, Quill.sources.SILENT);
+        this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, PrivateQuill.sources.SILENT);
       }
 
       if (oldRange) {
@@ -377,7 +315,7 @@ export class EtaQuill extends Quill {
   }
 
   observableSelectionChange = new Observable<EtaContainerTable>();
-  private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic): void => {
+  private onSelectionChange: QuillSelectionChangeHandler = (range: QuillRange, oldRange: QuillRange): void => {
     // Guarda a linhaAtual corrente
     // OBS: o valor de "this.linhaAtual" será alterado dentro de "this.verificarMudouLinha" de acordo com alguns critérios.
     const linhaAtualAux = this.linhaAtual;
@@ -390,7 +328,7 @@ export class EtaQuill extends Quill {
     }
   };
 
-  private onTextChange: TextChangeHandler = (): void => {
+  private onTextChange: QuillTextChangeHandler = (): void => {
     if (this._linhaAtual) {
       setTimeout(() => {
         this.linhaAtual?.blotConteudo && this.acertarAspas();
@@ -413,8 +351,8 @@ export class EtaQuill extends Quill {
           if (texto[i] === '"') {
             const novaAspas = i === 0 || texto[i - 1].match(/\s/) ? '“' : '”';
             posicaoTexto += i;
-            this.deleteText(posicaoTexto, 1, Quill.sources.SILENT);
-            this.insertText(posicaoTexto, novaAspas, Quill.sources.SILENT);
+            this.deleteText(posicaoTexto, 1, PrivateQuill.sources.SILENT);
+            this.insertText(posicaoTexto, novaAspas, PrivateQuill.sources.SILENT);
             posicaoTexto = index;
           }
         }

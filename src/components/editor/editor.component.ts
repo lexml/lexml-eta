@@ -74,6 +74,8 @@ import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/seleci
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
+import PrivateQuill from '../../internal/quill/private-quill';
+import { QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource } from '../../internal/quill/quill-types';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -324,8 +326,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     //rootStore.dispatch(validarArticulacaAction.execute());
   }
 
-  private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
-    if (range?.length === 0 && source === Quill.sources.USER) {
+  private onSelectionChange: QuillSelectionChangeHandler = (range: QuillRange, oldRange: QuillRange, source: QuillSource): void => {
+    if (range?.length === 0 && source === PrivateQuill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
   };
@@ -369,12 +371,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return (textoLinhaAtual + textoNovaLinha).localeCompare(textoAnterior) !== 0;
   }
 
-  private adicionarElemento(range: RangeStatic): void {
+  private adicionarElemento(range: QuillRange): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
 
     const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
-    const indexFim: number = indexInicio + blotConteudo!.tamanho ?? 0;
+    const indexFim: number = indexInicio + blotConteudo.tamanho;
     let textoLinha = '';
     let textoNovaLinha = '';
 
@@ -840,13 +842,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.elementoSelecionado(linha.uuid);
       const index = this.quill.getIndex(linha.blotConteudo);
       try {
-        this.quill.setIndex(index, Quill.sources.SILENT);
+        this.quill.setIndex(index, PrivateQuill.sources.SILENT);
         // eslint-disable-next-line no-empty
       } catch (error) {}
       if (event.moverParaFimLinha) {
         setTimeout(() => {
           const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
-          this.quill.setSelection(posicao, 0, Quill.sources.USER);
+          this.quill.setSelection(posicao, 0, PrivateQuill.sources.USER);
         }, 0);
       }
     } catch (error) {
@@ -883,7 +885,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.desmarcarLinhaAtual(linhaAtual);
       this.quill.marcarLinhaAtual(linha);
       try {
-        this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), Quill.sources.SILENT);
+        this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), PrivateQuill.sources.SILENT);
       } catch (e) {
         // console.log(e);
       }
@@ -1072,7 +1074,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
 
-      this.quill.setSelection(index, 0, Quill.sources.SILENT);
+      this.quill.setSelection(index, 0, PrivateQuill.sources.SILENT);
       this.quill.marcarLinhaAtual(linhaCursor);
     }
   }
@@ -1172,11 +1174,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return elemento;
   }
 
-  private inicializar(op: QuillOptionsStatic): void {
+  private inicializar(op: QuillOptions): void {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     const bufferHtml: HTMLElement = this.getHtmlElement('lx-eta-buffer');
 
-    EtaQuill.configurar();
     this._quill = new EtaQuill(editorHtml, bufferHtml, op);
     this.quill.on('selection-change', this.onSelectionChange);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
@@ -1411,7 +1412,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           const elementoEmenta = !isMudancaDePagina ? elementos.find(elemento => elemento.tipo === 'Ementa') : undefined;
           const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
-            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
+            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.USER);
             this.focarQuillQuandoVisivel();
           }
         }, 0);
@@ -1433,7 +1434,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private configEditor(): QuillOptionsStatic {
+  private configEditor(): QuillOptions {
     return {
       formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis'],
       modules: {
