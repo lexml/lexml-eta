@@ -453,9 +453,9 @@ export const editorStyles = html`
       margin-right: 0;
     }
 
-    .dispositivo--adicionado {
+    /*.dispositivo--adicionado {
       color: green;
-    }
+    }*/
 
     .dispositivo--modificado {
       color: blue;
