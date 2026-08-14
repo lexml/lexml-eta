@@ -111,6 +111,33 @@ describe('Grupo J — Gatilho A: detecção ao trocar de linha', () => {
 
     cy.getContainerArtigoByNumero(2).find(SEL_LINK_J).should('have.length', 0);
   });
+
+  it.skip('CT-J-07: debounce de keystroke dispara sozinho (>1s) ANTES do usuário sair da linha — a remissão ainda deve ser criada ao sair', () => {
+    // Regressão de bug reportado em QA manual (docs/guias/ROTEIRO_QA_REFACTOR_BLUR_E_ATUALIZACAO.md
+    // §1.1): se o timer de 1s do debounce de keystroke dispara ANTES do usuário sair da linha —
+    // comportamento humano normal, não uma exceção — ele sincroniza o texto no Redux e resetava
+    // blotConteudo.alterado como efeito colateral, apagando o sinal que o Gatilho A precisa para
+    // saber que "esta linha tem uma mudança pendente de detecção de remissão". A CAUSA RAIZ acima
+    // já está corrigida (ver editor.component.ts, atualizarTextoElemento/verificarSomenteFormatoMudou).
+    //
+    // SKIP: este teste específico ainda falha por um SEGUNDO bug, pré-existente e não relacionado
+    // (confirmado via git stash rodando o código anterior a esta branch) — uma condição de corrida
+    // entre a reconstrução do blot de menu de contexto (montarMenuContexto, disparada toda vez que
+    // uma ação Redux termina em ElementoSelecionado) e o cálculo de posição de um clique físico do
+    // usuário. Quando os dois coincidem muito próximos no tempo, o navegador calcula a posição do
+    // clique sobre um layout que já mudou, e o clique é interpretado como se ainda estivesse no
+    // dispositivo anterior — o Gatilho A nunca dispara. Ver docs/analises/ANALISE_CORRIDA_CLIQUE_MENU_CONTEXTO.md.
+    inserirTextoReal(2, 'Conforme o art. 1º.');
+
+    // Deixa o timer real de 1000ms (agendado por quill.keyboard.onChange dentro de insertText)
+    // disparar sozinho, ANTES de qualquer saída de linha.
+    cy.wait(1300);
+
+    // Só agora o usuário sai da linha (Gatilho A) — depois do debounce já ter rodado uma vez.
+    cy.getContainerArtigoByNumero(1).find('p.texto__dispositivo').click({ force: true });
+
+    cy.getContainerArtigoByNumero(2).find(SEL_LINK_J, { timeout: 1000 }).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art1');
+  });
 });
 
 describe('Grupo J — Gatilho A: correção antes de sair da linha não deixa referência intermediária', () => {

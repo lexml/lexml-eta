@@ -78,7 +78,7 @@ import { buscaDispositivoById, findDispositivoByUuid } from '../../model/lexml/h
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { getElementos, getDispositivoFromElemento, createElementoValidadoComExtras } from '../../model/elemento/elementoUtil';
+import { getElementos, createElementoValidadoComExtras } from '../../model/elemento/elementoUtil';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
@@ -1493,29 +1493,34 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento, statesType), 1000);
   }
 
-  private verificarSomenteFormatoMudou(elemento: Elemento, linhaAtual: EtaContainerTable): boolean {
-    // Compara texto plano antes de atualizar o estado para detectar mudança apenas de formato
-    // (ex: exclusão manual de remissão). Nesse caso, a re-detecção não deve rodar para
-    // evitar recriar o link que o usuário acabou de excluir.
-    const storeState = rootStore.getState().elementoReducer;
-    let textoAnteriorPlano = '';
-    if (storeState.articulacao) {
-      const dispositivoAnterior = getDispositivoFromElemento(storeState.articulacao, elemento, true);
-      textoAnteriorPlano = stripHtml(dispositivoAnterior?.texto ?? '');
-    }
+  private verificarSomenteFormatoMudou(linhaAtual: EtaContainerTable): boolean {
+    // Compara texto plano contra htmlAnt — não contra o Redux: o Redux pode já ter sido sincronizado
+    // pelo debounce de keystroke (Caminho C) sem que o usuário tenha saído da linha ainda. htmlAnt é
+    // preservado nesse caminho especificamente (ver atualizarTextoElemento) para que esta comparação
+    // continue refletindo "o texto mudou desde a última entrada nesta linha", não "desde a última
+    // sincronização com o Redux". Qualquer outro caminho que sincroniza o Redux (omissis, undo/redo,
+    // comandos de teste) passa pelos mesmos eventos que resetam htmlAnt normalmente — só o Caminho C
+    // é uma exceção deliberada.
+    const textoAnteriorPlano = stripHtml(linhaAtual.blotConteudo?.htmlAnt ?? '');
     const textoAtualPlano = stripHtml(linhaAtual.blotConteudo?.html ?? '');
     return textoAtualPlano === textoAnteriorPlano;
   }
 
-  // Deve ser chamado ANTES de atualizarTextoElemento() — este muta o texto em state.articulacao, que é exatamente contra o que a comparação abaixo é feita.
+  // Deve ser chamado ANTES de atualizarTextoElemento() — este muta o texto em state.articulacao, que é exatamente contra o que a comparação acima é feita.
   private somenteFormatoMudouNaLinha(linha: EtaContainerTable): boolean {
     if (!linha?.blotConteudo?.alterado) return true;
 
-    const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, linha.blotConteudo?.html ?? '', linha.numero, linha.hierarquia);
-    return this.verificarSomenteFormatoMudou(elemento, linha);
+    return this.verificarSomenteFormatoMudou(linha);
   }
 
-  private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
+  // preservarHtmlAnt: usado só pelo Caminho C (debounce de keystroke, emitirEventoOnChange). O dispatch
+  // abaixo roda atualizarAtributos() como efeito colateral síncrono (via processarStateEvents), que
+  // reseta blotConteudo.htmlAnt e apagaria o sinal "há uma mudança pendente de detecção de remissão"
+  // antes que o Gatilho A/B/flush tenham a chance de lê-lo — restaurado logo em seguida quando este
+  // parâmetro é true. Sem isso, se o debounce dispara antes do usuário sair da linha (comportamento
+  // humano normal, não uma exceção), a remissão nunca é criada — ver docs/guias/
+  // ROTEIRO_QA_REFACTOR_BLUR_E_ATUALIZACAO.md §1.1 (bug reportado em QA manual).
+  private atualizarTextoElemento(linhaAtual: EtaContainerTable, preservarHtmlAnt = false): void {
     if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(
         linhaAtual.uuid,
@@ -1527,7 +1532,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.hierarquia
       );
 
+      const htmlAntPreservado = linhaAtual.blotConteudo.htmlAnt;
+
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+
+      if (preservarHtmlAnt) {
+        linhaAtual.blotConteudo.htmlAnt = htmlAntPreservado;
+      }
 
       // Limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
       const remissaoModule = this.quill.getModule('remissaoInterna');
@@ -1537,8 +1548,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  // Criação de remissão só ao sair do dispositivo (docs/PLANO_DETECCAO_BLUR.md §4.1), evitando capturar referência incompleta em pausas de digitação; somenteFormatoMudou vem de somenteFormatoMudouNaLinha(), calculado antes de atualizarTextoElemento() mutar o estado.
-  // Não reavalia blotConteudo.alterado aqui: atualizarTextoElemento() já rodou e reseta esse flag via atualizarAtributos() (eta-blot-conteudo.ts), então a única fonte confiável de "houve mudança real" é o somenteFormatoMudou pré-calculado.
+  // Aguarda o blur (evita links incompletos) e confia na flag pré-mutação `somenteFormatoMudou`, já que `atualizarTextoElemento()` zerou o estado do blot.
   private detectarRemissoesAoSairDaLinha(linhaAnterior: EtaContainerTable, somenteFormatoMudou: boolean): void {
     if (somenteFormatoMudou) return;
 
@@ -1599,7 +1609,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private emitirEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
-    this.atualizarTextoElemento(this.quill.linhaAtual);
+    this.atualizarTextoElemento(this.quill.linhaAtual, true);
 
     this.dispatchEvent(
       new CustomEvent('onchange', {
