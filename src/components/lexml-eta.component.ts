@@ -540,27 +540,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.slSplitPanel.addEventListener('sl-reposition', () => {
       this.ajustarAltura();
     });
-
-    const badgeAtalhos = this._tabsDireita?.querySelector('#badgeAtalhos');
-    if (badgeAtalhos) {
-      const naoPulsarBadgeAtalhos = localStorage.getItem('naoPulsarBadgeAtalhos');
-      if (!naoPulsarBadgeAtalhos) {
-        badgeAtalhos.pulse = true;
-        badgeAtalhos.setAttribute('variant', 'warning');
-      }
-    }
-
-    this._tabsDireita?.addEventListener('sl-tab-show', (event: any) => {
-      const tabName = event.detail.name;
-      if (tabName === 'atalhos') {
-        const badge = (event.target as Element).querySelector('sl-badge');
-        if (badge) {
-          badge.pulse = false;
-          badge.setAttribute('variant', 'primmay');
-        }
-        localStorage.setItem('naoPulsarBadgeAtalhos', 'true');
-      }
-    });
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -745,6 +724,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
         sl-split-panel {
           --divider-width: 15px;
+          --min: 70%;
+          --max: 85%;
         }
         sl-tab sl-icon {
           margin-right: 5px;
