@@ -52,8 +52,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     this.editorComponent.flushEdicaoPendente();
     const out = { ...this.projetoNorma };
     const elementoState = rootStore.getState().elementoReducer;
-    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {});
     const remissoesExternas = elementoState.remissoesExternas ?? {};
+    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {}, remissoesExternas);
     const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto, remissoesExternas);
     const tipo = (out as any).value.projetoNorma.norma ? 'norma' : 'projeto';
     (out as any).value.projetoNorma[tipo].parteInicial = articulacaoAtualizada.value.projetoNorma[tipo].parteInicial;

@@ -78,7 +78,7 @@ import { buscaDispositivoById, findDispositivoByUuid } from '../../model/lexml/h
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { getElementos, createElementoValidadoComExtras } from '../../model/elemento/elementoUtil';
+import { getElementos, createElementoValidadoComExtras, createElemento } from '../../model/elemento/elementoUtil';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
@@ -97,6 +97,8 @@ import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
 import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
 import { criarPopup, mostrarPopup, esconderPopup } from '../popup-inline/popupInline';
 import { removerRemissaoInvalidaAction } from '../../model/lexml/acao/removerRemissaoInvalidaAction';
+import { gerarRefId } from '../../model/remissao/refId';
+import { lexmlLinkerClient } from '../../util/lexml-linker/lexmlLinkerClient';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -1563,6 +1565,44 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     );
 
     rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+
+    // Fire-and-forget deliberado — não bloqueia getProjetoAtualizado() (API pública síncrona). Janela residual aceita: docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md §8.3.
+    if (linhaAnterior.uuid !== undefined) {
+      this.coordenarDeteccaoExterna(linhaAnterior.uuid, stripHtml(linhaAnterior.blotConteudo?.html ?? ''));
+    }
+  }
+
+  // Descarta o resultado se o texto mudou desde a chamada — evita aplicar offsets obsoletos.
+  private async coordenarDeteccaoExterna(sourceUuid: number, texto: string): Promise<void> {
+    const matches = await lexmlLinkerClient.detectarRemissoesExternas(texto);
+    if (!matches || matches.length === 0) return;
+
+    const articulacaoAtual = rootStore.getState().elementoReducer.articulacao;
+    const dispositivoAtual = findDispositivoByUuid(articulacaoAtual, sourceUuid, true);
+    if (!dispositivoAtual || stripHtml(dispositivoAtual.texto ?? '') !== texto) return;
+
+    for (const match of matches) {
+      rootStore.dispatch(
+        adicionarRemissaoExternaAction({
+          refId: gerarRefId(),
+          targetUrn: match.targetUrn,
+          targetNomeNorma: '',
+          targetFragmento: match.targetFragmento,
+          textoRef: match.textoRef,
+          sourceUuid,
+          inicio: match.inicio,
+          fim: match.fim,
+        })
+      );
+    }
+
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
+    remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+
+    // Redetecta a interna agora que o span externo está reivindicado — descarta falso positivo temporário (achado #4).
+    const elementoReconciliacao = createElemento(dispositivoAtual, true);
+    rootStore.dispatch(adicionarRemissaoInternaAction.execute(elementoReconciliacao));
   }
 
   // Rede de segurança determinística (docs/PLANO_DETECCAO_BLUR.md §2.4/§4.4), chamada por getProjetoAtualizado() para garantir sincronismo mesmo sem sair da linha antes de salvar.

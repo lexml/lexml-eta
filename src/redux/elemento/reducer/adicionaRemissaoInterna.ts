@@ -3,7 +3,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
-import { RemissaoInternaValue } from '../../../model/remissao';
+import { RemissaoInternaValue, RemissaoExternaValue } from '../../../model/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -96,7 +96,8 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
-  const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao);
+  const spansExternos = spansExternosReivindicados(state.remissoesExternas, dispositivo.uuid);
+  const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao, spansExternos);
 
   const todasEntriesAntigas: RemissaoInternaValue[] = state.remissoes?.[dispositivo.uuid!] ?? [];
 
@@ -181,12 +182,32 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   };
 };
 
-const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+interface SpanExterno {
+  inicio: number;
+  fim: number;
+}
+
+// Evita o falso positivo do achado #4: "art. Nº" seguido de citação de norma externa já reivindicada.
+const spansExternosReivindicados = (remissoesExternas: Record<string, RemissaoExternaValue> | undefined, sourceUuid: number | undefined): SpanExterno[] => {
+  if (!remissoesExternas || sourceUuid === undefined) return [];
+  return Object.values(remissoesExternas)
+    .filter(r => r.sourceUuid === sourceUuid && r.inicio !== undefined && r.fim !== undefined)
+    .map(r => ({ inicio: r.inicio!, fim: r.fim! }));
+};
+
+const sobrepoeSpanExterno = (item: ReferenciaEncontrada, spans: SpanExterno[]): boolean => {
+  if (item.inicio === undefined || spans.length === 0) return false;
+  const fim = item.inicio + item.texto.length;
+  return spans.some(span => item.inicio! < span.fim && fim > span.inicio);
+};
+
+const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao, spansExternos: SpanExterno[] = []): ReferenciaEncontrada[] => {
   const absolutas = detectarReferenciasAbsolutas(texto, articulacao);
   const agrupadores = detectarReferenciasAgrupadores(texto, articulacao);
   const contextuais = detectarReferenciasContextuais(texto, dispositivo, articulacao);
   const implicitas = detectarReferenciasImplicitasSemQualificador(texto, dispositivo, articulacao);
-  return deduplicarPorPosicao([...absolutas, ...agrupadores, ...contextuais, ...implicitas]);
+  const encontradas = deduplicarPorPosicao([...absolutas, ...agrupadores, ...contextuais, ...implicitas]);
+  return spansExternos.length === 0 ? encontradas : encontradas.filter(item => !sobrepoeSpanExterno(item, spansExternos));
 };
 
 // Captura referências absolutas encadeadas exigindo a âncora do artigo (ex: "§ 2º do art. 5º").
@@ -594,7 +615,11 @@ const sincronizarTextoFonte = (articulacao: Articulacao, entry: RemissaoInternaV
  * adicionalmente, entradas existentes têm seus `targetLexmlId` atualizados quando o
  * destino foi renumerado fora do fluxo de digitação (atualizações 'silent' do Quill).
  */
-export const completarRegistroRemissoes = (articulacao: Articulacao, registroExistente: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
+export const completarRegistroRemissoes = (
+  articulacao: Articulacao,
+  registroExistente: Record<number, RemissaoInternaValue[]>,
+  remissoesExternas?: Record<string, RemissaoExternaValue>
+): Record<number, RemissaoInternaValue[]> => {
   if (!articulacao) return registroExistente;
 
   const registroCompleto = atualizarRegistryAposRenumeracao(articulacao, registroExistente);
@@ -614,7 +639,8 @@ export const completarRegistroRemissoes = (articulacao: Articulacao, registroExi
       }
     }
 
-    const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao);
+    const spansExternos = spansExternosReivindicados(remissoesExternas, dispositivo.uuid);
+    const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao, spansExternos);
     if (remissoesEncontradas.length > 0) {
       registroCompleto[dispositivo.uuid] = remissoesEncontradas.map(item => ({
         refId: gerarRefId(),

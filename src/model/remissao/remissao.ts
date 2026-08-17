@@ -6,6 +6,10 @@ export interface RemissaoExternaValue {
   targetFragmento?: string;
   textoRef?: string;
   sourceUuid?: number;
+
+  inicio?: number; // posição de início no texto do dispositivo de origem
+
+  fim?: number; // fim exclusivo (inicio + textoRef.length) — usado para excluir o trecho da detecção interna, evitando falso positivo do achado #4
 }
 
 export interface RemissaoInternaValue {
