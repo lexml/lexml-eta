@@ -106,7 +106,10 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   // Preserva deleção lógica de exclusão manual (botão "Excluir") — só saem quando o texto deixar de ser idêntico
   const oldExcluidas = todasEntriesAntigas.filter(r => r.excluidaManualmente === true);
 
-  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0 && oldExcluidas.length === 0) {
+  // Entradas normais antigas que precisam ser descartadas mesmo sem match novo (ex.: referência removida do texto).
+  const oldNormais = todasEntriesAntigas.filter(r => r.valida !== false && !r.excluidaManualmente);
+
+  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0 && oldExcluidas.length === 0 && oldNormais.length === 0) {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
