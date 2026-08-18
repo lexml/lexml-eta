@@ -82,6 +82,9 @@ export async function remissaoDialog(
     isEdicao && modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna ? modoEdicao.valueExterna.targetNomeNorma || modoEdicao.valueExterna.targetUrn || '' : '';
   const dispositivoAtualEdit = isEdicao && modoEdicao?.tipo === 'externa' && modoEdicao.valueExterna ? modoEdicao.valueExterna.targetTextoDispositivo || '' : '';
 
+  // Remissões automáticas (lexml-linker) nascem sem targetNomeNorma — dispara o lookup reverso já usado em informarNormaDialog.ts.
+  const urnParaLookup = isEdicaoExterna && modoEdicao?.valueExterna && !modoEdicao.valueExterna.targetNomeNorma ? modoEdicao.valueExterna.targetUrn || '' : '';
+
   const estilos = `
     <style>
       .remissao-tab-panel {
@@ -204,7 +207,7 @@ export async function remissaoDialog(
     isEdicao && isEdicaoExterna && normaAtualEdit
       ? `<div class="remissao-resumo">
          <div class="resumo-label">Remissão atual:</div>
-         <div class="resumo-norma">${escapeHtml(normaAtualEdit)}</div>
+         <div class="resumo-norma" id="resumo-norma-ext">${escapeHtml(normaAtualEdit)}</div>
          ${dispositivoAtualEdit ? `<div class="resumo-dispositivo">${escapeHtml(dispositivoAtualEdit)}</div>` : ''}
        </div>`
       : '';
@@ -214,7 +217,7 @@ export async function remissaoDialog(
       ${textoSelecionadoHtml}
       ${semSelecaoAvisoHtml}
       ${resumoExternaHtml}
-      <autocomplete-norma id="auto-norma-ext" urlAutocomplete="${urlAutocomplete}"></autocomplete-norma>
+      <autocomplete-norma id="auto-norma-ext" urnInicial="${escapeHtml(urnParaLookup)}" urlAutocomplete="${urlAutocomplete}"></autocomplete-norma>
       <sl-input id="dispositivo-ext"
         label="Dispositivo (opcional)"
         placeholder="ex: art. 5º, inciso I do § 3º do art. 12"
@@ -267,6 +270,7 @@ export async function remissaoDialog(
   const msgAlertaInt = content.querySelector('#msg-alerta-int') as HTMLElement;
 
   const autocompleteNormaExt = content.querySelector('#auto-norma-ext');
+  const resumoNormaExt = content.querySelector('#resumo-norma-ext') as HTMLElement | null;
   const dispositivoExtInput = content.querySelector('#dispositivo-ext') as SlInput | null;
   const alertaExt = content.querySelector('#alerta-ext') as any;
   const msgAlertaExt = content.querySelector('#msg-alerta-ext') as HTMLElement;
@@ -368,7 +372,12 @@ export async function remissaoDialog(
   // --- Aba externa ---
   if (autocompleteNormaExt) {
     (autocompleteNormaExt as any)['onSelect'] = (norma: Norma): void => {
-      normaExternaSelecionada = norma;
+      // norma pode vir undefined de _getNormaByURN quando a busca não encontra a URN — preserva a seleção anterior nesse caso.
+      normaExternaSelecionada = norma ?? normaExternaSelecionada;
+      // Resumo mostrava a URN crua (lookup do urnInicial ainda não tinha resolvido) — atualiza para o nome amigável.
+      if (urnParaLookup && resumoNormaExt && norma?.nomePreferido) {
+        resumoNormaExt.textContent = norma.nomePreferido;
+      }
       atualizarEstadoBotao();
     };
   }
