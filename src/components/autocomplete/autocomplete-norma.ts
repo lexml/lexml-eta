@@ -66,7 +66,9 @@ export class AutocompleteNorma extends LitElement {
     const norma = new Norma(urn);
     const query = `${norma.sData()} ${norma.numero()}`;
     this._searchNormas(query).then(normas => {
-      this._selectedNorma = normas.find(n => n.urn === urn) as Norma;
+      const encontrada = normas.find(n => n.urn === urn);
+      if (!encontrada) return; // URN não encontrada na busca (ex.: citação abreviada de ano-apenas) — mantém o campo como estava
+      this._selectedNorma = encontrada;
       this.onSelect(this._selectedNorma);
       this._autoCompleteAsync.value = this._selectedNorma.nomePreferido;
     });
