@@ -1596,13 +1596,24 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       );
     }
 
+    // Reconciliação (achado #4) ANTES de renderizar a externa. O reducer só atualiza o registry —
+    // não remove do DOM um link interno já renderizado cujo refId saiu do registry — então também
+    // é preciso remover explicitamente o blot obsoleto, senão formatText da externa (abaixo) aplica
+    // sobre um range que ainda tem o falso positivo interno por baixo, e o Quill separa o resultado
+    // em dois <a> adjacentes.
     const remissaoModule = this.quill.getModule('remissaoInterna');
-    const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
-    remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+    const refIdsAntigos = new Set((rootStore.getState().elementoReducer.remissoes?.[sourceUuid] ?? []).map((r: { refId: string }) => r.refId));
 
-    // Redetecta a interna agora que o span externo está reivindicado — descarta falso positivo temporário (achado #4).
     const elementoReconciliacao = createElemento(dispositivoAtual, true);
     rootStore.dispatch(adicionarRemissaoInternaAction.execute(elementoReconciliacao));
+
+    const refIdsNovos = new Set((rootStore.getState().elementoReducer.remissoes?.[sourceUuid] ?? []).map((r: { refId: string }) => r.refId));
+    for (const refId of refIdsAntigos) {
+      if (!refIdsNovos.has(refId)) remissaoModule?.removerRemissaoPorId(refId as string);
+    }
+
+    const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
+    remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
   }
 
   // Rede de segurança determinística (docs/PLANO_DETECCAO_BLUR.md §2.4/§4.4), chamada por getProjetoAtualizado() para garantir sincronismo mesmo sem sair da linha antes de salvar.
