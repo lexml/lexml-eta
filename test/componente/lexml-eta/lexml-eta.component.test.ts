@@ -140,7 +140,7 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
     it('não deve disparar alerta global de justificação quando não obrigatória', () => {
       component.lexmlEmendaConfig = new LexmlEtaConfig();
       component.lexmlEmendaConfig.justificacaoObrigatoria = false;
-      (component as any)._lexmlJustificativa = { isEditorVazio: () => true };
+      Object.defineProperty(component, '_lexmlJustificativa', { value: { isEditorVazio: () => true } });
 
       (component as any).buildAlertaJustificativa();
 
