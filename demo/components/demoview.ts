@@ -115,6 +115,7 @@ export class DemoView extends LitElement {
   private elLexmlEta!: LexmlEtaComponent;
 
   @state() modo = 'edicao';
+  @state() anexoParecer = false;
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
@@ -126,6 +127,7 @@ export class DemoView extends LitElement {
     this.emendaConfig = new LexmlEtaConfig();
     this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
     this.emendaConfig.urlComissoes = '/comissoes';
+    this.emendaConfig.anexoParecer = this.anexoParecer;
     this.emendaConfig.justificacaoObrigatoria = true;
   }
 
@@ -425,6 +427,17 @@ export class DemoView extends LitElement {
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
             <option value="_pl_4_2025">PL 4, de 2025</option>
           </select>
+          <label
+            ><input
+              type="checkbox"
+              .checked=${this.anexoParecer}
+              @change=${(event: Event): void => {
+                this.anexoParecer = (event.target as HTMLInputElement).checked;
+                this.emendaConfig.anexoParecer = this.anexoParecer;
+              }}
+            />
+            Anexo de parecer</label
+          >
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
       </div>

@@ -113,6 +113,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   private substitutivo = false;
 
+  @state()
+  private anexoParecer = false;
+
   // Para forçar atualização da interface
   @state()
   private updateState: any;
@@ -213,13 +216,19 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   getProposicao(): any {
     if (!this.urn) {
-      return new Proposicao();
+      const proposicao = new Proposicao();
+      if (this.anexoParecer) {
+        this.removerDadosNaoAplicaveisAoAnexoParecer(proposicao);
+      }
+      return proposicao;
     }
 
     this.projetoNorma = this._lexmlEta?.getProjetoAtualizado();
 
     const proposicao = this.montarProposicaoPorUrn(this.urn);
-    proposicao.dataUltimaModificacao = this._lexmlData.data || undefined;
+    if (!this.anexoParecer) {
+      proposicao.dataUltimaModificacao = this._lexmlData.data || undefined;
+    }
     proposicao.projetoNorma = this.projetoNorma;
     proposicao.justificativa = this._lexmlJustificativa.texto;
     proposicao.notasRodape = this._lexmlJustificativa.notasRodape;
@@ -237,7 +246,19 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     proposicao.substitutivo = this.substitutivo;
     if (proposicao.colegiadoApreciador) proposicao.local = this.montarLocalFromColegiadoApreciador(proposicao.colegiadoApreciador);
 
+    if (this.anexoParecer) {
+      this.removerDadosNaoAplicaveisAoAnexoParecer(proposicao);
+    }
+
     return proposicao;
+  }
+
+  private removerDadosNaoAplicaveisAoAnexoParecer(proposicao: Proposicao): void {
+    Reflect.deleteProperty(proposicao, 'justificativa');
+    Reflect.deleteProperty(proposicao, 'justificativaAntesRevisao');
+    Reflect.deleteProperty(proposicao, 'notasRodape');
+    Reflect.deleteProperty(proposicao, 'local');
+    Reflect.deleteProperty(proposicao, 'autoria');
   }
 
   getEpigrafe(projetoNorma: any): Epigrafe {
@@ -278,8 +299,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  async inicializarEdicao(params: LexmlEtaParametrosEdicao) {
+  async inicializarEdicao(params: LexmlEtaParametrosEdicao): Promise<void> {
     try {
+      this.anexoParecer = this.lexmlEmendaConfig.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.proposicao && params.proposicao.colegiadoApreciador?.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
@@ -311,13 +333,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         this.desativarMarcaRevisao();
       }
 
-      this._tabsEsquerda.show('lexml-eta');
-
-      setTimeout(() => {
-        this._tabsDireita?.show('notas');
-      });
-
       this.updateView();
+      await this.updateComplete;
+      this.sincronizarESelecionarAba(this._tabsEsquerda, 'lexml-eta-proposicao');
+      this.sincronizarESelecionarAba(this._tabsDireita, this.anexoParecer ? 'atalhos' : 'notas');
     } catch (err) {
       console.error(err);
       this.emitirEventoFatalError(err);
@@ -423,15 +442,15 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(limparAlertas());
 
     this.substitutivo = proposicao.substitutivo;
-    if (proposicao.autoria) this._lexmlAutoria.autoria = proposicao.autoria;
+    this._lexmlAutoria.autoria = proposicao.autoria || new Autoria();
     this._lexmlAutoria.casaLegislativa = this.casaLegislativa;
     this._lexmlOpcoesImpressao.opcoesImpressao = proposicao.opcoesImpressao;
     this._lexmlJustificativa.setTextoAntesRevisao(proposicao.justificativaAntesRevisao);
     this._lexmlDestino!.colegiadoApreciador = proposicao.colegiadoApreciador;
     this._lexmlDestino!.proposicao = getRefProposicaoReduzida(proposicao);
     this.notasRodape = proposicao.notasRodape || [];
-    this._lexmlJustificativa.setContent(proposicao.justificativa, proposicao.notasRodape);
-    this._lexmlData.data = proposicao.dataUltimaModificacao;
+    this._lexmlJustificativa.setContent(proposicao.justificativa || '', proposicao.notasRodape || []);
+    this._lexmlData.data = this.anexoParecer ? '' : proposicao.dataUltimaModificacao;
     this._lexmlEta!.setDispositivosERevisoesEmenda(proposicao.revisoes);
     this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
   }
@@ -624,7 +643,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private isJustificacaoObrigatoria(): boolean {
-    return this.lexmlEmendaConfig?.justificacaoObrigatoria !== false;
+    return !this.anexoParecer && this.lexmlEmendaConfig?.justificacaoObrigatoria !== false;
   }
 
   buildAlertaJustificativa(): void {
@@ -676,6 +695,22 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.updateState = new Date();
   }
 
+  private sincronizarESelecionarAba(tabGroup: any, nomePainel: string): void {
+    if (!tabGroup) return;
+
+    tabGroup.syncTabsAndPanels();
+    const aba = tabGroup.getAllTabs().find(tab => tab.panel === nomePainel);
+    if (!aba) return;
+
+    if (tabGroup.getActiveTab() === aba) {
+      tabGroup.getAllTabs(true).forEach(tab => (tab.active = tab === aba));
+      tabGroup.getAllPanels().forEach(panel => (panel.active = panel.name === nomePainel));
+      tabGroup.syncIndicator();
+    } else {
+      tabGroup.setActiveTab(aba, { emitEvents: false });
+    }
+  }
+
   render(): TemplateResult {
     return html`
       ${shoelaceLightThemeStyles} ${quillSnowStyles} ${editorStyles}
@@ -696,6 +731,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         }
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
+        }
+        sl-tab-panel.painel-anexo-parecer {
+          display: none !important;
         }
         lexml-eta-proposicao {
           font-family: var(--eta-font-serif);
@@ -835,8 +873,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta-proposicao">Texto</sl-tab>
-            <sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>
-            <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
+            ${!this.anexoParecer ? html`<sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>` : ''}
+            <sl-tab slot="nav" panel="autoria">${this.anexoParecer ? 'Destino e Impressão' : 'Destino, Data, Autoria e Impressão'}</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -844,7 +882,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="lexml-eta-proposicao" class="overflow-hidden">
               <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
             </sl-tab-panel>
-            <sl-tab-panel name="justificativa" class="overflow-hidden">
+            <sl-tab-panel name="justificativa" class="overflow-hidden ${this.anexoParecer ? 'painel-anexo-parecer' : ''}">
               <lexml-eta-editor-texto-rico
                 .lexmlEtaConfig=${this.lexmlEmendaConfig}
                 modo="justificativa"
@@ -856,10 +894,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">
                 <lexml-eta-destino .comissoes=${this.comissoes}></lexml-eta-destino>
-                <br />
-                <lexml-eta-data></lexml-eta-data>
-                <br />
-                <lexml-eta-autoria .parlamentares=${this.parlamentares}></lexml-eta-autoria>
+                <div style="display: ${this.anexoParecer ? 'none' : 'block'}">
+                  <br />
+                  <lexml-eta-data></lexml-eta-data>
+                  <br />
+                  <lexml-eta-autoria .parlamentares=${this.parlamentares}></lexml-eta-autoria>
+                </div>
                 <lexml-eta-opcoes-impressao></lexml-eta-opcoes-impressao>
               </div>
             </sl-tab-panel>
@@ -904,12 +944,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                   </sl-tab>
                 `
               : ''}
-            <sl-tab-panel name="notas" class="overflow-hidden">
-              <div class="notas-rodape">
-                <h4>Notas de rodapé</h4>
-                ${this.renderNotasRodape()}
-              </div>
-            </sl-tab-panel>
+            ${!this.anexoParecer
+              ? html`
+                  <sl-tab-panel name="notas" class="overflow-hidden">
+                    <div class="notas-rodape">
+                      <h4>Notas de rodapé</h4>
+                      ${this.renderNotasRodape()}
+                    </div>
+                  </sl-tab-panel>
+                `
+              : ''}
             <sl-tab-panel name="dicas" class="overflow-hidden">
               <lexml-eta-ajuda></lexml-eta-ajuda>
             </sl-tab-panel>
@@ -923,12 +967,17 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   tabIsVisible(tab: string): boolean {
+    if (tab === 'notas' && this.anexoParecer) {
+      return false;
+    }
     return tab === 'notas' || tab === 'atalhos';
   }
 
   onChangeNotasRodape(): void {
     this.notasRodape = this._lexmlJustificativa.notasRodape;
-    this.focusOnTab('notas');
+    if (!this.anexoParecer) {
+      this.focusOnTab('notas');
+    }
   }
 
   renderNotasRodape(): TemplateResult {
@@ -974,6 +1023,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   focusOnTab(tabName: string): void {
+    if (this.anexoParecer) return;
+
     const tab = this.querySelector(`sl-tab[panel="${tabName}"]`) as HTMLElement | null;
     if (!tab) return;
 
