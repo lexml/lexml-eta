@@ -137,6 +137,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
 
+  // Uuids já varridos pelo linker externo nesta sessão — libera a 1ª visita mesmo sem edição (ver detectarRemissoesAoSairDaLinha).
+  // Opcional (não inicializado no campo) pois testes constroem EditorComponent via Object.create, sem passar pelo construtor.
+  private uuidsJaDetectadosExternamente?: Set<number>;
+
   private _idSwitchRevisao = 'chk-em-revisao';
   private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao';
 
@@ -1558,23 +1562,29 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // Aguarda o blur (evita links incompletos) e confia na flag pré-mutação `somenteFormatoMudou`, já que `atualizarTextoElemento()` zerou o estado do blot.
   private detectarRemissoesAoSairDaLinha(linhaAnterior: EtaContainerTable, somenteFormatoMudou: boolean): void {
-    if (somenteFormatoMudou) return;
+    const uuid = linhaAnterior?.uuid;
+    // Documento recém-aberto já chega com alterado=false (nunca foi editado) — sem isto, um dispositivo nunca
+    // visitado nesta sessão nunca passaria pelo linker externo, que (ao contrário do interno) não tem bootstrap na abertura.
+    const jaDetectadosExternamente = (this.uuidsJaDetectadosExternamente ??= new Set<number>());
+    const primeiraVisitaExterna = uuid !== undefined && !jaDetectadosExternamente.has(uuid);
 
-    const elemento: Elemento = this.criarElemento(
-      linhaAnterior.uuid,
-      linhaAnterior.uuid2,
-      linhaAnterior.lexmlId,
-      linhaAnterior.tipo,
-      linhaAnterior.blotConteudo?.html ?? '',
-      linhaAnterior.numero,
-      linhaAnterior.hierarquia
-    );
-
-    rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+    if (!somenteFormatoMudou) {
+      const elemento: Elemento = this.criarElemento(
+        linhaAnterior.uuid,
+        linhaAnterior.uuid2,
+        linhaAnterior.lexmlId,
+        linhaAnterior.tipo,
+        linhaAnterior.blotConteudo?.html ?? '',
+        linhaAnterior.numero,
+        linhaAnterior.hierarquia
+      );
+      rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+    }
 
     // Fire-and-forget deliberado — não bloqueia getProjetoAtualizado() (API pública síncrona). Janela residual aceita: docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md §8.3.
-    if (linhaAnterior.uuid !== undefined) {
-      this.coordenarDeteccaoExterna(linhaAnterior.uuid, stripHtml(linhaAnterior.blotConteudo?.html ?? ''));
+    if (uuid !== undefined && (!somenteFormatoMudou || primeiraVisitaExterna)) {
+      jaDetectadosExternamente.add(uuid);
+      this.coordenarDeteccaoExterna(uuid, stripHtml(linhaAnterior.blotConteudo?.html ?? ''));
     }
   }
 
