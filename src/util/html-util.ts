@@ -10,12 +10,21 @@ export function stripHtml(texto: string): string {
 
 /**
  * Remove o <span> gerado pelo Parchment Attributor do moduloRemissao ao redor de links de
- * remissão interna. O Quill registra data-lexml-ref e data-ref-id como INLINE_ATTRIBUTE
+ * remissão interna/externa. O Quill registra data-lexml-ref e data-ref-id como INLINE_ATTRIBUTE
  * attributors, o que faz o serializer criar um <span> envolvendo o <a> do blot.
  */
 export function removerSpanParchmentRemissao(html: string): string {
   // Casa spans com data-lexml-ref OU data-ref-id (ambos criados por Parchment Inline Attributors)
-  return html.replace(/<span\b[^>]*\b(?:data-lexml-ref|data-ref-id)="[^"]*"[^>]*>(<a\b[\s\S]*?<\/a>)<\/span>/gi, '$1');
+  let resultado = html.replace(/<span\b[^>]*\b(?:data-lexml-ref|data-ref-id)="[^"]*"[^>]*>(<a\b[\s\S]*?<\/a>)<\/span>/gi, '$1');
+
+  // Resíduo sem <a> (unwrap sem limpar atributos); descasca do span mais interno pra fora, camada por camada.
+  let anterior: string;
+  do {
+    anterior = resultado;
+    resultado = resultado.replace(/<span\b[^>]*\b(?:data-lexml-ref|data-ref-id)="[^"]*"[^>]*>((?:(?!<span\b)[\s\S])*?)<\/span>/gi, '$1');
+  } while (resultado !== anterior);
+
+  return resultado;
 }
 
 /**

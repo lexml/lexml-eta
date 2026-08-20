@@ -63,4 +63,22 @@ describe('Serialização de remissão externa', () => {
       expect(remissao.value.content[0]).to.equal(textoRef);
     });
   });
+
+  describe('16.2. Resíduo de span do Parchment sem <a> (RemissaoExternaBlot.format não limpava os atributos antes do unwrap)', () => {
+    it('não deve vazar <span data-ref-id> literal no conteúdo salvo (bug real, docs/fixtures/erro-salvar-remissao-externa.json)', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto =
+        'Na <span data-ref-id="ref_1787238281540_511n628bc"><span data-ref-id="ref_1787238292055_34nzbelww">lei 14.133 de 2021</span></span> já passou a valer.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const conteudo: string = caputNode.value.p[0].content[0];
+
+      expect(conteudo).to.not.include('<span');
+      expect(conteudo).to.not.include('data-ref-id');
+      expect(conteudo).to.equal('Na lei 14.133 de 2021 já passou a valer.');
+    });
+  });
 });

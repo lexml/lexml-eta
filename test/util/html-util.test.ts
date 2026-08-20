@@ -27,9 +27,19 @@ describe('removerSpanParchmentRemissao', () => {
     expect(removerSpanParchmentRemissao(html)).to.equal('Texto simples sem spans.');
   });
 
-  it('não remove span que não envolve <a>', () => {
+  it('remove span residual sem <a> (unformat do blot não limpou o atributo antes do unwrap)', () => {
     const html = '<span data-ref-id="ref_123">texto sem link</span>';
-    expect(removerSpanParchmentRemissao(html)).to.equal('<span data-ref-id="ref_123">texto sem link</span>');
+    expect(removerSpanParchmentRemissao(html)).to.equal('texto sem link');
+  });
+
+  it('remove spans residuais aninhados (duas remoções sem limpeza seguidas, ex: bug real de remissão externa)', () => {
+    const html = 'Na <span data-ref-id="ref_1787238281540_511n628bc"><span data-ref-id="ref_1787238292055_34nzbelww">lei 14.133 de 2021</span></span> já passou a valer.';
+    expect(removerSpanParchmentRemissao(html)).to.equal('Na lei 14.133 de 2021 já passou a valer.');
+  });
+
+  it('remove span residual com data-lexml-ref sem <a>', () => {
+    const html = '<span data-lexml-ref="art2">art. 2</span>';
+    expect(removerSpanParchmentRemissao(html)).to.equal('art. 2');
   });
 
   it('preserva conteúdo do <a> ao remover span', () => {
