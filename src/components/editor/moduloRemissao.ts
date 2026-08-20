@@ -115,11 +115,12 @@ class ModuloRemissao extends Module {
   }
 
   // Remove o link (preservando o texto) em edições pontuais do usuário; recriação fica a
-  // cargo do blur/debounce. Ignora renumerações em massa e eventos 'silent'.
+  // cargo do blur/debounce. Ignora renumerações em massa e eventos 'silent'. Interna e
+  // externa compartilham cache/evento — só o nome do formato a limpar difere por blot.
   private _removerRemissaoEditadaEmTempoReal(delta: any, _oldDelta: any, source: string): void {
     const podeSerEdicaoDoUsuario = source === 'user' && this.pareceEdicaoPontual(delta);
 
-    const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id]');
+    const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id], a.lexml-remissao-externa[data-ref-id]');
     const refIdsAtuais = new Set<string>();
     const elementosEditados: HTMLElement[] = [];
 
@@ -147,23 +148,31 @@ class ModuloRemissao extends Module {
     if (elementosEditados.length === 0) return;
 
     setTimeout(() => {
-      let removeuAlgum = false;
+      let removeuInterna = false;
+      const refIdsExternosRemovidos: string[] = [];
+
       for (const el of elementosEditados) {
         if (!el.isConnected) continue;
         const blot = Quill.find(el);
-        if (blot?.statics?.blotName !== 'remissao-interna') continue;
+        const blotName = blot?.statics?.blotName;
+        if (blotName !== 'remissao-interna' && blotName !== 'remissao-externa') continue;
 
         const refId = el.getAttribute('data-ref-id');
         if (refId) this.cacheTextoRemissao.delete(refId);
 
         const index = blot.offset(this.quill.scroll);
         const length = blot.length();
-        this.quill.formatText(index, length, 'remissao-interna', false, 'silent');
-        removeuAlgum = true;
+        this.quill.formatText(index, length, blotName, false, 'silent');
+
+        if (blotName === 'remissao-interna') {
+          removeuInterna = true;
+        } else if (refId) {
+          refIdsExternosRemovidos.push(refId);
+        }
       }
       // Mesmo evento do botão "Excluir" (fecha popup + limpa registry, ver editor.component.ts).
-      if (removeuAlgum) {
-        this.emitirEventoRemissaoRemove();
+      if (removeuInterna || refIdsExternosRemovidos.length > 0) {
+        this.emitirEventoRemissaoRemove(refIdsExternosRemovidos);
       }
     }, 0);
   }
@@ -325,12 +334,13 @@ class ModuloRemissao extends Module {
     }
   }
 
-  emitirEventoRemissaoRemove(): void {
+  emitirEventoRemissaoRemove(refIdsExternosRemovidos: string[] = []): void {
     const event = new CustomEvent(REMISSAO_INTERNA_REMOVE_EVENT, {
       bubbles: true,
       composed: true,
       detail: {
         remissoes: this.getRemissoes(),
+        refIdsExternosRemovidos,
       },
     });
     this.quill.root.dispatchEvent(event);
@@ -666,6 +676,8 @@ class ModuloRemissao extends Module {
 
       const absoluteIndex = blotStart + textOffset;
       this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-externa', value, 'silent');
+      // 'silent' não dispara 'text-change' — sem isto, _removerRemissaoEditadaEmTempoReal nunca veria este link.
+      this.seedCacheRemissao(refId, textoRef);
     }
 
     if (savedSelection) {

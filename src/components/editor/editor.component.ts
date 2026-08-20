@@ -495,6 +495,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
       rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+
+      // Enter nunca passava por detectarRemissoesAoSairDaLinha (só clique/seta) — remissão externa nunca era
+      // detectada ao pressionar Enter para criar um novo dispositivo. Mesmo gatilho fire-and-forget do blur.
+      if (linha.uuid !== undefined) {
+        this.coordenarDeteccaoExterna(linha.uuid, stripHtml(textoLinha));
+      }
     }
 
     if (posicao === 'antes') {
@@ -1703,9 +1709,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
+          // Não força o cursor se o usuário já assumiu o controle nesse meio-tempo — setRange/setNativeRange do Quill
+          // move o cursor físico independentemente do source (SILENT só suprime o evento), então sem esse guard o
+          // foco automático ainda rouba o cursor de quem já está digitando (ver docs/analises/
+          // ANALISE_CORRIDA_ASSENTAMENTO_NOVA_PROPOSICAO.md).
+          if (this.quill.linhaAtual) return;
           const el = primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
-            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.USER);
+            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.SILENT);
           }
         }, 0);
       }
@@ -1863,6 +1874,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const linha = this.quill.linhaAtual;
     if (linha?.uuid !== undefined) {
       rootStore.dispatch(removerRemissaoInvalidaAction(linha.uuid, event.detail.remissoes ?? []));
+    }
+    // Mesmo evento cobre remissão externa editada em tempo real (ver moduloRemissao.ts).
+    const refIdsExternosRemovidos: string[] = event.detail.refIdsExternosRemovidos ?? [];
+    for (const refId of refIdsExternosRemovidos) {
+      rootStore.dispatch(removerRemissaoExternaAction(refId));
     }
     // Fecha o popup imediata e assincronamente para evitar que um 'selection-change' atrasado do Quill o reabra com dados obsoletos.
     this.fecharPopupRemissao();
