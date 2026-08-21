@@ -575,14 +575,15 @@ class ModuloRemissao extends Module {
     return true;
   }
 
-  removerRemissaoPorId(refId: string): boolean {
+  // 'silent' na reconciliação automática (coordenarDeteccaoExterna) evita disparar o selection-change nativo do Quill por uma ação que não veio do usuário.
+  removerRemissaoPorId(refId: string, source: 'user' | 'silent' = 'user'): boolean {
     const result = this.findBlotByRefId(refId);
     if (!result) return false;
 
     const { blot, index } = result;
     const length = blot.length();
 
-    this.quill.formatText(index, length, 'remissao-interna', false, 'user');
+    this.quill.formatText(index, length, 'remissao-interna', false, source);
     this.emitirEventoRemissaoRemove();
     return true;
   }
@@ -683,7 +684,12 @@ class ModuloRemissao extends Module {
     if (savedSelection) {
       const sel = savedSelection;
       setTimeout(() => {
-        this.quill.setSelection(sel.index, sel.length, 'silent');
+        // Entre a captura e este timeout, qualquer reconstrução concorrente de blot
+        try {
+          this.quill.setSelection(sel.index, sel.length, 'silent');
+        } catch {
+          //empty
+        }
       }, 0);
     }
   }
@@ -804,7 +810,12 @@ class ModuloRemissao extends Module {
     if (savedSelection) {
       const sel = savedSelection;
       setTimeout(() => {
-        this.quill.setSelection(sel.index, sel.length, 'silent');
+        // Best-effort — ver comentário equivalente em renderizarRemissoesExternasDoState.
+        try {
+          this.quill.setSelection(sel.index, sel.length, 'silent');
+        } catch {
+          //empty
+        }
       }, 0);
     }
   }

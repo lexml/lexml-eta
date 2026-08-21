@@ -1625,7 +1625,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const refIdsNovos = new Set((rootStore.getState().elementoReducer.remissoes?.[sourceUuid] ?? []).map((r: { refId: string }) => r.refId));
     for (const refId of refIdsAntigos) {
-      if (!refIdsNovos.has(refId)) remissaoModule?.removerRemissaoPorId(refId as string);
+      // 'silent': reconciliação automática, não ação do usuário — ver comentário em removerRemissaoPorId.
+      if (!refIdsNovos.has(refId)) remissaoModule?.removerRemissaoPorId(refId as string, 'silent');
     }
 
     const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
