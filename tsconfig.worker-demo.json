@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // outDir/rootDir reproduzem "out-tsc/src/util/lexml-linker/..." de propósito: o plugin de
+    // asset do @open-wc/building-rollup resolve new Worker(new URL('./lexml-linker.worker.js',
+    // import.meta.url)) contra esse caminho sintético (baseado no arquivo-fonte pré-bundle), não
+    // contra a URL real do chunk publicado — confirmado inspecionando o bundle gerado.
+    "outDir": "prod/out-tsc",
+    "rootDir": ".",
+    "noImplicitAny": false
+  },
+  "include": ["src/util/lexml-linker/lexml-linker.worker.ts"]
+}
