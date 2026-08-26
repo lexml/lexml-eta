@@ -1,4 +1,5 @@
 import { expect } from '@open-wc/testing';
+import PrivateQuill from '../../../src/internal/quill/private-quill';
 import { RemissaoInternaBlot } from '../../../src/util/eta-quill/eta-blot-remissao-interna';
 import { ModuloRemissao } from '../../../src/components/editor/moduloRemissao';
 import { ADICIONAR_REMISSAO_INTERNA } from '../../../src/model/lexml/acao/adicionarRemissaoInternaAction';
@@ -69,8 +70,8 @@ describe('Dupla registracao: Quill.register com overwrite:true e seguro', () => 
   it('registrar o mesmo modulo duas vezes com overwrite:true nao lanca erro', () => {
     let threwError = false;
     try {
-      Quill.register('modules/remissaoInterna', ModuloRemissao, true);
-      Quill.register('modules/remissaoInterna', ModuloRemissao, true);
+      PrivateQuill.register('modules/remissaoInterna', ModuloRemissao, true);
+      PrivateQuill.register('modules/remissaoInterna', ModuloRemissao, true);
     } catch (e) {
       threwError = true;
     }

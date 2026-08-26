@@ -1,8 +1,9 @@
 import { RemissaoInternaValue } from '../../model/remissao';
 import { EtaContainerTable } from './eta-container-table';
 import { limparAtributosRemissaoAntesDoUnwrap } from './eta-blot-remissao-util';
+import PrivateQuill from '../../internal/quill/private-quill';
 
-const Inline = Quill.import('blots/inline');
+const Inline = PrivateQuill.import('blots/inline');
 
 export class RemissaoInternaBlot extends Inline {
   static blotName = 'remissao-interna';

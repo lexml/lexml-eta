@@ -1,7 +1,8 @@
 import { RemissaoExternaValue } from '../../model/remissao';
 import { limparAtributosRemissaoAntesDoUnwrap } from './eta-blot-remissao-util';
+import PrivateQuill from '../../internal/quill/private-quill';
 
-const Inline = Quill.import('blots/inline');
+const Inline = PrivateQuill.import('blots/inline');
 
 export class RemissaoExternaBlot extends Inline {
   static blotName = 'remissao-externa';

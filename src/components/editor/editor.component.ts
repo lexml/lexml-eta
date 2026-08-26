@@ -509,11 +509,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       }
     }
 
+    this.cancelarTimerOnChangePendente();
     if (posicao === 'antes') {
       const actionAntes = this.getActionAdicionarAntes(linha.tipo);
       rootStore.dispatch(actionAntes.execute(elemento, textoNovaLinha));
     } else {
-      this.cancelarTimerOnChangePendente();
       rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
     }
   }
@@ -1742,6 +1742,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
             this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.SILENT);
+            this.focarQuillQuandoVisivel();
           }
         }, 0);
       }

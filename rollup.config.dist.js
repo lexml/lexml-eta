@@ -97,5 +97,9 @@ const configTsMin = {
   plugins: [typescript({ tsconfig: 'tsconfig.dist.json' }), nodeResolve(), privateQuillForDistribution(), terser(), validatePrivateQuillBundle()],
 };
 
+// lexml-linker.worker.ts é compilado à parte, via tsc puro (ver tsconfig.worker-dist.json e o
+// script build:lexml-linker-worker-dist) — @rollup/plugin-typescript trava em OOM ao processar os .mjs
+// vendorizados (minificados) importados por ele.
+
 // Configuração rollup usada para atualizar a pasta "dist", que será a raiz da publicação.
 export default [configTs, configTsMin];

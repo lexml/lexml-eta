@@ -1,10 +1,11 @@
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { gerarRefId } from '../../model/remissao/refId';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
+import PrivateQuill from '../../internal/quill/private-quill';
 
-const Delta = Quill.import('delta');
-const Module = Quill.import('core/module');
-const Parchment = Quill.import('parchment');
+const Delta = PrivateQuill.import('delta');
+const Module = PrivateQuill.import('core/module');
+const Parchment = PrivateQuill.import('parchment');
 
 const cfgInline = {
   scope: Parchment.Scope.INLINE_ATTRIBUTE,
@@ -30,8 +31,8 @@ class ModuloRemissao extends Module {
   }
 
   static register(): void {
-    Quill.register(DataLexmlRefAttribute, true);
-    Quill.register(DataRefIdAttribute, true);
+    PrivateQuill.register(DataLexmlRefAttribute, true);
+    PrivateQuill.register(DataRefIdAttribute, true);
   }
 
   constructor(quill: any, options: any) {
@@ -153,7 +154,7 @@ class ModuloRemissao extends Module {
 
       for (const el of elementosEditados) {
         if (!el.isConnected) continue;
-        const blot = Quill.find(el);
+        const blot = PrivateQuill.find(el);
         const blotName = blot?.statics?.blotName;
         if (blotName !== 'remissao-interna' && blotName !== 'remissao-externa') continue;
 
@@ -434,7 +435,7 @@ class ModuloRemissao extends Module {
     const remissoesParaRemover: { index: number; length: number }[] = [];
 
     links.forEach((link: Element) => {
-      const blot = Quill.find(link);
+      const blot = PrivateQuill.find(link);
       if (blot) {
         const blotIndex = blot.offset(this.quill.scroll);
         const blotLength = blot.length();
@@ -494,7 +495,7 @@ class ModuloRemissao extends Module {
     if (links.length === 0) return null;
 
     const link = links[0] as HTMLElement;
-    const blot = Quill.find(link);
+    const blot = PrivateQuill.find(link);
 
     if (!blot) return null;
 
@@ -552,7 +553,7 @@ class ModuloRemissao extends Module {
     if (links.length === 0) return null;
 
     const link = links[0] as HTMLElement;
-    const blot = Quill.find(link);
+    const blot = PrivateQuill.find(link);
     if (!blot) return null;
 
     return { blot, index: blot.offset(this.quill.scroll) };
@@ -658,14 +659,14 @@ class ModuloRemissao extends Module {
       // Verifica se o link já está registrado como blot Quill correto
       const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-externa[data-ref-id="${CSS.escape(refId)}"]`);
       if (linkExistente) {
-        const blot = Quill.find(linkExistente);
+        const blot = PrivateQuill.find(linkExistente);
         if (blot?.statics?.blotName === 'remissao-externa') continue;
       }
 
       const domEl = this.quill.root.querySelector(`#texto__dispositivo${sourceUuid}`);
       if (!domEl) continue;
 
-      const blot = Quill.find(domEl);
+      const blot = PrivateQuill.find(domEl);
       if (!blot) continue;
 
       const blotStart = blot.offset(this.quill.scroll);
@@ -709,7 +710,7 @@ class ModuloRemissao extends Module {
     let blotLength = -1;
     const domEl = this.quill.root.querySelector(`#texto__dispositivo${uuidDispositivoAtual}`);
     if (domEl) {
-      const blot = Quill.find(domEl);
+      const blot = PrivateQuill.find(domEl);
       if (blot) {
         blotStart = blot.offset(this.quill.scroll);
         blotLength = blot.length();
@@ -719,7 +720,7 @@ class ModuloRemissao extends Module {
     for (const remissao of remissoesDoDispositivo) {
       const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${CSS.escape(remissao.refId!)}"]`);
       if (linkExistente) {
-        const blot = Quill.find(linkExistente);
+        const blot = PrivateQuill.find(linkExistente);
         if (blot?.statics?.blotName === 'remissao-interna') {
           // Usa 'silent' para não disparar observableSelectionChange (que só notifica ao mudar de linha).
           const textoBlot = (linkExistente.textContent || '').trim();
