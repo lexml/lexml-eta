@@ -20,7 +20,7 @@ let state: State;
 
 describe('Testando a "sincronização" de ids em alteração de norma', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, false);
 
     const artigo = projetoNorma.articulacao!.artigos[0]!;
     artigo.rotulo = 'Art.';

@@ -15,7 +15,7 @@ let eventos: StateEvent[];
 
 describe('Testando carregamento da MPV 885/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_1160_2023, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_1160_2023, false);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -56,22 +56,22 @@ describe('Testando carregamento da MPV 885/2019', () => {
       expect(state.articulacao?.filhos[3].alteracoes?.filhos.length).to.equal(3);
     });
 
-    it('Deveria possuir artigos 1º e 2º, dentro do artigo 4º, com situação Dispositivo Original', () => {
+    it('Deveria possuir artigos 1º e 2º, dentro do artigo 4º, com situação Dispositivo Novo', () => {
       const disp1 = buscaDispositivoById(state.articulacao!, 'art4_cpt_alt1_art1')!;
       const disp2 = buscaDispositivoById(state.articulacao!, 'art4_cpt_alt1_art2')!;
-      expect(disp1.situacao.descricaoSituacao).to.equal('Dispositivo Original');
-      expect(disp2.situacao.descricaoSituacao).to.equal('Dispositivo Original');
+      expect(disp1.situacao.descricaoSituacao).to.equal('Dispositivo Novo');
+      expect(disp2.situacao.descricaoSituacao).to.equal('Dispositivo Novo');
     });
 
-    it('Deveria possuir todos os artigos com situação Dispositivo Original', () => {
-      expect(state.articulacao?.artigos.every(a => a.situacao.descricaoSituacao === 'Dispositivo Original')).to.be.true;
+    it('Deveria possuir todos os artigos com situação Dispositivo Novo', () => {
+      expect(state.articulacao?.artigos.every(a => a.situacao.descricaoSituacao === 'Dispositivo Novo')).to.be.true;
     });
 
     describe('Testando eventos', () => {
       it('Deveria possuir evento ElementoIncluido com 5 elementos', () => {
         const evIncluidos = eventos.filter(e => e.stateType === StateType.ElementoIncluido)[0];
         expect(evIncluidos.elementos?.length).to.equal(5);
-        expect(evIncluidos.elementos?.every(e => e.descricaoSituacao === 'Dispositivo Original')).to.be.true;
+        expect(evIncluidos.elementos?.every(e => e.descricaoSituacao === 'Dispositivo Novo')).to.be.true;
         expect(evIncluidos.elementos?.every(e => e.dispositivoAlteracao)).to.be.true;
       });
 

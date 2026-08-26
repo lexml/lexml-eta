@@ -14,7 +14,7 @@ let state: State;
 
 describe('Testando a inclusão de agrupadores', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, false);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

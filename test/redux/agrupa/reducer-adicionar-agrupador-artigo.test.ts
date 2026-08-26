@@ -18,7 +18,7 @@ let agrupadorCriado: Dispositivo;
 
 describe('Testando a inclusão de agrupador de dispositivo da MPV', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, false);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -55,12 +55,13 @@ describe('Testando a inclusão de agrupador de dispositivo da MPV', () => {
       state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art6, novo: { tipo: 'Capitulo', posicao: 'antes' } });
       // eventos = getEventosQuePossuemElementos(state.ui!.events);
     });
-    it('Deveria possuir Capítulo I-1 como pai dos artigos 6 a 18', () => {
-      const cap1_1 = state.articulacao!.artigos[5].pai!;
-      expect(cap1_1.id).to.equal('cap1-1');
-      expect(cap1_1.rotulo).to.equal('CAPÍTULO I-1');
-      expect(cap1_1.filhos.length).to.equal(13);
-      expect(cap1_1.filhos.filter(f => f.tipo === 'Artigo').length).to.equal(13);
+    // Em proposição o novo capítulo é numerado na sequência; o complemento "I-1" existia para não renumerar dispositivos originais de emenda.
+    it('Deveria possuir Capítulo II como pai dos artigos 6 a 18', () => {
+      const novoCapitulo = state.articulacao!.artigos[5].pai!;
+      expect(novoCapitulo.id).to.equal('cap2');
+      expect(novoCapitulo.rotulo).to.equal('CAPÍTULO II');
+      expect(novoCapitulo.filhos.length).to.equal(13);
+      expect(novoCapitulo.filhos.filter(f => f.tipo === 'Artigo').length).to.equal(13);
     });
     it('Deveria encontrar artigo que mudou de pai na articulação', () => {
       const evReferenciado = getEvento(state.ui!.events, StateType.ElementoReferenciado);
