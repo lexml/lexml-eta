@@ -99,18 +99,20 @@ import { criarPopup, mostrarPopup, esconderPopup } from '../popup-inline/popupIn
 import { removerRemissaoInvalidaAction } from '../../model/lexml/acao/removerRemissaoInvalidaAction';
 import { gerarRefId } from '../../model/remissao/refId';
 import { lexmlLinkerClient } from '../../util/lexml-linker/lexmlLinkerClient';
+import PrivateQuill from '../../internal/quill/private-quill';
+import { QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource } from '../../internal/quill/quill-types';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
 
-  @query('lexml-ajuda-modal')
+  @query('lexml-eta-ajuda-modal')
   private ajudaModal!: AjudaModalComponent;
 
-  @query('lexml-atalhos-modal')
+  @query('lexml-eta-atalhos-modal')
   private atalhosModal!: AtalhosModalComponent;
 
-  @query('lexml-sufixos-modal')
+  @query('lexml-eta-sufixos-modal')
   private sufixosModal!: SufixosModalComponent;
 
   @query('#btnAceitarTodasRevisoes')
@@ -352,13 +354,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <span id="pos-select-paginacao"></span>
 
-          <lexml-switch-revisao
+          <lexml-eta-switch-revisao
           class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
           modo="${this.modo}"
           >
-          </lexml-switch-revisao>
+          </lexml-eta-switch-revisao>
 
           ${this.exibirBotoesParaTratarTodas ? this.renderBotoesParaTratarTodasRevisoes() : ''}
 
@@ -377,9 +379,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         <div id="lx-eta-editor"></div>
       </div>
       <div id="lx-eta-buffer"><p></p></div>
-      <lexml-ajuda-modal></lexml-ajuda-modal>
-      <lexml-atalhos-modal></lexml-atalhos-modal>
-      <lexml-sufixos-modal></lexml-sufixos-modal>
+      <lexml-eta-ajuda-modal></lexml-eta-ajuda-modal>
+      <lexml-eta-atalhos-modal></lexml-eta-atalhos-modal>
+      <lexml-eta-sufixos-modal></lexml-eta-sufixos-modal>
       <proposicao-dividida-modal></proposicao-dividida-modal>
     `;
   }
@@ -423,8 +425,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     //rootStore.dispatch(validarArticulacaAction.execute());
   }
 
-  private onSelectionChange: SelectionChangeHandler = (range: RangeStatic, oldRange: RangeStatic, source: Sources): void => {
-    if (range?.length === 0 && source === Quill.sources.USER) {
+  private onSelectionChange: QuillSelectionChangeHandler = (range: QuillRange, oldRange: QuillRange, source: QuillSource): void => {
+    if (range?.length === 0 && source === PrivateQuill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
     this._temSelecao = (range?.length ?? 0) > 0;
@@ -470,12 +472,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return (textoLinhaAtual + textoNovaLinha).localeCompare(textoAnterior) !== 0;
   }
 
-  private adicionarElemento(range: RangeStatic): void {
+  private adicionarElemento(range: QuillRange): void {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const blotConteudo: EtaBlotConteudo = linha.blotConteudo;
 
     const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
-    const indexFim: number = indexInicio + blotConteudo!.tamanho ?? 0;
+    const indexFim: number = indexInicio + blotConteudo.tamanho;
     let textoLinha = '';
     let textoNovaLinha = '';
     let posicao: string | undefined = undefined;
@@ -511,6 +513,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const actionAntes = this.getActionAdicionarAntes(linha.tipo);
       rootStore.dispatch(actionAntes.execute(elemento, textoNovaLinha));
     } else {
+      this.cancelarTimerOnChangePendente();
       rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
     }
   }
@@ -725,6 +728,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
+      this.cancelarTimerOnChangePendente();
       if (ev.key === 'ArrowUp') {
         rootStore.dispatch(moverElementoAcimaAction.execute(elemento));
       } else if (ev.key === 'ArrowDown') {
@@ -760,6 +764,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     //
     // TODO: Chamar action para undo ou redo - estrutura.
     //
+    this.cancelarTimerOnChangePendente();
     if (tipo === 'undo') {
       rootStore.dispatch(UndoAction());
     } else {
@@ -894,7 +899,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoMarcado:
-          setTimeout(() => this.marcarLinha(event), 100);
+          setTimeout(() => this.marcarLinha(event), 0);
           break;
 
         case StateType.SituacaoElementoModificada:
@@ -999,13 +1004,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.elementoSelecionado(linha.uuid);
       const index = this.quill.getIndex(linha.blotConteudo);
       try {
-        this.quill.setIndex(index, Quill.sources.SILENT);
+        this.quill.setIndex(index, PrivateQuill.sources.SILENT);
         // eslint-disable-next-line no-empty
       } catch (error) {}
       if (event.moverParaFimLinha) {
         setTimeout(() => {
           const posicao = this.quill.getSelection()!.index + this.quill.linhaAtual.blotConteudo.html.length;
-          this.quill.setSelection(posicao, 0, Quill.sources.USER);
+          this.quill.setSelection(posicao, 0, PrivateQuill.sources.USER);
         }, 0);
       }
     } catch (error) {
@@ -1042,7 +1047,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.desmarcarLinhaAtual(linhaAtual);
       this.quill.marcarLinhaAtual(linha);
       try {
-        this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), Quill.sources.SILENT);
+        this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), PrivateQuill.sources.SILENT);
       } catch (e) {
         // console.log(e);
       }
@@ -1240,7 +1245,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
 
-      this.quill.setSelection(index, 0, Quill.sources.SILENT);
+      this.quill.setSelection(index, 0, PrivateQuill.sources.SILENT);
       this.quill.marcarLinhaAtual(linhaCursor);
     }
   }
@@ -1342,11 +1347,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return elemento;
   }
 
-  private inicializar(op: QuillOptionsStatic): void {
+  private inicializar(op: QuillOptions): void {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     const bufferHtml: HTMLElement = this.getHtmlElement('lx-eta-buffer');
 
-    EtaQuill.configurar();
     this._quill = new EtaQuill(editorHtml, bufferHtml, op);
     this._remissaoPopup = criarPopup();
     document.body.appendChild(this._remissaoPopup);
@@ -1523,6 +1527,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (!linha?.blotConteudo?.alterado) return true;
 
     return this.verificarSomenteFormatoMudou(linha);
+  }
+
+  // Evita que inserirNovoElementoNoQuill pule o reposicionamento síncrono do cursor
+  // (guarda "!this.timerOnChange") quando um novo elemento é criado logo após digitar.
+  private cancelarTimerOnChangePendente(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = undefined;
   }
 
   // preservarHtmlAnt: usado só pelo Caminho C (debounce de keystroke, emitirEventoOnChange). O dispatch
@@ -1725,9 +1736,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           // foco automático ainda rouba o cursor de quem já está digitando (ver docs/analises/
           // ANALISE_CORRIDA_ASSENTAMENTO_NOVA_PROPOSICAO.md).
           if (this.quill.linhaAtual) return;
-          const el = primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
+
+          // No carregamento inicial (não em troca de página), o cursor deve começar na ementa, não no 1º artigo.
+          const elementoEmenta = !isMudancaDePagina ? elementos.find(elemento => elemento.tipo === 'Ementa') : undefined;
+          const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
-            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, Quill.sources.SILENT);
+            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.SILENT);
           }
         }, 0);
       }
@@ -1735,7 +1749,20 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }, 0);
   }
 
-  private configEditor(): QuillOptionsStatic {
+  // No carregamento inicial, o container do editor pode ainda estar oculto (ex.: aba ainda não exibida
+  // pelo componente pai), quando o quill.focus() é chamado o foco não "pega" (root.focus() é no-op em
+  // elemento oculto). Reaplica o foco (preservando a seleção já definida) até o editor ficar visível.
+  private focarQuillQuandoVisivel(tentativasRestantes = 30): void {
+    if (!this.quill?.root?.isConnected) return;
+
+    if (this.quill.root.offsetParent) {
+      this.quill.focus();
+    } else if (tentativasRestantes > 0) {
+      setTimeout(() => this.focarQuillQuandoVisivel(tentativasRestantes - 1), 70);
+    }
+  }
+
+  private configEditor(): QuillOptions {
     return {
       formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis', 'remissao-interna', 'remissao-externa'],
       modules: {

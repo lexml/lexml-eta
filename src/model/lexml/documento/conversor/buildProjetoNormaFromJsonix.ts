@@ -7,7 +7,8 @@ import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispo
 import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
 import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
-import { getTipo, getTipoDocumentoUrn } from '../urnUtil';
+import PrivateQuill from '../../../../internal/quill/private-quill';
+import { getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { isArtigo } from './../../../dispositivo/tipo';
 
 export let isEmendamento = false;
@@ -19,7 +20,7 @@ let ultimoDispositivoCriado: Dispositivo;
 const ajustarTextosParaQuill = (projetoNorma: ProjetoNorma): void => {
   if (window.process.env.testMode) return;
 
-  const fnAjustaFormatoQuill = (texto: string, container: any, quill: Quill): string => {
+  const fnAjustaFormatoQuill = (texto: string, container: any, quill: InstanceType<typeof PrivateQuill>): string => {
     const regexMatchTagsBoldOuItalicContendoTagAnchorDentro = /<(b|i)>(?:(?!(<\/\1>)).)*<a[^>]*>.*<\/a>.*<\/\1>/gi;
     if (texto?.match(regexMatchTagsBoldOuItalicContendoTagAnchorDentro)) {
       quill.setContents(quill.clipboard.convert(texto));
@@ -29,7 +30,7 @@ const ajustarTextosParaQuill = (projetoNorma: ProjetoNorma): void => {
   };
 
   const tempContainer = document.createElement('div');
-  const tempQuill = new Quill(tempContainer, {});
+  const tempQuill = new PrivateQuill(tempContainer, {});
 
   if (projetoNorma.ementa) {
     projetoNorma.ementa.texto = fnAjustaFormatoQuill(projetoNorma.ementa.texto, tempContainer, tempQuill);
@@ -121,7 +122,7 @@ const buildTextoEpigrafeFromDocument = (documentoLexml: any): string => {
 
 const buildTextoEpigrafe = (urn: string): string => {
   const tipo = getTipoDocumentoUrn(urn);
-  return tipo ? `${tipo.descricao.toUpperCase()} Nº , DE 2025` : '';
+  return tipo ? `${tipo.descricao.toUpperCase()} Nº , DE ${getAno(urn)}` : '';
 };
 
 const buildArticulacao = (tree: any, textoArticulacao?: string): Articulacao => {
@@ -276,6 +277,13 @@ const getTextoSemHtml = (c: any): string => {
 const substituiAspasRetasPorCurvas = (html: string): string => {
   const div = document.createElement('div');
   div.innerHTML = html;
+  const walker = document.createTreeWalker(div, NodeFilter.SHOW_TEXT);
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    if (node.textContent && node.textContent.indexOf('"') !== -1) {
+      node.textContent = node.textContent.replace(/"(?=\w|$)/g, '\u201C').replace(/(?=[\w,.?!\-\u201C]|^)"/g, '\u201D');
+    }
+  }
   return div.innerHTML.replace(/&nbsp;/g, ' ');
 };
 

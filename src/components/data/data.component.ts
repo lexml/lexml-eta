@@ -1,10 +1,10 @@
 import { css, html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 
-@customElement('lexml-data')
+@customElement('lexml-eta-data')
 export class DataComponent extends LitElement {
   static styles = css`
-    .lexml-data {
+    .lexml-eta-data {
       display: block;
       font-size: 1em;
       max-width: 700px;
@@ -71,7 +71,7 @@ export class DataComponent extends LitElement {
           }
         }
       </style>
-      <div class="lexml-data">
+      <div class="lexml-eta-data">
         <sl-radio-group label="Data" fieldset>
           <sl-radio name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
             <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} @input=${this.setDate}></sl-input>
@@ -125,6 +125,6 @@ export class DataComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-data': DataComponent;
+    'lexml-eta-data': DataComponent;
   }
 }

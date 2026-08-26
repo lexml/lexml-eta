@@ -7,7 +7,7 @@ import { connect } from 'pwa-helpers';
 import { StateEvent, StateType } from '../../redux/state';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
-@customElement('lexml-switch-revisao')
+@customElement('lexml-eta-switch-revisao')
 export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number })
   quantidadeRevisao = 0;

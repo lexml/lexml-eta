@@ -1,9 +1,10 @@
 import { Elemento } from '../../model/elemento';
+import PrivateQuill from '../../internal/quill/private-quill';
 import { EtaContainer } from './eta-container';
 
-const Break = Quill.import('blots/break');
-const Block = Quill.import('blots/block');
-const Text = Quill.import('blots/text');
+const Break = PrivateQuill.import('blots/break');
+const Block = PrivateQuill.import('blots/block');
+const Text = PrivateQuill.import('blots/text');
 
 export class EtaContainerTdEsquerdo extends EtaContainer {
   static blotName = 'EtaContainerTdEsquerdo';

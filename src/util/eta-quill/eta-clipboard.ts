@@ -1,4 +1,6 @@
 import { removeTagScript, removeTagStyle, removeTagHead } from './../string-util';
+import PrivateQuill from '../../internal/quill/private-quill';
+import { QuillDelta } from '../../internal/quill/quill-types';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../../redux/store';
 import { cancelarPropagacaoDoEvento } from '../event-util';
@@ -8,7 +10,7 @@ import { CaracteresNaoValidos } from './eta-keyboard';
 import { EtaQuill } from './eta-quill';
 import { ajustaHtmlParaColagem } from '../../redux/elemento/util/colarUtil';
 
-const Clipboard = Quill.import('modules/clipboard');
+const Clipboard = PrivateQuill.import('modules/clipboard');
 
 export class EtaClipboard extends connect(rootStore)(Clipboard) {
   onChange: Observable<string> = new Observable<string>();
@@ -29,7 +31,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
     });
   }
 
-  convert(html?: any): DeltaStatic {
+  convert(html?: any): QuillDelta {
     if (typeof html === 'string') {
       this.container.innerHTML = html;
       return super.convert();
@@ -42,7 +44,7 @@ export class EtaClipboard extends connect(rootStore)(Clipboard) {
       .replace(/<(?!strong)(?!\/strong)(?!em)(?!\/em)(?!sub)(?!\/sub)(?!sup)(?!\/sup)(.*?)>/gi, '')
       .replace(/<([a-z]+) .*?=".*?( *\/?>)/gi, '<$1$2');
 
-    const delta: DeltaStatic = super.convert();
+    const delta: QuillDelta = super.convert();
     this.container.innerHTML = '';
     return delta;
   }

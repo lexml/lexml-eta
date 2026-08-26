@@ -1,7 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
-import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 import {
   adicionarArtigo,
@@ -12,7 +12,6 @@ import {
   adicionarParagrafoFilho,
 } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
-import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { InformarDadosAssistenteAction } from '../acao/informarDadosAssistenteAction';
@@ -34,13 +33,9 @@ import {
 } from '../acao/transformarElementoAction';
 import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
-  getAgrupadorPosterior,
-  getAgrupadoresAcima,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasAgrupadoresAcima,
-  hasAgrupadoresPosteriores,
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
@@ -125,43 +120,6 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       ) {
         acoes.push(transformarArtigoEmParagrafo);
       }
-      if (dispositivo.pai && !isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai) && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {
-        acoes.push(adicionarCapitulo);
-      }
-      if (dispositivo.pai && isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai)) {
-        acoes.push(adicionarCapitulo);
-      }
-      if (!isDispositivoAlteracao(dispositivo) && dispositivo.pai && hasAgrupadoresPosteriores(dispositivo)) {
-        acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
-      }
-      if (!isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai!)) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
-        dispositivo.tiposPermitidosPai
-          ?.filter(() => pos > 0)
-          .filter((tipo, index) => (dispositivo.pai!.indexOf(dispositivo) > 0 ? index >= pos! : index > pos!))
-          .forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
-      if (
-        !isDispositivoAlteracao(dispositivo) &&
-        isAgrupador(dispositivo.pai!) &&
-        !isArticulacao(dispositivo.pai!) &&
-        dispositivo.pai!.indexOf(dispositivo) > 0 &&
-        hasAgrupadoresAcima(dispositivo)
-      ) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
-
-        const tiposExistentes = getAgrupadoresAcima(dispositivo.pai!.pai!, dispositivo.pai!, []).reduce(
-          (lista: string[], dispositivo: Dispositivo) =>
-            lista.includes(dispositivo.tipo) && getAgrupadorPosterior(dispositivo) !== undefined ? lista : lista.concat(dispositivo.tipo),
-          []
-        );
-        dispositivo.tiposPermitidosPai
-          ?.filter(() => pos > 0)
-          .filter(t => tiposExistentes.includes(t))
-          .forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
       if (podeConverterEmOmissis(dispositivo) && !isArticulacao(dispositivo.pai!)) {
         acoes.push(transformarEmOmissisArtigo);
       }

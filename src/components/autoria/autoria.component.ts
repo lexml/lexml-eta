@@ -38,7 +38,7 @@ function executarAposValidacao(interval = 200) {
   };
 }
 
-@customElement('lexml-autoria')
+@customElement('lexml-eta-autoria')
 export class AutoriaComponent extends LitElement {
   static styles = [autoriaCss];
 
@@ -48,7 +48,7 @@ export class AutoriaComponent extends LitElement {
   @queryAll('input#tex-cargo')
   private _inputCargos!: NodeListOf<HTMLInputElement>;
 
-  @queryAll('lexml-autocomplete')
+  @queryAll('lexml-eta-autocomplete')
   private _autocompletes!: NodeListOf<LexmlAutocomplete>;
 
   @state()
@@ -179,8 +179,8 @@ export class AutoriaComponent extends LitElement {
       <div class="autoria-grid">
         <div class="autoria-grid--col1">
           <label for="defaultInput" class="autoria-label">Parlamentar</label>
-          <lexml-autocomplete
-            class="lexml-autocomplete"
+          <lexml-eta-autocomplete
+            class="lexml-eta-autocomplete"
             .items=${this._nomesAutocomplete}
             value=${this._autoria.parlamentares[index].nome}
             @input=${(ev: Event): void => this._validarNomeParlamentar(ev, index)}
@@ -188,7 +188,7 @@ export class AutoriaComponent extends LitElement {
             @autocomplete=${(ev: CustomEvent): void => this._atualizarParlamentar(ev, index)}
             @keyup=${(ev: KeyboardEvent): void => this._handleKeyUp(ev, index)}
             @click=${this._handleClickAutoComplete}
-          ></lexml-autocomplete>
+          ></lexml-eta-autocomplete>
         </div>
 
         <div class="autoria-grid--col2">
@@ -421,7 +421,7 @@ export class AutoriaComponent extends LitElement {
   }
 
   private _focarAutocompleteOuCargo(el: EventTarget, index: number, deslocamento: number): void {
-    const nodes = (el as HTMLElement).tagName === 'LEXML-AUTOCOMPLETE' ? this._autocompletes : this._inputCargos;
+    const nodes = (el as HTMLElement).tagName === 'LEXML-ETA-AUTOCOMPLETE' ? this._autocompletes : this._inputCargos;
     const newIndex = index + deslocamento;
     if (newIndex < 0 || newIndex >= nodes.length) {
       return;
@@ -453,6 +453,6 @@ export class AutoriaComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-autoria': AutoriaComponent;
+    'lexml-eta-autoria': AutoriaComponent;
   }
 }

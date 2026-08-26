@@ -45,7 +45,12 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
   setDispositivosERevisoesEmenda(revisoes?: Revisao[]): void {
     this.revisoes = revisoes;
-    this.loadEmenda();
+    // Só há o que aplicar (dispositivosEmenda ou revisões) quando é de fato uma emenda/revisão sendo carregada;
+    // sem essa guarda, o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
+    // (situação padrão de todo dispositivo recém-criado), deslocando o cursor da ementa ~1s após o carregamento.
+    if (this.dispositivosEmenda || revisoes?.length) {
+      this.loadEmenda();
+    }
   }
 
   getProjetoAtualizado(): any {

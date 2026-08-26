@@ -1,4 +1,4 @@
-// import Quill from 'quill';
+import Quill from '../../../../internal/quill/private-quill';
 import TableCell from './TableCellBlot';
 import ContainBlot from './ContainBlot';
 import TableTrick from './TableTrick';

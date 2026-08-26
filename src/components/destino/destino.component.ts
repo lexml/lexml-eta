@@ -9,7 +9,7 @@ import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { TipoMensagem } from '../../model/lexml/util/mensagem';
 import { RefProposicaoReduzida } from '../../model/proposicao/proposicao';
 
-@customElement('lexml-destino')
+@customElement('lexml-eta-destino')
 export class DestinoComponent extends LitElement {
   @query('#auto-complete-async')
   private _autocomplete!: AutocompleteAsync;
@@ -147,7 +147,7 @@ export class DestinoComponent extends LitElement {
           border-color: #f5c6cb;
         }
       </style>
-      <fieldset class="lexml-destino">
+      <fieldset class="lexml-eta-destino">
         <legend>Destino</legend>
         <div>
           <sl-radio-group id="tipoColegiado">
@@ -181,7 +181,7 @@ export class DestinoComponent extends LitElement {
           </sl-radio-group>
         </div>
         <div style="width:100%;margin-top:10px">
-          <autocomplete-async
+          <lexml-eta-autocomplete-async
             id="auto-complete-async"
             label="Comissão"
             .async=${false}
@@ -194,7 +194,7 @@ export class DestinoComponent extends LitElement {
             .onClick="${() => this._exibirComissoes()}"
             @blur=${this._blurAutoComplete}
             ?disabled=${this.isMPV || this.isPlenario || this.tipoColegiadoPlenario || !this.comissoes?.length}
-          ></autocomplete-async>
+          ></lexml-eta-autocomplete-async>
           ${this.isErroComissaoSelecionada ? html` <div class="mensagem mensagem--danger">A comissão de destino deve ser selecionada.</div> ` : ''}
         </div>
       </fieldset>
@@ -281,6 +281,6 @@ export class DestinoComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-destino': DestinoComponent;
+    'lexml-eta-destino': DestinoComponent;
   }
 }

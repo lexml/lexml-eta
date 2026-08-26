@@ -1,12 +1,7 @@
 import { quillSnowStyles } from '../../assets/css/quill.snow.css';
-import { EstiloTextoClass } from './estilos-texto';
-import { MarginBottomClass } from './margin-bottom';
+import PrivateQuill from '../../internal/quill/private-quill';
 import { NOTA_RODAPE_INPUT_EVENT } from './notaRodape';
 import { QuillUtil } from './quill-util';
-import { NoIndentClass } from './text-indent';
-
-const DefaultKeyboardModule = Quill.import('modules/keyboard');
-const DefaultClipboardModule = Quill.import('modules/clipboard');
 
 export class NotaRodapeModal {
   private modalElement: HTMLElement;
@@ -28,7 +23,7 @@ export class NotaRodapeModal {
 
     this.modalElement = document.createElement('div');
     this.modalElement.classList.add('modal');
-    this.modalElement.classList.add('modal-nota-rodape');
+    this.modalElement.classList.add('modal-lexml-eta-nota-rodape');
 
     this.shadowRoot = document.createElement('div');
     this.shadowRoot.classList.add('d-flex');
@@ -39,7 +34,7 @@ export class NotaRodapeModal {
       ${quillSnowStyles.strings.join('')}
       <style>
 
-        .modal-nota-rodape {
+        .modal-lexml-eta-nota-rodape {
           display: inline-table;
           position: absolute;
           top: 50%;
@@ -178,22 +173,22 @@ export class NotaRodapeModal {
           }
         }
 
-        .modal-nota-rodape .ql-tooltip input:invalid {
+        .modal-lexml-eta-nota-rodape .ql-tooltip input:invalid {
           color: red;
         }
 
-        .modal-nota-rodape .ql-tooltip div.tooltip-invalid-message {
+        .modal-lexml-eta-nota-rodape .ql-tooltip div.tooltip-invalid-message {
           color: red;
           display: none;
           font-family: var(--eta-font-sans);
           font-size: 0.9rem;
         }
 
-        .modal-nota-rodape .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
+        .modal-lexml-eta-nota-rodape .ql-tooltip[data-mode='link'] div.tooltip-invalid-message::after {
           content: 'A URL deve iniciar com http:// ou https://';
         }
 
-        .modal-nota-rodape .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
+        .modal-lexml-eta-nota-rodape .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
           display: block;
         }
         .d-flex {
@@ -208,7 +203,7 @@ export class NotaRodapeModal {
         <button class="modal-close-button header-close-button" aria-label="Fechar" title="Fechar">&times;</button>
       </div>
       <div class="modal-body">
-        <div id="editor-nota-rodape-container"></div>
+        <div id="editor-lexml-eta-nota-rodape-container"></div>
       </div>
       <div class="modal-footer">
         <button class="modal-save-button" aria-label="Salvar">Salvar</button>
@@ -243,14 +238,8 @@ export class NotaRodapeModal {
 
     this.shadowRoot.querySelector('.modal-save-button')?.addEventListener('click', this.save.bind(this));
 
-    const quillContainer = this.shadowRoot.querySelector('#editor-nota-rodape-container') as HTMLElement;
-    Quill.register('modules/keyboard', DefaultKeyboardModule, true);
-    Quill.register('modules/clipboard', DefaultClipboardModule, true);
-    Quill.register('formats/estilo-texto', EstiloTextoClass, true);
-    Quill.register('formats/text-indent', NoIndentClass, true);
-    Quill.register('formats/margin-bottom', MarginBottomClass, true);
-
-    this.quill = new Quill(quillContainer, {
+    const quillContainer = this.shadowRoot.querySelector('#editor-lexml-eta-nota-rodape-container') as HTMLElement;
+    this.quill = new PrivateQuill(quillContainer, {
       formats: ['bold', 'italic', 'underline', 'link'],
       modules: {
         toolbar: {

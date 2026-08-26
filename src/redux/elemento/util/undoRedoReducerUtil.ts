@@ -447,3 +447,25 @@ export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: Stat
   }
   return result;
 };
+
+export const isUndoRedoColarSubstituindo = (eventos: StateEvent[]): boolean => {
+  const eventosExclusao = eventos.filter(ev => ev.stateType === StateType.ElementoRemovido);
+  const elementosExcluidos = eventosExclusao.flatMap(ev => ev.elementos ?? []);
+  if (elementosExcluidos.length === 0) {
+    return false;
+  }
+
+  const lexmlIdsExcluidos = obterElementosRaiz(elementosExcluidos).map(el => el.lexmlId!);
+
+  const eventosInclusao = eventos.filter(ev => ev.stateType === StateType.ElementoIncluido);
+  const elementosIncluidos = eventosInclusao.flatMap(ev => ev.elementos ?? []);
+  const lexmlIdsIncluidos = obterElementosRaiz(elementosIncluidos).map(el => el.lexmlId!);
+
+  // Verifica se há interseção entre os IDs dos elementos excluídos e incluídos
+  return lexmlIdsExcluidos.some(id => lexmlIdsIncluidos.includes(id));
+};
+
+const obterElementosRaiz = (elementos: Elemento[]): Elemento[] => {
+  const lexmlIds = elementos.map(el => el.lexmlId!);
+  return elementos.filter(el => !lexmlIds.includes(el.hierarquia!.pai!.lexmlId!));
+};

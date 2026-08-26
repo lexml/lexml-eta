@@ -3,7 +3,7 @@ import { customElement, property, state, query } from 'lit/decorators.js';
 import { Option, AutocompleteAsync } from './autocomplete-async';
 import { Norma } from '../../model/emenda/norma';
 
-@customElement('autocomplete-norma')
+@customElement('lexml-eta-autocomplete-norma')
 export class AutocompleteNorma extends LitElement {
   @property({ type: String })
   urnInicial = '';
@@ -147,7 +147,7 @@ export class AutocompleteNorma extends LitElement {
         }
       </style>
       <div>
-        <autocomplete-async
+        <lexml-eta-autocomplete-async
           id="auto-complete-async"
           label="Identificação da norma"
           placeholder="ex: Lei 10406 ou Código Civil"
@@ -155,7 +155,7 @@ export class AutocompleteNorma extends LitElement {
           .onSearch=${value => this._handleSearch(value)}
           .onSelect=${value => this._handleSelect(value)}
           .onChange=${value => this._handleChange(value)}
-        ></autocomplete-async>
+        ></lexml-eta-autocomplete-async>
         <span class="ajuda">Informar a identificação da norma com tipo e número ou o apelido da norma. São aceitas abreviações como LCP e MPV.</span>
         <label class="lb-ementa">Ementa:</label>
         <div class="wp-ementa"><span class="sp-ementa">${(this._selectedNorma.ementa || '').slice(0, 450)}</span></div>
@@ -165,6 +165,6 @@ export class AutocompleteNorma extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'autocomplete-norma': AutocompleteNorma;
+    'lexml-eta-autocomplete-norma': AutocompleteNorma;
   }
 }

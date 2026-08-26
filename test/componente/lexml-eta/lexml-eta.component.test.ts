@@ -1,6 +1,8 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
 import { Proposicao } from '../../../src/model/proposicao/proposicao';
+import { rootStore } from '../../../src/redux/store';
 
 let component: LexmlEtaComponent;
 
@@ -11,9 +13,17 @@ describe('LexmlEtaParametrosEdicao - atributo substitutivo', () => {
   });
 });
 
+describe('LexmlEtaConfig - atributo justificacaoObrigatoria', () => {
+  it('deve ter valor padrão true', () => {
+    const config = new LexmlEtaConfig();
+    expect(config.justificacaoObrigatoria).to.be.true;
+  });
+});
+
 describe('LexmlEtaComponent - atributo substitutivo', () => {
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
+    rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
   });
 
   describe('Validação dos parâmetros de inicialização', () => {
@@ -107,6 +117,36 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
       proposicaoNormal.substitutivo = false;
       (component as any).setProposicao(proposicaoNormal);
       expect((component as any).substitutivo).to.be.false;
+    });
+  });
+
+  describe('Validação de justificação via LexmlEtaConfig.justificacaoObrigatoria', () => {
+    it('deve incluir pendência de justificação quando obrigatória e vazia', () => {
+      component.lexmlEmendaConfig = new LexmlEtaConfig();
+      component.lexmlEmendaConfig.justificacaoObrigatoria = true;
+
+      const pendencias = (component as any).getPendenciasPreenchimentoEmenda({ justificativa: '' });
+      expect(pendencias).to.include('Não foi informado um texto de justificação.');
+    });
+
+    it('não deve incluir pendência de justificação quando não obrigatória e vazia', () => {
+      component.lexmlEmendaConfig = new LexmlEtaConfig();
+      component.lexmlEmendaConfig.justificacaoObrigatoria = false;
+
+      const pendencias = (component as any).getPendenciasPreenchimentoEmenda({ justificativa: '' });
+      expect(pendencias).to.not.include('Não foi informado um texto de justificação.');
+    });
+
+    it('não deve disparar alerta global de justificação quando não obrigatória', () => {
+      component.lexmlEmendaConfig = new LexmlEtaConfig();
+      component.lexmlEmendaConfig.justificacaoObrigatoria = false;
+      Object.defineProperty(component, '_lexmlJustificativa', { value: { isEditorVazio: () => true } });
+
+      (component as any).buildAlertaJustificativa();
+
+      const alertas = rootStore.getState().elementoReducer.ui?.alertas || [];
+      const alerta = alertas.find(a => a.id === 'alerta-global-justificativa');
+      expect(alerta).to.be.undefined;
     });
   });
 });

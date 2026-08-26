@@ -36,9 +36,11 @@ import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
 import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
 import { MPV_1170_2023_ALTERADA } from '../doc/mpv_1170_2023_alterada';
 import { PL_4_2025 } from '../doc/pl_4_2025';
+import { SBT_2_PEC_18_2025 } from '../doc/sbt_2_pec_18_2025';
 import { validarRecursivo } from './jsonValidator';
 
 const mapProjetosNormas = {
+  sbt_2_pec_18_2025: SBT_2_PEC_18_2025,
   mpv_885_2019: MPV_885_2019,
   mpv_905_2019: MPV_905_2019,
   mpv_930_2020: MPV_930_2020,
@@ -114,6 +116,7 @@ export class DemoView extends LitElement {
   private elLexmlEta!: LexmlEtaComponent;
 
   @state() modo = 'edicao';
+  @state() anexoParecer = false;
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoEmendada();
 
@@ -126,6 +129,8 @@ export class DemoView extends LitElement {
     this.emendaConfig = new LexmlEtaConfig();
     this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
     this.emendaConfig.urlComissoes = '/comissoes';
+    this.emendaConfig.anexoParecer = this.anexoParecer;
+    this.emendaConfig.justificacaoObrigatoria = true;
   }
 
   createRenderRoot(): LitElement {
@@ -424,6 +429,17 @@ export class DemoView extends LitElement {
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
             <option value="_pl_4_2025">PL 4, de 2025</option>
           </select>
+          <label
+            ><input
+              type="checkbox"
+              .checked=${this.anexoParecer}
+              @change=${(event: Event): void => {
+                this.anexoParecer = (event.target as HTMLInputElement).checked;
+                this.emendaConfig.anexoParecer = this.anexoParecer;
+              }}
+            />
+            Anexo de parecer</label
+          >
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
       </div>

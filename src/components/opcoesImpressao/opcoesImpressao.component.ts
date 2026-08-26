@@ -3,7 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { OpcoesImpressao } from '../../model/emenda/emenda';
 import { SlSelect } from '@shoelace-style/shoelace';
 
-@customElement('lexml-opcoes-impressao')
+@customElement('lexml-eta-opcoes-impressao')
 export class OpcoesImpressaoComponent extends LitElement {
   @query('#select-tamanho-fonte')
   tamanhoFonte!: SlSelect;
@@ -70,7 +70,7 @@ export class OpcoesImpressaoComponent extends LitElement {
         }
       </style>
 
-      <fieldset class="lexml-opcoes-impressao">
+      <fieldset class="lexml-eta-opcoes-impressao">
         <legend>Opções de impressão</legend>
         <div>
           <label class="lbl-imprimir-brasao" for="chk-imprimir-brasao">
@@ -150,6 +150,6 @@ export class OpcoesImpressaoComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-opcoes-impressao': OpcoesImpressaoComponent;
+    'lexml-eta-opcoes-impressao': OpcoesImpressaoComponent;
   }
 }

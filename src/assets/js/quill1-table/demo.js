@@ -1,4 +1,5 @@
-// import Quill from 'quill';
+import Quill from '../../../internal/quill/private-quill';
+import { configurePrivateQuill } from '../../../internal/quill/configure-private-quill';
 import TableModule from './index.js';
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
@@ -8,7 +9,7 @@ import Delta from 'quill-delta';
 // import '@fortawesome/fontawesome-free/webfonts';
 // import '@fortawesome/fontawesome-free/css/solid.css';
 
-Quill.register('modules/table', TableModule);
+configurePrivateQuill();
 
 const defaultToolbar = [
   [
