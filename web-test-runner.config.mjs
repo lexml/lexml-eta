@@ -1,5 +1,6 @@
 import { playwrightLauncher } from '@web/test-runner-playwright';
 import { createPrivateQuillDevPlugin } from './private-quill.mjs';
+import { createLexmlLinkerVendorStaticPlugin } from './serve-lexml-linker-vendor.mjs';
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   files: [
@@ -15,7 +16,7 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   ],
   nodeResolve: true,
   browserStartTimeout: 120000,
-  plugins: [createPrivateQuillDevPlugin()],
+  plugins: [createPrivateQuillDevPlugin(), createLexmlLinkerVendorStaticPlugin()],
   coverageConfig: {
     exclude: ['**/__lexml/**'],
   },
