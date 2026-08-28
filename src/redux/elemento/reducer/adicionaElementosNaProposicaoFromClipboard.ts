@@ -1,6 +1,5 @@
 import { validaDispositivo } from './../../../model/lexml/dispositivo/dispositivoValidator';
 import { InfoTextoColado } from './../util/colarUtil';
-import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isArtigo, isOmissis, isInciso, isParagrafo } from './../../../model/dispositivo/tipo';
 import {
@@ -14,9 +13,9 @@ import {
   isArticulacaoAlteracao,
   isDispositivoCabecaAlteracao,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidado, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -27,6 +26,8 @@ import { Elemento } from '../../../model/elemento/elemento';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { isBloqueado } from '../../../model/lexml/regras/regrasUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
+import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
+import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 
 const REGEX_OMISSIS = /^\.{2,}/;
 
@@ -122,6 +123,16 @@ const colarDispositivos = (
   articulacaoColada.filhos.forEach(f => {
     if (isColandoEmAlteracaoDeNorma || !isOmissis(f)) {
       const d = buscarDispositivoByIdTratandoParagrafoUnico(articulacao, f.id!);
+
+      // Colagem parcial (com omíssis): reconcilia filho a filho para preservar os trechos não mencionados, em vez de substituir a subárvore inteira.
+      if (d && isColarSubstituindo && !isColandoEmAlteracaoDeNorma && representaEdicaoParcialDeContainer(d, f)) {
+        const resultadoReconciliacao = { modificados: [] as Dispositivo[], suprimidos: [] as Dispositivo[], adicionados: [] as Dispositivo[] };
+        reconciliarContainerColado(d, f, resultadoReconciliacao);
+        eventos.push(...buildEventosDaReconciliacao(d, resultadoReconciliacao));
+        refAux = d;
+        return;
+      }
+
       refAux = d && isColarSubstituindo ? d : refAux;
       const auxPosicao = d && isColarSubstituindo ? 'antes' : posicao === 'antes' && refAux === referencia ? posicao : undefined;
       const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, auxPosicao);
@@ -265,6 +276,130 @@ const buscarDispositivoByIdTratandoParagrafoUnico = (articulacao: Articulacao, i
       return;
     }
   }
+};
+
+// Um dispositivo colado sinaliza edição parcial quando seu caput está omitido e/ou existe algum nó Omissis
+// entre seus filhos — ou seja, ele representa "parte do conteúdo mudou, o resto continua igual".
+const representaEdicaoParcialDeContainer = (dExistente: Dispositivo, fColado: Dispositivo): boolean => {
+  if (!dExistente.filhos?.length) {
+    return false;
+  }
+  const caputColado = isArtigo(fColado) ? (fColado as Artigo).caput : undefined;
+  const caputOmitido = !!caputColado && REGEX_OMISSIS.test(caputColado.texto ?? '');
+  const temOmissisEntreFilhos = fColado.filhos.some(isOmissis);
+  return caputOmitido || temOmissisEntreFilhos;
+};
+
+// Reconcilia recursivamente os filhos de "dExistente" com o que foi colado em "fColado", preservando (por id) tudo
+// o que não foi mencionado explicitamente e está coberto por um nó Omissis adjacente; o que não está coberto é
+// marcado como suprimido (exclusão lógica, não física) em vez de simplesmente desaparecer da árvore.
+const reconciliarContainerColado = (
+  dExistente: Dispositivo,
+  fColado: Dispositivo,
+  resultado: { modificados: Dispositivo[]; suprimidos: Dispositivo[]; adicionados: Dispositivo[] }
+): void => {
+  if (isArtigo(dExistente) && isArtigo(fColado)) {
+    const caputExistente = (dExistente as Artigo).caput!;
+    const caputColado = (fColado as Artigo).caput;
+    if (caputColado && !REGEX_OMISSIS.test(caputColado.texto ?? '') && aplicarTextoColadoEmDispositivoExistente(caputExistente, caputColado)) {
+      resultado.modificados.push(caputExistente);
+    }
+  }
+
+  const filhosOriginais = [...dExistente.filhos];
+  const filhosFinais: Dispositivo[] = [];
+  let cursor = 0;
+  let precedidoPorOmissis = false;
+
+  const suprimirGap = (gap: Dispositivo[]): void => {
+    if (!gap.length || precedidoPorOmissis) {
+      return;
+    }
+    gap.forEach(g => {
+      marcarComoSuprimido(g);
+      resultado.suprimidos.push(g);
+    });
+  };
+
+  fColado.filhos.forEach(fc => {
+    if (isOmissis(fc)) {
+      precedidoPorOmissis = true;
+      return;
+    }
+
+    const idxMatch = filhosOriginais.findIndex((d, idx) => idx >= cursor && d.id === fc.id);
+
+    if (idxMatch === -1) {
+      fc.pai = dExistente;
+      fc.situacao = new DispositivoAdicionado();
+      filhosFinais.push(fc);
+      resultado.adicionados.push(fc);
+      precedidoPorOmissis = false;
+      return;
+    }
+
+    const gap = filhosOriginais.slice(cursor, idxMatch);
+    suprimirGap(gap);
+    filhosFinais.push(...gap);
+
+    const existente = filhosOriginais[idxMatch];
+    if (fc.filhos.length) {
+      reconciliarContainerColado(existente, fc, resultado);
+    } else if (aplicarTextoColadoEmDispositivoExistente(existente, fc)) {
+      resultado.modificados.push(existente);
+    }
+    filhosFinais.push(existente);
+
+    cursor = idxMatch + 1;
+    precedidoPorOmissis = false;
+  });
+
+  const cauda = filhosOriginais.slice(cursor);
+  suprimirGap(cauda);
+  filhosFinais.push(...cauda);
+
+  dExistente.filhos.splice(0, dExistente.filhos.length, ...filhosFinais);
+  dExistente.renumeraFilhos();
+};
+
+const aplicarTextoColadoEmDispositivoExistente = (existente: Dispositivo, colado: Dispositivo): boolean => {
+  if (existente.texto === colado.texto) {
+    return false;
+  }
+  const original = createElemento(existente);
+  existente.texto = colado.texto;
+  if (existente.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
+    existente.situacao = new DispositivoModificado(original);
+  }
+  return true;
+};
+
+const marcarComoSuprimido = (dispositivo: Dispositivo): void => {
+  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d))));
+};
+
+const buildEventosDaReconciliacao = (
+  dExistente: Dispositivo,
+  { modificados, suprimidos, adicionados }: { modificados: Dispositivo[]; suprimidos: Dispositivo[]; adicionados: Dispositivo[] }
+): StateEvent[] => {
+  const eventos: StateEvent[] = [];
+
+  if (modificados.length) {
+    eventos.push({ stateType: StateType.ElementoModificado, elementos: modificados.map(d => createElementoValidado(d)) });
+  }
+
+  if (suprimidos.length) {
+    eventos.push({ stateType: StateType.ElementoSuprimido, elementos: suprimidos.flatMap(d => getElementos(d, true)) });
+  }
+
+  if (adicionados.length) {
+    const listaCompleta = getDispositivoAndFilhosAsLista(dExistente);
+    const idxPrimeiro = listaCompleta.indexOf(adicionados[0]);
+    const referenciaUI = idxPrimeiro > 0 ? createElemento(listaCompleta[idxPrimeiro - 1]) : createElemento(dExistente);
+    eventos.push({ stateType: StateType.ElementoIncluido, elementos: adicionados.map(d => createElemento(d, true, true)), referencia: referenciaUI });
+  }
+
+  return eventos;
 };
 
 const colarDispositivoAdicionando = (
