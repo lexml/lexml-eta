@@ -10,7 +10,7 @@ import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { stripHtml } from '../../../util/html-util';
 import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isCaput } from '../../../model/dispositivo/tipo';
-import { atualizarTextoRemissao } from '../../../model/remissao/lexmlIdUtil';
+import { atualizarTextoRemissao, foiEditadoManualmente, isTextoCanonicoParaId, isTextoReconhecivel } from '../../../model/remissao/lexmlIdUtil';
 
 interface ReferenciaEncontrada {
   texto: string;
@@ -124,6 +124,30 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     }
   }
 
+  // Preserva entradas cujo link (<a data-ref-id>) ainda existe fisicamente no texto bruto, mas cujo
+  // texto interno diverge do que a redetecção por regex encontraria "do zero" nessa posição (ou não
+  // encontraria nada) — mesmo espírito do D6 em sincronizarRemissoes.ts (foiEditadoManualmente/
+  // isTextoReconhecivel), só que aplicado aqui ao caminho de redetecção-a-cada-blur, não só ao de
+  // renumeração. Sem isso, texto não-canônico (manual ou editado) sobrevive só até o próximo blur
+  // em QUALQUER outro dispositivo — a redetecção do zero ou o encolhe para um match mais curto (regra
+  // de posição/target) ou, se nada mais bater, descarta a entrada inteira em silêncio.
+  const oldPreservadas = new Map<string, RemissaoInternaValue>();
+  for (const old of oldNormais) {
+    if (!old.refId) continue;
+    const match = textoAtual.match(new RegExp(`<a\\b[^>]*data-ref-id="${old.refId}"[^>]*>([^<]*)</a>`, 'i'));
+    if (!match) continue;
+    const textoLink = match[1];
+    if (!isTextoReconhecivel(textoLink)) {
+      oldPreservadas.set(old.refId, { ...old, revisao: true });
+      continue;
+    }
+    const aindaBateComGravado = !foiEditadoManualmente(textoLink, old.textoRef);
+    const restauradoParaCanonico = !!old.targetLexmlId && isTextoCanonicoParaId(textoLink, old.targetLexmlId);
+    if (!aindaBateComGravado && !restauradoParaCanonico) {
+      oldPreservadas.set(old.refId, { ...old, revisao: true });
+    }
+  }
+
   // Chave tripla (destino+posição+texto) na deleção lógica: qualquer edição no trecho altera a chave e libera a redetecção.
   const oldExcluidaKeys = new Set(
     oldExcluidas.filter(r => r.targetLexmlId !== undefined && r.inicio !== undefined && r.textoRef !== undefined).map(r => `${r.targetLexmlId}:${r.inicio}:${r.textoRef}`)
@@ -142,6 +166,13 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
 
     const posKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}` : undefined;
     const candidato = posKey ? oldByPositionKey.get(posKey) : undefined;
+
+    if (candidato && oldPreservadas.has(candidato)) {
+      // A entrada antiga nessa posição já foi marcada para preservação (link ainda existe, texto
+      // não deve ser regenerado) — a entrada preservada é quem entra no registro final, não este match.
+      continue;
+    }
+
     const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? gerarRefId();
     claimedRefIds.add(refId);
     novasRemissoes.push({
@@ -164,8 +195,8 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   });
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
-  // Merge: novas detecções válidas + inválidas preservadas + tombstones ainda vigentes
-  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldInvalidas, ...tombstonesRestantes];
+  // Merge: novas detecções válidas + preservadas por edição manual/não-canônica + inválidas + tombstones ainda vigentes
+  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldPreservadas.values(), ...oldInvalidas, ...tombstonesRestantes];
 
   const elemento = createElemento(dispositivo, true);
   const eventosUi = new Eventos();
