@@ -56,4 +56,13 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
+  overrides: [
+    {
+      // Asserções do chai (expect(x).to.be.true) são expressões, não chamadas.
+      files: ['test/**/*.ts', 'cypress/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-expressions': 'off',
+      },
+    },
+  ],
 };
