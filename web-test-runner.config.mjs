@@ -19,6 +19,11 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   plugins: [createPrivateQuillDevPlugin(), createLexmlLinkerVendorStaticPlugin()],
   coverageConfig: {
     exclude: ['**/__lexml/**'],
+    // WTR_COVERAGE_DIR é setado por scripts/rodar-testes-em-lotes.mjs para isolar a cobertura de cada
+    // lote antes de mesclar num relatório único; fora desse script, usa o diretório padrão "coverage".
+    reportDir: process.env.WTR_COVERAGE_DIR || 'coverage',
+    // "json" é o formato bruto (coverage-final.json) que scripts/rodar-testes-em-lotes.mjs mescla entre lotes.
+    reporters: ['lcov', 'json'],
   },
 
   /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
