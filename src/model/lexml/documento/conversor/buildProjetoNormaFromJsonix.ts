@@ -281,7 +281,12 @@ const substituiAspasRetasPorCurvas = (html: string): string => {
   let node: Node | null;
   while ((node = walker.nextNode())) {
     if (node.textContent && node.textContent.indexOf('"') !== -1) {
-      node.textContent = node.textContent.replace(/"(?=\w|$)/g, '\u201C').replace(/(?=[\w,.?!\-\u201C]|^)"/g, '\u201D');
+      // Fecha se a aspa reta for precedida por letra/d\u00EDgito/pontua\u00E7\u00E3o (ou outra aspa curva j\u00E1 aberta); abre nos demais casos.
+      node.textContent = node.textContent.replace(/"/g, (_match, offset: number, str: string) => {
+        const anterior = str[offset - 1];
+        const isFechamento = anterior !== undefined && /[\w,.?!)\-\u201C]/.test(anterior);
+        return isFechamento ? '\u201D' : '\u201C';
+      });
     }
   }
   return div.innerHTML.replace(/&nbsp;/g, ' ');

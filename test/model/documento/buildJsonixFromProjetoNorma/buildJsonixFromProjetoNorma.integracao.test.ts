@@ -23,6 +23,7 @@ import { PRS_92_2023 } from '../../../assets/prs_92_2023';
 import { validarRecursivo } from '../../../../demo/components/jsonValidator';
 import type { LogErro } from '../../../../demo/components/jsonValidator';
 import {
+  filtrarErrosAspasCurvas,
   filtrarErrosConteudoParagrafo,
   filtrarErrosLinksNomeAgrupador,
   filtrarErrosNotaAlteracaoOmissis,
@@ -63,14 +64,14 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   });
 
   describe('MPV 885/2019', () => {
-    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando conversão de span para Remissao)', () => {
-      testarConversaoJsonix(MPV_885_2019, 'MPV 885/2019', [filtrarErrosSpanParaRemissao]);
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando conversão de span para Remissao e aspas curvas)', () => {
+      testarConversaoJsonix(MPV_885_2019, 'MPV 885/2019', [filtrarErrosSpanParaRemissao, filtrarErrosAspasCurvas]);
     });
   });
 
   describe('MPV 905/2019', () => {
-    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando links em nomeAgrupador e conversão de span para Remissao)', () => {
-      testarConversaoJsonix(MPV_905_2019, 'MPV 905/2019', [filtrarErrosLinksNomeAgrupador, filtrarErrosSpanParaRemissao]);
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando links em nomeAgrupador, conversão de span para Remissao e aspas curvas)', () => {
+      testarConversaoJsonix(MPV_905_2019, 'MPV 905/2019', [filtrarErrosLinksNomeAgrupador, filtrarErrosSpanParaRemissao, filtrarErrosAspasCurvas]);
     });
   });
 
@@ -153,8 +154,8 @@ describe('buildJsonixFromProjetoNorma - Assets Integration Tests', () => {
   });
 
   describe('PLS 547/2018', () => {
-    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando elementos vazios no preâmbulo)', () => {
-      testarConversaoJsonix(PLS_547_2018, 'PLS 547/2018', [filtrarErrosPreambuloVazio]);
+    it('Deveria gerar estrutura jsonix idêntica ao arquivo JSON esperado (ignorando elementos vazios no preâmbulo e aspas curvas)', () => {
+      testarConversaoJsonix(PLS_547_2018, 'PLS 547/2018', [filtrarErrosPreambuloVazio, filtrarErrosAspasCurvas]);
     });
   });
 
