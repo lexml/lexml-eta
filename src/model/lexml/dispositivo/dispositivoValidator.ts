@@ -2,7 +2,7 @@ import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao } from '../../dispositivo/tipo';
 import { validaTexto } from '../conteudo/conteudoValidator';
 import { validaUrn } from '../documento/urnUtil';
-import { isOriginal, isSuprimido } from '../hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, isOriginal, isSuprimido } from '../hierarquia/hierarquiaUtil';
 import { validaHierarquia } from '../hierarquia/hierarquiaValidator';
 import { validaNumeracao } from '../numeracao/numeracaoValidator';
 import { isBloqueado } from '../regras/regrasUtil';
@@ -26,7 +26,14 @@ const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
-  if ((isArticulacao(dispositivo) && dispositivo.pai === undefined) || (isOriginal(dispositivo) && !isBloqueado(dispositivo)) || isSuprimido(dispositivo)) {
+  // Dentro de um bloco de alteração de norma, dispositivos "Original" representam o texto final da
+  // emenda sendo redigida (não conteúdo pré-existente e já validado) — não podem pular a validação
+  // estrutural (ex.: numeração com lacuna exigindo linha pontilhada).
+  if (
+    (isArticulacao(dispositivo) && dispositivo.pai === undefined) ||
+    (isOriginal(dispositivo) && !isBloqueado(dispositivo) && !isDispositivoAlteracao(dispositivo)) ||
+    isSuprimido(dispositivo)
+  ) {
     return [];
   }
   return validaHierarquia(dispositivo).concat(validaTexto(dispositivo), validaNumeracao(dispositivo), validaReferencia(dispositivo));
