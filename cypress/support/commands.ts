@@ -195,7 +195,55 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
-  return cy.wrap(subject).get('.lx-eta-dropbtn');
+  // Mesma técnica de selecionarOpcaoDeMenuDoDispositivo: um cy.click() comum nem sempre dispara
+  // selection-change de forma confiável (ex.: dispositivos originais carregados do documento, fora
+  // do fluxo de criação recente) — marcarLinhaAtual monta o menu diretamente, sem depender disso.
+  // Quando o dispositivo não tem nenhuma ação disponível (ex.: totalmente bloqueado), o botão nunca
+  // é montado — as tentativas esgotam e o retorno é um seletor vazio, que é o resultado esperado.
+  const id = subject[0]?.id;
+  if (!id) {
+    return cy.wrap(subject).find('.lx-eta-dropbtn');
+  }
+
+  const montarMenu = (): void => {
+    cy.get('#' + id).click({ force: true });
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .click({ force: true });
+    cy.window().then(win => {
+      const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+      const quill = editorEl?.quill;
+      if (!quill) return;
+      const containerEl = win.document.querySelector('#' + id) as HTMLElement;
+      if (!containerEl) return;
+      const p = containerEl.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+      if (!p) return;
+      const EtaQuillClass = quill.constructor as any;
+      const blot = EtaQuillClass.find(p);
+      if (!blot) return;
+      const linhaAlvo = blot.parent?.parent?.parent;
+      if (linhaAlvo) {
+        (quill as any).desmarcarLinhas?.();
+        (quill as any).marcarLinhaAtual(linhaAlvo);
+      }
+    });
+  };
+
+  const MAX_TENTATIVAS = 4;
+  const tentarMontarMenu = (tentativa: number): void => {
+    if (tentativa > 0) {
+      cy.wait(500);
+    }
+    montarMenu();
+    cy.get('#' + id).then($el => {
+      if ($el.find('div.container__menu > sl-dropdown').length === 0 && tentativa < MAX_TENTATIVAS) {
+        tentarMontarMenu(tentativa + 1);
+      }
+    });
+  };
+  tentarMontarMenu(0);
+
+  return cy.get('#' + id).find('.lx-eta-dropbtn');
 });
 
 Cypress.Commands.add('focusOnConteudo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -227,7 +275,7 @@ Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subjec
     .as('pTextoDispositivo')
     // .focus()
     .then($p => {
-      replace && $p.text('');
+      if (replace) $p.text('');
       cy.wrap($p)
         .wait(Cypress.config('isInteractive') ? tempoDeEsperaPadrao : tempoDeEsperaMaior)
         .type(texto, { delay: 5 });
@@ -306,7 +354,7 @@ Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaEstruturada', (payload
   // lexml-eta-editor-texto-rico deve existir e estar oculto
   cy.get('lexml-eta-editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: none');
 
-  payload.totalElementos && cy.get('div.container__elemento').should('have.length', payload.totalElementos);
+  if (payload.totalElementos) cy.get('div.container__elemento').should('have.length', payload.totalElementos);
 });
 
 Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaOndeCouber', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
