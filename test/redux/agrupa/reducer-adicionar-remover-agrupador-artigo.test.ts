@@ -20,7 +20,7 @@ let state: State;
 
 describe('Testando inclusão e exclusão de títulos', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -118,7 +118,7 @@ describe('Testando inclusão e exclusão de títulos', () => {
 
 describe('Testando a inclusão e exclusão de agrupadores', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

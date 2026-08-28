@@ -19,7 +19,7 @@ let eventos: StateEvent[];
 
 describe('Testando inclusão de artigo no início da articulação', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 

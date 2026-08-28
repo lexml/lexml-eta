@@ -13,7 +13,7 @@ let idsArtigos = '';
 
 describe('Testando a inclusão de agrupadores', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
     idsArtigos = state.articulacao!.artigos.map(a => a.id).join(',');

@@ -5,13 +5,10 @@ import { ClassificacaoDocumento } from '../../../documento/classificacao';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispositivo/dispositivoLexmlFactory';
 import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
-import { DispositivoOriginal } from '../../situacao/dispositivoOriginal';
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
-import { isArtigo } from './../../../dispositivo/tipo';
 
-export let isEmendamento = false;
 let ultimoDispositivoCriado: Dispositivo;
 
 // Workaround para o problema de textos que possuam tags <b> ou <i> contendo <a> no meio
@@ -43,9 +40,7 @@ const ajustarTextosParaQuill = (projetoNorma: ProjetoNorma): void => {
   }
 };
 
-export const buildProjetoNormaFromJsonix = (documentoLexml: any, emendamento = false): ProjetoNorma => {
-  isEmendamento = emendamento;
-
+export const buildProjetoNormaFromJsonix = (documentoLexml: any): ProjetoNorma => {
   if (!documentoLexml?.value?.projetoNorma) {
     throw new Error('Não se trata de um documento lexml válido');
   }
@@ -189,9 +184,6 @@ const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo
     createAlteracao(pai);
     pai.alteracoes!.id = el.id;
     pai.alteracoes!.base = el.base;
-    if (isEmendamento) {
-      pai.alteracoes!.situacao = new DispositivoOriginal();
-    }
     el.content?.forEach((c: any) => {
       if (c.name?.localPart === 'p') {
         adicionaTextoAoUltimoDispositivoCriado(c);
@@ -235,12 +227,6 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
 
   dispositivo.href = el.value?.href;
   dispositivo.id = el.value?.id;
-  if (isEmendamento) {
-    dispositivo.situacao = new DispositivoOriginal();
-    if (isArtigo(dispositivo)) {
-      (dispositivo as Artigo).caput!.situacao = new DispositivoOriginal();
-    }
-  }
   dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
   dispositivo.tituloDispositivo = buildContent(el.value?.tituloDispositivo?.content);
 

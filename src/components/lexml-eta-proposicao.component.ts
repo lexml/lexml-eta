@@ -75,7 +75,7 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
       this.projetoNorma.value.metadado.identificacao.urn = this.urn;
     }
 
-    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, false);
+    const documento = buildProjetoNormaFromJsonix(this.projetoNorma);
     documento.urn = this.urn;
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();

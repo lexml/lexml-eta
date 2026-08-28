@@ -17,7 +17,7 @@ let eventos: StateEvent[];
 
 describe('Testando a exclusão de artigos', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

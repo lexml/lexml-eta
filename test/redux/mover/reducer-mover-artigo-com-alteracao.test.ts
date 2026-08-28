@@ -29,7 +29,7 @@ describe('Testando movimentação de artigo com alteração de norma', () => {
   let estruturaArtigoAnterior: ItemEstrutura[];
 
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
 
     const artigoMovido = state.articulacao!.artigos.filter((a, i) => i > 0 && a.hasAlteracao())[0];

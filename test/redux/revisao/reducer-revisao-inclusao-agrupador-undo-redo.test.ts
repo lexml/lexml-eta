@@ -17,7 +17,7 @@ let state: State;
 
 describe('Testando operações sobre a MPV 905/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
     state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
   });

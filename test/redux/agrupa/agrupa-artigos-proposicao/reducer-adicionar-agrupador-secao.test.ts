@@ -20,7 +20,7 @@ let idsArtigos = '';
 describe('Testando a inclusão de agrupadores seção antes e depois a partir do Capítulo I', () => {
   describe('Carregando texto da MPV 905/2019', () => {
     beforeEach(function () {
-      const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, false);
+      const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
       state = openArticulacaoAction(projetoNorma.articulacao!);
       state.ui = {} as any;
       idsArtigos = state.articulacao!.artigos.map(a => a.id).join(',');

@@ -24,7 +24,7 @@ let eventos: StateEvent[];
 
 describe('Testando a inclusão de agrupadores em alteração de norma', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

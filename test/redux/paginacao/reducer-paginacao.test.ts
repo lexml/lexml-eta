@@ -29,7 +29,7 @@ const indicePaginaDoTituloV = (): number => indicePaginaDe(buscaDispositivoById(
 
 describe('Testando inclusão de dispositivos em proposições paginadas', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(PLP_68_2024, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(PLP_68_2024);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 

@@ -18,7 +18,7 @@ let agrupadorCriado: Dispositivo;
 
 describe('Testando a inclusão de agrupador de dispositivo da MPV', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
