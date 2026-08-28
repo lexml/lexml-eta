@@ -11,7 +11,10 @@ export const adicionaDiffMenuOpcoes = (state: State): State => {
         (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado') ||
         (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao && (e.revisao as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto !== e.conteudo?.texto)
       ) {
-        !e.acoesPossiveis!.includes(exibirDiferencaAction) && e.acoesPossiveis!.push(exibirDiferencaAction);
+        e.acoesPossiveis = e.acoesPossiveis ?? [];
+        if (!e.acoesPossiveis.includes(exibirDiferencaAction)) {
+          e.acoesPossiveis.push(exibirDiferencaAction);
+        }
       }
     })
   );
