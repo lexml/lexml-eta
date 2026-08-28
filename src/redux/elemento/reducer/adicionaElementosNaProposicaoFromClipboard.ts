@@ -26,6 +26,7 @@ import { ajustaIdsNaArticulacaoColada } from '../util/colarUtil';
 import { Elemento } from '../../../model/elemento/elemento';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { isBloqueado } from '../../../model/lexml/regras/regrasUtil';
+import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 
 const REGEX_OMISSIS = /^\.{2,}/;
 
@@ -140,6 +141,14 @@ const colarDispositivos = (
           atual = d2;
         }
       } else {
+        // Marca dispositivos colados e seus descendentes como 'Adicionados' para forçar a renumeração (evitando colisão de IDs) e manter a consistência no agrupamento de revisões.
+        // Exceção: Em blocos de alteração de norma, o texto colado é o texto final e permanece como 'Original'.
+        if (!isColandoEmAlteracaoDeNorma) {
+          getDispositivoAndFilhosAsLista(d2).forEach(descendente => (descendente.situacao = new DispositivoAdicionado()));
+          if (isArtigo(d2)) {
+            (d2 as Artigo).caput!.situacao = new DispositivoAdicionado();
+          }
+        }
         novos.push(d2);
       }
     }
@@ -158,7 +167,9 @@ const colarDispositivos = (
   novos.forEach(d => {
     getDispositivoAndFilhosAsLista(d).forEach(d => {
       d.id = buildId(d);
-      isArtigo(d) && buildIdCaputEAlteracao(d);
+      if (isArtigo(d)) {
+        buildIdCaputEAlteracao(d);
+      }
     });
   });
 
@@ -169,7 +180,9 @@ const colarDispositivos = (
   eventos.push({ stateType: StateType.ElementoRenumerado, elementos: elementosRenumerados });
   eventos.push(buildEventoElementosRenumerados(novos, referencia, tipoColado));
   eventos.push(buildEventoSituacaoElementoModificada(novos, isColandoEmAlteracaoDeNorma));
-  novos[0] && eventos.push(buildEventoElementoMarcado([novos[0], atual]));
+  if (novos[0]) {
+    eventos.push(buildEventoElementoMarcado([novos[0], atual]));
+  }
 
   return eventos.filter(ev => ev.elementos?.length);
 };
