@@ -27,7 +27,10 @@ module.exports = {
   rules: {
     eqeqeq: 'error',
     'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error'],
+    // `catch (error)` sem uso do parâmetro é idioma corrente na base.
+    '@typescript-eslint/no-unused-vars': ['error', { caughtErrors: 'none' }],
+    // `cond ? a() : b();` e `cond && a();` como statement são idioma corrente na base.
+    '@typescript-eslint/no-unused-expressions': ['error', { allowTernary: true, allowShortCircuit: true }],
     'no-extra-semi': 'error',
     semi: 'error',
     'no-trailing-spaces': 'error',
