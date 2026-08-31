@@ -148,6 +148,19 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     }
   }
 
+  // Mapeia links do HTML para posições no texto limpo, permitindo reaproveitar o refId de links recém-criados
+  // via diálogo antes que entrem no state. Isso evita a geração de IDs órfãos na primeira redetecção.
+  const REGEX_LINK_COM_REFID = /<a\b[^>]*\bdata-ref-id="([^"]+)"[^>]*>([^<]*)<\/a>/gi;
+  const tagsPorPosicaoStripada = new Map<number, { refId: string; innerText: string }>();
+  {
+    let m: RegExpExecArray | null;
+    REGEX_LINK_COM_REFID.lastIndex = 0;
+    while ((m = REGEX_LINK_COM_REFID.exec(textoAtual)) !== null) {
+      const posicaoStripada = stripHtml(textoAtual.slice(0, m.index)).length;
+      tagsPorPosicaoStripada.set(posicaoStripada, { refId: m[1], innerText: m[2] });
+    }
+  }
+
   // Chave tripla (destino+posição+texto) na deleção lógica: qualquer edição no trecho altera a chave e libera a redetecção.
   const oldExcluidaKeys = new Set(
     oldExcluidas.filter(r => r.targetLexmlId !== undefined && r.inicio !== undefined && r.textoRef !== undefined).map(r => `${r.targetLexmlId}:${r.inicio}:${r.textoRef}`)
@@ -173,7 +186,10 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
       continue;
     }
 
-    const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? gerarRefId();
+    const tagNaPosicao = item.inicio !== undefined ? tagsPorPosicaoStripada.get(item.inicio) : undefined;
+    const candidatoPorTag = tagNaPosicao && tagNaPosicao.innerText === item.texto && !claimedRefIds.has(tagNaPosicao.refId) ? tagNaPosicao.refId : undefined;
+
+    const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? candidatoPorTag ?? gerarRefId();
     claimedRefIds.add(refId);
     novasRemissoes.push({
       refId,
