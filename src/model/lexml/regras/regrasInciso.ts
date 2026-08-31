@@ -30,7 +30,6 @@ import {
   isDispositivoAlteracao,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
-  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -76,7 +75,7 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(iniciarBlocoAlteracao);
       }
 
-      if (!isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo)) {
         acoes.push(adicionarAlineaFilho);
       }
       if (hasIndicativoFinalSequencia(dispositivo) && isUltimoMesmoTipo(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
@@ -119,11 +118,11 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

@@ -17,7 +17,6 @@ import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { getRevisoesFromElementos } from '../util/revisaoUtil';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -102,18 +101,9 @@ export const undo = (state: any): State => {
 
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));
 
-  const revisoesDeRejeicaoDeRestauracaoASeremRetornadas = getRevisoesFromElementos(
-    eventos
-      .filter((ev: StateEvent) => ev.stateType === StateType.RevisaoRejeitada)
-      .map((ev: StateEvent) => ev.elementos || [])
-      .flat()
-  );
-
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) =>
-      events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO', revisoesDeRejeicaoDeRestauracaoASeremRetornadas) })
-    );
+    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO') }));
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));

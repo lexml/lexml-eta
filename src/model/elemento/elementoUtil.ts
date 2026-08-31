@@ -14,7 +14,6 @@ import {
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isOriginal,
   verificaNaoPrecisaInformarSituacaoNormaVigente,
   getDispositivoCabecaAlteracao,
   isUltimaAlteracao,
@@ -23,11 +22,9 @@ import {
   hasEmenta,
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
-import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
-import { isBloqueado } from '../lexml/regras/regrasUtil';
 
 export const isValid = (elemento?: Referencia): void => {
   if (elemento === undefined || elemento.uuid === undefined) {
@@ -109,7 +106,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
+    editavel: !isArticulacao(dispositivo),
     sendoEditado: false,
     uuid: dispositivo.uuid,
     uuid2: dispositivo.uuid2,
@@ -125,7 +122,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
-    mensagens: isOriginal(dispositivo) && !isBloqueado(dispositivo) ? [] : dispositivo.mensagens,
+    mensagens: dispositivo.mensagens,
     abreAspas: isDispositivoCabecaAlteracao(dispositivo) || !!dispositivo.cabecaAlteracao,
     fechaAspas,
     notaAlteracao,
@@ -281,7 +278,9 @@ export const criaListaElementosAfinsValidados = (dispositivo: Dispositivo | unde
       criaElementoValidadoSeNecessario(validados, isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!);
     }
     irmaosMesmoTipo(dispositivo).forEach(filho => {
-      !incluiDispositivo && filho === dispositivo ? undefined : criaElementoValidadoSeNecessario(validados, filho, true);
+      if (incluiDispositivo || filho !== dispositivo) {
+        criaElementoValidadoSeNecessario(validados, filho, true);
+      }
     });
   } else if (incluiDispositivo && !isArticulacao(dispositivo) && !isAgrupador(dispositivo)) {
     criaElementoValidadoSeNecessario(validados, dispositivo, true);
@@ -312,7 +311,7 @@ export const buildListaElementosRenumerados = (dispositivo: Dispositivo): Elemen
 export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void => {
   filhos.forEach(filho => {
     criaElementoValidadoSeNecessario(validados, filho);
-    filhos ? validaFilhos(validados, filho.filhos) : undefined;
+    validaFilhos(validados, filho.filhos);
   });
 };
 

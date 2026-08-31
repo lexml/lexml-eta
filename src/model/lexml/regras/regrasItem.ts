@@ -18,7 +18,6 @@ import {
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   isDispositivoAlteracao,
   isDispositivoNovoNaNormaAlterada,
-  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -72,11 +71,11 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

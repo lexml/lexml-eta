@@ -1,5 +1,6 @@
 import { isArticulacao } from './../../../src/model/dispositivo/tipo';
-import { getDispositivoAndFilhosAsLista, isAdicionado, isSuprimido, buscaDispositivoById } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { DescricaoSituacao } from './../../../src/model/dispositivo/situacao';
+import { getDispositivoAndFilhosAsLista, isAdicionado, buscaDispositivoById } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { isRevisaoPrincipal, findRevisaoByElementoLexmlId } from './../../../src/redux/elemento/util/revisaoUtil';
 import { State, StateType } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
@@ -13,6 +14,10 @@ import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { ACEITAR_REVISAO } from '../../../src/model/lexml/acao/aceitarRevisaoAction';
+
+// situação de emenda (SUPRIMIDO) é inalcançável em modo proposição; mantido localmente para este
+// arquivo, que está excluído da execução (ver web-test-runner.config.mjs) até a Etapa 1.
+const isSuprimido = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
 import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElemento';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';

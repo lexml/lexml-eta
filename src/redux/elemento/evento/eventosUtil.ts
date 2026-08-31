@@ -1,6 +1,5 @@
 import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
-import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
@@ -27,8 +26,6 @@ import {
   isDispositivoCabecaAlteracao,
   isParagrafoUnico,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
@@ -240,15 +237,10 @@ export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFi
     : getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, tipoFilho, dispositivosPermitidos);
 };
 
+// Restauração de situação de emenda (ORIGINAL/MODIFICADO/SUPRIMIDO) é inalcançável em modo proposição;
+// mantido como no-op para preservar a assinatura usada por restauraAndBuildEvents.
 const restaura = (d: Dispositivo): void => {
-  d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
-  d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
-  d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
-  d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
-  d.situacao = new DispositivoOriginal();
-  if (isArtigo(d)) {
-    (d as Artigo).caput!.situacao = new DispositivoOriginal();
-  }
+  void d;
 };
 
 export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] => {
@@ -277,11 +269,7 @@ export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] =
 };
 
 export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d))));
-
-  if (dispositivo.alteracoes && dispositivo.alteracoes.filhos.length > 0) {
-    dispositivo.alteracoes.filhos.forEach(f => getDispositivoAndFilhosAsLista(f).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d)))));
-  }
+  // Supressão de dispositivo (situação SUPRIMIDO) é inalcançável em modo proposição.
   const eventos = new Eventos();
   eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
 

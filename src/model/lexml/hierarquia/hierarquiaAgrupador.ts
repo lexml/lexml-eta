@@ -4,14 +4,7 @@ import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
-import {
-  getArticulacao,
-  getDispositivoAnterior,
-  getProximoArtigoAnterior,
-  isAntesDoPrimeiroDispositivoOriginal,
-  isDispositivoAlteracao,
-  podeRenumerarFilhosAutomaticamente,
-} from './hierarquiaUtil';
+import { getArticulacao, getDispositivoAnterior, getProximoArtigoAnterior, podeRenumerarFilhosAutomaticamente } from './hierarquiaUtil';
 
 export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Hierarquia {
@@ -25,7 +18,9 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
       } else {
         this.filhos.push(filho);
       }
-      isArtigo(filho) ? getArticulacao(filho).addArtigo(filho, referencia) : null;
+      if (isArtigo(filho)) {
+        getArticulacao(filho).addArtigo(filho, referencia);
+      }
     }
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
@@ -58,7 +53,9 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
 
     removeFilho(filho: Dispositivo): void {
       this._filhos = this.filhos.filter(f => f.uuid !== filho.uuid);
-      isArtigo(filho) ? (getArticulacao(filho) as Articulacao).removeArtigo(filho as Artigo) : null;
+      if (isArtigo(filho)) {
+        (getArticulacao(filho) as Articulacao).removeArtigo(filho as Artigo);
+      }
     }
 
     renumeraFilhos(): void {
@@ -66,12 +63,7 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
         return;
       }
       this.filhos
-        .filter(
-          f =>
-            (isDispositivoAlteracao(f) && isAntesDoPrimeiroDispositivoOriginal(f)) ||
-            f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO ||
-            f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
-        )
+        .filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
         .filter(f => !isArtigo(f))
         .forEach(filho => {
           filho.numero = calculaNumeracao(filho);

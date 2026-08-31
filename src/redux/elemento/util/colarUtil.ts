@@ -5,7 +5,7 @@ import { Elemento } from './../../../model/elemento/elemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo, isInciso, isOmissis } from '../../../model/dispositivo/tipo';
-import { getArticulacao, getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo, isModificadoOuSuprimido } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { escapeRegex, removeAllHtmlTags, removeAllHtmlTagsExcept } from '../../../util/string-util';
@@ -375,8 +375,8 @@ const existeDispositivoComRotuloDuplicado = (articulacaoColada: Articulacao): bo
 const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTextoColado, infoDispositivos: InfoDispositivos): Restricao[] => {
   const result: Restricao[] = [];
 
-  const { textoColadoAjustado, articulacaoColada, articulacaoProposicao, tipoColado, isColarSubstituindo, posicao } = infoTextoColado;
-  const { atual, referencia, existentes: dispositivosExistentes } = infoDispositivos;
+  const { textoColadoAjustado, articulacaoColada, tipoColado, posicao } = infoTextoColado;
+  const { atual, referencia } = infoDispositivos;
 
   if (infoTextoColado.infoElementos.tiposColados.includes('DispositivoAgrupadorGenerico')) {
     return result;
@@ -402,27 +402,10 @@ const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTex
     });
   }
 
-  const dispositivosExistentesAux = dispositivosExistentes || montarListaDispositivosExistentes(getArticulacao(atual), articulacaoColada, referencia);
-
   if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && articulacaoColada.filhos && isColandoFilhos(articulacaoColada.filhos, atual)) {
     result.push({
       tipo: TipoRestricaoEnum.FILHOS_EM_DISPOSITIVO_SUPRIMIDO,
       mensagens: ['Não é permitido colar filhos em dispositivo suprimido'],
-    });
-  }
-
-  if (isColarSubstituindo && dispositivosExistentesAux.some(isModificadoOuSuprimido)) {
-    const ids = dispositivosExistentesAux.filter(isModificadoOuSuprimido).map(d => d.id!);
-    const dispositivos = getDispositivoAndFilhosAsLista(articulacaoProposicao)
-      .filter(d => tipoColado.name === d.tipo && ids.includes(d.id!))
-      .map(d => d.rotulo?.replace(/ [-–)]/, ''))
-      .join(', ');
-
-    result.push({
-      tipo: TipoRestricaoEnum.DISPOSITIVO_JA_MODIFICADO,
-      titulo: 'Atenção, dispositivo já modificado encontrado',
-      mensagens: [`Não é permitido colar dispositivos que já foram alterados na emenda${dispositivos ? ` (veja ${pluralTipoColado}: ${dispositivos})` : ''}.`],
-      isPermitidoColarAdicionando: true,
     });
   }
 

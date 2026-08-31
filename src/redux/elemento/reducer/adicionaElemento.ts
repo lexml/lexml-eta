@@ -1,7 +1,7 @@
 import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
-import { isAgrupador, isIncisoCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
@@ -13,7 +13,6 @@ import {
   isArtigoUnico,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isOriginal,
   isParagrafoUnico,
   podeRenumerarFilhosAutomaticamente,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -47,38 +46,6 @@ export const adicionaElemento = (state: any, action: any): State => {
   if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
     state.ui.events = [];
     return state;
-  }
-
-  if (
-    atual.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_NOVO &&
-    atual.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-    hasIndicativoDesdobramento(atual) &&
-    !isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)
-  ) {
-    if (
-      atual.hasAlteracao() &&
-      atual.alteracoes?.filhos &&
-      isOriginal(atual.alteracoes.filhos[0]) &&
-      !isOmissis(atual.alteracoes.filhos[0]) &&
-      atual.alteracoes.filhos[0].numero === '1' &&
-      action.posicao !== 'antes' &&
-      atual.tipo !== action.novo.tipo
-    ) {
-      state.ui.events = [];
-      return state;
-    }
-    if (
-      action.posicao === undefined &&
-      isDispositivoAlteracao(atual) &&
-      hasFilhos(atual) &&
-      isOriginal(atual.filhos[0]) &&
-      !isOmissis(atual.filhos[0]) &&
-      !isParagrafo(atual.filhos[0]) &&
-      atual.filhos[0].numero === '1'
-    ) {
-      state.ui.events = [];
-      return state;
-    }
   }
 
   let ref =

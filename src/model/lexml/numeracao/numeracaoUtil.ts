@@ -4,17 +4,11 @@ import { isArtigo, isOmissis } from '../../dispositivo/tipo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
 import {
-  getArtigosAnterioresIndependenteAgrupador,
-  getArtigosPosterioresIndependenteAgrupador,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getDispositivoPosteriorMesmoTipo,
-  getDispositivosAnterioresMesmoTipo,
-  getDispositivosPosterioresMesmoTipo,
   getProximoArtigoAnterior,
   isDispositivoAlteracao,
-  isModificadoOuSuprimido,
-  isOriginal,
 } from '../hierarquia/hierarquiaUtil';
 
 const I = 1,
@@ -269,63 +263,11 @@ export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boo
   );
 };
 
-export const calculaSeqOrdem = (d: Dispositivo): SeqOrdem => {
-  const seqOriginal = contaIrmaosOriginaisAte(d);
-
-  if (isOriginal(d)) {
-    return new SeqOrdem(seqOriginal);
-  }
-
-  const seqDispEmenda = contaIrmaosNaoOriginaisConsecutivosAte(d);
-
-  const temOriginalAntes = seqOriginal > 0;
-  const temOriginalDepois = hasIrmaoOriginalDepois(d);
-
-  if (!temOriginalAntes && !temOriginalDepois) {
-    return new SeqOrdem(seqDispEmenda);
-  }
-
-  if (!temOriginalAntes && temOriginalDepois) {
-    const seqOrdem = new SeqOrdem(0);
-    seqOrdem.addNovoSeqOrdem(seqDispEmenda);
-
-    return seqOrdem;
-  }
-
-  if (temOriginalAntes && temOriginalDepois) {
-    const seqOrdem = new SeqOrdem(seqOriginal);
-    seqOrdem.addNovoSeqOrdem(seqDispEmenda);
-
-    return seqOrdem;
-  }
-
-  // if(temOriginalAntes && !temOriginalDepois)
-  return new SeqOrdem(seqOriginal + seqDispEmenda);
-};
-
-export const hasIrmaoOriginalDepois = (d: Dispositivo): boolean => {
-  const lista = isArtigo(d) ? getArtigosPosterioresIndependenteAgrupador(d) ?? [] : getDispositivosPosterioresMesmoTipo(d);
-  return lista.filter((dispositivo: Dispositivo) => isOriginal(dispositivo)).length > 0;
-};
-
-export const contaIrmaosOriginaisAte = (d: Dispositivo): number => {
-  let i = 0;
-  const tipo = d.tipo;
-
-  do {
-    if ((isOriginal(d) || isModificadoOuSuprimido(d)) && d.tipo === tipo) {
-      i++;
-    }
-    d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
-  } while (d !== undefined);
-  return i;
-};
-
 export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number => {
   let i = 0;
   const tipo = d.tipo;
 
-  while (d !== undefined && !isOriginal(d) && !isModificadoOuSuprimido(d) && d.tipo === tipo) {
+  while (d !== undefined && d.tipo === tipo) {
     i++;
     d = isArtigo(d) ? getProximoArtigoAnterior(d.pai!, d)! : getDispositivoAnterior(d)!;
   }
@@ -354,30 +296,6 @@ export const isNumeracaoValidaPorTipo = (numero: string, tipo: string): boolean 
   const regexSufixoEncaixeComAteDuasLetrasEAteDoisNiveis = /^(-[a-z]{1,2}){1,2}$/i;
   return partes.length === 1 ? resultPartePrincipal : resultPartePrincipal && regexSufixoEncaixeComAteDuasLetrasEAteDoisNiveis.test(parteSufixo);
 };
-
-class SeqOrdem {
-  seq: number;
-  letras?: string;
-
-  constructor(seq: number) {
-    this.seq = seq;
-  }
-
-  addNovoSeqOrdem(seq2: number): void {
-    if (this.seq > 0) {
-      this.letras = '' + seq2;
-    } else if (seq2 > 1) {
-      this.letras = '' + --seq2;
-    }
-  }
-  getNumeracao(isDispositivoEmenda: boolean): string {
-    return '' + this.seq + (isDispositivoEmenda && this.letras ? '-' : '') + (this.letras ?? '');
-  }
-}
-
-//
-//
-//
 
 export const getProximoNumero = (numero: string): string => {
   const partes = numero?.split('-');
@@ -408,31 +326,8 @@ export const formatarMilhares = (valor: string): string => {
 };
 
 const getNumeracao = (d: Dispositivo): string => {
-  const dispositivosAnteriores = isArtigo(d) ? getArtigosAnterioresIndependenteAgrupador(d) : getDispositivosAnterioresMesmoTipo(d);
-  const dispositivoPosteriores = isArtigo(d) ? getArtigosPosterioresIndependenteAgrupador(d) : getDispositivosPosterioresMesmoTipo(d);
-
-  const dispositivoOriginalAnterior = dispositivosAnteriores && dispositivosAnteriores.filter(f => isOriginal(f) || isModificadoOuSuprimido(f)).reverse()[0];
-  const dispositivoOriginalPosterior = dispositivoPosteriores && dispositivoPosteriores.filter(f => isOriginal(f) || isModificadoOuSuprimido(f))[0];
-
-  const dispositivoAnteriorAdicionado = dispositivosAnteriores?.filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).reverse()[0];
-
-  if (!getDispositivoAnteriorMesmoTipo(d) && !dispositivoOriginalPosterior) {
+  if (!getDispositivoAnteriorMesmoTipo(d)) {
     return '1';
-  }
-
-  if (!dispositivoOriginalAnterior && dispositivoOriginalPosterior) {
-    return dispositivoAnteriorAdicionado ? (dispositivoAnteriorAdicionado.numero! === '0' ? getNumeroAbaixo('0') : getProximoNumero(dispositivoAnteriorAdicionado.numero!)) : '0';
-  }
-
-  if (dispositivoOriginalAnterior && !dispositivoOriginalPosterior) {
-    return getProximoNumero(getDispositivoAnteriorMesmoTipo(d)!.numero!);
-  }
-
-  if (dispositivoOriginalAnterior && dispositivoOriginalPosterior) {
-    if (dispositivoOriginalAnterior === getDispositivoAnteriorMesmoTipo(d)) {
-      return getNumeroAbaixo(dispositivoOriginalAnterior.numero!);
-    }
-    return getProximoNumero(getDispositivoAnteriorMesmoTipo(d)!.numero!);
   }
 
   const seqDispEmenda = contaIrmaosNaoOriginaisConsecutivosAte(d);

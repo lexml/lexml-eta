@@ -2,7 +2,6 @@ import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo'
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isEmenta, isIncisoCaput, isParagrafo, Tipo, isCaput } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
-import { hasIrmaoOriginalDepois } from '../numeracao/numeracaoUtil';
 import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao, isOmissis } from './../../dispositivo/tipo';
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
@@ -478,10 +477,6 @@ export const isDispositivoCabecaAlteracao = (dispositivo: Dispositivo): boolean 
   return !!dispositivo.pai && isArticulacaoAlteracao(dispositivo.pai);
 };
 
-export const isAntesDoPrimeiroDispositivoOriginal = (dispositivo: Dispositivo): boolean => {
-  return getDispositivosPosterioresMesmoTipo(dispositivo).filter(d => isOriginal(d) && d.numero === '1').length > 0;
-};
-
 /**
  * Encontra o artigo ascendente de um dispositivo (se existir).
  * Usado para determinar o contexto de artigo quando o cabeça da alteração é um agrupador.
@@ -511,7 +506,7 @@ const buildListaDispositivosParaUltimaAlteracao = (dispositivo: Dispositivo, dis
   } else {
     // Para outros dispositivos, usar a lógica padrão
     const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
-    filhos.length ? filhos.forEach(d => buildListaDispositivosParaUltimaAlteracao(d, dispositivos)) : undefined;
+    filhos.forEach(d => buildListaDispositivosParaUltimaAlteracao(d, dispositivos));
   }
 
   return dispositivos;
@@ -539,7 +534,7 @@ export const isUltimaAlteracao = (dispositivo: Dispositivo, print = false): bool
 
   if (ultimoLista === dispTeste) {
     if (print) {
-      console.log('atual.situacao.descricaoSituacao', atual.situacao.descricaoSituacao, hasIrmaoOriginalDepois(dispositivo), atual === ultimoLista);
+      console.log('atual.situacao.descricaoSituacao', atual.situacao.descricaoSituacao, atual === ultimoLista);
     }
 
     if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !isArticulacaoAlteracao(atual.pai!)) {
@@ -628,19 +623,6 @@ export const hasDispositivosPosterioresAlteracao = (dispositivo: Dispositivo): b
   return isUnicoMesmoTipo(atual) || articulacao.indexOfArtigo(atual) < articulacao.artigos.length - 1;
 };
 
-// Verifica se todos os filhos dos tipos (inciso, alínea ou item) estão suprimidos.
-export const isTodosFilhosTipoEnumeracaoSuprimidos = (dispositivo: Dispositivo): boolean => {
-  if (isAgrupador(dispositivo)) {
-    // Não deveria ser chamado para agrupadores
-    return false;
-  }
-  if (isArtigo(dispositivo)) {
-    // Evita listar parágrafos
-    dispositivo = (dispositivo as Artigo).caput!;
-  }
-  return !getSomenteFilhosDispositivoAsLista([], dispositivo.filhos).some(d => !isSuprimido(d));
-};
-
 export const isArticulacaoAlteracao = (articulacao: Dispositivo): boolean => {
   return isArticulacao(articulacao) && articulacao.pai !== undefined;
 };
@@ -674,35 +656,8 @@ export const hasDispositivosBySituacao = (dispositivos: Dispositivo[], descricao
   return dispositivos?.filter(d => d.situacao.descricaoSituacao === descricaoSituacao).length > 0;
 };
 
-export const isOriginal = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
-};
-
 export const isAdicionado = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
-};
-
-export const isModificado = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO;
-};
-
-export const isSuprimido = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
-};
-
-export const isModificadoOuSuprimido = (dispositivo: Dispositivo): boolean => {
-  return isModificado(dispositivo) || isSuprimido(dispositivo);
-};
-
-export const getSomenteFilhosDispositivoAsLista = (dispositivos: Dispositivo[], filhos: Dispositivo[]): Dispositivo[] => {
-  filhos?.forEach(f => {
-    dispositivos.push(f);
-    if (hasFilhos(f)) {
-      getSomenteFilhosDispositivoAsLista(dispositivos, f.filhos);
-    }
-  });
-
-  return dispositivos;
 };
 
 export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispositivo[] => {
@@ -712,7 +667,7 @@ export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispos
 export const buildListaDispositivos = (dispositivo: Dispositivo, dispositivos: Dispositivo[]): Dispositivo[] => {
   dispositivos.push(dispositivo);
   const filhos = dispositivo.hasAlteracao() ? dispositivo.alteracoes!.filhos : dispositivo.filhos;
-  filhos.length ? filhos.forEach(d => buildListaDispositivos(d, dispositivos)) : undefined;
+  filhos.forEach(d => buildListaDispositivos(d, dispositivos));
   return dispositivos;
 };
 

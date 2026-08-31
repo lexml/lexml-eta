@@ -26,7 +26,6 @@ import {
   isDispositivoAlteracao,
   isDispositivoNovoNaNormaAlterada,
   isPrimeiroMesmoTipo,
-  isSuprimido,
   isUltimaAlteracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -72,9 +71,7 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(iniciarBlocoAlteracao);
       }
 
-      if (!isSuprimido(dispositivo)) {
-        acoes.push(adicionarItemFilho);
-      }
+      acoes.push(adicionarItemFilho);
       if (isUnicoMesmoTipo(dispositivo) || isUltimoMesmoTipo(dispositivo)) {
         acoes.push(isParagrafo(dispositivo.pai!.pai!) ? transformarAlineaEmIncisoParagrafo : transformarAlineaEmIncisoCaput);
       }
@@ -93,11 +90,11 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

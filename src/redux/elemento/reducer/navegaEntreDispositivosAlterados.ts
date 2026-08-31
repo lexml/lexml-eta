@@ -2,13 +2,7 @@ import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo
 import { isArticulacao, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import {
-  getDispositivoAnteriorNaSequenciaDeLeitura,
-  getDispositivoPosteriorNaSequenciaDeLeitura,
-  isAdicionado,
-  isModificado,
-  isSuprimido,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorNaSequenciaDeLeitura, getDispositivoPosteriorNaSequenciaDeLeitura, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { findPaginaByUuidDispositivo, getElementosDaArticulacaoEElementosExcluidosEmModoDeRevisao, hasMultiplasPaginas } from '../util/paginacaoUtil';
@@ -127,7 +121,7 @@ const findElementoAlteradoAnterior = (ref: Dispositivo, state: State, ignorarRev
 };
 
 const isAlterado = (d: Dispositivo, revisoes: RevisaoElemento[]): boolean => {
-  return !isArticulacao(d) && (isAdicionado(d) || isModificado(d) || isSuprimido(d) || !!findRevisaoByElementoUuid(revisoes, d.uuid!));
+  return !isArticulacao(d) && (isAdicionado(d) || !!findRevisaoByElementoUuid(revisoes, d.uuid!));
 };
 
 const getDispositivoReferenciaFromRevisaoExclusao = (revisao: RevisaoElemento, state: State, action: any): Dispositivo | undefined => {

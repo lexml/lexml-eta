@@ -39,7 +39,6 @@ import {
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isSuprimido,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
   podeEditarNotaAlteracao,
@@ -85,7 +84,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
       acoes.push(adicionarArtigoDepois);
 
-      if (!isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo)) {
         acoes.push(adicionarParagrafoFilho);
         acoes.push(adicionarIncisoFilho);
       }
@@ -134,11 +133,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

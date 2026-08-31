@@ -1,8 +1,14 @@
 import { ATUALIZAR_TEXTO_ELEMENTO } from './../../../src/model/lexml/acao/atualizarTextoElementoAction';
-import { isOriginal, isModificado } from './../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { REJEITAR_REVISAO } from './../../../src/model/lexml/acao/rejeitarRevisaoAction';
 import { isArticulacao } from '../../../src/model/dispositivo/tipo';
-import { getDispositivoAndFilhosAsLista, isAdicionado, isSuprimido, buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
+import { getDispositivoAndFilhosAsLista, isAdicionado, buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+
+// situação de emenda (ORIGINAL/MODIFICADO/SUPRIMIDO) é inalcançável em modo proposição; mantidos
+// localmente para este arquivo, que está excluído da execução (ver web-test-runner.config.mjs) até a Etapa 1.
+const isOriginal = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
+const isModificado = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO;
+const isSuprimido = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
 import { isRevisaoPrincipal, findRevisaoByElementoLexmlId, findRevisaoByElementoUuid2, findRevisaoById } from '../../../src/redux/elemento/util/revisaoUtil';
 import { State, StateType } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';

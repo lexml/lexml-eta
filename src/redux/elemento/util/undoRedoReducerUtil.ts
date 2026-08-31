@@ -14,13 +14,9 @@ import {
   getUltimoFilho,
   isAdicionado,
   isArticulacaoAlteracao,
-  isSuprimido,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
 import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
@@ -31,7 +27,6 @@ import {
   associarRevisoesAosElementos,
   existeRevisaoCriadaPorExclusao,
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
-  findRevisaoDeRestauracaoByUuid,
   findUltimaRevisaoDoGrupo,
   getElementosFromRevisoes,
   isRevisaoPrincipal,
@@ -45,10 +40,8 @@ const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
   switch (descricao) {
     case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
       return new DispositivoAdicionado();
-    case DescricaoSituacao.DISPOSITIVO_NOVO:
-      return new DispositivoNovo();
     default:
-      return new DispositivoOriginal();
+      return new DispositivoNovo();
   }
 };
 
@@ -181,19 +174,10 @@ export const remover = (state: State, evento: StateEvent): Elemento[] => {
   return [];
 };
 
-export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestaurados: StateEvent, Situacao: any): Elemento[] => {
+export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestaurados: StateEvent): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     evento.elementos.forEach(el => {
       const d = getDispositivoFromElemento(state.articulacao!, el, true);
-
-      if (Situacao instanceof DispositivoOriginal) {
-        d!.numero = d!.situacao.dispositivoOriginal?.numero ?? '';
-        d!.rotulo = d!.situacao.dispositivoOriginal?.rotulo ?? '';
-        d!.texto = d!.situacao.dispositivoOriginal?.conteudo?.texto ?? '';
-        d!.situacao = new DispositivoOriginal();
-      } else {
-        d!.situacao = new Situacao(createElemento(d!));
-      }
       eventoRestaurados.elementos!.push(createElemento(d!));
     });
     return eventoRestaurados.elementos!;
@@ -201,7 +185,7 @@ export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestau
   return [];
 };
 
-export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO', revisoes: RevisaoElemento[] = []): Elemento[] => {
+export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO'): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -211,19 +195,8 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
       if (dispositivo) {
         const permiteAtualizar = anterior !== dispositivo.uuid || (operacao === 'REDO' && anterior === dispositivo.uuid);
         if (permiteAtualizar) {
-          if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-            if (findRevisaoDeRestauracaoByUuid(revisoes, dispositivo.uuid!) || dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
-              dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
-              dispositivo.situacao = new DispositivoOriginal();
-            } else {
-              dispositivo.texto = e.conteudo?.texto ?? '';
-            }
-          } else {
-            if (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-              dispositivo.situacao = new DispositivoModificado(createElemento(dispositivo));
-            }
-            dispositivo.texto = e.conteudo?.texto ?? '';
-          }
+          dispositivo.texto = e.conteudo?.texto ?? '';
+
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;
           }
@@ -355,26 +328,14 @@ export const processarRestaurados = (state: State, evento: StateEvent, acao: str
   const d = getDispositivoFromElemento(state.articulacao!, elementoDeReferencia, true)!;
 
   const elementoAntesDeRestaurarSituacao = createElemento(d);
-  let stateType: StateType;
-
-  if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-    d.situacao = new DispositivoModificado(createElemento(d));
-    stateType = StateType.ElementoRestaurado;
-  } else if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-    d.situacao = new DispositivoSuprimido(createElemento(d));
-    stateType = StateType.ElementoRestaurado;
-  } else {
-    d.situacao = new DispositivoOriginal();
-    stateType = StateType.ElementoRestaurado;
-  }
 
   d.numero = elementoDeReferencia.numero ?? '';
   d.rotulo = elementoDeReferencia.rotulo ?? '';
   d.texto = elementoDeReferencia.conteudo?.texto ?? '';
 
-  const elementos = isSuprimido(d) ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
+  const elementos = [elementoAntesDeRestaurarSituacao, createElemento(d)];
 
-  return { stateType, elementos };
+  return { stateType: StateType.ElementoRestaurado, elementos };
 };
 
 export const processarSuprimidos = (state: State, evento: StateEvent): StateEvent[] => {
@@ -383,7 +344,6 @@ export const processarSuprimidos = (state: State, evento: StateEvent): StateEven
   evento.elementos?.forEach(e => {
     const d = getDispositivoFromElemento(state.articulacao!, e, true)!;
     const elementoAntesRestauracao = createElemento(d);
-    d.situacao = new DispositivoOriginal();
     result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d!)] });
   });
 

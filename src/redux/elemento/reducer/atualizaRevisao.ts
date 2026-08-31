@@ -106,7 +106,7 @@ const processaEventosDeSupressao = (state: State, actionType: any): Revisao[] =>
       revisoesParaRemover.push(revisao);
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, e)!;
-      const eAux = revisao?.elementoAntesRevisao || (JSON.parse(JSON.stringify(d.situacao.dispositivoOriginal)) as Elemento);
+      const eAux = revisao?.elementoAntesRevisao || (JSON.parse(JSON.stringify(createElemento(d))) as Elemento);
       result.push(new RevisaoElemento(actionType, StateType.ElementoSuprimido, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
       if (revisao) {
         revisoesParaRemover.push(revisao);
@@ -289,7 +289,7 @@ const processaEventosDeRestauracao = (state: State, actionType: any): Revisao[] 
       revisoesParaRemover.push(revisao);
     } else {
       const d = getDispositivoFromElemento(state.articulacao!, elementoAnterior)!;
-      const eAntesRevisao = !elementoAtual ? d.situacao.dispositivoOriginal : elementoAnterior;
+      const eAntesRevisao = !elementoAtual ? createElemento(d) : elementoAnterior;
       const eAposRevisao = createElemento(d);
       result.push(
         new RevisaoElemento(

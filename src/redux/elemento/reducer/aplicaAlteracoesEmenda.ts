@@ -14,12 +14,8 @@ import {
   hasEmenta,
   isAdicionado,
   isDispositivoAlteracao,
-  isModificado,
-  isSuprimido,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { Counter } from '../../../util/counter';
@@ -58,35 +54,6 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
 
   const eventos = new Eventos();
 
-  if (action.alteracoesEmenda?.dispositivosSuprimidos) {
-    eventos.add(StateType.ElementoSuprimido, []);
-
-    action.alteracoesEmenda.dispositivosSuprimidos.forEach(dispositivo => {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.id);
-
-      if (d) {
-        percorreHierarquiaDispositivos(d, d => {
-          d.situacao = new DispositivoSuprimido(createElemento(d));
-          eventos.get(StateType.ElementoSuprimido).elementos?.push(createElemento(d));
-        });
-      }
-    });
-  }
-
-  if (action.alteracoesEmenda?.dispositivosModificados) {
-    eventos.add(StateType.ElementoModificado, []);
-
-    action.alteracoesEmenda.dispositivosModificados.forEach(dispositivo => {
-      const d = buscaDispositivoById(state.articulacao, dispositivo.tipo === 'Caput' ? idSemCpt(dispositivo.id) : dispositivo.id);
-
-      if (d) {
-        d.situacao = new DispositivoModificado(createElemento(d));
-        d.texto = dispositivo.texto;
-        eventos.get(StateType.ElementoModificado).elementos?.push(createElemento(d));
-      }
-    });
-  }
-
   if (action.alteracoesEmenda?.dispositivosAdicionados) {
     eventos.eventos.push(...processaDispositivosAdicionados(state, action.alteracoesEmenda));
   }
@@ -113,7 +80,7 @@ export const aplicaAlteracoesEmenda = (state: any, action: any): State => {
   }
 
   if (state.articulacao) {
-    const d = getDispositivoAndFilhosAsLista(state.articulacao).find(d => !isArticulacao(d) && (isAdicionado(d) || isSuprimido(d) || isModificado(d)));
+    const d = getDispositivoAndFilhosAsLista(state.articulacao).find(d => !isArticulacao(d) && isAdicionado(d));
     if (d) {
       retorno.ui!.events.push({ stateType: StateType.ElementoMarcado, elementos: [createElemento(d)] });
     }

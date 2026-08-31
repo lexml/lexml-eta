@@ -1269,7 +1269,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
 
       if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
+        diff.textoOriginal = diff.textoAntesRevisao;
       } else {
         diff.textoOriginal = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ? diff.textoAtual : diff.textoAntesRevisao;
         diff.adicionado = true;
@@ -1277,9 +1277,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
       exibirDiferencasDialog(diff);
     } else {
-      if (d && d!.situacao.dispositivoOriginal?.conteudo !== undefined) {
-        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
-      }
       exibirDiferencasDialog(diff);
     }
   }

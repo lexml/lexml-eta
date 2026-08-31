@@ -4,7 +4,6 @@ import {
   isUndoRedoInclusaoExclusaoAgrupador,
   processarRestaurados,
 } from './../util/undoRedoReducerUtil';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
@@ -94,10 +93,7 @@ export const redo = (state: any): State => {
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
     .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'REDO') }));
 
-  events.add(
-    StateType.ElementoSuprimido,
-    restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoSuprimido), DispositivoSuprimido)
-  );
+  events.add(StateType.ElementoSuprimido, restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoSuprimido)));
 
   eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'REDO')));
 

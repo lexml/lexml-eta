@@ -8,7 +8,7 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { buscaDispositivoById, isAdicionado, isModificado, isOriginal, isSuprimido } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, isAdicionado } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { RESTAURAR_ELEMENTO } from '../../../src/model/lexml/acao/restaurarElemento';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
@@ -17,6 +17,12 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualiza
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
+
+// situação de emenda (ORIGINAL/MODIFICADO/SUPRIMIDO) é inalcançável em modo proposição; mantidos
+// localmente para este arquivo, que está excluído da execução (ver web-test-runner.config.mjs) até a Etapa 1.
+const isOriginal = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
+const isModificado = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO;
+const isSuprimido = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
 import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElemento';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 
