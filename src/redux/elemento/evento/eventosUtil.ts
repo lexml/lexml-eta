@@ -15,7 +15,6 @@ import {
 } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
-  getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getUltimoFilho,
@@ -237,51 +236,6 @@ export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFi
     : getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, tipoFilho, dispositivosPermitidos);
 };
 
-// Restauração de situação de emenda (ORIGINAL/MODIFICADO/SUPRIMIDO) é inalcançável em modo proposição;
-// mantido como no-op para preservar a assinatura usada por restauraAndBuildEvents.
-const restaura = (d: Dispositivo): void => {
-  void d;
-};
-
-export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] => {
-  const result: StateEvent[] = [];
-
-  const addRestauracao = (d: Dispositivo): void => {
-    const elementoAntesRestauracao = createElemento(d);
-    restaura(d);
-    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d)] });
-  };
-
-  if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-    const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
-    aRestaurar.forEach(addRestauracao);
-
-    const elementoPai = getElementoPaiDeEnumerodos(dispositivo);
-    if (elementoPai) {
-      result.push({ stateType: StateType.ElementoValidado, elementos: [elementoPai] });
-    }
-  } else {
-    addRestauracao(dispositivo);
-  }
-
-  result.push({ stateType: StateType.ElementoSelecionado, elementos: [createElemento(dispositivo, true)] });
-  return result;
-};
-
-export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  // Supressão de dispositivo (situação SUPRIMIDO) é inalcançável em modo proposição.
-  const eventos = new Eventos();
-  eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
-
-  const elementoPai = getElementoPaiDeEnumerodos(dispositivo);
-  if (elementoPai) {
-    eventos.add(StateType.ElementoValidado, [elementoPai]);
-  }
-
-  eventos.add(StateType.ElementoSelecionado, [createElemento(dispositivo, true)]);
-  return eventos.build();
-};
-
 export const getElementoPaiDeEnumerodos = (dispositivo: Dispositivo): Elemento | null => {
   const dipositivoPai = dispositivo.pai && !isAgrupador(dispositivo.pai) ? (isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai) : null;
 
@@ -334,18 +288,6 @@ export const createEventos = (): StateEvent[] => {
     },
     {
       stateType: StateType.ElementoRenumerado,
-      referencia: undefined,
-      pai: undefined,
-      elementos: [],
-    },
-    {
-      stateType: StateType.ElementoRestaurado,
-      referencia: undefined,
-      pai: undefined,
-      elementos: [],
-    },
-    {
-      stateType: StateType.ElementoSuprimido,
       referencia: undefined,
       pai: undefined,
       elementos: [],

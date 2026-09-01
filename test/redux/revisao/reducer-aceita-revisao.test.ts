@@ -18,7 +18,8 @@ import { ACEITAR_REVISAO } from '../../../src/model/lexml/acao/aceitarRevisaoAct
 // situação de emenda (SUPRIMIDO) é inalcançável em modo proposição; mantido localmente para este
 // arquivo, que está excluído da execução (ver web-test-runner.config.mjs) até a Etapa 1.
 const isSuprimido = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
-import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElemento';
+// Shim: ação removida com o controle de situação; arquivo será reescrito na Etapa 1.
+const SUPRIMIR_ELEMENTO = 'SUPRIMIR_ELEMENTO';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';

@@ -722,16 +722,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoModificado:
-        case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
           this.atualizarOmissis(event);
-          if (events[events.length - 1] === event) {
-            this.marcarLinha(event);
-          }
-          break;
-
-        case StateType.ElementoSuprimido:
-          this.atualizarSituacao(event);
           if (events[events.length - 1] === event) {
             this.marcarLinha(event);
           }
@@ -794,14 +786,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
-    const eventosQueDevemEmitirTextChange = [
-      StateType.ElementoModificado,
-      StateType.ElementoSuprimido,
-      StateType.ElementoRestaurado,
-      StateType.ElementoIncluido,
-      StateType.ElementoRemovido,
-      StateType.ElementoRenumerado,
-    ];
+    const eventosQueDevemEmitirTextChange = [StateType.ElementoModificado, StateType.ElementoIncluido, StateType.ElementoRemovido, StateType.ElementoRenumerado];
 
     const eventosFiltrados = events?.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
 

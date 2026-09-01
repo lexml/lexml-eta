@@ -2,7 +2,6 @@ import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { isParagrafo } from './../../../model/dispositivo/tipo';
 import { getDispositivoCabecaAlteracao, getDispositivoAndFilhosAsLista, getUltimoFilho } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isAgrupadorGenerico, isArtigo, isInciso } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -30,10 +29,6 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
 
   if (!resultado.articulacao) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não foi possível identificar os dispositivos no texto informado' });
-  }
-
-  if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && resultado.articulacao.filhos && isColandoFilhos(resultado.articulacao.filhos, atual)) {
-    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível colar filhos em dispositivo suprimido' });
   }
 
   if (
@@ -162,8 +157,4 @@ const criaAtributosComuns = (filho: Dispositivo, state: any): void => {
   (filho.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
   (filho.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
   filho.id = buildId(filho);
-};
-
-const isColandoFilhos = (filhos: Dispositivo[], atual: Dispositivo): boolean => {
-  return filhos[0].tipo !== atual.tipo && !atual.tiposPermitidosFilhos?.includes(filhos[0].tipo);
 };

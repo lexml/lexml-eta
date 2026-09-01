@@ -32,9 +32,7 @@ import { moverElementoAbaixoAction } from './moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from './moverElementoAcimaAction';
 import { removerElementoAction } from './removerElementoAction';
 import { renumerarElementoAction } from './renumerarElementoAction';
-import { restaurarElementoAction } from './restaurarElemento';
-import { suprimirAgrupadorAction } from './suprimirAgrupador';
-import { suprimirElementoAction } from './suprimirElemento';
+
 import {
   transformaAlineaEmItem,
   transformarAlineaEmIncisoCaput,
@@ -121,9 +119,6 @@ acoesMenu.push(transformarParagrafoEmArtigo);
 acoesMenu.push(transformarParagrafoEmIncisoParagrafo);
 acoesMenu.push(transformarParagrafoEmIncisoCaput);
 acoesMenu.push(removerElementoAction);
-acoesMenu.push(restaurarElementoAction);
-acoesMenu.push(suprimirElementoAction);
-acoesMenu.push(suprimirAgrupadorAction);
 acoesMenu.push(validarElementoAction);
 acoesMenu.push(adicionarParte);
 acoesMenu.push(adicionarLivro);

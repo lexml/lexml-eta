@@ -3,7 +3,6 @@ import { isAgrupador, isArticulacao, isCaput, isItem, Tipo, isAlinea, isAgrupado
 import { buildDispositivoFromJsonix } from './../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { Elemento } from './../../../model/elemento/elemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo, isInciso, isOmissis } from '../../../model/dispositivo/tipo';
 import { getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
@@ -40,8 +39,6 @@ export enum TipoRestricaoEnum {
   DISPOSITIVOS_COM_ROTULO_DUPLICADO,
   ARTIGOS_SEM_NUMERACAO_DENTRO_DE_ALTERACAO,
   ALTERACAO_DENTRO_DE_ALTERACAO,
-  FILHOS_EM_DISPOSITIVO_SUPRIMIDO,
-  DISPOSITIVO_JA_MODIFICADO,
   DISPOSITIVO_EM_POSICAO_INVALIDA,
   DISPOSITIVO_ANTES_DO_ATUAL,
   ARTIGO_COM_FILHOS_SOBRE_ARTIGO_COM_ALTERACOES,
@@ -402,13 +399,6 @@ const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTex
     });
   }
 
-  if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && articulacaoColada.filhos && isColandoFilhos(articulacaoColada.filhos, atual)) {
-    result.push({
-      tipo: TipoRestricaoEnum.FILHOS_EM_DISPOSITIVO_SUPRIMIDO,
-      mensagens: ['Não é permitido colar filhos em dispositivo suprimido'],
-    });
-  }
-
   const referenciaAux = referencia || getDispositivoReferencia(articulacaoColada.filhos[0].tipo, atual);
 
   if (!referenciaAux) {
@@ -479,10 +469,6 @@ const getDispositivoReferencia = (tipoASerColado: string, ref?: Dispositivo): Di
   } else {
     return getDispositivoReferencia(tipoASerColado, ref.pai);
   }
-};
-
-const isColandoFilhos = (filhos: Dispositivo[], atual: Dispositivo): boolean => {
-  return filhos[0].tipo !== atual.tipo && !!atual.tiposPermitidosFilhos?.includes(filhos[0].tipo);
 };
 
 export const ajustaIdsNaArticulacaoColada = (filhos: Dispositivo[], referencia: Dispositivo): void => {

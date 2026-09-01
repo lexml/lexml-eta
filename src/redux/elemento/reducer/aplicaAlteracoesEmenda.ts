@@ -2,7 +2,6 @@ import { isRevisaoDeMovimentacao, isRevisaoDeTransformacao } from './../util/rev
 import { isAgrupador, isArticulacao, isCaput, isOmissis, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
-import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import {
   buscaDispositivoById,
@@ -322,19 +321,7 @@ const processaRevisoes = (state: State, revisoes: Revisao[]): StateEvent[] => {
 
   state.revisoes = identificarRevisaoElementoPai(state, state.revisoes!);
 
-  return [...buildEventoRevisaoDispositivoRestaurado(state, revisoes), { stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao }];
-};
-
-const buildEventoRevisaoDispositivoRestaurado = (state: State, revisoes: Revisao[]): StateEvent[] => {
-  const result: StateEvent[] = [];
-  const revisoesRestauracao = revisoes.map(r => r as RevisaoElemento).filter(r => r.actionType === RESTAURAR_ELEMENTO) || [];
-
-  if (revisoesRestauracao.length) {
-    const elementos = revisoesRestauracao.map(r => buscaDispositivoById(state.articulacao!, r.elementoAposRevisao.lexmlId!)!).map(d => createElemento(d));
-    result.push({ stateType: StateType.ElementoRestaurado, elementos });
-  }
-
-  return result;
+  return [{ stateType: StateType.ElementoIncluido, elementos: elementosExcluidosEmModoDeRevisao }];
 };
 
 const processarElementoDaRevisao = (state: State, revisao: RevisaoElemento, elementoAnterior: Partial<Elemento>, elementosExcluidosEmModoDeRevisao: Elemento[]): void => {

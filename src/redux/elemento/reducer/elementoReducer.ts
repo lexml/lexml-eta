@@ -21,10 +21,7 @@ import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoActi
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
-import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SHIFT_TAB } from '../../../model/lexml/acao/shiftTabAction';
-import { SUPRIMIR_AGRUPADOR } from '../../../model/lexml/acao/suprimirAgrupador';
-import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { TAB } from '../../../model/lexml/acao/tabAction';
 import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformarElementoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
@@ -53,12 +50,9 @@ import { removeAlerta } from './removeAlerta';
 import { removeElemento } from './removeElemento';
 import { removeElementoSemTexto } from './removeElementoSemTexto';
 import { renumeraElemento } from './renumeraElemento';
-import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
 import { solicitaDadosAssistente } from './solicitaDadosAssistente';
 import { solicitaNorma } from './solicitaNorma';
-import { suprimeAgrupador } from './suprimeAgrupador';
-import { suprimeElemento } from './suprimeElemento';
 import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
@@ -162,15 +156,6 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case RENUMERAR_ELEMENTO:
       tempState = renumeraElemento(state, action);
-      break;
-    case RESTAURAR_ELEMENTO:
-      tempState = restauraElemento(state, action);
-      break;
-    case SUPRIMIR_AGRUPADOR:
-      tempState = suprimeAgrupador(state, action);
-      break;
-    case SUPRIMIR_ELEMENTO:
-      tempState = suprimeElemento(state, action);
       break;
     case ABRIR_ARTICULACAO:
       tempState = abreArticulacao(state, action);

@@ -174,17 +174,6 @@ export const remover = (state: State, evento: StateEvent): Elemento[] => {
   return [];
 };
 
-export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestaurados: StateEvent): Elemento[] => {
-  if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
-    evento.elementos.forEach(el => {
-      const d = getDispositivoFromElemento(state.articulacao!, el, true);
-      eventoRestaurados.elementos!.push(createElemento(d!));
-    });
-    return eventoRestaurados.elementos!;
-  }
-  return [];
-};
-
 export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO'): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
@@ -321,33 +310,6 @@ export const ajustarHierarquivoAgrupadorIncluidoPorUndoRedo = (articulacao: Arti
   }
 
   eventosResultantes.push({ stateType: StateType.SituacaoElementoModificada, elementos: getDispositivoAndFilhosAsLista(agrupador).map(d => createElemento(d)) });
-};
-
-export const processarRestaurados = (state: State, evento: StateEvent, acao: string): StateEvent => {
-  const elementoDeReferencia = evento.elementos![acao === 'UNDO' ? 0 : 1];
-  const d = getDispositivoFromElemento(state.articulacao!, elementoDeReferencia, true)!;
-
-  const elementoAntesDeRestaurarSituacao = createElemento(d);
-
-  d.numero = elementoDeReferencia.numero ?? '';
-  d.rotulo = elementoDeReferencia.rotulo ?? '';
-  d.texto = elementoDeReferencia.conteudo?.texto ?? '';
-
-  const elementos = [elementoAntesDeRestaurarSituacao, createElemento(d)];
-
-  return { stateType: StateType.ElementoRestaurado, elementos };
-};
-
-export const processarSuprimidos = (state: State, evento: StateEvent): StateEvent[] => {
-  const result: StateEvent[] = [];
-
-  evento.elementos?.forEach(e => {
-    const d = getDispositivoFromElemento(state.articulacao!, e, true)!;
-    const elementoAntesRestauracao = createElemento(d);
-    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d!)] });
-  });
-
-  return result;
 };
 
 export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {

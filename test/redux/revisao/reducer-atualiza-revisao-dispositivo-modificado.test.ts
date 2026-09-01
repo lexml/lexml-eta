@@ -10,7 +10,8 @@ import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacao
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { buscaDispositivoById, isAdicionado } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { RESTAURAR_ELEMENTO } from '../../../src/model/lexml/acao/restaurarElemento';
+// Shim: ação removida com o controle de situação; arquivo será reescrito na Etapa 1.
+const RESTAURAR_ELEMENTO = 'RESTAURAR_ELEMENTO';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
@@ -23,7 +24,7 @@ import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 const isOriginal = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL;
 const isModificado = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO;
 const isSuprimido = (d: any): boolean => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO;
-import { SUPRIMIR_ELEMENTO } from '../../../src/model/lexml/acao/suprimirElemento';
+const SUPRIMIR_ELEMENTO = 'SUPRIMIR_ELEMENTO';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 
 let state: State;

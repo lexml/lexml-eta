@@ -1,6 +1,5 @@
 import { isRevisaoDeModificacao, isRevisaoDeTransformacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
 import { isCaput } from './../../../model/dispositivo/tipo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento/elemento';
 import {
   createElemento,
@@ -27,8 +26,6 @@ import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupad
 import { agrupaElemento } from './agrupaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { removeElemento } from './removeElemento';
-import { restauraElemento } from './restauraElemento';
-import { suprimeElemento } from './suprimeElemento';
 
 export const rejeitaRevisao = (state: any, action: any): State => {
   if (action.revisao || action.elemento) {
@@ -114,9 +111,7 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
   const eventos: StateEvent[] = [];
 
   revisoes.forEach(r => {
-    r.stateType === StateType.ElementoSuprimido && eventos.push(...rejeitaSupressao(state, r));
     r.stateType === StateType.ElementoModificado && eventos.push(...rejeitaModificacao(state, r));
-    r.stateType === StateType.ElementoRestaurado && eventos.push(...rejeitaRestauracao(state, r));
     r.stateType === StateType.ElementoIncluido && eventos.push(...rejeitaInclusao(state, r));
     r.stateType === StateType.ElementoRemovido && eventos.push(...rejeitaExclusao(state, r));
   });
@@ -124,21 +119,8 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
   return unificarEvento(state, eventos, StateType.ElementoRenumerado);
 };
 
-const rejeitaSupressao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  return restauraElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
-};
-
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
   return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
-};
-
-const rejeitaRestauracao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  if (revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-    return suprimeElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
-  } else if (revisao.elementoAntesRevisao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-    return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
-  }
-  return [];
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
