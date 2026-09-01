@@ -1,5 +1,5 @@
 import { isRevisaoDeMovimentacao, isRevisaoDeTransformacao } from './../util/revisaoUtil';
-import { isArticulacao, isParagrafo } from '../../../model/dispositivo/tipo';
+import { isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import {
@@ -61,13 +61,6 @@ export const aplicaRevisoes = (state: any, action: any): State => {
 
   if (retorno.emRevisao) {
     retorno.ui!.events.push({ stateType: StateType.RevisaoAtivada });
-  }
-
-  if (state.articulacao) {
-    const d = getDispositivoAndFilhosAsLista(state.articulacao).find(d => !isArticulacao(d) && isAdicionado(d));
-    if (d) {
-      retorno.ui!.events.push({ stateType: StateType.ElementoMarcado, elementos: [createElemento(d)] });
-    }
   }
 
   return retorno;
