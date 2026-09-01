@@ -1,4 +1,11 @@
-import { isRevisaoPrincipal, getQuantidadeRevisoes, isRevisaoDeTransformacao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import {
+  isRevisaoPrincipal,
+  getQuantidadeRevisoes,
+  isRevisaoDeTransformacao,
+  isRevisaoDeExclusao,
+  isRevisaoDeModificacao,
+  setCheckedElement,
+} from '../../redux/elemento/util/revisaoUtil';
 import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
 import { InfoTextoColado } from '../../redux/elemento/util/colarUtil';
@@ -63,9 +70,7 @@ import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoActio
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
-import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
@@ -1248,22 +1253,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     diff.quill = this.quill;
 
     const revisao = elemento.revisao as RevisaoElemento;
-    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
 
     if (revisao) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
-
-      if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-        diff.textoOriginal = diff.textoAntesRevisao;
-      } else {
-        diff.textoOriginal = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ? diff.textoAtual : diff.textoAntesRevisao;
-        diff.adicionado = true;
-      }
-
-      exibirDiferencasDialog(diff);
-    } else {
-      exibirDiferencasDialog(diff);
+      diff.textoOriginal = diff.textoAntesRevisao;
+      // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
+      diff.adicionado = true;
     }
+
+    exibirDiferencasDialog(diff);
   }
 
   aceitarRevisao(elemento: Elemento): void {
@@ -1336,7 +1334,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private alertaGlobalEmendaSemPreenchimento(articulacao: any): void {
     if (articulacao) {
-      const elementos = getElementos(articulacao!).filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.tipo !== 'Articulacao');
+      const elementos = getElementos(articulacao!).filter(e => e.tipo !== 'Articulacao');
       if (elementos.length === 0) {
         alertaGlobalEmendaSemPreenchimentoUtil(true, rootStore, 'Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
       } else {
@@ -1613,19 +1611,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
-    const uuidsElementosComModificacao = elementos
-      .filter(
-        e =>
-          e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado') ||
-          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
-            e.revisao &&
-            (e.revisao as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto !== e.conteudo?.texto)
-        // || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao
-        //   && (e.revisao.descricao === 'Dispositivo restaurado' || e.revisao.descricao === 'Texto do dispositivo foi alterado'))
-      )
-      .map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoDeModificacao(e.revisao)).map(e => e.uuid!);
+    const uuidsElementosSemModificacao = elementos.filter(e => !uuidsElementosComModificacao.includes(e.uuid!)).map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {
       const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);

@@ -27,7 +27,6 @@ export const hasApenasDispositivosIrmaosNovos = (dispositivo: Dispositivo): bool
 
 export enum MotivosOperacaoNaoPermitida {
   AGRUPADOR = 'Não é possível mover agrupadores de artigo.',
-  ORIGINAL = 'Não é possível mover um dispositivo original.',
   PROXIMO_DIFERENTE_PARAGRAFO = 'O próximo dispositivo não é um parágrafo.',
   PROXIMO_DIFERENTE_ARTIGO_ALTERACAO_NORMA = 'O tipo do próximo dispositivo não corresponde ao tipo do dispositivo atual (alteração de norma).',
   PROXIMO_DIFERENTE_ALINEA = 'O próximo dispositivo não é uma alínea.',

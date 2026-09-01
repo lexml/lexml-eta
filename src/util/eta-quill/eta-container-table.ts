@@ -239,31 +239,16 @@ export class EtaContainerTable extends EtaContainer {
 
   private resetClasses(): void {
     this.domNode.classList.remove('dispositivo--adicionado');
-    this.domNode.classList.remove('dispositivo--modificado');
-    this.domNode.classList.remove('dispositivo--suprimido');
   }
 
   // TODO Rever a forma atual de se atribuir estilos
   setEstilo(elemento: Elemento): void {
     if (!this.blotRotulo) return;
-    let classeCSS = '';
 
     this.resetClasses();
 
-    switch (elemento.descricaoSituacao) {
-      case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-        classeCSS = 'dispositivo--adicionado';
-        break;
-      case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
-        classeCSS = 'dispositivo--modificado';
-        break;
-      case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
-        classeCSS = 'dispositivo--suprimido';
-        break;
-    }
-
-    if (classeCSS) {
-      this.domNode.classList.add(classeCSS);
+    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+      this.domNode.classList.add('dispositivo--adicionado');
     }
 
     this.blotRotulo.setEstilo(elemento);

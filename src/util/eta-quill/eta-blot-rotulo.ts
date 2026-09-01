@@ -77,19 +77,13 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   public static getClasseCSS(elemento: Elemento): string {
-    const classeSituacao = {
-      [DescricaoSituacao.DISPOSITIVO_ADICIONADO]: 'dispositivo--adicionado',
-      [DescricaoSituacao.DISPOSITIVO_MODIFICADO]: 'dispositivo--modificado',
-      [DescricaoSituacao.DISPOSITIVO_SUPRIMIDO]: 'dispositivo--suprimido',
-    };
-
     const isAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
     return (
       'texto__rotulo' +
       (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
       (isAdicionado && elemento.dispositivoAlteracao ? ' rotulo' : '') +
       (' texto__rotulo--' + elemento.tipo?.toLowerCase()) +
-      (' ' + (classeSituacao[elemento.descricaoSituacao ?? ''] ?? ''))
+      (isAdicionado ? ' dispositivo--adicionado' : '')
     );
   }
 

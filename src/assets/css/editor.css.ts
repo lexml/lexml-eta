@@ -455,18 +455,6 @@ export const editorStyles = html`
       color: green;
     }*/
 
-    .dispositivo--modificado {
-      color: blue;
-    }
-
-    .dispositivo--suprimido {
-      color: red;
-    }
-
-    .dispositivo--suprimido .texto__dispositivo {
-      text-decoration: line-through;
-    }
-
     /* .texto--suprimido {
       text-decoration: line-through;
     } */

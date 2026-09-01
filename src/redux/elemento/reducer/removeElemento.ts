@@ -55,9 +55,7 @@ export const removeElemento = (state: any, action: any): State => {
   }
 
   if (!isAcaoPermitida(dispositivo, RemoverElemento)) {
-    return !isEmenta(dispositivo)
-      ? retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' })
-      : state;
+    return !isEmenta(dispositivo) ? retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir este dispositivo.' }) : state;
   }
 
   if (

@@ -20,7 +20,7 @@ import { AlinhamentoMenu } from './eta-blot-menu';
 import { EtaBlotRevisao } from './eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
-import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
+import { isRevisaoDeModificacao, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
@@ -70,10 +70,7 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
-    if (
-      elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao && elemento.revisao.descricao === 'Texto do dispositivo foi alterado')
-    ) {
+    if (elemento.revisao && isRevisaoDeModificacao(elemento.revisao)) {
       EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
     }
 

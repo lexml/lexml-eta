@@ -772,20 +772,6 @@ export const isAscendente = (d: Dispositivo, dAscendente: Dispositivo): boolean 
   return false;
 };
 
-export const isDescendenteDeSuprimido = (d: Dispositivo): boolean => {
-  if (!d) {
-    return false;
-  }
-  let pai = d.pai;
-  while (pai) {
-    if (pai.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-      return true;
-    }
-    pai = pai.pai;
-  }
-  return false;
-};
-
 export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): boolean => {
   const parent = isIncisoCaput(d) ? d.pai!.pai : d.pai;
 

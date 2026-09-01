@@ -4,7 +4,7 @@ import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
-import { hasIndicativoDesdobramento, normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
+import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import {
@@ -43,7 +43,7 @@ export const adicionaElemento = (state: any, action: any): State => {
   const atual = action.posicao === 'filho' && atualCaputPosicaoFilho ? atualCaputPosicaoFilho : refAtual;
   const refUltimoFilho = atual && action.posicao === 'filho' ? (hasFilhos(atual) ? atual.filhos[atual.filhos.length - 1] : undefined) : undefined;
 
-  if (atual === undefined || (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && hasIndicativoDesdobramento(atual))) {
+  if (atual === undefined) {
     state.ui.events = [];
     return state;
   }
@@ -56,11 +56,6 @@ export const adicionaElemento = (state: any, action: any): State => {
         ? atual.pai!.pai!
         : atual.pai
       : atual.pai!.filhos[atual.pai!.indexOf(atual) - 1];
-
-  if (atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
-    action.atual.conteudo.texto = atual.texto;
-    action.novo.conteudo.texto = undefined;
-  }
 
   const originalmenteUnico = isArtigoUnico(atual) || isParagrafoUnico(atual);
 
@@ -75,7 +70,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     textoModificado = true;
   }
 
-  if (naoPodeCriarFilho(atual, action)) {
+  if (naoPodeCriarFilho(atual)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível criar dispositivos nessa situação' });
   }
 
@@ -118,12 +113,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo.notaAlteracao = 'NR';
   }
 
-  if (
-    atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ||
-    atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-    atual.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO ||
-    atual.situacao instanceof DispositivoAdicionado
-  ) {
+  if (atual.situacao instanceof DispositivoAdicionado) {
     novo.situacao = new DispositivoAdicionado();
     if (isArtigo(novo)) {
       (novo as Artigo).caput!.situacao = new DispositivoAdicionado();
