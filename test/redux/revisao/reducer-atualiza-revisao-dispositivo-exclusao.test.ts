@@ -15,7 +15,7 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualiza
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { ACEITAR_REVISAO } from '../../../src/model/lexml/acao/aceitarRevisaoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../src/model/lexml/acao/aplicarRevisoes';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { EMENDA_006 } from '../../doc/emendas/emenda-006';
 import { EMENDA_007 } from '../../doc/emendas/emenda-007';
@@ -30,7 +30,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Abrindo emenda com revisão de exclusão do inciso "I-2 - Teste D:", aceitando a revisão e fazendo UNDO do aceite', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_007.componentes[0].dispositivos, revisoes: EMENDA_007.revisoes });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_007.componentes[0].dispositivos, revisoes: EMENDA_007.revisoes });
       state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: state.revisoes![0] });
       state = elementoReducer(state, { type: UNDO });
     });
@@ -84,7 +84,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Removendo dispositivo em modo de revisão, aceitando a revisão e fazendo UNDO do aceite', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
 
       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;

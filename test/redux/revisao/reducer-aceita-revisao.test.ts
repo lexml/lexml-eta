@@ -22,7 +22,7 @@ const isSuprimido = (d: any): boolean => d.situacao.descricaoSituacao === Descri
 const SUPRIMIR_ELEMENTO = 'SUPRIMIR_ELEMENTO';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../src/model/lexml/acao/aplicarRevisoes';
 import { EMENDA_005 } from '../../doc/emendas/emenda-005';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 
@@ -96,7 +96,7 @@ describe('Carregando texto da MPV 905/2019', () => {
     // TESTE "DESATIVADO" ATÉ QUE SEJA CORRIGIDO O ACEITE DE MÚLTIPLAS REVISÕES
     // describe('Testando aceite de múltiplas revisões (**)', () => {
     //   beforeEach(function () {
-    //     state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+    //     state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
 
     //     // gera 1 revisão
     //     state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par1')!) });
@@ -337,7 +337,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Adicionando dispositivos fora de revisão', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_005.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_005.componentes[0].dispositivos });
       // TesteCmdEmdUtil.incluiInciso(state, 'art1_par1u_inc1', false, 'art1_par1u_inc1-1');
       // TesteCmdEmdUtil.incluiInciso(state, 'art1_par1u_inc1-1', false, 'art1_par1u_inc1-2');
 

@@ -6,7 +6,7 @@ import { ASSISTENTE_ALTERACAO } from '../../../model/lexml/acao/adicionarAlterac
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../model/lexml/acao/aplicarRevisoes';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
@@ -34,7 +34,7 @@ import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente
 import { adicionaElemento } from './adicionaElemento';
 import { adicionarAlerta as adicionaAlerta } from './adicionarAlerta';
 import { agrupaElemento } from './agrupaElemento';
-import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
+import { aplicaRevisoes } from './aplicaRevisoes';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
@@ -108,8 +108,8 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ATUALIZAR_NOTA_ALTERACAO:
       tempState = atualizaNotaAlteracao(state, action);
       break;
-    case APLICAR_ALTERACOES_EMENDA:
-      tempState = aplicaAlteracoesEmenda(state, action);
+    case APLICAR_REVISOES:
+      tempState = aplicaRevisoes(state, action);
       emRevisao = tempState.emRevisao;
       break;
     case ASSISTENTE_ALTERACAO:
@@ -227,7 +227,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   }
 
   if (
-    ![ABRIR_ARTICULACAO, APLICAR_ALTERACOES_EMENDA, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
+    ![ABRIR_ARTICULACAO, APLICAR_REVISOES, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
     !isRedoDeRevisaoAceita(actionType, tempState) &&
     !isRedoDeRevisaoRejeitada(actionType, tempState)
   ) {

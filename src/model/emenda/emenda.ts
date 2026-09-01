@@ -69,39 +69,6 @@ export class ComponenteEmendado {
   articulado = true;
   rotuloAnexo?: string;
   tituloAnexo?: string;
-  dispositivos = new DispositivosEmenda();
-}
-
-// Dispositivos da emenda ----------------------------
-export class DispositivosEmenda {
-  dispositivosSuprimidos: DispositivoEmendaSuprimido[] = [];
-  dispositivosModificados: DispositivoEmendaModificado[] = [];
-  dispositivosAdicionados: DispositivoEmendaAdicionado[] = [];
-}
-
-export class DispositivoEmenda {
-  tipo = ''; // Tipo do dispositivo
-  id = ''; // ID LexML
-  rotulo?: string;
-  urnNormaAlterada?: string;
-}
-
-export class DispositivoEmendaSuprimido extends DispositivoEmenda {}
-
-export class DispositivoEmendaModificado extends DispositivoEmenda {
-  texto?: string;
-  textoOmitido?: boolean;
-  abreAspas?: boolean;
-  fechaAspas?: boolean;
-  notaAlteracao?: 'NR' | 'AC';
-}
-
-export class DispositivoEmendaAdicionado extends DispositivoEmendaModificado {
-  idPai?: string;
-  idIrmaoAnterior?: string;
-  idPosicaoAgrupador?: string;
-  existeNaNormaAlterada?: boolean;
-  filhos?: Array<DispositivoEmendaAdicionado>;
 }
 
 export class ComandoEmenda {

@@ -26,7 +26,7 @@ import {
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../model/lexml/acao/aplicarRevisoes';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoAction';
@@ -39,7 +39,7 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   const numElementos = state.ui?.events.map(se => se.elementos).flat().length;
   if ([ABRIR_ARTICULACAO, ATUALIZAR_USUARIO, VALIDAR_ARTICULACAO].includes(actionType) || !state.emRevisao || !actionType || !numElementos) {
     return state;
-  } else if ([APLICAR_ALTERACOES_EMENDA, SELECIONAR_PAGINA_ARTICULACAO].includes(actionType)) {
+  } else if ([APLICAR_REVISOES, SELECIONAR_PAGINA_ARTICULACAO].includes(actionType)) {
     associarRevisoesAosElementosDosEventos(state);
     return state;
   }

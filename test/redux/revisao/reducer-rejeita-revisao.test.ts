@@ -25,7 +25,7 @@ import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarEleme
 const SUPRIMIR_ELEMENTO = 'SUPRIMIR_ELEMENTO';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../src/model/lexml/acao/aplicarRevisoes';
 import { EMENDA_005 } from '../../doc/emendas/emenda-005';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
@@ -42,7 +42,7 @@ describe('Testando rejeição de múltiplas revisões da EMENDA_009', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_1171_2023);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
-    state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_009.componentes[0].dispositivos, revisoes: EMENDA_009.revisoes });
+    state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_009.componentes[0].dispositivos, revisoes: EMENDA_009.revisoes });
   });
 
   it('Deveria estar em revisão', () => {
@@ -206,7 +206,7 @@ describe('Carregando texto da MPV 905/2019', () => {
     // TESTE "DESATIVADO" ATÉ QUE SEJA CORRIGIDA A REJEIÇÃO DE MÚLTIPLAS REVISÕES
     // describe('Testando rejeição de múltiplas revisões (*)', () => {
     //   beforeEach(function () {
-    //     state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+    //     state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
 
     //     // gera 1 revisão
     //     state = elementoReducer(state, { type: SUPRIMIR_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art2_par1')!) });
@@ -468,7 +468,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Adicionando dispositivos fora de revisão', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_005.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_005.componentes[0].dispositivos });
     });
 
     it('Deveria possuir inciso "art1_par1u_inc1-1" com 3 alíneas', () => {

@@ -3,8 +3,8 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo, DispositivosEmenda } from '../model/emenda/emenda';
-import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
+import { Anexo } from '../model/emenda/emenda';
+import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -26,7 +26,6 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
   private projetoNorma?: any;
 
-  private dispositivosEmenda: DispositivosEmenda | undefined;
   private revisoes: Revisao[] | undefined;
 
   createRenderRoot(): LitElement {
@@ -42,13 +41,12 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
 
-  setDispositivosERevisoesEmenda(revisoes?: Revisao[]): void {
+  setRevisoes(revisoes?: Revisao[]): void {
     this.revisoes = revisoes;
-    // Só há o que aplicar (dispositivosEmenda ou revisões) quando é de fato uma emenda/revisão sendo carregada;
-    // sem essa guarda, o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
+    // Sem essa guarda o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
     // (situação padrão de todo dispositivo recém-criado), deslocando o cursor da ementa ~1s após o carregamento.
-    if (this.dispositivosEmenda || revisoes?.length) {
-      this.loadEmenda();
+    if (revisoes?.length) {
+      this.loadRevisoes();
     }
   }
 
@@ -83,10 +81,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   private _timerLoadEmenda = 0;
-  private loadEmenda(): void {
+  private loadRevisoes(): void {
     clearInterval(this._timerLoadEmenda);
     this._timerLoadEmenda = window.setTimeout(() => {
-      rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!, this.revisoes));
+      rootStore.dispatch(aplicarRevisoesAction.execute(this.revisoes));
     }, 1000);
   }
 

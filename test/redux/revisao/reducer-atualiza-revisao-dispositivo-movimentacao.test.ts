@@ -17,7 +17,7 @@ import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElemen
 import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { MOVER_ELEMENTO_ACIMA } from '../../../src/model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../src/model/lexml/acao/aplicarRevisoes';
 import { EMENDA_006 } from '../../doc/emendas/emenda-006';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
@@ -33,7 +33,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Movendo artigo, com alteração de norma, adicionado fora de revisão', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_012.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_012.componentes[0].dispositivos });
       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
       state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1-1')!) });
     });
@@ -130,7 +130,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Movendo (2 vezes para baixo) dispositivo adicionado fora de revisão', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
 
       state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!) });
@@ -167,7 +167,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Movendo dispositivo adicionado fora de revisão, alterando texto de dispositivo subordinado e fazendo UNDO da alteração', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
 
       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;

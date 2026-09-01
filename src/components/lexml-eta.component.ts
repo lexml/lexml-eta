@@ -451,7 +451,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.notasRodape = proposicao.notasRodape || [];
     this._lexmlJustificativa.setContent(proposicao.justificativa || '', proposicao.notasRodape || []);
     this._lexmlData.data = this.anexoParecer ? '' : proposicao.dataUltimaModificacao;
-    this._lexmlEta!.setDispositivosERevisoesEmenda(proposicao.revisoes);
+    this._lexmlEta!.setRevisoes(proposicao.revisoes);
     this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
   }
 

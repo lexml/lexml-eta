@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../src/model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../src/model/lexml/acao/aplicarRevisoes';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State, StateType } from '../../../src/redux/state';
 import { EMENDA_006 } from '../../doc/emendas/emenda-006';
@@ -34,7 +34,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
   describe('Testando', () => {
     beforeEach(function () {
-      state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+      state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
 
       state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
 
@@ -306,7 +306,7 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
-    state = elementoReducer(state, { type: APLICAR_ALTERACOES_EMENDA, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+    state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
   });
 
   it('Deveria possuir 6 incisos adicionados (de I-1 a I-6), cada um com 2 alíneas', () => {
