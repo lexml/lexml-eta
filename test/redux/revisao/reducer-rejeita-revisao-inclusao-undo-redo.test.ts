@@ -1,14 +1,12 @@
 import { expect } from '@open-wc/testing';
-import { APLICAR_REVISOES } from '../../../src/model/lexml/acao/aplicarRevisoes';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State, StateType } from '../../../src/redux/state';
-import { EMENDA_006 } from '../../doc/emendas/emenda-006';
-import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isAdicionado, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
-import { isAlinea, isArticulacao, isInciso } from '../../../src/model/dispositivo/tipo';
+import { isAlinea, isInciso } from '../../../src/model/dispositivo/tipo';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/acao/AdicionarElementosFromClipboardAction';
@@ -19,21 +17,39 @@ import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
+import { TEXTO_013 } from '../../doc/textos-colar/texto_013';
+import { adicionaElementosNaProposicaoFromClipboard } from '../../../src/redux/elemento/reducer/adicionaElementosNaProposicaoFromClipboard';
 
 let state: State;
 
-describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
+describe('Testando operações sobre a MPV 905/2019, TEXTO_013', () => {
   beforeEach(function () {
     const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
-    state = elementoReducer(state, { type: APLICAR_REVISOES, alteracoesEmenda: EMENDA_006.componentes[0].dispositivos });
+
+    const disp = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
+    const atual = createElemento(disp);
+    const isColarSubstituindo = false;
+    state = adicionaElementosNaProposicaoFromClipboard(state, {
+      type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
+      atual,
+      novo: {
+        isDispositivoAlteracao: isDispositivoAlteracao(disp),
+        conteudo: {
+          texto: TEXTO_013,
+        },
+      },
+      isColarSubstituindo,
+      posicao: 'depois',
+    });
     state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
   });
 
-  it('Deveria possuir 6 incisos adicionados (de I-1 a I-6), cada um com 2 alíneas', () => {
-    const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!).filter(f => !isArticulacao(f) && isAdicionado(f));
-    expect(dispositivos.length).to.equal(18);
-    expect(dispositivos.filter(isInciso).length).to.equal(6);
+  it('Parágrafo único do Art. 1 deveria possuir 10 incisos', () => {
+    const d = buscaDispositivoById(state.articulacao!, 'art1_par1u')!;
+    const dispositivos = getDispositivoAndFilhosAsLista(d).filter(d => isInciso(d) || isAlinea(d));
+    expect(dispositivos.length).to.equal(22);
+    expect(dispositivos.filter(isInciso).length).to.equal(10);
     expect(dispositivos.filter(isAlinea).length).to.equal(12);
   });
 
@@ -41,9 +57,9 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     expect(state.emRevisao).to.be.true;
   });
 
-  describe('Adicionando novo inciso após inciso "art1_par1u_inc1-2" e rejeitando a inclusão', () => {
+  describe('Adicionando novo inciso após inciso "art1_par1u_inc3" e rejeitando a inclusão', () => {
     beforeEach(function () {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc3')!;
       state = elementoReducer(state, {
         type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
         atual: createElemento(d),
@@ -64,8 +80,8 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       expect(state.revisoes?.length).to.be.equal(0);
     });
 
-    it('Deveria possuir inciso "art1_par1u_inc1-3" com texto "teste G:"', () => {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+    it('Deveria possuir inciso "art1_par1u_inc4" com texto "teste G:"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc4')!;
       expect(d.texto).to.be.equal('teste G:');
     });
 
@@ -115,10 +131,9 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
 
     describe('Testando evento ElementoRenumerado (*)', () => {
-      it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
+      it('Deveria possuir 7 elementos', () => {
         expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
+        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length).to.be.equal(7);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {
@@ -134,9 +149,9 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
   });
 
-  describe('Adicionando novo inciso após inciso "art1_par1u_inc1-2", rejeitando a inclusão e fazendo UNDO da rejeição', () => {
+  describe('Adicionando novo inciso após inciso "art1_par1u_inc3", rejeitando a inclusão e fazendo UNDO da rejeição', () => {
     beforeEach(function () {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc3')!;
       state = elementoReducer(state, {
         type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
         atual: createElemento(d),
@@ -159,8 +174,8 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       expect(state.revisoes?.filter(isRevisaoPrincipal).length).to.be.equal(1);
     });
 
-    it('Deveria possuir inciso "art1_par1u_inc1-3" com texto "texto novo inciso:"', () => {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+    it('Deveria possuir inciso "art1_par1u_inc4" com texto "texto novo inciso:"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc4')!;
       expect(d.texto).to.be.equal('texto novo inciso:');
     });
 
@@ -213,10 +228,9 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
 
     describe('Testando evento ElementoRenumerado (**)', () => {
-      it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
+      it('Deveria possuir 7 elementos', () => {
         expect(state.ui?.events[3].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[3].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
-        expect(state.ui?.events[3].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
+        expect(state.ui?.events[3].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length).to.be.equal(7);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {
@@ -232,9 +246,9 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
   });
 
-  describe('Adicionando novo inciso após inciso "art1_par1u_inc1-2", rejeitando a inclusão, fazendo UNDO e fazendo REDO', () => {
+  describe('Adicionando novo inciso após inciso "art1_par1u_inc3", rejeitando a inclusão, fazendo UNDO e fazendo REDO', () => {
     beforeEach(function () {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-2')!;
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc3')!;
       state = elementoReducer(state, {
         type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
         atual: createElemento(d),
@@ -257,8 +271,8 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
       expect(state.revisoes?.length).to.be.equal(0);
     });
 
-    it('Deveria possuir inciso "art1_par1u_inc1-3" com texto "teste G:"', () => {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-3')!;
+    it('Deveria possuir inciso "art1_par1u_inc4" com texto "teste G:"', () => {
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc4')!;
       expect(d.texto).to.be.equal('teste G:');
     });
 
@@ -308,10 +322,9 @@ describe('Testando operações sobre a MPV 905/2019, EMENDA 006', () => {
     });
 
     describe('Testando evento ElementoRenumerado (***)', () => {
-      it('Deveria possuir 7 elementos (4 adicionados e 3 originais)', () => {
+      it('Deveria possuir 7 elementos', () => {
         expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length).to.be.equal(4);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL).length).to.be.equal(3);
+        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length).to.be.equal(7);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {

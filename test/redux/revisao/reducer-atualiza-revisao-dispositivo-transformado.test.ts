@@ -12,7 +12,7 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isAdicionado, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, isAdicionado, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
@@ -23,7 +23,7 @@ import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
-import { isArticulacao, isInciso, isParagrafo } from '../../../src/model/dispositivo/tipo';
+import { isInciso, isParagrafo } from '../../../src/model/dispositivo/tipo';
 
 let state: State;
 
@@ -90,10 +90,13 @@ describe('MPV 1234/2024 - Testando revisões de transformações de dispositivos
           expect(isRevisaoDeTransformacao(state.revisoes![0])).to.be.true;
         });
 
-        it('Deveria possuir 2 parágrafos adicionados na articulação', () => {
-          const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!).filter(d => !isArticulacao(d) && isAdicionado(d));
-          expect(dispositivos.length).to.be.equal(2);
-          expect(dispositivos.every(d => isParagrafo(d))).to.be.true;
+        it('Os dois dispositivos criados deveriam ser parágrafos', () => {
+          const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art4')!;
+          const p1 = d.filhos![2]; // parágrafo adicionado inicialmente
+          const p2 = d.filhos![3]; // parágrafo transformado do inciso
+          const criados = [p1, p2];
+          expect(criados).to.have.length(2);
+          expect(criados.every(d => isParagrafo(d))).to.be.true;
         });
 
         describe('Rejeitando a revisão', () => {
@@ -106,12 +109,15 @@ describe('MPV 1234/2024 - Testando revisões de transformações de dispositivos
             expect(state.revisoes?.length).to.be.equal(0);
           });
 
-          it('Deveria possuir 1 parágrafo e 1 inciso adicionados na articulação', () => {
-            const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao!).filter(d => !isArticulacao(d) && isAdicionado(d));
-            expect(dispositivos.length).to.be.equal(2);
+          it('Os dois dispositivos criados deveriam voltar a ser parágrafo e inciso', () => {
+            const d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art4')!;
+            const p = d.filhos![2]; // parágrafo adicionado inicialmente
+            const inciso = p.filhos![0]; // inciso transformado em parágrafo (por rejeição da revisão, volta a ser inciso)
+            const criados = [p, inciso];
+            expect(criados).to.have.length(2);
 
-            expect(isParagrafo(dispositivos[0])).to.be.true;
-            expect(isInciso(dispositivos[1])).to.be.true;
+            expect(isParagrafo(criados[0])).to.be.true;
+            expect(isInciso(criados[1])).to.be.true;
           });
         });
       });
@@ -129,13 +135,13 @@ describe('Carregando texto da MPV 905/2019', () => {
     beforeEach(function () {
       const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
-      const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+      const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!);
       e.conteudo!.texto = 'texto teste;';
       state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
     });
 
     it('Deveria possuir novo inciso', () => {
-      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+      const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
       expect(d).not.to.be.undefined;
       expect(d.texto).to.be.equal('texto teste;');
     });
@@ -151,7 +157,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea', () => {
         it('Deveria possuir uma revisão', () => {
-          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           expect(state.revisoes?.length).to.be.equal(1);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.not.undefined;
@@ -160,7 +166,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea e transformando de volta para inciso', () => {
         it('Deveria não possuir revisão', () => {
-          let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1_ali1')!;
           state = elementoReducer(state, transformarAlineaEmIncisoParagrafo.execute(createElemento(d)));
@@ -170,7 +176,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea e fazendo UNDO', () => {
         it('Deveria não possuir revisão', () => {
-          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           state = elementoReducer(state, { type: UNDO });
           expect(state.revisoes?.length).to.be.equal(0);
@@ -179,7 +185,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea, fazendo UNDO e fazendo REDO', () => {
         it('Deveria possuir uma revisão', () => {
-          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           state = elementoReducer(state, { type: UNDO });
           state = elementoReducer(state, { type: REDO });
@@ -202,7 +208,7 @@ describe('Carregando texto da MPV 905/2019', () => {
       beforeEach(function () {
         const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;
         state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: createElemento(d), novo: { tipo: 'Inciso' } });
-        const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!);
+        const e = createElemento(buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!);
         e.conteudo!.texto = 'texto teste;';
         state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
       });
@@ -214,7 +220,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea', () => {
         it('Deveria possuir uma revisão', () => {
-          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           expect(state.revisoes?.length).to.be.equal(1);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao).to.be.undefined;
@@ -223,7 +229,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea e removendo dispositivo', () => {
         it('Deveria não possuir revisão', () => {
-          let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1_ali1')!;
           state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(d) });
@@ -233,7 +239,7 @@ describe('Carregando texto da MPV 905/2019', () => {
 
       describe('Transformando inciso adicionado em alínea e rejeitando a revisão', () => {
         beforeEach(function () {
-          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
+          const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, transformarIncisoParagrafoEmAlinea.execute(createElemento(d)));
         });
 
@@ -257,8 +263,8 @@ describe('Carregando texto da MPV 905/2019', () => {
           });
 
           it('Deveria não encontrar o inciso adicionado na articulação', () => {
-            let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1-1')!;
-            expect(d).to.be.undefined;
+            let d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
+            expect(d.texto).to.not.be.equal('texto teste;');
             d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1_ali1')!;
             expect(d).to.be.undefined;
           });

@@ -12,7 +12,4 @@ export interface TipoSituacao {
 export enum DescricaoSituacao {
   DISPOSITIVO_ADICIONADO = 'Dispositivo Adicionado',
   DISPOSITIVO_NOVO = 'Dispositivo Novo',
-  DISPOSITIVO_MODIFICADO = 'Dispositivo Modificado',
-  DISPOSITIVO_ORIGINAL = 'Dispositivo Original',
-  DISPOSITIVO_SUPRIMIDO = 'Dispositivo Suprimido',
 }
