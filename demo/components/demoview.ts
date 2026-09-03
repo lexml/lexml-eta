@@ -77,23 +77,6 @@ const mapProjetosNormas = {
   _pl_4_2025: PL_4_2025,
 };
 
-const mapDispositivosBloqueados = {
-  _mpv_905_2019: [
-    'art1',
-    'art2_par1',
-    'art2_par3',
-    {
-      lexmlId: 'art3',
-      bloquearFilhos: false,
-    },
-    'art4_par1u',
-    {
-      lexmlId: 'art5',
-      bloquearFilhos: false,
-    },
-  ],
-};
-
 const mapConfiguracaoPaginacaoDispositivos = {
   _plp_68_2024: {
     // maxItensPorPagina: 700,
@@ -203,7 +186,6 @@ export class DemoView extends LitElement {
         if (this.elLexmlEta) {
           const params = new LexmlEtaParametrosEdicao();
           params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
-          params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
           if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
             params.projetoNorma = this.projetoNorma;

@@ -38,6 +38,9 @@ import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
 
+/**
+ * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito.
+ */
 export interface DispositivoBloqueado {
   lexmlId: string;
   bloquearFilhos: boolean;
@@ -69,8 +72,10 @@ export class LexmlEtaParametrosEdicao {
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
 
-  // Lista de lexml id's de artigos bloqueados para edição.
-  // Não é salvo junto com a emenda, portanto deve ser informado também ao abrir uma emenda existente.
+  /**
+   * @deprecated Aceito por compatibilidade, mas ignorado. Bloquear dispositivos só fazia sentido
+   * ao emendar uma proposição existente.
+   */
   dispositivosBloqueados?: (string | DispositivoBloqueado)[];
 
   // Identificação do usuário para registro de marcas de revisão
