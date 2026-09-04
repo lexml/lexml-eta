@@ -6,7 +6,6 @@ import { InformarExistenciaDoElementoNaNorma } from '../../../model/lexml/acao/i
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { getDispositivoAndFilhosAsLista, isDispositivoCabecaAlteracao, isDispositivoNovoNaNormaAlterada } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { Mensagem, TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
@@ -47,7 +46,7 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
 
     dispositivos.forEach(d => {
       const original = createElemento(d);
-      (d.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.existeNaNormaAlterada;
+      d.existeNaNormaAlterada = action.existeNaNormaAlterada;
       const alterado = createElemento(d);
       eventos.push({
         stateType: StateType.ElementoModificado,
@@ -61,7 +60,7 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     });
   } else {
     const original = createElemento(dispositivo);
-    (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = action.existeNaNormaAlterada;
+    dispositivo.existeNaNormaAlterada = action.existeNaNormaAlterada;
     const alterado = createElemento(dispositivo);
     eventos.push({
       stateType: StateType.ElementoModificado,
@@ -144,7 +143,7 @@ const validaAlteracaoExistenteParaNovo = (dispositivo: Dispositivo): Mensagem | 
 };
 
 const isDispositivoPossuiPaiNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean => {
-  const existe = (dispositivo.pai?.situacao as DispositivoAdicionado).existeNaNormaAlterada;
+  const existe = dispositivo.pai?.existeNaNormaAlterada;
   return !isDispositivoCabecaAlteracao(dispositivo) && !(existe ?? true);
 };
 

@@ -133,14 +133,14 @@ export const agrupaElemento = (state: any, action: any): State => {
   novo.uuid = action.novo.uuid ?? novo.uuid;
 
   novo.situacao = new DispositivoAdicionado();
-  (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+  novo.classificacaoDocumento = state.modo;
   novo.texto = action.novo.texto ?? '';
   novo.createRotulo(novo);
   novo.rotulo = action.novo.rotulo ?? novo.rotulo;
   novo.id = buildId(novo);
 
   if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+    novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
   }
 
   const dispositivos = getDispositivosASeremCopiadosParaOutroPai(atual, novo, posicaoDoNovoAgrupador, dispositivosAlteracao);
@@ -230,7 +230,7 @@ const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: str
   novo.texto = dadosComplementares.texto ?? novo.texto ?? '';
   novo.id = buildId(novo);
   if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+    novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
   }
 
   const ref = pos === 0 ? novo.pai!.pai! : getUltimoFilho(novo.pai!.filhos[pos - 1]);

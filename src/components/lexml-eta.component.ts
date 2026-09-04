@@ -39,7 +39,7 @@ import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
 
 /**
- * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito.
+ * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito. Avaliar se pode ser removido completamente.
  */
 export interface DispositivoBloqueado {
   lexmlId: string;

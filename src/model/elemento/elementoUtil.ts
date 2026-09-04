@@ -21,7 +21,6 @@ import {
   getTiposAgrupadoresQuePodemSerInseridosDepois,
   hasEmenta,
 } from '../lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
@@ -59,7 +58,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
     lexmlId: pai?.id,
     uuidAlteracao: articulacaoAlteracao?.uuid,
     uuid2Alteracao: articulacaoAlteracao?.uuid2,
-    existeNaNormaAlterada: pai && isAdicionado(pai) ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    existeNaNormaAlterada: pai && isAdicionado(pai) ? pai.existeNaNormaAlterada : undefined,
     descricaoSituacao: pai?.situacao?.descricaoSituacao,
   };
 };
@@ -118,7 +117,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       texto: dispositivo.texto,
     },
     norma: dispositivo.alteracoes?.base,
-    existeNaNormaAlterada: isAdicionado(dispositivo) ? (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    existeNaNormaAlterada: isAdicionado(dispositivo) ? dispositivo.existeNaNormaAlterada : undefined,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,

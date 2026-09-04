@@ -294,9 +294,24 @@ As etapas seguintes tratam de **eliminar a redundância restante**. São desejá
 
 ### Etapa 3 — Desacoplar `existeNaNormaAlterada` (pré-requisito da Etapa 4)
 
-17. Mover `existeNaNormaAlterada?: boolean` de `DispositivoAdicionado` para a interface `BlocoAlteracao` em `src/model/dispositivo/blocoAlteracao.ts`.
+> **Correção**: uma versão anterior mandava mover os dois campos para a interface `BlocoAlteracao`.
+> **Está errado** — ambos são atributos de **cada dispositivo**, não do bloco:
+>
+> - `informaExistenciaDoElementoNaNorma.ts` tem dois ramos: mudar de "existente" para "novo" propaga
+>   o valor ao dispositivo **e a cada filho**; o sentido inverso altera **só o dispositivo**. Os ramos
+>   só fazem sentido se dispositivos do mesmo bloco puderem divergir;
+> - `verificaNaoPrecisaInformarSituacaoNormaVigente` (`hierarquiaUtil.ts`) lê o valor do **pai** e o
+>   compara com o do filho, subindo a hierarquia;
+> - `validaAlteracaoNovoParaExistente` proíbe marcar um dispositivo como "existente" quando um
+>   superior é "novo" — regra vazia se o valor fosse único por bloco.
+>
+> `tipoEmenda` idem: é gravado por dispositivo (`adicionaElemento.ts`, `agrupaElemento.ts`,
+> `parserReferenciaDispositivo.ts`) e lido em `numeracaoAgrupador.createRotulo`, que não tem acesso
+> ao `state` — precisa seguir alcançável a partir do próprio dispositivo.
+
+17. Mover `existeNaNormaAlterada?: boolean` de `DispositivoAdicionado` para a interface `Dispositivo` em `src/model/dispositivo/dispositivo.ts`.
 18. Mover `tipoEmenda` para a mesma interface, renomeado para `classificacaoDocumento`.
-19. Atualizar os pontos de leitura/escrita: `elementoUtil.ts`, `parserReferenciaDispositivo.ts`, `numeracaoAgrupador.ts`, `adicionaAlteracaoComAssistente.ts`, `agrupaElemento.ts`, `autoFixElemento.ts`, `informaExistenciaDoElementoNaNorma.ts`, `undoRedoReducerUtil.ts`.
+19. Atualizar os pontos de leitura/escrita, hoje feitos via cast `(d.situacao as DispositivoAdicionado)`: `elementoUtil.ts`, `hierarquiaUtil.ts`, `parserReferenciaDispositivo.ts`, `numeracaoAgrupador.ts`, os 6 `regras*.ts` que oferecem `considerarElementoNovoNaNorma`, `adicionaAlteracaoComAssistente.ts`, `adicionaElemento.ts`, `adicionaElementosFromClipboard.ts`, `agrupaElemento.ts`, `autoFixElemento.ts`, `informaExistenciaDoElementoNaNorma.ts`, `undoRedoReducerUtil.ts`.
 
 ### Etapa 4 — Colapsar `ADICIONADO` em `NOVO` *(a etapa de risco)*
 

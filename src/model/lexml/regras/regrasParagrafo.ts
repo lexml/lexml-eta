@@ -36,7 +36,6 @@ import {
   isUnicoMesmoTipo,
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Regras } from './regras';
 import { MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
@@ -91,7 +90,7 @@ export function RegrasParagrafo<TBase extends Constructor>(Base: TBase): any {
       }
 
       if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
+        dispositivo.existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
       }
 
       if (podeEditarNotaAlteracao(dispositivo)) {

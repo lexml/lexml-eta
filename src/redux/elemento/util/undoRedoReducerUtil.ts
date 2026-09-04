@@ -89,9 +89,9 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
   novo.mensagens = elemento?.mensagens;
   novo.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
   if (elemento.descricaoSituacao === 'Dispositivo Adicionado') {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+    novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
     if (modo) {
-      (novo.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+      novo.classificacaoDocumento = modo as any;
     }
   }
   if (isArtigo(novo)) {
@@ -100,7 +100,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
       createAlteracao(novo);
       (novo as Artigo).alteracoes!.base = elemento.norma;
       novo.alteracoes!.situacao = new DispositivoAdicionado();
-      (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+      novo.alteracoes!.classificacaoDocumento = modo as any;
       novo.alteracoes!.id = buildId(novo.alteracoes!);
     }
   }
@@ -191,7 +191,7 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
           }
 
           if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-            (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = e.existeNaNormaAlterada;
+            dispositivo.existeNaNormaAlterada = e.existeNaNormaAlterada;
             if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
               const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
               cabecaAlteracao.notaAlteracao = e.notaAlteracao;

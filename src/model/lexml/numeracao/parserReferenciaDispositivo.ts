@@ -37,18 +37,15 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       referencia.numero && parent.createNumeroFromRotulo(referencia.numero);
       parent.createRotulo(parent);
     }
-    if (modo) {
-      (parent.situacao as DispositivoAdicionado).tipoEmenda = modo;
-    }
     parent.isDispositivoAlteracao = true;
     parent.situacao = new DispositivoAdicionado();
-    (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+    parent.existeNaNormaAlterada = true;
     parent.id = buildId(parent);
 
     if (isArtigo(parent)) {
       (parent as Artigo).caput!.situacao = new DispositivoAdicionado();
       if (modo) {
-        ((parent as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+        (parent as Artigo).caput!.classificacaoDocumento = modo;
       }
     }
     parent.mensagens = validaDispositivo(parent);
@@ -59,20 +56,20 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
     dispositivo.alteracoes!.situacao = new DispositivoAdicionado();
-    (dispositivo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+    dispositivo.alteracoes!.classificacaoDocumento = modo;
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
   cabeca.isDispositivoAlteracao = true;
   cabeca.situacao = new DispositivoAdicionado();
-  (cabeca.situacao as DispositivoAdicionado).tipoEmenda = modo;
-  (cabeca.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  cabeca.classificacaoDocumento = modo;
+  cabeca.existeNaNormaAlterada = true;
   referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
   cabeca.createRotulo(cabeca);
   cabeca.id = buildId(cabeca);
 
   if (isArtigo(cabeca)) {
     (cabeca as Artigo).caput!.situacao = new DispositivoAdicionado();
-    ((cabeca as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+    (cabeca as Artigo).caput!.classificacaoDocumento = modo;
   }
 
   return cabeca;

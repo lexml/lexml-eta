@@ -25,19 +25,19 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
 
   const novo = criaDispositivo(atual.pai!, atual.tipo, atual);
   novo.situacao = new DispositivoAdicionado();
-  (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+  novo.classificacaoDocumento = state.modo;
   novo.isDispositivoAlteracao = false;
-  (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = undefined;
+  novo.existeNaNormaAlterada = undefined;
   novo.pai?.renumeraFilhos();
   novo.id = buildId(novo);
 
   (novo as Artigo).caput!.situacao = novo.situacao = new DispositivoAdicionado();
-  ((novo as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+  (novo as Artigo).caput!.classificacaoDocumento = state.modo;
 
   createAlteracao(novo);
 
   novo.alteracoes!.situacao = new DispositivoAdicionado();
-  (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+  novo.alteracoes!.classificacaoDocumento = state.modo;
 
   if (action.dispositivos) {
     try {

@@ -4,7 +4,6 @@ import { Numeracao } from '../../dispositivo/numeracao';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import {
   converteLetrasComplementoParaNumero,
   converteNumeroArabicoParaRomano,
@@ -62,7 +61,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
       if (
         this.numero === undefined ||
         (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-          (dispositivo.situacao as DispositivoAdicionado).tipoEmenda === ClassificacaoDocumento.PROJETO &&
+          dispositivo.classificacaoDocumento === ClassificacaoDocumento.PROJETO &&
           dispositivo.pai?.tipo === 'Articulacao')
       ) {
         this.rotulo = prefixo; //TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toUpperCase() ?? dispositivo.tipo;
@@ -75,7 +74,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
             ' ' +
             trataNumeroAndComplemento(this.numero, converteNumeroArabicoParaRomano, dispositivo.isDispositivoAlteracao ? converteNumerosComplementoParaLetra : undefined);
       } else {
-        irmaosMesmoTipo(dispositivo).length === 1 && !(dispositivo.pai?.situacao as DispositivoAdicionado).existeNaNormaAlterada
+        irmaosMesmoTipo(dispositivo).length === 1 && !dispositivo.pai?.existeNaNormaAlterada
           ? (this.rotulo = this.getNomeAgrupadorUnico(dispositivo))
           : (this.rotulo =
               prefixo +

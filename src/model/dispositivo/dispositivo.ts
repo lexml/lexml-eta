@@ -1,6 +1,7 @@
 import { ProjetoNorma } from './../lexml/documento/projetoNorma';
 import { Regras } from '../lexml/regras/regras';
 import { BlocoAlteracao } from './blocoAlteracao';
+import { ClassificacaoDocumento } from '../documento/classificacao';
 import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';
@@ -20,6 +21,8 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
   motivosOperacaoNaoPermitida?: string[];
   bloqueado?: boolean;
   tituloDispositivo?: string;
+  existeNaNormaAlterada?: boolean;
+  classificacaoDocumento?: ClassificacaoDocumento;
 }
 
 export interface Articulacao extends Dispositivo {

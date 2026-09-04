@@ -154,7 +154,7 @@ const criaAtributosComuns = (filho: Dispositivo, state: any): void => {
   filho.situacao = new DispositivoAdicionado();
   filho.isDispositivoAlteracao = true;
 
-  (filho.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
-  (filho.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  filho.classificacaoDocumento = state.modo;
+  filho.existeNaNormaAlterada = true;
   filho.id = buildId(filho);
 };

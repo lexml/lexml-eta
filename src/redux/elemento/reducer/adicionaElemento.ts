@@ -118,7 +118,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     if (isArtigo(novo)) {
       (novo as Artigo).caput!.situacao = new DispositivoAdicionado();
     }
-    (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+    novo.classificacaoDocumento = state.modo;
     const pai = novo.pai!;
     if (isArticulacaoAlteracao(pai) && pai.filhos.length === 1) {
       pai.situacao = new DispositivoAdicionado();
@@ -136,7 +136,7 @@ export const adicionaElemento = (state: any, action: any): State => {
   }
 
   if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai);
+    novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai);
   }
 
   novo.pai!.renumeraFilhos();

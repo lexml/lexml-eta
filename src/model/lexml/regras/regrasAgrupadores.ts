@@ -15,7 +15,6 @@ import {
   isDispositivoAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { MotivosOperacaoNaoPermitida } from './regrasUtil';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
@@ -63,7 +62,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       acoes.push(adicionarAgrupadorArtigoAction);
 
       if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
+        dispositivo.existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
       }
 
       verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.AGRUPADOR);

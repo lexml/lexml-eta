@@ -2,7 +2,6 @@ import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo'
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isEmenta, isIncisoCaput, isParagrafo, Tipo, isCaput } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao, isOmissis } from './../../dispositivo/tipo';
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
 
@@ -783,7 +782,7 @@ export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): 
     return false;
   }
 
-  const paiExisteNaNormaAlterada = (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada;
+  const paiExisteNaNormaAlterada = parent.existeNaNormaAlterada;
   if (paiExisteNaNormaAlterada !== undefined && !paiExisteNaNormaAlterada) {
     return true;
   }
@@ -867,7 +866,7 @@ export const buscaProximoOmissis = (dispositivo: Dispositivo): Dispositivo | und
 };
 
 export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): boolean | undefined => {
-  const value = (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada;
+  const value = dispositivo.existeNaNormaAlterada;
   if (!isDispositivoAlteracao(dispositivo) || value === undefined) {
     return;
   }
