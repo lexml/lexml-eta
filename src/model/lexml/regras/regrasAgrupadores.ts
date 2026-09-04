@@ -7,7 +7,7 @@ import { adicionarAgrupadorArtigoAction } from '../acao/adicionarAgrupadorArtigo
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../acao/adicionarElementoAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
-import { getDispositivosAnterioresMesmoTipo, getDispositivosPosterioresMesmoTipo, hasAgrupador, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
+import { isDispositivoAlteracao, podeRemoverAgrupador } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { MotivosOperacaoNaoPermitida } from './regrasUtil';
@@ -24,14 +24,8 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       acoes.push(adicionarArtigoAntes);
       acoes.push(adicionarArtigoDepois);
 
-      if (
-        getDispositivosAnterioresMesmoTipo(dispositivo).length === 0 &&
-        getDispositivosPosterioresMesmoTipo(dispositivo).length > 0 &&
-        hasAgrupador(dispositivo) &&
-        dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
-      ) {
-        //
-      } else {
+      // TODO: dentro de alteração de norma a remoção segue liberada; revisar com a equipe.
+      if (podeRemoverAgrupador(dispositivo)) {
         acoes.push(removerElementoAction);
       }
 

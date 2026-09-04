@@ -5,17 +5,16 @@ import {
   getDispositivoAnterior,
   getPrimeiroAgrupadorNaArticulacao,
   hasEmenta,
-  getTiposAgrupadorArtigoPermitidosNaArticulacao,
-  getDispositivoAndFilhosAsLista,
+  getImpedimentoParaRemoverAgrupador,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
-import { isAgrupador, isArticulacao, isArtigo, isEmenta } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isEmenta } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
 import { hasFilhos, isArtigoUnico, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State } from '../../state';
-import { getPaiQuePodeReceberFilhoDoTipo, removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
+import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
 
@@ -27,27 +26,9 @@ export const removeElemento = (state: any, action: any): State => {
     return state;
   }
 
-  if (isAgrupador(dispositivo) && !isDispositivoAlteracao(dispositivo)) {
-    // Só deixa remover agrupador se articulação permenecer consistente
-    if (isArticulacao(dispositivo.pai!)) {
-      const tipos = getTiposAgrupadorArtigoPermitidosNaArticulacao();
-      if (!dispositivo.filhos.every(f => isArtigo(f) || tipos.includes(f.tipo))) {
-        return retornaEstadoAtualComMensagem(state, {
-          tipo: TipoMensagem.ERROR,
-          descricao: `Operação não permitida (se houver seções abaixo do "${dispositivo.rotulo}", elas devem ser removidas antes)`,
-        });
-      }
-    } else if (dispositivo.filhos.filter(f => !isArtigo(f)).length) {
-      const dispositivos = getDispositivoAndFilhosAsLista(dispositivo.pai!).filter(isAgrupador);
-      const agrupadorAntes = dispositivos[dispositivos.indexOf(dispositivo) - 1] || {};
-      const agrupadorDepois = dispositivos[dispositivos.indexOf(dispositivo) + 1] || {};
-      if (agrupadorAntes.tipo !== agrupadorDepois.tipo && !getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, agrupadorDepois.tipo, [])) {
-        return retornaEstadoAtualComMensagem(state, {
-          tipo: TipoMensagem.ERROR,
-          descricao: `Operação não permitida (o agrupador "${agrupadorDepois.rotulo}" não poder estar diretamente subordinado ao agrupador "${agrupadorAntes.rotulo}")`,
-        });
-      }
-    }
+  const impedimentoRemocaoAgrupador = getImpedimentoParaRemoverAgrupador(dispositivo);
+  if (impedimentoRemocaoAgrupador) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: impedimentoRemocaoAgrupador });
   }
 
   if (isEmenta(dispositivo)) {

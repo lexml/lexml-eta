@@ -954,6 +954,45 @@ export const getTiposAgrupadorArtigoOrdenados = (): string[] => ['Parte', 'Livro
 
 export const getTiposAgrupadorArtigoPermitidosNaArticulacao = (): string[] => ['Parte', 'Livro', 'Titulo', 'Capitulo'];
 
+export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFilho: string, dispositivosPermitidos: Dispositivo[]): Dispositivo | undefined => {
+  if (!dispositivo) {
+    return undefined;
+  }
+  return dispositivo.tiposPermitidosFilhos?.includes(tipoFilho)
+    ? dispositivosPermitidos.length === 0 || dispositivosPermitidos.includes(dispositivo)
+      ? dispositivo
+      : undefined
+    : getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, tipoFilho, dispositivosPermitidos);
+};
+
+// Remover um agrupador promove seus filhos ao avô; devolve o impedimento quando a hierarquia resultante seria inválida.
+export const getImpedimentoParaRemoverAgrupador = (dispositivo: Dispositivo): string | undefined => {
+  if (!isAgrupador(dispositivo) || !dispositivo.pai || isDispositivoAlteracao(dispositivo)) {
+    return undefined;
+  }
+
+  if (isArticulacao(dispositivo.pai!)) {
+    const tipos = getTiposAgrupadorArtigoPermitidosNaArticulacao();
+    return dispositivo.filhos.every(f => isArtigo(f) || tipos.includes(f.tipo))
+      ? undefined
+      : `Operação não permitida (se houver seções abaixo do "${dispositivo.rotulo}", elas devem ser removidas antes)`;
+  }
+
+  if (!dispositivo.filhos.filter(f => !isArtigo(f)).length) {
+    return undefined;
+  }
+
+  const dispositivos = getDispositivoAndFilhosAsLista(dispositivo.pai!).filter(isAgrupador);
+  const agrupadorAntes = dispositivos[dispositivos.indexOf(dispositivo) - 1] || ({} as Dispositivo);
+  const agrupadorDepois = dispositivos[dispositivos.indexOf(dispositivo) + 1] || ({} as Dispositivo);
+
+  return agrupadorAntes.tipo !== agrupadorDepois.tipo && !getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, agrupadorDepois.tipo, [])
+    ? `Operação não permitida (o agrupador "${agrupadorDepois.rotulo}" não poder estar diretamente subordinado ao agrupador "${agrupadorAntes.rotulo}")`
+    : undefined;
+};
+
+export const podeRemoverAgrupador = (dispositivo: Dispositivo): boolean => getImpedimentoParaRemoverAgrupador(dispositivo) === undefined;
+
 export const getTiposAgrupadoresQuePodemSerInseridosDepois = (dispositivo: Dispositivo): string[] => {
   if (!isAgrupador(dispositivo) && !isArtigo(dispositivo) && !isEmenta(dispositivo)) {
     return [];

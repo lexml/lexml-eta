@@ -12,10 +12,10 @@ import {
   getTiposAgrupadoresQuePodemSerInseridosDepois,
   getPrimeiroAgrupadorNaArticulacao,
   hasEmenta,
+  getPaiQuePodeReceberFilhoDoTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
 import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
-import { getPaiQuePodeReceberFilhoDoTipo } from './../evento/eventosUtil';
 import { isAgrupador, isArticulacao, isArtigo, isEmenta } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';

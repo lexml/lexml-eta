@@ -1,6 +1,6 @@
 import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
-import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao, getPaiQuePodeReceberFilhoDoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
@@ -223,17 +223,6 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   eventos.add(StateType.SituacaoElementoModificada, transferidosParaOutroPai);
   eventos.add(StateType.ElementoRenumerado, [...renumerados, ...renumeradosPaiOriginal]);
   return eventos.build();
-};
-
-export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFilho: string, dispositivosPermitidos: Dispositivo[]): Dispositivo | undefined => {
-  if (!dispositivo) {
-    return undefined;
-  }
-  return dispositivo.tiposPermitidosFilhos?.includes(tipoFilho)
-    ? dispositivosPermitidos.length === 0 || dispositivosPermitidos.includes(dispositivo)
-      ? dispositivo
-      : undefined
-    : getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, tipoFilho, dispositivosPermitidos);
 };
 
 export const getElementoPaiDeEnumerodos = (dispositivo: Dispositivo): Elemento | null => {
