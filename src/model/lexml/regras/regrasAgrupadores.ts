@@ -1,19 +1,13 @@
 import { DescricaoSituacao } from './../../dispositivo/situacao';
 // import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao } from '../../dispositivo/tipo';
-import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { isAgrupador } from '../../dispositivo/tipo';
+import { ElementoAction } from '../acao';
 import { adicionarAgrupadorArtigoAction } from '../acao/adicionarAgrupadorArtigoAction';
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../acao/adicionarElementoAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
-import {
-  getDispositivoAnteriorMesmoTipo,
-  getDispositivosAnterioresMesmoTipo,
-  getDispositivosPosterioresMesmoTipo,
-  hasAgrupador,
-  isDispositivoAlteracao,
-} from '../hierarquia/hierarquiaUtil';
+import { getDispositivosAnterioresMesmoTipo, getDispositivosPosterioresMesmoTipo, hasAgrupador, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { MotivosOperacaoNaoPermitida } from './regrasUtil';
@@ -40,20 +34,6 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
       } else {
         acoes.push(removerElementoAction);
       }
-
-      if (dispositivo.pai && isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && getDispositivoAnteriorMesmoTipo(dispositivo) === undefined) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo);
-        dispositivo.tiposPermitidosPai?.filter((tipo, index) => index > pos!).forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
-      if (dispositivo.pai && !isArticulacao(dispositivo.pai) && isAgrupador(dispositivo.pai) && dispositivo.pai!.indexOf(dispositivo) === 0) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo);
-        dispositivo.tiposPermitidosPai?.filter((tipo, index) => index > pos!).forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
-      /*       if (dispositivo.pai && dispositivo.pai!.indexOf(dispositivo) > 0 && isAgrupador(dispositivo.pai!) && !isArticulacao(dispositivo.pai)) {
-        acoes.push(getAcaoAgrupamento(dispositivo.pai!.tipo));
-      } */
 
       if (isDispositivoAlteracao(dispositivo)) {
         acoes.push(renumerarElementoAction);

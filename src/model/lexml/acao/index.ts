@@ -23,7 +23,6 @@ import {
   adicionarParagrafoDepois,
   adicionarParagrafoFilho,
 } from './adicionarElementoAction';
-import { adicionarCapitulo, adicionarLivro, adicionarParte, adicionarSecao, adicionarSubsecao, adicionarTitulo, AgruparElemento } from './agruparElementoAction';
 import { finalizarBlocoAlteracao, iniciarBlocoAlteracao } from './blocoAlteracaoAction';
 import { InformarDadosAssistenteAction } from './informarDadosAssistenteAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from './informarExistenciaDoElementoNaNormaAction';
@@ -120,12 +119,6 @@ acoesMenu.push(transformarParagrafoEmIncisoParagrafo);
 acoesMenu.push(transformarParagrafoEmIncisoCaput);
 acoesMenu.push(removerElementoAction);
 acoesMenu.push(validarElementoAction);
-acoesMenu.push(adicionarParte);
-acoesMenu.push(adicionarLivro);
-acoesMenu.push(adicionarTitulo);
-acoesMenu.push(adicionarCapitulo);
-acoesMenu.push(adicionarSecao);
-acoesMenu.push(adicionarSubsecao);
 
 acoesMenu.push(adicionarArtigoAntes);
 acoesMenu.push(adicionarArtigoDepois);
@@ -168,8 +161,4 @@ export const acoesDisponiveis = [...acoesMenu, ...acoesExclusivasEdicao, validar
 
 export const getAcao = (descricao: string): ElementoAction => {
   return acoesDisponiveis.filter(acao => acao.descricao === descricao.trim())[0];
-};
-
-export const getAcaoAgrupamento = (tipo: string): ElementoAction => {
-  return acoesDisponiveis.filter(acao => acao instanceof AgruparElemento && acao.tipo === tipo)[0];
 };

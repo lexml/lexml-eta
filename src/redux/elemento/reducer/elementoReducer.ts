@@ -5,7 +5,6 @@ import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
 import { ASSISTENTE_ALTERACAO } from '../../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
-import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
 import { APLICAR_REVISOES } from '../../../model/lexml/acao/aplicarRevisoes';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
@@ -132,9 +131,6 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ADICIONAR_ELEMENTOS_FROM_CLIPBOARD:
       tempState = adicionaElementosNaProposicaoFromClipboard(state, action);
-      break;
-    case AGRUPAR_ELEMENTO:
-      tempState = agrupaElemento(state, action);
       break;
     case TRANSFORMAR_TIPO_ELEMENTO:
       tempState = transformaTipoElemento(state, action);
