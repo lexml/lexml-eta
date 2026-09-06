@@ -565,3 +565,87 @@ Se a intenção for concentrar a quebra em uma única versão, vale executar 2�
 - **`setDispositivosERevisoesEmenda`**: renomeada para `setRevisoes`, por decisão do usuário.
 - **Agrupamento dentro de bloco de alteração**: deixou de ser questão — as opções de agrupamento por tipo eram redundantes e foram removidas.
 - **Divergência entre reabrir e usar o assistente**: continua, e é exatamente o que torna visíveis os bugs de resquício; some quando a Etapa 4 terminar.
+
+## 11. Integração com as demais branches
+
+> Levantamento de **2026-09-06**. Envelhece rápido — reexecutar antes de integrar.
+
+### Só existe um merge a fazer
+
+O remoto passou por uma limpeza: `feat/remissao-interna`, `feat/remissao-externa`,
+`feat/945-remove-comando-emenda`, `feat/testes-build-jsonix-projetonorma` e outras foram **deletadas**.
+O trabalho não se perdeu — as branches de remissão formam uma cadeia de contenção:
+
+```
+feat/remissao-interna (deletada)  ⊂  feat/refactor-atualiza-remissao  ⊂  feat/wasm32-remissao-externa
+```
+
+Verificado com `git branch -r --contains` e `git rev-list --count`: `refactor-atualiza-remissao` está
+**inteiramente** contida na `wasm32-remissao-externa`. Logo, **basta mergear `feat/wasm32-remissao-externa`**.
+
+| Branch | Commits fora da develop | Último commit |
+| --- | --- | --- |
+| `feat/wasm32-remissao-externa` | 243 | 2026-08-31 |
+| `feat/refactor-atualiza-remissao` | 204 | 2026-08-14 — contida na wasm32 |
+| `feat/integracao-parecer-eta` | 1 | 2026-02-09 — parada; confirmar com a equipe |
+| `feat/cypress` | 0 | 2024 — nada a integrar |
+| esta branch | 33 | — |
+
+### develop: conflito zero
+
+A develop avançou **um único commit** desde a base desta branch (`5f5799be`, de 25/08): o
+`7dbe67c7`, que toca **somente** `docs/extensao-formato-lexml/`. Interseção vazia com o que mexemos.
+**Mergear a develop primeiro.**
+
+### Simulação do merge com a wasm32
+
+Feita com `git merge-tree`, que resolve em memória e não toca no *working tree*:
+
+```sh
+git merge-tree --write-tree --name-only HEAD origin/feat/wasm32-remissao-externa
+```
+
+| | |
+| --- | --- |
+| Auto-merge sem intervenção | **35 arquivos** |
+| Conflitos de conteúdo | **14** |
+| Modify/delete | **1** |
+
+**Os 14 conflitos de conteúdo:**
+
+| Área | Arquivos |
+| --- | --- |
+| Reducers (7) | `adicionaElemento`, `adicionaElementosNaProposicaoFromClipboard`, `adicionaDiffMenuOpcoes`, `loadArticulacao`, `removeElemento`, `undo`, `redo` |
+| Modelo (4) | `elementoUtil.ts`, `dispositivoValidator.ts`, `regrasAgrupadores.ts`, `tipoArticulacao.ts` |
+| Componente (1) | `editor.component.ts` |
+| Testes (2) | `hierarquiaUtil.test.ts`, `reducer-rejeita-revisao-inclusao-undo-redo.test.ts` |
+
+**O modify/delete:** `cypress/e2e/dispositivo-bloqueado/dispositivo-bloqueado.cy.ts` — removido aqui
+(Etapa 2), modificado na wasm32. O git não resolve sozinho.
+
+### O que passou limpo, e por que importa
+
+- **`hierarquiaUtil.ts` auto-mergeou**, apesar de ser o arquivo mais reescrito deste trabalho.
+- **Cinco dos seis `regras*.ts` auto-mergearam**; só `regrasAgrupadores.ts` conflitou. O
+  `adicionaAcoesDeExistenciaNaNorma` não bateu de frente com o que a outra branch acrescentou.
+- **`src/redux/state.ts` auto-mergeou** — o que **confirma a decisão de adiar o rename de
+  `StateType.SituacaoElementoModificada`** (ponto em aberto 5). As 47 ocorrências em ~24 arquivos
+  cairiam justamente sobre os reducers, que já são a área mais conflituosa.
+
+### Pontos que exigem decisão semântica, não escolha de lado
+
+1. **`dispositivo-bloqueado.cy.ts`** — a remoção deve prevalecer, mas confirmar antes que a wasm32
+   não passou a usar dispositivo bloqueado para outra finalidade.
+2. **`undo.ts` / `redo.ts`** — aqui saiu a reconstrução de `situacao`. Preservar o que a outra branch
+   acrescentou **sem** reintroduzir o campo, que não existe mais.
+3. **`loadArticulacao.ts`** — aqui saiu a entrada por parâmetro de dispositivos bloqueados. Mesmo cuidado.
+4. **CSS de `dispositivo--adicionado`** — a wasm32 traz o commit *"fix: remove a cor verde de
+   dispositivo adicionado"*, e aqui `getClasseCSS` passou a emitir a classe sempre. **Não gera
+   conflito textual**, mas os dois lados mexem no mesmo conceito: revisar o resultado visual depois
+   do merge.
+
+### Ordem sugerida
+
+1. `develop` — conflito zero, alinha a base
+2. `feat/wasm32-remissao-externa` — 14 + 1 conflitos
+3. Rodar `tsc`, `npm test` (conferindo a **contagem**) e o teste manual do demo
