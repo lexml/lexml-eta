@@ -1,4 +1,4 @@
-import { isAdicionado, getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
@@ -57,7 +57,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
     lexmlId: pai?.id,
     uuidAlteracao: articulacaoAlteracao?.uuid,
     uuid2Alteracao: articulacaoAlteracao?.uuid2,
-    existeNaNormaAlterada: pai && isAdicionado(pai) ? pai.existeNaNormaAlterada : undefined,
+    existeNaNormaAlterada: pai?.existeNaNormaAlterada,
     descricaoSituacao: pai?.situacao?.descricaoSituacao,
   };
 };
@@ -116,7 +116,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       texto: dispositivo.texto,
     },
     norma: dispositivo.alteracoes?.base,
-    existeNaNormaAlterada: isAdicionado(dispositivo) ? dispositivo.existeNaNormaAlterada : undefined,
+    existeNaNormaAlterada: dispositivo.existeNaNormaAlterada,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
     descricaoSituacao: dispositivo.situacao?.descricaoSituacao,

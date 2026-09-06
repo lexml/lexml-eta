@@ -1,5 +1,4 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { ElementoAction } from '../acao';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { getDispositivoAnterior, getDispositivoPosterior, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
@@ -33,10 +32,6 @@ export const removeAcaoExclusaoDispositivo = (acoes: any[]): void => {
   if (i > -1) {
     acoes = acoes.slice(i, 1);
   }
-};
-
-export const hasApenasDispositivosIrmaosNovos = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.pai!.filhos?.filter(f => f.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO).length === 0;
 };
 
 export enum MotivosOperacaoNaoPermitida {

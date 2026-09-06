@@ -12,7 +12,7 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { buscaDispositivoById, isAdicionado, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
@@ -54,7 +54,6 @@ describe('MPV 1234/2024 - Testando revisões de transformações de dispositivos
     it('Deveria possuir parágrafo com inciso', () => {
       let d = buscaDispositivoById(state.articulacao!, 'art1_cpt_alt1_art4_par4-1')!;
       expect(d).not.to.be.undefined;
-      expect(isAdicionado(d)).to.be.true;
       expect(isDispositivoAlteracao(d)).to.be.true;
       expect(isParagrafo(d)).to.be.true;
       expect(d.texto).to.be.equal('Parágrafo A:');
@@ -62,7 +61,6 @@ describe('MPV 1234/2024 - Testando revisões de transformações de dispositivos
 
       d = d.filhos![0];
       expect(d).not.to.be.undefined;
-      expect(isAdicionado(d)).to.be.true;
       expect(isDispositivoAlteracao(d)).to.be.true;
       expect(d.tipo).to.be.equal('Inciso');
       expect(d.texto).to.be.equal('dispositivo novo.');

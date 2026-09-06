@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State, StateType } from '../../../src/redux/state';
-import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isAdicionado, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -830,7 +830,7 @@ describe('Testando operações sobre a MPV 905/2019, TEXTO_013', () => {
 
         it('Deveria possuir 4 incisos adicionados, cada um com 2 alíneas', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u')!;
-          const dispositivos = getDispositivoAndFilhosAsLista(d).filter(f => !isArticulacao(f) && isAdicionado(f));
+          const dispositivos = getDispositivoAndFilhosAsLista(d).filter(f => !isArticulacao(f));
           expect(dispositivos.filter(isInciso).length).to.equal(8);
           expect(dispositivos.filter(isAlinea).length).to.equal(8);
         });
@@ -864,7 +864,7 @@ describe('Testando operações sobre a MPV 905/2019, TEXTO_013', () => {
 
         it('Deveria possuir novo inciso IV', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u')!;
-          const dispositivos = getDispositivoAndFilhosAsLista(d).filter(f => !isArticulacao(f) && isAdicionado(f));
+          const dispositivos = getDispositivoAndFilhosAsLista(d).filter(f => !isArticulacao(f));
           expect(dispositivos.filter(isInciso).length).to.equal(10);
           expect(dispositivos.filter(isAlinea).length).to.equal(10);
 

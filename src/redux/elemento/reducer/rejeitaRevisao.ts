@@ -8,7 +8,7 @@ import {
   getDispositivoFromElemento,
   listaDispositivosRenumerados,
 } from '../../../model/elemento/elementoUtil';
-import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho, isAdicionado } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
@@ -193,7 +193,7 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
 
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);
 
-  const dispositivosRenumerados = listaDispositivosRenumerados(getDispositivoFromElemento(state.articulacao!, result[0].elementos![0])!).filter(isAdicionado);
+  const dispositivosRenumerados = listaDispositivosRenumerados(getDispositivoFromElemento(state.articulacao!, result[0].elementos![0])!);
   result.push({ stateType: StateType.ElementoRenumerado, elementos: dispositivosRenumerados.map(d => createElemento(d)) });
 
   result.push({ stateType: StateType.SituacaoElementoModificada, elementos: getElementosAlteracaoASeremAtualizados(state.articulacao!, getElementosRemovidosEIncluidos(result)) });

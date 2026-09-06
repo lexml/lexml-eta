@@ -6,7 +6,6 @@ import { isArtigo, isOmissis, isInciso, isParagrafo } from './../../../model/dis
 import {
   buscaDispositivoById,
   getArticulacao,
-  isAdicionado,
   isDispositivoAlteracao,
   getDispositivoCabecaAlteracao,
   isArticulacaoAlteracao,
@@ -172,7 +171,7 @@ const colarDispositivos = (
 
 const buildEventoElementosRenumerados = (adicionados: Dispositivo[], referencia: Dispositivo, tipoColado: string): StateEvent => {
   const refAux = referencia.tipo === tipoColado ? referencia.pai! : referencia;
-  const filhosASeremRenumerados = refAux.filhos.filter(f => isAdicionado(f) && !adicionados.includes(f));
+  const filhosASeremRenumerados = refAux.filhos.filter(f => !adicionados.includes(f));
 
   return {
     stateType: StateType.ElementoRenumerado,

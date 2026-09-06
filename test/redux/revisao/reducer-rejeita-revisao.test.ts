@@ -1,6 +1,6 @@
 import { ATUALIZAR_TEXTO_ELEMENTO } from './../../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { REJEITAR_REVISAO } from './../../../src/model/lexml/acao/rejeitarRevisaoAction';
-import { isAdicionado, buscaDispositivoById, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 
 import { isRevisaoPrincipal, findRevisaoByElementoLexmlId, findRevisaoByElementoUuid2 } from '../../../src/redux/elemento/util/revisaoUtil';
 import { State, StateType } from '../../../src/redux/state';
@@ -522,7 +522,6 @@ describe('Carregando texto da MPV 905/2019', () => {
         it('Deveria possuir texto inicial', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2_ali1')!;
           expect(d.texto).to.be.equal(aux);
-          expect(isAdicionado(d)).to.be.true;
         });
 
         describe('Desfazendo rejeição da revisão (****)', () => {
@@ -533,7 +532,6 @@ describe('Carregando texto da MPV 905/2019', () => {
 
             d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2_ali1')!;
             expect(d.texto).to.be.equal('novo texto');
-            expect(isAdicionado(d)).to.be.true;
           });
         });
 
@@ -546,7 +544,6 @@ describe('Carregando texto da MPV 905/2019', () => {
 
             d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2_ali1')!;
             expect(d.texto).to.be.equal(aux);
-            expect(isAdicionado(d)).to.be.true;
           });
         });
       });

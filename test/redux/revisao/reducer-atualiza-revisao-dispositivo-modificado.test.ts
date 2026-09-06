@@ -8,7 +8,7 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { buscaDispositivoById, isAdicionado } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
@@ -403,7 +403,6 @@ describe('Carregando texto da MPV 905/2019', () => {
               e.conteudo!.texto = 'texto inciso 2 modificado;';
               state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
               d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
-              expect(isAdicionado(d)).to.be.true;
               expect(state.revisoes?.length).to.be.equal(1);
               expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso 2;');
             });

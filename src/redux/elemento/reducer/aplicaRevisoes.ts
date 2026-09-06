@@ -7,7 +7,6 @@ import {
   findDispositivoByUuid2,
   getArticulacao,
   getDispositivoAndFilhosAsLista,
-  isAdicionado,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
@@ -69,7 +68,7 @@ export const aplicaRevisoes = (state: any, action: any): State => {
 const renumeraParagrafosUnicos = (state: any): Dispositivo[] => {
   // Trata renumeração de parágrafo único
   let paragrafosUnicos = getDispositivoAndFilhosAsLista(state.articulacao)
-    .filter(d => isAdicionado(d) && isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
+    .filter(d => isParagrafo(d) && d.pai?.filhos.find(f => f.id?.endsWith('par1u')))
     .map(d => d.pai!.filhos.find(f => f.id?.endsWith('par1u'))!);
   paragrafosUnicos = [...new Set(paragrafosUnicos)];
   paragrafosUnicos.map(d => d.pai!).forEach(d => d.renumeraFilhos());

@@ -11,7 +11,7 @@ import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacao
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { MPV_885_2019 } from '../../doc/mpv_885_2019';
-import { buscaDispositivoById, isAdicionado } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 
 let state: any;
@@ -33,7 +33,6 @@ describe('Testando inclusão de artigo no início da articulação', () => {
     it('Deveria possuir novo artigo como primeiro artigo', () => {
       const d = state.articulacao.artigos[0];
       expect(d.id).to.be.equal('art1');
-      expect(isAdicionado(d)).to.be.true;
     });
 
     describe('Testando eventos', () => {
@@ -68,7 +67,6 @@ describe('Testando inclusão de artigo no início da articulação', () => {
     it('Deveria possuir novo artigo como primeiro artigo', () => {
       const d = state.articulacao.artigos[0];
       expect(d.id).to.be.equal('art1');
-      expect(isAdicionado(d)).to.be.true;
     });
 
     describe('Testando eventos', () => {
