@@ -1,5 +1,4 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupadorGenerico, isCaput, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
@@ -30,9 +29,9 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   if (
     dispositivo !== null &&
     isDispositivoAlteracao(dispositivo) &&
-    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+    !dispositivo.existeNaNormaAlterada &&
     (getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' || getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1u') &&
-    getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    getDispositivoPosteriorMesmoTipo(dispositivo)?.existeNaNormaAlterada
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
