@@ -526,21 +526,34 @@ Se a intenção for concentrar a quebra em uma única versão, vale executar 2�
    `atualizarElemento` de fato consomem: `existeNaNormaAlterada`, `abreAspas`, `fechaAspas`,
    `notaAlteracao`, `mensagens`. Mesma lição do `cabecaAlteracao` — achar a propriedade que responde
    à pergunta certa.
-3. **`substituiAspasRetasPorCurvas` está com defeito.** Troca apenas a aspa de **abertura**; o
+   > **Ressalva**: a paginação **não** passa por `atualizarSituacao` — ela emite
+   > `PaginaArticulacaoSelecionada`. O problema acima é real, mas atinge outras operações, não a troca
+   > de página. Sobre esta, ver o item 3.
+3. **Custo da troca de página** (pré-existente, **não corrigido**). `selecionaPaginaArticulacao`
+   chama `getElementosDaArticulacaoEElementosExcluidosEmModoDeRevisao`, que faz
+   `getElementos(state.articulacao)` — constrói o `Elemento` completo de **todos** os dispositivos do
+   documento, com `getAcoesPossiveis` e `isUltimaAlteracao` cada um, para o editor exibir apenas os da
+   página. O trabalho é proporcional ao documento inteiro e a maior parte é descartada.
+   **Decisão: não mexer agora.** O uso comum são proposições de dezenas a centenas de artigos, onde o
+   custo é irrelevante; o Código Civil completo (~7,7 MB, mais de 10 mil dispositivos) é caso de
+   stress e exceção. Corrigir exigiria filtrar por página **antes** de criar os elementos, o que
+   altera o contrato entre reducer e componente. Fica registrado por ter sido caro de localizar.
+   A busca linear que acompanhava esse fluxo em `carregarArticulacao` **foi** corrigida.
+4. **`substituiAspasRetasPorCurvas` está com defeito.** Troca apenas a aspa de **abertura**; o
    fechamento permanece reto. A chamada em `buildProjetoNormaFromJsonix.ts` foi **desativada
    temporariamente** para não corromper o texto nem quebrar o teste de *round-trip*. Não é
    configuração local: é bug a corrigir, e a chamada não deve ser reativada antes disso.
-4. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento"
+5. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento"
    (ementa, nota de alteração, aspas). Agora que a situação não existe, o nome ficou órfão de sentido
    — renomear para `ElementoAtualizado`.
    **Adiado para depois do merge, por decisão do usuário.** São 47 ocorrências em ~24 arquivos, boa
    parte deles reducers e testes de alta circulação. Sendo puramente cosmética, a renomeação geraria
    conflito em quase todo arquivo que outra branch tenha tocado, sem entregar nada funcional em
    troca. Depois do merge o custo é o mesmo e o risco de conflito, próximo de zero.
-5. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
-6. **`EMENDA_009`** (`test/doc/emendas/emenda-009.ts`) não tem nenhum consumidor — fixture órfão de
+6. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
+7. **`EMENDA_009`** (`test/doc/emendas/emenda-009.ts`) não tem nenhum consumidor — fixture órfão de
    emenda, candidato à Etapa 6.
-7. **Ajustes locais de desenvolvimento, não commitados**: `lexmlEtaConfig.ts` com URL local e
+8. **Ajustes locais de desenvolvimento, não commitados**: `lexmlEtaConfig.ts` com URL local e
    `web-test-runner.config.mjs` com o glob reduzido.
 
 ### Resolvidos ao longo da execução

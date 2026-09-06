@@ -1347,13 +1347,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     setTimeout(() => {
       if (!this.quill) return;
       this.quill.getLine(0)[0].remove();
+      // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
+      const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
+      const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
       elementos.forEach((elemento: Elemento) => {
-        if (
-          (elemento.tipo === 'Articulacao' && !elemento.lexmlId) ||
-          !paginacao?.paginaSelecionada ||
-          paginacao.paginasArticulacao?.length === 1 ||
-          paginacao.paginaSelecionada.ids.includes(elemento.lexmlId!)
-        ) {
+        if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
           const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
           etaContainerTable.insertInto(this.quill.scroll);
           etaContainerTable.setEstilo(elemento);
