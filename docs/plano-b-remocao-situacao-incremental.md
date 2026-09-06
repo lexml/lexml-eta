@@ -448,6 +448,7 @@ Dois pontos exigiram decisão, e não só remoção:
 - **`atualizarSituacao`** comparava a situação para decidir se redesenhava a linha. Sem esse dado a
   comparação seria sempre falsa e **nada seria redesenhado**; passa a aplicar sempre, coerente com um
   evento que já é genérico de "redesenhar elemento".
+  ⚠️ **Isso cobrou um preço em performance** — ver ponto em aberto 2.
 - **`isRevisaoMesmaSituacao`** (`revisaoUtil.ts`) virou `isRevisaoMesmoStateType`: o termo de situação
   era `undefined === undefined` e o que restou é a comparação de `stateType`.
 
@@ -483,6 +484,20 @@ Duas observações sobre a ordem:
 6. Ao fim da Etapa 4, teste manual adicional de bloco de alteração: assistente, alternar "considerar elemento novo/existente na norma", nota "(NR)", aspas, edição de rótulo, numeração de *omissis*.
 7. *Round-trip* de serialização: abrir `demo/doc/pl_4_2025.json`, editar e reexportar — o XML deve bater com o *baseline*, já que a situação nunca foi serializada.
 
+### Estado da verificação ao fim da Etapa 5
+
+| Item | Estado |
+| --- | --- |
+| `tsc`, `eslint`, `npm test` (1943 testes) | ✅ verdes |
+| Teste manual da interface no demo | ✅ sem problemas funcionais |
+| *Round-trip* de serialização | ✅ coberto pelo teste de integração (MPV 905) |
+| Performance da paginação | ⚠️ **degradada** — ver ponto em aberto 2 |
+| Cypress (`paginacao`, `revisao`) | ⬜ ainda não executado |
+
+> Atenção ao rodar a suíte: conferir a **contagem de testes**, e não apenas o "all tests passed". Um
+> `describe.only` esquecido no teste de integração deixou a suíte verde com 18 testes de serialização
+> desligados, e só a comparação entre rodadas (1955 → 1937) denunciou.
+
 ## 9. Versionamento
 
 - **Etapas 0–1**: só testes, nada a publicar.
@@ -498,19 +513,35 @@ Se a intenção for concentrar a quebra em uma única versão, vale executar 2�
    que existe na norma e dispositivo novo — e com ela a regra de renumeração dos filhos e o selo
    "Existente"/"Novo". Como paliativo, o usuário pode informar o valor pelo menu (`04db5831`).
    **A ser discutido com a equipe**: gravar no XML ou derivar do complemento no id (`art60-1`).
-2. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento"
+2. **Perda de performance no redesenho da tela** (percebida na paginação, após a Etapa 5).
+   `atualizarSituacao` (`editor.component.ts`) decidia redesenhar a linha comparando
+   `elemento.descricaoSituacao !== linha.descricaoSituacao`. Como a situação era praticamente
+   constante, a comparação era quase sempre falsa e `setEstilo` + `atualizarElemento` **quase nunca
+   rodavam**. Ao remover o campo, passou-se a aplicar sempre — e o evento
+   `SituacaoElementoModificada` é emitido em 16 arquivos, vários com listas grandes
+   (`getDispositivoAndFilhosAsLista(agrupador)` em `undoRedoReducerUtil.ts`, `getElementos(novo)` em
+   `agrupaElemento.ts`). É o mesmo padrão de `atualizarLexmlIdEmElementosDeRevisoes`: código que o
+   filtro de situação mantinha inerte e que acordou — lá corrigiu um bug, aqui cobrou o preço.
+   **A correção não é reverter** (desligaria o redesenho), e sim comparar o que `setEstilo` e
+   `atualizarElemento` de fato consomem: `existeNaNormaAlterada`, `abreAspas`, `fechaAspas`,
+   `notaAlteracao`, `mensagens`. Mesma lição do `cabecaAlteracao` — achar a propriedade que responde
+   à pergunta certa.
+3. **`substituiAspasRetasPorCurvas` está com defeito.** Troca apenas a aspa de **abertura**; o
+   fechamento permanece reto. A chamada em `buildProjetoNormaFromJsonix.ts` foi **desativada
+   temporariamente** para não corromper o texto nem quebrar o teste de *round-trip*. Não é
+   configuração local: é bug a corrigir, e a chamada não deve ser reativada antes disso.
+4. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento"
    (ementa, nota de alteração, aspas). Agora que a situação não existe, o nome ficou órfão de sentido
    — renomear para `ElementoAtualizado`.
    **Adiado para depois do merge, por decisão do usuário.** São 47 ocorrências em ~24 arquivos, boa
    parte deles reducers e testes de alta circulação. Sendo puramente cosmética, a renomeação geraria
    conflito em quase todo arquivo que outra branch tenha tocado, sem entregar nada funcional em
    troca. Depois do merge o custo é o mesmo e o risco de conflito, próximo de zero.
-3. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
-4. **`EMENDA_009`** (`test/doc/emendas/emenda-009.ts`) não tem nenhum consumidor — fixture órfão de
+5. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
+6. **`EMENDA_009`** (`test/doc/emendas/emenda-009.ts`) não tem nenhum consumidor — fixture órfão de
    emenda, candidato à Etapa 6.
-5. **Pendências fora do escopo, não commitadas**: `substituiAspasRetasPorCurvas` desativada em
-   `buildProjetoNormaFromJsonix.ts`, `lexmlEtaConfig.ts` com URL local e `web-test-runner.config.mjs`
-   ajustado localmente.
+7. **Ajustes locais de desenvolvimento, não commitados**: `lexmlEtaConfig.ts` com URL local e
+   `web-test-runner.config.mjs` com o glob reduzido.
 
 ### Resolvidos ao longo da execução
 
