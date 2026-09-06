@@ -1,7 +1,42 @@
 # Plano B — Remoção incremental do controle de situação
 
-> Status: **proposta** (não iniciado)
+> Status: **em execução** — Etapas 0 a 3 concluídas, Etapa 4 em andamento.
+> Branch: `feat/remove-controle-situacao-emenda`.
 > Alternativa ao [Plano A](./plano-remocao-situacao-dispositivo.md), para comparação.
+
+## 0. Estado atual
+
+| Etapa | Estado | Commits |
+| --- | --- | --- |
+| 0 — migrar a suíte | **concluída** | `a4a7b557`, `83bf41b9`, `03d87e16` |
+| 1 — re-*baselinar* revisão | **concluída** | `af6f1173`, `5cb34642` |
+| 2 — remover o trio | **concluída** | `4b9349cb`, `262ad921`, `67b8a599`, `013e7822`, `4322ff09` |
+| 3 — desacoplar `existeNaNormaAlterada` | **concluída** | `1c20d5d1` |
+| 4 — colapsar `ADICIONADO` em `NOVO` | **em andamento** | `14b3a1f0`, `d0aea80d`, `64c5e52e`, `f57c73da`, `33aee7b7`, `7901698a`, `e71433b2`, `04db5831` |
+| 5 — remover o campo `situacao` | não iniciada | |
+| 6 — limpeza final | não iniciada | |
+
+As ocorrências de `DISPOSITIVO_ADICIONADO` / `DISPOSITIVO_NOVO` em `src/` saíram de **61 para 38**.
+
+### A Etapa 4 mudou de natureza
+
+O plano a tratava como um refactor único de risco alto. Na prática ela está sendo executada em
+fatias, guiadas por **teste manual no demo**: o usuário encontra um sintoma, localiza-se a cláusula
+de situação responsável, corrige-se e escreve-se um teste que comprovadamente falha sem a correção.
+
+O motivo é que a maioria dos pontos não era refactor, e sim **bug**. Como a situação não é
+serializada, toda regra baseada nela funciona durante a sessão e para de funcionar ao reabrir o
+documento. Esse é o teste decisivo para identificar resquício de emenda.
+
+Bugs encontrados e corrigidos por esse método:
+
+| Sintoma | Causa |
+| --- | --- |
+| Opções "Adicionar Parte/Livro/Título" duplicavam "Adicionar Título, Capítulo, Seção e outros" | resquício de lógica antiga; ambas iam ao mesmo reducer |
+| "Remover" aparecia/sumia do menu de agrupador sem relação com a hierarquia | menu e reducer usavam critérios diferentes |
+| Dois "Art. 2º" após usar o assistente de alteração | o reducer não emitia `ElementoRenumerado` |
+| Aspas e "(NR)" no dispositivo errado após colagem | a função devolvia apenas o último e seu irmão imediato |
+| Selo "Existente"/"Novo" ausente e impossível de alternar | quatro pontos exigiam situação `ADICIONADO` |
 
 ## 1. Em que difere do Plano A
 
@@ -110,6 +145,17 @@ Dois pontos exigem verificação antes de remover, porque podem não ser bloquei
 
 - `dispositivoLexmlFactory.ts` — `articulacao.bloqueado = !!texto`
 - `numeracaoInciso.ts` — `this.bloqueado = true` (o comentário no código diz "Bloqueia e edição de emendas")
+
+> **Executado com recorte menor** (commit `4322ff09`). Os dois pontos duvidosos foram verificados e
+> **nenhum é bloqueio de emenda**: `createArticulacao` bloqueia articulação não estruturada vinda como
+> texto livre, e `numeracaoInciso` bloqueia inciso com rótulo fora do padrão (`1º)`) — o comentário
+> sobre emendas é enganoso. Como esses produtores sobrevivem, o campo `bloqueado`, `isBloqueado`,
+> `existeFilhoDesbloqueado`, as guardas nos `regras*.ts` e o CSS **permanecem**.
+>
+> Saiu apenas a **entrada por parâmetro**: `bloqueiaDispositivos`/`getDispositivosBloqueados` em
+> `loadArticulacao.ts` e o cenário `cypress/e2e/dispositivo-bloqueado/`. `DispositivoBloqueado` e
+> `dispositivosBloqueados` seguem aceitos e marcados `@deprecated`, por decisão do usuário — logo,
+> **não houve quebra de API**.
 
 ### 2.8 Especificação para os testes de movimentação e colagem
 
@@ -286,6 +332,10 @@ Com as Etapas 0 e 1 concluídas, esta etapa é mecânica: a suíte já prova que
 
 ## ⬛ PONTO DE PARADA
 
+> **Ultrapassado.** A Etapa 2 foi concluída e o ponto de parada, avaliado. A Etapa 3 seguiu por ser
+> mecânica, e a Etapa 4 começou por outro motivo que não o refactor: os testes manuais revelaram que
+> boa parte dos pontos remanescentes são **bugs em produção**, não redundância inofensiva.
+
 A demanda original — *remover o controle de situação de dispositivo (suprimido e alterado)* — está atendida aqui, com `ORIGINAL` de brinde. O componente é publicável neste estado, e a suíte passa a cobrir de fato o modo proposição — um ganho que independe do resto do plano.
 
 As etapas seguintes tratam de **eliminar a redundância restante**. São desejáveis, mas não urgentes, e a Etapa 4 é a única do trabalho inteiro que mexe em comportamento vivo de proposição. Recomenda-se rodar a Etapa 2 em produção antes de decidir.
@@ -313,17 +363,34 @@ As etapas seguintes tratam de **eliminar a redundância restante**. São desejá
 18. Mover `tipoEmenda` para a mesma interface, renomeado para `classificacaoDocumento`.
 19. Atualizar os pontos de leitura/escrita, hoje feitos via cast `(d.situacao as DispositivoAdicionado)`: `elementoUtil.ts`, `hierarquiaUtil.ts`, `parserReferenciaDispositivo.ts`, `numeracaoAgrupador.ts`, os 6 `regras*.ts` que oferecem `considerarElementoNovoNaNorma`, `adicionaAlteracaoComAssistente.ts`, `adicionaElemento.ts`, `adicionaElementosFromClipboard.ts`, `agrupaElemento.ts`, `autoFixElemento.ts`, `informaExistenciaDoElementoNaNorma.ts`, `undoRedoReducerUtil.ts`.
 
-### Etapa 4 — Colapsar `ADICIONADO` em `NOVO` *(a etapa de risco)*
+### Etapa 4 — Colapsar `ADICIONADO` em `NOVO` *(em andamento)*
 
-20. Reavaliar **caso a caso** cada comparação `=== DISPOSITIVO_ADICIONADO` e `=== DISPOSITIVO_NOVO`. Parte vira `isDispositivoAlteracao(d)`, parte vira constante — ver a ressalva na seção 2.2. Locais afetados:
-    - `hierarquiaUtil.ts` (`podemSerRenumerados`, `getDispositivosAdicionados`, `hasDispositivosBySituacao`, `isAdicionado`)
-    - `idUtil.ts` (`calculaSequencialOmissis`)
-    - `tipoArticulacao.ts`, `numeracaoUtil.ts`, `numeracaoAgrupador.ts` (`createRotulo`)
-    - os 7 arquivos `src/model/lexml/regras/regras*.ts`
-    - `elementoUtil.ts` (`podeEditarNotaAlteracao`)
-    - `eta-blot-rotulo.ts` (`getClasseCSS`), `eta-quill-util.ts`
-    - `adicionaElemento.ts`, `eventosUtil.ts`
-21. Apagar `dispositivoAdicionado.ts`. O filtro de `AgruparElemento` **não é preservado** — o controle de agrupamento já está nas `regras*.ts` via `isDispositivoAlteracao`.
+> **O risco previsto não se confirmou como esperado.** O passo 21 dizia que o filtro de
+> `AgruparElemento` "não é preservado", tratando isso como decisão pendente. O impasse se dissolveu:
+> as opções de agrupamento por tipo eram redundantes com "Adicionar Título, Capítulo, Seção e outros"
+> e foram removidas (`14b3a1f0`). Sem elas, o filtro ficou sem nada para filtrar, e
+> `DispositivoAdicionado` hoje é **idêntica** a `DispositivoNovo` — só carrega um rótulo diferente.
+> Apagá-la deixou de mudar comportamento.
+
+20. Reavaliar **caso a caso** cada comparação `=== DISPOSITIVO_ADICIONADO` e `=== DISPOSITIVO_NOVO`. Parte vira `isDispositivoAlteracao(d)`, parte vira constante — ver a ressalva na seção 2.2.
+
+| Local | Estado |
+| --- | --- |
+| `podemSerRenumerados` (`hierarquiaUtil.ts`) | removida — estava sem chamador |
+| `calculaSequencialOmissis` (`idUtil.ts`) | feito — numera pela posição entre os irmãos |
+| `podeRenumerar` (`numeracaoUtil.ts`) | feito — usa `existeNaNormaAlterada` |
+| os 7 `regras*.ts` | feito — extraído para `adicionaAcoesDeExistenciaNaNorma` |
+| `getClasseCSS` (`eta-blot-rotulo.ts`) | feito |
+| `eta-quill-util.ts` | parcial — o selo de existência foi resolvido; as aspas de abertura, não |
+| `podeEditarNotaAlteracao` (`elementoUtil.ts` e `hierarquiaUtil.ts`) | pendente — suspeita de impedir a edição do "(NR)" em bloco carregado |
+| `podeInformarNumeracao` (`eta-blot-rotulo.ts`) | pendente — suspeita de impedir a numeração pelo rótulo |
+| `adicionaElemento.ts`, `agrupaElemento.ts` | pendentes — só gravam `existeNaNormaAlterada` se `ADICIONADO` |
+| `numeracaoAgrupador.ts`, `tipoArticulacao.ts`, `eventosUtil.ts` | pendentes |
+| `verificaNaoPrecisaInformarSituacaoNormaVigente` (`hierarquiaUtil.ts`) | pendente |
+| `getDispositivosAdicionados`, `hasDispositivosBySituacao` | **código morto** — sem chamadores |
+| `conteudoValidator.ts`, `atualizaRevisao.ts` | **código morto** — bloco no-op e função sem chamadores |
+
+21. Apagar `dispositivoAdicionado.ts`.
 
 ### Etapa 5 — Remover o campo `situacao`
 
@@ -367,16 +434,29 @@ Duas observações sobre a ordem:
 ## 9. Versionamento
 
 - **Etapas 0–1**: só testes, nada a publicar.
-- **Etapa 2**: as ações Suprimir/Restaurar somem do menu e `setDispositivosERevisoesEmenda` é renomeada → *breaking change*, **major**.
+- **Etapa 2**: as ações Suprimir/Restaurar somem do menu e `setDispositivosERevisoesEmenda` foi renomeada para `setRevisoes` → *breaking change*, **major**. O bloqueio por parâmetro **não** entrou na conta: foi depreciado, não removido.
 - **Etapas 4–5**: alteram tipos exportados (`Elemento.descricaoSituacao`) → outro **major**, se publicadas separadamente.
 
 Se a intenção for concentrar a quebra em uma única versão, vale executar 2–5 antes de publicar. Se a prioridade for reduzir risco, publique após a Etapa 2 e trate o resto como ciclo seguinte.
 
 ## 10. Pontos em aberto
 
-1. **Re-*baseline* de revisão (Etapa 1)**: é preciso definir com o time o que cada tipo de revisão significa sem os três estados. Sem essa definição, a etapa não fecha.
-2. **`setDispositivosERevisoesEmenda`** é API pública chamada pelo host. Renomear para `setRevisoes` na Etapa 2 ou manter o nome por compatibilidade?
+1. **`existeNaNormaAlterada` não é persistido.** Nem `buildJsonixFromProjetoNorma` grava, nem
+   `buildProjetoNormaFromJsonix` lê. Ao reabrir um documento, perde-se a distinção entre dispositivo
+   que existe na norma e dispositivo novo — e com ela a regra de renumeração dos filhos e o selo
+   "Existente"/"Novo". Como paliativo, o usuário pode informar o valor pelo menu (`04db5831`).
+   **A ser discutido com a equipe**: gravar no XML ou derivar do complemento no id (`art60-1`).
+2. **Aspas de abertura** (`eta-quill-util.ts`): a condição `elemento.abreAspas || isDispositivoAlteracaoAdicionado`
+   abriria aspas em todo dispositivo adicionado do bloco, não só na cabeça. Hoje está inerte em
+   documentos carregados; verificar se produz aspas indevidas nos criados durante a sessão.
 3. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento" (ementa, nota de alteração, aspas). Renomear para `ElementoAtualizado` na Etapa 5?
-4. **Agrupamento dentro de bloco de alteração** passa a ser oferecido de forma consistente na Etapa 4 — única mudança de comportamento visível de todo o plano. Confirmar se é desejado.
-5. **Divergência atual**: reabrir proposição salva com bloco de alteração deixa os dispositivos internos com `isDispositivoAlteracao = true` mas situação `NOVO` (não `ADICIONADO`), diferente do fluxo do assistente. A Etapa 4 elimina a divergência; até lá, ela permanece.
-6. **Fixtures em modo emenda** (`MPV_905_2019`, `MPV_885_2019`, `MPV_1160_2023` etc.) continuam válidas como documentos — o que muda é só o modo de carregamento. Confirmar se convém adicionar fixtures nascidas como proposição.
+4. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
+5. **Pendências fora do escopo, não commitadas**: `substituiAspasRetasPorCurvas` desativada em
+   `buildProjetoNormaFromJsonix.ts` e `web-test-runner.config.mjs` ajustado localmente.
+
+### Resolvidos ao longo da execução
+
+- **Re-*baseline* de revisão**: as cinco primitivas foram definidas com a equipe (seção 2.9) e os 12 arquivos, reescritos.
+- **`setDispositivosERevisoesEmenda`**: renomeada para `setRevisoes`, por decisão do usuário.
+- **Agrupamento dentro de bloco de alteração**: deixou de ser questão — as opções de agrupamento por tipo eram redundantes e foram removidas.
+- **Divergência entre reabrir e usar o assistente**: continua, e é exatamente o que torna visíveis os bugs de resquício; some quando a Etapa 4 terminar.
