@@ -310,7 +310,6 @@ const existeEventoDeInclusaoOuExclusao = (state: State): boolean => {
   return eventos.some(se => se.stateType === StateType.ElementoIncluido || se.stateType === StateType.ElementoRemovido);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
   let revisoes = getRevisoesElemento(state.revisoes || [])
     .filter(r => r.elementoAposRevisao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)

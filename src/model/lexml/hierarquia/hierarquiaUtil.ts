@@ -640,14 +640,6 @@ export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
   }
 };
 
-export const getDispositivosAdicionados = (dispositivos: Dispositivo[]): Dispositivo[] => {
-  return dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
-};
-
-export const hasDispositivosBySituacao = (dispositivos: Dispositivo[], descricaoSituacao: string): boolean => {
-  return dispositivos?.filter(d => d.situacao.descricaoSituacao === descricaoSituacao).length > 0;
-};
-
 export const isAdicionado = (dispositivo: Dispositivo): boolean => {
   return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
 };

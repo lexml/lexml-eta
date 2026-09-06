@@ -1,6 +1,5 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isEmenta } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
@@ -283,15 +282,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isSeguidoDeOmissis(dispositivo)
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
-  }
-
-  if (
-    !isDispositivoAlteracao(dispositivo) &&
-    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-    dispositivo.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
-  ) {
-    const dispositivos = [] as any;
-    dispositivos.push(dispositivo);
   }
 
   if (isBloqueado(dispositivo) && !isBloqueado(dispositivo.pai!)) {
