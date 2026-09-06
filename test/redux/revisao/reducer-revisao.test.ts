@@ -303,15 +303,15 @@ describe('Carregando texto da MPV 905/2019', () => {
       expect(d.texto).to.be.equal('texto novo inciso:');
     });
 
-    it('O atributo "elementoAposRevisao.lexmlId" da primeira revisão deveria ser "art1_par1u_inc2"', () => {
+    it('O atributo "elementoAposRevisao.lexmlId" da primeira revisão deveria ser "art1_par1u_inc3"', () => {
       const r = state.revisoes![0] as RevisaoElemento;
-      expect(r.elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc2');
+      expect(r.elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc3');
     });
 
-    it('O atributo "elementoAposRevisao.lexmlId" da segunda revisão deveria ser "art1_par1u_inc2_ali1"', () => {
+    it('O atributo "elementoAposRevisao.lexmlId" da segunda revisão deveria ser "art1_par1u_inc3_ali1"', () => {
       const r = state.revisoes![1] as RevisaoElemento;
-      expect(r.elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc2_ali1');
-      expect(r.elementoAposRevisao.hierarquia?.pai?.lexmlId).to.be.equal('art1_par1u_inc2');
+      expect(r.elementoAposRevisao.lexmlId).to.be.equal('art1_par1u_inc3_ali1');
+      expect(r.elementoAposRevisao.hierarquia?.pai?.lexmlId).to.be.equal('art1_par1u_inc3');
     });
   });
 });

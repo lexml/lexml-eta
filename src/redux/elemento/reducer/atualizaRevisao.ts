@@ -1,6 +1,5 @@
 import { getRevisoesElemento, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { createElemento } from './../../../model/elemento/elementoUtil';
-import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
@@ -311,9 +310,7 @@ const existeEventoDeInclusaoOuExclusao = (state: State): boolean => {
 };
 
 const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
-  let revisoes = getRevisoesElemento(state.revisoes || [])
-    .filter(r => r.elementoAposRevisao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
-    .filter(r => !isRevisaoDeExclusao(r));
+  let revisoes = getRevisoesElemento(state.revisoes || []).filter(r => !isRevisaoDeExclusao(r));
 
   revisoes.forEach(r => {
     const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);
