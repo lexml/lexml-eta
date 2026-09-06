@@ -1,6 +1,6 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo } from '../../../model/dispositivo/tipo';
-import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { formataNumero, getDataPorExtenso, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
@@ -71,6 +71,7 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(atual, novo)));
   eventos.add(StateType.ElementoIncluido, getElementosDoDispositivo(novo, true));
+  eventos.add(StateType.ElementoRenumerado, buildListaElementosRenumerados(novo));
   eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(novo, false));
   eventos.add(StateType.ElementoMarcado, [createElemento(getUltimoFilho(novo)), createElemento(atual)]);
 
