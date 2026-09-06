@@ -18,4 +18,4 @@ As opções ficam nos metadados Lexedit.
 </lexedit:Metadado>
 ```
 
-A ausência de uma opção significa o comportamento padrão da aplicação, e não necessariamente `false`.
+A ausência de uma opção significa o comportamento padrão da aplicação.

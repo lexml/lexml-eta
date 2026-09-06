@@ -15,14 +15,19 @@ As operações podem ocorrer em sequência e, em alguns casos, ser combinadas no
 
 ## Representação proposta
 
-O dispositivo continua sendo representado pelo elemento LexML correspondente. As operações de revisão são registradas no atributo `lexedit:revisao` do próprio dispositivo, acompanhado dos atributos `lexedit:refIdUsuario` e `lexedit:data`, que identificam o responsável e o momento da alteração.
+A articulação do LexML representa sempre a versão atual do documento, já incorporando todas as revisões.
 
-O atributo `refIdUsuario` aponta para o registro definido em [Registro de usuários](12-registro-usuarios.md), e `data` usa ISO 8601 com fuso horário.
+Todas as informações sobre uma revisão — o que mudou, quem mudou e quando — ficam nos metadados do LexEdit, em `lexedit:Metadado/lexedit:RevisoesArticulacao`. Cada alteração é registrada em um elemento `lexedit:RevisaoArticulacao`, com os atributos `revisao`, `refIdUsuario` e `data`.
 
-É utilizado ainda o atributo `lexedit:textoOriginal="true"` em elementos `<p>` para preservar o texto anterior a uma alteração.
+Os atributos `refIdUsuario` e `data` devem se referir à última operação registrada no caso de mais de uma operação de revisão sobre o mesmo dispositivo.
 
+O atributo `refIdDispositivo` referencia, pelo `id`, o dispositivo da articulação que é alvo da revisão. Ele está presente em todas as operações, exceto na exclusão: como o dispositivo excluído não está na articulação, não há um `id` de articulação para referenciar (ver [Exclusão de dispositivo](#exclusão-de-dispositivo)).
 
-### Gramática do atributo `lexedit:revisao`
+`refIdUsuario` aponta para o registro definido em [Registro de usuários](12-registro-usuarios.md), e `data` usa ISO 8601 com fuso horário.
+
+Quando a revisão precisa preservar conteúdo anterior à alteração — o texto original de um dispositivo alterado, ou o próprio dispositivo excluído —, esse conteúdo fica dentro do elemento `lexedit:RevisaoArticulacao`, e não mais junto ao dispositivo na articulação.
+
+### Gramática do atributo `revisao`
 
 ```
 revisao   = operacao ( "," operacao )*
@@ -34,7 +39,7 @@ As operações previstas são:
 | Operação | Forma | Argumentos |
 | --- | --- | --- |
 | Inclusão | `adicionado` | — |
-| Exclusão | `excluido;<sequencial>` | ordem da exclusão entre dispositivos que passariam a ter o mesmo rótulo |
+| Exclusão | `excluido` | — |
 | Alteração de texto | `alterado` | — |
 | Movimentação | `movido;<posicaoOriginal>` | sequencial, iniciando em 1, da posição que o dispositivo ocupava antes da movimentação |
 | Transformação de tipo | `transformado;<tipoOriginal>` | tipo do dispositivo antes da transformação |
@@ -42,19 +47,17 @@ As operações previstas são:
 
 ### Identificação dos dispositivos
 
-O `id` acompanha o estado proposto do texto: se um dispositivo é movido ou se outro é excluído, os ids subsequentes são recalculados segundo as regras usuais do LexML.
+O `id` dos dispositivos na articulação acompanha sempre o estado atual do documento: se um dispositivo é movido ou outro é excluído, os ids subsequentes são recalculados segundo as regras usuais do LexML, sem qualquer necessidade de sufixo adicional — o dispositivo excluído não ocupa mais posição na articulação, logo não disputa id com nenhum outro.
 
-A exclusão é o único caso em que dois dispositivos disputariam o mesmo id, já que o dispositivo excluído permanece no XML enquanto o seguinte assume o seu rótulo. Enquanto não se define um identificador técnico próprio (ver [Decisões pendentes](#decisões-pendentes)), o dispositivo excluído recebe o sufixo `-exc<sequencial>` no id, usado apenas para garantir unicidade.
+O dispositivo excluído recebe, dentro de `RevisaoArticulacao`, um id próprio: o id que representa a posição de apresentação na edição, acrescido do prefixo `_` de do sufixo `-exc<posicaoExcluido>`.
 
 ### Inclusão de dispositivo
 
-O novo dispositivo recebe `lexedit:revisao="adicionado"`. Seus filhos não precisam de atributos especiais, salvo se também forem objeto de uma revisão própria.
+O novo dispositivo já aparece na articulação em sua forma final, sem qualquer atributo especial. A revisão é registrada em `RevisaoArticulacao`, que referencia o dispositivo por `refIdDispositivo`.
 
 ```xml
-<Artigo id="art4"
-    lexedit:revisao="adicionado"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
+<!-- Na articulação -->
+<Artigo id="art4">
   <Rotulo>Art. 4º</Rotulo>
   <Caput id="art4_cpt">
     <p>Artigo adicionado na revisão.</p>
@@ -62,140 +65,195 @@ O novo dispositivo recebe `lexedit:revisao="adicionado"`. Seus filhos não preci
 </Artigo>
 ```
 
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art4"
+    revisao="adicionado"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00"/>
+```
+
 O mesmo padrão se aplica a dispositivos internos, como incisos.
 
 ### Exclusão de dispositivo
 
-O dispositivo excluído permanece no XML, permitindo sua apresentação e o desfazimento da operação. O sequencial preserva a ordem das exclusões e diferencia dispositivos que passariam a ter o mesmo rótulo.
+O dispositivo excluído não permanece na articulação: os dispositivos seguintes já assumem, desde já, o rótulo e o id que teriam no documento final. O dispositivo excluído fica preservado como filho do próprio elemento `RevisaoArticulacao`, identificado pelo id que o posiciona com o prefixo `_`. Por não estar na articulação, essa revisão não tem o atributo `refIdDispositivo`.
 
 ```xml
-<Artigo id="art3-exc1"
-    lexedit:revisao="excluido;1"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
-  <Rotulo>Art. 3º</Rotulo>
-  <Caput id="art3-exc1_cpt">
-    <p>Orig. 3</p>
-  </Caput>
-</Artigo>
-<Artigo id="art3"><Rotulo>Art. 3º</Rotulo>Orig. 4</Artigo>
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    revisao="excluido"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00">
+  <Artigo id="_art3-exc1">
+    <Rotulo>Art. 3º</Rotulo>
+    <Caput id="_art3-exc1_cpt">
+      <p>Orig. 3</p>
+    </Caput>
+  </Artigo>
+</lexedit:RevisaoArticulacao>
 ```
 
-Se o artigo subsequente também for excluído, ele recebe `id="art3-exc2"` e `lexedit:revisao="excluido;2"`.
+O sequencial em `_exc<sequencial>` posiciona o dispositivo excluído em uma sequência de dispositivos excluídos com o mesmo id, permitindo reconstruir a articulação anterior ao desfazer a operação.
+
+Exemplo:
+
+```
+Art 1  (id art1)
+Art    (excluído, id _art2-exc1)
+Art    (excluído, id _art2-exc2)
+Art 2  (id art2)
+```
 
 ### Alteração de texto de dispositivo
 
-A alteração marca o dispositivo com `lexedit:revisao="alterado"`, e o conteúdo anterior é preservado em um segundo parágrafo, identificado pelo atributo `lexedit:textoOriginal="true"`.
+O dispositivo alterado aparece na articulação já com o texto revisado. A revisão é registrada em `RevisaoArticulacao`, que referencia o dispositivo por `refIdDispositivo` e preserva o conteúdo anterior como filho.
 
 ```xml
-<Inciso id="art4_cpt_inc2"
-    lexedit:revisao="alterado"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
+<!-- Na articulação -->
+<Inciso id="art4_cpt_inc2">
   <Rotulo>II -</Rotulo>
   <p>Texto revisado</p>
-  <p lexedit:textoOriginal="true">Texto original do dispositivo</p>
 </Inciso>
+```
+
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art4_cpt_inc2"
+    revisao="alterado"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00">
+  <p>Texto original do dispositivo</p>
+</lexedit:RevisaoArticulacao>
 ```
 
 ### Movimentação de dispositivo
 
-A movimentação preserva o conteúdo, mas altera sua posição na sequência. A revisão registra a posição original do dispositivo, o que permite reconstruir e desfazer a operação.
+A movimentação preserva o conteúdo do dispositivo, mas altera sua posição na sequência. A articulação já mostra o dispositivo na posição final; a revisão registra sua posição original, o que permite reconstruir e desfazer a operação.
 
 A operação tem a forma `movido;<posicaoOriginal>`, onde `<posicaoOriginal>` é o sequencial, iniciando em 1, da posição que o dispositivo ocupava entre seus irmãos antes da movimentação.
 
 No exemplo abaixo, o inciso III (terceiro entre os irmãos) é movido para depois do inciso V e, ao desfazer a revisão, voltaria à posição 3.
 
 ```xml
-<!-- Inciso III movido para depois do inciso V -->
-<Inciso id="art5_cpt_inc5"
-    lexedit:revisao="movido;3"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
+<!-- Na articulação: inciso III movido para depois do inciso V -->
+<Inciso id="art5_cpt_inc5">
   <Rotulo>V -</Rotulo>
   <p>Conteúdo do inciso III original.</p>
 </Inciso>
+```
+
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art5_cpt_inc5"
+    revisao="movido;3"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00"/>
 ```
 
 Uma movimentação pode coexistir com exclusão ou alteração textual. Como `<posicaoOriginal>` é um número fixo, e não uma referência a outro dispositivo, ele não precisa ser recalculado quando dispositivos vizinhos são excluídos, movidos ou adicionados. Ao desfazer a movimentação, o dispositivo deve retornar à posição correspondente à sua origem, preservando as demais revisões.
 
 Por exemplo, ainda no exemplo acima, caso o inciso III original fosse excluído, isso não alteraria a marca `movido;3` do dispositivo transferido; apenas os rótulos e ids dos dispositivos subsequentes seriam recalculados.
 
-O inciso movido poderia ainda ter seu texto alterado, acrescentando a operação `alterado` ao atributo, como no exemplo:
+O inciso movido poderia ainda ter seu texto alterado, acrescentando a operação `alterado` à revisão — nesse caso, o conteúdo original também é preservado como filho de `RevisaoArticulacao`:
 
 ```xml
-<!-- Inciso III movido para depois do inciso V; exclusão do novo inciso III; alteração de texto do inciso resultante -->
-<Inciso id="art5_cpt_inc4"
-    lexedit:revisao="movido;3,alterado"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
+<!-- Na articulação: inciso III movido para depois do inciso V; texto alterado -->
+<Inciso id="art5_cpt_inc4">
   <Rotulo>IV -</Rotulo>
   <p>Novo conteúdo do inciso.</p>
-  <p lexedit:textoOriginal="true">Conteúdo do inciso III original.</p>
 </Inciso>
+```
+
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art5_cpt_inc4"
+    revisao="movido;3,alterado"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00">
+  <p>Conteúdo do inciso III original.</p>
+</lexedit:RevisaoArticulacao>
 ```
 
 ### Transformação de tipo
 
-A transformação muda a espécie do dispositivo e preserva a relação com seu tipo de origem. Por exemplo, um inciso pode ser transformado em alínea, e uma alínea em inciso.
+A transformação muda a espécie do dispositivo e preserva a relação com seu tipo de origem. Por exemplo, um inciso pode ser transformado em alínea, e uma alínea em inciso. A articulação já mostra o dispositivo com o tipo final.
 
 A operação tem a forma `transformado;<tipoOriginal>`, onde `<tipoOriginal>` é o tipo do dispositivo antes da transformação.
 
 ```xml
-<!-- Inciso transformado em alínea -->
-<Alinea id="art4_cpt_inc1_ali1"
-    lexedit:revisao="transformado;inciso"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
+<!-- Na articulação: inciso transformado em alínea -->
+<Alinea id="art4_cpt_inc1_ali1">
   <Rotulo>a)</Rotulo>
   ...
 </Alinea>
+```
 
-<!-- Alínea transformada em inciso -->
-<Inciso id="art4_cpt_inc2"
-    lexedit:revisao="transformado;alinea"
-    lexedit:refIdUsuario="sf:fragomeni"
-    lexedit:data="2026-05-11T15:51:00-03:00">
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art4_cpt_inc1_ali1"
+    revisao="transformado;inciso"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00"/>
+```
+
+```xml
+<!-- Na articulação: alínea transformada em inciso -->
+<Inciso id="art4_cpt_inc2">
   <Rotulo>II -</Rotulo>
   ...
 </Inciso>
 ```
 
-A transformação pode ser combinada com alteração de texto (por exemplo: `lexedit:revisao="transformado;alinea,alterado"`) e movimentação (por exemplo: `lexedit:revisao="movido;1,transformado;inciso"`).
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art4_cpt_inc2"
+    revisao="transformado;alinea"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00"/>
+```
+
+A transformação pode ser combinada com alteração de texto (por exemplo: `revisao="transformado;alinea,alterado"`, preservando o texto original como filho de `RevisaoArticulacao`) e movimentação (por exemplo: `revisao="movido;1,transformado;inciso"`).
 
 O histórico deve conservar todas as operações aplicadas, em vez de substituir uma operação pela outra.
 
 ### Alteração de rótulo em alteração de norma
 
-Dentro de `Alteracao`, a mudança de rótulo deve armazenar o rótulo anterior.
+Dentro de `Alteracao`, a mudança de rótulo deve armazenar o rótulo anterior. A articulação já mostra o dispositivo com o id e o rótulo finais.
 
 A operação tem a forma `alteracaoRotulo;<idOriginal>`, onde `<idOriginal>` é o id que o dispositivo tinha antes da alteração e do qual se deriva o rótulo anterior.
 
 ```xml
+<!-- Na articulação -->
 <Alteracao id="art2_cpt_alt1">
-  <Artigo id="art2_cpt_alt1_art4"
-      lexedit:revisao="alteracaoRotulo;art2_cpt_alt1_art3"
-      lexedit:refIdUsuario="sf:fragomeni"
-      lexedit:data="2026-05-11T15:51:00-03:00">
+  <Artigo id="art2_cpt_alt1_art4">
     <Rotulo>Art. 4º</Rotulo>
     <Caput id="art2_cpt_alt1_art4_cpt">...</Caput>
   </Artigo>
 </Alteracao>
 ```
 
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art2_cpt_alt1_art4"
+    revisao="alteracaoRotulo;art2_cpt_alt1_art3"
+    refIdUsuario="sf:fragomeni"
+    data="2026-05-11T15:51:00-03:00"/>
+```
+
 Essa operação pode ser combinada com movimentação, transformação de tipo ou alteração textual.
-
-## Decisões pendentes
-
-- Definir um identificador técnico único e estável para dispositivos excluídos, substituindo o sufixo `-exc<sequencial>` adotado provisoriamente.
-- Definir se `lexedit:refIdUsuario` e `lexedit:data` devem se referir à última operação registrada ou se cada operação precisa de autoria e momento próprios.
-- Definir a ordem e a semântica de operações combinadas, inclusive ao desfazer uma operação intermediária.
-- Definir como desfazer uma transformação quando houver dispositivos adicionados sob o dispositivo transformado, sem excluí-los indevidamente.
 
 ## Problema identificado
 
 ```
 art4_cpt_inc1
-art4_cpt_inc1_ali1  lexedit:revisao="transformado;inciso"  <-- não dá para desfazer sem excluir a alínea b
-art4_cpt_inc1_ali2  lexedit:revisao="adicionado"
+art4_cpt_inc1_ali1  RevisaoArticulacao refIdDispositivo="art4_cpt_inc1_ali1" revisao="transformado;inciso"  <-- não dá para desfazer sem excluir a alínea b
+art4_cpt_inc1_ali2  RevisaoArticulacao refIdDispositivo="art4_cpt_inc1_ali2" revisao="adicionado"
 ```

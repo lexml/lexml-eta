@@ -21,6 +21,3 @@ Exemplo:
 </lexedit:Metadado>
 ```
 
-## Decisão pendente
-
-- Seria necessário definir uma URN para identificação de usuários?

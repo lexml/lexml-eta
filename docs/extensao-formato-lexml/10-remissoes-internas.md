@@ -6,17 +6,19 @@ Uma remissão deve conservar seu último destino conhecido mesmo quando alteraç
 
 ## Representação proposta
 
-O destino continua em xlink:href e o estado fica em lexedit:situacao.
+Utilizamos o elemento `Remissao` do LexML com o id do dispositivo referenciado pelo atributo `xlink:href`. Remissões inválidas recebem um id com prefixo `_ri` (remissão interna) e são listadas nos metadados do LexEdit.
 
 Exemplo:
 
 ```xml
-<Remissao xlink:href='art3' lexedit:situacao='invalida'>art. 3º</Remissao>
+<Remissao xlink:href='art3' id='_ri13481093417'>art. 3º</Remissao>
 ```
 
-## Definições pendentes
+Nos metadados do LexEdit:
 
-- Confirmar com o João Lima o uso de span ou Remissao. 
-- Avaliar a opção de usar alguma informação no href como uma versão inválida ou algo parecido. Teríamos que verificar a necessidade de seguir o modelo de URN do LexML; Ex: “art3?invalido” ou “art3@2026-05-13;excluido”
-
+```xml
+<lexedit:Metadado>
+    <lexedit:RemissoesInternasInvalidas refIdsRemissoesInternas='_ri13481093417 _ri6987698768 ...'/>
+<lexedit:Metadado>
+```
 

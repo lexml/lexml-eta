@@ -6,21 +6,18 @@ O editor precisa referenciar anexos de forma interoperável, preservando o nome 
 
 ## Representação proposta
 
-Usar Anexos/ReferenciaAnexo, com FonteURN e AlvoURN. O anexo deve ter URN mesmo quando estiver encapsulado em PDF; nome de arquivo e tipo de mídia são extensões de apresentação.
-
-Exemplo:
+Dados estruturados na estrutura do LexEdit.
 
 ```xml
-<Anexos>
-    <ReferenciaAnexo
-        FonteURN='xxx'
-        AlvoURN='xxx'
-        lexedit:descricao='Laudo técnico'
-        lexedit:tipoMidia='application/pdf'/>
-</Anexos>
+<lexedit:Metadado>
+    <lexedit:Anexos>
+        <lexedit:Anexo
+            idArquivo='f669f339-4c8c-4853-806a-706d9fbe6de1'
+            nomeArquivo='EMENDA Nº 4 - CCJ - SUBSTITUTIVO.docx'
+            nomeDocumento='EMENDA Nº 4 - CCJ - SUBSTITUTIVO'
+            tipo='SUBSTITUTIVO'
+            mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document'/>
+        ...
+    </lexedit:Anexos>
+</lexedit:Metadado>
 ```
-
-## Definições pendentes
-
-- Como seriam as URNs de fonte e alvo considerando um arquivo que será embutido em um PDF junto ao lexml?
-- É importante termos um nome de arquivo, algo como laudo-técnico.pdf, que poderia estar em uma dessas URNs ou em atributo específico.

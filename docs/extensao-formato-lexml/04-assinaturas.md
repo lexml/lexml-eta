@@ -1,41 +1,73 @@
-# Assinaturas
+# Autoria
 
 ## Necessidade informacional
 
-Além da estrutura LexML de assinaturas de pessoa, grupo e texto livre, o editor precisa dos dados de apresentação usados na composição e na impressão.
+Na seção de autoria, o LexEdit armazena tipo, identificação institucional e, quando aplicável, sexo, partido e UF.
 
 ## Representação proposta
 
-O LexML mantém a estrutura da assinatura; a extensão acrescenta tipo, identificação institucional e, quando aplicável, sexo, partido e UF.
-
-Exemplo de assinatura de parlamentar:
+Dados estruturados na estrutura do LexEdit.
 
 ```xml
-<AssinaturaGrupo 
-    lexedit:tipo='Parlamentar'
-    lexedit:imprimirPartidoUF='true'>
-  <Assinatura 
-    lexedit:identificador='senador-123'
-    lexedit:sexo='M'
-    lexedit:siglaPartido='UNIAO'
-    lexedit:UF='AP'>
-    <NomePessoa>Davi Alcolumbre</NomePessoa>
-    <Cargo>Presidente do Congresso Nacional</Cargo>
-  </Assinatura>
-</AssinaturaGrupo>
+<!-- Autoria de parlamentares -->
+<lexedit:Metadado>
+    <lexedit:Autoria
+      lexedit:tipo='Parlamentar'
+      lexedit:imprimirPartidoUF='true'>
+      <lexedit:Parlamentares>
+        <lexedit:Parlamentar
+          identificacao='1111'
+          nome='Davi Alcolumbre'
+          sexo='M'
+          siglaPartido='UNIÃO'
+          siglaUF='AP'
+          siglaCasaLegislativa='SF'
+          cargo='Presidente do Senado Federal'/>
+        <lexedit:Parlamentar
+          identificacao='2222'
+          nome='Soraya Thronicke'
+          sexo='F'
+          siglaPartido='PSB'
+          siglaUF='MS'
+          siglaCasaLegislativa='SF'
+          cargo=''/>
+      </lexedit:Parlamentares>
+    </lexedit:Autoria>
+</lexedit:Metadado>
 ```
-
-Exemplo de assinatura de comissão:
 
 ```xml
-<AssinaturaGrupo 
-    lexedit:tipo='Comissão'
-    lexedit:identificador='comissao-123'>
-  <AssinaturaTexto>
-    <p>Comissão de Assuntos Econômicos</p>
-  </AssinaturaTexto>
-</AssinaturaGrupo>
+<!-- Autoria de comissão -->
+<lexedit:Metadado>
+    <lexedit:Autoria
+      lexedit:tipo='Comissão'>
+      <lexedit:ColegiadoAutor
+        identificacao='4444'
+        nome='Comissão de Assuntos Econômicos'
+        sigla='CAE'/>
+    </lexedit:Autoria>
+</lexedit:Metadado>
 ```
 
-`identificacao` é chave do cadastro institucional, não uma nova identificação LexML.
+Representação textual no LexML.
+
+```xml
+<!-- Assinatura de parlamentares -->
+<AssinaturaTexto>
+  <p><b>Senador Davi Alcolumbre</b></p>
+  <p>(UNIÃO - AP)</p>
+  <p>Presidente do Senado Federal</p>
+</AssinaturaTexto>
+<AssinaturaTexto>
+  <p><b>Senadora Soraya Thronicke</b></p>
+  <p>(PSB - MS)</p>
+</AssinaturaTexto>
+```
+
+```xml
+<!-- Autoria de comissão -->
+<AssinaturaTexto>
+  <p><b>Comissão de Assuntos Econômicos</b></p>
+</AssinaturaTexto>
+```
 
