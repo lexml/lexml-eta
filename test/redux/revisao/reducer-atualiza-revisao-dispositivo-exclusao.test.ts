@@ -206,7 +206,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           expect(d).to.be.not.undefined;
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);
           expect(d.texto).to.be.equal('contrato de experiência;');
         });
@@ -220,7 +219,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           expect(d).to.be.not.undefined;
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);
           expect(d.texto).to.be.equal('contrato de experiência;');
 
@@ -240,7 +238,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           expect(d).to.be.not.undefined;
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);
           expect(d.texto).to.be.equal('contrato de experiência;');
 
@@ -254,7 +251,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           expect(d).to.be.not.undefined;
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);
         });
       });
@@ -290,7 +286,6 @@ describe('Carregando texto da MPV 905/2019', () => {
             const e = createElemento(d);
             state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: e });
             expect(state.revisoes?.length).to.be.equal(1);
-            expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(e.descricaoSituacao);
             expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal(e.conteudo?.texto);
           });
         });

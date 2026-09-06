@@ -7,7 +7,6 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { buildDispositivoFromJsonix } from '../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { isDispositivoAlteracao, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
@@ -151,7 +150,6 @@ const criaFilhos = (atual: Dispositivo, state: any): void => {
 };
 
 const criaAtributosComuns = (filho: Dispositivo, state: any): void => {
-  filho.situacao = new DispositivoAdicionado();
   filho.isDispositivoAlteracao = true;
 
   filho.classificacaoDocumento = state.modo;

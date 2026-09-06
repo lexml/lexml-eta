@@ -6,7 +6,6 @@ import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositi
 import { formataNumero, getDataPorExtenso, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
 import { getUltimoFilho, buildListaDispositivos, getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { buildDispositivosAssistente } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -24,19 +23,16 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   }
 
   const novo = criaDispositivo(atual.pai!, atual.tipo, atual);
-  novo.situacao = new DispositivoAdicionado();
   novo.classificacaoDocumento = state.modo;
   novo.isDispositivoAlteracao = false;
   novo.existeNaNormaAlterada = undefined;
   novo.pai?.renumeraFilhos();
   novo.id = buildId(novo);
 
-  (novo as Artigo).caput!.situacao = novo.situacao = new DispositivoAdicionado();
   (novo as Artigo).caput!.classificacaoDocumento = state.modo;
 
   createAlteracao(novo);
 
-  novo.alteracoes!.situacao = new DispositivoAdicionado();
   novo.alteracoes!.classificacaoDocumento = state.modo;
 
   if (action.dispositivos) {
@@ -92,7 +88,6 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
 const adicionarOmissisObrigatorios = (atual: Dispositivo): void => {
   if (parseInt(atual.numero!) > 1) {
     const anterior = getDispositivoAnterior(atual);
-    const novo = criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
-    novo.situacao = new DispositivoAdicionado();
+    criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
   }
 };

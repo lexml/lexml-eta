@@ -1,6 +1,6 @@
 # Plano B — Remoção incremental do controle de situação
 
-> Status: **em execução** — Etapas 0 a 3 concluídas, Etapa 4 em andamento.
+> Status: **em execução** — Etapas 0 a 5 concluídas. O conceito de situação não existe mais.
 > Branch: `feat/remove-controle-situacao-emenda`.
 > Alternativa ao [Plano A](./plano-remocao-situacao-dispositivo.md), para comparação.
 
@@ -12,11 +12,13 @@
 | 1 — re-*baselinar* revisão | **concluída** | `af6f1173`, `5cb34642` |
 | 2 — remover o trio | **concluída** | `4b9349cb`, `262ad921`, `67b8a599`, `013e7822`, `4322ff09` |
 | 3 — desacoplar `existeNaNormaAlterada` | **concluída** | `1c20d5d1` |
-| 4 — colapsar `ADICIONADO` em `NOVO` | **em andamento** | `14b3a1f0`, `d0aea80d`, `64c5e52e`, `f57c73da`, `33aee7b7`, `7901698a`, `e71433b2`, `04db5831` |
-| 5 — remover o campo `situacao` | não iniciada | |
+| 4 — colapsar `ADICIONADO` em `NOVO` | **concluída** | `14b3a1f0`, `d0aea80d`, `64c5e52e`, `f57c73da`, `33aee7b7`, `7901698a`, `e71433b2`, `04db5831`, `7d66ed4a`, `96f5fec3`, `06a2f939`, `b6b10bb6`, `299acd3d` |
+| 5 — remover o campo `situacao` | **concluída** | |
 | 6 — limpeza final | não iniciada | |
 
-As ocorrências de `DISPOSITIVO_ADICIONADO` / `DISPOSITIVO_NOVO` em `src/` saíram de **61 para 38**.
+As ocorrências de `DISPOSITIVO_ADICIONADO` / `DISPOSITIVO_NOVO` em `src/` saíram de **61 para 0**.
+`Situacao`, `TipoSituacao`, `DescricaoSituacao`, `DispositivoNovo`, `DispositivoAdicionado` e
+`SituacaoDispositivo` deixaram de existir, assim como `Elemento.descricaoSituacao`.
 
 ### A Etapa 4 mudou de natureza
 
@@ -32,11 +34,38 @@ Bugs encontrados e corrigidos por esse método:
 
 | Sintoma | Causa |
 | --- | --- |
-| Opções "Adicionar Parte/Livro/Título" duplicavam "Adicionar Título, Capítulo, Seção e outros" | resquício de lógica antiga; ambas iam ao mesmo reducer |
+| Opções "Adicionar Parte/Livro/Título" duplicavam "Adicionar Título, Capítulo, Seção e outros" | resíduo de lógica antiga; ambas iam ao mesmo reducer |
 | "Remover" aparecia/sumia do menu de agrupador sem relação com a hierarquia | menu e reducer usavam critérios diferentes |
 | Dois "Art. 2º" após usar o assistente de alteração | o reducer não emitia `ElementoRenumerado` |
 | Aspas e "(NR)" no dispositivo errado após colagem | a função devolvia apenas o último e seu irmão imediato |
 | Selo "Existente"/"Novo" ausente e impossível de alternar | quatro pontos exigiam situação `ADICIONADO` |
+| "(NR)" exibido mas não editável, e rótulo sem diálogo de numeração, em bloco carregado | `podeEditarNotaAlteracao` e `podeInformarNumeracao` exigiam `ADICIONADO` |
+| `lexmlId` das revisões não acompanhava a renumeração | `atualizarLexmlIdEmElementosDeRevisoes` filtrava por `ADICIONADO` |
+
+### O fecho da Etapa 4: a regra geral
+
+Depois de tratar os casos individuais, o critério foi generalizado: **situação deixou de ser algo a
+verificar**. Toda comparação `=== ADICIONADO` ou `=== NOVO` vale `true`; toda comparação por
+diferença vale `false`; e a lógica em volta foi reduzida ao que de fato discrimina.
+
+A substituição foi mecânica em toda parte, **menos em `isUltimaAlteracao`**, onde os dois ramos do
+`if` discriminavam justamente por situação e portanto eram mutuamente exclusivos. Uni-los fez blocos
+de alteração carregados perderem as aspas de fechamento e o "(NR)" — o teste de integração da
+MPV 905 acusou 13 *omissis* nessa condição.
+
+A saída foi trocar a pergunta por **`cabecaAlteracao`**, que é gravada a partir de `abreAspas` no XML
+(`buildProjetoNormaFromJsonix.ts`) e marca quem abre um grupo de aspas. Ela responde o mesmo nos dois
+cenários — carregado e criado na sessão — mas, ao contrário da situação, **sobrevive à reabertura do
+documento**.
+
+> Precedente para a Etapa 5: quando uma condição parece depender da situação, costuma existir uma
+> propriedade estrutural persistida que responde à mesma pergunta de forma confiável.
+
+### Armadilha de verificação
+
+Um `describe.only` no teste de integração deixou a suíte verde com 18 testes de serialização
+desligados — justamente os que acusariam a regressão acima. Só apareceu ao comparar a **contagem de
+testes** entre rodadas (1955 → 1937). Conferir a contagem, e não só o "all tests passed".
 
 ## 1. Em que difere do Plano A
 
@@ -372,7 +401,7 @@ As etapas seguintes tratam de **eliminar a redundância restante**. São desejá
 > `DispositivoAdicionado` hoje é **idêntica** a `DispositivoNovo` — só carrega um rótulo diferente.
 > Apagá-la deixou de mudar comportamento.
 
-20. Reavaliar **caso a caso** cada comparação `=== DISPOSITIVO_ADICIONADO` e `=== DISPOSITIVO_NOVO`. Parte vira `isDispositivoAlteracao(d)`, parte vira constante — ver a ressalva na seção 2.2.
+20. Reavaliar **caso a caso** cada comparação `=== DISPOSITIVO_ADICIONADO` e `=== DISPOSITIVO_NOVO`. **Concluído** — nenhuma condição de negócio consulta mais a situação.
 
 | Local | Estado |
 | --- | --- |
@@ -381,23 +410,46 @@ As etapas seguintes tratam de **eliminar a redundância restante**. São desejá
 | `podeRenumerar` (`numeracaoUtil.ts`) | feito — usa `existeNaNormaAlterada` |
 | os 7 `regras*.ts` | feito — extraído para `adicionaAcoesDeExistenciaNaNorma` |
 | `getClasseCSS` (`eta-blot-rotulo.ts`) | feito |
-| `eta-quill-util.ts` | parcial — o selo de existência foi resolvido; as aspas de abertura, não |
-| `podeEditarNotaAlteracao` (`elementoUtil.ts` e `hierarquiaUtil.ts`) | pendente — suspeita de impedir a edição do "(NR)" em bloco carregado |
-| `podeInformarNumeracao` (`eta-blot-rotulo.ts`) | pendente — suspeita de impedir a numeração pelo rótulo |
-| `adicionaElemento.ts`, `agrupaElemento.ts` | pendentes — só gravam `existeNaNormaAlterada` se `ADICIONADO` |
-| `numeracaoAgrupador.ts`, `tipoArticulacao.ts`, `eventosUtil.ts` | pendentes |
-| `verificaNaoPrecisaInformarSituacaoNormaVigente` (`hierarquiaUtil.ts`) | pendente |
-| `atualizarLexmlIdEmElementosDeRevisoes` (`atualizaRevisao.ts`) | pendente — filtra revisões por `ADICIONADO`; em documento carregado o filtro esvazia e os `lexmlId` das revisões não são atualizados |
-| `getDispositivosAdicionados`, `hasDispositivosBySituacao`, bloco no-op de `conteudoValidator.ts` | removidos — eram código morto |
+| `eta-quill-util.ts` | feito — selo de existência e aspas de abertura |
+| `podeEditarNotaAlteracao` (`elementoUtil.ts` e `hierarquiaUtil.ts`) | feito — era bug; só a condição estrutural permanece |
+| `podeInformarNumeracao` (`eta-blot-rotulo.ts`) | feito — era bug; `dispositivoAlteracao` já restringia |
+| `atualizarLexmlIdEmElementosDeRevisoes` (`atualizaRevisao.ts`) | feito — era bug; dois testes re-*baselinados* |
+| `isAdicionado` (`hierarquiaUtil.ts`) | removida — respondia `true` para todo dispositivo |
+| `isUltimaAlteracao` (`hierarquiaUtil.ts`) | feito — trocada por `cabecaAlteracao` (ver acima) |
+| `verificaNaoPrecisaInformarSituacaoNormaVigente` (`hierarquiaUtil.ts`) | feito — um `return false` inteiro desapareceu |
+| `adicionaElemento.ts`, `agrupaElemento.ts` | feito — `existeNaNormaAlterada` gravado para todo dispositivo de alteração |
+| `numeracaoAgrupador.ts`, `tipoArticulacao.ts`, `eventosUtil.ts` | feito |
+| `hierarquiaAgrupador.ts`, `hierarquiaArtigo.ts`, `hierarquiaDispositivo.ts` | feito — filtros de renumeração percorrem todos os filhos |
+| `undoRedoReducerUtil.ts` | feito, exceto o `switch` que reconstrói o objeto (Etapa 5) |
+| `getDispositivosAdicionados`, `hasDispositivosBySituacao`, `hasApenasDispositivosIrmaosNovos`, bloco no-op de `conteudoValidator.ts` | removidos — eram código morto |
 
-21. Apagar `dispositivoAdicionado.ts`.
+21. Apagar `dispositivoAdicionado.ts`. **Feito** na Etapa 5, junto com o resto.
 
 ### Etapa 5 — Remover o campo `situacao`
 
-22. Extrair a lógica de `DispositivoNovo.getAcoesPermitidas` para um helper puro em `acaoUtil.ts` — `filtrarEOrdenarAcoes(acoes: ElementoAction[]): ElementoAction[]`, sem o parâmetro `dispositivo` (que a implementação unificada não usa). Trocar as 9 chamadas no fim de cada `getAcoesPossiveis` das `regras*.ts`.
-23. Remover o mixin `SituacaoDispositivo` dos 8 tipos em `dispositivoLexmlFactory.ts`.
+> **Correção**: uma versão anterior mandava extrair a lógica de `DispositivoNovo.getAcoesPermitidas`
+> para um helper puro e trocar as 9 chamadas nas `regras*.ts`. Por decisão do usuário,
+> **`dispositivo.getAcoesPermitidas(...)` foi preservada** — as 9 chamadas seguem intactas.
+>
+> Declarar o método apenas na interface `Dispositivo` não bastaria: interface não fornece
+> implementação, e como todos os mixins retornam `any`, a falta seria invisível ao compilador e
+> quebraria só em runtime, ao abrir o menu. A saída foi um mixin novo, `AcoesDispositivo`
+> (`src/model/lexml/acao/acoesDispositivo.ts`), que substitui `SituacaoDispositivo` nas 17
+> composições da factory e implementa o método sem qualquer noção de situação. De quebra, sumiu a
+> indireção dupla: antes o mixin delegava a `this.situacao?.getAcoesPermitidas(...)`.
+
+22. Declarar `getAcoesPermitidas` na própria interface `Dispositivo` e criar o mixin `AcoesDispositivo`.
+23. Remover o mixin `SituacaoDispositivo` das 17 composições em `dispositivoLexmlFactory.ts`.
 24. Remover `Situacao` de `dispositivo.ts`; apagar `src/model/dispositivo/situacao.ts` e a pasta `src/model/lexml/situacao/`.
 25. Remover `descricaoSituacao` de `elemento.ts` e de `Referencia`; ajustar `atualizarSituacao()` em `editor.component.ts` e o *getter*/*setter* em `eta-container-table.ts`.
+
+Dois pontos exigiram decisão, e não só remoção:
+
+- **`atualizarSituacao`** comparava a situação para decidir se redesenhava a linha. Sem esse dado a
+  comparação seria sempre falsa e **nada seria redesenhado**; passa a aplicar sempre, coerente com um
+  evento que já é genérico de "redesenhar elemento".
+- **`isRevisaoMesmaSituacao`** (`revisaoUtil.ts`) virou `isRevisaoMesmoStateType`: o termo de situação
+  era `undefined === undefined` e o que restou é a comparação de `stateType`.
 
 ### Etapa 6 — Limpeza final
 
@@ -412,8 +464,8 @@ As etapas seguintes tratam de **eliminar a redundância restante**. São desejá
 | 1 — re-*baselinar* revisão (14 arq.) | só testes | **Médio** — exige redefinir o que revisão significa | Sim, arquivo a arquivo |
 | 2 — remover o trio | caminho morto em `src/` | **Baixo** (volume alto, comportamento nulo) | Sim |
 | 3 — desacoplar campo | blocos de alteração | Baixo, mecânico | Sim |
-| 4 — colapsar `ADICIONADO` | numeração, rótulo, id, "(NR)", CSS | **Alto** | Difícil |
-| 5 — remover o campo | tudo, mas mecânico | Baixo | Sim |
+| 4 — colapsar `ADICIONADO` | numeração, rótulo, id, "(NR)", CSS | **Alto** — confirmado: revelou 7 bugs e uma regressão de serialização | Difícil |
+| 5 — remover o campo | tudo, mas mecânico | Baixo — confirmado: guiado pelo compilador | Sim |
 | 6 — limpeza | suíte | Baixo | Sim |
 
 Duas observações sobre a ordem:
@@ -446,13 +498,17 @@ Se a intenção for concentrar a quebra em uma única versão, vale executar 2�
    que existe na norma e dispositivo novo — e com ela a regra de renumeração dos filhos e o selo
    "Existente"/"Novo". Como paliativo, o usuário pode informar o valor pelo menu (`04db5831`).
    **A ser discutido com a equipe**: gravar no XML ou derivar do complemento no id (`art60-1`).
-2. **Aspas de abertura** (`eta-quill-util.ts`): a condição `elemento.abreAspas || isDispositivoAlteracaoAdicionado`
-   abriria aspas em todo dispositivo adicionado do bloco, não só na cabeça. Hoje está inerte em
-   documentos carregados; verificar se produz aspas indevidas nos criados durante a sessão.
-3. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento" (ementa, nota de alteração, aspas). Renomear para `ElementoAtualizado` na Etapa 5?
-4. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
-5. **Pendências fora do escopo, não commitadas**: `substituiAspasRetasPorCurvas` desativada em
-   `buildProjetoNormaFromJsonix.ts` e `web-test-runner.config.mjs` ajustado localmente.
+2. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento"
+   (ementa, nota de alteração, aspas). Agora que a situação não existe, o nome ficou órfão de sentido
+   — renomear para `ElementoAtualizado` na Etapa 6.
+3. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
+4. **`EMENDA_009`** (`test/doc/emendas/emenda-009.ts`) não tem nenhum consumidor — fixture órfão de
+   emenda, candidato à Etapa 6.
+5. **`test/redux/agrupa/acoes-agrupamento-por-situacao.test.ts`** ficou com nome inadequado: verifica
+   apenas que as opções de agrupamento por tipo não aparecem. Renomear na Etapa 6.
+6. **Pendências fora do escopo, não commitadas**: `substituiAspasRetasPorCurvas` desativada em
+   `buildProjetoNormaFromJsonix.ts`, `lexmlEtaConfig.ts` com URL local e `web-test-runner.config.mjs`
+   ajustado localmente.
 
 ### Resolvidos ao longo da execução
 

@@ -13,7 +13,6 @@ import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/aca
 import { TEXTO_006 } from '../../doc/textos-colar/texto_006';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
-import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
@@ -133,7 +132,6 @@ describe('Testando operações sobre a MPV 905/2019, TEXTO_013', () => {
     describe('Testando evento ElementoRenumerado (*)', () => {
       it('Deveria possuir 7 elementos', () => {
         expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length).to.be.equal(7);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {
@@ -230,7 +228,6 @@ describe('Testando operações sobre a MPV 905/2019, TEXTO_013', () => {
     describe('Testando evento ElementoRenumerado (**)', () => {
       it('Deveria possuir 7 elementos', () => {
         expect(state.ui?.events[3].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[3].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length).to.be.equal(7);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {
@@ -324,7 +321,6 @@ describe('Testando operações sobre a MPV 905/2019, TEXTO_013', () => {
     describe('Testando evento ElementoRenumerado (***)', () => {
       it('Deveria possuir 7 elementos', () => {
         expect(state.ui?.events[2].elementos?.length).to.be.equal(7);
-        expect(state.ui?.events[2].elementos?.filter(e => e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length).to.be.equal(7);
       });
 
       it('O texto de cada elemento deveria ser "teste G:", "teste J:", "teste M:" e "teste P:", nessa ordem', () => {

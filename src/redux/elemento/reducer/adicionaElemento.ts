@@ -1,5 +1,5 @@
 import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
-import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
@@ -15,7 +15,6 @@ import {
   isParagrafoUnico,
   podeRenumerarFilhosAutomaticamente,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -23,7 +22,7 @@ import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { isArticulacaoAlteracao, getDispositivoAnteriorNaSequenciaDeLeitura, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorNaSequenciaDeLeitura, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoArtigo } from '../../../model/lexml/tipo/tipoArtigo';
 
 const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined => {
@@ -112,15 +111,7 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo.notaAlteracao = 'NR';
   }
 
-  novo.situacao = new DispositivoAdicionado();
-  if (isArtigo(novo)) {
-    (novo as Artigo).caput!.situacao = new DispositivoAdicionado();
-  }
   novo.classificacaoDocumento = state.modo;
-  const paiDoNovo = novo.pai!;
-  if (isArticulacaoAlteracao(paiDoNovo) && paiDoNovo.filhos.length === 1) {
-    paiDoNovo.situacao = new DispositivoAdicionado();
-  }
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {
     copiaFilhos(atual, novo);

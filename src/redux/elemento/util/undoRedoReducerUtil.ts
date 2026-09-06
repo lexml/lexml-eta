@@ -1,5 +1,4 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
@@ -14,8 +13,6 @@ import {
   getUltimoFilho,
   isArticulacaoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
@@ -34,15 +31,6 @@ import {
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
 import { buildId } from '../../../model/lexml/util/idUtil';
-
-const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
-  switch (descricao) {
-    case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-      return new DispositivoAdicionado();
-    default:
-      return new DispositivoNovo();
-  }
-};
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
@@ -86,19 +74,14 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
   novo.mensagens = elemento?.mensagens;
-  novo.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
-  if (elemento.descricaoSituacao === 'Dispositivo Adicionado') {
-    novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-    if (modo) {
-      novo.classificacaoDocumento = modo as any;
-    }
+  novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+  if (modo) {
+    novo.classificacaoDocumento = modo as any;
   }
   if (isArtigo(novo)) {
-    (novo as Artigo).caput!.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
     if (elemento.norma) {
       createAlteracao(novo);
       (novo as Artigo).alteracoes!.base = elemento.norma;
-      novo.alteracoes!.situacao = new DispositivoAdicionado();
       novo.alteracoes!.classificacaoDocumento = modo as any;
       novo.alteracoes!.id = buildId(novo.alteracoes!);
     }

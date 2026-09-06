@@ -58,7 +58,6 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
     uuidAlteracao: articulacaoAlteracao?.uuid,
     uuid2Alteracao: articulacaoAlteracao?.uuid2,
     existeNaNormaAlterada: pai?.existeNaNormaAlterada,
-    descricaoSituacao: pai?.situacao?.descricaoSituacao,
   };
 };
 
@@ -119,7 +118,6 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     existeNaNormaAlterada: dispositivo.existeNaNormaAlterada,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
-    descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
     mensagens: dispositivo.mensagens,
     abreAspas: isDispositivoCabecaAlteracao(dispositivo) || !!dispositivo.cabecaAlteracao,
     fechaAspas,

@@ -188,15 +188,6 @@ export class EtaContainerTable extends EtaContainer {
     return this._tipo;
   }
 
-  private _descricaoSituacao: any;
-  set descricaoSituacao(situacao: any) {
-    this._descricaoSituacao = situacao;
-  }
-
-  get descricaoSituacao(): any {
-    return this._descricaoSituacao;
-  }
-
   private _existeNaNormaAlterada: any;
   set existeNaNormaAlterada(existeNaNormaAlterada: any) {
     this._existeNaNormaAlterada = existeNaNormaAlterada;
@@ -315,7 +306,6 @@ export class EtaContainerTable extends EtaContainer {
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia;
-    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
 
     this.setEstilo(elemento);
@@ -334,7 +324,6 @@ export class EtaContainerTable extends EtaContainer {
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia;
-    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   }
 

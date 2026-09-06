@@ -4,7 +4,6 @@ import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { createAlteracao, createArticulacao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../dispositivo/dispositivoValidator';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { buildId } from '../util/idUtil';
 
@@ -38,12 +37,10 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       parent.createRotulo(parent);
     }
     parent.isDispositivoAlteracao = true;
-    parent.situacao = new DispositivoAdicionado();
     parent.existeNaNormaAlterada = true;
     parent.id = buildId(parent);
 
     if (isArtigo(parent)) {
-      (parent as Artigo).caput!.situacao = new DispositivoAdicionado();
       if (modo) {
         (parent as Artigo).caput!.classificacaoDocumento = modo;
       }
@@ -55,12 +52,10 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
 const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo, modo): Dispositivo => {
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
-    dispositivo.alteracoes!.situacao = new DispositivoAdicionado();
     dispositivo.alteracoes!.classificacaoDocumento = modo;
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
   cabeca.isDispositivoAlteracao = true;
-  cabeca.situacao = new DispositivoAdicionado();
   cabeca.classificacaoDocumento = modo;
   cabeca.existeNaNormaAlterada = true;
   referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
@@ -68,7 +63,6 @@ const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDi
   cabeca.id = buildId(cabeca);
 
   if (isArtigo(cabeca)) {
-    (cabeca as Artigo).caput!.situacao = new DispositivoAdicionado();
     (cabeca as Artigo).caput!.classificacaoDocumento = modo;
   }
 

@@ -20,7 +20,6 @@ import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { getDispositivoAnteriorMesmoTipo, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual } from '../util/reducerUtil';
@@ -131,7 +130,6 @@ export const agrupaElemento = (state: any, action: any): State => {
   // Reutiliza "uuid" quando o agrupador é criado por ação de undo ou redo
   novo.uuid = action.novo.uuid ?? novo.uuid;
 
-  novo.situacao = new DispositivoAdicionado();
   novo.classificacaoDocumento = state.modo;
   novo.texto = action.novo.texto ?? '';
   novo.createRotulo(novo);

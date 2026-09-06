@@ -2,7 +2,6 @@ import { expect } from '@open-wc/testing';
 import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { acoesMenu, ElementoAction } from '../../../src/model/lexml/acao';
 import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
@@ -56,13 +55,9 @@ describe('Testando as ações de agrupamento oferecidas para agrupadores', () =>
       capitulo = articulacao.filhos[0];
     });
 
-    it('Deveria nascer com a situação "Dispositivo Novo"', () => {
-      expect(capitulo.tipo).to.equal('Capitulo');
-      expect(capitulo.situacao.descricaoSituacao).to.equal(DescricaoSituacao.DISPOSITIVO_NOVO);
-    });
-
     it('Deveria oferecer apenas a opção única de agrupamento', () => {
       const descricoes = descricoesDasAcoes(capitulo);
+      expect(capitulo.tipo).to.equal('Capitulo');
       expect(descricoes).to.include(OPCAO_UNICA_DE_AGRUPAMENTO);
       expect(descricoes).to.not.have.any.members(OPCOES_POR_TIPO);
     });
@@ -82,13 +77,9 @@ describe('Testando as ações de agrupamento oferecidas para agrupadores', () =>
       capitulo = state.articulacao.filhos[1];
     });
 
-    it('Deveria nascer com a situação "Dispositivo Adicionado"', () => {
-      expect(capitulo.tipo).to.equal('Capitulo');
-      expect(capitulo.situacao.descricaoSituacao).to.equal(DescricaoSituacao.DISPOSITIVO_ADICIONADO);
-    });
-
     it('Deveria oferecer as mesmas ações de agrupamento do capítulo carregado', () => {
       const descricoes = descricoesDasAcoes(capitulo);
+      expect(capitulo.tipo).to.equal('Capitulo');
       expect(descricoes).to.include(OPCAO_UNICA_DE_AGRUPAMENTO);
       expect(descricoes).to.not.have.any.members(OPCOES_POR_TIPO);
     });

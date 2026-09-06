@@ -2,7 +2,6 @@ import { expect } from '@open-wc/testing';
 import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { calculaNumeracao } from '../../../src/model/lexml/numeracao/numeracaoUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 
 let alinea: Dispositivo;
@@ -23,7 +22,6 @@ describe('Item', () => {
   });
   describe('Testando a numeração do item adicionado quando este for único', () => {
     beforeEach(function () {
-      item.situacao = new DispositivoAdicionado();
       item.numero = calculaNumeracao(item);
       item.createRotulo(item);
     });

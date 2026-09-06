@@ -74,7 +74,7 @@ export const identificarRevisaoElementoPai = (state: State, revisoes: Revisao[])
       const rAux = r as RevisaoElemento;
       const uuidPai = rAux.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rAux) : rAux.elementoAntesRevisao?.hierarquia?.pai?.uuid;
       const rPai = uuidPai ? findRevisaoByElementoUuid(rAux.actionType === ADICIONAR_ELEMENTO ? state.revisoes : revisoes, uuidPai) : undefined;
-      if (rPai && isRevisaoMesmaSituacao(rAux, rPai)) {
+      if (rPai && isRevisaoMesmoStateType(rAux, rPai)) {
         rAux.idRevisaoElementoPai = rPai.id;
         rAux.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(state, revisoes!, rPai)?.id;
       }
@@ -148,11 +148,8 @@ const getUuidPai = (state: State, elemento?: Partial<Elemento>): number | undefi
   }
 };
 
-const isRevisaoMesmaSituacao = (r: RevisaoElemento, rPai: RevisaoElemento): boolean => {
-  // return r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao;
-  return (
-    r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao && r.stateType === rPai.stateType
-  );
+const isRevisaoMesmoStateType = (r: RevisaoElemento, rPai: RevisaoElemento): boolean => {
+  return r.stateType !== StateType.ElementoModificado && r.stateType === rPai.stateType;
 };
 
 export const getRevisoesElementoAssociadas = (revisoes: Revisao[] = [], revisao: RevisaoElemento): RevisaoElemento[] => {

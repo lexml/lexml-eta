@@ -420,7 +420,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       '',
       linha.numero,
       linha.hierarquia,
-      linha.descricaoSituacao,
       linha.existeNaNormaAlterada
     );
 
@@ -559,7 +558,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       '',
       linha.numero,
       linha.hierarquia,
-      linha.descricaoSituacao,
       linha.existeNaNormaAlterada
     );
     this.toggleExistenciaElemento(elemento);
@@ -906,7 +904,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.quill.linhaAtual?.blotConteudo && (this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html);
       }
 
-      novaLinha.descricaoSituacao = elemento.descricaoSituacao;
       novaLinha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
       novaLinha.setEstilo(elemento!);
     }
@@ -927,11 +924,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
       if (linha) {
-        if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
-          linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstilo(elemento);
-          linha.atualizarElemento(elemento);
-        }
+        linha.setEstilo(elemento);
+        linha.atualizarElemento(elemento);
       }
     });
   }
@@ -1006,10 +1000,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.blotConteudo.html = elemento.tipo === 'Omissis' ? EtaQuillUtil.montarSpanOmissisAsString() : novoTexto;
         }
 
-        if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
-          linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstilo(elemento);
-        }
+        linha.setEstilo(elemento);
 
         linha.atualizarElemento(elemento);
 
@@ -1140,17 +1131,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(
-    uuid: number,
-    uuid2: string,
-    lexmlId: string,
-    tipo: string,
-    html: string,
-    numero: string,
-    hierarquia: any,
-    descricaoSituacao?: string,
-    existeNaNormaAlterada?: boolean
-  ): Elemento {
+  private criarElemento(uuid: number, uuid2: string, lexmlId: string, tipo: string, html: string, numero: string, hierarquia: any, existeNaNormaAlterada?: boolean): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.uuid2 = uuid2;
@@ -1159,7 +1140,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elemento.numero = numero;
     elemento.conteudo = { texto: html };
     elemento.hierarquia = hierarquia;
-    elemento.descricaoSituacao = descricaoSituacao;
     elemento.existeNaNormaAlterada = existeNaNormaAlterada;
     return elemento;
   }
