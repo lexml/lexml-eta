@@ -1,8 +1,22 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { ElementoAction } from '../acao';
+import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { getDispositivoAnterior, getDispositivoPosterior, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
+
+// Sem valor definido — caso dos documentos carregados —, o usuário precisa poder escolher qualquer um dos dois.
+export const adicionaAcoesDeExistenciaNaNorma = (dispositivo: Dispositivo, acoes: ElementoAction[]): void => {
+  if (!isDispositivoAlteracao(dispositivo)) {
+    return;
+  }
+
+  if (dispositivo.existeNaNormaAlterada === undefined) {
+    acoes.push(considerarElementoNovoNaNorma, considerarElementoExistenteNaNorma);
+  } else {
+    acoes.push(dispositivo.existeNaNormaAlterada ? considerarElementoNovoNaNorma : considerarElementoExistenteNaNorma);
+  }
+};
 
 export const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {
   return (

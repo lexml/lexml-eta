@@ -24,7 +24,7 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Nessa situação, não é possível alterar esse dado do dispositivo' });
   }
 
-  const currentValueExisteNaNormaAlterada = !isDispositivoNovoNaNormaAlterada(dispositivo);
+  const currentValueExisteNaNormaAlterada = dispositivo.existeNaNormaAlterada;
   const newValueExisteNaNormaAlterada = action.existeNaNormaAlterada;
 
   if (currentValueExisteNaNormaAlterada === newValueExisteNaNormaAlterada) {
@@ -37,7 +37,7 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
     return retornaEstadoAtualComMensagem(state, mensagemValidacao);
   }
 
-  const mudouIndicacaoDeExistenteParaNovo = currentValueExisteNaNormaAlterada && !action.existeNaNormaAlterada;
+  const mudouIndicacaoDeExistenteParaNovo = currentValueExisteNaNormaAlterada !== false && !action.existeNaNormaAlterada;
 
   const eventos: StateEvent[] = [];
 
@@ -92,12 +92,12 @@ export const informaExistenciaDoElementoNaNorma = (state: any, action: any): Sta
 };
 
 export const validaAlteracaoExistenciaDispositivo = (dispositivo: Dispositivo, newValueExisteNaNormaAlterada: boolean): Mensagem | undefined => {
-  const currentValueExisteNaNormaAlterada = !isDispositivoNovoNaNormaAlterada(dispositivo);
+  const currentValueExisteNaNormaAlterada = dispositivo.existeNaNormaAlterada;
   if (currentValueExisteNaNormaAlterada === newValueExisteNaNormaAlterada) {
     return;
   }
 
-  const mudouIndicacaoDeExistenteParaNovo = currentValueExisteNaNormaAlterada && !newValueExisteNaNormaAlterada;
+  const mudouIndicacaoDeExistenteParaNovo = currentValueExisteNaNormaAlterada !== false && !newValueExisteNaNormaAlterada;
   return mudouIndicacaoDeExistenteParaNovo ? validaAlteracaoExistenteParaNovo(dispositivo) : validaAlteracaoNovoParaExistente(dispositivo);
 };
 

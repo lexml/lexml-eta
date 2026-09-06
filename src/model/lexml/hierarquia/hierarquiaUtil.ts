@@ -640,13 +640,6 @@ export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
   }
 };
 
-export const podemSerRenumerados = (dispositivos: Dispositivo[]): boolean => {
-  return (
-    dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO).length === dispositivos.length ||
-    dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO).length === dispositivos.length
-  );
-};
-
 export const getDispositivosAdicionados = (dispositivos: Dispositivo[]): Dispositivo[] => {
   return dispositivos?.filter(d => d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO);
 };
@@ -870,8 +863,7 @@ export const isDispositivoNovoNaNormaAlterada = (dispositivo: Dispositivo): bool
   if (!isDispositivoAlteracao(dispositivo) || value === undefined) {
     return;
   }
-  const situacoes = [DescricaoSituacao.DISPOSITIVO_ADICIONADO + ''];
-  return situacoes.includes(dispositivo.situacao?.descricaoSituacao) && !value;
+  return !value;
 };
 
 export const podeRenumerarFilhosAutomaticamente = (dispositivo: Dispositivo): boolean => {

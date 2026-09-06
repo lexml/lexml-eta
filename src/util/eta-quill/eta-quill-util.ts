@@ -47,7 +47,8 @@ export class EtaQuillUtil {
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
 
-    if (isDispositivoAlteracaoAdicionado) {
+    // O blot decide sozinho se exibe o selo; precisa existir desde o início para refletir mudanças de existência na norma.
+    if (elemento.dispositivoAlteracao) {
       new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     }
 

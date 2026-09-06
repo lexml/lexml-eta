@@ -1,4 +1,3 @@
-import { DescricaoSituacao } from './../../dispositivo/situacao';
 // import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAgrupador } from '../../dispositivo/tipo';
@@ -9,8 +8,7 @@ import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
 import { isDispositivoAlteracao, podeRemoverAgrupador } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
-import { MotivosOperacaoNaoPermitida } from './regrasUtil';
+import { adicionaAcoesDeExistenciaNaNorma, MotivosOperacaoNaoPermitida } from './regrasUtil';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 
 export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
@@ -35,9 +33,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAction);
 
-      if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        dispositivo.existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
-      }
+      adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
 
       verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.AGRUPADOR);
 
