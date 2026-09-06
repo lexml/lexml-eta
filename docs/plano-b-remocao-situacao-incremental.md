@@ -500,19 +500,24 @@ Se a intenção for concentrar a quebra em uma única versão, vale executar 2�
    **A ser discutido com a equipe**: gravar no XML ou derivar do complemento no id (`art60-1`).
 2. **`StateType.SituacaoElementoModificada`** segue como evento genérico de "redesenhar elemento"
    (ementa, nota de alteração, aspas). Agora que a situação não existe, o nome ficou órfão de sentido
-   — renomear para `ElementoAtualizado` na Etapa 6.
+   — renomear para `ElementoAtualizado`.
+   **Adiado para depois do merge, por decisão do usuário.** São 47 ocorrências em ~24 arquivos, boa
+   parte deles reducers e testes de alta circulação. Sendo puramente cosmética, a renomeação geraria
+   conflito em quase todo arquivo que outra branch tenha tocado, sem entregar nada funcional em
+   troca. Depois do merge o custo é o mesmo e o risco de conflito, próximo de zero.
 3. **Fixtures nascidas como proposição**: as atuais (`MPV_905_2019`, `MPV_885_2019` etc.) continuam válidas como documentos. Confirmar se convém acrescentar outras.
 4. **`EMENDA_009`** (`test/doc/emendas/emenda-009.ts`) não tem nenhum consumidor — fixture órfão de
    emenda, candidato à Etapa 6.
-5. **`test/redux/agrupa/acoes-agrupamento-por-situacao.test.ts`** ficou com nome inadequado: verifica
-   apenas que as opções de agrupamento por tipo não aparecem. Renomear na Etapa 6.
-6. **Pendências fora do escopo, não commitadas**: `substituiAspasRetasPorCurvas` desativada em
+5. **Pendências fora do escopo, não commitadas**: `substituiAspasRetasPorCurvas` desativada em
    `buildProjetoNormaFromJsonix.ts`, `lexmlEtaConfig.ts` com URL local e `web-test-runner.config.mjs`
    ajustado localmente.
 
 ### Resolvidos ao longo da execução
 
 - **Re-*baseline* de revisão**: as cinco primitivas foram definidas com a equipe (seção 2.9) e os 12 arquivos, reescritos.
+- **`acoes-agrupamento-por-situacao.test.ts`**: renomeado para `acoes-agrupamento.test.ts`. O arquivo
+  nasceu nesta branch (`14b3a1f0`), então o rename não disputa com a branch de destino — ao
+  contrário do item 2 acima.
 - **`setDispositivosERevisoesEmenda`**: renomeada para `setRevisoes`, por decisão do usuário.
 - **Agrupamento dentro de bloco de alteração**: deixou de ser questão — as opções de agrupamento por tipo eram redundantes e foram removidas.
 - **Divergência entre reabrir e usar o assistente**: continua, e é exatamente o que torna visíveis os bugs de resquício; some quando a Etapa 4 terminar.
