@@ -6,7 +6,7 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
-import { buscaDispositivoById, isAdicionado, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, isDispositivoAlteracao } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
@@ -14,7 +14,6 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualiza
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
-import { DescricaoSituacao } from '../../../src/model/dispositivo/situacao';
 import { MOVER_ELEMENTO_ACIMA } from '../../../src/model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
@@ -249,7 +248,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           e.conteudo!.texto = 'texto inciso novo modificado;';
           state = elementoReducer(state, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: e });
           d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
-          expect(isAdicionado(d)).to.be.true;
           expect(state.revisoes?.length).to.be.equal(1);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso novo;');
         });
@@ -260,7 +258,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(DescricaoSituacao.DISPOSITIVO_NOVO);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso novo;');
         });
       });
@@ -270,7 +267,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(DescricaoSituacao.DISPOSITIVO_NOVO);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso novo;');
 
           state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: createElemento(d) });
@@ -283,7 +279,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(DescricaoSituacao.DISPOSITIVO_NOVO);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso novo;');
 
           state = elementoReducer(state, { type: UNDO });
@@ -296,7 +291,6 @@ describe('Carregando texto da MPV 905/2019', () => {
           const d = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!;
           state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(d) });
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(DescricaoSituacao.DISPOSITIVO_NOVO);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso novo;');
 
           state = elementoReducer(state, { type: UNDO });
@@ -304,7 +298,6 @@ describe('Carregando texto da MPV 905/2019', () => {
 
           state = elementoReducer(state, { type: REDO });
           expect(state.revisoes?.length).to.be.equal(1);
-          expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.descricaoSituacao).to.be.equal(DescricaoSituacao.DISPOSITIVO_NOVO);
           expect((state.revisoes![0] as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto).to.be.equal('texto inciso novo;');
         });
       });

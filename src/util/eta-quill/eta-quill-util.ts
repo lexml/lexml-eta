@@ -1,5 +1,4 @@
 import { EtaContainerRevisao } from './eta-container-revisao';
-import { DescricaoSituacao } from './../../model/dispositivo/situacao';
 import { EtaBlotQuebraLinha } from './eta-blot-quebra-linha';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaBlotExistencia } from './eta-blot-existencia';
@@ -35,13 +34,11 @@ export class EtaQuillUtil {
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
-    const isDispositivoAlteracaoAdicionado = elemento.dispositivoAlteracao && elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-
     if (elemento.tituloDispositivo) {
       new EtaBlotTituloDispositivo(elemento).insertInto(etaTdTexto);
     }
 
-    if (elemento.abreAspas || isDispositivoAlteracaoAdicionado) {
+    if (elemento.abreAspas || elemento.dispositivoAlteracao) {
       new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
     }
 

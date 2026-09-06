@@ -1,7 +1,6 @@
 import { isOmissis } from './../../dispositivo/tipo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isCaput, isInciso } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
@@ -78,13 +77,9 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
 
     private renumeraParagrafos(): void {
       this.paragrafos.forEach(filho => {
-        if (filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-          filho.numero = calculaNumeracao(filho);
-          filho.createRotulo(filho);
-          filho.id = buildId(filho);
-        } else {
-          filho.createRotulo(filho);
-        }
+        filho.numero = calculaNumeracao(filho);
+        filho.createRotulo(filho);
+        filho.id = buildId(filho);
       });
     }
 

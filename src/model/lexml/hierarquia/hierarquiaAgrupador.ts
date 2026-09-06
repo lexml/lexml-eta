@@ -1,6 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
@@ -63,7 +62,6 @@ export function HierarquiaAgrupador<TBase extends Constructor>(Base: TBase): any
         return;
       }
       this.filhos
-        .filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO)
         .filter(f => !isArtigo(f))
         .forEach(filho => {
           filho.numero = calculaNumeracao(filho);

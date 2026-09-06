@@ -1,6 +1,5 @@
 import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
@@ -113,16 +112,14 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo.notaAlteracao = 'NR';
   }
 
-  if (atual.situacao instanceof DispositivoAdicionado) {
-    novo.situacao = new DispositivoAdicionado();
-    if (isArtigo(novo)) {
-      (novo as Artigo).caput!.situacao = new DispositivoAdicionado();
-    }
-    novo.classificacaoDocumento = state.modo;
-    const pai = novo.pai!;
-    if (isArticulacaoAlteracao(pai) && pai.filhos.length === 1) {
-      pai.situacao = new DispositivoAdicionado();
-    }
+  novo.situacao = new DispositivoAdicionado();
+  if (isArtigo(novo)) {
+    (novo as Artigo).caput!.situacao = new DispositivoAdicionado();
+  }
+  novo.classificacaoDocumento = state.modo;
+  const paiDoNovo = novo.pai!;
+  if (isArticulacaoAlteracao(paiDoNovo) && paiDoNovo.filhos.length === 1) {
+    paiDoNovo.situacao = new DispositivoAdicionado();
   }
 
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {
@@ -133,9 +130,6 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo.createRotulo(novo);
     novo.id = buildId(novo);
     novo.mensagens?.push({ tipo: TipoMensagem.WARNING, descricao: `É necessário informar o rótulo do dispositivo` });
-  }
-
-  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
     novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai);
   }
 

@@ -1,4 +1,3 @@
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { RevisaoElemento } from '../../model/revisao/revisao';
@@ -35,7 +34,7 @@ export class EtaBlotRotulo extends EtaBlot {
     }
 
     node.innerHTML = EtaBlotRotulo.montarRotulo(elemento);
-    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.dispositivoAlteracao) {
+    if (elemento.dispositivoAlteracao) {
       node.title = elemento.existeNaNormaAlterada ? 'Dispositivo existente na norma alterada' : 'Dispositivo a ser adicionado à norma';
     }
     // node.onclick = (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
@@ -77,13 +76,12 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   public static getClasseCSS(elemento: Elemento): string {
-    const isAdicionado = true; // elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
     return (
       'texto__rotulo' +
       (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
-      (isAdicionado && elemento.dispositivoAlteracao ? ' rotulo' : '') +
+      (elemento.dispositivoAlteracao ? ' rotulo' : '') +
       (' texto__rotulo--' + elemento.tipo?.toLowerCase()) +
-      (isAdicionado ? ' dispositivo--adicionado' : '')
+      ' dispositivo--adicionado'
     );
   }
 

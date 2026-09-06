@@ -15,7 +15,6 @@ import {
   getPaiQuePodeReceberFilhoDoTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
-import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isEmenta } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
@@ -139,7 +138,7 @@ export const agrupaElemento = (state: any, action: any): State => {
   novo.rotulo = action.novo.rotulo ?? novo.rotulo;
   novo.id = buildId(novo);
 
-  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+  if (isDispositivoAlteracao(novo)) {
     novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
   }
 
@@ -219,7 +218,7 @@ const calculaPosNovoAgrupador = (
 //   return isUltimaAlteracao(dispositivo) || isUltimaAlteracao(getUltimoFilho(dispositivo));
 // };
 
-const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d); // && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d);
 
 const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: string, tipo: string, manterNovoNoMesmoGrupoDeAspas = false, dadosComplementares: any = {}): State => {
   const cabecaAlteracao = getDispositivoCabecaAlteracao(atual);
@@ -229,7 +228,7 @@ const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: str
   novo.uuid = dadosComplementares.uuid ?? novo.uuid;
   novo.texto = dadosComplementares.texto ?? novo.texto ?? '';
   novo.id = buildId(novo);
-  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+  if (isDispositivoAlteracao(novo)) {
     novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
   }
 

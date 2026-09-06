@@ -1,6 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isArtigo } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
@@ -51,15 +50,11 @@ export function HierarquiaDispositivo<TBase extends Constructor>(Base: TBase): a
         return;
       }
       this.filhos.forEach(filho => {
-        if (filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO || filho.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-          filho.numero = calculaNumeracao(filho);
-          filho.createRotulo(filho);
-          const novoId = buildId(filho);
-          if (filho.id !== novoId) {
-            getDispositivoAndFilhosAsLista(filho).forEach(d => (d.id = buildId(d)));
-          }
-        } else {
-          //filho.createRotulo(filho);
+        filho.numero = calculaNumeracao(filho);
+        filho.createRotulo(filho);
+        const novoId = buildId(filho);
+        if (filho.id !== novoId) {
+          getDispositivoAndFilhosAsLista(filho).forEach(d => (d.id = buildId(d)));
         }
       });
     }

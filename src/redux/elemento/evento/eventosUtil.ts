@@ -2,7 +2,6 @@ import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao, getPaiQuePodeReceberFilhoDoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import {
@@ -207,10 +206,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     .map(d => createElemento(d))
     .flat();
 
-  const renumeradosPaiOriginal =
-    paiOriginal?.filhos
-      .filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO)
-      .map(d => createElemento(d)) || [];
+  const renumeradosPaiOriginal = paiOriginal?.filhos.map(d => createElemento(d)) || [];
 
   if (irmaoAnterior && irmaosMesmoTipo(irmaoAnterior).length === 1) {
     renumerados.unshift(createElemento(irmaoAnterior));

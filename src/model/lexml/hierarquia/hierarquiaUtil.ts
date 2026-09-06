@@ -1,5 +1,4 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isEmenta, isIncisoCaput, isParagrafo, Tipo, isCaput } from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
 import { isAgrupadorNaoArticulacao, isOmissis } from './../../dispositivo/tipo';
@@ -532,21 +531,13 @@ export const isUltimaAlteracao = (dispositivo: Dispositivo, print = false): bool
   }
 
   if (ultimoLista === dispTeste) {
-    if (print) {
-      console.log('atual.situacao.descricaoSituacao', atual.situacao.descricaoSituacao, atual === ultimoLista);
-    }
-
-    if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && !isArticulacaoAlteracao(atual.pai!)) {
+    if (!isArticulacaoAlteracao(atual.pai!)) {
       const proximo = getDispositivoPosteriorNaSequenciaDeLeitura(atual, d => {
         return isArtigo(d) || isAgrupadorNaoArticulacao(d) || !isDispositivoAlteracao(d);
       });
-      return !(
-        proximo &&
-        isDispositivoAlteracao(proximo) &&
-        !isArticulacaoAlteracao(proximo.pai!) &&
-        proximo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO
-      );
-    } else if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO && !hasFilhos(atual) && atual === ultimoLista) {
+      // "atual" só encerra seu grupo de aspas se o próximo abrir um grupo novo.
+      return !(proximo && isDispositivoAlteracao(proximo) && !isArticulacaoAlteracao(proximo.pai!) && !proximo.cabecaAlteracao);
+    } else if (!hasFilhos(atual) && atual === ultimoLista) {
       return true;
     } else if (possuiFilhosOuCaput(dispTeste, print)) {
       return false;
@@ -638,10 +629,6 @@ export const isDispositivoAlteracao = (dispositivo: Dispositivo): boolean => {
   } catch (error) {
     return false;
   }
-};
-
-export const isAdicionado = (dispositivo: Dispositivo): boolean => {
-  return dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO;
 };
 
 export const getDispositivoAndFilhosAsLista = (dispositivo: Dispositivo): Dispositivo[] => {
@@ -759,12 +746,8 @@ export const isAscendente = (d: Dispositivo, dAscendente: Dispositivo): boolean 
 export const verificaNaoPrecisaInformarSituacaoNormaVigente = (d: Dispositivo): boolean => {
   const parent = isIncisoCaput(d) ? d.pai!.pai : d.pai;
 
-  if (parent === undefined || !isDispositivoAlteracao(d) || d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
+  if (parent === undefined || !isDispositivoAlteracao(d)) {
     return true;
-  }
-
-  if (parent.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    return false;
   }
 
   const paiExisteNaNormaAlterada = parent.existeNaNormaAlterada;

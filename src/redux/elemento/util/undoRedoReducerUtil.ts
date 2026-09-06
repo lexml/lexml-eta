@@ -12,7 +12,6 @@ import {
   getDispositivoAnterior,
   getTiposAgrupadorArtigoOrdenados,
   getUltimoFilho,
-  isAdicionado,
   isArticulacaoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
@@ -190,12 +189,10 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
             dispositivo.alteracoes.base = e.norma;
           }
 
-          if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-            dispositivo.existeNaNormaAlterada = e.existeNaNormaAlterada;
-            if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
-              const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-              cabecaAlteracao.notaAlteracao = e.notaAlteracao;
-            }
+          dispositivo.existeNaNormaAlterada = e.existeNaNormaAlterada;
+          if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
+            const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+            cabecaAlteracao.notaAlteracao = e.notaAlteracao;
           }
 
           dispositivo.mensagens = validaDispositivo(dispositivo);
@@ -292,20 +289,16 @@ export const ajustarHierarquivoAgrupadorIncluidoPorUndoRedo = (articulacao: Arti
   const pai = agrupador.pai!;
   const ultimoFilhoDireto = getDispositivoFromElemento(articulacao, elAgrupador.ultimoFilhoDireto)!;
 
-  let index = pai.filhos.indexOf(agrupador) + 1;
+  const index = pai.filhos.indexOf(agrupador) + 1;
 
   while (index < pai.filhos.length) {
     const d = pai.filhos[index];
-    if (isAdicionado(d)) {
-      pai.removeFilho(d);
-      d.pai = agrupador;
-      agrupador.addFilho(d);
+    pai.removeFilho(d);
+    d.pai = agrupador;
+    agrupador.addFilho(d);
 
-      if (d.uuid === ultimoFilhoDireto.uuid) {
-        break;
-      }
-    } else {
-      index++;
+    if (d.uuid === ultimoFilhoDireto.uuid) {
+      break;
     }
   }
 
