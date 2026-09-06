@@ -9,15 +9,12 @@ import {
   isAdicionado,
   isDispositivoAlteracao,
   getDispositivoCabecaAlteracao,
-  getUltimoFilho,
-  getDispositivoAnteriorNaSequenciaDeLeitura,
   isArticulacaoAlteracao,
   isDispositivoCabecaAlteracao,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
@@ -102,7 +99,7 @@ const colarDispositivos = (
   referencia: Dispositivo,
   posicao: string,
   isColarSubstituindo: boolean,
-  isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao: boolean,
+  _isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao: boolean,
   modo: ClassificacaoDocumento,
   tipoColado: string
 ): StateEvent[] => {
@@ -258,7 +255,7 @@ const colarDispositivoAdicionando = (
   dColado: Dispositivo,
   isColandoEmAlteracaoDeNorma: boolean,
   isPrecedidoPorOmissis: boolean,
-  modo: ClassificacaoDocumento,
+  _modo: ClassificacaoDocumento,
   posicao?: string
 ): Dispositivo => {
   if (!isOmissis(referencia) && referencia.tiposPermitidosFilhos?.includes(dColado.tipo)) {
@@ -310,19 +307,12 @@ const removeOmissis = (atual: Dispositivo): void => {
   atual.renumeraFilhos();
 };
 
+// A colagem pode mudar quem é o último do bloco, e com ele as aspas de fechamento e a nota "(NR)".
 const getDispositivosEmAlteracaoDeNormaASeremAtualizados = (dispositivos: Dispositivo[]): Dispositivo[] => {
   const mapa = new Map();
   dispositivos.forEach(d => {
     const cabeca = getDispositivoCabecaAlteracao(d);
     mapa.set(cabeca.id, cabeca);
   });
-  const cabecas = [...mapa.values()];
-  return cabecas
-    .map(d => {
-      const ultimoFilho = getUltimoFilho(d);
-      const irmaoAnterior = getDispositivoAnteriorNaSequenciaDeLeitura(ultimoFilho, d1 => !!(d1.pai && d1.pai === ultimoFilho.pai));
-      return irmaoAnterior ? [irmaoAnterior, ultimoFilho] : [ultimoFilho];
-    })
-    .flat()
-    .filter(d => d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO);
+  return [...mapa.values()].map(cabeca => getDispositivoAndFilhosAsLista(cabeca)).flat();
 };
