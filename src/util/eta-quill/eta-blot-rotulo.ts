@@ -123,12 +123,8 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 }
 
-const podeInformarNumeracao = (elemento: Elemento): boolean => {
-  return !!(
-    elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-    elemento.dispositivoAlteracao &&
-    (elemento.abreAspas || elemento.tipo === 'Artigo' || (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true))
-  );
+export const podeInformarNumeracao = (elemento: Elemento): boolean => {
+  return !!(elemento.dispositivoAlteracao && (elemento.abreAspas || elemento.tipo === 'Artigo' || (elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true)));
 };
 
 const onclick = (node: HTMLElement, elemento: Elemento): (() => boolean) => {

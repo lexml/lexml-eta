@@ -864,13 +864,7 @@ export const podeRenumerarFilhosAutomaticamente = (dispositivo: Dispositivo): bo
 };
 
 export const podeEditarNotaAlteracao = (dispositivo: Dispositivo): boolean => {
-  const isUltAlteracao = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
-  if (!isUltAlteracao) {
-    return false;
-  } else {
-    const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-    return cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-  }
+  return dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
 };
 
 export const isDispositivosSequenciais = (dispositivo1: Dispositivo, dispositivo2: Dispositivo): boolean => {

@@ -1,6 +1,5 @@
 import { isAdicionado, getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
@@ -72,7 +71,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
   if (fechaAspas) {
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
     notaAlteracao = cabecaAlteracao.notaAlteracao;
-    podeEditarNotaAlteracao = cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+    podeEditarNotaAlteracao = true;
   }
 
   let elementoAnteriorNaSequenciaDeLeitura: Elemento | undefined;
