@@ -1,5 +1,4 @@
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
@@ -247,9 +246,7 @@ export class EtaContainerTable extends EtaContainer {
 
     this.resetClasses();
 
-    if (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-      this.domNode.classList.add('dispositivo--adicionado');
-    }
+    this.domNode.classList.add('dispositivo--adicionado');
 
     this.blotRotulo.setEstilo(elemento);
   }

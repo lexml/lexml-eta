@@ -1,7 +1,6 @@
-import { DescricaoSituacao } from './../../dispositivo/situacao';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
-import { getDispositivoAndFilhosAsLista, getDispositivosAnterioresMesmoTipo, isAdicionado } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, isAdicionado } from '../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
 import { getArticulacao, isDispositivoAlteracao, irmaosMesmoTipo } from './../hierarquia/hierarquiaUtil';
 
@@ -35,6 +34,7 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
 };
 
 function calculaSequencialOmissis(dispositivo: Dispositivo): number {
+  /*
   if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
     // Diferencia omissis de incisos de caput de omissis de parágrafo
     const irmaos = irmaosMesmoTipo(dispositivo).filter(d => d.pai === dispositivo.pai);
@@ -48,6 +48,12 @@ function calculaSequencialOmissis(dispositivo: Dispositivo): number {
     return irmaos.indexOf(dispositivo) + 1;
   }
   return getDispositivosAnterioresMesmoTipo(dispositivo).length + 1;
+  */
+
+  // Diferencia omissis de incisos de caput de omissis de parágrafo
+  const irmaos = irmaosMesmoTipo(dispositivo).filter(d => d.pai === dispositivo.pai);
+  irmaos.sort((d1, d2) => dispositivo.pai!.indexOf(d1) - dispositivo.pai!.indexOf(d2));
+  return irmaos.indexOf(dispositivo) + 1;
 }
 
 const buildHierarquia = (dispositivo: Dispositivo, idArray: string[] = []): void => {

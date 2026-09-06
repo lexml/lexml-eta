@@ -219,7 +219,7 @@ const calculaPosNovoAgrupador = (
 //   return isUltimaAlteracao(dispositivo) || isUltimaAlteracao(getUltimoFilho(dispositivo));
 // };
 
-const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d); // && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
 
 const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: string, tipo: string, manterNovoNoMesmoGrupoDeAspas = false, dadosComplementares: any = {}): State => {
   const cabecaAlteracao = getDispositivoCabecaAlteracao(atual);

@@ -77,7 +77,7 @@ export class EtaBlotRotulo extends EtaBlot {
   }
 
   public static getClasseCSS(elemento: Elemento): string {
-    const isAdicionado = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+    const isAdicionado = true; // elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
     return (
       'texto__rotulo' +
       (elemento.agrupador ? ' texto__rotulo--agrupador' : ' texto__rotulo--padrao') +
