@@ -387,8 +387,8 @@ As etapas seguintes tratam de **eliminar a redundância restante**. São desejá
 | `adicionaElemento.ts`, `agrupaElemento.ts` | pendentes — só gravam `existeNaNormaAlterada` se `ADICIONADO` |
 | `numeracaoAgrupador.ts`, `tipoArticulacao.ts`, `eventosUtil.ts` | pendentes |
 | `verificaNaoPrecisaInformarSituacaoNormaVigente` (`hierarquiaUtil.ts`) | pendente |
-| `getDispositivosAdicionados`, `hasDispositivosBySituacao` | **código morto** — sem chamadores |
-| `conteudoValidator.ts`, `atualizaRevisao.ts` | **código morto** — bloco no-op e função sem chamadores |
+| `atualizarLexmlIdEmElementosDeRevisoes` (`atualizaRevisao.ts`) | pendente — filtra revisões por `ADICIONADO`; em documento carregado o filtro esvazia e os `lexmlId` das revisões não são atualizados |
+| `getDispositivosAdicionados`, `hasDispositivosBySituacao`, bloco no-op de `conteudoValidator.ts` | removidos — eram código morto |
 
 21. Apagar `dispositivoAdicionado.ts`.
 
