@@ -1,6 +1,5 @@
 import { validaDispositivo } from './../../../model/lexml/dispositivo/dispositivoValidator';
 import { InfoTextoColado } from './../util/colarUtil';
-import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isArtigo, isOmissis, isInciso, isParagrafo } from './../../../model/dispositivo/tipo';
 import {
@@ -13,7 +12,7 @@ import {
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
@@ -81,12 +80,13 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
 const existeDispositivoBloqueadoSendoColado = (articulacaoColada: Articulacao, articulacao: Articulacao): boolean => {
   const idsColados = getDispositivoAndFilhosAsLista(articulacaoColada)
     .filter(d => d.texto !== TEXTO_OMISSIS)
-    .map(d => d.id);
+    .map(d => d.id)
+    .filter((id): id is string => id !== undefined);
 
   const idsBloqueados = getDispositivoAndFilhosAsLista(articulacao)
     .filter(isBloqueado)
     .map(d => d.id)
-    .filter(Boolean);
+    .filter((id): id is string => id !== undefined);
 
   return idsColados.some(id => idsBloqueados.includes(id));
 };
@@ -116,6 +116,7 @@ const colarDispositivos = (
   articulacaoColada.filhos.forEach(f => {
     if (isColandoEmAlteracaoDeNorma || !isOmissis(f)) {
       const d = buscarDispositivoByIdTratandoParagrafoUnico(articulacao, f.id!);
+
       refAux = d && isColarSubstituindo ? d : refAux;
       const auxPosicao = d && isColarSubstituindo ? 'antes' : posicao === 'antes' && refAux === referencia ? posicao : undefined;
       const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, auxPosicao);
@@ -153,7 +154,9 @@ const colarDispositivos = (
   novos.forEach(d => {
     getDispositivoAndFilhosAsLista(d).forEach(d => {
       d.id = buildId(d);
-      isArtigo(d) && buildIdCaputEAlteracao(d);
+      if (isArtigo(d)) {
+        buildIdCaputEAlteracao(d);
+      }
     });
   });
 
@@ -164,7 +167,9 @@ const colarDispositivos = (
   eventos.push({ stateType: StateType.ElementoRenumerado, elementos: elementosRenumerados });
   eventos.push(buildEventoElementosRenumerados(novos, referencia, tipoColado));
   eventos.push(buildEventoSituacaoElementoModificada(novos, isColandoEmAlteracaoDeNorma));
-  novos[0] && eventos.push(buildEventoElementoMarcado([novos[0], atual]));
+  if (novos[0]) {
+    eventos.push(buildEventoElementoMarcado([novos[0], atual]));
+  }
 
   return eventos.filter(ev => ev.elementos?.length);
 };

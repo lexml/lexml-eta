@@ -693,3 +693,603 @@ describe('Tags HTML Inline - Testes Recomendados', () => {
     expect(bContent[4]).to.equal('.');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Testes de serialização de remissão interna (Etapa 1 — PLANO_REMISSAO_SAVE_LOAD)
+// ---------------------------------------------------------------------------
+
+describe('Serialização de remissão interna', () => {
+  describe('15.1. Detecção e tag Remissao', () => {
+    it('deve serializar link com data-lexml-ref como Remissao', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = 'Conforme o <a href="#lxEtaId42" data-lexml-ref="art5_cpt" class="lexml-remissao-interna" target="_self">art. 5</a> desta lei.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const remissao = caputNode.value.p[0].content[1];
+
+      expect(remissao.name.localPart).to.equal('Remissao');
+    });
+
+    it('deve usar o lexmlId como href, não o UUID interno', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna" target="_self">art. 5</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const remissao = caputNode.value.p[0].content[0];
+
+      expect(remissao.value.href).to.equal('art5_cpt');
+      expect(remissao.value.href).to.not.include('#lxEtaId');
+    });
+
+    it('deve preservar o texto visível do link', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="#lxEtaId42" data-lexml-ref="art5_cpt" class="lexml-remissao-interna" target="_self">art. 5</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const remissao = caputNode.value.p[0].content[0];
+
+      expect(remissao.value.content[0]).to.equal('art. 5');
+    });
+
+    it('não deve afetar links externos (sem data-lexml-ref)', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="urn:lex:br:federal:lei:2020-01-01;12345">Lei 12.345</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const node = caputNode.value.p[0].content[0];
+
+      expect(node.name.localPart).to.equal('span');
+    });
+  });
+
+  describe('15.2. Estrutura do nó Remissao', () => {
+    it('deve ter namespaceURI correto', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="#lxEtaId1" data-lexml-ref="art10_par1" class="lexml-remissao-interna" target="_self">§ 1º do art. 10</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const remissao = caputNode.value.p[0].content[0];
+
+      expect(remissao.name.namespaceURI).to.equal('http://www.lexml.gov.br/1.0');
+      expect(remissao.name.key).to.equal('{http://www.lexml.gov.br/1.0}Remissao');
+    });
+
+    it('deve ter TYPE_NAME GenInline', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<a href="#lxEtaId1" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const remissao = caputNode.value.p[0].content[0];
+
+      expect(remissao.value.TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+    });
+  });
+
+  describe('15.3. Texto ao redor da remissão', () => {
+    it('deve preservar texto antes e depois', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto =
+        'Ver o <a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a> e o <a href="art10_cpt" data-lexml-ref="art10_cpt" class="lexml-remissao-interna">art. 10</a> desta lei.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const content = caputNode.value.p[0].content;
+
+      // Estrutura: ['Ver o ', Remissao(art5), ' e o ', Remissao(art10), ' desta lei.']
+      expect(content[0]).to.equal('Ver o ');
+      expect(content[1].name.localPart).to.equal('Remissao');
+      expect(content[1].value.href).to.equal('art5_cpt');
+      expect(content[3].name.localPart).to.equal('Remissao');
+      expect(content[3].value.href).to.equal('art10_cpt');
+    });
+
+    it('deve misturar remissão interna e link externo no mesmo texto', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto =
+        'Veja <a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a> e <a href="urn:lex:br:federal:lei:2020-01-01;123">Lei 123</a>.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const content = caputNode.value.p[0].content;
+
+      const remissao = content.find((c: any) => c.name?.localPart === 'Remissao');
+      const span = content.find((c: any) => c.name?.localPart === 'span');
+
+      expect(remissao).to.not.be.undefined;
+      expect(span).to.not.be.undefined;
+      expect(remissao.value.href).to.equal('art5_cpt');
+    });
+  });
+
+  describe('15.4. Remissão dentro de formatação', () => {
+    it('deve serializar remissão dentro de <b> como Remissao (texto começa com <b>)', () => {
+      // buildStructuredContentWithInlineElements é acionado quando o texto começa com tag inline
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = '<b>o <a href="art5_cpt" data-lexml-ref="art5_cpt" class="lexml-remissao-interna">art. 5</a></b>';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const caputNode = resultado.lXhier[0].value.lXcontainersOmissis[0];
+      const content = caputNode.value.p[0].content;
+
+      const bNode = content.find((c: any) => c.name?.localPart === 'b');
+      expect(bNode).to.not.be.undefined;
+
+      const remissaoInB = bNode.value.content.find((c: any) => c.name?.localPart === 'Remissao');
+      expect(remissaoInB).to.not.be.undefined;
+      expect(remissaoInB.value.href).to.equal('art5_cpt');
+    });
+  });
+
+  describe('15.5. Normalização do span do Parchment Attributor', () => {
+    it('deve remover o <span data-lexml-ref> gerado pelo Parchment e serializar como Remissao', () => {
+      // HTML exato gerado pelo Quill quando data-lexml-ref/data-ref-id são attributors:
+      // <span data-lexml-ref="..." data-ref-id="..."><a class="lexml-remissao-interna">texto</a></span>
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto =
+        'No <span data-lexml-ref="art2_cpt_inc2" data-ref-id="ref_123">' +
+        '<a href="art2_cpt_inc2" data-lexml-ref="art2_cpt_inc2" class="lexml-remissao-interna" target="_self">' +
+        'inciso II deste artigo</a></span> bla bla bla.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+
+      // Não deve conter strings brutas com <span> ou </span>
+      const stringsComHtml = content.filter((c: any) => typeof c === 'string' && /<\/?span/.test(c));
+      expect(stringsComHtml).to.have.length(0);
+
+      // Deve conter o nó Remissao com href correto
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao).to.not.be.undefined;
+      expect(remissao.value.href).to.equal('art2_cpt_inc2');
+    });
+
+    it('deve preservar o texto ao redor após remover o span wrapper', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto =
+        'Esebla bla bla no <span data-lexml-ref="art2_cpt_inc2" data-ref-id="ref_abc">' +
+        '<a href="art2_cpt_inc2" data-lexml-ref="art2_cpt_inc2" class="lexml-remissao-interna" target="_self">' +
+        'inciso II deste artigo</a></span> bla bla bla.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+
+      expect(content[0]).to.equal('Esebla bla bla no ');
+      expect(content[1]?.name?.localPart).to.equal('Remissao');
+      expect(content[1]?.value?.href).to.equal('art2_cpt_inc2');
+    });
+
+    it('não deve afetar spans sem data-lexml-ref', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      // span convencional sem data-lexml-ref → não deve ser removido (não é do Parchment remissão)
+      (caput as any).texto = 'Texto sem <a href="urn:lex:br:lei">link externo</a> normal.';
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+
+      const span = content.find((c: any) => c?.name?.localPart === 'span');
+      expect(span).to.not.be.undefined;
+      expect(span.value.href).to.equal('urn:lex:br:lei');
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Testes de injeção de links a partir do registry (Etapa 5 — PLANO_REMISSAO_SAVE_LOAD)
+// ---------------------------------------------------------------------------
+
+describe('Injeção de remissões a partir do registry', () => {
+  const criarProjetoNorma = (textoArtigo: string) => ({
+    classificacao: ClassificacaoDocumento.NORMA,
+    epigrafe: { texto: 'TESTE' },
+    ementa: { texto: 'Ementa' } as any,
+    preambulo: { texto: '' },
+    articulacao: (() => {
+      const art = createArticulacao();
+      const artigo = criaDispositivo(art, TipoDispositivo.artigo.tipo);
+      artigo.rotulo = 'Art. 1º';
+      (artigo as any).texto = textoArtigo;
+      return art;
+    })(),
+  });
+
+  const getCaputContent = (resultado: any) => resultado.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+
+  describe('16.1. Remissão auto-detectada (texto simples)', () => {
+    it('deve injetar link quando texto é simples e inicio aponta para textoRef', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      artigo.rotulo = 'Art. 3º';
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = 'Mais um teste do art. 1 de teste teste.';
+      const uuid = (caput as any).uuid ?? 99;
+      (caput as any).uuid = uuid;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const remissoes: Record<number, any[]> = {
+        [uuid]: [
+          {
+            refId: 'ref_001',
+            targetLexmlId: 'art1',
+            textoRef: 'art. 1',
+            inicio: 15, // 'Mais um teste do '.length = 18? Vamos usar o índice real
+            valida: undefined,
+          },
+        ],
+      };
+
+      // Ajusta inicio para corresponder ao texto real
+      const texto = 'Mais um teste do art. 1 de teste teste.';
+      remissoes[uuid][0].inicio = texto.indexOf('art. 1');
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', remissoes);
+      const content = getCaputContent(resultado);
+
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao).to.not.be.undefined;
+      expect(remissao.value.href).to.equal('art1');
+      expect(remissao.value.content[0]).to.equal('art. 1');
+    });
+
+    it('deve preservar texto antes e depois da remissão injetada', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const texto = 'Conforme o art. 2 desta lei.';
+      (caput as any).texto = texto;
+      const uuid = 101;
+      (caput as any).uuid = uuid;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const remissoes: Record<number, any[]> = {
+        [uuid]: [{ refId: 'ref_x', targetLexmlId: 'art2', textoRef: 'art. 2', inicio: texto.indexOf('art. 2') }],
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', remissoes);
+      const content = getCaputContent(resultado);
+
+      expect(content[0]).to.equal('Conforme o ');
+      expect(content[1]?.name?.localPart).to.equal('Remissao');
+      expect(content[1]?.value?.href).to.equal('art2');
+      expect(content[2]).to.equal(' desta lei.');
+    });
+
+    it('deve injetar sentinel @invalido para entradas com valida === false (texto plain)', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const texto = 'Texto referenciando art. 5.';
+      (caput as any).texto = texto;
+      const uuid = 102;
+      (caput as any).uuid = uuid;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const remissoes: Record<number, any[]> = {
+        [uuid]: [{ refId: 'ref_y', targetLexmlId: 'art5', textoRef: 'art. 5', inicio: texto.indexOf('art. 5'), valida: false }],
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', remissoes);
+      const content = getCaputContent(resultado);
+
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao, 'deve existir nó Remissao com sentinel @invalido').to.exist;
+      expect(remissao.value.href).to.equal('@invalido');
+    });
+
+    it('não deve duplicar link já presente no texto', () => {
+      // Simula texto com <a href> já presente (como gerado pelo buildProjetoNormaFromJsonix na desserialização)
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = 'Ver <a href="art3" data-lexml-ref="art3" class="lexml-remissao-interna" target="_self">art. 3</a> aqui.';
+      const uuid = 103;
+      (caput as any).uuid = uuid;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const remissoes: Record<number, any[]> = {
+        [uuid]: [{ refId: 'ref_z', targetLexmlId: 'art3', textoRef: 'art. 3', inicio: 4 }],
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', remissoes);
+      const content = getCaputContent(resultado);
+
+      const remissoes_content = content.filter((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissoes_content).to.have.length(1); // apenas um, não duplicado
+    });
+  });
+
+  describe('16.2. Remissão em texto com HTML existente (Caso B)', () => {
+    it('deve injetar remissão auto-detectada mesmo quando texto já tem outro link', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      // Texto com remissão manual já presente (com href) + referência auto-detectada sem link
+      (caput as any).texto = 'Conforme <a href="art2" data-lexml-ref="art2" class="lexml-remissao-interna" target="_self">art. 2</a> e art. 3 desta lei.';
+      const uuid = 104;
+      (caput as any).uuid = uuid;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const remissoes: Record<number, any[]> = {
+        [uuid]: [
+          { refId: 'ref_a', targetLexmlId: 'art2', textoRef: 'art. 2', inicio: 8 }, // já presente, não deve duplicar
+          { refId: 'ref_b', targetLexmlId: 'art3', textoRef: 'art. 3', inicio: 99 }, // não presente, deve injetar
+        ],
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', remissoes);
+      const content = getCaputContent(resultado);
+
+      const remissaoArt2 = content.filter((c: any) => c?.name?.localPart === 'Remissao' && c?.value?.href === 'art2');
+      const remissaoArt3 = content.filter((c: any) => c?.name?.localPart === 'Remissao' && c?.value?.href === 'art3');
+
+      expect(remissaoArt2).to.have.length(1); // não duplicado
+      expect(remissaoArt3).to.have.length(1); // injetado
+    });
+  });
+
+  describe('16.3. Sem registry', () => {
+    it('deve funcionar normalmente sem parâmetro remissoes', () => {
+      const texto = 'Texto simples sem remissões.';
+      const projetoNorma = criarProjetoNorma(texto);
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste');
+      const content = getCaputContent(resultado);
+
+      expect(content[0]).to.equal(texto);
+    });
+  });
+
+  // Self-healing da serialização: corrige `data-lexml-ref` obsoleto quando o destino
+  // foi renumerado fora do fluxo de digitação (updateContents 'silent' do Quill não
+  // propaga para `caput.texto` no Redux).
+  describe('16.4. Auto-correção de data-lexml-ref obsoleto', () => {
+    it('deve atualizar data-lexml-ref obsoleto usando o href como id estável', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      art1.rotulo = 'Art. 1º';
+      (art1 as any).id = 'art1';
+      const caput1 = criaDispositivo(art1, TipoDispositivo.caput.tipo);
+      (caput1 as any).texto = 'Texto base.';
+
+      const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      art2.rotulo = 'Art. 2º';
+      (art2 as any).id = 'art2';
+      const caput2 = criaDispositivo(art2, TipoDispositivo.caput.tipo);
+      // O destino real (uuid de art2) corresponde ao id atual 'art2',
+      // mas o link armazenado em texto referencia 'artX' (lexmlId obsoleto).
+      const uuidDestino = (art2 as any).uuid;
+      (
+        caput2 as any
+      ).texto = `Conforme o <a href="#lxEtaId${uuidDestino}" data-ref-id="r1" data-lexml-ref="artX" class="lexml-remissao-interna" target="_self">art. 99º</a> desta lei.`;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste');
+      const content = resultado.value.projetoNorma.norma.articulacao.lXhier[1].value.lXcontainersOmissis[0].value.p[0].content;
+
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao, 'deve haver um nó Remissao').to.exist;
+      expect(remissao.value.href).to.equal('art2');
+    });
+
+    it('deve preservar texto canônico antigo quando atualiza o link', () => {
+      // Texto canônico do destino antigo é convertido para o canônico do novo via
+      // atualizarTextoRemissao — neste caso "art. 99º" não é canônico de "artX",
+      // portanto o conteúdo do link permanece intacto.
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      (artigo as any).id = 'art1';
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const uuidDestino = (artigo as any).uuid;
+      (caput as any).texto = `Ver o <a href="#lxEtaId${uuidDestino}" data-lexml-ref="art2" class="lexml-remissao-interna" target="_self">art. 2º</a> desta lei.`;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste');
+      const content = resultado.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao.value.href).to.equal('art1');
+      // texto visível é o canônico do novo lexmlId
+      expect(remissao.value.content[0]).to.equal('art. 1º');
+    });
+
+    it('não deve alterar links sem href no formato #lxEtaId', () => {
+      // Sem o href estável, não há como localizar o destino com confiança — preserva como está.
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = `Ver <a href="art2" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2º</a>.`;
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao.value.href).to.equal('art2');
+    });
+
+    it('deve usar sentinela quando uuid não existe na articulação (dispositivo excluído)', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      (caput as any).texto = `Ver <a href="#lxEtaId99999" data-lexml-ref="artObsoleto" class="lexml-remissao-interna">art. 99º</a>.`;
+
+      const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+      const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+      const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+      expect(remissao.value.href).to.equal('@invalido');
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Serialização com @revisar (Etapa 4 — PLANO_REVISAR_REMISSAO_TEXTO)
+// ---------------------------------------------------------------------------
+
+describe('corrigirLexmlRefsObsoletosNoTexto — @revisar', () => {
+  let articulacao: any;
+  let artigo1: any, artigo2: any, caput1: any;
+  let art2Uuid: number, caput1Uuid: number;
+
+  beforeEach(() => {
+    articulacao = createArticulacao();
+    artigo1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    caput1 = criaDispositivo(artigo1, TipoDispositivo.caput.tipo);
+    artigo2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    criaDispositivo(artigo2, TipoDispositivo.caput.tipo);
+    (artigo1 as any).id = 'art1';
+    (artigo2 as any).id = 'art2';
+    art2Uuid = (artigo2 as any).uuid;
+    caput1Uuid = (caput1 as any).uuid;
+  });
+
+  const criaLinkParaArt2 = (lexmlIdNoLink: string, textoLink: string): string =>
+    `texto <a href="#lxEtaId${art2Uuid}" data-lexml-ref="${lexmlIdNoLink}" class="lexml-remissao-interna" target="_self">${textoLink}</a> fim.`;
+
+  const getHrefRemissao = (resultado: any): string => {
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+    return remissao?.value?.href ?? '';
+  };
+
+  const getTextoRemissao = (resultado: any): string => {
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
+    return remissao?.value?.content?.[0] ?? '';
+  };
+
+  it('entry com revisao:true e LexML ID mudou → href com @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'o artigo antigo');
+    const remissoes: Record<number, any[]> = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art1', revisao: true as const }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2@revisar');
+  });
+
+  it('entry com revisao:true e LexML ID igual → href com @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art2', 'o artigo atual');
+    const remissoes: Record<number, any[]> = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art2', revisao: true as const }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2@revisar');
+  });
+
+  it('entry SEM revisao (já revisado) → href sem @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'o artigo antigo');
+    const remissoes = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art1' }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2');
+  });
+
+  it('state stale + texto arbitrário → href com @revisar', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'o artigo central');
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, {});
+    expect(getHrefRemissao(resultado)).to.equal('art2@revisar');
+  });
+
+  it('texto canônico "art. 1º" sem revisão → atualizado para novo ID', () => {
+    (caput1 as any).texto = criaLinkParaArt2('art1', 'art. 1º');
+    const remissoes = {
+      [caput1Uuid]: [{ refId: 'ref_1', targetUuid: art2Uuid, targetLexmlId: 'art1' }],
+    };
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao, remissoes);
+    expect(getHrefRemissao(resultado)).to.equal('art2');
+    expect(getTextoRemissao(resultado)).to.equal('art. 2º');
+  });
+
+  it('JSONIX gerado não contém strings começando com <span', () => {
+    // span com data-ref-id — NÃO removido pelo regex antigo (Bug A)
+    (caput1 as any).texto = `<span data-ref-id="ref_1"><a href="#lxEtaId${art2Uuid}" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2</a></span> fim.`;
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const comSpan = content.filter((c: any) => typeof c === 'string' && c.startsWith('<span'));
+    expect(comSpan).to.have.length(0);
+  });
+
+  it('JSONIX gerado não contém strings terminando com </span>', () => {
+    (caput1 as any).texto = `texto <span data-ref-id="ref_1"><a href="#lxEtaId${art2Uuid}" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2</a></span>`;
+    const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
+    const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+    const comSpanFim = content.filter((c: any) => typeof c === 'string' && c.endsWith('</span>'));
+    expect(comSpanFim).to.have.length(0);
+  });
+});

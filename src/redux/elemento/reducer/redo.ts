@@ -1,4 +1,5 @@
 import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador } from './../util/undoRedoReducerUtil';
+import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
@@ -75,6 +76,7 @@ export const redo = (state: any): State => {
 
     retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
     retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
     return retorno;
   }
@@ -115,6 +117,7 @@ export const redo = (state: any): State => {
 
   retorno.ui!.events = [...eventosRevisao, ...events.build()];
   retorno.present = [...eventosRevisao, ...events.build()];
+  retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
   return retorno;
 };

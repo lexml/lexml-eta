@@ -5,6 +5,7 @@ import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
 import { Revisao } from '../model/revisao/revisao';
 import { Usuario } from '../model/revisao/usuario';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../model/remissao';
 
 export enum StateType {
   ArticulacaoAtualizada = 'ArticulacaoAtualizada',
@@ -28,9 +29,12 @@ export enum StateType {
   RevisaoAceita = 'RevisaoAceita',
   RevisaoRejeitada = 'RevisaoRejeitada',
   RevisaoAdicionalRejeitada = 'RevisaoAdicionalRejeitada',
-  AdicionarAnexoEmendaTextoLivre = 'AdicionarAnexoEmendaTextoLivre',
-  RemoverAnexoEmendaTextoLivre = 'RemoverAnexoEmendaTextoLivre',
   PaginaArticulacaoSelecionada = 'PaginaArticulacaoSelecionada',
+  RemissaoRedirecionar = 'RemissaoRedirecionar',
+  AtualizaRemissaoInterna = 'AtualizaRemissaoInterna',
+  RemissaoRenumerada = 'RemissaoRenumerada',
+  RemissaoInvalidada = 'RemissaoInvalidada',
+  RemissaoRestaurada = 'RemissaoRestaurada',
 }
 export interface StateEvent {
   stateType: StateType;
@@ -38,6 +42,8 @@ export interface StateEvent {
   pai?: Elemento;
   moverParaFimLinha?: boolean;
   elementos?: Elemento[];
+  remissaoRenumeracao?: { lexmlIdAntigo: string; lexmlIdNovo: string; novoUuid: number };
+  remissaoInvalidacao?: { lexmlId: string; uuid: number };
 }
 
 export interface Paginacao {
@@ -63,6 +69,8 @@ export interface State {
   revisoes?: Revisao[];
   numEventosPassadosAntesDaRevisao?: number;
   mensagensCritical?: Array<string>;
+  remissoes?: Record<number, RemissaoInternaValue[]>;
+  remissoesExternas?: Record<string, RemissaoExternaValue>;
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {

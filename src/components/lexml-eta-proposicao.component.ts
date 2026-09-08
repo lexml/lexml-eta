@@ -7,6 +7,7 @@ import { Anexo } from '../model/emenda/emenda';
 import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { completarRegistroRemissoes } from '../redux/elemento/reducer/adicionaRemissaoInterna';
 import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
@@ -51,8 +52,12 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   getProjetoAtualizado(): any {
+    this.editorComponent.flushEdicaoPendente();
     const out = { ...this.projetoNorma };
-    const articulacaoAtualizada = buildJsonixFromProjetoNorma(rootStore.getState().elementoReducer.articulacao?.projetoNorma, this.urn);
+    const elementoState = rootStore.getState().elementoReducer;
+    const remissoesExternas = elementoState.remissoesExternas ?? {};
+    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {}, remissoesExternas);
+    const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto, remissoesExternas);
     const tipo = (out as any).value.projetoNorma.norma ? 'norma' : 'projeto';
     (out as any).value.projetoNorma[tipo].parteInicial = articulacaoAtualizada.value.projetoNorma[tipo].parteInicial;
     (out as any).value.projetoNorma[tipo].articulacao.lXhier = articulacaoAtualizada.value.projetoNorma[tipo].articulacao.lXhier;

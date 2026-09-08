@@ -48,7 +48,8 @@ describe('Testando a inclusão de agrupadores em alteração de norma', () => {
 
     describe('Adicionando 2 artigos dentro do Capítulo', () => {
       beforeEach(function () {
-        const disp = buscaDispositivoById(state.articulacao!, 'art2_cpt_alt1')!.filhos[0];
+        const articulacaoAlt = buscaDispositivoById(state.articulacao!, 'art2_cpt_alt1')!;
+        const disp = articulacaoAlt.filhos[0];
         state = adicionaElementosNaProposicaoFromClipboard(state, {
           type: ADICIONAR_ELEMENTOS_FROM_CLIPBOARD,
           atual: createElemento(disp),

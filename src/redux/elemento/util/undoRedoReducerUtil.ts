@@ -30,7 +30,7 @@ import {
 } from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
-import { buildId } from '../../../model/lexml/util/idUtil';
+import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
@@ -119,6 +119,10 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
 
     const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos, state.modo);
     pai?.renumeraFilhos();
+    // renumeraFilhos só atualiza .numero/.rotulo — sem isto, .id (buildId) fica obsoleto para os
+    // dispositivos deslocados pela reinclusão, quebrando qualquer recálculo que dependa do id atual
+    // (ex.: sincronizarRemissoesPosAcao, ver docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md).
+    updateIdDispositivoAndFilhos(state.articulacao!);
 
     if (novosEvento) {
       const posicao = elemento!.hierarquia!.posicao;
@@ -149,6 +153,7 @@ export const remover = (state: State, evento: StateEvent): Elemento[] => {
         const pai = dispositivo.pai!;
         pai.removeFilho(dispositivo);
         pai.renumeraFilhos();
+        updateIdDispositivoAndFilhos(pai);
       }
     });
     return evento.elementos;

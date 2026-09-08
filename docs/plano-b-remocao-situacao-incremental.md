@@ -649,3 +649,84 @@ git merge-tree --write-tree --name-only HEAD origin/feat/wasm32-remissao-externa
 1. `develop` — conflito zero, alinha a base
 2. `feat/wasm32-remissao-externa` — 14 + 1 conflitos
 3. Rodar `tsc`, `npm test` (conferindo a **contagem**) e o teste manual do demo
+
+## 12. Resultado real do merge (`integra/remove-situacao-com-wasm32`)
+
+Merge da `develop` (commit `c80d4d8b`) e de `origin/feat/wasm32-remissao-externa`. Suíte ao fim:
+**2818 testes, 0 falhas, 161 arquivos** — contra 1943 antes do merge; a wasm32 trouxe ~875 testes.
+
+### Os 14 conflitos
+
+Critério dominante: na maioria dos casos o lado da wasm32 **não compila**, porque referencia
+`situacao`, `DescricaoSituacao`, `DispositivoAdicionado`/`Suprimido`/`Modificado` — todos apagados na
+Etapa 5. Ainda assim cada bloco foi lido, porque em vários havia trabalho real da outra branch no
+mesmo trecho.
+
+| Arquivo | Resolução |
+|---|---|
+| `dispositivo-bloqueado.cy.ts` | `git rm` — teste de emenda |
+| `adicionaDiffMenuOpcoes.ts` | nosso lado + guarda `?? []` deles |
+| `dispositivoValidator.ts`, `regrasAgrupadores.ts` | nosso lado |
+| `tipoArticulacao.ts` | **união** — filtro removido + propagação de ids deles |
+| `hierarquiaUtil.test.ts`, `reducer-rejeita-revisao-*.test.ts` | união |
+| `loadArticulacao.ts` | preserva `detectarRemissoesInvalidasAoCarregar`, remove bloqueio |
+| `adicionaElemento.ts`, `elementoUtil.ts`, `redo.ts`, `editor.component.ts` | imports: união menos os símbolos inexistentes |
+| `removeElemento.ts` | **combinação** — `validarRemocaoElemento` deles como invólucro, com o miolo do agrupador trocado pela nossa `getImpedimentoParaRemoverAgrupador`, que o menu também usa |
+| `undo.ts` | preserva a restauração de remissões; descarta `processarSuprimidos`/`processarRestaurados` (sem definição) e uma variável nunca lida |
+| `adicionaElementosNaProposicaoFromClipboard.ts` | ver abaixo |
+
+### `Renumerar`: a mudança semântica que a wasm32 trouxe
+
+No merge-base a condição era `isDispositivoAlteracao(d) && situacao === ADICIONADO`. O commit
+`bab12189` trocou `&&` por `||` em **seis** arquivos de regra, para liberar `Renumerar` fora de bloco
+de alteração — a renumeração é o gatilho da atualização de remissões, objetivo da branch.
+
+Aplicada a diretriz do projeto (situação *é* adicionado ⇒ `true`), `X || true` colapsa para `true` e a
+guarda desaparece: `regrasArtigo`, `regrasAlinea`, `regrasInciso`, `regrasItem`, `regrasParagrafo` e
+`regrasAgrupadores`. **`Renumerar` passa a ser sempre oferecido** — mais amplo que a branch de
+situação, e coerente tanto com a intenção da wasm32 quanto com o modelo de proposição.
+
+> Em `regrasAgrupadores.ts` essa troca passou despercebida na primeira resolução (foi escolhido o
+> nosso lado inteiro). O teste de renumeração de capítulo detectou.
+
+### Colagem parcial com omissis: descartada
+
+O commit `270aa846` acrescentou ~130 linhas ao reducer do clipboard: reconcilia o texto colado com o
+existente filho a filho, preservando por `id` o que está coberto por omissis. Foi **descartado**,
+preservando apenas os type guards e ajustes de estilo do mesmo arquivo.
+
+Motivo: a função `marcarComoSuprimido` faz *exclusão lógica* — o dispositivo permanece na árvore
+sinalizado —, que é justamente o modelo de emenda eliminado aqui; `StateType.ElementoSuprimido` nem
+existe mais. Adaptar exigiria decidir a regra de negócio (remoção física?) e escrever testes, sem
+rede: o commit **não alterou nenhum teste** e nenhum teste de colagem menciona omissis.
+
+**Pendência:** reavaliar o `270aa846` como tarefa própria.
+
+### Fora dos conflitos
+
+O merge automático também trouxe código incompatível, que o `tsc` revelou:
+
+- `sincronizarRemissoesPosAcao.ts` importava `AGRUPAR_ELEMENTO`, ação removida pelo `14b3a1f0`
+- `buildProjetoNormaFromJsonix(x, true)` em 8 testes — o parâmetro `emendamento` saiu no `03d87e16`
+- ~52 atribuições `d.situacao = new DispositivoAdicionado()` em testes de remissão, hoje sem efeito;
+  `test/helpers/dispositivo-helper.ts` teve `marcaAdicionado` reduzida a no-op para não mexer nas
+  ~60 chamadas (limpar na Etapa 6)
+- `numeracao.test.ts`: o merge juntou o teste antigo com o código novo. A wasm32 corrigiu
+  `createNumeroFromRotulo` e ajustou o teste; adotada a versão dela, coerente com o título do próprio
+  teste e com os quatro casos irmãos
+
+### Ambiente de teste (Windows)
+
+O merge trocou o launcher para Playwright e passou a rodar a suíte em lotes. Foi preciso:
+
+1. `npm install` — `@web/test-runner-playwright` é dependência nova
+2. `npx playwright install chromium` — o navegador não vem no `npm install`
+3. `scripts/rodar-testes-em-lotes.mjs` chamava `./node_modules/.bin/wtr` via `spawnSync`, que falha no
+   Windows (`ENOENT`; e `EINVAL` ao apontar para o `.cmd`, bloqueado desde o Node 18.20/20.12).
+   Corrigido para `spawnSync(process.execPath, [binWtr, ...])`, com `binWtr` obtido de
+   `require.resolve('@web/test-runner')` — resolução do próprio Node, sem depender de shell, de bit de
+   execução ou da árvore física de `node_modules`. Vale nos três sistemas; a forma anterior só em Unix.
+
+> `npm test` inclui `copy:lexml-linker-wasm`. Sem esse passo o `.wasm` não chega ao `out-tsc` e o
+> worker recebe o HTML de 404 — o erro aparece como `expected magic word 00 61 73 6d, found 4e 6f 74 20`
+> (`"Not "`). Rodar `wtr` direto sem copiar o vendor reproduz isso em 32 testes.

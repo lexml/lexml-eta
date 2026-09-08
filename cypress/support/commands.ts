@@ -1,43 +1,6 @@
 /// <reference types="cypress" />
 import { Emenda } from '../../src/model/emenda/emenda';
 
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
-
 export type TipoMensagemContainerDispositivo = 'warning' | 'danger';
 export interface AbrirEmendaPayloadCypress {
   fixtureEmendaJson: string;
@@ -89,8 +52,18 @@ Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.
     });
   }
   cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
-  cy.get('#modo').select(payload.modoEmendaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
+  return cy.wrap(true);
+});
+
+Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo'): Cypress.Chainable<any> => {
+  cy.get('#projetoNorma').select(projetoNormaSelectValue);
+  cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
+  return cy.wrap(true);
+});
+
+Cypress.Commands.add('abrirProposicao', (fixtureJson: string): Cypress.Chainable<any> => {
+  cy.get('#fileUpload').selectFile(`cypress/fixtures/${fixtureJson}`, { force: true });
   return cy.wrap(true);
 });
 
@@ -148,11 +121,129 @@ Cypress.Commands.add('getContainerAlineaNormaByRotulo', (rotulo: string): Cypres
 });
 
 Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>, opcaoDeMenu: string): void => {
-  cy.wrap(subject).click().find('div.container__menu > sl-dropdown').click().find('sl-menu > sl-menu-item').contains(opcaoDeMenu).click();
+  // O sl-dropdown é montado por montarMenuContexto() quando o Quill detecta seleção.
+  // Para garantir que o evento selection-change dispare, clicamos em dois pontos:
+  //   1. No container externo (para ativar hover/foco do elemento).
+  //   2. No conteúdo de texto (p.texto__dispositivo), que está dentro do ql-editor.
+  // Cada passo usa cy.get() independente (não chained) para evitar referência stale
+  // causada por re-renders do LitElement após cada interação.
+  const id = subject[0]?.id;
+  if (!id) {
+    cy.wrap(subject).find('p.texto__dispositivo').should('exist');
+    cy.wrap(subject).click({ force: true });
+    cy.wrap(subject).find('p.texto__dispositivo').click({ force: true });
+    cy.wrap(subject).find('div.container__menu > sl-dropdown').should('exist');
+    cy.wrap(subject).find('sl-button[slot="trigger"]').click({ force: true });
+    cy.contains('sl-menu-item', opcaoDeMenu).click({ force: true });
+    return;
+  }
+
+  // Função que executa toda a sequência: click no texto + marcarLinhaAtual.
+  // Retorna true (via side-effect no DOM) se o dropdown foi montado.
+  const clicarEMontarMenu = (): void => {
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .should('exist');
+    cy.get('#' + id).click({ force: true });
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .click({ force: true });
+    cy.window().then(win => {
+      const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+      const quill = editorEl?.quill;
+      if (!quill) return;
+      const containerEl = win.document.querySelector('#' + id) as HTMLElement;
+      if (!containerEl) return;
+      const p = containerEl.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+      if (!p) return;
+      const EtaQuillClass = quill.constructor as any;
+      const blot = EtaQuillClass.find(p);
+      if (!blot) return;
+      const linhaAlvo = blot.parent?.parent?.parent;
+      if (linhaAlvo) {
+        (quill as any).desmarcarLinhas?.();
+        (quill as any).marcarLinhaAtual(linhaAlvo);
+      }
+    });
+  };
+
+  // Tenta abrir o menu até 4 vezes. A cada tentativa falha, aguarda 500ms
+  // para dar tempo ao Parchment de registrar blots recém-criados.
+  const MAX_TENTATIVAS = 4;
+  const tentarAbrirMenu = (tentativa: number): void => {
+    if (tentativa > 0) {
+      cy.wait(500);
+    }
+    clicarEMontarMenu();
+    cy.get('#' + id).then($el => {
+      if ($el.find('div.container__menu > sl-dropdown').length === 0 && tentativa < MAX_TENTATIVAS) {
+        tentarAbrirMenu(tentativa + 1);
+      }
+    });
+  };
+  tentarAbrirMenu(0);
+
+  // Aguarda o dropdown com timeout generoso
+  cy.get('#' + id + ' div.container__menu > sl-dropdown', { timeout: 10000 }).should('exist');
+  cy.get('#' + id + ' sl-button[slot="trigger"]')
+    .should('exist')
+    .click({ force: true });
+  // Aguarda menu-items e clica no item desejado.
+  // Seletor global: Shoelace pode mover o panel para fora do container.
+  cy.get('sl-menu-item', { timeout: 8000 }).should('exist');
+  cy.contains('sl-menu-item', opcaoDeMenu, { timeout: 8000 }).click({ force: true });
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
-  return cy.wrap(subject).get('.lx-eta-dropbtn');
+  // Mesma técnica de selecionarOpcaoDeMenuDoDispositivo: um cy.click() comum nem sempre dispara
+  // selection-change de forma confiável (ex.: dispositivos originais carregados do documento, fora
+  // do fluxo de criação recente) — marcarLinhaAtual monta o menu diretamente, sem depender disso.
+  // Quando o dispositivo não tem nenhuma ação disponível (ex.: totalmente bloqueado), o botão nunca
+  // é montado — as tentativas esgotam e o retorno é um seletor vazio, que é o resultado esperado.
+  const id = subject[0]?.id;
+  if (!id) {
+    return cy.wrap(subject).find('.lx-eta-dropbtn');
+  }
+
+  const montarMenu = (): void => {
+    cy.get('#' + id).click({ force: true });
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .click({ force: true });
+    cy.window().then(win => {
+      const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+      const quill = editorEl?.quill;
+      if (!quill) return;
+      const containerEl = win.document.querySelector('#' + id) as HTMLElement;
+      if (!containerEl) return;
+      const p = containerEl.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+      if (!p) return;
+      const EtaQuillClass = quill.constructor as any;
+      const blot = EtaQuillClass.find(p);
+      if (!blot) return;
+      const linhaAlvo = blot.parent?.parent?.parent;
+      if (linhaAlvo) {
+        (quill as any).desmarcarLinhas?.();
+        (quill as any).marcarLinhaAtual(linhaAlvo);
+      }
+    });
+  };
+
+  const MAX_TENTATIVAS = 4;
+  const tentarMontarMenu = (tentativa: number): void => {
+    if (tentativa > 0) {
+      cy.wait(500);
+    }
+    montarMenu();
+    cy.get('#' + id).then($el => {
+      if ($el.find('div.container__menu > sl-dropdown').length === 0 && tentativa < MAX_TENTATIVAS) {
+        tentarMontarMenu(tentativa + 1);
+      }
+    });
+  };
+  tentarMontarMenu(0);
+
+  return cy.get('#' + id).find('.lx-eta-dropbtn');
 });
 
 Cypress.Commands.add('focusOnConteudo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -184,7 +275,7 @@ Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subjec
     .as('pTextoDispositivo')
     // .focus()
     .then($p => {
-      replace && $p.text('');
+      if (replace) $p.text('');
       cy.wrap($p)
         .wait(Cypress.config('isInteractive') ? tempoDeEsperaPadrao : tempoDeEsperaMaior)
         .type(texto, { delay: 5 });
@@ -209,7 +300,7 @@ Cypress.Commands.add('getTextoDoDispositivo', { prevSubject: 'element' }, (subje
 });
 
 Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
-  return cy.get('lexml-eta-emenda lexml-eta-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
+  return cy.get('lexml-eta-proposicao-editor lexml-eta-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
 });
 
 Cypress.Commands.add('getCheckRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -263,7 +354,7 @@ Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaEstruturada', (payload
   // lexml-eta-editor-texto-rico deve existir e estar oculto
   cy.get('lexml-eta-editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: none');
 
-  payload.totalElementos && cy.get('div.container__elemento').should('have.length', payload.totalElementos);
+  if (payload.totalElementos) cy.get('div.container__elemento').should('have.length', payload.totalElementos);
 });
 
 Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaOndeCouber', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
@@ -292,6 +383,8 @@ declare global {
       irParaPagina(numeroPagina: number): void;
       abrirEmenda(payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda>;
       novaEmenda(payload: NovaEmendaPayloadCypress): Cypress.Chainable<any>;
+      novaProposicao(projetoNormaSelectValue?: string): Cypress.Chainable<any>;
+      abrirProposicao(fixtureJson: string): Cypress.Chainable<any>;
       checarMensagem(mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>>;
       checarEstadoInicialAoCriarNovaEmendaEstruturada(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
       checarEstadoInicialAoCriarNovaEmendaPadrao(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;

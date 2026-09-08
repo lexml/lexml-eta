@@ -1,9 +1,10 @@
 import { isTextoMaiusculo } from '../../../model/dispositivo/tipo';
-import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidadoComExtras, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
+import { MENSAGEM_REMISSAO_INVALIDA } from '../../../model/remissao/remissao';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
@@ -31,22 +32,28 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   const elemento = createElemento(dispositivo, true);
   elemento.mensagens = validaDispositivo(dispositivo);
 
-  // if (houveAlteracaoNoTextoAposAcao(dispositivo, action)) {
-  //   eventosUi.add(StateType.ElementoModificado, [elemento]);
-  // }
-
   if (isTextoMaiusculo(dispositivo)) {
     dispositivo.texto = dispositivo.texto.toUpperCase();
   }
 
   eventosUi.add(StateType.ElementoModificado, [elemento]);
+
+  // Executa ANTES de criaListaElementosAfinsValidados para garantir que a mensagem de remissão inválida
+  // tenha prioridade e não seja descartada pelo dedup.
+  const remissoesDoDispositivo = (state.remissoes as any)?.[dispositivo.uuid!] ?? [];
+  let elementoParaSelecionado = elemento;
+  if (remissoesDoDispositivo.some((r: any) => r.valida === false)) {
+    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
+    elementoParaSelecionado = createElementoValidadoComExtras(dispositivo, [mensagemInvalida]);
+    eventosUi.add(StateType.ElementoValidado, [elementoParaSelecionado]);
+  }
   eventosUi.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(dispositivo));
 
   if (textoAtual === '') {
     eventosUi.add(StateType.ElementoMarcado, [elemento]);
   }
 
-  eventosUi.eventos.push({ stateType: StateType.ElementoSelecionado, elementos: [elemento] });
+  eventosUi.eventos.push({ stateType: StateType.ElementoSelecionado, elementos: [elementoParaSelecionado] });
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
   return {
@@ -59,5 +66,6 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
       events: eventosUi.build(),
       alertas: state.ui?.alertas,
     },
+    remissoes: state.remissoes,
   };
 };

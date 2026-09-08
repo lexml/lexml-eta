@@ -26,7 +26,9 @@ describe('Isolamento definitivo do Quill', () => {
       expect(AppQuill.import('modules/revisao')).to.equal(ModuloDaAplicacao);
     } finally {
       Object.assign((AppQuill as any).imports, Object.fromEntries(importsAntes));
-      Object.keys((AppQuill as any).imports).filter(path => !importsAntes.has(path)).forEach(path => delete (AppQuill as any).imports[path]);
+      Object.keys((AppQuill as any).imports)
+        .filter(path => !importsAntes.has(path))
+        .forEach(path => delete (AppQuill as any).imports[path]);
     }
   });
 

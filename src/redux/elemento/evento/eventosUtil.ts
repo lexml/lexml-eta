@@ -319,6 +319,36 @@ export const createEventos = (): StateEvent[] => {
       pai: undefined,
       elementos: [],
     },
+    {
+      stateType: StateType.RemissaoRedirecionar,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.AtualizaRemissaoInterna,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoRenumerada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoInvalidada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoRestaurada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
   ];
 };
 

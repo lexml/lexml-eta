@@ -6,7 +6,7 @@ import { adicionarAgrupadorArtigoAction } from '../acao/adicionarAgrupadorArtigo
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../acao/adicionarElementoAction';
 import { removerElementoAction } from '../acao/removerElementoAction';
 import { renumerarElementoAction } from '../acao/renumerarElementoAction';
-import { isDispositivoAlteracao, podeRemoverAgrupador } from '../hierarquia/hierarquiaUtil';
+import { podeRemoverAgrupador } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import { adicionaAcoesDeExistenciaNaNorma, MotivosOperacaoNaoPermitida } from './regrasUtil';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
@@ -27,9 +27,7 @@ export function RegrasAgrupadores<TBase extends Constructor>(Base: TBase): any {
         acoes.push(removerElementoAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo)) {
-        acoes.push(renumerarElementoAction);
-      }
+      acoes.push(renumerarElementoAction);
 
       acoes.push(adicionarAgrupadorArtigoAction);
 

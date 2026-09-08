@@ -60,6 +60,7 @@ import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosN
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
+import { sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
 import { State, StateType } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
@@ -80,6 +81,20 @@ import { NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS } from '../../../model/lexml/acao/nav
 import { navegaEntreDispositivosAlterados } from './navegaEntreDispositivosAlterados';
 import { LIMPAR_ARTICULACAO } from '../../../model/lexml/acao/limparArticulacao';
 import { limpaArticulacao } from './limpaArticulacao';
+import { REDIRECIONAR_REMISSAO } from '../../../model/lexml/acao/redirecionarRemissaoAction';
+import { redirecionaRemissao } from './redirecionaRemissao';
+import { ADICIONAR_REMISSAO_INTERNA } from '../../../model/lexml/acao/adicionarRemissaoInternaAction';
+import { adicionaRemissaoInterna } from './adicionaRemissaoInterna';
+import { REMOVER_REMISSAO_INVALIDA } from '../../../model/lexml/acao/removerRemissaoInvalidaAction';
+import { removerRemissaoInvalida } from './removerRemissaoInvalida';
+import { ADICIONAR_REMISSAO_EXTERNA } from '../../../model/lexml/acao/adicionarRemissaoExternaAction';
+import { adicionaRemissaoExterna } from './adicionaRemissaoExterna';
+import { REMOVER_REMISSAO_EXTERNA } from '../../../model/lexml/acao/removerRemissaoExternaAction';
+import { removeRemissaoExterna } from './removeRemissaoExterna';
+import { MARCAR_REMISSAO_PENDENTE_REVISAO, MARCAR_REMISSAO_REVISADA } from '../../../model/lexml/acao/marcarRemissaoRevisaoAction';
+import { marcarRemissaoPendenteRevisao, marcarRemissaoRevisada } from './marcarRemissaoRevisao';
+import { EXCLUIR_REMISSAO_MANUAL } from '../../../model/lexml/acao/excluirRemissaoManualAction';
+import { excluirRemissaoManual } from './excluirRemissaoManual';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -90,6 +105,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   let revisoes = (state as State).revisoes || [];
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
   const paginacao = (state as State).ui?.paginacao;
+  const remissoes = (state as State).remissoes;
 
   switch (action.type) {
     case NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS:
@@ -211,6 +227,30 @@ export const elementoReducer = (state = {}, action: any): any => {
     case LIMPAR_ARTICULACAO:
       tempState = limpaArticulacao(state);
       break;
+    case REDIRECIONAR_REMISSAO:
+      tempState = redirecionaRemissao(state, action);
+      break;
+    case ADICIONAR_REMISSAO_INTERNA:
+      tempState = adicionaRemissaoInterna(state, action);
+      break;
+    case REMOVER_REMISSAO_INVALIDA:
+      tempState = removerRemissaoInvalida(state, action);
+      break;
+    case ADICIONAR_REMISSAO_EXTERNA:
+      tempState = adicionaRemissaoExterna(state, action);
+      break;
+    case REMOVER_REMISSAO_EXTERNA:
+      tempState = removeRemissaoExterna(state, action);
+      break;
+    case MARCAR_REMISSAO_PENDENTE_REVISAO:
+      tempState = marcarRemissaoPendenteRevisao(state, action);
+      break;
+    case MARCAR_REMISSAO_REVISADA:
+      tempState = marcarRemissaoRevisada(state, action);
+      break;
+    case EXCLUIR_REMISSAO_MANUAL:
+      tempState = excluirRemissaoManual(state, action);
+      break;
     default:
       actionType = undefined;
       tempState = state as State;
@@ -234,6 +274,15 @@ export const elementoReducer = (state = {}, action: any): any => {
   tempState.emRevisao = emRevisao;
   tempState.usuario = usuario;
 
+  // Preserva remissões quando o reducer não as gerencia explicitamente.
+  // Em ABRIR_ARTICULACAO usa {} como fallback para evitar vazamento de remissões de sessão anterior.
+  if (tempState.remissoes === undefined) {
+    tempState.remissoes = actionType === ABRIR_ARTICULACAO ? {} : remissoes;
+  }
+  if (tempState.remissoesExternas === undefined) {
+    tempState.remissoesExternas = actionType === ABRIR_ARTICULACAO ? {} : (state as State).remissoesExternas;
+  }
+
   // Garante que a paginação esteja presente no estado
   if (![SELECIONAR_PAGINA_ARTICULACAO, ABRIR_ARTICULACAO, NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS].includes(actionType)) {
     if (tempState.ui) {
@@ -245,6 +294,7 @@ export const elementoReducer = (state = {}, action: any): any => {
 
   tempState = atualizaMensagemCritical(tempState);
   tempState = atualizaRevisao(tempState, actionType);
+  tempState = sincronizarRemissoesPosAcao(tempState, actionType);
   tempState = adicionaDiffMenuOpcoes(tempState);
   return atualizaPaginacao(tempState, action);
 };

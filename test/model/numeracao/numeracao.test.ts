@@ -49,9 +49,9 @@ describe('Testando criação do número a partir do rótulo do dispositivo', () 
   it('Item com rótulo "1-1." deveria ter número 1-1', () => {
     const novo = criaDispositivo(articulacao, TipoDispositivo.item.tipo, undefined, 0);
     novo.texto = 'teste;';
-    novo.id = 'art9_cpt_inc3_ali1_ite1';
+    novo.id = 'art9_cpt_inc3_ali1_ite1-1';
     novo.rotulo = '1-1.';
     novo.createNumeroFromRotulo(novo.rotulo);
-    expect(novo.numero).to.be.equal('1');
+    expect(novo.numero).to.be.equal('1-1');
   });
 });

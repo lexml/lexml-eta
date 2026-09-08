@@ -23,6 +23,7 @@ import {
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
+import { Mensagem } from '../lexml/util/mensagem';
 
 export const isValid = (elemento?: Referencia): void => {
   if (elemento === undefined || elemento.uuid === undefined) {
@@ -143,6 +144,13 @@ export const createElementoValidado = (dispositivo: Dispositivo, procurarElement
   return el;
 };
 
+export const createElementoValidadoComExtras = (dispositivo: Dispositivo, mensagensExtras: Mensagem[], procurarElementoAnterior = false): Elemento => {
+  const el = createElemento(dispositivo, true, procurarElementoAnterior);
+  el.mensagens = [...validaDispositivo(dispositivo), ...mensagensExtras];
+
+  return el;
+};
+
 export const createElementos = (elementos: Elemento[], dispositivo: Dispositivo, validados = false, procurarElementoAnterior = false): void => {
   const fnCreateElemento = validados ? createElementoValidado : createElemento;
 
@@ -237,7 +245,8 @@ export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial
     }
   }
 
-  const dispositivo = referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoByUuid(articulacao, referencia.uuid!);
+  const dispositivo =
+    referencia?.tipo === TipoDispositivo.articulacao.tipo || referencia?.uuid === undefined ? articulacao : findDispositivoByUuid(articulacao, referencia.uuid!, true);
 
   if (dispositivo === null) {
     return undefined;

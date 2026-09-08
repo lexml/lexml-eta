@@ -341,7 +341,10 @@ export class EtaContainerTable extends EtaContainer {
 
   desativarBorda(): void {
     this.domNode.classList.remove('container__elemento--ativo');
-    this.limparContainerDireito();
+    // Guarda contra blots já removidos do Quill para evitar erro de referência nula em containerDireito.children.
+    if (this.children?.head) {
+      this.limparContainerDireito();
+    }
   }
 
   limparContainerDireito(): void {
