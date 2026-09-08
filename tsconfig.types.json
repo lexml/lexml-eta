@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "dist/types",
+    "sourceMap": false,
+    "inlineSources": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.js", "assets/**/*.ts"],
+  "exclude": ["node_modules", "dist", "out-tsc", "prod", "coverage", "demo", "stories", "test", "cypress", ".storybook"]
+}

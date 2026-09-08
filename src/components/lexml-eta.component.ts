@@ -214,7 +214,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return prop;
   }
 
-  getProposicao(): any {
+  getProposicao(): Proposicao {
     if (!this.urn) {
       const proposicao = new Proposicao();
       if (this.anexoParecer) {

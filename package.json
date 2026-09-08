@@ -6,6 +6,7 @@
   "license": "GPL-2.0-only",
   "main": "dist/index.js",
   "module": "dist/index.js",
+  "types": "dist/types/src/index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/lexml/lexml-eta.git"
@@ -29,7 +30,9 @@
     "start:cache": "rimraf out-tsc && npm run build && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds --cache\"",
     "build": "tsc",
     "clean": "rimraf out-tsc && rimraf prod",
-    "prepublish": "rimraf dist && rollup -c rollup.config.dist.js",
+    "prepublish": "rimraf dist && rollup -c rollup.config.dist.js && npm run build:types && npm run validate:package",
+    "build:types": "tsc -p tsconfig.types.json",
+    "validate:package": "node scripts/validate-package.mjs",
     "copy:assets": "cp -r ./assets ./dist/assets || xcopy assets dist\\assets /E /I /Y",
     "css:concat": "concat -o assets/css/editor.css ./node_modules/quill/dist/quill.snow.css",
     "css:minify": "minify assets/css/editor.css > assets/css/editor.min.css",
