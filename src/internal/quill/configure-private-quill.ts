@@ -5,6 +5,7 @@ import Table from '../../assets/js/quill1-table/js/TableBlot.js';
 import TableCell from '../../assets/js/quill1-table/js/TableCellBlot.js';
 import TableRow from '../../assets/js/quill1-table/js/TableRowBlot.js';
 import { EstiloTextoClass } from '../../components/editor-texto-rico/estilos-texto';
+import { ImageBlot } from '../../components/editor-texto-rico/image-blot';
 import { MarginBottomClass } from '../../components/editor-texto-rico/margin-bottom';
 import { ModuloAspasCurvas } from '../../components/editor-texto-rico/moduloAspasCurvas';
 import { IdNotaRodapeAttribute, ModuloNotaRodape, NotaRodapeBlot, NumeroAttribute, TextoAttribute } from '../../components/editor-texto-rico/moduloNotaRodape';
@@ -68,6 +69,8 @@ export const configurePrivateQuill = (): void => {
   const italic = PrivateQuill.import('formats/italic');
   italic.tagName = 'i';
   PrivateQuill.register(italic, true);
+
+  PrivateQuill.register('formats/image', ImageBlot, true);
 
   PrivateQuill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
   PrivateQuill.register('modules/revisao', ModuloRevisao, true);
