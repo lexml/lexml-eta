@@ -739,10 +739,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        /* #lexml-eta-editor-texto-rico-justificativa #lexml-eta-editor-texto-rico {
-          height: calc(var(--height) - 44px);
+        #lexml-eta-editor-texto-rico-justificativa-inner {
+          height: calc(var(--heightJustificativa));
           overflow: var(--overflow);
-        } */
+        }
         .badge-pulse {
           margin-left: 7px;
           height: 16px;
