@@ -17,7 +17,7 @@ let eventos: StateEvent[];
 
 describe('Testando a exclusão de artigos', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -45,11 +45,12 @@ describe('Testando a exclusão de artigos', () => {
       expect(state.articulacao!.artigos.length).to.equal(6);
     });
 
-    it('Deveria possuir Art. 0 como rótulo do primeiro artigo da articulação', () => {
-      expect(state.articulacao!.artigos[0].rotulo).to.equal('Art. 0.');
+    // Em proposição o artigo inserido assume Art. 1º e os demais renumeram; o rótulo "Art. 0" existia para não renumerar originais de emenda.
+    it('Deveria possuir Art. 1º como rótulo do primeiro artigo da articulação', () => {
+      expect(state.articulacao!.artigos[0].rotulo).to.equal('Art. 1º');
     });
 
-    describe('Testando a exclusão do Art. 0', () => {
+    describe('Testando a exclusão do artigo incluído', () => {
       beforeEach(function () {
         const artigo = state.articulacao!.artigos[0];
         state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
@@ -63,7 +64,7 @@ describe('Testando a exclusão de artigos', () => {
         expect(state.articulacao!.artigos[0].rotulo).to.equal('Art. 1º');
       });
 
-      describe('Testando undo da exclusão do Art. 0', () => {
+      describe('Testando undo da exclusão do artigo incluído', () => {
         beforeEach(function () {
           state = undo(state);
           eventos = getEventosQuePossuemElementos(state.ui!.events);
@@ -73,11 +74,11 @@ describe('Testando a exclusão de artigos', () => {
           expect(state.articulacao!.artigos.length).to.equal(6);
         });
 
-        it('Deveria possuir Art. 0 como rótulo do primeiro artigo da articulação', () => {
-          expect(state.articulacao!.artigos[0].rotulo).to.equal('Art. 0.');
+        it('Deveria possuir Art. 1º como rótulo do primeiro artigo da articulação', () => {
+          expect(state.articulacao!.artigos[0].rotulo).to.equal('Art. 1º');
         });
 
-        it('A referência para inclusão do Art. 0 deveria ser a ementa', () => {
+        it('A referência para inclusão do artigo deveria ser a ementa', () => {
           const incluido = getEvento(eventos, StateType.ElementoIncluido);
           expect(incluido.referencia!.tipo).to.equal('Ementa');
         });

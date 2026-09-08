@@ -15,6 +15,7 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands';
+import './remissao-commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
@@ -29,6 +30,12 @@ before(() => {
     },
   });
   cy.ignorarErro('removeEventListener');
+});
+
+afterEach(() => {
+  if (Cypress.config('isInteractive')) {
+    cy.wait(2000);
+  }
 });
 
 const app = window.top;

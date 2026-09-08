@@ -1,5 +1,4 @@
 import { EtaContainerRevisao } from './eta-container-revisao';
-import { DescricaoSituacao } from './../../model/dispositivo/situacao';
 import { EtaBlotQuebraLinha } from './eta-blot-quebra-linha';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaBlotExistencia } from './eta-blot-existencia';
@@ -20,7 +19,7 @@ import { AlinhamentoMenu } from './eta-blot-menu';
 import { EtaBlotRevisao } from './eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
-import { isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
+import { isRevisaoDeModificacao, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
@@ -35,19 +34,18 @@ export class EtaQuillUtil {
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
-    const isDispositivoAlteracaoAdicionado = elemento.dispositivoAlteracao && elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
-
     if (elemento.tituloDispositivo) {
       new EtaBlotTituloDispositivo(elemento).insertInto(etaTdTexto);
     }
 
-    if (elemento.abreAspas || isDispositivoAlteracaoAdicionado) {
+    if (elemento.abreAspas || elemento.dispositivoAlteracao) {
       new EtaBlotAbreAspas(elemento).insertInto(etaTdTexto);
     }
 
     new EtaBlotRotulo(elemento).insertInto(etaTdTexto);
 
-    if (isDispositivoAlteracaoAdicionado) {
+    // O blot decide sozinho se exibe o selo; precisa existir desde o início para refletir mudanças de existência na norma.
+    if (elemento.dispositivoAlteracao) {
       new EtaBlotExistencia(elemento).insertInto(etaTdTexto);
     }
 
@@ -70,10 +68,7 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
-    if (
-      elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-      (elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && elemento.revisao && elemento.revisao.descricao === 'Texto do dispositivo foi alterado')
-    ) {
+    if (elemento.revisao && isRevisaoDeModificacao(elemento.revisao)) {
       EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
     }
 

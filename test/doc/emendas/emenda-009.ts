@@ -2,6 +2,27 @@
 - Emenda que, em modo de revisão, adiciona alguns dispositivos e modifica outros.
 - As intervenções são feitas em dispositivos de norma alterada.
 - Possui a inclusão de omissis.
+
+Art. 13. A Lei nº 11.482, de 31 de maio de 2007, passa a vigorar com as seguintes alterações:
+  “Art. 1º ...
+     ...
+     IX – a partir do mês de abril do ano-calendário de 2015 e até o mês de abril do ano-calendário de 2023:
+     ...
+     X – a partir do mês de maio do ano-calendário de 2023:
+   ...
+   § 1º Novo parágrafo.
+   ...” (NR)
+
+Art. 14. A Lei nº 9.250, de 26 de dezembro de 1995, passa a vigorar com as seguintes alterações:
+  “Art. 4º ...
+   ...
+   § 1º A dedução permitida teste pelo inciso V do caput aplica-se exclusivamente à base de cálculo relativa aos seguintes rendimentos, assegurada, nos demais casos, a dedução dos valores pagos a esse título, por ocasião da apuração da base de cálculo do imposto devido no ano-calendário, conforme disposto na alínea “e” do inciso II do caput do art. 8º:
+     I – do trabalho com vínculo empregatício ou de administradores; e
+     II – proventos de aposentados e pensionistas, quando a fonte pagadora for responsável pelo desconto e pelo respectivo pagamento das contribuições previdenciárias.
+   § 1º-A. Outro novo parágrafo.
+   § 1º-B. Mais um parágrafo.
+   § 2º
+   § 3º E mais um parágrafo” (NR)
 */
 export const EMENDA_009 = {
   dataUltimaModificacao: '2023-08-08T23:08:02.002Z',

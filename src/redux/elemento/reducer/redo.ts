@@ -1,16 +1,11 @@
-import {
-  ajustarAtributosAgrupadorIncluidoPorUndoRedo,
-  ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
-  isUndoRedoInclusaoExclusaoAgrupador,
-  processarRestaurados,
-} from './../util/undoRedoReducerUtil';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
+import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador } from './../util/undoRedoReducerUtil';
+import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaSituacoesAlteradas, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import { incluir, processaRenumerados, processarModificados, processaSituacoesAlteradas, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { agrupaElemento } from './agrupaElemento';
 import { removeElemento } from './removeElemento';
 import { Elemento } from '../../../model/elemento/elemento';
@@ -81,6 +76,7 @@ export const redo = (state: any): State => {
 
     retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
     retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
     return retorno;
   }
@@ -93,13 +89,6 @@ export const redo = (state: any): State => {
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
     .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'REDO') }));
-
-  events.add(
-    StateType.ElementoSuprimido,
-    restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoSuprimido), DispositivoSuprimido)
-  );
-
-  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'REDO')));
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
@@ -128,6 +117,7 @@ export const redo = (state: any): State => {
 
   retorno.ui!.events = [...eventosRevisao, ...events.build()];
   retorno.present = [...eventosRevisao, ...events.build()];
+  retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
   return retorno;
 };

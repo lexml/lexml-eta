@@ -1,6 +1,7 @@
 export class LexmlEtaConfig {
   urlConsultaParlamentares = 'api/parlamentares';
   urlAutocomplete = 'api/autocomplete-norma';
+  urlPortalNormas = 'https://normas.leg.br';
   urlComissoes?: string;
   anexoParecer = false;
   justificacaoObrigatoria = true;

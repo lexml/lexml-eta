@@ -1,6 +1,5 @@
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoAnterior,
@@ -85,12 +84,7 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
   if (
     dispositivo !== null &&
     !isDispositivoGenerico(dispositivo) &&
-    (dispositivo.rotulo?.endsWith(dispositivo.tipo) || dispositivo.rotulo?.toLowerCase() === TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toLowerCase()) &&
-    !(
-      dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-      getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
-      getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
-    )
+    (dispositivo.rotulo?.endsWith(dispositivo.tipo) || dispositivo.rotulo?.toLowerCase() === TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toLowerCase())
   ) {
     mensagens.push({
       tipo: TipoMensagem.CRITICAL,

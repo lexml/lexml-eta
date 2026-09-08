@@ -70,8 +70,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   _textoAntesRevisao?: string;
   get textoAntesRevisao(): string | undefined {
-    // TODO: se contém revisão e texto antes da revisão for igual ao texto atual, ainda assim retorna texto antes da revisão
-    //return (!this.existeRevisaoByModo() && this._textoAntesRevisao === this.texto) || !this._textoAntesRevisao ? undefined : this._textoAntesRevisao;
     return !this.existeRevisaoByModo() ? undefined : this._textoAntesRevisao;
   }
 
@@ -101,22 +99,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   private hideAlterarLarguraTabelaModal(): void {
     this.alterarLarguraTabelaModal.hide();
-  }
-
-  private agendarEmissaoEventoOnChange(): void {
-    clearTimeout(this.timerOnChange);
-    this.timerOnChange = setTimeout(() => {
-      this.dispatchEvent(
-        new CustomEvent('onchange', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            origemEvento: this.registroEvento,
-          },
-        })
-      );
-      this.onChange.notify(this.registroEvento);
-    }, 1000);
   }
 
   update(changedProperties: PropertyValues): void {
@@ -387,6 +369,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
       this.quill.root.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.updateNotasRodape);
       this.quill.root.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.updateNotasRodape);
+
       this.buildRevisoes();
 
       QuillUtil.configurarAcoesLink(this.quill!);
@@ -525,8 +508,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    this;
-
     this.texto = texto;
 
     const textoAjustado = (texto || '')
@@ -556,6 +537,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   configAbrindoTexto = (valor: boolean): void => {
     (this.quill as any).revisao.isAbrindoTexto = valor;
     (this.quill as any).notasRodape.isAbrindoTexto = valor;
+    if ((this.quill as any).remissaoInterna) {
+      (this.quill as any).remissaoInterna.isAbrindoTexto = valor;
+    }
     const emRevisao = (this.quill as any).revisao.emRevisao;
     if (!valor) {
       if (this.getQuantidadeDeRevisoes() > 0 && !emRevisao) {
@@ -567,9 +551,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         }
       }
     }
-    // setTimeout(() => {
-    //   this.atualizaQuantidadeRevisao(this.getQuantidadeDeRevisoes());
-    // }, 0);
   };
 
   updateApenasTexto = (): void => {
@@ -580,7 +561,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   updateTexto = (): void => {
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
-    this.agendarEmissaoEventoOnChange();
     this.onSelectionChange(this.quill?.getSelection());
     this.atualizaStatusElementosRevisao(false);
     this.buildRevisoes();
@@ -610,7 +590,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   updateNotasRodape = (): void => {
     this.notasRodape = (this.quill as any).notasRodape.getNotasRodape();
-    // this.agendarEmissaoEventoOnChange();
   };
 
   ajustaHtml = (html = ''): string => {
@@ -742,10 +721,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   private atualizaQuantidadeRevisao = (quantidade: number): void => {
     const elemento = this.querySelector(`#${this.getNomeBadge()}`) as any;
     atualizaQuantidadeRevisaoTextoRico(quantidade, elemento);
-
-    // if (elemento) {
-    //   elemento.innerHTML = quantidade;
-    // }
   };
 
   editarNotaRodape(idNotaRodape: string): void {

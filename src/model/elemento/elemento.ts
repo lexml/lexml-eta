@@ -9,7 +9,6 @@ export class Referencia {
   uuid2?: string;
   lexmlId?: string;
   conteudo?: Partial<Conteudo>;
-  descricaoSituacao?: string;
   uuidAlteracao?: number;
   uuid2Alteracao?: string;
   existeNaNormaAlterada?: boolean;

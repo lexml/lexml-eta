@@ -87,8 +87,8 @@ class ModuloNotaRodape extends Module {
     // }
   }
 
-  static register() {
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- registro migrado para configure-private-quill.ts
+  static register() {}
 
   constructor(quill, options) {
     super(quill, options);

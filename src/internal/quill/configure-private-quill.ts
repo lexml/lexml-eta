@@ -38,6 +38,9 @@ import { EtaContainerTdEsquerdo } from '../../util/eta-quill/eta-container-td-es
 import { EtaContainerTr } from '../../util/eta-quill/eta-container-tr';
 import { EtaKeyboard } from '../../util/eta-quill/eta-keyboard';
 import PrivateQuill from './private-quill';
+import { ModuloRemissao } from '../../components/editor/moduloRemissao';
+import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
+import { RemissaoExternaBlot } from '../../util/eta-quill/eta-blot-remissao-externa';
 
 let configured = false;
 
@@ -74,6 +77,7 @@ export const configurePrivateQuill = (): void => {
   PrivateQuill.register('modules/eta-clipboard', EtaClipboard, true);
   PrivateQuill.register('modules/revisao-keyboard', CustomKeyboard, true);
   PrivateQuill.register('modules/revisao-clipboard', CustomClipboard, true);
+  PrivateQuill.register('modules/remissaoInterna', ModuloRemissao, true);
 
   [
     InsBlot,
@@ -111,6 +115,8 @@ export const configurePrivateQuill = (): void => {
     EtaBlotRevisaoRecusar,
     EtaContainerOpcoes,
     EtaBlotOpcoesDiff,
+    RemissaoInternaBlot,
+    RemissaoExternaBlot,
     id,
     paddingLeft,
     border,

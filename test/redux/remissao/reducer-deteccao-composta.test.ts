@@ -1,0 +1,484 @@
+import { expect } from '@open-wc/testing';
+import { State } from '../../../src/redux/state';
+import { criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { buildId, updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
+import { Artigo } from '../../../src/model/dispositivo/dispositivo';
+import { criaStateComNArtigos, detectaRemissoes, marcaAdicionado } from '../../helpers/dispositivo-helper';
+
+// ─── Testes ──────────────────────────────────────────────────────────────────
+
+describe('Detecção de Remissões Compostas', () => {
+  // ── Retrocompatibilidade ───────────────────────────────────────────────────
+
+  describe('Retrocompatibilidade — artigo simples', () => {
+    it('[CT-R1] "art. 5º" → 1 remissão para art5', () => {
+      const { state, artigos } = criaStateComNArtigos(5);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o art. 5º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art5');
+    });
+
+    it('[CT-R2] "art. 1º" → 1 remissão para art1', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[1], 'Conforme o art. 1º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art1');
+    });
+
+    it('[CT-R3] Múltiplos artigos simples → 2 remissões', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Refere-se ao art. 2º e ao art. 3º.');
+
+      expect(remissoes).to.have.length(2);
+      const ids = remissoes.map((r: any) => r.targetLexmlId);
+      expect(ids).to.include('art2');
+      expect(ids).to.include('art3');
+    });
+
+    it('[CT-R4] "artigo 2" (por extenso, sem ordinal) → 1 remissão para art2', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Ver o artigo 2 desta lei.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2');
+      expect(remissoes[0].textoRef).to.equal('artigo 2');
+    });
+
+    it('[CT-R5] "artigo 2º" (por extenso, com ordinal) → 1 remissão para art2', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Ver o artigo 2º desta lei.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2');
+    });
+  });
+
+  // ── Composto: artigo + parágrafo ───────────────────────────────────────────
+
+  describe('Composto: artigo + parágrafo', () => {
+    let state: State;
+    let art1: any;
+    let art5: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(5);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      art5 = setup.artigos[4];
+
+      // Adiciona 2 parágrafos ao art. 5
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      const par2 = criaDispositivo(art5, 'Paragrafo');
+      par1.texto = 'Parágrafo 1.';
+      par2.texto = 'Parágrafo 2.';
+      art5.renumeraFilhos();
+      par1.createRotulo(par1);
+      par2.createRotulo(par2);
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      marcaAdicionado(par1);
+      marcaAdicionado(par2);
+    });
+
+    it('[CT-C1] "§ 2º do art. 5º" → 1 remissão para art5_par2', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º do art. 5º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art5_par2');
+    });
+
+    it('[CT-C2] "§ 2º do art. 5º" → exatamente 1 remissão (sem double-match)', () => {
+      // Garante que § 2º sozinho NÃO cria remissão adicional
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º do art. 5º.');
+
+      expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 2 (uma para § e outra para art)');
+    });
+  });
+
+  describe('Composto: artigo + parágrafo único', () => {
+    it('[CT-C3] "parágrafo único do art. 5º" → 1 remissão para art5 (parágrafo único)', () => {
+      const setup = criaStateComNArtigos(5);
+      const state = setup.state;
+      const art1 = setup.artigos[0];
+      const art5 = setup.artigos[4];
+
+      // Adiciona apenas 1 parágrafo ao art. 5 — "parágrafo único" só resolve quando há exatamente 1
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      par1.texto = 'Parágrafo único.';
+      art5.renumeraFilhos();
+      par1.createRotulo(par1);
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      marcaAdicionado(par1);
+
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o parágrafo único do art. 5º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.match(/^art5_par/);
+    });
+  });
+
+  // ── Composto: artigo + parágrafo + inciso ─────────────────────────────────
+
+  describe('Composto: artigo + parágrafo + inciso', () => {
+    let state: State;
+    let art1: any;
+    let inciso2: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(16);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      const art16 = setup.artigos[15];
+
+      // art16: 2 parágrafos
+      const par1 = criaDispositivo(art16, 'Paragrafo');
+      const par2 = criaDispositivo(art16, 'Paragrafo');
+      par1.texto = 'Parágrafo 1.';
+      par2.texto = 'Parágrafo 2.';
+
+      // par2: 2 incisos
+      const inc1 = criaDispositivo(par2, 'Inciso');
+      inciso2 = criaDispositivo(par2, 'Inciso');
+      inc1.texto = 'Inciso I.';
+      inciso2.texto = 'Inciso II.';
+
+      // Marcar como adicionado ANTES de renumerar (renumeraFilhos só processa adicionados)
+      [par1, par2, inc1, inciso2].forEach(marcaAdicionado);
+
+      // Renumerar em cascata: artigo → paragrafos; paragrafo → incisos
+      art16.renumeraFilhos(); // seta par1.numero=1, par2.numero=2
+      par2.renumeraFilhos(); // seta inc1.numero=1, inc2.numero=2
+      updateIdDispositivoAndFilhos(state.articulacao!);
+    });
+
+    it('[CT-C4] "inciso II do § 2º do art. 16" → 1 remissão para art16_par2_inc2', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do § 2º do art. 16.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art16_par2_inc2');
+    });
+
+    it('[CT-C5] "inciso II do § 2º do art. 16" → exatamente 1 remissão (sem double-match)', () => {
+      // Antes da correção: gerava 3 remissões (art16, par2 inválido, inc2 inválido)
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do § 2º do art. 16.');
+
+      expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 3 (uma para inciso, uma para §, uma para art)');
+    });
+  });
+
+  // ── Composto: artigo + parágrafo + inciso + alínea ────────────────────────
+
+  describe('Composto: artigo + parágrafo + inciso + alínea', () => {
+    let state: State;
+    let art1: any;
+    let alinea1: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(5);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      const art5 = setup.artigos[4];
+
+      // art5: 2 parágrafos
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      const par2 = criaDispositivo(art5, 'Paragrafo');
+      par1.texto = 'Parágrafo 1.';
+      par2.texto = 'Parágrafo 2.';
+
+      // par2: 1 inciso
+      const inc1 = criaDispositivo(par2, 'Inciso');
+      inc1.texto = 'Inciso I.';
+
+      // inc1: 2 alíneas
+      alinea1 = criaDispositivo(inc1, 'Alinea');
+      const alinea2 = criaDispositivo(inc1, 'Alinea');
+      alinea1.texto = 'Alínea a.';
+      alinea2.texto = 'Alínea b.';
+
+      // Marcar como adicionado ANTES de renumerar
+      [par1, par2, inc1, alinea1, alinea2].forEach(marcaAdicionado);
+
+      // Renumerar em cascata: artigo → paragrafos; paragrafo → incisos; inciso → alíneas
+      art5.renumeraFilhos(); // par1.numero=1, par2.numero=2
+      par2.renumeraFilhos(); // inc1.numero=1
+      inc1.renumeraFilhos(); // ali1.numero=1, ali2.numero=2
+      updateIdDispositivoAndFilhos(state.articulacao!);
+    });
+
+    it('[CT-C6] "alínea a do inciso I do § 2º do art. 5º" → 1 remissão para art5_par2_inc1_ali1', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a alínea a do inciso I do § 2º do art. 5º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal(alinea1.id);
+      expect(remissoes[0].targetLexmlId).to.match(/^art5_par2_inc1_ali/);
+    });
+
+    it('[CT-C7] "alínea a do inciso I do § 2º do art. 5º" → exatamente 1 remissão (sem double-match)', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme a alínea a do inciso I do § 2º do art. 5º.');
+
+      expect(remissoes).to.have.length(1, 'Deve criar exatamente 1 remissão, não 4');
+    });
+  });
+
+  describe('Composto: artigo + caput + inciso (via "do caput do art. X")', () => {
+    let state: State;
+    let art1: any;
+    let inc1: any;
+    let inc2: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(2);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      const art2 = setup.artigos[1] as Artigo;
+
+      // Adiciona incisos diretamente ao caput do art. 2
+      inc1 = criaDispositivo(art2 as any, 'Inciso');
+      inc2 = criaDispositivo(art2 as any, 'Inciso');
+      inc1.texto = 'Inciso I.';
+      inc2.texto = 'Inciso II.';
+
+      [inc1, inc2].forEach(marcaAdicionado);
+
+      // Renumera os incisos do caput e cria rótulos
+      art2.caput!.renumeraFilhos();
+      [inc1, inc2].forEach((d: any) => d.createRotulo(d));
+
+      // Atualiza IDs gerais (articulação → artigos → parágrafos)
+      updateIdDispositivoAndFilhos(state.articulacao!);
+
+      // Caput.filhos (incisos) não são alcançados por updateIdDispositivoAndFilhos
+      // pois artigo.filhos só contém parágrafos; necessário setar IDs manualmente
+      inc1.id = buildId(inc1);
+      inc2.id = buildId(inc2);
+    });
+
+    it('"inciso II do caput do art. 2º" → 1 remissão para art2_cpt_inc2', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do caput do art. 2º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2_cpt_inc2');
+    });
+
+    it('"inciso II do caput do art. 2º" → NÃO aponta para o artigo (regressão)', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do caput do art. 2º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.not.equal('art2', 'Deve apontar para o inciso do caput, não para o artigo');
+    });
+
+    it('"inciso I do caput do art. 2º" → 1 remissão para art2_cpt_inc1', () => {
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso I do caput do art. 2º.');
+
+      expect(remissoes).to.have.length(1);
+      expect(remissoes[0].targetLexmlId).to.equal('art2_cpt_inc1');
+    });
+  });
+
+  // ── Casos de não-criação ───────────────────────────────────────────────────
+
+  describe('Casos que não devem criar remissão', () => {
+    it('[CT-N1] "§ 2º" isolado (sem artigo âncora) → 0 remissões', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const art1 = artigos[0];
+      const art2 = artigos[1];
+
+      // Adiciona parágrafo ao art2
+      const par2 = criaDispositivo(art2, 'Paragrafo');
+      par2.texto = 'Parágrafo.';
+      art2.renumeraFilhos();
+      par2.createRotulo(par2);
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      marcaAdicionado(par2);
+
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o § 2º.');
+      expect(remissoes).to.have.length(0);
+    });
+
+    it('[CT-N2] "inciso II" isolado (sem artigo âncora) → 0 remissões', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o inciso II.');
+      expect(remissoes).to.have.length(0);
+    });
+
+    it('[CT-N3] Artigo inexistente → 0 remissões', () => {
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o art. 999.');
+      expect(remissoes).to.have.length(0);
+    });
+
+    it('[CT-N4] Parágrafo inexistente no artigo → 0 remissões', () => {
+      // art2 sem parágrafos, texto menciona "§ 5º do art. 2º"
+      const { state, artigos } = criaStateComNArtigos(3);
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 5º do art. 2º.');
+      expect(remissoes).to.have.length(0);
+    });
+
+    it('[CT-N5] Inciso inexistente no parágrafo → 0 remissões', () => {
+      const { state, artigos } = criaStateComNArtigos(5);
+      const art5 = artigos[4];
+
+      // art5 com 1 parágrafo e 1 inciso
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      const inc1 = criaDispositivo(par1, 'Inciso');
+      par1.texto = 'Par.';
+      inc1.texto = 'Inc.';
+      art5.renumeraFilhos();
+      [par1, inc1].forEach(d => d.createRotulo(d));
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      [par1, inc1].forEach(marcaAdicionado);
+
+      // Menciona inciso X que não existe
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o inciso X do § 1º do art. 5º.');
+      expect(remissoes).to.have.length(0);
+    });
+  });
+
+  // ── Texto com HTML de remissão já renderizada ─────────────────────────────
+
+  describe('Texto com HTML de remissão já renderizada (dispositivo com <a> existente)', () => {
+    let state: State;
+    let art1: any;
+    let inc2: any;
+
+    beforeEach(() => {
+      const setup = criaStateComNArtigos(5);
+      state = setup.state;
+      art1 = setup.artigos[0];
+      const art4 = setup.artigos[3] as Artigo;
+
+      // Adiciona incisos ao caput do art. 4
+      const inc1 = criaDispositivo(art4 as any, 'Inciso');
+      inc2 = criaDispositivo(art4 as any, 'Inciso');
+      inc1.texto = 'Inciso I.';
+      inc2.texto = 'Inciso II.';
+
+      [inc1, inc2].forEach(marcaAdicionado);
+
+      art4.caput!.renumeraFilhos();
+      [inc1, inc2].forEach((d: any) => d.createRotulo(d));
+      updateIdDispositivoAndFilhos(state.articulacao!);
+
+      // IDs dos incisos do caput devem ser setados manualmente
+      inc1.id = buildId(inc1);
+      inc2.id = buildId(inc2);
+    });
+
+    it('baseline: dois refs em texto plano → ambos detectados com início correto', () => {
+      // Texto plano: "inciso II..." começa em 11, "art. 5" começa em 61
+      const remissoes = detectaRemissoes(state, art1, 'Conforme o inciso II do caput do art. 4º deve ser aceita. No art. 5 também acontece.');
+
+      expect(remissoes).to.have.length(2);
+      const r1 = remissoes.find((r: any) => r.targetLexmlId === 'art4_cpt_inc2');
+      const r2 = remissoes.find((r: any) => r.targetLexmlId === 'art5');
+      expect(r1).to.not.be.undefined;
+      expect(r2).to.not.be.undefined;
+      expect(r1!.inicio).to.equal(11);
+      expect(r2!.inicio).to.equal(61);
+    });
+
+    it('com tag <a> em volta da primeira ref → início baseado em texto plano, não em HTML', () => {
+      // Simula dispositivo.texto com HTML de remissão já renderizada.
+      // '<a href="#x">' tem 14 chars → desloca match.index da 1ª ref de 11 para 24 no HTML.
+      // '</a>' tem 4 chars  → desloca match.index da 2ª ref de 61 para 78 no HTML.
+      const htmlText = 'Conforme o <a href="#x">inciso II do caput do art. 4º</a> deve ser aceita. No art. 5 também acontece.';
+
+      const remissoes = detectaRemissoes(state, art1, htmlText);
+
+      expect(remissoes).to.have.length(2);
+
+      const r1 = remissoes.find((r: any) => r.targetLexmlId === 'art4_cpt_inc2');
+      const r2 = remissoes.find((r: any) => r.targetLexmlId === 'art5');
+      expect(r1).to.not.be.undefined;
+      expect(r2).to.not.be.undefined;
+
+      // Posições devem refletir o texto plano (sem tags HTML), para que o Quill
+      // renderize os links nas posições corretas.
+      expect(r1!.inicio).to.equal(11, 'início da 1ª ref deve ser posição no texto plano');
+      expect(r2!.inicio).to.equal(61, 'início da 2ª ref deve ser posição no texto plano');
+    });
+
+    it('com dois artigos simples e primeiro já em tag <a> → início do segundo correto', () => {
+      // Caso mais simples: dois artigos simples, primeiro já renderizado como link.
+      // '<a href="#x">art. 4</a>' substitui "art. 4" na posição 13.
+      // Texto plano: 'Ver o art. 4 e o art. 5 também.'
+      //  posições:         13        17 (art.4)   21 (art.5 → offset 21? vamos calcular)
+      // 'Ver o ' = 6, 'art. 4' = 6 → art4 em 6; ' e o ' = 5 → art5 em 17
+      const { state: s2, artigos } = criaStateComNArtigos(5);
+      const src = artigos[0];
+
+      const htmlText2 = 'Ver o <a href="#x">art. 4</a> e o art. 5 também.';
+
+      const remissoes2 = detectaRemissoes(s2, src, htmlText2);
+
+      expect(remissoes2).to.have.length(2);
+      const rArt4 = remissoes2.find((r: any) => r.targetLexmlId === 'art4');
+      const rArt5 = remissoes2.find((r: any) => r.targetLexmlId === 'art5');
+      expect(rArt4).to.not.be.undefined;
+      expect(rArt5).to.not.be.undefined;
+
+      // Texto plano: 'Ver o art. 4 e o art. 5 também.'
+      //               0123456789...
+      // 'Ver o ' = 6 → art4 em 6; 'art. 4' = 6, ' e o ' = 5 → art5 em 17
+      expect(rArt4!.inicio).to.equal(6, 'início de art4 deve ser posição no texto plano');
+      expect(rArt5!.inicio).to.equal(17, 'início de art5 deve ser posição no texto plano');
+    });
+  });
+
+  // ── Múltiplas remissões compostas no mesmo texto ───────────────────────────
+
+  describe('Múltiplas remissões compostas no mesmo dispositivo', () => {
+    it('[CT-M1] Dois compostos independentes → 2 remissões corretas', () => {
+      const { state, artigos } = criaStateComNArtigos(5);
+      const art3 = artigos[2];
+      const art5 = artigos[4];
+
+      // art3: 2 parágrafos
+      const par1art3 = criaDispositivo(art3, 'Paragrafo');
+      par1art3.texto = 'Par.';
+      art3.renumeraFilhos();
+      par1art3.createRotulo(par1art3);
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      marcaAdicionado(par1art3);
+
+      // art5: 3 parágrafos
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      const par2 = criaDispositivo(art5, 'Paragrafo');
+      const par3 = criaDispositivo(art5, 'Paragrafo');
+      [par1, par2, par3].forEach(p => (p.texto = 'Par.'));
+      art5.renumeraFilhos();
+      [par1, par2, par3].forEach(p => p.createRotulo(p));
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      [par1, par2, par3].forEach(marcaAdicionado);
+
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 1º do art. 3º e o § 3º do art. 5º.');
+
+      expect(remissoes).to.have.length(2);
+      const ids = remissoes.map((r: any) => r.targetLexmlId);
+      expect(ids).to.include('art3_par1');
+      expect(ids).to.include('art5_par3');
+    });
+
+    it('[CT-M2] Composto e simples no mesmo texto → 2 remissões corretas', () => {
+      const { state, artigos } = criaStateComNArtigos(5);
+      const art5 = artigos[4];
+
+      // art5: 2 parágrafos
+      const par1 = criaDispositivo(art5, 'Paragrafo');
+      const par2 = criaDispositivo(art5, 'Paragrafo');
+      [par1, par2].forEach(p => (p.texto = 'Par.'));
+      art5.renumeraFilhos();
+      [par1, par2].forEach(p => p.createRotulo(p));
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      [par1, par2].forEach(marcaAdicionado);
+
+      const remissoes = detectaRemissoes(state, artigos[0], 'Conforme o § 2º do art. 5º e o art. 3º.');
+
+      expect(remissoes).to.have.length(2);
+      const ids = remissoes.map((r: any) => r.targetLexmlId);
+      expect(ids).to.include('art5_par2');
+      expect(ids).to.include('art3');
+    });
+  });
+});

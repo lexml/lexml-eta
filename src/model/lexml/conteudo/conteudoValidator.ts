@@ -1,6 +1,5 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isEmenta } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
@@ -10,7 +9,6 @@ import {
   hasFilhos,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isTodosFilhosTipoEnumeracaoSuprimidos,
   isUltimaEnumeracao,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
@@ -90,7 +88,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
+    !hasFilhos(dispositivo) &&
     !isUltimaEnumeracao(dispositivo) &&
     dispositivo.INDICADOR_SEQUENCIA !== undefined &&
     !hasIndicativoContinuacaoSequencia(dispositivo)
@@ -122,7 +120,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isOmissis(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     ((!isArtigo(dispositivo) && hasFilhos(dispositivo)) || (isArtigo(dispositivo) && hasFilhos((dispositivo as Artigo).caput!))) &&
     !hasIndicativoDesdobramento(dispositivo)
@@ -137,7 +134,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isParagrafo(dispositivo) &&
     dispositivo.texto &&
     !hasFilhoGenerico(dispositivo.pai!) &&
-    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
+    !hasFilhos(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
@@ -151,7 +148,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
-    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
+    !hasFilhos(dispositivo) &&
     !dispositivo.alteracoes &&
     !hasIndicativoContinuacaoSequencia(dispositivo) &&
     !hasCitacaoAoFinalFrase(dispositivo.texto)
@@ -165,7 +162,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     isArtigo(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     dispositivo.hasAlteracao() &&
     !hasIndicativoDesdobramento(dispositivo) &&
@@ -212,7 +208,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     !isArtigo(dispositivo) &&
     hasFilhos(dispositivo) &&
@@ -226,7 +221,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     isArtigo(dispositivo) &&
     hasFilhos((dispositivo as Artigo).caput!) &&
@@ -240,7 +234,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isAgrupador(dispositivo) &&
     dispositivo.texto &&
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
-    !isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo) &&
     !/^[.]+$/.test(dispositivo.texto) &&
     hasIndicativoDesdobramento(dispositivo) &&
     ((isArtigo(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!)) || !hasFilhos(dispositivo))
@@ -282,22 +275,13 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isParagrafo(dispositivo) &&
     !isOmissis(dispositivo) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
-    (!hasFilhos(dispositivo) || isTodosFilhosTipoEnumeracaoSuprimidos(dispositivo)) &&
+    !hasFilhos(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     //isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&
     !isSeguidoDeOmissis(dispositivo)
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
-  }
-
-  if (
-    !isDispositivoAlteracao(dispositivo) &&
-    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-    dispositivo.pai!.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
-  ) {
-    const dispositivos = [] as any;
-    dispositivos.push(dispositivo);
   }
 
   if (isBloqueado(dispositivo) && !isBloqueado(dispositivo.pai!)) {

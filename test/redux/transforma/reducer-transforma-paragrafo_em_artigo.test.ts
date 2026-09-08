@@ -23,8 +23,10 @@ describe('Testando a transformação de parágrafo em artigo', () => {
     expect(state.articulacao.artigos.length).to.equal(3);
   });
   describe('Testando a mudança do parágrafo único, que possui filhos, em artigo, quando o artigo anterior não possui incisos de caput', () => {
+    let uuidParagrafoOriginal: number;
     beforeEach(function () {
       const paragrafo = state.articulacao.artigos[1].filhos[2];
+      uuidParagrafoOriginal = paragrafo.uuid!;
       const action = transformarParagrafoEmArtigo.execute({ tipo: TipoDispositivo.paragrafo.tipo, uuid: paragrafo.uuid! });
 
       state = transformaTipoElemento(state, action);
@@ -34,6 +36,9 @@ describe('Testando a transformação de parágrafo em artigo', () => {
     });
     it('Deveria apresentar o artigo original somente com dois incisos', () => {
       expect(state.articulacao.artigos[1].filhos.length).to.equal(2);
+    });
+    it('Deveria preservar o uuid do parágrafo original no novo artigo (remissões continuam resolvendo)', () => {
+      expect(state.articulacao.artigos[2].uuid).to.equal(uuidParagrafoOriginal);
     });
     describe('Testando os eventos resultantes da ação', () => {
       it('Deveria apresentar 4 eventos', () => {

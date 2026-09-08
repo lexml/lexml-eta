@@ -56,14 +56,16 @@ export const renumeraElemento = (state: any, action: any): State => {
 
   const eventos = buildEventoAtualizacaoElemento(dispositivo);
 
+  const builtEvents = eventos.build();
+
   return {
     articulacao: state.articulacao,
     modo: state.modo,
     past,
-    present: eventos.build(),
+    present: builtEvents,
     future: state.future,
     ui: {
-      events: eventos.build(),
+      events: builtEvents,
       alertas: state.ui?.alertas,
     },
   };

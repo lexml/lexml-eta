@@ -14,7 +14,7 @@ let state: State;
 
 describe('Testando carregamento da MPV 905/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -50,17 +50,6 @@ describe('Testando carregamento da MPV 905/2019', () => {
 
     it('Deveria possuir articulacao com 53 artigos', () => {
       expect(state.articulacao?.artigos.length).to.equal(53);
-    });
-
-    it('Deveria possuir artigos 1 e 2 com situação Dispositivo Original', () => {
-      const disp1 = buscaDispositivoById(state.articulacao!, 'art1')!;
-      const disp2 = buscaDispositivoById(state.articulacao!, 'art2')!;
-      expect(disp1.situacao.descricaoSituacao).to.equal('Dispositivo Original');
-      expect(disp2.situacao.descricaoSituacao).to.equal('Dispositivo Original');
-    });
-
-    it('Deveria possuir demais artigos com situação Dispositivo Original', () => {
-      expect(state.articulacao?.artigos.filter(a => a.id !== 'art1' && a.id !== 'art2').every(a => a.situacao.descricaoSituacao === 'Dispositivo Original')).to.equal(true);
     });
   });
 

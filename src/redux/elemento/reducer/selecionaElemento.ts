@@ -1,5 +1,6 @@
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { findRevisaoByElementoUuid } from '../util/revisaoUtil';
 
@@ -19,6 +20,11 @@ export const selecionaElemento = (state: any, action: any): State => {
   atual.mensagens = validaDispositivo(atual);
   const elemento = createElemento(atual, true);
 
+  const remissoesDoDispositivo: any[] = state.remissoes?.[atual.uuid!] ?? [];
+  if (remissoesDoDispositivo.some((r: any) => r.valida === false)) {
+    elemento.mensagens = [...(elemento.mensagens ?? []), { tipo: TipoMensagem.ERROR, descricao: 'Este dispositivo contém referência para dispositivo que foi excluído.' }];
+  }
+
   const events = [
     {
       stateType: StateType.ElementoSelecionado,
@@ -36,5 +42,6 @@ export const selecionaElemento = (state: any, action: any): State => {
       events,
       alertas: state.ui?.alertas,
     },
+    remissoes: state.remissoes,
   };
 };

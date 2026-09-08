@@ -1,3 +1,4 @@
+import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
@@ -32,6 +33,7 @@ import { PLP_68_2024_1 } from '../doc/plp_68_2024_1';
 import { PLP_68_2024_2 } from '../doc/plp_68_2024_2';
 import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
 import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
+import { MPV_1171_2023 } from '../doc/mpv_1171_2023';
 import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
 import { MPV_1170_2023_ALTERADA } from '../doc/mpv_1170_2023_alterada';
 import { PL_4_2025 } from '../doc/pl_4_2025';
@@ -51,6 +53,7 @@ const mapProjetosNormas = {
   mpv_1232_2024: MPV_1232_2024,
   mpv_1085_2021: MPV_1085_2021,
   mpv_1170_2023: MPV_1170_2023,
+  mpv_1171_2023: MPV_1171_2023,
   mpv_1170_2023_ALTERADA: MPV_1170_2023_ALTERADA,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
@@ -73,23 +76,6 @@ const mapProjetosNormas = {
   _plp_68_2024_3: PLP_68_2024_3,
   _mpv_905_2019: MPV_905_2019,
   _pl_4_2025: PL_4_2025,
-};
-
-const mapDispositivosBloqueados = {
-  _mpv_905_2019: [
-    'art1',
-    'art2_par1',
-    'art2_par3',
-    {
-      lexmlId: 'art3',
-      bloquearFilhos: false,
-    },
-    'art4_par1u',
-    {
-      lexmlId: 'art5',
-      bloquearFilhos: false,
-    },
-  ],
 };
 
 const mapConfiguracaoPaginacaoDispositivos = {
@@ -124,6 +110,7 @@ export class DemoView extends LitElement {
 
   constructor() {
     super();
+    setBasePath('./');
     this.emendaConfig = new LexmlEtaConfig();
     this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
     this.emendaConfig.urlComissoes = '/comissoes';
@@ -157,7 +144,9 @@ export class DemoView extends LitElement {
 
     const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
     const el = this.getElement(`option[value="${key}"]`);
-    el ? (el.selected = true) : undefined;
+    if (el) {
+      el.selected = true;
+    }
   }
 
   onChangeDocumento(): void {
@@ -199,7 +188,6 @@ export class DemoView extends LitElement {
         if (this.elLexmlEta) {
           const params = new LexmlEtaParametrosEdicao();
           params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
-          params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
           if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
             params.projetoNorma = this.projetoNorma;
