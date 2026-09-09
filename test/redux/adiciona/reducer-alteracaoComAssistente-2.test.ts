@@ -13,14 +13,13 @@ import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoA
 import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { abreArticulacao } from '../../../src/redux/elemento/reducer/abreArticulacao';
 
 let state: State;
 
 describe('Testando a "sincronização" de ids em alteração de norma', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(DOCUMENTO_PADRAO);
 
     const artigo = projetoNorma.articulacao!.artigos[0]!;
     artigo.rotulo = 'Art.';
@@ -28,9 +27,7 @@ describe('Testando a "sincronização" de ids em alteração de norma', () => {
     artigo.id = 'art1';
     artigo.texto = 'Teste 1.';
     artigo.caput!.texto = 'Teste 1.';
-    const situacao = new DispositivoAdicionado();
-    situacao.tipoEmenda = ClassificacaoDocumento.PROJETO;
-    artigo.situacao = situacao;
+    artigo.classificacaoDocumento = ClassificacaoDocumento.PROJETO;
 
     // state = openArticulacaoAction(projetoNorma.articulacao!, ClassificacaoDocumento.PROJETO_ARTIGO_ONDE_COUBER);
     state = abreArticulacao(state, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });

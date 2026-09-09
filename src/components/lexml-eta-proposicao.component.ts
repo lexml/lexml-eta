@@ -3,10 +3,11 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo, DispositivosEmenda } from '../model/emenda/emenda';
-import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
+import { Anexo } from '../model/emenda/emenda';
+import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { completarRegistroRemissoes } from '../redux/elemento/reducer/adicionaRemissaoInterna';
 import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
@@ -26,7 +27,6 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
   private projetoNorma?: any;
 
-  private dispositivosEmenda: DispositivosEmenda | undefined;
   private revisoes: Revisao[] | undefined;
 
   createRenderRoot(): LitElement {
@@ -42,19 +42,22 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
 
-  setDispositivosERevisoesEmenda(revisoes?: Revisao[]): void {
+  setRevisoes(revisoes?: Revisao[]): void {
     this.revisoes = revisoes;
-    // Só há o que aplicar (dispositivosEmenda ou revisões) quando é de fato uma emenda/revisão sendo carregada;
-    // sem essa guarda, o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
+    // Sem essa guarda o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
     // (situação padrão de todo dispositivo recém-criado), deslocando o cursor da ementa ~1s após o carregamento.
-    if (this.dispositivosEmenda || revisoes?.length) {
-      this.loadEmenda();
+    if (revisoes?.length) {
+      this.loadRevisoes();
     }
   }
 
   getProjetoAtualizado(): any {
+    this.editorComponent.flushEdicaoPendente();
     const out = { ...this.projetoNorma };
-    const articulacaoAtualizada = buildJsonixFromProjetoNorma(rootStore.getState().elementoReducer.articulacao?.projetoNorma, this.urn);
+    const elementoState = rootStore.getState().elementoReducer;
+    const remissoesExternas = elementoState.remissoesExternas ?? {};
+    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {}, remissoesExternas);
+    const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto, remissoesExternas);
     const tipo = (out as any).value.projetoNorma.norma ? 'norma' : 'projeto';
     (out as any).value.projetoNorma[tipo].parteInicial = articulacaoAtualizada.value.projetoNorma[tipo].parteInicial;
     (out as any).value.projetoNorma[tipo].articulacao.lXhier = articulacaoAtualizada.value.projetoNorma[tipo].articulacao.lXhier;
@@ -75,7 +78,7 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
       this.projetoNorma.value.metadado.identificacao.urn = this.urn;
     }
 
-    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, false);
+    const documento = buildProjetoNormaFromJsonix(this.projetoNorma);
     documento.urn = this.urn;
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();
@@ -83,10 +86,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   private _timerLoadEmenda = 0;
-  private loadEmenda(): void {
+  private loadRevisoes(): void {
     clearInterval(this._timerLoadEmenda);
     this._timerLoadEmenda = window.setTimeout(() => {
-      rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!, this.revisoes));
+      rootStore.dispatch(aplicarRevisoesAction.execute(this.revisoes));
     }, 1000);
   }
 

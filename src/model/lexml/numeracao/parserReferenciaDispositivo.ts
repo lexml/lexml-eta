@@ -4,7 +4,6 @@ import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
 import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { createAlteracao, createArticulacao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../dispositivo/dispositivoValidator';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { buildId } from '../util/idUtil';
 
@@ -37,18 +36,13 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       referencia.numero && parent.createNumeroFromRotulo(referencia.numero);
       parent.createRotulo(parent);
     }
-    if (modo) {
-      (parent.situacao as DispositivoAdicionado).tipoEmenda = modo;
-    }
     parent.isDispositivoAlteracao = true;
-    parent.situacao = new DispositivoAdicionado();
-    (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+    parent.existeNaNormaAlterada = true;
     parent.id = buildId(parent);
 
     if (isArtigo(parent)) {
-      (parent as Artigo).caput!.situacao = new DispositivoAdicionado();
       if (modo) {
-        ((parent as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+        (parent as Artigo).caput!.classificacaoDocumento = modo;
       }
     }
     parent.mensagens = validaDispositivo(parent);
@@ -58,21 +52,18 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
 const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo, modo): Dispositivo => {
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
-    dispositivo.alteracoes!.situacao = new DispositivoAdicionado();
-    (dispositivo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+    dispositivo.alteracoes!.classificacaoDocumento = modo;
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
   cabeca.isDispositivoAlteracao = true;
-  cabeca.situacao = new DispositivoAdicionado();
-  (cabeca.situacao as DispositivoAdicionado).tipoEmenda = modo;
-  (cabeca.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  cabeca.classificacaoDocumento = modo;
+  cabeca.existeNaNormaAlterada = true;
   referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
   cabeca.createRotulo(cabeca);
   cabeca.id = buildId(cabeca);
 
   if (isArtigo(cabeca)) {
-    (cabeca as Artigo).caput!.situacao = new DispositivoAdicionado();
-    ((cabeca as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
+    (cabeca as Artigo).caput!.classificacaoDocumento = modo;
   }
 
   return cabeca;
@@ -101,6 +92,37 @@ export const buildDispositivosAssistente = (texto: string, dispositivo: Disposit
 
 export const validaDispositivoAssistente = (texto: string): Dispositivo => {
   return buildDispositivosAssistente(texto, criaDispositivo(createArticulacao(), TipoDispositivo.artigo.tipo));
+};
+
+const TIPO_TAG_ID: Partial<Record<string, string>> = {
+  Artigo: 'art',
+  Paragrafo: 'par',
+  Inciso: 'inc',
+  Alinea: 'ali',
+  Item: 'ite',
+};
+
+/**
+ * Converte texto de dispositivo (ex: "§ 3º do art. 12") em fragmento LexML
+ * (ex: "art12_par3") apto a ser usado como âncora em URN de norma externa.
+ * Retorna undefined se o texto não for reconhecido.
+ */
+export const textoParaFragmentoLexmlId = (texto: string): string | undefined => {
+  const refs = identificaReferencias(texto);
+  if (!refs?.length) return undefined;
+
+  // O parser devolve na ordem em que aparecem no texto (mais específico → artigo).
+  // Garante artigo primeiro para montar o fragmento do geral ao específico.
+  const ordenado = refs[refs.length - 1].tipo === TipoDispositivo.artigo ? [...refs].reverse() : [...refs];
+
+  const partes = ordenado
+    .map(r => {
+      const tag = TIPO_TAG_ID[r.tipo.tipo];
+      return tag && r.numero ? `${tag}${r.numero}` : undefined;
+    })
+    .filter((p): p is string => !!p);
+
+  return partes.length > 0 ? partes.join('_') : undefined;
 };
 
 const identificaTipo = (texto: string): Tipo | undefined => {

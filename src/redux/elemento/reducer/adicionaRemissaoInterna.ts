@@ -1,0 +1,706 @@
+import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
+import { State, StateType } from '../../state';
+import { Eventos } from '../evento/eventos';
+import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
+import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
+import { RemissaoInternaValue, RemissaoExternaValue } from '../../../model/remissao';
+import { gerarRefId } from '../../../model/remissao/refId';
+import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { stripHtml } from '../../../util/html-util';
+import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { isCaput } from '../../../model/dispositivo/tipo';
+import { atualizarTextoRemissao, foiEditadoManualmente, isTextoCanonicoParaId, isTextoReconhecivel } from '../../../model/remissao/lexmlIdUtil';
+
+interface ReferenciaEncontrada {
+  texto: string;
+  dispositivoDestino: Dispositivo;
+  inicio?: number; // posição de início no texto original (match.index)
+}
+
+// Padrões para dispositivo (número sempre em romano no texto)
+const P_ARTIGO = `(?:art\\.?\\s*|artigo\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
+const P_PARAGRAFO = `(?:§\\s*|par[aá]grafo\\s+|par\\.?\\s*)(?:[uú]nico|\\d+(?:-[a-z]+)?)(?:[º°])?`;
+const P_INCISO = `(?:inc\\.?\\s*|inciso\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_ALINEA = `(?:al[ií]\\.?\\s*|al[ií]nea\\s+)(?:[a-z]+(?:-[a-z]+)?)\\)?`;
+const P_ITEM = `(?:item\\s+)(?:[uú]nico|\\d+(?:-[a-z]+)?)`;
+const CONECTOR = `\\s+d[ao]\\s+`;
+const P_CAPUT = `caput`;
+
+// Padrões para agrupadores (número em romano ou "único/única" no texto)
+const P_NUM_AGRUPADOR = `(?:[uú]nic[ao]|[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_SUBSECAO = `(?:subse[çc][aã]o\\s+)${P_NUM_AGRUPADOR}`;
+const P_SECAO = `(?:se[çc][aã]o\\s+)${P_NUM_AGRUPADOR}`;
+const P_CAPITULO = `(?:cap[ií]tulo\\s+)${P_NUM_AGRUPADOR}`;
+const P_TITULO = `(?:t[ií]tulo\\s+)${P_NUM_AGRUPADOR}`;
+const P_LIVRO = `(?:livro\\s+)${P_NUM_AGRUPADOR}`;
+const P_PARTE = `(?:parte\\s+)${P_NUM_AGRUPADOR}`;
+
+// Alternação composta para qualquer agrupador (mais específico primeiro)
+const P_QUALQUER_AGRUPADOR = `(?:${P_SUBSECAO}|${P_SECAO}|${P_CAPITULO}|${P_TITULO}|${P_LIVRO}|${P_PARTE})`;
+
+// Regex compiladas uma única vez no escopo do módulo — resetar lastIndex antes de cada uso.
+const REGEX_ABSOLUTA = new RegExp(
+  `(?:${P_ITEM}${CONECTOR})?` + `(?:${P_ALINEA}${CONECTOR})?` + `(?:${P_INCISO}${CONECTOR})?` + `(?:(?:${P_CAPUT}|${P_PARAGRAFO})${CONECTOR})?` + `${P_ARTIGO}`,
+  'gi'
+);
+
+const REGEX_AGRUPADOR = new RegExp(`${P_QUALQUER_AGRUPADOR}(?:${CONECTOR}${P_QUALQUER_AGRUPADOR})*`, 'gi');
+
+const REGEX_CONTEXTUAL = new RegExp(
+  `(` +
+    // 1: termina em caput ou parágrafo (com item/alínea/inciso opcionais)
+    `(?:(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?(?:${P_INCISO}${CONECTOR})?(?:${P_CAPUT}|${P_PARAGRAFO}))` +
+    // 2: termina em inciso (com item/alínea opcionais)
+    `|(?:(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?${P_INCISO})` +
+    // 3: termina em alínea (com item opcional)
+    `|(?:(?:${P_ITEM}${CONECTOR})?${P_ALINEA})` +
+    // 4: apenas item
+    `|(?:${P_ITEM})` +
+    // 5: agrupador simples (ex: "Seção II deste Capítulo")
+    `|(?:${P_QUALQUER_AGRUPADOR})` +
+    `)\\s+d(?:este|esta|o\\s+presente|a\\s+presente)\\s+(artigo|par[aá]grafo|inciso|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o|t[ií]tulo|livro|parte)`,
+  'gi'
+);
+
+// Lookahead estendido para detecção implícita: bloqueia quando seguido de "do/da",
+// "deste/desta", "do presente/da presente" — inclusive quando precedido de º/° para
+// impedir que o motor faça backtrack para "§ 2" (sem º) quando "§ 2º deste" seria bloqueado.
+const LOOKAHEAD_IMPL = `(?!(?:[º°])?\\s+d(?:[ao]\\s|este|esta|o\\s+presente|a\\s+presente))`;
+
+// Padrões estritos exclusivos para detecção implícita:
+// – Inciso/Alínea: formas abreviadas exigem ponto ("inc.", "alí.") para não gerar match
+//   parcial dentro de "inciso" (→ "inci") ou "alínea" (→ "alín").
+const P_INC_IMPL_PAT = `(?:inciso\\s+|inc\\.\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
+const P_ALI_IMPL_PAT = `(?:al[ií]nea\\s+|al[ií]\\.\\s+)(?:[a-z]+(?:-[a-z]+)?)\\)?`;
+
+const REGEX_PAR_IMPL = new RegExp(`${P_PARAGRAFO}${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_INC_IMPL = new RegExp(`${P_INC_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ALI_IMPL = new RegExp(`${P_ALI_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ITEM_IMPL = new RegExp(`${P_ITEM}${LOOKAHEAD_IMPL}`, 'gi');
+
+// Ordem: parágrafo primeiro para evitar matches parciais dentro de padrões maiores.
+// Inciso usa cascata [parágrafo → artigo]: prefere o parágrafo mais próximo, faz fallback para artigo.
+const TIPOS_IMPLICITOS: Array<{ regex: RegExp; tiposAncestral: string[] }> = [
+  { regex: REGEX_PAR_IMPL, tiposAncestral: [TipoDispositivo.artigo.tipo] },
+  { regex: REGEX_INC_IMPL, tiposAncestral: [TipoDispositivo.paragrafo.tipo, TipoDispositivo.artigo.tipo] },
+  { regex: REGEX_ALI_IMPL, tiposAncestral: [TipoDispositivo.inciso.tipo] },
+  { regex: REGEX_ITEM_IMPL, tiposAncestral: [TipoDispositivo.alinea.tipo] },
+];
+
+export const adicionaRemissaoInterna = (state: any, action: any): State => {
+  const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
+  const textoAtual = dispositivo?.texto;
+
+  if (!dispositivo || !textoAtual) {
+    return { ...state, ui: { ...state.ui, events: [] } };
+  }
+
+  const spansExternos = spansExternosReivindicados(state.remissoesExternas, dispositivo.uuid);
+  const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao, spansExternos);
+
+  const todasEntriesAntigas: RemissaoInternaValue[] = state.remissoes?.[dispositivo.uuid!] ?? [];
+
+  // Preserva entradas inválidas existentes — só saem via REMOVER_REMISSAO_INVALIDA
+  const oldInvalidas = todasEntriesAntigas.filter(r => r.valida === false);
+
+  // Preserva deleção lógica de exclusão manual (botão "Excluir") — só saem quando o texto deixar de ser idêntico
+  const oldExcluidas = todasEntriesAntigas.filter(r => r.excluidaManualmente === true);
+
+  // Entradas normais antigas que precisam ser descartadas mesmo sem match novo (ex.: referência removida do texto).
+  const oldNormais = todasEntriesAntigas.filter(r => r.valida !== false && !r.excluidaManualmente);
+
+  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0 && oldExcluidas.length === 0 && oldNormais.length === 0) {
+    return { ...state, ui: { ...state.ui, events: [] } };
+  }
+
+  // Indexa por (targetLexmlId:inicio) para preservar refIds distintos quando há múltiplas
+  // remissões apontando para o mesmo destino em posições diferentes do texto.
+  const oldByPositionKey = new Map<string, string>();
+  for (const r of todasEntriesAntigas) {
+    if (r.excluidaManualmente) continue;
+    if (r.targetLexmlId && r.inicio !== undefined && r.refId) {
+      oldByPositionKey.set(`${r.targetLexmlId}:${r.inicio}`, r.refId);
+    }
+  }
+
+  // Preserva entradas cujo link (<a data-ref-id>) ainda existe fisicamente no texto bruto, mas cujo
+  // texto interno diverge do que a redetecção por regex encontraria "do zero" nessa posição (ou não
+  // encontraria nada) — mesmo espírito do D6 em sincronizarRemissoes.ts (foiEditadoManualmente/
+  // isTextoReconhecivel), só que aplicado aqui ao caminho de redetecção-a-cada-blur, não só ao de
+  // renumeração. Sem isso, texto não-canônico (manual ou editado) sobrevive só até o próximo blur
+  // em QUALQUER outro dispositivo — a redetecção do zero ou o encolhe para um match mais curto (regra
+  // de posição/target) ou, se nada mais bater, descarta a entrada inteira em silêncio.
+  const oldPreservadas = new Map<string, RemissaoInternaValue>();
+  for (const old of oldNormais) {
+    if (!old.refId) continue;
+    const match = textoAtual.match(new RegExp(`<a\\b[^>]*data-ref-id="${old.refId}"[^>]*>([^<]*)</a>`, 'i'));
+    if (!match) continue;
+    const textoLink = match[1];
+    if (!isTextoReconhecivel(textoLink)) {
+      oldPreservadas.set(old.refId, { ...old, revisao: true });
+      continue;
+    }
+    const aindaBateComGravado = !foiEditadoManualmente(textoLink, old.textoRef);
+    const restauradoParaCanonico = !!old.targetLexmlId && isTextoCanonicoParaId(textoLink, old.targetLexmlId);
+    if (!aindaBateComGravado && !restauradoParaCanonico) {
+      oldPreservadas.set(old.refId, { ...old, revisao: true });
+    }
+  }
+
+  // Mapeia links do HTML para posições no texto limpo, permitindo reaproveitar o refId de links recém-criados
+  // via diálogo antes que entrem no state. Isso evita a geração de IDs órfãos na primeira redetecção.
+  const REGEX_LINK_COM_REFID = /<a\b[^>]*\bdata-ref-id="([^"]+)"[^>]*>([^<]*)<\/a>/gi;
+  const tagsPorPosicaoStripada = new Map<number, { refId: string; innerText: string }>();
+  {
+    let m: RegExpExecArray | null;
+    REGEX_LINK_COM_REFID.lastIndex = 0;
+    while ((m = REGEX_LINK_COM_REFID.exec(textoAtual)) !== null) {
+      const posicaoStripada = stripHtml(textoAtual.slice(0, m.index)).length;
+      tagsPorPosicaoStripada.set(posicaoStripada, { refId: m[1], innerText: m[2] });
+    }
+  }
+
+  // Chave tripla (destino+posição+texto) na deleção lógica: qualquer edição no trecho altera a chave e libera a redetecção.
+  const oldExcluidaKeys = new Set(
+    oldExcluidas.filter(r => r.targetLexmlId !== undefined && r.inicio !== undefined && r.textoRef !== undefined).map(r => `${r.targetLexmlId}:${r.inicio}:${r.textoRef}`)
+  );
+  const confirmedTripleKeys = new Set<string>();
+  const claimedRefIds = new Set<string>();
+
+  const novasRemissoes: RemissaoInternaValue[] = [];
+  for (const item of remissoesEncontradas) {
+    const tripleKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}:${item.texto}` : undefined;
+
+    if (tripleKey && oldExcluidaKeys.has(tripleKey)) {
+      confirmedTripleKeys.add(tripleKey);
+      continue; // exclusão manual ainda vigente para este trecho — não recria o link
+    }
+
+    const posKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}` : undefined;
+    const candidato = posKey ? oldByPositionKey.get(posKey) : undefined;
+
+    if (candidato && oldPreservadas.has(candidato)) {
+      // A entrada antiga nessa posição já foi marcada para preservação (link ainda existe, texto
+      // não deve ser regenerado) — a entrada preservada é quem entra no registro final, não este match.
+      continue;
+    }
+
+    const tagNaPosicao = item.inicio !== undefined ? tagsPorPosicaoStripada.get(item.inicio) : undefined;
+    const candidatoPorTag = tagNaPosicao && tagNaPosicao.innerText === item.texto && !claimedRefIds.has(tagNaPosicao.refId) ? tagNaPosicao.refId : undefined;
+
+    const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? candidatoPorTag ?? gerarRefId();
+    claimedRefIds.add(refId);
+    novasRemissoes.push({
+      refId,
+      targetLexmlId: item.dispositivoDestino.id,
+      targetUuid: item.dispositivoDestino.uuid,
+      targetRotulo: item.dispositivoDestino.rotulo,
+      sourceUuid: dispositivo.uuid,
+      sourceLexmlId: dispositivo.id,
+      textoRef: item.texto,
+      inicio: item.inicio,
+    });
+  }
+
+  // Mantém apenas os tombstones cuja posição/texto ainda foram redetectados identicamente —
+  // os demais são descartados (o trecho mudou, então a exclusão manual não se aplica mais).
+  const tombstonesRestantes = oldExcluidas.filter(r => {
+    const key = r.targetLexmlId !== undefined && r.inicio !== undefined ? `${r.targetLexmlId}:${r.inicio}:${r.textoRef}` : undefined;
+    return key !== undefined && confirmedTripleKeys.has(key);
+  });
+
+  const remissaoRegistry = { ...(state.remissoes || {}) };
+  // Merge: novas detecções válidas + preservadas por edição manual/não-canônica + inválidas + tombstones ainda vigentes
+  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldPreservadas.values(), ...oldInvalidas, ...tombstonesRestantes];
+
+  const elemento = createElemento(dispositivo, true);
+  const eventosUi = new Eventos();
+  eventosUi.add(StateType.AtualizaRemissaoInterna, [elemento]);
+
+  // A mensagem de remissão inválida é emitida por construirEventosRemissaoParaRemocao (remoção)
+  // e preservada por atualizaTextoElemento (digitação). adicionaRemissaoInterna não a re-emite
+  // para evitar duplicação quando chamado em outros contextos (ex: reposicionamento de cursor).
+
+  return {
+    ...state,
+    remissoes: remissaoRegistry,
+    ui: { ...state.ui, events: eventosUi.build() },
+  };
+};
+
+interface SpanExterno {
+  inicio: number;
+  fim: number;
+}
+
+// Evita o falso positivo do achado #4: "art. Nº" seguido de citação de norma externa já reivindicada.
+const spansExternosReivindicados = (remissoesExternas: Record<string, RemissaoExternaValue> | undefined, sourceUuid: number | undefined): SpanExterno[] => {
+  if (!remissoesExternas || sourceUuid === undefined) return [];
+  return Object.values(remissoesExternas)
+    .filter(r => r.sourceUuid === sourceUuid && r.inicio !== undefined && r.fim !== undefined)
+    .map(r => ({ inicio: r.inicio!, fim: r.fim! }));
+};
+
+const sobrepoeSpanExterno = (item: ReferenciaEncontrada, spans: SpanExterno[]): boolean => {
+  if (item.inicio === undefined || spans.length === 0) return false;
+  const fim = item.inicio + item.texto.length;
+  return spans.some(span => item.inicio! < span.fim && fim > span.inicio);
+};
+
+const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao, spansExternos: SpanExterno[] = []): ReferenciaEncontrada[] => {
+  const absolutas = detectarReferenciasAbsolutas(texto, articulacao);
+  const agrupadores = detectarReferenciasAgrupadores(texto, articulacao);
+  const contextuais = detectarReferenciasContextuais(texto, dispositivo, articulacao);
+  const implicitas = detectarReferenciasImplicitasSemQualificador(texto, dispositivo, articulacao);
+  const encontradas = deduplicarPorPosicao([...absolutas, ...agrupadores, ...contextuais, ...implicitas]);
+  return spansExternos.length === 0 ? encontradas : encontradas.filter(item => !sobrepoeSpanExterno(item, spansExternos));
+};
+
+// Captura referências absolutas encadeadas exigindo a âncora do artigo (ex: "§ 2º do art. 5º").
+const detectarReferenciasAbsolutas = (texto: string, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  const resultado: ReferenciaEncontrada[] = [];
+
+  let match: RegExpExecArray | null;
+  REGEX_ABSOLUTA.lastIndex = 0;
+  while ((match = REGEX_ABSOLUTA.exec(texto)) !== null) {
+    const textoReferencia = match[0];
+    const parser = new ReferenciaDispositivoParser(textoReferencia);
+    if (parser.valido && parser.referencias.length > 0) {
+      const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
+      if (dispositivoDestino) {
+        resultado.push({ texto: textoReferencia, dispositivoDestino, inicio: match.index });
+      }
+    }
+  }
+
+  return resultado;
+};
+
+// Mapeia palavra-chave normalizada -> tipo de dispositivo agrupador.
+const MAPA_TEXTO_PARA_TIPO_AGRUPADOR: Record<string, string> = {
+  subsecao: TipoDispositivo.subsecao.tipo,
+  secao: TipoDispositivo.secao.tipo,
+  capitulo: TipoDispositivo.capitulo.tipo,
+  titulo: TipoDispositivo.titulo.tipo,
+  livro: TipoDispositivo.livro.tipo,
+  parte: TipoDispositivo.parte.tipo,
+};
+
+// extrair tipo e número (romano ou "único/única") de um segmento de agrupador
+const REGEX_SEGMENTO_AGRUPADOR = /^(parte|livro|t[ií]tulo|cap[ií]tulo|se[çc][aã]o|subse[çc][aã]o)\s+([uú]nic[ao]|[MDCLXVI]+(?:-[a-z]+)?)$/i;
+
+// Extrai tipo e número romano de um segmento textual de agrupador.
+const parsearSegmentoAgrupador = (segmento: string): { tipo: string; numero: string } | null => {
+  const m = REGEX_SEGMENTO_AGRUPADOR.exec(segmento.trim());
+  if (!m) return null;
+  const tipo = MAPA_TEXTO_PARA_TIPO_AGRUPADOR[normalizarKeyword(m[1])];
+  return tipo ? { tipo, numero: m[2] } : null;
+};
+
+// Busca filho direto correspondente em tipo e número (romano ou "único/única").
+const buscarFilhoAgrupador = (raiz: Dispositivo, tipo: string, numeroRomano: string): Dispositivo | null => {
+  const filhos = raiz.filhos ?? [];
+
+  // "Único/Única": válido apenas quando existe exatamente 1 filho do tipo com numero='1'.
+  if (/[uú]nic[ao]/i.test(numeroRomano)) {
+    const filhosMesmoTipo = filhos.filter(f => f.tipo === tipo);
+    return filhosMesmoTipo.length === 1 && filhosMesmoTipo[0].numero === '1' ? filhosMesmoTipo[0] : null;
+  }
+
+  const numeroNorm = normalizarNumero(numeroRomano);
+  return filhos.find(f => f.tipo === tipo && normalizarNumero(converteNumeroArabicoParaRomano(f.numero ?? '')) === numeroNorm) ?? null;
+};
+
+// Resolve cadeia ("Seção II do Capítulo I") quebrando por "do/da" e buscando do geral ao específico via articulacao.filhos.
+const resolverCadeiaAgrupadores = (textoChain: string, articulacao: Articulacao): Dispositivo | null => {
+  const segmentos = textoChain.split(/\s+d[ao]\s+/i);
+  const segmentosReversed = [...segmentos].reverse();
+  let atual: Dispositivo = articulacao;
+  for (const seg of segmentosReversed) {
+    const parsed = parsearSegmentoAgrupador(seg);
+    if (!parsed) return null;
+    const filho = buscarFilhoAgrupador(atual, parsed.tipo, parsed.numero);
+    if (!filho) return null;
+    atual = filho;
+  }
+  return atual === (articulacao as unknown as Dispositivo) ? null : atual;
+};
+
+// Detecta referências absolutas a agrupadores, incluindo cadeias (ex: "Seção II do Capítulo I").
+const detectarReferenciasAgrupadores = (texto: string, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  const resultado: ReferenciaEncontrada[] = [];
+  let match: RegExpExecArray | null;
+  REGEX_AGRUPADOR.lastIndex = 0;
+  while ((match = REGEX_AGRUPADOR.exec(texto)) !== null) {
+    const dispositivoDestino = resolverCadeiaAgrupadores(match[0], articulacao);
+    if (dispositivoDestino) {
+      resultado.push({ texto: match[0], dispositivoDestino, inicio: match.index });
+    }
+  }
+  return resultado;
+};
+
+// Busca filho agrupador de um ancestral a partir do prefixo textual (ex: "Seção II").
+const buscarAgrupadorFilhoPorPrefixo = (prefixText: string, ancestor: Dispositivo): Dispositivo | null => {
+  const parsed = parsearSegmentoAgrupador(prefixText);
+  if (!parsed) return null;
+  return buscarFilhoAgrupador(ancestor, parsed.tipo, parsed.numero);
+};
+
+// Detecção de referências contextuais relativas (ex: "deste artigo", "deste parágrafo", "do caput").
+const MAPA_CONTEXTUAL_PARA_TIPO: Record<string, string> = {
+  artigo: TipoDispositivo.artigo.tipo, //         'Artigo'
+  paragrafo: TipoDispositivo.paragrafo.tipo, // 'Paragrafo'
+  inciso: TipoDispositivo.inciso.tipo, //       'Inciso'
+  capitulo: TipoDispositivo.capitulo.tipo, //   'Capitulo'
+  secao: TipoDispositivo.secao.tipo, //         'Secao'
+  subsecao: TipoDispositivo.subsecao.tipo, //   'Subsecao'
+  titulo: TipoDispositivo.titulo.tipo, //       'Titulo'
+  livro: TipoDispositivo.livro.tipo, //         'Livro'
+  parte: TipoDispositivo.parte.tipo, //         'Parte'
+};
+
+// Remove acentos para padronizar as chaves de busca no mapa (ex: "seção" → "secao").
+const normalizarKeyword = (keyword: string): string =>
+  keyword
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+// Sobe a hierarquia (.pai) para encontrar o ancestral mais próximo do tipo desejado.
+export const buscarAncestralPorTipo = (dispositivo: Dispositivo, tipo: string): Dispositivo | null => {
+  let atual = dispositivo.pai;
+  while (atual) {
+    if (atual.tipo === tipo) return atual;
+    atual = atual.pai;
+  }
+  return null;
+};
+
+const numeroParaSinteseParagrafo = (numero: string): string => (numero === '1u' || numero.toLowerCase() === 'único' ? 'parágrafo único' : `§ ${numero}`);
+
+// Monta a referência do ancestorInicial até o artigo para o Parser; retorna null se não houver artigo
+const construirSinteseAteArtigo = (prefixText: string, ancestorInicial: Dispositivo): string | null => {
+  const partes: string[] = [];
+  let atual: Dispositivo | undefined = ancestorInicial;
+
+  while (atual) {
+    if (atual.tipo === TipoDispositivo.artigo.tipo) {
+      partes.push(`art. ${atual.numero}`);
+      break;
+    }
+    if (atual.tipo === TipoDispositivo.paragrafo.tipo) {
+      partes.push(numeroParaSinteseParagrafo(atual.numero || ''));
+    } else if (atual.tipo === TipoDispositivo.inciso.tipo) {
+      partes.push(`inciso ${converteNumeroArabicoParaRomano(atual.numero || '')}`);
+    } else if (atual.tipo === TipoDispositivo.alinea.tipo) {
+      partes.push(`alínea ${converteNumeroArabicoParaLetra(atual.numero || '')}`);
+    }
+    atual = atual.pai;
+  }
+
+  if (partes.length === 0) return null;
+
+  const prefixNorm = prefixText.trim().replace(/\s*\)\s*$/, '');
+  return `${prefixNorm} do ${partes.join(' do ')}`;
+};
+
+const detectarReferenciasContextuais = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  const resultado: ReferenciaEncontrada[] = [];
+
+  let match: RegExpExecArray | null;
+  REGEX_CONTEXTUAL.lastIndex = 0;
+
+  while ((match = REGEX_CONTEXTUAL.exec(texto)) !== null) {
+    const textoCompleto = match[0];
+    const prefixText = match[1]?.trim() ?? '';
+    const qualifierKeyword = match[2] ?? '';
+
+    if (!prefixText || !qualifierKeyword) continue;
+
+    const tipoAncestral = MAPA_CONTEXTUAL_PARA_TIPO[normalizarKeyword(qualifierKeyword)];
+    if (!tipoAncestral) continue;
+
+    const ancestor = buscarAncestralPorTipo(dispositivo, tipoAncestral);
+    if (!ancestor) continue;
+
+    // "caput deste artigo" → return artigo.caput diretamente, sem sintese.
+    if (prefixText.toLowerCase() === P_CAPUT) {
+      const artigo = tipoAncestral === TipoDispositivo.artigo.tipo ? ancestor : buscarAncestralPorTipo(ancestor, TipoDispositivo.artigo.tipo);
+      if (artigo) {
+        const caput = (artigo as Artigo).caput;
+        if (caput) {
+          resultado.push({ texto: textoCompleto, dispositivoDestino: caput, inicio: match.index });
+        }
+      }
+      continue;
+    }
+
+    // Sintetiza a referência absoluta e delega ao parser (ex: "§ 2º" + art3 → "§ 2º do art. 3")
+    const textSintetizado = construirSinteseAteArtigo(prefixText, ancestor);
+    if (!textSintetizado) {
+      // Contexto de agrupador: busca o filho direto do ancestral pelo prefixo (ex: "Seção II deste Capítulo")
+      const agrupadorDestino = buscarAgrupadorFilhoPorPrefixo(prefixText, ancestor);
+      if (agrupadorDestino) {
+        resultado.push({ texto: textoCompleto, dispositivoDestino: agrupadorDestino, inicio: match.index });
+      }
+      continue;
+    }
+
+    const parser = new ReferenciaDispositivoParser(textSintetizado);
+    if (!parser.valido || parser.referencias.length === 0) continue;
+
+    const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
+    if (dispositivoDestino) {
+      resultado.push({ texto: textoCompleto, dispositivoDestino, inicio: match.index });
+    }
+  }
+
+  return resultado;
+};
+
+// Tenta resolver uma referência implícita bare percorrendo a lista de ancestrais em ordem.
+// Retorna a primeira resolução bem-sucedida ou null se nenhum ancestral produzir alvo válido.
+const resolverImplicito = (textoRef: string, inicio: number, dispositivo: Dispositivo, articulacao: Articulacao, tiposAncestral: string[]): ReferenciaEncontrada | null => {
+  for (const tipoAncestral of tiposAncestral) {
+    const ancestor = buscarAncestralPorTipo(dispositivo, tipoAncestral);
+    if (!ancestor) continue;
+
+    const textSintetizado = construirSinteseAteArtigo(textoRef, ancestor);
+    if (!textSintetizado) continue;
+
+    const parser = new ReferenciaDispositivoParser(textSintetizado);
+    if (!parser.valido || parser.referencias.length === 0) continue;
+
+    const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
+    if (dispositivoDestino) return { texto: textoRef, dispositivoDestino, inicio };
+  }
+  return null;
+};
+
+// Detecta referências bare sem qualificador contextual (ex: "§ 1º", "inciso II", "alínea b").
+// Ignora dispositivos em blocos de alteração para evitar falsos positivos.
+// Usa negative lookahead para não sobrepor detecções contextuais ("deste artigo") e absolutas ("do art.").
+const detectarReferenciasImplicitasSemQualificador = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  if (dispositivo.isDispositivoAlteracao) return [];
+
+  const resultado: ReferenciaEncontrada[] = [];
+
+  for (const { regex, tiposAncestral } of TIPOS_IMPLICITOS) {
+    regex.lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(texto)) !== null) {
+      const ref = resolverImplicito(match[0], match.index, dispositivo, articulacao, tiposAncestral);
+      if (ref) resultado.push(ref);
+    }
+  }
+
+  return resultado;
+};
+
+// Quando detecção implícita e explícita colidem no mesmo offset, o match mais longo vence
+// (ex: "§ 1º deste artigo" contextual ganha sobre "§ 1º" implícita no mesmo offset).
+const deduplicarPorPosicao = (refs: ReferenciaEncontrada[]): ReferenciaEncontrada[] => {
+  const porPosicao = new Map<number, ReferenciaEncontrada>();
+  for (const ref of refs) {
+    if (ref.inicio === undefined) continue;
+    const existente = porPosicao.get(ref.inicio);
+    if (!existente || ref.texto.length > existente.texto.length) {
+      porPosicao.set(ref.inicio, ref);
+    }
+  }
+  const semPosicao = refs.filter(r => r.inicio === undefined);
+  return [...porPosicao.values(), ...semPosicao];
+};
+
+const buscarDispositivoPorReferencia = (articulacao: Articulacao | undefined, referencias: any[]): Dispositivo | null => {
+  if (!articulacao) return null;
+
+  let dispositivoAtual: Dispositivo | null = null;
+  const refs = [...referencias].reverse();
+
+  for (const ref of refs) {
+    const tipo = ref.tipo?.tipo;
+    const numero = ref.numero;
+
+    if (!dispositivoAtual) {
+      dispositivoAtual = buscarArtigo(articulacao, numero);
+    } else {
+      dispositivoAtual = buscarFilhoPorTipoENumero(dispositivoAtual, tipo, numero);
+    }
+
+    if (!dispositivoAtual) {
+      return null;
+    }
+  }
+
+  return dispositivoAtual;
+};
+
+const buscarArtigo = (articulacao: Articulacao, numero: string): Dispositivo | null => {
+  if (!articulacao || !articulacao.artigos) {
+    return null;
+  }
+
+  // Diferencia "Artigo único" do primeiro artigo contando o total na articulação, já que ambos usam numero='1'.
+  if (numero && numero.toLowerCase() === 'único') {
+    return articulacao.artigos.length === 1 ? articulacao.artigos[0] : null;
+  }
+
+  const numeroNormalizado = normalizarNumero(numero);
+  for (const artigo of articulacao.artigos) {
+    if (normalizarNumero(artigo.numero) === numeroNormalizado) {
+      return artigo;
+    }
+  }
+
+  return null;
+};
+
+// Converte o número do modelo para o formato do parser (ex: inciso '1' → 'i') viabilizando a comparação.
+const normalizarNumeroParaTipo = (tipo: string, numero: string | undefined): string => {
+  if (!numero) return '';
+  if (tipo === TipoDispositivo.inciso.tipo) {
+    return normalizarNumero(converteNumeroArabicoParaRomano(numero));
+  }
+  if (tipo === TipoDispositivo.alinea.tipo) {
+    return normalizarNumero(converteNumeroArabicoParaLetra(numero));
+  }
+  return normalizarNumero(numero);
+};
+
+const buscarFilhoPorTipoENumero = (dispositivo: Dispositivo, tipo: string, numero: string): Dispositivo | null => {
+  if (!dispositivo) {
+    return null;
+  }
+
+  const numeroNormalizado = normalizarNumero(numero);
+
+  const bate = (filho: Dispositivo): boolean => filho.tipo === tipo && normalizarNumeroParaTipo(tipo, filho.numero) === numeroNormalizado;
+
+  const artigo = dispositivo as Artigo;
+  if (tipo === TipoDispositivo.inciso.tipo && artigo?.caput) {
+    const filhosCaput = artigo.caput.filhos || [];
+    const encontrado = filhosCaput.find(bate);
+    if (encontrado) return encontrado;
+  }
+
+  const filhos = dispositivo.filhos || [];
+  const encontradoFilho = filhos.find(bate);
+  if (encontradoFilho) return encontradoFilho;
+
+  if (tipo === TipoDispositivo.paragrafo.tipo && numero && numero.toLowerCase() === 'único') {
+    // "Parágrafo único" é válido apenas quando existe exatamente 1 parágrafo (numero='1').
+    // Igual à lógica de createRotulo em NumeracaoParagrafo: o rótulo "Parágrafo único."
+    // só é gerado quando há um único filho do tipo Paragrafo.
+    const paragrafos = filhos.filter(f => f.tipo === tipo);
+    return paragrafos.length === 1 && paragrafos[0].numero === '1' ? paragrafos[0] : null;
+  }
+
+  return null;
+};
+
+const normalizarNumero = (numero: string | undefined): string => {
+  if (!numero) return '';
+  return numero.toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
+// 1. Atualiza `lexmlId` e `textoRef` dos destinos renumerados usando o `targetUuid` (ID estável).
+// 2. Sincroniza o Redux: cobre os 'silent updates' do Quill para evitar que o save processe textos defasados e re-detecte remissões para o alvo errado.
+// Sem este passo, ao salvar:
+//   1) `injetarLinksRemissaoNoTexto` não localiza o textoRef atualizado no texto stale;
+//   2) `completarRegistroRemissoes`, ao visitar o caput sem entrada, re-detecta pelo
+//      texto antigo ("art. 2º") e resolve para o destino errado (o NOVO art2 — que
+//      antes era art1).
+// Exportada para permitir teste de paridade contra o mecanismo novo (Fase 4 do plano de
+// simplificação, ver sincronizarRemissoes.ts) — uso em produção continua só interno a este arquivo.
+export const atualizarRegistryAposRenumeracao = (articulacao: Articulacao, registro: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
+  const atualizado: Record<number, RemissaoInternaValue[]> = {};
+  for (const [uuidStr, entries] of Object.entries(registro)) {
+    atualizado[Number(uuidStr)] = entries.map(entry => {
+      if (entry.valida === false || entry.targetUuid === undefined) return entry;
+      const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, entry.targetUuid, true);
+      if (!destino?.id || destino.id === entry.targetLexmlId) return entry;
+
+      const lexmlIdNovo = destino.id;
+      const lexmlIdAntigo = entry.targetLexmlId;
+      const textoRefAntigo = entry.textoRef;
+      const textoRefNovo = textoRefAntigo && lexmlIdAntigo ? atualizarTextoRemissao(textoRefAntigo, lexmlIdAntigo, lexmlIdNovo) : textoRefAntigo;
+
+      sincronizarTextoFonte(articulacao, entry, textoRefAntigo, textoRefNovo);
+
+      return {
+        ...entry,
+        targetLexmlId: lexmlIdNovo,
+        textoRef: textoRefNovo,
+      };
+    });
+  }
+  return atualizado;
+};
+
+// Atualiza in-place o `dispositivo.texto` do source da remissão para refletir o novo
+// `textoRef` quando a substring no `inicio` registrado ainda corresponde ao textoRef
+// antigo. No-op quando o texto já foi atualizado por outro caminho (ex: usuário digitou
+// no dispositivo após a renumeração).
+const sincronizarTextoFonte = (articulacao: Articulacao, entry: RemissaoInternaValue, textoRefAntigo: string | undefined, textoRefNovo: string | undefined): void => {
+  if (entry.sourceUuid === undefined || entry.inicio === undefined || !textoRefAntigo || !textoRefNovo || textoRefAntigo === textoRefNovo) {
+    return;
+  }
+  const source = findDispositivoByUuid(articulacao as unknown as Dispositivo, entry.sourceUuid, true);
+  if (!source?.texto) return;
+  const inicio = entry.inicio;
+  if (source.texto.substring(inicio, inicio + textoRefAntigo.length) !== textoRefAntigo) return;
+  source.texto = source.texto.substring(0, inicio) + textoRefNovo + source.texto.substring(inicio + textoRefAntigo.length);
+};
+
+/**
+ * Garante que o registry de remissões está completo para todos os dispositivos com texto.
+ * Dispositivos não editados na sessão atual não têm entradas no registry;
+ * adicionalmente, entradas existentes têm seus `targetLexmlId` atualizados quando o
+ * destino foi renumerado fora do fluxo de digitação (atualizações 'silent' do Quill).
+ */
+export const completarRegistroRemissoes = (
+  articulacao: Articulacao,
+  registroExistente: Record<number, RemissaoInternaValue[]>,
+  remissoesExternas?: Record<string, RemissaoExternaValue>
+): Record<number, RemissaoInternaValue[]> => {
+  if (!articulacao) return registroExistente;
+
+  const registroCompleto = atualizarRegistryAposRenumeracao(articulacao, registroExistente);
+
+  percorreHierarquiaDispositivos(articulacao as unknown as Dispositivo, dispositivo => {
+    if (!dispositivo.texto || dispositivo.uuid === undefined) return;
+    if (registroCompleto[dispositivo.uuid] !== undefined) return;
+
+    // Caput: o registry runtime usa artigo.uuid como chave (não caput.uuid). Propagar
+    // evita re-detecção do texto plain que criaria entradas válidas falsas quando o
+    // artigo pai já tem entradas (inclusive inválidas após exclusão do destino).
+    if (isCaput(dispositivo) && dispositivo.pai?.uuid !== undefined) {
+      const entriesArtigoPai = registroCompleto[dispositivo.pai.uuid];
+      if (entriesArtigoPai !== undefined) {
+        registroCompleto[dispositivo.uuid] = entriesArtigoPai;
+        return;
+      }
+    }
+
+    const spansExternos = spansExternosReivindicados(remissoesExternas, dispositivo.uuid);
+    const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao, spansExternos);
+    if (remissoesEncontradas.length > 0) {
+      registroCompleto[dispositivo.uuid] = remissoesEncontradas.map(item => ({
+        refId: gerarRefId(),
+        targetLexmlId: item.dispositivoDestino.id,
+        targetUuid: item.dispositivoDestino.uuid,
+        targetRotulo: item.dispositivoDestino.rotulo,
+        sourceUuid: dispositivo.uuid,
+        sourceLexmlId: dispositivo.id,
+        textoRef: item.texto,
+        inicio: item.inicio,
+      }));
+    }
+  });
+
+  return registroCompleto;
+};

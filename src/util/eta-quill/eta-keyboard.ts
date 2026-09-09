@@ -1,4 +1,3 @@
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import PrivateQuill from '../../internal/quill/private-quill';
 import { QuillRange } from '../../internal/quill/quill-types';
 import { cancelarPropagacaoDoEvento } from '../event-util';
@@ -47,7 +46,6 @@ export class EtaKeyboard extends Keyboard {
     this.quill.root.addEventListener('keydown', (ev: KeyboardEvent): void => {
       // console.log('ev.key', ev.key, ev.altKey, ev.metaKey, ev.ctrlKey);
       this.altGraphPressionado = ev.altKey && ev.location === 2;
-      const elementoLinhaAtual = this.quill.linhaAtual?.elemento;
       if (!(this.quill.cursorDeTextoEstaSobreLink() || (ev.key === 'Backspace' && this.quill.cursorDeTextoEstaSobreLink(-1))) && this.isTeclaQueAlteraTexto(ev)) {
         this.onChange.notify('keyboard');
       }
@@ -82,10 +80,7 @@ export class EtaKeyboard extends Keyboard {
         }
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (
-        (elementoLinhaAtual?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO || this.quill.linhaAtual.elemento.bloqueado) &&
-        this.isNotTeclasDeNavegacao(ev)
-      ) {
+      } else if (this.quill.linhaAtual.elemento.bloqueado && this.isNotTeclasDeNavegacao(ev)) {
         cancelarPropagacaoDoEvento(ev);
       } else if (ev.ctrlKey) {
         // console.log('ev.ctrlKey');

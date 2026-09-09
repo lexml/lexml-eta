@@ -12,16 +12,14 @@ import {
   getTiposAgrupadoresQuePodemSerInseridosDepois,
   getPrimeiroAgrupadorNaArticulacao,
   hasEmenta,
+  getPaiQuePodeReceberFilhoDoTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
-import { DescricaoSituacao } from './../../../model/dispositivo/situacao';
-import { getPaiQuePodeReceberFilhoDoTipo } from './../evento/eventosUtil';
 import { isAgrupador, isArticulacao, isArtigo, isEmenta } from './../../../model/dispositivo/tipo';
 import { Alteracoes } from '../../../model/dispositivo/blocoAlteracao';
 import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { getDispositivoAnteriorMesmoTipo, irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { copiaDispositivosParaOutroPai, isDesdobramentoAgrupadorAtual } from '../util/reducerUtil';
@@ -132,15 +130,14 @@ export const agrupaElemento = (state: any, action: any): State => {
   // Reutiliza "uuid" quando o agrupador é criado por ação de undo ou redo
   novo.uuid = action.novo.uuid ?? novo.uuid;
 
-  novo.situacao = new DispositivoAdicionado();
-  (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
+  novo.classificacaoDocumento = state.modo;
   novo.texto = action.novo.texto ?? '';
   novo.createRotulo(novo);
   novo.rotulo = action.novo.rotulo ?? novo.rotulo;
   novo.id = buildId(novo);
 
-  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+  if (isDispositivoAlteracao(novo)) {
+    novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
   }
 
   const dispositivos = getDispositivosASeremCopiadosParaOutroPai(atual, novo, posicaoDoNovoAgrupador, dispositivosAlteracao);
@@ -219,7 +216,7 @@ const calculaPosNovoAgrupador = (
 //   return isUltimaAlteracao(dispositivo) || isUltimaAlteracao(getUltimoFilho(dispositivo));
 // };
 
-const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d) && d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+const fnFilterAgrupadorAdicionado = (d: Dispositivo): boolean => !isArtigo(d);
 
 const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: string, tipo: string, manterNovoNoMesmoGrupoDeAspas = false, dadosComplementares: any = {}): State => {
   const cabecaAlteracao = getDispositivoCabecaAlteracao(atual);
@@ -229,8 +226,8 @@ const criarNovaCabecaDeAlteracao = (state: any, atual: Dispositivo, posicao: str
   novo.uuid = dadosComplementares.uuid ?? novo.uuid;
   novo.texto = dadosComplementares.texto ?? novo.texto ?? '';
   novo.id = buildId(novo);
-  if (isDispositivoAlteracao(novo) && novo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+  if (isDispositivoAlteracao(novo)) {
+    novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
   }
 
   const ref = pos === 0 ? novo.pai!.pai! : getUltimoFilho(novo.pai!.filhos[pos - 1]);

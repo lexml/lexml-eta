@@ -5,6 +5,7 @@ import Table from '../../assets/js/quill1-table/js/TableBlot.js';
 import TableCell from '../../assets/js/quill1-table/js/TableCellBlot.js';
 import TableRow from '../../assets/js/quill1-table/js/TableRowBlot.js';
 import { EstiloTextoClass } from '../../components/editor-texto-rico/estilos-texto';
+import { ImageBlot } from '../../components/editor-texto-rico/image-blot';
 import { MarginBottomClass } from '../../components/editor-texto-rico/margin-bottom';
 import { ModuloAspasCurvas } from '../../components/editor-texto-rico/moduloAspasCurvas';
 import { IdNotaRodapeAttribute, ModuloNotaRodape, NotaRodapeBlot, NumeroAttribute, TextoAttribute } from '../../components/editor-texto-rico/moduloNotaRodape';
@@ -38,6 +39,9 @@ import { EtaContainerTdEsquerdo } from '../../util/eta-quill/eta-container-td-es
 import { EtaContainerTr } from '../../util/eta-quill/eta-container-tr';
 import { EtaKeyboard } from '../../util/eta-quill/eta-keyboard';
 import PrivateQuill from './private-quill';
+import { ModuloRemissao } from '../../components/editor/moduloRemissao';
+import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
+import { RemissaoExternaBlot } from '../../util/eta-quill/eta-blot-remissao-externa';
 
 let configured = false;
 
@@ -66,6 +70,8 @@ export const configurePrivateQuill = (): void => {
   italic.tagName = 'i';
   PrivateQuill.register(italic, true);
 
+  PrivateQuill.register('formats/image', ImageBlot, true);
+
   PrivateQuill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
   PrivateQuill.register('modules/revisao', ModuloRevisao, true);
   PrivateQuill.register('modules/notaRodape', ModuloNotaRodape, true);
@@ -74,6 +80,7 @@ export const configurePrivateQuill = (): void => {
   PrivateQuill.register('modules/eta-clipboard', EtaClipboard, true);
   PrivateQuill.register('modules/revisao-keyboard', CustomKeyboard, true);
   PrivateQuill.register('modules/revisao-clipboard', CustomClipboard, true);
+  PrivateQuill.register('modules/remissaoInterna', ModuloRemissao, true);
 
   [
     InsBlot,
@@ -111,6 +118,8 @@ export const configurePrivateQuill = (): void => {
     EtaBlotRevisaoRecusar,
     EtaContainerOpcoes,
     EtaBlotOpcoesDiff,
+    RemissaoInternaBlot,
+    RemissaoExternaBlot,
     id,
     paddingLeft,
     border,

@@ -6,6 +6,20 @@ export enum AlinhamentoMenu {
   Direita,
 }
 
+// Evitar erro no SlDropdown.removeOpenListeners quando tenta remover event listeners null
+const originalRemoveOpenListeners = SlDropdown.prototype.removeOpenListeners;
+if (originalRemoveOpenListeners) {
+  SlDropdown.prototype.removeOpenListeners = function (this: any) {
+    try {
+      if (this.__documentListener !== null || document !== null) {
+        return originalRemoveOpenListeners.call(this);
+      }
+    } catch {
+      // Ignora erros
+    }
+  };
+}
+
 export class EtaBlotMenu extends EtaBlot {
   // Site https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_dropdown_right
   static blotName = 'EtaBlotMenu';

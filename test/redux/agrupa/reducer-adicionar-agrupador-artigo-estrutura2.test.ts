@@ -31,7 +31,7 @@ export const showAgrupadores = (dispositivo: Dispositivo, nivel = 0): void => {
 
 describe('Testando a inclusão de agrupadores', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
     idsArtigos = state.articulacao!.artigos.map(a => a.id).join(',');

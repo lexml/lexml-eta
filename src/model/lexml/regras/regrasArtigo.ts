@@ -1,5 +1,4 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
@@ -15,7 +14,6 @@ import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { InformarDadosAssistenteAction } from '../acao/informarDadosAssistenteAction';
-import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -38,18 +36,15 @@ import {
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
   hasFilhos,
   isDispositivoAlteracao,
-  isDispositivoCabecaAlteracao,
-  isSuprimido,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { adicionaAcoesDeExistenciaNaNorma, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -75,17 +70,10 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.PROXIMO_DIFERENTE_ARTIGO_ALTERACAO_NORMA);
       }
 
-      if (
-        !isDispositivoCabecaAlteracao(dispositivo) ||
-        !isDispositivoAlteracao(dispositivo) ||
-        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
-        dispositivo.numero !== '1'
-      ) {
-        acoes.push(adicionarArtigoAntes);
-      }
+      acoes.push(adicionarArtigoAntes);
       acoes.push(adicionarArtigoDepois);
 
-      if (!isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo)) {
         acoes.push(adicionarParagrafoFilho);
         acoes.push(adicionarIncisoFilho);
       }
@@ -94,21 +82,14 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(InformarDadosAssistenteAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo)) {
-        acoes.push(renumerarElementoAction);
-      }
-      if (dispositivo.alteracoes && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+      acoes.push(renumerarElementoAction);
+      if (dispositivo.alteracoes) {
         acoes.push(informarNormaAction);
       }
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || !hasIndicativoDesdobramento(dispositivo))) {
         acoes.push(adicionarArtigo);
       }
-      if (
-        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-        !dispositivo.hasAlteracao() &&
-        !isDispositivoAlteracao(dispositivo) &&
-        !hasFilhos(dispositivo)
-      ) {
+      if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && !hasFilhos(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
       }
       if (
@@ -124,9 +105,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(transformarEmOmissisArtigo);
       }
 
-      if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
-      }
+      adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
@@ -134,11 +113,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

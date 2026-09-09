@@ -1,23 +1,18 @@
 import { validaDispositivo } from './../../../model/lexml/dispositivo/dispositivoValidator';
 import { InfoTextoColado } from './../util/colarUtil';
-import { Artigo } from './../../../model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isArtigo, isOmissis, isInciso, isParagrafo } from './../../../model/dispositivo/tipo';
 import {
   buscaDispositivoById,
   getArticulacao,
-  isAdicionado,
   isDispositivoAlteracao,
   getDispositivoCabecaAlteracao,
-  getUltimoFilho,
-  getDispositivoAnteriorNaSequenciaDeLeitura,
   isArticulacaoAlteracao,
   isDispositivoCabecaAlteracao,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
+import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
@@ -85,12 +80,13 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
 const existeDispositivoBloqueadoSendoColado = (articulacaoColada: Articulacao, articulacao: Articulacao): boolean => {
   const idsColados = getDispositivoAndFilhosAsLista(articulacaoColada)
     .filter(d => d.texto !== TEXTO_OMISSIS)
-    .map(d => d.id);
+    .map(d => d.id)
+    .filter((id): id is string => id !== undefined);
 
   const idsBloqueados = getDispositivoAndFilhosAsLista(articulacao)
     .filter(isBloqueado)
     .map(d => d.id)
-    .filter(Boolean);
+    .filter((id): id is string => id !== undefined);
 
   return idsColados.some(id => idsBloqueados.includes(id));
 };
@@ -102,7 +98,7 @@ const colarDispositivos = (
   referencia: Dispositivo,
   posicao: string,
   isColarSubstituindo: boolean,
-  isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao: boolean,
+  _isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao: boolean,
   modo: ClassificacaoDocumento,
   tipoColado: string
 ): StateEvent[] => {
@@ -120,6 +116,7 @@ const colarDispositivos = (
   articulacaoColada.filhos.forEach(f => {
     if (isColandoEmAlteracaoDeNorma || !isOmissis(f)) {
       const d = buscarDispositivoByIdTratandoParagrafoUnico(articulacao, f.id!);
+
       refAux = d && isColarSubstituindo ? d : refAux;
       const auxPosicao = d && isColarSubstituindo ? 'antes' : posicao === 'antes' && refAux === referencia ? posicao : undefined;
       const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, auxPosicao);
@@ -157,7 +154,9 @@ const colarDispositivos = (
   novos.forEach(d => {
     getDispositivoAndFilhosAsLista(d).forEach(d => {
       d.id = buildId(d);
-      isArtigo(d) && buildIdCaputEAlteracao(d);
+      if (isArtigo(d)) {
+        buildIdCaputEAlteracao(d);
+      }
     });
   });
 
@@ -168,14 +167,16 @@ const colarDispositivos = (
   eventos.push({ stateType: StateType.ElementoRenumerado, elementos: elementosRenumerados });
   eventos.push(buildEventoElementosRenumerados(novos, referencia, tipoColado));
   eventos.push(buildEventoSituacaoElementoModificada(novos, isColandoEmAlteracaoDeNorma));
-  novos[0] && eventos.push(buildEventoElementoMarcado([novos[0], atual]));
+  if (novos[0]) {
+    eventos.push(buildEventoElementoMarcado([novos[0], atual]));
+  }
 
   return eventos.filter(ev => ev.elementos?.length);
 };
 
 const buildEventoElementosRenumerados = (adicionados: Dispositivo[], referencia: Dispositivo, tipoColado: string): StateEvent => {
   const refAux = referencia.tipo === tipoColado ? referencia.pai! : referencia;
-  const filhosASeremRenumerados = refAux.filhos.filter(f => isAdicionado(f) && !adicionados.includes(f));
+  const filhosASeremRenumerados = refAux.filhos.filter(f => !adicionados.includes(f));
 
   return {
     stateType: StateType.ElementoRenumerado,
@@ -258,7 +259,7 @@ const colarDispositivoAdicionando = (
   dColado: Dispositivo,
   isColandoEmAlteracaoDeNorma: boolean,
   isPrecedidoPorOmissis: boolean,
-  modo: ClassificacaoDocumento,
+  _modo: ClassificacaoDocumento,
   posicao?: string
 ): Dispositivo => {
   if (!isOmissis(referencia) && referencia.tiposPermitidosFilhos?.includes(dColado.tipo)) {
@@ -310,19 +311,12 @@ const removeOmissis = (atual: Dispositivo): void => {
   atual.renumeraFilhos();
 };
 
+// A colagem pode mudar quem é o último do bloco, e com ele as aspas de fechamento e a nota "(NR)".
 const getDispositivosEmAlteracaoDeNormaASeremAtualizados = (dispositivos: Dispositivo[]): Dispositivo[] => {
   const mapa = new Map();
   dispositivos.forEach(d => {
     const cabeca = getDispositivoCabecaAlteracao(d);
     mapa.set(cabeca.id, cabeca);
   });
-  const cabecas = [...mapa.values()];
-  return cabecas
-    .map(d => {
-      const ultimoFilho = getUltimoFilho(d);
-      const irmaoAnterior = getDispositivoAnteriorNaSequenciaDeLeitura(ultimoFilho, d1 => !!(d1.pai && d1.pai === ultimoFilho.pai));
-      return irmaoAnterior ? [irmaoAnterior, ultimoFilho] : [ultimoFilho];
-    })
-    .flat()
-    .filter(d => d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO);
+  return [...mapa.values()].map(cabeca => getDispositivoAndFilhosAsLista(cabeca)).flat();
 };

@@ -11,13 +11,12 @@ import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoA
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
-import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 
 let state: State;
 
 describe('Testando operações sobre a MPV 905/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
     state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
   });
@@ -68,7 +67,7 @@ describe('Testando operações sobre a MPV 905/2019', () => {
     });
 
     it('Dispositivo capítulo adicionado deveria possuir 18 filhos', () => {
-      expect(state.articulacao!.filhos[1].id).to.be.equal('cap1-1');
+      expect(state.articulacao!.filhos[1].id).to.be.equal('cap2');
       expect(state.articulacao!.filhos[1].filhos.length).to.be.equal(18);
     });
   });
@@ -91,9 +90,8 @@ describe('Testando operações sobre a MPV 905/2019', () => {
       expect(state.articulacao!.filhos[0].filhos.length).to.be.equal(18);
     });
 
-    it('Dispositivo capítulo adicionado não deveria existir', () => {
-      const d = buscaDispositivoById(state.articulacao!, 'cap1-1');
-      expect(d).to.be.undefined;
+    it('Proposição deveria possuir 7 capítulos', () => {
+      expect(state.articulacao!.filhos.length).to.be.equal(7);
     });
   });
 });

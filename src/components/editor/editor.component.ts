@@ -1,4 +1,11 @@
-import { isRevisaoPrincipal, getQuantidadeRevisoes, isRevisaoDeTransformacao, isRevisaoDeExclusao, setCheckedElement } from '../../redux/elemento/util/revisaoUtil';
+import {
+  isRevisaoPrincipal,
+  getQuantidadeRevisoes,
+  isRevisaoDeTransformacao,
+  isRevisaoDeExclusao,
+  isRevisaoDeModificacao,
+  setCheckedElement,
+} from '../../redux/elemento/util/revisaoUtil';
 import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
 import { InfoTextoColado } from '../../redux/elemento/util/colarUtil';
@@ -6,7 +13,8 @@ import { AdicionarAgrupadorArtigo } from '../../model/lexml/acao/adicionarAgrupa
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
 import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
@@ -14,7 +22,14 @@ import { ClassificacaoDocumento } from '../../model/documento/classificacao';
 import { Elemento } from '../../model/elemento';
 import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { adicionarAlteracaoComAssistenteAction } from '../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
-import { adicionarElementoAction } from '../../model/lexml/acao/adicionarElementoAction';
+import {
+  adicionarElementoAction,
+  adicionarArtigoAntes,
+  adicionarParagrafoAntes,
+  adicionarIncisoAntes,
+  adicionarAlineaAntes,
+  adicionarItemAntes,
+} from '../../model/lexml/acao/adicionarElementoAction';
 import { atualizarReferenciaElementoAction } from '../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { atualizarTextoElementoAction } from '../../model/lexml/acao/atualizarTextoElementoAction';
 import { autofixAction } from '../../model/lexml/acao/autoFixAction';
@@ -63,17 +78,33 @@ import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoActio
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
 import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
+import { isCaput } from '../../model/dispositivo/tipo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
-import { buscaDispositivoById } from '../../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { getElementos } from '../../model/elemento/elementoUtil';
+import { getElementos, createElementoValidadoComExtras, createElemento } from '../../model/elemento/elementoUtil';
+import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { Anexo } from '../../model/emenda/emenda';
+import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
+import { iconeRemissaoInterna } from '../../../assets/icons/icons';
+import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
+import { MENSAGEM_REMISSAO_INVALIDA, MENSAGEM_REMISSAO_TEXTO_PRESERVADO } from '../../model/remissao/remissao';
+import { marcarRemissaoRevisadaAction } from '../../model/lexml/acao/marcarRemissaoRevisaoAction';
+import { excluirRemissaoManualAction } from '../../model/lexml/acao/excluirRemissaoManualAction';
+import { adicionarRemissaoExternaAction } from '../../model/lexml/acao/adicionarRemissaoExternaAction';
+import { removerRemissaoExternaAction } from '../../model/lexml/acao/removerRemissaoExternaAction';
+import { REMISSAO_INTERNA_REMOVE_EVENT } from './moduloRemissao';
+import { redirecionarRemissaoAction } from '../../model/lexml/acao/redirecionarRemissaoAction';
+import { criarPopup, mostrarPopup, esconderPopup } from '../popup-inline/popupInline';
+import { removerRemissaoInvalidaAction } from '../../model/lexml/acao/removerRemissaoInvalidaAction';
+import { gerarRefId } from '../../model/remissao/refId';
+import { lexmlLinkerClient } from '../../util/lexml-linker/lexmlLinkerClient';
 import PrivateQuill from '../../internal/quill/private-quill';
 import { QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource } from '../../internal/quill/quill-types';
 
@@ -106,10 +137,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return this._quill as EtaQuill;
   }
 
+  private _remissaoPopup?: HTMLDivElement;
+  private _popupRefIdAtual?: string;
+
   private eventosOnChange: StateType[] = [];
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
+
+  // Uuids já varridos pelo linker externo nesta sessão — libera a 1ª visita mesmo sem edição (ver detectarRemissoesAoSairDaLinha).
+  // Opcional (não inicializado no campo) pois testes constroem EditorComponent via Object.create, sem passar pelo construtor.
+  private uuidsJaDetectadosExternamente?: Set<number>;
 
   private _idSwitchRevisao = 'chk-em-revisao';
   private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao';
@@ -173,6 +211,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean })
   exibirBotoesParaTratarTodas = false;
 
+  @state() private _temSelecao = false;
+
   render(): TemplateResult {
     return html`
       <style>
@@ -196,6 +236,67 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .checkBoxRevisao {
           padding: 3px 5px;
           margin: 5px 5px 5px 4px;
+        }
+        lexml-eta-proposicao-editor a.lexml-remissao-interna,
+        lexml-eta-proposicao-editor a.lexml-remissao-externa {
+          color: #0066cc;
+          text-decoration: underline;
+          cursor: pointer;
+        }
+
+        lexml-eta-proposicao-editor a.lexml-remissao-interna:hover,
+        lexml-eta-proposicao-editor a.lexml-remissao-externa:hover {
+          color: #004499;
+          text-decoration: underline;
+        }
+
+        lexml-eta-proposicao-editor a.lexml-remissao-interna:visited,
+        lexml-eta-proposicao-editor a.lexml-remissao-externa:visited {
+          color: #660099;
+        }
+
+        lexml-eta-proposicao-editor a.lexml-remissao-invalida {
+          color: #cc0000;
+          text-decoration: line-through;
+        }
+
+        lexml-eta-proposicao-editor .lexml-remissao-destaque {
+          background-color: #fff3cd !important;
+          transition: background-color 0.3s ease;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna,
+        lexml-eta-proposicao-editor .btn-remover-remissao {
+          background: none;
+          border: none;
+          padding: 4px 6px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna:hover,
+        lexml-eta-proposicao-editor .btn-remover-remissao:hover {
+          background-color: var(--sl-color-neutral-100);
+          border-radius: 4px;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna svg,
+        lexml-eta-proposicao-editor .btn-remover-remissao svg {
+          width: 16px;
+          height: 16px;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna:disabled,
+        lexml-eta-proposicao-editor .btn-remover-remissao:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+
+        lexml-eta-proposicao-editor .btn-remissao-interna:disabled:hover,
+        lexml-eta-proposicao-editor .btn-remover-remissao:disabled:hover {
+          background-color: transparent;
         }
       </style>
       <div id="lx-eta-box">
@@ -251,6 +352,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               </svg>
               ${this.labelAnexo()}
             </span>
+          </button>
+
+          <button type="button" class="btn-remissao-interna" title="Adicionar remissão" ?disabled=${!this._temSelecao} @click=${this.abrirDialogoRemissao}>
+            ${unsafeHTML(iconeRemissaoInterna)}
           </button>
 
           <span id="pos-select-paginacao"></span>
@@ -330,6 +435,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (range?.length === 0 && source === PrivateQuill.sources.USER) {
       this.ajustarLinkParaNorma();
     }
+    this._temSelecao = (range?.length ?? 0) > 0;
+    this.atualizarPopupRemissao();
   };
 
   private ajustarLinkParaNorma(): void {
@@ -379,10 +486,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const indexFim: number = indexInicio + blotConteudo.tamanho;
     let textoLinha = '';
     let textoNovaLinha = '';
+    let posicao: string | undefined = undefined;
 
     if (range.index === indexInicio) {
-      textoLinha = '';
-      textoNovaLinha = blotConteudo.html;
+      // Cursor no início: novo dispositivo vazio criado ANTES, atual mantém conteúdo
+      textoLinha = blotConteudo.html;
+      textoNovaLinha = '';
+      posicao = 'antes';
     } else if (range.index === indexFim) {
       textoLinha = blotConteudo.html;
       textoNovaLinha = '';
@@ -396,9 +506,39 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (this.isDesmembramento(blotConteudo.htmlAnt, textoLinha, textoNovaLinha)) {
       const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha + textoNovaLinha, linha.numero, linha.hierarquia);
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+      rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+
+      // Enter nunca passava por detectarRemissoesAoSairDaLinha (só clique/seta) — remissão externa nunca era
+      // detectada ao pressionar Enter para criar um novo dispositivo. Mesmo gatilho fire-and-forget do blur.
+      if (linha.uuid !== undefined) {
+        this.coordenarDeteccaoExterna(linha.uuid, stripHtml(textoLinha));
+      }
     }
+
     this.cancelarTimerOnChangePendente();
-    rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+    if (posicao === 'antes') {
+      const actionAntes = this.getActionAdicionarAntes(linha.tipo);
+      rootStore.dispatch(actionAntes.execute(elemento, textoNovaLinha));
+    } else {
+      rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
+    }
+  }
+
+  private getActionAdicionarAntes(tipo: string): any {
+    switch (tipo) {
+      case 'Artigo':
+        return adicionarArtigoAntes;
+      case 'Paragrafo':
+        return adicionarParagrafoAntes;
+      case 'Inciso':
+        return adicionarIncisoAntes;
+      case 'Alinea':
+        return adicionarAlineaAntes;
+      case 'Item':
+        return adicionarItemAntes;
+      default:
+        return adicionarElementoAction;
+    }
   }
 
   private editarNotaAlteracao(elemento: Elemento): void {
@@ -415,7 +555,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       '',
       linha.numero,
       linha.hierarquia,
-      linha.descricaoSituacao,
       linha.existeNaNormaAlterada
     );
 
@@ -554,7 +693,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       '',
       linha.numero,
       linha.hierarquia,
-      linha.descricaoSituacao,
       linha.existeNaNormaAlterada
     );
     this.toggleExistenciaElemento(elemento);
@@ -695,6 +833,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
+    // Transformações (TAB) preservam o UUID, gerando inclusão e remoção no mesmo lote.
+    // Ignora a remoção no DOM para não apagar a linha recém-atualizada, mas o UUID segue no evento para o undo/redo.
+    const uuidsIncluidosNoLote = new Set(
+      events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoIncluido).flatMap((ev: StateEvent) => ev.elementos?.map(e => e.uuid) ?? [])
+    );
     events?.forEach((event: StateEvent): void => {
       switch (event.stateType) {
         case StateType.PaginaArticulacaoSelecionada:
@@ -706,6 +849,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.inicializar(this.configEditor());
           this.configurarSeletorPaginacao();
           this.carregarArticulacao(event.elementos ?? [], false, ui.paginacao);
+          setTimeout(() => this.ativarRemissoesExternas(), 0);
+          setTimeout(() => this.ativarRemissoesInternas(), 0);
           break;
 
         case StateType.InformarDadosAssistente:
@@ -722,7 +867,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           break;
 
         case StateType.ElementoModificado:
-        case StateType.ElementoRestaurado:
           this.atualizarQuill(event);
           this.atualizarOmissis(event);
           if (events[events.length - 1] === event) {
@@ -730,15 +874,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           }
           break;
 
-        case StateType.ElementoSuprimido:
-          this.atualizarSituacao(event);
-          if (events[events.length - 1] === event) {
-            this.marcarLinha(event);
-          }
-          break;
-
         case StateType.ElementoRemovido:
-          this.removerLinhaQuill(event);
+          this.removerLinhaQuill(event, uuidsIncluidosNoLote);
           break;
 
         case StateType.ElementoRenumerado:
@@ -782,33 +919,48 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         case StateType.RevisaoAdicionalRejeitada:
           this.removerLinhaQuill(event);
           break;
+
+        default:
+          this.handleRemissaoEvent(event);
+          break;
       }
 
       this.disabledParagrafoElementoRemovido(event);
       this.quill.limparHistory();
     });
 
+    this.processarPosLoopEventos(events);
+  }
+
+  private handleRemissaoEvent(event: StateEvent): void {
+    switch (event.stateType) {
+      case StateType.RemissaoRedirecionar:
+        this.redirecionarParaDispositivoRemissao(event);
+        break;
+      case StateType.AtualizaRemissaoInterna:
+        this.renderizarRemissoesDoState(event);
+        break;
+      case StateType.RemissaoInvalidada:
+        this.marcarRemissoesComoInvalidas(event);
+        break;
+      case StateType.RemissaoRestaurada:
+        this.restaurarRemissoes(event);
+        break;
+    }
+  }
+
+  private processarPosLoopEventos(events: StateEvent[]): void {
     this.indicadorMarcaRevisao(events);
     this.indicadorTextoModificado(events);
-    //this.atualizaQuantidadeRevisao();
     this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
-    const eventosQueDevemEmitirTextChange = [
-      StateType.ElementoModificado,
-      StateType.ElementoSuprimido,
-      StateType.ElementoRestaurado,
-      StateType.ElementoIncluido,
-      StateType.ElementoRemovido,
-      StateType.ElementoRenumerado,
-    ];
+    const eventosQueDevemEmitirTextChange = [StateType.ElementoModificado, StateType.ElementoIncluido, StateType.ElementoRemovido, StateType.ElementoRenumerado];
 
     const eventosFiltrados = events?.filter(ev => eventosQueDevemEmitirTextChange.includes(ev.stateType)).map(ev => ev.stateType);
 
     if (eventosFiltrados?.length) {
-      // TODO: Implementar lógica do atributo eventosFiltrados, sem repetir os itens
       this.eventosOnChange.push(...eventosFiltrados);
-
       this.agendarEmissaoEventoOnChange('stateEvents', eventosFiltrados);
     }
   }
@@ -893,10 +1045,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const linhaASerReinserida = this.quill.getLinha(elemento.uuid!);
 
-    if (linhaASerReinserida) {
+    if (linhaASerReinserida && linhaASerReinserida.tipo === elemento.tipo) {
       linhaASerReinserida.atualizarElemento(elemento);
       selecionarLinha && fnSelecionarNovaLinha(linhaASerReinserida, this.quill.linhaAtual);
       return;
+    }
+
+    if (linhaASerReinserida) {
+      // Recria o elemento do zero em transformações (TAB), pois atualizarElemento() não adapta as classes do container para o novo tipo.
+      linhaASerReinserida.remove();
     }
 
     const linhaRef: EtaContainerTable | undefined = this.quill.getLinha(elemento.elementoAnteriorNaSequenciaDeLeitura?.uuid || referencia?.uuid || 0);
@@ -916,7 +1073,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         this.quill.linhaAtual?.blotConteudo && (this.quill.linhaAtual.blotConteudo.htmlAnt = this.quill.linhaAtual.blotConteudo.html);
       }
 
-      novaLinha.descricaoSituacao = elemento.descricaoSituacao;
       novaLinha.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
       novaLinha.setEstilo(elemento!);
     }
@@ -937,11 +1093,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elementos.forEach((elemento: Elemento) => {
       linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
       if (linha) {
-        if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
-          linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstilo(elemento);
-          linha.atualizarElemento(elemento);
-        }
+        linha.setEstilo(elemento);
+        linha.atualizarElemento(elemento);
       }
     });
   }
@@ -1016,10 +1169,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.blotConteudo.html = elemento.tipo === 'Omissis' ? EtaQuillUtil.montarSpanOmissisAsString() : novoTexto;
         }
 
-        if (elemento.descricaoSituacao !== linha.descricaoSituacao) {
-          linha.descricaoSituacao = elemento.descricaoSituacao;
-          linha.setEstilo(elemento);
-        }
+        linha.setEstilo(elemento);
 
         linha.atualizarElemento(elemento);
 
@@ -1049,11 +1199,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return false;
   }
 
-  private removerLinhaQuill(event: StateEvent): void {
+  private removerLinhaQuill(event: StateEvent, uuidsParaIgnorar?: Set<number | undefined>): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
+      // uuid reaproveitado por uma transformação de tipo (TAB/SHIFT_TAB) na mesma ação: a linha já
+      // foi atualizada pelo handler de ElementoIncluido — remover agora apagaria essa atualização.
+      if (uuidsParaIgnorar?.has(elemento.uuid)) return;
+
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha) || this.quill.getLinha(elemento.uuid ?? 0);
       if (linha) {
         const isRevisaoDeExclusaoOuTransformacao =
@@ -1099,7 +1253,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       linha = this.quill.getLinha(elemento.uuid ?? 0, linha);
 
       if (linha) {
-        if (linha?.children.length === 2) {
+        // Corrige erro de multiplas instâncias da msg de erro
+        const hadPanel = linha?.children.length === 2;
+        if (hadPanel) {
           linha.children.tail.remove();
         }
 
@@ -1150,17 +1306,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  private criarElemento(
-    uuid: number,
-    uuid2: string,
-    lexmlId: string,
-    tipo: string,
-    html: string,
-    numero: string,
-    hierarquia: any,
-    descricaoSituacao?: string,
-    existeNaNormaAlterada?: boolean
-  ): Elemento {
+  private criarElemento(uuid: number, uuid2: string, lexmlId: string, tipo: string, html: string, numero: string, hierarquia: any, existeNaNormaAlterada?: boolean): Elemento {
     const elemento: Elemento = new Elemento();
     elemento.uuid = uuid;
     elemento.uuid2 = uuid2;
@@ -1169,7 +1315,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     elemento.numero = numero;
     elemento.conteudo = { texto: html };
     elemento.hierarquia = hierarquia;
-    elemento.descricaoSituacao = descricaoSituacao;
     elemento.existeNaNormaAlterada = existeNaNormaAlterada;
     return elemento;
   }
@@ -1179,6 +1324,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const bufferHtml: HTMLElement = this.getHtmlElement('lx-eta-buffer');
 
     this._quill = new EtaQuill(editorHtml, bufferHtml, op);
+    this._remissaoPopup = criarPopup();
+    document.body.appendChild(this._remissaoPopup);
     this.quill.on('selection-change', this.onSelectionChange);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
@@ -1192,7 +1339,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 
-    this.inscricoes.push(this.quill.observableSelectionChange.subscribe(this.atualizarTextoElemento.bind(this)));
+    this.inscricoes.push(
+      this.quill.observableSelectionChange.subscribe((linhaAnterior: EtaContainerTable) => {
+        const somenteFormatoMudou = this.somenteFormatoMudouNaLinha(linhaAnterior);
+        this.atualizarTextoElemento(linhaAnterior);
+        this.detectarRemissoesAoSairDaLinha(linhaAnterior, somenteFormatoMudou);
+      })
+    );
     this.inscricoes.push(this.quill.keyboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(this.quill.clipboard.onChange.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
     this.inscricoes.push(onChangeColarDialog.subscribe(this.agendarEmissaoEventoOnChange.bind(this)));
@@ -1248,7 +1401,23 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       event.stopImmediatePropagation();
       this.exibirModalSufixos();
     });
+
+    // Gatilho B (docs/PLANO_DETECCAO_BLUR.md §2.3/§4.3): foco saindo do editor inteiro.
+    editorHtml.addEventListener('focusout', this.onFocusoutEditor.bind(this));
+
     this.configListenersEta();
+  }
+
+  // Compara contra blotConteudo, não editorHtml inteiro: EtaBlotMenu é irmão de blotConteudo, então clicar nele já tira o foco da área de texto.
+  private onFocusoutEditor(event: FocusEvent): void {
+    const linhaAtual = this.quill.linhaAtual;
+    const conteudoAtivo = linhaAtual?.blotConteudo?.domNode;
+    const novoFoco = event.relatedTarget as Node | null;
+
+    const permaneceNoDispositivo = !!conteudoAtivo && !!novoFoco && conteudoAtivo.contains(novoFoco);
+    if (!permaneceNoDispositivo) {
+      setTimeout(() => this.flushEdicaoPendente(), 0);
+    }
   }
 
   exibirModalSufixos(): void {
@@ -1263,25 +1432,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     diff.quill = this.quill;
 
     const revisao = elemento.revisao as RevisaoElemento;
-    const d = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao, elemento.lexmlId!);
 
     if (revisao) {
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
-
-      if (d && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
-      } else {
-        diff.textoOriginal = elemento.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL ? diff.textoAtual : diff.textoAntesRevisao;
-        diff.adicionado = true;
-      }
-
-      exibirDiferencasDialog(diff);
-    } else {
-      if (d && d!.situacao.dispositivoOriginal?.conteudo !== undefined) {
-        diff.textoOriginal = d!.situacao.dispositivoOriginal!.conteudo!.texto!;
-      }
-      exibirDiferencasDialog(diff);
+      diff.textoOriginal = diff.textoAntesRevisao;
+      // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
+      diff.adicionado = true;
     }
+
+    exibirDiferencasDialog(diff);
   }
 
   aceitarRevisao(elemento: Elemento): void {
@@ -1312,6 +1471,26 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = setTimeout(() => this.emitirEventoOnChange(origemEvento, statesType), 1000);
   }
 
+  private verificarSomenteFormatoMudou(linhaAtual: EtaContainerTable): boolean {
+    // Compara texto plano contra htmlAnt — não contra o Redux: o Redux pode já ter sido sincronizado
+    // pelo debounce de keystroke (Caminho C) sem que o usuário tenha saído da linha ainda. htmlAnt é
+    // preservado nesse caminho especificamente (ver atualizarTextoElemento) para que esta comparação
+    // continue refletindo "o texto mudou desde a última entrada nesta linha", não "desde a última
+    // sincronização com o Redux". Qualquer outro caminho que sincroniza o Redux (omissis, undo/redo,
+    // comandos de teste) passa pelos mesmos eventos que resetam htmlAnt normalmente — só o Caminho C
+    // é uma exceção deliberada.
+    const textoAnteriorPlano = stripHtml(linhaAtual.blotConteudo?.htmlAnt ?? '');
+    const textoAtualPlano = stripHtml(linhaAtual.blotConteudo?.html ?? '');
+    return textoAtualPlano === textoAnteriorPlano;
+  }
+
+  // Deve ser chamado ANTES de atualizarTextoElemento() — este muta o texto em state.articulacao, que é exatamente contra o que a comparação acima é feita.
+  private somenteFormatoMudouNaLinha(linha: EtaContainerTable): boolean {
+    if (!linha?.blotConteudo?.alterado) return true;
+
+    return this.verificarSomenteFormatoMudou(linha);
+  }
+
   // Evita que inserirNovoElementoNoQuill pule o reposicionamento síncrono do cursor
   // (guarda "!this.timerOnChange") quando um novo elemento é criado logo após digitar.
   private cancelarTimerOnChangePendente(): void {
@@ -1319,7 +1498,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = undefined;
   }
 
-  private atualizarTextoElemento(linhaAtual: EtaContainerTable): void {
+  // preservarHtmlAnt: usado só pelo Caminho C (debounce de keystroke, emitirEventoOnChange). O dispatch
+  // abaixo roda atualizarAtributos() como efeito colateral síncrono (via processarStateEvents), que
+  // reseta blotConteudo.htmlAnt e apagaria o sinal "há uma mudança pendente de detecção de remissão"
+  // antes que o Gatilho A/B/flush tenham a chance de lê-lo — restaurado logo em seguida quando este
+  // parâmetro é true. Sem isso, se o debounce dispara antes do usuário sair da linha (comportamento
+  // humano normal, não uma exceção), a remissão nunca é criada — ver docs/guias/
+  // ROTEIRO_QA_REFACTOR_BLUR_E_ATUALIZACAO.md §1.1 (bug reportado em QA manual).
+  private atualizarTextoElemento(linhaAtual: EtaContainerTable, preservarHtmlAnt = false): void {
     if (linhaAtual?.blotConteudo?.alterado) {
       const elemento: Elemento = this.criarElemento(
         linhaAtual.uuid,
@@ -1330,8 +1516,107 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         linhaAtual.numero,
         linhaAtual.hierarquia
       );
+
+      const htmlAntPreservado = linhaAtual.blotConteudo.htmlAnt;
+
       rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+
+      if (preservarHtmlAnt) {
+        linhaAtual.blotConteudo.htmlAnt = htmlAntPreservado;
+      }
+
+      // Limpa inválidas removidas antes de re-detectar (cobre deleção por teclado)
+      const remissaoModule = this.quill.getModule('remissaoInterna');
+      if (remissaoModule && linhaAtual.uuid !== undefined) {
+        rootStore.dispatch(removerRemissaoInvalidaAction(linhaAtual.uuid, remissaoModule.getRemissoes()));
+      }
     }
+  }
+
+  // Aguarda o blur (evita links incompletos) e confia na flag pré-mutação `somenteFormatoMudou`, já que `atualizarTextoElemento()` zerou o estado do blot.
+  private detectarRemissoesAoSairDaLinha(linhaAnterior: EtaContainerTable, somenteFormatoMudou: boolean): void {
+    const uuid = linhaAnterior?.uuid;
+    // Documento recém-aberto já chega com alterado=false (nunca foi editado) — sem isto, um dispositivo nunca
+    // visitado nesta sessão nunca passaria pelo linker externo, que (ao contrário do interno) não tem bootstrap na abertura.
+    const jaDetectadosExternamente = (this.uuidsJaDetectadosExternamente ??= new Set<number>());
+    const primeiraVisitaExterna = uuid !== undefined && !jaDetectadosExternamente.has(uuid);
+
+    if (!somenteFormatoMudou) {
+      const elemento: Elemento = this.criarElemento(
+        linhaAnterior.uuid,
+        linhaAnterior.uuid2,
+        linhaAnterior.lexmlId,
+        linhaAnterior.tipo,
+        linhaAnterior.blotConteudo?.html ?? '',
+        linhaAnterior.numero,
+        linhaAnterior.hierarquia
+      );
+      rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+    }
+
+    // Fire-and-forget deliberado — não bloqueia getProjetoAtualizado() (API pública síncrona). Janela residual aceita: docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md §8.3.
+    if (uuid !== undefined && (!somenteFormatoMudou || primeiraVisitaExterna)) {
+      jaDetectadosExternamente.add(uuid);
+      this.coordenarDeteccaoExterna(uuid, stripHtml(linhaAnterior.blotConteudo?.html ?? ''));
+    }
+  }
+
+  // Descarta o resultado se o texto mudou desde a chamada — evita aplicar offsets obsoletos.
+  private async coordenarDeteccaoExterna(sourceUuid: number, texto: string): Promise<void> {
+    const matches = await lexmlLinkerClient.detectarRemissoesExternas(texto);
+    if (!matches || matches.length === 0) return;
+
+    const articulacaoAtual = rootStore.getState().elementoReducer.articulacao;
+    const dispositivoAtual = findDispositivoByUuid(articulacaoAtual, sourceUuid, true);
+    if (!dispositivoAtual || stripHtml(dispositivoAtual.texto ?? '') !== texto) return;
+
+    for (const match of matches) {
+      rootStore.dispatch(
+        adicionarRemissaoExternaAction({
+          refId: gerarRefId(),
+          targetUrn: match.targetUrn,
+          targetNomeNorma: '',
+          targetFragmento: match.targetFragmento,
+          textoRef: match.textoRef,
+          sourceUuid,
+          inicio: match.inicio,
+          fim: match.fim,
+        })
+      );
+    }
+
+    // Reconciliação (achado #4) ANTES de renderizar a externa. O reducer só atualiza o registry —
+    // não remove do DOM um link interno já renderizado cujo refId saiu do registry — então também
+    // é preciso remover explicitamente o blot obsoleto, senão formatText da externa (abaixo) aplica
+    // sobre um range que ainda tem o falso positivo interno por baixo, e o Quill separa o resultado
+    // em dois <a> adjacentes.
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    const refIdsAntigos = new Set((rootStore.getState().elementoReducer.remissoes?.[sourceUuid] ?? []).map((r: { refId: string }) => r.refId));
+
+    const elementoReconciliacao = createElemento(dispositivoAtual, true);
+    rootStore.dispatch(adicionarRemissaoInternaAction.execute(elementoReconciliacao));
+
+    const refIdsNovos = new Set((rootStore.getState().elementoReducer.remissoes?.[sourceUuid] ?? []).map((r: { refId: string }) => r.refId));
+    for (const refId of refIdsAntigos) {
+      // 'silent': reconciliação automática, não ação do usuário — ver comentário em removerRemissaoPorId.
+      if (!refIdsNovos.has(refId)) remissaoModule?.removerRemissaoPorId(refId as string, 'silent');
+    }
+
+    const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
+    remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+  }
+
+  // Rede de segurança determinística (docs/PLANO_DETECCAO_BLUR.md §2.4/§4.4), chamada por getProjetoAtualizado() para garantir sincronismo mesmo sem sair da linha antes de salvar.
+  public flushEdicaoPendente(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = null;
+
+    const linha = this.quill?.linhaAtual;
+    if (!linha) return;
+
+    const somenteFormatoMudou = this.somenteFormatoMudouNaLinha(linha);
+    this.atualizarTextoElemento(linha);
+    this.detectarRemissoesAoSairDaLinha(linha, somenteFormatoMudou);
   }
 
   private alertaGlobalRevisao(): void {
@@ -1354,7 +1639,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private alertaGlobalEmendaSemPreenchimento(articulacao: any): void {
     if (articulacao) {
-      const elementos = getElementos(articulacao!).filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.tipo !== 'Articulacao');
+      const elementos = getElementos(articulacao!).filter(e => e.tipo !== 'Articulacao');
       if (elementos.length === 0) {
         alertaGlobalEmendaSemPreenchimentoUtil(true, rootStore, 'Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
       } else {
@@ -1365,7 +1650,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private emitirEventoOnChange(origemEvento: string, statesType: StateType[] = []): void {
-    this.atualizarTextoElemento(this.quill.linhaAtual);
+    this.atualizarTextoElemento(this.quill.linhaAtual, true);
 
     this.dispatchEvent(
       new CustomEvent('onchange', {
@@ -1387,13 +1672,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     setTimeout(() => {
       if (!this.quill) return;
       this.quill.getLine(0)[0].remove();
+      // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
+      const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
+      const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
       elementos.forEach((elemento: Elemento) => {
-        if (
-          (elemento.tipo === 'Articulacao' && !elemento.lexmlId) ||
-          !paginacao?.paginaSelecionada ||
-          paginacao.paginasArticulacao?.length === 1 ||
-          paginacao.paginaSelecionada.ids.includes(elemento.lexmlId!)
-        ) {
+        if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
           const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
           etaContainerTable.insertInto(this.quill.scroll);
           etaContainerTable.setEstilo(elemento);
@@ -1408,11 +1691,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
+          // Não força o cursor se o usuário já assumiu o controle nesse meio-tempo — setRange/setNativeRange do Quill
+          // move o cursor físico independentemente do source (SILENT só suprime o evento), então sem esse guard o
+          // foco automático ainda rouba o cursor de quem já está digitando (ver docs/analises/
+          // ANALISE_CORRIDA_ASSENTAMENTO_NOVA_PROPOSICAO.md).
+          if (this.quill.linhaAtual) return;
+
           // No carregamento inicial (não em troca de página), o cursor deve começar na ementa, não no 1º artigo.
           const elementoEmenta = !isMudancaDePagina ? elementos.find(elemento => elemento.tipo === 'Ementa') : undefined;
           const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
-            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.USER);
+            this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.SILENT);
             this.focarQuillQuandoVisivel();
           }
         }, 0);
@@ -1436,7 +1725,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private configEditor(): QuillOptions {
     return {
-      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis'],
+      formats: ['bold', 'italic', 'link', 'script', 'EtaBlotConteudoOmissis', 'remissao-interna', 'remissao-externa'],
       modules: {
         toolbar: {
           container: '#lx-eta-barra-ferramenta',
@@ -1451,6 +1740,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           maxStack: 500,
           userOnly: true,
         },
+        remissaoInterna: true,
       },
       theme: 'snow',
     };
@@ -1522,6 +1812,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private destroiQuill(): void {
     this.removeListenersEta();
 
+    if (this._remissaoPopup) {
+      this._remissaoPopup.remove();
+      this._remissaoPopup = undefined;
+      this._popupRefIdAtual = undefined;
+    }
+
     this.getHtmlElement('lx-eta-editor')!.innerHTML = '';
     this.getHtmlElement('lx-eta-buffer')!.innerHTML = '';
     if (this.quill) {
@@ -1572,6 +1868,28 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.rejeitarRevisao(event.detail.elemento);
   };
 
+  private listenerRemoveRemissao = (event: any): void => {
+    event.stopImmediatePropagation();
+    const linha = this.quill.linhaAtual;
+    if (linha?.uuid !== undefined) {
+      rootStore.dispatch(removerRemissaoInvalidaAction(linha.uuid, event.detail.remissoes ?? []));
+    }
+    // Mesmo evento cobre remissão externa editada em tempo real (ver moduloRemissao.ts).
+    const refIdsExternosRemovidos: string[] = event.detail.refIdsExternosRemovidos ?? [];
+    for (const refId of refIdsExternosRemovidos) {
+      rootStore.dispatch(removerRemissaoExternaAction(refId));
+    }
+    // Fecha o popup imediata e assincronamente para evitar que um 'selection-change' atrasado do Quill o reabra com dados obsoletos.
+    this.fecharPopupRemissao();
+    setTimeout(() => this.fecharPopupRemissao(), 0);
+  };
+
+  private fecharPopupRemissao(): void {
+    if (!this._remissaoPopup) return;
+    esconderPopup(this._remissaoPopup);
+    this._popupRefIdAtual = undefined;
+  }
+
   private configListenersEta(): void {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     editorHtml.addEventListener('rotulo', this.listenerRotulo);
@@ -1580,6 +1898,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('mensagem', this.listenerMensagem);
     editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
     editorHtml.addEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
+    editorHtml.addEventListener(REMISSAO_INTERNA_REMOVE_EVENT, this.listenerRemoveRemissao);
   }
 
   private removeListenersEta(): void {
@@ -1590,6 +1909,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.removeEventListener('mensagem', this.listenerMensagem);
     editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);
     editorHtml.removeEventListener('rejeitar-revisao', this.listenerRejeitarRevisao);
+    editorHtml.removeEventListener(REMISSAO_INTERNA_REMOVE_EVENT, this.listenerRemoveRemissao);
   }
 
   private async onPasteTextoArticulado(payload: any): Promise<void> {
@@ -1631,19 +1951,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosSemModificacao = elementos.filter(e => e.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO).map(e => e.uuid!);
-    const uuidsElementosComModificacao = elementos
-      .filter(
-        e =>
-          e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ||
-          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO && e.revisao && e.revisao.descricao === 'Texto do dispositivo foi alterado') ||
-          (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL &&
-            e.revisao &&
-            (e.revisao as RevisaoElemento).elementoAntesRevisao?.conteudo?.texto !== e.conteudo?.texto)
-        // || (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && e.revisao
-        //   && (e.revisao.descricao === 'Dispositivo restaurado' || e.revisao.descricao === 'Texto do dispositivo foi alterado'))
-      )
-      .map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoDeModificacao(e.revisao)).map(e => e.uuid!);
+    const uuidsElementosSemModificacao = elementos.filter(e => !uuidsElementosComModificacao.includes(e.uuid!)).map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {
       const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
@@ -1751,5 +2060,380 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+  };
+
+  private redirecionarParaDispositivoRemissao(event: StateEvent): void {
+    const elemento = event.elementos?.[0];
+    if (!elemento?.uuid) return;
+
+    const uuid = elemento.uuid;
+    const linha = this.quill.getLinhaPorId(uuid);
+
+    if (linha && linha.blotConteudo) {
+      if (this.quill.linhaAtual && typeof this.quill.linhaAtual.desativarBorda === 'function') {
+        this.quill.linhaAtual.desativarBorda();
+      }
+
+      const targetElement = document.getElementById(`lxEtaId${uuid}`);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+        targetElement.classList.add('lexml-remissao-destaque');
+        setTimeout(() => {
+          targetElement.classList.remove('lexml-remissao-destaque');
+        }, 2000);
+      }
+
+      this.quill.focus();
+      const index = this.quill.getIndex(linha.blotConteudo);
+      this.quill.setSelection(index, 0, 'user');
+
+      if (typeof this.quill.atualizarLinhaCorrente === 'function') {
+        this.quill.atualizarLinhaCorrente(linha);
+      }
+    }
+  }
+
+  private ativarRemissoesExternas(): void {
+    const remissoesExternas = rootStore.getState()?.elementoReducer?.remissoesExternas;
+    if (!remissoesExternas || Object.keys(remissoesExternas).length === 0) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+  }
+
+  private ativarRemissoesInternas(): void {
+    const elementoState = rootStore.getState()?.elementoReducer;
+    const remissoes = elementoState?.remissoes;
+    if (!remissoes || Object.keys(remissoes).length === 0) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+    if (!remissaoModule) return;
+    const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
+    const mensagemRevisao = { tipo: TipoMensagem.WARNING, descricao: MENSAGEM_REMISSAO_TEXTO_PRESERVADO };
+    for (const uuid of Object.keys(remissoes)) {
+      const uuidNum = parseInt(uuid, 10);
+      remissaoModule.renderizarRemissoesDoState(remissoes, uuidNum);
+      // Aplica mensagens para remissões inválidas ou com revisão pendente carregadas do disco
+      // (os eventos ElementoValidado emitidos por load() chegam antes do DOM do Quill existir)
+      const temInvalidas = remissoes[uuidNum]?.some((r: any) => r.valida === false);
+      const temRevisoes = remissoes[uuidNum]?.some((r: any) => r.revisao === true);
+      if (temInvalidas || temRevisoes) {
+        const dispositivo = findDispositivoByUuid(elementoState.articulacao, uuidNum, true);
+        if (dispositivo) {
+          const mensagens: any[] = [];
+          if (temInvalidas) mensagens.push(mensagemInvalida);
+          if (temRevisoes) mensagens.push(mensagemRevisao);
+          const elementoValidado = createElementoValidadoComExtras(dispositivo, mensagens);
+          this.atualizarMensagemQuill({ stateType: StateType.ElementoValidado, elementos: [elementoValidado] });
+        }
+      }
+    }
+  }
+
+  private renderizarRemissoesDoState(event: StateEvent): void {
+    const elemento = event.elementos?.[0];
+    if (!elemento?.uuid) {
+      return;
+    }
+
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) {
+      return;
+    }
+
+    const state = rootStore.getState().elementoReducer;
+    const remissoes = state.remissoes || {};
+
+    remissaoModule.renderizarRemissoesDoState(remissoes, elemento.uuid);
+  }
+
+  private marcarRemissoesComoInvalidas(event: StateEvent): void {
+    if (!event.remissaoInvalidacao) {
+      return;
+    }
+
+    const { lexmlId } = event.remissaoInvalidacao;
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+
+    if (!remissaoModule) {
+      return;
+    }
+
+    // Marca todas as remissões que apontam para o dispositivo removido como inválidas
+    remissaoModule.marcarRemissoesComoInvalidas(lexmlId);
+  }
+
+  private restaurarRemissoes(event: StateEvent): void {
+    if (!event.remissaoInvalidacao) {
+      return;
+    }
+
+    const { lexmlId } = event.remissaoInvalidacao;
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+
+    if (!remissaoModule) {
+      return;
+    }
+
+    // Restaura todas as remissões que apontam para o dispositivo restaurado
+    remissaoModule.restaurarRemissoesPorLexmlId(lexmlId);
+  }
+
+  private atualizarPopupRemissao(): void {
+    if (!this._remissaoPopup) return;
+    const remissaoModule = this.quill?.getModule('remissaoInterna');
+
+    const resultadoInterno = remissaoModule?.getRemissaoNoCursor();
+    if (resultadoInterno) {
+      const { value, linkEl } = resultadoInterno;
+      if (value.refId === this._popupRefIdAtual) return;
+      this._popupRefIdAtual = value.refId;
+
+      const invalido = linkEl.classList.contains('lexml-remissao-invalida');
+      const articulacao = rootStore.getState().elementoReducer.articulacao;
+      const dispositivoDestino = articulacao && value.targetUuid ? findDispositivoByUuid(articulacao, value.targetUuid, true) : undefined;
+      const dispositivoParaRotulo = dispositivoDestino && isCaput(dispositivoDestino) ? dispositivoDestino.pai : dispositivoDestino;
+      const rotuloDestino = dispositivoParaRotulo?.rotulo ?? value.targetRotulo ?? '';
+      const textoPrevia = (() => {
+        const textoRaw = dispositivoDestino?.texto ?? '';
+        const textoPlano = textoRaw.replace(/<[^>]*>/g, '').trim();
+        if (!textoPlano) return undefined;
+        return textoPlano.length > 60 ? textoPlano.slice(0, 60) + '...' : textoPlano;
+      })();
+      // Visualizar o popup = revisão confirmada (Bug B: não esperar clique no botão de navegação)
+      // sourceUuid não é armazenado em atributo DOM, portanto formats() nunca o retorna —
+      // busca pelo refId varrendo o registry para encontrar o dispositivo fonte.
+      const stateRemissoes: Record<number, RemissaoInternaValue[]> = rootStore.getState().elementoReducer.remissoes || {};
+      let sourceUuid: number | undefined = value.sourceUuid;
+      if (sourceUuid === undefined && value.refId) {
+        for (const [uuidStr, entries] of Object.entries(stateRemissoes)) {
+          if ((entries as RemissaoInternaValue[]).some((r: any) => r.refId === value.refId && r.revisao === true)) {
+            sourceUuid = parseInt(uuidStr, 10);
+            break;
+          }
+        }
+      }
+      const pendenteRevisao = sourceUuid !== undefined && (stateRemissoes[sourceUuid] ?? []).some((r: any) => r.refId === value.refId && r.revisao === true);
+      if (pendenteRevisao && sourceUuid !== undefined && value.refId) {
+        rootStore.dispatch(marcarRemissaoRevisadaAction({ sourceUuid, refId: value.refId }));
+      }
+      // Resolução própria para o botão Excluir: precisa do sourceUuid mesmo fora do fluxo de
+      // revisão pendente, para marcar o tombstone que impede a recriação do link.
+      let sourceUuidParaExclusao: number | undefined = value.sourceUuid;
+      if (sourceUuidParaExclusao === undefined && value.refId) {
+        for (const [uuidStr, entries] of Object.entries(stateRemissoes)) {
+          if ((entries as RemissaoInternaValue[]).some((r: any) => r.refId === value.refId)) {
+            sourceUuidParaExclusao = parseInt(uuidStr, 10);
+            break;
+          }
+        }
+      }
+      mostrarPopup(this._remissaoPopup, linkEl, {
+        rotulo: rotuloDestino,
+        textoPrevia,
+        invalido,
+        acaoNavegacao: () => rootStore.dispatch(redirecionarRemissaoAction.execute({ uuid: value.targetUuid })),
+        botoes: [
+          {
+            titulo: 'Editar',
+            acao: () => this.editarRemissao(value),
+          },
+          {
+            titulo: 'Excluir',
+            classe: 'remissao-popup__btn--excluir',
+            acao: () => {
+              remissaoModule.removerRemissaoPorId(value.refId!);
+              if (sourceUuidParaExclusao !== undefined) {
+                rootStore.dispatch(excluirRemissaoManualAction({ sourceUuid: sourceUuidParaExclusao, refId: value.refId! }));
+              }
+              this.fecharPopupRemissao();
+              setTimeout(() => this.fecharPopupRemissao(), 0);
+              this.quill.focus();
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    const resultadoExterno = remissaoModule?.getRemissaoExternaEmCursor();
+    if (resultadoExterno) {
+      const { value, linkEl } = resultadoExterno;
+      if (value.refId === this._popupRefIdAtual) return;
+      this._popupRefIdAtual = value.refId;
+
+      const fragmento = value.targetFragmento ? `!${value.targetFragmento}` : '';
+      const urlPortal = `${this.lexmlEtaConfig.urlPortalNormas}/?urn=${value.targetUrn}${fragmento}`;
+      mostrarPopup(this._remissaoPopup, linkEl, {
+        rotulo: value.targetNomeNorma || linkEl.textContent || '',
+        acaoNavegacao: () => window.open(urlPortal, '_blank', 'noopener'),
+        botoes: [
+          {
+            titulo: 'Editar',
+            acao: () => this.editarRemissaoExterna(value),
+          },
+          {
+            titulo: 'Excluir',
+            classe: 'remissao-popup__btn--excluir',
+            acao: () => {
+              remissaoModule.removerRemissaoExternaPorId(value.refId!);
+              rootStore.dispatch(removerRemissaoExternaAction(value.refId!));
+              this.fecharPopupRemissao();
+              setTimeout(() => this.fecharPopupRemissao(), 0);
+              this.quill.focus();
+            },
+          },
+        ],
+      });
+      return;
+    }
+
+    this.fecharPopupRemissao();
+  }
+
+  private editarRemissao = async (value: RemissaoInternaValue): Promise<void> => {
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) return;
+
+    const resultado = remissaoModule.findBlotByRefId(value.refId!);
+    if (!resultado) return;
+
+    const range = { index: resultado.index, length: resultado.blot.length() };
+
+    const callbackInterna = (novoValue: RemissaoInternaValue): void => {
+      const linhaParaAtualizar = this.quill.linhaAtual;
+      novoValue.refId = value.refId!;
+      remissaoModule.adicionarRemissao(value.refId!, novoValue);
+      // Remove CSS inválido do blot editado para restaurar navegação e visual
+      remissaoModule.restaurarRemissao(value.refId!);
+      if (linhaParaAtualizar?.blotConteudo) {
+        // Força a limpeza da entrada inválida para garantir a consistência (evita bloqueio no adicionarRemissaoInterna).
+        rootStore.dispatch(
+          removerRemissaoInvalidaAction(
+            linhaParaAtualizar.uuid!,
+            remissaoModule.getRemissoes().filter((r: RemissaoInternaValue) => r.refId !== value.refId!)
+          )
+        );
+        const elemento = this.criarElemento(
+          linhaParaAtualizar.uuid,
+          linhaParaAtualizar.uuid2,
+          linhaParaAtualizar.lexmlId,
+          linhaParaAtualizar.tipo,
+          linhaParaAtualizar.blotConteudo.html ?? '',
+          linhaParaAtualizar.numero,
+          linhaParaAtualizar.hierarquia
+        );
+        rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+        rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+      }
+    };
+
+    const callbackExterna = (novoValue: RemissaoExternaValue): void => {
+      rootStore.dispatch(adicionarRemissaoExternaAction(novoValue));
+    };
+
+    const modoEdicao: ModoEdicaoRemissao = { tipo: 'interna', refId: value.refId!, valueInterna: value };
+    await remissaoDialog(this.quill, range, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna, modoEdicao);
+  };
+
+  private editarRemissaoExterna = async (value: RemissaoExternaValue): Promise<void> => {
+    const remissaoModule = this.quill.getModule('remissaoInterna');
+    if (!remissaoModule) return;
+
+    const resultado = remissaoModule.findBlotExternoByRefId(value.refId!);
+    if (!resultado) return;
+
+    const range = { index: resultado.index, length: resultado.blot.length() };
+
+    const callbackExterna = (novoValue: RemissaoExternaValue): void => {
+      novoValue.refId = value.refId!;
+      remissaoModule.adicionarRemissaoExterna(value.refId!, novoValue);
+      rootStore.dispatch(adicionarRemissaoExternaAction(novoValue));
+    };
+
+    const callbackInterna = (novoValue: RemissaoInternaValue): void => {
+      // Troca de tipo: substitui blot externo por interno
+      remissaoModule.removerRemissaoExternaPorId(value.refId!);
+      rootStore.dispatch(removerRemissaoExternaAction(value.refId!));
+
+      const linhaParaAtualizar = this.quill.linhaAtual;
+      remissaoModule.criarRemissao(novoValue, range);
+
+      if (linhaParaAtualizar?.blotConteudo) {
+        const elemento = this.criarElemento(
+          linhaParaAtualizar.uuid,
+          linhaParaAtualizar.uuid2,
+          linhaParaAtualizar.lexmlId,
+          linhaParaAtualizar.tipo,
+          linhaParaAtualizar.blotConteudo.html ?? '',
+          linhaParaAtualizar.numero,
+          linhaParaAtualizar.hierarquia
+        );
+        rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+        rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+      }
+    };
+
+    const modoEdicao: ModoEdicaoRemissao = { tipo: 'externa', refId: value.refId!, valueExterna: value };
+    await remissaoDialog(this.quill, range, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna, modoEdicao);
+  };
+
+  private abrirDialogoRemissao = async (): Promise<void> => {
+    const range = this.quill.getSelection();
+    if (!range) {
+      this.quill.focus();
+      return;
+    }
+
+    // Salva o range para usar no callback (pois o foco pode ser perdido ao fechar o diálogo)
+    const savedRange = { index: range.index, length: range.length };
+
+    const callbackInterna = (value: RemissaoInternaValue): void => {
+      const remissaoModule = this.quill.getModule('remissaoInterna');
+      if (remissaoModule) {
+        // Captura a linha ANTES de criarRemissao: setSelection(oldRange=null) pode chamar
+        // marcarLinhaAtual e sincronizar htmlAnt=html, zerando o flag alterado.
+        const linhaParaAtualizar = this.quill.linhaAtual;
+
+        remissaoModule.criarRemissao(value, savedRange);
+
+        // Despacha diretamente sem confiar em alterado: o htmlAnt já pode ter sido
+        // sincronizado pelo setSelection ao retornar o foco do diálogo para o Quill.
+        if (linhaParaAtualizar?.blotConteudo) {
+          const elemento = this.criarElemento(
+            linhaParaAtualizar.uuid,
+            linhaParaAtualizar.uuid2,
+            linhaParaAtualizar.lexmlId,
+            linhaParaAtualizar.tipo,
+            linhaParaAtualizar.blotConteudo.html ?? '',
+            linhaParaAtualizar.numero,
+            linhaParaAtualizar.hierarquia
+          );
+          rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+          rootStore.dispatch(adicionarRemissaoInternaAction.execute(elemento));
+        }
+      }
+    };
+
+    const callbackExterna = (value: RemissaoExternaValue): void => {
+      const remissaoModule = this.quill.getModule('remissaoInterna');
+      if (remissaoModule) {
+        const linhaParaAtualizar = this.quill.linhaAtual;
+        remissaoModule.criarRemissaoExterna(value, savedRange);
+        if (linhaParaAtualizar?.blotConteudo) {
+          const elemento = this.criarElemento(
+            linhaParaAtualizar.uuid,
+            linhaParaAtualizar.uuid2,
+            linhaParaAtualizar.lexmlId,
+            linhaParaAtualizar.tipo,
+            linhaParaAtualizar.blotConteudo.html ?? '',
+            linhaParaAtualizar.numero,
+            linhaParaAtualizar.hierarquia
+          );
+          rootStore.dispatch(atualizarTextoElementoAction.execute(elemento));
+        }
+      }
+      rootStore.dispatch(adicionarRemissaoExternaAction(value));
+    };
+
+    await remissaoDialog(this.quill, savedRange, this.lexmlEtaConfig.urlAutocomplete, callbackInterna, callbackExterna);
   };
 }

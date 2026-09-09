@@ -1,6 +1,5 @@
 import { getParagrafosEOmissis, hasEmenta, isArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo, isCaput, isDispositivoGenerico } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, getElementos } from '../../../model/elemento/elementoUtil';
@@ -80,14 +79,10 @@ function isPrimeiroParagrafo(dispositivo: Dispositivo): boolean {
   return isArtigo(dispositivo.pai!) && getParagrafosEOmissis(dispositivo.pai! as Artigo).indexOf(dispositivo) === 0;
 }
 
-export const naoPodeCriarFilho = (pDispositivo: Dispositivo, action: any): boolean => {
+export const naoPodeCriarFilho = (pDispositivo: Dispositivo): boolean => {
   const dispositivo = isCaput(pDispositivo) ? pDispositivo.pai! : pDispositivo;
 
-  return (
-    isDispositivoGenerico(dispositivo) ||
-    (hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento)) ||
-    (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL && isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto))
-  );
+  return isDispositivoGenerico(dispositivo) || (hasIndicativoDesdobramento(dispositivo) && !isAcaoPermitida(dispositivo, AdicionarElemento));
 };
 
 export const isNovoDispositivoDesmembrandoAtual = (texto: string): boolean => {

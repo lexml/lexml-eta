@@ -68,6 +68,18 @@ Será aberta uma janela do browser com uma aplicação exemplo que permite testa
 
 Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
 
+## Requisito de integração — artefato WASM do `lexml-linker`
+
+O componente vendoriza `src/util/lexml-linker/vendor/lexml-linker.wasm` (parser Haskell de remissões legislativas, compilado para `wasm32-wasi`) para detecção automática de remissão externa. Esse arquivo pesa ~6,9 MB descomprimido; ao lado dele, o repositório já traz `lexml-linker.wasm.br` — a mesma coisa pré-comprimida com Brotli (~0,88 MB, -87%).
+
+**Todo projeto que importa o `lexml-eta` deve servir esse `.wasm.br` com `Content-Encoding: br`** quando o navegador aceitar Brotli (header `Accept-Encoding: br`), em vez de servir o `.wasm` cru. Isso é uma configuração do lado do host, não algo que o `lexml-eta` consegue forçar sozinho — é responsabilidade do projeto consumidor.
+
+- **Se o host for Spring MVC** (caso do `lexeditweb-editor`, host de referência hoje): usar `org.springframework.web.servlet.resource.EncodedResourceResolver`, que já suporta `br`/`gzip` por padrão desde o Spring Framework 5.1 — só precisa ser registrado na cadeia de recursos estáticos. Ver `docs/planos/PLANO_INTEGRACAO_WASM_LEXEDITWEB.md` no repositório do `lexeditweb` para o plano de integração completo (config exata, checklist, testes).
+- **Se o host for outro stack** (nginx, outro framework Java, Node etc.): o equivalente é servir arquivos pré-comprimidos por extensão baseado no `Accept-Encoding` do request (ex. `gzip_static`/`brotli_static` no nginx) — o mecanismo muda, o requisito é o mesmo.
+- **Sem essa configuração**, o `.wasm` cru de ~6,9 MB é servido normalmente — funciona, só não tem o ganho de rede da compressão.
+
+O `.wasm.br` é gerado e mantido em sincronia com o `.wasm` pelo próprio `lexml-eta` (`npm run generate:wasm-br`, verificado automaticamente em `npm test` via `npm run verify:wasm-br`) — ver `docs/referencia/LEXML_LINKER_WASM.md` para detalhes de proveniência e o procedimento de rebuild.
+
 ## Teste
 
 Para executar os testes apenas uma vez:

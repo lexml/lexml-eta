@@ -1,5 +1,4 @@
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
@@ -189,15 +188,6 @@ export class EtaContainerTable extends EtaContainer {
     return this._tipo;
   }
 
-  private _descricaoSituacao: any;
-  set descricaoSituacao(situacao: any) {
-    this._descricaoSituacao = situacao;
-  }
-
-  get descricaoSituacao(): any {
-    return this._descricaoSituacao;
-  }
-
   private _existeNaNormaAlterada: any;
   set existeNaNormaAlterada(existeNaNormaAlterada: any) {
     this._existeNaNormaAlterada = existeNaNormaAlterada;
@@ -239,32 +229,15 @@ export class EtaContainerTable extends EtaContainer {
 
   private resetClasses(): void {
     this.domNode.classList.remove('dispositivo--adicionado');
-    this.domNode.classList.remove('dispositivo--modificado');
-    this.domNode.classList.remove('dispositivo--suprimido');
   }
 
   // TODO Rever a forma atual de se atribuir estilos
   setEstilo(elemento: Elemento): void {
     if (!this.blotRotulo) return;
-    let classeCSS = '';
 
     this.resetClasses();
 
-    switch (elemento.descricaoSituacao) {
-      case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-        classeCSS = 'dispositivo--adicionado';
-        break;
-      case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
-        classeCSS = 'dispositivo--modificado';
-        break;
-      case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
-        classeCSS = 'dispositivo--suprimido';
-        break;
-    }
-
-    if (classeCSS) {
-      this.domNode.classList.add(classeCSS);
-    }
+    this.domNode.classList.add('dispositivo--adicionado');
 
     this.blotRotulo.setEstilo(elemento);
   }
@@ -333,7 +306,6 @@ export class EtaContainerTable extends EtaContainer {
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia;
-    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
 
     this.setEstilo(elemento);
@@ -352,7 +324,6 @@ export class EtaContainerTable extends EtaContainer {
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia;
-    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   }
 
@@ -370,7 +341,10 @@ export class EtaContainerTable extends EtaContainer {
 
   desativarBorda(): void {
     this.domNode.classList.remove('container__elemento--ativo');
-    this.limparContainerDireito();
+    // Guarda contra blots já removidos do Quill para evitar erro de referência nula em containerDireito.children.
+    if (this.children?.head) {
+      this.limparContainerDireito();
+    }
   }
 
   limparContainerDireito(): void {

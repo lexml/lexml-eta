@@ -5,6 +5,7 @@ import {
   isDispositivoCabecaAlteracao,
   isCaputComIrmaoUnico,
   isOmissisIrmaoUnico,
+  findDispositivoByUuid,
 } from '../../hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
@@ -12,19 +13,24 @@ import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
+import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
+import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/lexmlIdUtil';
+import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
+import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 
-export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string): any => {
+type Remissoes = Record<number, RemissaoInternaValue[]>;
+type RemissoesExternas = Record<string, RemissaoExternaValue>;
+
+export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   const resultado = montaCabecalho(urn);
-
-  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma);
-
+  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas);
   return resultado;
 };
 
-export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao): any => {
+export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao, remissoes?: Remissoes): any => {
   const articulacao = {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }),
+    lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }, remissoes),
   };
 
   return articulacao;
@@ -52,7 +58,7 @@ const montaCabecalho = (urn: string): any => {
   };
 };
 
-const montaProjetoNorma = (projetoNorma: any): any => {
+const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   const p = {
     TYPE_NAME: 'br_gov_lexml__1.ProjetoNorma',
   };
@@ -60,7 +66,7 @@ const montaProjetoNorma = (projetoNorma: any): any => {
   p[isNorma(projetoNorma) ? 'norma' : 'projeto'] = {
     TYPE_NAME: 'br_gov_lexml__1.HierarchicalStructure',
     parteInicial: montaParteInicial(projetoNorma),
-    articulacao: montaArticulacao(projetoNorma),
+    articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
   };
 
   return p;
@@ -92,14 +98,14 @@ const montaParteInicial = (projetoNorma: any): any => {
   };
 };
 
-const montaArticulacao = (projetoNorma: any): any => {
+const montaArticulacao = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao),
+    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao, remissoes, remissoesExternas),
   };
 };
 
-const buildTree = (dispositivo: Dispositivo, obj: any): any => {
+const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   let tree;
   if (isAgrupador(dispositivo)) {
     tree = obj.lXhier = [];
@@ -108,19 +114,21 @@ const buildTree = (dispositivo: Dispositivo, obj: any): any => {
   }
 
   if (isArtigo(dispositivo)) {
-    const node = buildNode((dispositivo as Artigo).caput!);
-    buildAlteracaoSeNecessario(dispositivo, node.value);
+    const node = buildNode((dispositivo as Artigo).caput!, remissoes, remissoesExternas);
+    buildAlteracaoSeNecessario(dispositivo, node.value, remissoes, remissoesExternas);
 
     tree.push(node);
 
     buildFilhos(
       dispositivo.filhos?.filter(f => !isCaput(f.pai!)),
-      tree
+      tree,
+      remissoes,
+      remissoesExternas
     );
 
-    buildTree((dispositivo as Artigo).caput!, node.value);
+    buildTree((dispositivo as Artigo).caput!, node.value, remissoes, remissoesExternas);
   } else {
-    buildFilhos(dispositivo.filhos, tree);
+    buildFilhos(dispositivo.filhos, tree, remissoes, remissoesExternas);
   }
 
   if (obj.lXcontainersOmissis && obj.lXcontainersOmissis.length === 0) delete obj.lXcontainersOmissis;
@@ -128,7 +136,7 @@ const buildTree = (dispositivo: Dispositivo, obj: any): any => {
   return tree;
 };
 
-const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any): void => {
+const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): void => {
   if (dispositivo.hasAlteracao()) {
     node['alteracao'] = {
       TYPE_NAME: 'br_gov_lexml__1.Alteracao',
@@ -140,25 +148,25 @@ const buildAlteracaoSeNecessario = (dispositivo: Dispositivo, node: any): void =
     node.alteracao.id = buildIdAlteracao((dispositivo as Artigo).caput!);
 
     dispositivo.alteracoes!.filhos?.forEach(filho => {
-      const n = buildNode(filho);
+      const n = buildNode(filho, remissoes, remissoesExternas);
 
       node.alteracao.content.push(n);
 
-      buildTree(filho, n.value);
+      buildTree(filho, n.value, remissoes, remissoesExternas);
     });
   }
 };
 
-const buildFilhos = (filhos: Dispositivo[], tree: any): any => {
+const buildFilhos = (filhos: Dispositivo[], tree: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   filhos?.forEach(filho => {
-    const node = buildNode(filho);
+    const node = buildNode(filho, remissoes, remissoesExternas);
     tree.push(node);
 
-    buildTree(filho, node.value);
+    buildTree(filho, node.value, remissoes, remissoesExternas);
   });
 };
 
-const buildNode = (dispositivo: Dispositivo): any => {
+const buildNode = (dispositivo: Dispositivo, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   const node = {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -172,7 +180,7 @@ const buildNode = (dispositivo: Dispositivo): any => {
     },
   };
 
-  buildDispositivo(dispositivo, node.value);
+  buildDispositivo(dispositivo, node.value, remissoes, remissoesExternas);
 
   return node;
 };
@@ -184,7 +192,7 @@ const buildTypeName = (dispositivo: Dispositivo): string => {
   return 'br_gov_lexml__1.DispositivoType';
 };
 
-const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
+const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): void => {
   value['id'] = buildId(dispositivo);
   if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
     value.rotulo = dispositivo.rotulo;
@@ -241,9 +249,6 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
     value['abreAspas'] = 's';
     value.rotulo = dispositivo.rotulo;
   } else if (isDispositivoAlteracao(dispositivo) && ((isCaput(dispositivo) && isCaputComIrmaoUnico(dispositivo)) || (isOmissis(dispositivo) && isOmissisIrmaoUnico(dispositivo)))) {
-    if (dispositivo.id === 'art2_cpt_alt1_art203_omi1') {
-      console.log('isDispositivoAlteracao(dispositivoTemp) && isUltimaAlteracao(dispositivoTemp)', isDispositivoAlteracao(dispositivo), isUltimaAlteracao(dispositivo, true));
-    }
     value['fechaAspas'] = 's';
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
     value['notaAlteracao'] = cabecaAlteracao.notaAlteracao || 'NR';
@@ -262,7 +267,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
   if (isValidText(dispositivo.tituloDispositivo)) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-      content: buildStructuredContent(dispositivo, 'tituloDispositivo'),
+      content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes, remissoesExternas),
     };
   }
 
@@ -271,13 +276,13 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any): void => {
   if (isAgrupador(dispositivo)) {
     value.nomeAgrupador = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
-      content: buildStructuredContent(dispositivo, 'texto'),
+      content: buildStructuredContent(dispositivo, 'texto', remissoes, remissoesExternas),
     };
   } else if (!isArtigo(dispositivo) && !isOmissis(dispositivo)) {
     if (dispositivo.texto === TEXTO_OMISSIS) {
       value['textoOmitido'] = 's';
     } else {
-      value['p'] = [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildStructuredContent(dispositivo, 'texto') }];
+      value['p'] = [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildStructuredContent(dispositivo, 'texto', remissoes, remissoesExternas) }];
     }
   }
 };
@@ -340,13 +345,11 @@ const parseHTMLTags = (html: string): ParsedElement[] => {
 
 const parseContentWithLinks = (html: string): ParsedElement[] => {
   const result: ParsedElement[] = [];
-  // Regex mais flexível para capturar href, independente do tipo de aspas
-  const linkRegex = /<a[^>]+href=(["'])(.*?)\1[^>]*>(.*?)<\/a>/gi;
+  const linkRegex = /(<a\b[^>]*>)([\s\S]*?)<\/a>/gi;
   let lastIndex = 0;
   let match;
 
   while ((match = linkRegex.exec(html)) !== null) {
-    // Texto antes do link
     if (match.index > lastIndex) {
       const textBefore = html.substring(lastIndex, match.index);
       if (textBefore.trim()) {
@@ -354,30 +357,55 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
       }
     }
 
-    // O link - normalizar aspas curvas no href
-    let href = match[2];
-    // Remover aspas curvas (Unicode U+201C, U+201D, U+2018, U+2019) e aspas normais
-    href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
+    const openingTag = match[1];
+    const content = match[2];
 
-    const content = match[3];
-    result.push({
-      type: 'element',
-      tag: 'span',
-      attributes: { href },
-      content,
-    });
+    // Remissão interna: detectar pelo atributo data-lexml-ref
+    const dataLexmlRefMatch = openingTag.match(/data-lexml-ref=(["'])([^"']+)\1/i);
+    if (dataLexmlRefMatch) {
+      result.push({
+        type: 'element',
+        tag: 'Remissao',
+        attributes: { href: dataLexmlRefMatch[2] },
+        content,
+      });
+    } else {
+      // Remiss\u00E3o externa: detectar pelo atributo data-urn
+      const dataUrnMatch = openingTag.match(/data-urn=(["'])([^"']+)\1/i);
+      if (dataUrnMatch) {
+        const urn = dataUrnMatch[2];
+        const fragmentoMatch = openingTag.match(/data-fragmento=(["'])([^"']+)\1/i);
+        const fragmento = fragmentoMatch ? fragmentoMatch[2] : '';
+        const href = fragmento ? `${urn}!${fragmento}` : urn;
+        result.push({
+          type: 'element',
+          tag: 'Remissao',
+          attributes: { href },
+          content,
+        });
+      } else {
+        // Link gen\u00E9rico: extrair href normalizando aspas curvas
+        const hrefMatch = openingTag.match(/href=(["'])(.*?)\1/i);
+        let href = hrefMatch ? hrefMatch[2] : '';
+        href = href.replace(/^[\u201C\u201D\u2018\u2019"'"]|[\u201C\u201D\u2018\u2019"'"]$/g, '');
+        result.push({
+          type: 'element',
+          tag: 'span',
+          attributes: { href },
+          content,
+        });
+      }
+    }
 
     lastIndex = linkRegex.lastIndex;
   }
 
-  // Texto após o último link
   if (lastIndex < html.length) {
     const remainingText = html.substring(lastIndex);
     if (remainingText.trim()) {
       result.push({ type: 'text', content: remainingText });
     }
   } else if (result.length === 0) {
-    // Não encontramos links, retornar o texto completo
     result.push({ type: 'text', content: html });
   }
 
@@ -409,8 +437,8 @@ const buildStructuredContentWithInlineElements = (html: string): any[] => {
     if (item.type === 'text') {
       return item.content;
     } else if (item.type === 'element') {
-      if (item.tag === 'span') {
-        return buildInlineElement('span', [item.content], item.attributes?.href);
+      if (item.tag === 'span' || item.tag === 'Remissao') {
+        return buildInlineElement(item.tag, [item.content], item.attributes?.href);
       } else {
         // Tags de formatação (b, i, u, sub, sup)
         let innerContent: any[];
@@ -451,7 +479,7 @@ const buildStructuredContentWithLinks = (conteudo: string): any[] => {
   ocorrencias?.forEach((m, i) => {
     const http = m.match(regex) ? m : '';
 
-    result.push(buildSpan(http ?? ''));
+    result.push(buildRemissaoOuSpan(http ?? ''));
 
     const from = conteudo.indexOf(m) + m.length;
 
@@ -473,11 +501,174 @@ const buildStructuredContentWithLinks = (conteudo: string): any[] => {
   return result;
 };
 
-const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] => {
-  const conteudo = dispositivo[campo];
-  if (!conteudo && conteudo !== '') {
+/**
+ * Injeta tags <a data-urn> no texto do dispositivo para entradas do registry
+ * que ainda não estejam representadas como link (caso típico: remissão criada
+ * sem que atualizarTextoElementoAction tenha sido disparado).
+ */
+const substituirTextoExternoForaDeLinks = (html: string, textoRef: string, link: string): string => {
+  if (!html.includes(textoRef)) return html;
+  const partes = html.split(/(<a\b[^>]*>[\s\S]*?<\/a>)/gi);
+  for (let i = 0; i < partes.length; i += 2) {
+    if (partes[i].includes(textoRef)) {
+      partes[i] = partes[i].replace(textoRef, link);
+      break;
+    }
+  }
+  return partes.join('');
+};
+
+const injetarLinksRemissaoExternaNoTexto = (texto: string, entries: RemissaoExternaValue[]): string => {
+  if (!texto) return texto;
+  const faltando = entries.filter(e => e.textoRef && e.targetUrn && !texto.includes(`data-urn="${e.targetUrn}"`));
+  if (faltando.length === 0) return texto;
+
+  let resultado = texto;
+  for (const entry of faltando) {
+    if (!entry.textoRef) continue;
+    const attrFragmento = entry.targetFragmento ? ` data-fragmento="${entry.targetFragmento}"` : '';
+    const link = `<a data-urn="${entry.targetUrn}"${attrFragmento} class="lexml-remissao-externa" href="#" target="_self">${entry.textoRef}</a>`;
+    resultado = substituirTextoExternoForaDeLinks(resultado, entry.textoRef, link);
+  }
+  return resultado;
+};
+
+/**
+ * Injeta tags <a data-lexml-ref> no texto do dispositivo para entradas do registry
+ * que ainda não estejam representadas como link (caso típico: remissões auto-detectadas
+ * renderizadas via 'silent' no Quill, que não atualizam dispositivo.texto no Redux).
+ */
+const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValue[]): string => {
+  if (!texto) return texto;
+  const faltando = entries.filter(e => {
+    if (!e.textoRef) return false;
+    // Entradas inválidas: injetar sentinel @invalido no texto plain; em HTML já corrigido
+    // por corrigirLexmlRefsObsoletosNoTexto, a injeção falhará silenciosamente (posição
+    // não coincide com o textoRef dentro do <a>, e substituirTextoRefForaDeLinks é pulado).
+    if (e.valida === false) return true;
+    if (!e.targetLexmlId) return false;
+    // Permite múltiplos links para o mesmo alvo se houver posição exata; caso contrário, evita reinjeção.
+    if (e.inicio !== undefined) return true;
+    return !texto.includes(`data-lexml-ref="${e.targetLexmlId}"`);
+  });
+  if (faltando.length === 0) return texto;
+
+  // Ordena descendentemente pelo início para que injeções posteriores não desloquem índices anteriores
+  const ordenados = [...faltando].sort((a, b) => (b.inicio ?? 0) - (a.inicio ?? 0));
+
+  let resultado = texto;
+  for (const entry of ordenados) {
+    const targetId = entry.valida === false ? '@invalido' : entry.targetLexmlId!;
+    const link = `<a href="${targetId}" data-lexml-ref="${targetId}" class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
+    // texto simples — inicio aponta diretamente para a posição no texto
+    if (entry.inicio !== undefined && resultado.substring(entry.inicio, entry.inicio + entry.textoRef!.length) === entry.textoRef) {
+      resultado = resultado.substring(0, entry.inicio) + link + resultado.substring(entry.inicio + entry.textoRef!.length);
+      continue;
+    }
+    // HTML com links existentes — substituir fora dos <a> existentes (apenas para entradas válidas;
+    // inválidas já foram corrigidas por corrigirLexmlRefsObsoletosNoTexto ou texto é plain sem link).
+    if (entry.valida !== false) {
+      resultado = substituirTextoRefForaDeLinks(resultado, entry.textoRef!, targetId);
+    }
+  }
+  return resultado;
+};
+
+// Sobe pela cadeia de pais até localizar a articulação raiz. Retorna null para nós
+// fora da árvore (ex: epigrafe/ementa do parteInicial, que não têm `pai`).
+const obterArticulacaoRaiz = (dispositivo: Dispositivo): Articulacao | null => {
+  let atual: Dispositivo | undefined = dispositivo;
+  while (atual) {
+    if (isArticulacao(atual)) return atual as Articulacao;
+    atual = atual.pai;
+  }
+  return null;
+};
+
+// Regex para capturar tags <a ...>texto</a> preservando atributos e conteúdo (não-aninhado).
+const REGEX_LINK_REMISSAO_INTERNA = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+const REGEX_DATA_LEXML_REF = /data-lexml-ref="([^"]+)"/i;
+const REGEX_HREF_LXETAID = /href="#lxEtaId(\d+)"/i;
+
+// Atualiza `data-lexml-ref` de links cujo destino foi renumerado, aplicando o sufixo
+// @revisar quando o texto não é reconhecível e não foi confirmado pelo usuário.
+// Usa o `href="#lxEtaId{uuid}"` como ID estável para localizar o dispositivo atual.
+const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositivo, remissoes?: Remissoes): string => {
+  if (!html || !html.includes('data-lexml-ref=')) return html;
+
+  const articulacao = obterArticulacaoRaiz(dispositivo);
+  if (!articulacao) return html;
+
+  const entriesParaDispositivo: RemissaoInternaValue[] = dispositivo.uuid !== undefined ? remissoes?.[dispositivo.uuid] ?? [] : [];
+
+  return html.replace(REGEX_LINK_REMISSAO_INTERNA, (match, atributos, conteudo) => {
+    const lexmlRefMatch = atributos.match(REGEX_DATA_LEXML_REF);
+    if (!lexmlRefMatch) return match;
+
+    const hrefMatch = atributos.match(REGEX_HREF_LXETAID);
+    if (!hrefMatch) return match;
+
+    const lexmlIdAntigo = lexmlRefMatch[1];
+    const targetUuid = parseInt(hrefMatch[1], 10);
+    if (!targetUuid) return match;
+
+    const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, targetUuid, true);
+    if (!destino) {
+      // Dispositivo excluído — usar sentinela para evitar confusão com IDs reciclados após renumeração.
+      const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, 'data-lexml-ref="@invalido"').replace(REGEX_HREF_LXETAID, 'href="@invalido"');
+      return `<a${novosAtributos}>${conteudo}</a>`;
+    }
+
+    const lexmlIdNovo = destino.id;
+    if (!lexmlIdNovo) return match;
+
+    // Determina se o link precisa de @revisar: estado marcado explicitamente, ou
+    // state stale (sem entry) com texto não-reconhecível (usuário ainda não revisou).
+    const entry = entriesParaDispositivo.find(r => r.targetUuid === targetUuid);
+    const textoNaoReconhecivel = !isTextoReconhecivel(conteudo);
+    const temRevisaoPendente = entry?.revisao === true || (entry === undefined && textoNaoReconhecivel);
+
+    const sufixo = temRevisaoPendente ? SUFIXO_REVISAO : '';
+    const lexmlIdFinal = lexmlIdNovo + sufixo;
+
+    if (lexmlIdAntigo === lexmlIdFinal) return match;
+
+    const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, `data-lexml-ref="${lexmlIdFinal}"`);
+    const novoConteudo = temRevisaoPendente ? conteudo : atualizarTextoRemissao(conteudo, lexmlIdAntigo, lexmlIdNovo);
+    return `<a${novosAtributos}>${novoConteudo}</a>`;
+  });
+};
+
+const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any[] => {
+  let raw = dispositivo[campo];
+  if (!raw && raw !== '') {
     return [dispositivo];
   }
+
+  // Self-healing: corrige data-lexml-ref no HTML para evitar salvar IDs antigos, pois o update visual do Quill não atualiza o Redux.
+  if (campo === 'texto') {
+    raw = corrigirLexmlRefsObsoletosNoTexto(raw, dispositivo, remissoes);
+  }
+
+  // Injeta links de remissão interna que ainda não estão no texto (ex: auto-detectadas via 'silent')
+  if (campo === 'texto' && remissoes && dispositivo.uuid !== undefined) {
+    const entries = remissoes[dispositivo.uuid];
+    if (entries?.length) {
+      raw = injetarLinksRemissaoNoTexto(raw, entries);
+    }
+  }
+
+  // Injeta links de remissão externa que ainda não estão no texto
+  if (campo === 'texto' && remissoesExternas && dispositivo.uuid !== undefined) {
+    const uuid = dispositivo.uuid;
+    const entriesExt = Object.values(remissoesExternas).filter(e => e.sourceUuid === uuid);
+    if (entriesExt.length) {
+      raw = injetarLinksRemissaoExternaNoTexto(raw, entriesExt);
+    }
+  }
+
+  // Normaliza spans do Parchment Attributor antes de qualquer análise
+  const conteudo = removerSpanParchmentRemissao(raw);
 
   // Verifica se há links
   const hasLinks = /<a[^>]+href=/.test(conteudo);
@@ -507,7 +698,7 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string): any[] 
 };
 
 const buildSpan = (m: string): any => {
-  const resultHref = m.match(/href="(.*?)"*>/i);
+  const resultHref = m.match(/href="([^"]*)"/i);
   const href = resultHref && resultHref[1] ? resultHref[1] : '';
 
   const contentHref = m.match(/<a[^>]+href=".*?"[^>]*>(.*?)<\/a>/);
@@ -527,4 +718,39 @@ const buildSpan = (m: string): any => {
       content,
     },
   };
+};
+
+const buildRemissao = (m: string, lexmlRef: string): any => {
+  const contentMatch = m.match(/<a[^>]*>(.*?)<\/a>/i);
+  const content = contentMatch ? [contentMatch[1]?.trim()] : [''];
+
+  return {
+    name: {
+      namespaceURI: 'http://www.lexml.gov.br/1.0',
+      localPart: 'Remissao',
+      prefix: '',
+      key: '{http://www.lexml.gov.br/1.0}Remissao',
+      string: '{http://www.lexml.gov.br/1.0}Remissao',
+    },
+    value: {
+      TYPE_NAME: 'br_gov_lexml__1.GenInline',
+      href: lexmlRef,
+      content,
+    },
+  };
+};
+
+const buildRemissaoOuSpan = (m: string): any => {
+  const dataLexmlRefMatch = m.match(/data-lexml-ref="([^"]+)"/i);
+  if (dataLexmlRefMatch) {
+    return buildRemissao(m, dataLexmlRefMatch[1]);
+  }
+  const dataUrnMatch = m.match(/data-urn="([^"]+)"/i);
+  if (dataUrnMatch) {
+    const urn = dataUrnMatch[1];
+    const fragmentoMatch = m.match(/data-fragmento="([^"]+)"/i);
+    const fragmento = fragmentoMatch ? fragmentoMatch[1] : '';
+    return buildRemissao(m, fragmento ? `${urn}!${fragmento}` : urn);
+  }
+  return buildSpan(m);
 };

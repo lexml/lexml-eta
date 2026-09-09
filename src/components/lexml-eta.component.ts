@@ -38,6 +38,9 @@ import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
 
+/**
+ * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito. Avaliar se pode ser removido completamente.
+ */
 export interface DispositivoBloqueado {
   lexmlId: string;
   bloquearFilhos: boolean;
@@ -69,8 +72,10 @@ export class LexmlEtaParametrosEdicao {
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
 
-  // Lista de lexml id's de artigos bloqueados para edição.
-  // Não é salvo junto com a emenda, portanto deve ser informado também ao abrir uma emenda existente.
+  /**
+   * @deprecated Aceito por compatibilidade, mas ignorado. Bloquear dispositivos só fazia sentido
+   * ao emendar uma proposição existente.
+   */
   dispositivosBloqueados?: (string | DispositivoBloqueado)[];
 
   // Identificação do usuário para registro de marcas de revisão
@@ -214,7 +219,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return prop;
   }
 
-  getProposicao(): any {
+  getProposicao(): Proposicao {
     if (!this.urn) {
       const proposicao = new Proposicao();
       if (this.anexoParecer) {
@@ -451,7 +456,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.notasRodape = proposicao.notasRodape || [];
     this._lexmlJustificativa.setContent(proposicao.justificativa || '', proposicao.notasRodape || []);
     this._lexmlData.data = this.anexoParecer ? '' : proposicao.dataUltimaModificacao;
-    this._lexmlEta!.setDispositivosERevisoesEmenda(proposicao.revisoes);
+    this._lexmlEta!.setRevisoes(proposicao.revisoes);
     this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
   }
 
@@ -739,10 +744,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           font-family: var(--eta-font-serif);
           text-align: left;
         }
-        /* #lexml-eta-editor-texto-rico-justificativa #lexml-eta-editor-texto-rico {
-          height: calc(var(--height) - 44px);
+        #lexml-eta-editor-texto-rico-justificativa-inner {
+          height: calc(var(--heightJustificativa));
           overflow: var(--overflow);
-        } */
+        }
         .badge-pulse {
           margin-left: 7px;
           height: 16px;

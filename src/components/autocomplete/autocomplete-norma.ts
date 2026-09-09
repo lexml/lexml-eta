@@ -66,9 +66,39 @@ export class AutocompleteNorma extends LitElement {
     const norma = new Norma(urn);
     const query = `${norma.sData()} ${norma.numero()}`;
     this._searchNormas(query).then(normas => {
-      this._selectedNorma = normas.find(n => n.urn === urn) as Norma;
+      const encontrada = normas.find(n => n.urn === urn);
+      if (!encontrada) return; // URN não encontrada na busca (ex.: citação abreviada de ano-apenas) — mantém o campo como estava
+      this._selectedNorma = encontrada;
       this.onSelect(this._selectedNorma);
       this._autoCompleteAsync.value = this._selectedNorma.nomePreferido;
+    });
+  }
+
+  setNorma(norma: Norma): void {
+    this._selectedNorma = norma;
+    this.onSelect(norma);
+    this.updateComplete.then(() => {
+      if (this._autoCompleteAsync && norma.nomePreferido) {
+        this._autoCompleteAsync.value = norma.nomePreferido;
+      }
+    });
+    // Busca dados completos (inclui ementa) se não disponíveis
+    if (!norma.ementa && norma.urn) {
+      this._buscarEPreencherNorma(norma.urn);
+    }
+  }
+
+  private _buscarEPreencherNorma(urn: string): void {
+    const aux = new Norma(urn);
+    const query = `${aux.sData()} ${aux.numero()}`;
+    this._searchNormas(query).then(normas => {
+      const encontrada = normas.find(n => n.urn === urn);
+      if (encontrada) {
+        this._selectedNorma = encontrada;
+        if (this._autoCompleteAsync) {
+          this._autoCompleteAsync.value = encontrada.nomePreferido;
+        }
+      }
     });
   }
 

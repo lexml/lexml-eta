@@ -13,7 +13,7 @@ let state: State;
 
 describe('Testando carregamento da MPV 905/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -46,12 +46,9 @@ describe('Testando carregamento da MPV 905/2019', () => {
       });
     });
 
-    it('Deveria possuir parágrafos do art 16 com situação Dispositivo Suprimido', () => {
-      expect(state.articulacao!.artigos[15].filhos.every(a => a.situacao.descricaoSituacao === 'Dispositivo Suprimido')).to.equal(true);
-    });
-
-    it('Deveria possuir parágrafos do art 19 com situação Dispositivo Suprimido', () => {
-      expect(state.articulacao!.artigos[18].filhos.every(a => a.situacao.descricaoSituacao === 'Dispositivo Suprimido')).to.equal(true);
+    it('Deveria remover os parágrafos dos artigos 16 e 19 ao colar substituindo', () => {
+      expect(state.articulacao!.artigos[15].filhos.length).to.equal(0);
+      expect(state.articulacao!.artigos[18].filhos.length).to.equal(0);
     });
   });
 });

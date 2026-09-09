@@ -23,14 +23,20 @@ const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
   atual.filhos.forEach((filho, index) => {
     const novo = criaDispositivo(
       isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
-      destino.tipoProvavelFilho!
+      destino.tipoProvavelFilho!,
+      undefined,
+      undefined,
+      filho.uuid
     );
     novo.texto = filho.texto ?? '';
-    novo.situacao = filho.situacao;
     novo.mensagens = validaDispositivo(novo);
     novo.createRotulo(novo);
-    filho.filhos ? converteFilhos(filho, novo) : undefined;
-    index === atual.filhos.length - 1 ? destino.renumeraFilhos() : undefined;
+    if (filho.filhos) {
+      converteFilhos(filho, novo);
+    }
+    if (index === atual.filhos.length - 1) {
+      destino.renumeraFilhos();
+    }
   });
 };
 
@@ -45,7 +51,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformarIncisoParagrafoEmAlinea':
     case 'transformarParagrafoEmIncisoParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     case 'transformarDispositivoGenericoEmInciso':
     case 'transformarDispositivoGenericoEmAlinea':
@@ -63,33 +69,32 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformarIncisoCaputEmOmissisIncisoCaput':
     case 'transformarIncisoParagrafoEmOmissisIncisoParagrafo':
       paiNovo = paiAtual!;
-      novo = criaDispositivo(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual));
+      novo = criaDispositivo(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual), atual.uuid);
       break;
     case 'transformarParagrafoEmInciso':
       if (isParagrafo(atual) && (isPrimeiroMesmoTipo(atual) || isUnicoMesmoTipo(atual))) {
         paiNovo = paiAtual!;
-        novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo);
+        novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo, undefined, undefined, atual.uuid);
         break;
       }
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     case 'transformarParagrafoEmIncisoCaput':
       paiNovo = paiAtual!;
-      novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo);
+      novo = criaDispositivo((paiNovo as Artigo).caput!, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     case 'transformarArtigoEmParagrafo':
       paiNovo = getDispositivoAnterior(atual)!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, undefined, undefined, atual.uuid);
       break;
     default:
       paiNovo = atual.pai!.pai!;
-      novo = criaDispositivo(paiNovo, action.novo.tipo, atual.pai!);
+      novo = criaDispositivo(paiNovo, action.novo.tipo, atual.pai!, undefined, atual.uuid);
       break;
   }
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
   novo.createRotulo(novo);
-  novo.situacao = atual.situacao;
   if (isDispositivoCabecaAlteracao(novo)) {
     novo.notaAlteracao = 'NR';
   }
@@ -110,13 +115,16 @@ export const copiaFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
     const novo = criaDispositivo(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
     filho.rotulo ? (novo.rotulo = filho.rotulo) : novo.createRotulo(novo);
     novo.texto = filho.texto ?? '';
-    novo.situacao = filho.situacao;
     atual.removeFilho(filho);
     novo.mensagens = validaDispositivo(filho);
 
-    filho.filhos ? (atual.tipo === destino.tipo ? copiaFilhos(filho, novo) : converteFilhos(filho, novo)) : undefined;
+    if (filho.filhos) {
+      atual.tipo === destino.tipo ? copiaFilhos(filho, novo) : converteFilhos(filho, novo);
+    }
 
-    atual.filhos.length === 0 ? destino.renumeraFilhos() : undefined;
+    if (atual.filhos.length === 0) {
+      destino.renumeraFilhos();
+    }
   });
 };
 

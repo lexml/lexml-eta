@@ -1,9 +1,7 @@
 import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
-import { Artigo } from './../../../model/dispositivo/dispositivo';
-import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao, getPaiQuePodeReceberFilhoDoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import {
@@ -16,7 +14,6 @@ import {
 } from '../../../model/elemento/elementoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
-  getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
   getUltimoFilho,
@@ -27,8 +24,6 @@ import {
   isDispositivoCabecaAlteracao,
   isParagrafoUnico,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
 import { ajustaReferencia, getElementosDoDispositivo } from '../util/reducerUtil';
 import { Eventos } from './eventos';
@@ -211,10 +206,7 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
     .map(d => createElemento(d))
     .flat();
 
-  const renumeradosPaiOriginal =
-    paiOriginal?.filhos
-      .filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO || f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_NOVO)
-      .map(d => createElemento(d)) || [];
+  const renumeradosPaiOriginal = paiOriginal?.filhos.map(d => createElemento(d)) || [];
 
   if (irmaoAnterior && irmaosMesmoTipo(irmaoAnterior).length === 1) {
     renumerados.unshift(createElemento(irmaoAnterior));
@@ -226,71 +218,6 @@ export const removeAgrupadorAndBuildEvents = (articulacao: Articulacao, atual: D
   eventos.add(StateType.ElementoRemovido, [removido]);
   eventos.add(StateType.SituacaoElementoModificada, transferidosParaOutroPai);
   eventos.add(StateType.ElementoRenumerado, [...renumerados, ...renumeradosPaiOriginal]);
-  return eventos.build();
-};
-
-export const getPaiQuePodeReceberFilhoDoTipo = (dispositivo: Dispositivo, tipoFilho: string, dispositivosPermitidos: Dispositivo[]): Dispositivo | undefined => {
-  if (!dispositivo) {
-    return undefined;
-  }
-  return dispositivo.tiposPermitidosFilhos?.includes(tipoFilho)
-    ? dispositivosPermitidos.length === 0 || dispositivosPermitidos.includes(dispositivo)
-      ? dispositivo
-      : undefined
-    : getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, tipoFilho, dispositivosPermitidos);
-};
-
-const restaura = (d: Dispositivo): void => {
-  d.numero = d.situacao.dispositivoOriginal?.numero ?? '';
-  d.rotulo = d.situacao.dispositivoOriginal?.rotulo ?? '';
-  d.id = d.situacao.dispositivoOriginal?.lexmlId ?? '';
-  d.texto = d.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO ? d.situacao.dispositivoOriginal?.conteudo?.texto ?? '' : d.texto;
-  d.situacao = new DispositivoOriginal();
-  if (isArtigo(d)) {
-    (d as Artigo).caput!.situacao = new DispositivoOriginal();
-  }
-};
-
-export const restauraAndBuildEvents = (dispositivo: Dispositivo): StateEvent[] => {
-  const result: StateEvent[] = [];
-
-  const addRestauracao = (d: Dispositivo): void => {
-    const elementoAntesRestauracao = createElemento(d);
-    restaura(d);
-    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d)] });
-  };
-
-  if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-    const aRestaurar = getDispositivoAndFilhosAsLista(dispositivo).filter(f => f.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO);
-    aRestaurar.forEach(addRestauracao);
-
-    const elementoPai = getElementoPaiDeEnumerodos(dispositivo);
-    if (elementoPai) {
-      result.push({ stateType: StateType.ElementoValidado, elementos: [elementoPai] });
-    }
-  } else {
-    addRestauracao(dispositivo);
-  }
-
-  result.push({ stateType: StateType.ElementoSelecionado, elementos: [createElemento(dispositivo, true)] });
-  return result;
-};
-
-export const suprimeAndBuildEvents = (articulacao: Articulacao, dispositivo: Dispositivo): StateEvent[] => {
-  getDispositivoAndFilhosAsLista(dispositivo).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d))));
-
-  if (dispositivo.alteracoes && dispositivo.alteracoes.filhos.length > 0) {
-    dispositivo.alteracoes.filhos.forEach(f => getDispositivoAndFilhosAsLista(f).forEach(d => (d.situacao = new DispositivoSuprimido(createElemento(d)))));
-  }
-  const eventos = new Eventos();
-  eventos.add(StateType.ElementoSuprimido, getElementos(dispositivo));
-
-  const elementoPai = getElementoPaiDeEnumerodos(dispositivo);
-  if (elementoPai) {
-    eventos.add(StateType.ElementoValidado, [elementoPai]);
-  }
-
-  eventos.add(StateType.ElementoSelecionado, [createElemento(dispositivo, true)]);
   return eventos.build();
 };
 
@@ -351,18 +278,6 @@ export const createEventos = (): StateEvent[] => {
       elementos: [],
     },
     {
-      stateType: StateType.ElementoRestaurado,
-      referencia: undefined,
-      pai: undefined,
-      elementos: [],
-    },
-    {
-      stateType: StateType.ElementoSuprimido,
-      referencia: undefined,
-      pai: undefined,
-      elementos: [],
-    },
-    {
       stateType: StateType.ElementoValidado,
       referencia: undefined,
       pai: undefined,
@@ -400,6 +315,36 @@ export const createEventos = (): StateEvent[] => {
     },
     {
       stateType: StateType.RevisaoRejeitada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoRedirecionar,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.AtualizaRemissaoInterna,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoRenumerada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoInvalidada,
+      referencia: undefined,
+      pai: undefined,
+      elementos: [],
+    },
+    {
+      stateType: StateType.RemissaoRestaurada,
       referencia: undefined,
       pai: undefined,
       elementos: [],

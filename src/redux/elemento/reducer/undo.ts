@@ -1,11 +1,10 @@
 import { agrupaElemento } from './agrupaElemento';
 import { removeElemento } from './removeElemento';
+import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
 import {
   ajustarAtributosAgrupadorIncluidoPorUndoRedo,
   isUndoRedoInclusaoExclusaoAgrupador,
   processaSituacoesAlteradas,
-  processarRestaurados,
-  processarSuprimidos,
   processarRevisoesAceitasOuRejeitadas,
   ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
   isUndoRedoColarSubstituindo,
@@ -16,8 +15,8 @@ import { getElementosRemovidosEIncluidos, getEvento, unificarEvento } from '../e
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
-import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
-import { getRevisoesFromElementos } from '../util/revisaoUtil';
+import { createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { findDispositivoByUuid } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -42,6 +41,7 @@ export const undo = (state: any): State => {
     usuario: state.usuario,
     revisoes: state.revisoes,
     numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
+    remissoes: state.remissoes,
   };
 
   if (isUndoRedoColarSubstituindo(eventos)) {
@@ -89,6 +89,7 @@ export const undo = (state: any): State => {
 
     retorno.ui!.events = [...eventosRevisao, ...tempState.ui!.events];
     retorno.present = [...eventosRevisao, ...tempState.ui!.events];
+    retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
     return retorno;
   }
@@ -98,22 +99,57 @@ export const undo = (state: any): State => {
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
 
-  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSuprimido).forEach((ev: StateEvent) => events.eventos.push(...processarSuprimidos(state, ev)));
+  const eventoRemissaoInvalidada = eventos.find((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada);
+  if (eventoRemissaoInvalidada?.remissaoInvalidacao) {
+    events.eventos.push({
+      stateType: StateType.RemissaoRestaurada,
+      remissaoInvalidacao: eventoRemissaoInvalidada.remissaoInvalidacao,
+    });
 
-  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));
+    // Restaura entradas valida:false → undefined e limpa mensagem de remissão inválida
+    const lexmlIdRestaurado = eventoRemissaoInvalidada.remissaoInvalidacao.lexmlId;
+    if (state.remissoes && lexmlIdRestaurado) {
+      const novoRegistro: Record<number, any[]> = { ...state.remissoes };
+      const sourceUuidsAfetados: number[] = [];
 
-  const revisoesDeRejeicaoDeRestauracaoASeremRetornadas = getRevisoesFromElementos(
-    eventos
-      .filter((ev: StateEvent) => ev.stateType === StateType.RevisaoRejeitada)
-      .map((ev: StateEvent) => ev.elementos || [])
-      .flat()
-  );
+      for (const uuidStr of Object.keys(novoRegistro)) {
+        const uuid = Number(uuidStr);
+        const remissoes = novoRegistro[uuid];
+        const tinhaInvalida = remissoes.some((r: any) => r.targetLexmlId === lexmlIdRestaurado && r.valida === false);
+        if (tinhaInvalida) {
+          novoRegistro[uuid] = remissoes.map((r: any) => {
+            if (r.targetLexmlId === lexmlIdRestaurado && r.valida === false) {
+              const copia = { ...r };
+              delete copia.valida;
+              return copia;
+            }
+            return r;
+          });
+          sourceUuidsAfetados.push(uuid);
+        }
+      }
+
+      if (sourceUuidsAfetados.length > 0) {
+        retorno.remissoes = novoRegistro;
+        // Remove os alertas de remissão inválida dos dispositivos cujas remissões foram restauradas.
+        const idsAlertasRestaurados = new Set(sourceUuidsAfetados.map(uuid => `alerta-remissao-invalida-${uuid}`));
+        retorno.ui!.alertas = (retorno.ui!.alertas ?? []).filter((a: any) => !idsAlertasRestaurados.has(a.id));
+        for (const sourceUuid of sourceUuidsAfetados) {
+          const dispositivoOrigem = findDispositivoByUuid(state.articulacao, sourceUuid, true);
+          if (dispositivoOrigem) {
+            events.eventos.push({
+              stateType: StateType.ElementoValidado,
+              elementos: [createElementoValidado(dispositivoOrigem)],
+            });
+          }
+        }
+      }
+    }
+  }
 
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) =>
-      events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO', revisoesDeRejeicaoDeRestauracaoASeremRetornadas) })
-    );
+    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO') }));
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
@@ -147,6 +183,7 @@ export const undo = (state: any): State => {
 
   retorno.ui!.events = [...eventosRevisao, ...events.build()];
   retorno.present = [...eventosRevisao, ...events.build()];
+  retorno.remissoesExternas = inicializaRemissoesExternasAoAbrir(retorno.articulacao!);
 
   return retorno;
 };

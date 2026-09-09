@@ -1,5 +1,4 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao, TipoSituacao } from '../../../model/dispositivo/situacao';
 import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
@@ -12,15 +11,8 @@ import {
   getDispositivoAnterior,
   getTiposAgrupadorArtigoOrdenados,
   getUltimoFilho,
-  isAdicionado,
   isArticulacaoAlteracao,
-  isSuprimido,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
-import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
-import { DispositivoNovo } from '../../../model/lexml/situacao/dispositivoNovo';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
@@ -31,7 +23,6 @@ import {
   associarRevisoesAosElementos,
   existeRevisaoCriadaPorExclusao,
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
-  findRevisaoDeRestauracaoByUuid,
   findUltimaRevisaoDoGrupo,
   getElementosFromRevisoes,
   isRevisaoPrincipal,
@@ -39,18 +30,7 @@ import {
 } from './revisaoUtil';
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
-import { buildId } from '../../../model/lexml/util/idUtil';
-
-const getTipoSituacaoByDescricao = (descricao: string): TipoSituacao => {
-  switch (descricao) {
-    case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-      return new DispositivoAdicionado();
-    case DescricaoSituacao.DISPOSITIVO_NOVO:
-      return new DispositivoNovo();
-    default:
-      return new DispositivoOriginal();
-  }
-};
+import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
@@ -94,20 +74,15 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
   novo!.numero = elemento?.hierarquia?.numero;
   novo.rotulo = elemento?.rotulo;
   novo.mensagens = elemento?.mensagens;
-  novo.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
-  if (elemento.descricaoSituacao === 'Dispositivo Adicionado') {
-    (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-    if (modo) {
-      (novo.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
-    }
+  novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
+  if (modo) {
+    novo.classificacaoDocumento = modo as any;
   }
   if (isArtigo(novo)) {
-    (novo as Artigo).caput!.situacao = getTipoSituacaoByDescricao(elemento!.descricaoSituacao!);
     if (elemento.norma) {
       createAlteracao(novo);
       (novo as Artigo).alteracoes!.base = elemento.norma;
-      novo.alteracoes!.situacao = new DispositivoAdicionado();
-      (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo as any;
+      novo.alteracoes!.classificacaoDocumento = modo as any;
       novo.alteracoes!.id = buildId(novo.alteracoes!);
     }
   }
@@ -144,6 +119,10 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
 
     const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos, state.modo);
     pai?.renumeraFilhos();
+    // renumeraFilhos só atualiza .numero/.rotulo — sem isto, .id (buildId) fica obsoleto para os
+    // dispositivos deslocados pela reinclusão, quebrando qualquer recálculo que dependa do id atual
+    // (ex.: sincronizarRemissoesPosAcao, ver docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md).
+    updateIdDispositivoAndFilhos(state.articulacao!);
 
     if (novosEvento) {
       const posicao = elemento!.hierarquia!.posicao;
@@ -174,6 +153,7 @@ export const remover = (state: State, evento: StateEvent): Elemento[] => {
         const pai = dispositivo.pai!;
         pai.removeFilho(dispositivo);
         pai.renumeraFilhos();
+        updateIdDispositivoAndFilhos(pai);
       }
     });
     return evento.elementos;
@@ -181,27 +161,7 @@ export const remover = (state: State, evento: StateEvent): Elemento[] => {
   return [];
 };
 
-export const restaurarSituacao = (state: State, evento: StateEvent, eventoRestaurados: StateEvent, Situacao: any): Elemento[] => {
-  if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
-    evento.elementos.forEach(el => {
-      const d = getDispositivoFromElemento(state.articulacao!, el, true);
-
-      if (Situacao instanceof DispositivoOriginal) {
-        d!.numero = d!.situacao.dispositivoOriginal?.numero ?? '';
-        d!.rotulo = d!.situacao.dispositivoOriginal?.rotulo ?? '';
-        d!.texto = d!.situacao.dispositivoOriginal?.conteudo?.texto ?? '';
-        d!.situacao = new DispositivoOriginal();
-      } else {
-        d!.situacao = new Situacao(createElemento(d!));
-      }
-      eventoRestaurados.elementos!.push(createElemento(d!));
-    });
-    return eventoRestaurados.elementos!;
-  }
-  return [];
-};
-
-export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO', revisoes: RevisaoElemento[] = []): Elemento[] => {
+export const processarModificados = (state: State, evento: StateEvent, operacao: 'UNDO' | 'REDO'): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const novosElementos: Elemento[] = [];
 
@@ -211,29 +171,16 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
       if (dispositivo) {
         const permiteAtualizar = anterior !== dispositivo.uuid || (operacao === 'REDO' && anterior === dispositivo.uuid);
         if (permiteAtualizar) {
-          if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-            if (findRevisaoDeRestauracaoByUuid(revisoes, dispositivo.uuid!) || dispositivo.situacao.dispositivoOriginal!.conteudo!.texto === e.conteudo?.texto) {
-              dispositivo.texto = dispositivo.situacao.dispositivoOriginal!.conteudo?.texto ?? '';
-              dispositivo.situacao = new DispositivoOriginal();
-            } else {
-              dispositivo.texto = e.conteudo?.texto ?? '';
-            }
-          } else {
-            if (e.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-              dispositivo.situacao = new DispositivoModificado(createElemento(dispositivo));
-            }
-            dispositivo.texto = e.conteudo?.texto ?? '';
-          }
+          dispositivo.texto = e.conteudo?.texto ?? '';
+
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;
           }
 
-          if (dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-            (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada = e.existeNaNormaAlterada;
-            if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
-              const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
-              cabecaAlteracao.notaAlteracao = e.notaAlteracao;
-            }
+          dispositivo.existeNaNormaAlterada = e.existeNaNormaAlterada;
+          if (isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo)) {
+            const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
+            cabecaAlteracao.notaAlteracao = e.notaAlteracao;
           }
 
           dispositivo.mensagens = validaDispositivo(dispositivo);
@@ -330,64 +277,20 @@ export const ajustarHierarquivoAgrupadorIncluidoPorUndoRedo = (articulacao: Arti
   const pai = agrupador.pai!;
   const ultimoFilhoDireto = getDispositivoFromElemento(articulacao, elAgrupador.ultimoFilhoDireto)!;
 
-  let index = pai.filhos.indexOf(agrupador) + 1;
+  const index = pai.filhos.indexOf(agrupador) + 1;
 
   while (index < pai.filhos.length) {
     const d = pai.filhos[index];
-    if (isAdicionado(d)) {
-      pai.removeFilho(d);
-      d.pai = agrupador;
-      agrupador.addFilho(d);
+    pai.removeFilho(d);
+    d.pai = agrupador;
+    agrupador.addFilho(d);
 
-      if (d.uuid === ultimoFilhoDireto.uuid) {
-        break;
-      }
-    } else {
-      index++;
+    if (d.uuid === ultimoFilhoDireto.uuid) {
+      break;
     }
   }
 
   eventosResultantes.push({ stateType: StateType.SituacaoElementoModificada, elementos: getDispositivoAndFilhosAsLista(agrupador).map(d => createElemento(d)) });
-};
-
-export const processarRestaurados = (state: State, evento: StateEvent, acao: string): StateEvent => {
-  const elementoDeReferencia = evento.elementos![acao === 'UNDO' ? 0 : 1];
-  const d = getDispositivoFromElemento(state.articulacao!, elementoDeReferencia, true)!;
-
-  const elementoAntesDeRestaurarSituacao = createElemento(d);
-  let stateType: StateType;
-
-  if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
-    d.situacao = new DispositivoModificado(createElemento(d));
-    stateType = StateType.ElementoRestaurado;
-  } else if (elementoDeReferencia.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO) {
-    d.situacao = new DispositivoSuprimido(createElemento(d));
-    stateType = StateType.ElementoRestaurado;
-  } else {
-    d.situacao = new DispositivoOriginal();
-    stateType = StateType.ElementoRestaurado;
-  }
-
-  d.numero = elementoDeReferencia.numero ?? '';
-  d.rotulo = elementoDeReferencia.rotulo ?? '';
-  d.texto = elementoDeReferencia.conteudo?.texto ?? '';
-
-  const elementos = isSuprimido(d) ? [createElemento(d)] : [elementoAntesDeRestaurarSituacao, createElemento(d)];
-
-  return { stateType, elementos };
-};
-
-export const processarSuprimidos = (state: State, evento: StateEvent): StateEvent[] => {
-  const result: StateEvent[] = [];
-
-  evento.elementos?.forEach(e => {
-    const d = getDispositivoFromElemento(state.articulacao!, e, true)!;
-    const elementoAntesRestauracao = createElemento(d);
-    d.situacao = new DispositivoOriginal();
-    result.push({ stateType: StateType.ElementoRestaurado, elementos: [elementoAntesRestauracao, createElemento(d!)] });
-  });
-
-  return result;
 };
 
 export const processarRevisoesAceitasOuRejeitadas = (state: State, eventos: StateEvent[], stateType: StateType): StateEvent[] => {
