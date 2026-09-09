@@ -4,7 +4,7 @@
 
 O editor precisa referenciar anexos de forma interoperável, preservando o nome e o tipo do arquivo original para apresentação e manipulação.
 
-## Representação proposta
+## Representação adotada
 
 Dados estruturados na estrutura do LexEdit.
 
@@ -15,7 +15,7 @@ Dados estruturados na estrutura do LexEdit.
             idArquivo='f669f339-4c8c-4853-806a-706d9fbe6de1'
             nomeArquivo='EMENDA Nº 4 - CCJ - SUBSTITUTIVO.docx'
             nomeDocumento='EMENDA Nº 4 - CCJ - SUBSTITUTIVO'
-            tipo='SUBSTITUTIVO'
+            tipo='substitutivo'
             mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document'/>
         ...
     </lexedit:Anexos>

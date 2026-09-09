@@ -4,7 +4,7 @@
 
 O editor precisa preservar escolhas que controlam a apresentação impressa sem alterar o significado jurídico do texto.
 
-## Representação proposta
+## Representação adotada
 
 As opções ficam nos metadados Lexedit.
 
@@ -18,4 +18,4 @@ As opções ficam nos metadados Lexedit.
 </lexedit:Metadado>
 ```
 
-A ausência de uma opção significa o comportamento padrão da aplicação.
+Os atributos são opcionais. A ausência de uma opção significa o comportamento padrão da aplicação.

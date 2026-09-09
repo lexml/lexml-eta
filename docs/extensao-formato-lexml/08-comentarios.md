@@ -4,7 +4,7 @@
 
 O editor precisa manter uma conversa — mensagem inicial e respostas — e ancorá-la com precisão ao texto rico ou a um dispositivo da articulação.
 
-## Representação proposta
+## Representação adotada
 
 Uma sequência de comentários tem uma referência para o elemento comentado no LexML (que podem ser dispositivos da articulação ou trechos da justificação) e mensagens com referência ao usuário responsável, data e texto do comentário.
 
@@ -16,10 +16,10 @@ Exemplo:
 <lexedit:Metadado>
     <lexedit:Comentarios>
         <lexedit:SequenciaComentario refIdElementoComentado='_tc1777387565991'>
-            <lexedit:Comentario refIdUsuario='sf:fragomeni' data='2026-05-11T15:51:00-03:00'>
+            <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-11T15:51:00-03:00'>
                 <p>Confirmar a fonte deste dado.</p>
             </lexedit:Comentario>
-            <lexedit:Comentario refIdUsuario='sf:fragomeni' data='2026-05-12T16:10:00-03:00'>
+            <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-12T16:10:00-03:00'>
                 <p>Já deveria ter sido confirmada.</p>
             </lexedit:Comentario>
         </lexedit:SequenciaComentario>
@@ -41,3 +41,5 @@ Na articulação, utiliza-se o id do elemento do próprio dispositivo, como no e
  	<Caput id="art2_cpt">
         ...
 ```
+
+Obs: no caso de comentários ao caput do artigo, utilizar o id do caput em vez do id do artigo para identificação do comentário.

@@ -1,8 +1,8 @@
-# Proposta de utilização do padrão LexML para documentos do LexEdit
+# Especificação de utilização do padrão LexML para documentos do LexEdit
 
 ## Objetivo e escopo
 
-Este documento reúne as considerações gerais da proposta. As definições de cada grupo de elementos ficam em arquivos próprios, referenciados no [índice de especificações](#especificações-por-grupo-de-elementos).
+Este documento reúne as considerações gerais da especificação. As definições de cada grupo de elementos ficam em arquivos próprios, referenciados no [índice de especificações](#especificações-por-grupo-de-elementos).
 
 ### Premissa central
 
@@ -10,7 +10,7 @@ O padrão LexML não terá conhecimento de qualquer especificidade do LexEdit: n
 
 Quando um metadado do LexEdit se refere a um trecho específico do documento, o registro em `MetadadoProprietario` referencia o `id` desse elemento, atributo que já faz parte do padrão LexML. 
 
-Um documento produzido segundo esta proposta é, sempre, um documento LexML válido e legível por qualquer consumidor do padrão. As informações específicas do LexEdit ficam isoladas em `MetadadoProprietario` e podem ser ignoradas por quem não as conhece.
+Um documento produzido segundo esta especificação é, sempre, um documento LexML válido e legível por qualquer consumidor do padrão. As informações específicas do LexEdit ficam isoladas em `MetadadoProprietario` e podem ser ignoradas por quem não as conhece.
 
 O LexEdit precisa preservar informações necessárias à edição, revisão e apresentação de uma proposição legislativa estruturada em LexML. Este documento não define um XSD do LexML: registra, por meio de exemplos XML, como o LexEdit pretende ocupar os pontos de extensão identificados, para orientar a implementação do editor e um futuro esquema auxiliar de validação desse uso específico.
 
@@ -24,7 +24,7 @@ O escopo inicial compreende a identificação provisória do documento, elemento
 
 ### Premissa sobre o arquivo do editor de textos legislativos articulados
 
-O componente lexml-eta será utilizado em um editor de textos legislativos articulados e manipulará uma versão jsonix do arquivo lexml. Esse jsonix será convertido pelo editor em um arquivo 'documento.xml' que, junto com demais documentos anexos, será embutido em um PDF de apresentação do texto.
+O componente lexml-eta será utilizado em um editor de textos legislativos articulados e manipulará uma versão jsonix do arquivo lexml. Esse jsonix será convertido pelo editor em um arquivo 'documento-articulado.xml' que, junto com demais documentos anexos, será embutido em um PDF de apresentação do texto.
 
 ## Convenções gerais
 
@@ -49,7 +49,7 @@ Os elementos e atributos específicos do LexEdit usam um namespace próprio, que
 
 ### Referência a elementos do LexML
 
-Quando o dado se refere a um dispositivo ou a uma marca no texto rico, o registro correspondente em `lexedit:Metadado` traz um atributo próprio (por exemplo, `lexedit:idRef`) cujo valor é o `id` do elemento LexML referenciado. 
+Quando o dado se refere a um dispositivo ou a uma marca no texto rico, o registro correspondente em `lexedit:Metadado` traz um atributo próprio (por exemplo, `lexedit:refId`) cujo valor é o `id` do elemento LexML referenciado. 
 
 ### Identificadores e demais convenções
 
@@ -76,6 +76,6 @@ Datas e horas devem ser serializadas em ISO 8601, utilizando os tipos xsd:date o
 | Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) |
 | Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) |
 
-Cada arquivo descreve a necessidade informacional, a representação proposta e as decisões ainda necessárias para aquele grupo. As convenções deste documento aplicam-se a todos eles.
+Cada arquivo descreve a necessidade informacional, a representação adotada e as decisões ainda necessárias para aquele grupo. As convenções deste documento aplicam-se a todos eles.
 
 

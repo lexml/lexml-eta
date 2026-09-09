@@ -4,9 +4,9 @@
 
 Identificar usuários responsáveis por revisões e comentários no texto.
 
-## Representação proposta
+## Representação adotada
 
-Uma lista de usuários em `lexedit:Metadado/lexedit:Usuarios` com identificador de negócio, nome e sigla opcional. Esses usuários são alvo de referência com o atributo `refIdUsuario` em outros elementos do esquema LexEdit.
+Uma lista de usuários em `lexedit:Metadado/lexedit:Usuarios` com identificador único de negócio, nome e sigla opcional. Esses usuários são alvo de referência com o atributo `refIdUsuario` em outros elementos do esquema LexEdit.
 
 Exemplo:
 
@@ -14,9 +14,9 @@ Exemplo:
 <lexedit:Metadado>
     <lexedit:Usuarios>
         <lexedit:Usuario
-            idUsuario="sf:fragomeni"
-            nome="Marcos Fragomeni"
-            sigla="MF"/>
+            idUsuario="sf:fulano"
+            nome="Fulano de Tal"
+            sigla="FT"/>
     </lexedit:Usuarios>
 </lexedit:Metadado>
 ```

@@ -13,7 +13,7 @@ Este rascunho abrange:
 
 As operações podem ocorrer em sequência e, em alguns casos, ser combinadas no mesmo dispositivo. O modelo precisa também permitir o desfazimento de uma operação sem eliminar revisões posteriores.
 
-## Representação proposta
+## Representação adotada
 
 A articulação do LexML representa sempre a versão atual do documento, já incorporando todas as revisões.
 
@@ -42,7 +42,7 @@ As operações previstas são:
 | Exclusão | `excluido` | — |
 | Alteração de texto | `alterado` | — |
 | Movimentação | `movido;<posicaoOriginal>` | sequencial, iniciando em 1, da posição que o dispositivo ocupava antes da movimentação |
-| Transformação de tipo | `transformado;<tipoOriginal>` | tipo do dispositivo antes da transformação |
+| Transformação de tipo | `transformado;<tipoOriginal>` | tipo do dispositivo antes da transformação (em minúsculas e sem acentuação) |
 | Alteração de rótulo | `alteracaoRotulo;<idOriginal>` | id que o dispositivo tinha antes da alteração de rótulo |
 
 ### Identificação dos dispositivos
@@ -50,6 +50,8 @@ As operações previstas são:
 O `id` dos dispositivos na articulação acompanha sempre o estado atual do documento: se um dispositivo é movido ou outro é excluído, os ids subsequentes são recalculados segundo as regras usuais do LexML, sem qualquer necessidade de sufixo adicional — o dispositivo excluído não ocupa mais posição na articulação, logo não disputa id com nenhum outro.
 
 O dispositivo excluído recebe, dentro de `RevisaoArticulacao`, um id próprio: o id que representa a posição de apresentação na edição, acrescido do prefixo `_` de do sufixo `-exc<posicaoExcluido>`.
+
+## Operações
 
 ### Inclusão de dispositivo
 
@@ -70,11 +72,13 @@ O novo dispositivo já aparece na articulação em sua forma final, sem qualquer
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art4"
     revisao="adicionado"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00"/>
 ```
 
 O mesmo padrão se aplica a dispositivos internos, como incisos.
+
+No caso da inclusão de uma hierarquia de dispositivos (ex: artigo com parágrafos e incisos), só é necessário registrar nos metadados a adição referenciando o primeiro dispositivo na hierarquia, ficando implícito que toda a hierarquia de dispositivos foi adicionada.
 
 ### Exclusão de dispositivo
 
@@ -84,7 +88,7 @@ O dispositivo excluído não permanece na articulação: os dispositivos seguint
 <!-- Nos metadados do LexEdit -->
 <lexedit:RevisaoArticulacao
     revisao="excluido"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00">
   <Artigo id="_art3-exc1">
     <Rotulo>Art. 3º</Rotulo>
@@ -95,7 +99,7 @@ O dispositivo excluído não permanece na articulação: os dispositivos seguint
 </lexedit:RevisaoArticulacao>
 ```
 
-O sequencial em `_exc<sequencial>` posiciona o dispositivo excluído em uma sequência de dispositivos excluídos com o mesmo id, permitindo reconstruir a articulação anterior ao desfazer a operação.
+O sequencial em `_exc<sequencial>` posiciona o dispositivo excluído em uma sequência de dispositivos excluídos com o mesmo id (antes do dispositivo correspondente na hierarquia), permitindo reconstruir a articulação anterior ao desfazer a operação.
 
 Exemplo:
 
@@ -123,7 +127,7 @@ O dispositivo alterado aparece na articulação já com o texto revisado. A revi
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art4_cpt_inc2"
     revisao="alterado"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00">
   <p>Texto original do dispositivo</p>
 </lexedit:RevisaoArticulacao>
@@ -150,7 +154,7 @@ No exemplo abaixo, o inciso III (terceiro entre os irmãos) é movido para depoi
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art5_cpt_inc5"
     revisao="movido;3"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00"/>
 ```
 
@@ -173,7 +177,7 @@ O inciso movido poderia ainda ter seu texto alterado, acrescentando a operação
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art5_cpt_inc4"
     revisao="movido;3,alterado"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00">
   <p>Conteúdo do inciso III original.</p>
 </lexedit:RevisaoArticulacao>
@@ -198,9 +202,11 @@ A operação tem a forma `transformado;<tipoOriginal>`, onde `<tipoOriginal>` é
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art4_cpt_inc1_ali1"
     revisao="transformado;inciso"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00"/>
 ```
+
+Outro exemplo:
 
 ```xml
 <!-- Na articulação: alínea transformada em inciso -->
@@ -215,7 +221,7 @@ A operação tem a forma `transformado;<tipoOriginal>`, onde `<tipoOriginal>` é
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art4_cpt_inc2"
     revisao="transformado;alinea"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00"/>
 ```
 
@@ -244,7 +250,7 @@ A operação tem a forma `alteracaoRotulo;<idOriginal>`, onde `<idOriginal>` é 
 <lexedit:RevisaoArticulacao
     refIdDispositivo="art2_cpt_alt1_art4"
     revisao="alteracaoRotulo;art2_cpt_alt1_art3"
-    refIdUsuario="sf:fragomeni"
+    refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00"/>
 ```
 

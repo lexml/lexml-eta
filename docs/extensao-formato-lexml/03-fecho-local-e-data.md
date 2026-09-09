@@ -4,7 +4,7 @@
 
 O editor precisa preencher, validar e atualizar local e data do fecho sem interpretar a redação em linguagem natural exibida no documento.
 
-## Representação proposta
+## Representação adotada
 
 Dados estruturados na estrutura do LexEdit.
 
@@ -22,3 +22,7 @@ Representação textual no LexML.
     <p>Sala das Sessões, 24 de abril de 2026.</p>
 </LocalDataFecho>
 ```
+
+O atributo `data` é opcional, podendo também aparecer com valor vazio.
+
+Caso a data não seja informada, o texto apresentará apenas o local, seguido por vírgula (ex: "Sala das Sessões,")

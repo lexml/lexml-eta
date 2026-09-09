@@ -4,7 +4,7 @@
 
 Na seção de autoria, o LexEdit armazena tipo, identificação institucional e, quando aplicável, sexo, partido e UF.
 
-## Representação proposta
+## Representação adotada
 
 Dados estruturados na estrutura do LexEdit.
 
@@ -12,8 +12,8 @@ Dados estruturados na estrutura do LexEdit.
 <!-- Autoria de parlamentares -->
 <lexedit:Metadado>
     <lexedit:Autoria
-      lexedit:tipo='Parlamentar'
-      lexedit:imprimirPartidoUF='true'>
+      tipo='Parlamentar'
+      imprimirPartidoUF='true'>
       <lexedit:Parlamentares>
         <lexedit:Parlamentar
           identificacao='1111'
@@ -40,7 +40,7 @@ Dados estruturados na estrutura do LexEdit.
 <!-- Autoria de comissão -->
 <lexedit:Metadado>
     <lexedit:Autoria
-      lexedit:tipo='Comissão'>
+      tipo='Comissão'>
       <lexedit:ColegiadoAutor
         identificacao='4444'
         nome='Comissão de Assuntos Econômicos'

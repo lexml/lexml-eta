@@ -4,12 +4,11 @@
 
 O editor deve preservar a posição exata da referência e armazenar o conteúdo textual.
 
-## Representação proposta
+## Representação adotada
 
 No texto rico, será utilizado o elemento `NotaRodape` recém adicionado ao LexML.
 
 Os texto da nota fica inline e a numeração será recalculada na abertura do arquivo.
-
 
 ```xml
 <p>
