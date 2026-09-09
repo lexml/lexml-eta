@@ -2,31 +2,9 @@ import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import copy from 'rollup-plugin-copy';
 import { terser } from 'rollup-plugin-terser';
-import { injectPrivateQuillImport, isQuillUmdModule, wrapQuillUmdAsEsm } from './private-quill.mjs';
+import { createPrivateQuillRollupPlugin, isQuillUmdModule } from './private-quill.mjs';
 
 const isPrivateQuillDependency = id => id === 'quill' || id.startsWith('quill/');
-
-const privateQuillForDistribution = () => ({
-  name: 'private-quill-for-distribution',
-  transform(code, id) {
-    if (isQuillUmdModule(id)) {
-      return {
-        code: wrapQuillUmdAsEsm(code),
-        map: null,
-      };
-    }
-
-    const isLibrarySource = /[/\\]src[/\\].+\.[jt]s$/.test(id);
-    if (isLibrarySource && /\bQuill\b/.test(code)) {
-      return {
-        code: injectPrivateQuillImport(code),
-        map: null,
-      };
-    }
-
-    return null;
-  },
-});
 
 const external = id => {
   if (isPrivateQuillDependency(id)) {
@@ -82,7 +60,7 @@ const configTs = {
         { src: 'src/util/lexml-linker/vendor/browser-wasi-shim.mjs', dest: 'dist/vendor' },
       ],
     }),
-    privateQuillForDistribution(),
+    createPrivateQuillRollupPlugin(),
     validatePrivateQuillBundle()
   ],
 };
@@ -94,7 +72,7 @@ const configTsMin = {
     file: 'dist/index.min.js',
     sourcemap: true,
   },
-  plugins: [typescript({ tsconfig: 'tsconfig.dist.json' }), nodeResolve(), privateQuillForDistribution(), terser(), validatePrivateQuillBundle()],
+  plugins: [typescript({ tsconfig: 'tsconfig.dist.json' }), nodeResolve(), createPrivateQuillRollupPlugin(), terser(), validatePrivateQuillBundle()],
 };
 
 // lexml-linker.worker.ts é compilado à parte, via tsc puro (ver tsconfig.worker-dist.json e o

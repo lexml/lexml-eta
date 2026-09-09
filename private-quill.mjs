@@ -16,22 +16,52 @@ export const wrapQuillUmdAsEsm = code => `
 `;
 
 export const injectPrivateQuillImport = (code, moduleSpecifier = 'quill/dist/quill') => {
-  const defaultImport = /import\s+Quill\s+from\s+['"]quill\/dist\/quill(?:\.js)?['"]/;
+  // `\s*` (não `\s+`) antes da aspa: pipelines que minificam antes deste transform rodar (ex.: o
+  // babel do build da demo) removem o espaço entre "from" e a aspa — "from'quill/dist/quill'" é
+  // JS válido. Exigir `\s+` ali fazia o import existente passar despercebido e duplicava a declaração.
+  const defaultImport = /import\s+Quill\s+from\s*['"]quill\/dist\/quill(?:\.js)?['"]/;
   if (defaultImport.test(code)) {
     return code.replace(defaultImport, `import Quill from '${moduleSpecifier}'`);
   }
 
-  if (/^\s*import\s+Quill\s+from\s+['"]/m.test(code)) {
+  // Sem âncora `^...$/m`: pipelines que minificam antes deste transform rodar concatenam as
+  // declarações numa única linha (";import{x}from'y';import Quill from'z';..."), então um import
+  // já existente nunca começaria uma linha própria. Aceitar início da string ou o que normalmente
+  // precede uma declaração (";", "}" de chave anterior, ou espaço) cobre tanto código formatado
+  // quanto minificado.
+  if (/(?:^|[;}\s])import\s+Quill\s+from\s*['"]/.test(code)) {
     return code;
   }
 
-  const withoutSideEffectImport = code.replace(/import\s+['"]quill\/dist\/quill(?:\.js)?['"]\s*;?/g, '');
+  const withoutSideEffectImport = code.replace(/import\s*['"]quill\/dist\/quill(?:\.js)?['"]\s*;?/g, '');
   if (!/\bQuill\b/.test(withoutSideEffectImport)) {
     return code;
   }
 
   return `import Quill from '${moduleSpecifier}';\n${withoutSideEffectImport}`;
 };
+
+export const createPrivateQuillRollupPlugin = () => ({
+  name: 'private-quill',
+  transform(code, id) {
+    if (isQuillUmdModule(id)) {
+      return {
+        code: wrapQuillUmdAsEsm(code),
+        map: null,
+      };
+    }
+
+    const isLibrarySource = /[/\\]src[/\\].+\.[jt]s$/.test(id);
+    if (isLibrarySource && /\bQuill\b/.test(code)) {
+      return {
+        code: injectPrivateQuillImport(code),
+        map: null,
+      };
+    }
+
+    return null;
+  },
+});
 
 export const createPrivateQuillDevPlugin = () => {
   const quillUmdPath = fileURLToPath(new URL('./node_modules/quill/dist/quill.js', import.meta.url));
