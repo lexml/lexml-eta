@@ -2,7 +2,7 @@
 
 ## Necessidade informacional
 
-O editor deve preservar a posição exata da referência e armazenar o conteúdo textual.
+O editor deve preservar a posição exata da referência e armazenar o conteúdo textual. Notas de rodapé poderão ser usadas apenas na justificação.
 
 ## Representação adotada
 

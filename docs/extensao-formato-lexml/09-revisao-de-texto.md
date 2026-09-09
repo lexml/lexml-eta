@@ -4,6 +4,8 @@
 
 Inclusões e exclusões dentro de um texto precisam preservar autoria e instante.
 
+As revisões de texto ocorrem apenas na justificação, não na articulação, que tem seu próprio mecanismo de revisão, descrito em [Revisão da hierarquia](11-revisao-da-hierarquia.md).
+
 ## Representação adotada
 
 Usar os elementos LexML ins e del com id's com prefixo `_rt` (revisão textual) para armazenamento dos dados do usuário responsável e a data e hora da revisão.
