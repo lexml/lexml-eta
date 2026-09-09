@@ -1,6 +1,7 @@
 import { createSpaConfig } from '@open-wc/building-rollup';
 import merge from 'deepmerge';
 import copy from 'rollup-plugin-copy';
+import { createPrivateQuillRollupPlugin } from './private-quill.mjs';
 
 const baseConfigSpa = createSpaConfig({
 	outputDir: 'prod',
@@ -11,6 +12,7 @@ const baseConfigSpa = createSpaConfig({
 const configSpa = merge(baseConfigSpa, {
 	input: './demo/index.html',
 	plugins: [
+		createPrivateQuillRollupPlugin(),
 		copy({
 			targets: [
 				{ src: 'assets/css/editor.css', dest: 'prod/assets/css' },
