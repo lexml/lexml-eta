@@ -1,6 +1,6 @@
 # Editor de Textos Articulados
 
-<p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas, inclusive emendas.</p>
+<p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas.</p>
 
 [![Integração Contínua](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml)
 
@@ -44,7 +44,6 @@ Trata-se de uma proposta inicial, a ser discutida com todos os interessados em s
   - Essas regras não se aplicam a dispositivos agrupadores, pois esses não podem possuir pontuação.
 - Bloquear a edição dos rótulos de dispositivo, a menos que se trate de alteração de norma existente;
 - Promover mudança estrutural de artigos e dispositivos de artigo, considerando os dispositivos dependentes;
-- Suporte a emendamento de proposições, inclusive com geração automática do comando de emenda;
 - Manter histórico das modificações efetuadas sobre a articulação, permitindo desfazer e refazer operações efetuadas no documento;
 - Validar a situação do dispositivo;
 - Permitir a incorporação dos componentes desenvolvidos em página HTML e sua utilização em frameworks JavaScript;
