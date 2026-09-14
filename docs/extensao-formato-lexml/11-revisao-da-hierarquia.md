@@ -31,7 +31,7 @@ Quando a revisão precisa preservar conteúdo anterior à alteração — o text
 
 ```
 revisao   = operacao ( "," operacao )*
-operacao  = nome ( ";" argumento )*
+operacao  = nome ( ";" argumento )
 ```
 
 As operações previstas são:
