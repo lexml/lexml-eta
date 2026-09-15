@@ -64,7 +64,6 @@ As changes do OpenSpec neste projeto seguem o padrão:
 
 Exemplos: `2026-09-15-c01-salvar-documento-articulado`, `2026-09-15-c02-abrir-documento-articulado`.
 
-
 ## Project Overview
 
 **LexML-ETA** (Editor de Texto Articulado - Legislative Text Editor) is a web component-based application for editing legislative documents and amendments (emendas) for the Brazilian Senate. It provides structured editing of legal texts with support for LexML format.
