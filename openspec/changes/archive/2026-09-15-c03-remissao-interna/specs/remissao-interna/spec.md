@@ -1,10 +1,8 @@
-# Remissão Interna
-
 ## Purpose
 
 Remissão interna é a detecção, criação, atualização e remoção de referências cruzadas entre dispositivos do mesmo documento legislativo (ex.: "conforme o art. 1º"), representadas como links navegáveis no editor. Ver também a capability irmã `remissao-externa` (referências a normas externas ao documento) — mesmo diálogo de criação manual, mesmo gatilho de blur, coordenação mútua na detecção.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Detecção automática de referências a dispositivos do mesmo documento
 O sistema SHALL detectar automaticamente, no texto de um dispositivo, referências a outros dispositivos do mesmo documento (artigo, parágrafo, inciso, alínea, item, agrupador) e transformá-las em links de remissão.
