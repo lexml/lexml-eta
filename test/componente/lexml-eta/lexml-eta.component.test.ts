@@ -48,18 +48,18 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
       expect(() => (component as any).validarParametrosIdentificacaoProposicao(params)).to.throw('"ano" é obrigatório para texto substitutivo');
     });
 
-    it('deve preencher numero com "1" quando substitutivo=false e numero não informado', () => {
+    it('deve preencher numero com "999999" quando substitutivo=false e numero não informado', () => {
       const params = new LexmlEtaParametrosEdicao();
       params.sigla = 'PL';
       (component as any).validarParametrosIdentificacaoProposicao(params);
-      expect(params.numero).to.equal('1');
+      expect(params.numero).to.equal('999999');
     });
 
-    it('deve preencher ano com o corrente quando substitutivo=false e ano não informado', () => {
+    it('deve preencher ano com "9999" quando substitutivo=false e ano não informado', () => {
       const params = new LexmlEtaParametrosEdicao();
       params.sigla = 'PL';
       (component as any).validarParametrosIdentificacaoProposicao(params);
-      expect(params.ano).to.equal(new Date().getFullYear().toString());
+      expect(params.ano).to.equal('9999');
     });
 
     it('não deve alterar numero e ano quando ambos já informados e substitutivo=false', () => {
