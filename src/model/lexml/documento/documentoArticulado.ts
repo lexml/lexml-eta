@@ -3,8 +3,8 @@ import { ProjetoNorma } from './projetoNorma';
 import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
+import { getAno, getNumero, getSigla } from './urnUtil';
 
-export const NOME_ARQUIVO_DOCUMENTO_ARTICULADO = 'documento-articulado.json';
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
 /** Documento de intercâmbio. O modelo de edição ProjetoNorma é um contrato distinto. */
@@ -167,3 +167,8 @@ const preservarEspacosJsonix = (valor: any): void => {
 };
 
 export const serializarDocumentoArticulado = (documento: DocumentoArticulado): string => JSON.stringify(validarDocumentoArticulado(documento), null, 2) + '\n';
+
+export const nomeArquivoDocumentoArticulado = (documento: DocumentoArticulado): string => {
+  const urn = documento.value.metadado.identificacao.urn;
+  return `documento-articulado - ${getSigla(urn)} nº ${getNumero(urn)}, de ${getAno(urn)}.json`;
+};
