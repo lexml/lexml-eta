@@ -7,7 +7,7 @@ import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispo
 import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
-import { getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
+import { ANO_PROVISORIO, getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 
 let ultimoDispositivoCriado: Dispositivo;
 
@@ -40,17 +40,19 @@ const ajustarTextosParaQuill = (projetoNorma: ProjetoNorma): void => {
   }
 };
 
-export const buildProjetoNormaFromJsonix = (documentoLexml: any): ProjetoNorma => {
+export const buildProjetoNormaFromJsonix = (documentoLexml: any, preservarTexto = false): ProjetoNorma => {
   if (!documentoLexml?.value?.projetoNorma) {
     throw new Error('Não se trata de um documento lexml válido');
   }
+
+  if (preservarTexto) documentoLexml = escaparTextoJsonix(documentoLexml);
 
   const projetoNorma: ProjetoNorma = {
     classificacao: documentoLexml.value?.projetoNorma.norma ? ClassificacaoDocumento.NORMA : ClassificacaoDocumento.PROJETO,
     tipo: getTipo(getUrn(documentoLexml)),
     ...getMetadado(documentoLexml),
-    ...getParteInicial(documentoLexml),
-    ...getTextoArticulado(documentoLexml.value.projetoNorma.norma || documentoLexml.value.projetoNorma.projeto, buildTextoEpigrafeFromDocument(documentoLexml)),
+    ...getParteInicial(documentoLexml, preservarTexto),
+    ...getTextoArticulado(documentoLexml.value.projetoNorma.norma || documentoLexml.value.projetoNorma.projeto, buildTextoEpigrafeFromDocument(documentoLexml), preservarTexto),
   };
 
   if (projetoNorma.articulacao) {
@@ -63,6 +65,20 @@ export const buildProjetoNormaFromJsonix = (documentoLexml: any): ProjetoNorma =
   ajustarTextosParaQuill(projetoNorma);
 
   return projetoNorma;
+};
+
+/** No arquivo Jsonix, strings são texto literal; somente os objetos representam marcação. */
+const escaparTextoJsonix = (valor: any): any => {
+  if (Array.isArray(valor)) return valor.map(escaparTextoJsonix);
+  if (!valor || typeof valor !== 'object') return valor;
+  return Object.fromEntries(
+    Object.entries(valor).map(([chave, conteudo]) => [
+      chave,
+      chave === 'content' && Array.isArray(conteudo)
+        ? conteudo.map(item => (typeof item === 'string' ? item.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : escaparTextoJsonix(item)))
+        : escaparTextoJsonix(conteudo),
+    ])
+  );
 };
 
 const retiraCaracteresDesnecessarios = (texto: string): any => {
@@ -79,29 +95,31 @@ const getMetadado = (documento: any): Metadado => {
   };
 };
 
-const getParteInicial = (documento: any): ParteInicial => {
-  const parteInicial = documento?.value?.projetoNorma?.norma?.parteInicial;
-  const epigrafe = parteInicial?.epigrafe?.content[0]?.length > 0 ? parteInicial?.epigrafe?.content[0] : buildTextoEpigrafe(getUrn(documento));
-  const ementa = buildContent(parteInicial?.ementa.content);
-  const preambulo = parteInicial?.preambulo?.p?.length ? buildContent(parteInicial.preambulo.p[0].content) : '';
+const getParteInicial = (documento: any, preservarTexto: boolean): ParteInicial => {
+  const estrutura = documento?.value?.projetoNorma;
+  const parteInicial = (estrutura?.norma ?? estrutura?.projeto)?.parteInicial;
+  const epigrafe = parteInicial?.epigrafe ? buildContent(parteInicial.epigrafe.content) : buildTextoEpigrafe(getUrn(documento));
+  const ementa = buildContent(parteInicial?.ementa?.content);
+  const paragrafos = parteInicial?.preambulo?.p ?? [];
+  const preambulo = paragrafos.length > 1 ? paragrafos.map(p => `<p>${buildContent(p.content)}</p>`).join('') : buildContent(paragrafos[0]?.content);
 
   return {
     epigrafe: retiraCaracteresDesnecessarios(epigrafe),
-    ementa: buildDispositivoEmenta(retiraCaracteresDesnecessarios(ementa), epigrafe),
+    ementa: buildDispositivoEmenta(retiraCaracteresDesnecessarios(ementa), epigrafe, preservarTexto),
     preambulo: retiraCaracteresDesnecessarios(preambulo),
   };
 };
 
-export const getTextoArticulado = (norma: any, textoArticulacao?: string): TextoArticulado => {
+export const getTextoArticulado = (norma: any, textoArticulacao?: string, preservarTexto = false): TextoArticulado => {
   return {
-    articulacao: buildArticulacao(norma.articulacao, textoArticulacao),
+    articulacao: buildArticulacao(norma.articulacao, textoArticulacao, preservarTexto),
   };
 };
 
-const buildDispositivoEmenta = (texto: string, textoArticulacao: string): Dispositivo | undefined => {
+const buildDispositivoEmenta = (texto: string, textoArticulacao: string, preservarTexto: boolean): Dispositivo | undefined => {
   const dispositivo = criaDispositivo(createArticulacao(textoArticulacao), 'Ementa');
   dispositivo.pai = undefined;
-  dispositivo.texto = substituiAspasRetasPorCurvas(texto);
+  dispositivo.texto = preservarTexto ? texto : substituiAspasRetasPorCurvas(texto);
   dispositivo.rotulo = '';
   dispositivo.id = 'ementa';
 
@@ -110,26 +128,27 @@ const buildDispositivoEmenta = (texto: string, textoArticulacao: string): Dispos
 
 const buildTextoEpigrafeFromDocument = (documentoLexml: any): string => {
   const doc = documentoLexml.value.projetoNorma.norma || documentoLexml.value.projetoNorma.projeto;
-  const textoEpigrafe = doc.parteInicial?.epigrafe.content[0];
+  const textoEpigrafe = buildContent(doc.parteInicial?.epigrafe?.content);
 
   return textoEpigrafe ? textoEpigrafe : buildTextoEpigrafe(getUrn(documentoLexml));
 };
 
 const buildTextoEpigrafe = (urn: string): string => {
   const tipo = getTipoDocumentoUrn(urn);
-  return tipo ? `${tipo.descricao.toUpperCase()} Nº , DE ${getAno(urn)}` : '';
+  const ano = getAno(urn);
+  return tipo ? `${tipo.descricao.toUpperCase()} Nº , DE ${ano === ANO_PROVISORIO ? '' : ano}` : '';
 };
 
-const buildArticulacao = (tree: any, textoArticulacao?: string): Articulacao => {
+const buildArticulacao = (tree: any, textoArticulacao: string | undefined, preservarTexto: boolean): Articulacao => {
   const articulacao = createArticulacao(textoArticulacao);
 
   const filhos = tree.lXhier ? (tree.lXhier.lXhier ? tree.lXhier.lXhier : tree.lXhier) : tree;
-  buildTree(articulacao, filhos, []);
+  buildTree(articulacao, filhos, [], preservarTexto);
 
   return articulacao;
 };
 
-const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[]): void => {
+const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
   if (!pai || !filhos) {
     return;
   }
@@ -156,30 +175,30 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
         dispositivo.createNumeroFromRotulo(dispositivo.rotulo);
       }
 
-      pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+      pai.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el, preservarTexto));
 
       (pai as Artigo).caput!.href = el.value?.href;
       (pai as Artigo).caput!.id = el.value?.id;
-      buildAlteracao(pai, el.value?.alteracao, cabecasAlteracao);
-      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao);
+      buildAlteracao(pai, el.value?.alteracao, cabecasAlteracao, preservarTexto);
+      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
     } else if (el.name?.localPart === 'alteracao') {
-      buildAlteracao(pai, el, cabecasAlteracao);
-      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao);
+      buildAlteracao(pai, el, cabecasAlteracao, preservarTexto);
+      buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
     } else {
       if (el.name?.localPart === 'p') {
         adicionaTextoAoUltimoDispositivoCriado(el);
       } else {
         // Impede que sejam criados filhos em artigos que já possuam alterações
         if (!pai.alteracoes) {
-          dispositivo = buildDispositivo(pai, el, cabecasAlteracao);
-          buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao);
+          dispositivo = buildDispositivo(pai, el, cabecasAlteracao, preservarTexto);
+          buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
         }
       }
     }
   });
 };
 
-const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[]): void => {
+const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
   if (el) {
     createAlteracao(pai);
     pai.alteracoes!.id = el.id;
@@ -188,10 +207,10 @@ const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo
       if (c.name?.localPart === 'p') {
         adicionaTextoAoUltimoDispositivoCriado(c);
       } else {
-        const d = buildDispositivo(pai.alteracoes!, c, cabecasAlteracao);
+        const d = buildDispositivo(pai.alteracoes!, c, cabecasAlteracao, preservarTexto);
         d.isDispositivoAlteracao = true;
         d.rotulo = c.value?.rotulo;
-        buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao);
+        buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
       }
     });
   }
@@ -201,7 +220,7 @@ const adicionaTextoAoUltimoDispositivoCriado = (el: any): void => {
   ultimoDispositivoCriado.texto = (ultimoDispositivoCriado.texto + ' ' + retiraCaracteresDesnecessarios(buildContent(el.value?.content))).replace(/\s+/g, ' ');
 };
 
-const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[]): Dispositivo => {
+const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): Dispositivo => {
   const dispositivo = criaDispositivo(pai, el.name?.localPart);
 
   const notaAlteracao = el.value?.notaAlteracao;
@@ -227,14 +246,14 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
 
   dispositivo.href = el.value?.href;
   dispositivo.id = el.value?.id;
-  dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el));
+  dispositivo.texto = el.value?.textoOmitido ? TEXTO_OMISSIS : retiraCaracteresDesnecessarios(buildContentDispositivo(el, preservarTexto));
   dispositivo.tituloDispositivo = buildContent(el.value?.tituloDispositivo?.content);
 
   ultimoDispositivoCriado = dispositivo;
   return dispositivo;
 };
 
-const buildContentDispositivo = (el: any): string => {
+const buildContentDispositivo = (el: any, preservarTexto: boolean): string => {
   let texto = '';
   if (el.value?.nomeAgrupador) {
     return getTextoSemHtml(el.value.nomeAgrupador.content);
@@ -244,7 +263,7 @@ const buildContentDispositivo = (el: any): string => {
       ?.map((a: any) => a.content)
       .forEach((content: any) => (texto += buildContent(content)));
   }
-  return substituiAspasRetasPorCurvas(texto);
+  return preservarTexto ? texto : substituiAspasRetasPorCurvas(texto);
 };
 
 const getTextoSemHtml = (c: any): string => {
@@ -318,7 +337,7 @@ const montaTag = (name: any, value: any): string => {
     }
     return `<a href="${spanHref}">${buildContent(value.content)}</a>`;
   }
-  if (localPart === 'b' || localPart === 'i' || localPart === 'sub' || localPart === 'sup') {
+  if (['b', 'i', 'u', 'sub', 'sup', 'span'].includes(localPart)) {
     return `<${localPart}>${buildContent(value.content)}</${localPart}>`;
   }
   return '';

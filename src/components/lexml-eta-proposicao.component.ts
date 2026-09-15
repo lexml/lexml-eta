@@ -15,6 +15,7 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
+import { criarDocumentoArticulado, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -33,12 +34,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     return this;
   }
 
-  inicializarEdicao(urn: string, params?: LexmlEtaParametrosEdicao): void {
+  inicializarEdicao(urn: string, params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
     this.urn = urn;
-    if (params?.projetoNorma) {
-      this.projetoNorma = params.projetoNorma;
-    }
-    this.loadProjetoNorma(params);
+    this.projetoNorma = params?.projetoNorma ? JSON.parse(JSON.stringify(params.projetoNorma)) : undefined;
+    this.loadProjetoNorma(params, preservarTextoDocumento);
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
 
@@ -53,7 +52,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
   getProjetoAtualizado(): any {
     this.editorComponent.flushEdicaoPendente();
-    const out = { ...this.projetoNorma };
+    const out = JSON.parse(JSON.stringify(this.projetoNorma));
+    out.value.metadado.identificacao.urn = this.urn;
     const elementoState = rootStore.getState().elementoReducer;
     const remissoesExternas = elementoState.remissoesExternas ?? {};
     const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {}, remissoesExternas);
@@ -64,6 +64,14 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     return out;
   }
 
+  getDocumentoArticulado(): DocumentoArticulado {
+    this.editorComponent.flushEdicaoPendente();
+    const state = rootStore.getState().elementoReducer;
+    const externas = state.remissoesExternas ?? {};
+    const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
+    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas);
+  }
+
   getAnexos() {
     return this.editorComponent.anexos;
   }
@@ -72,13 +80,13 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     this.editorComponent.atualizaAnexo(anexos);
   }
 
-  private loadProjetoNorma(params?: LexmlEtaParametrosEdicao): void {
+  private loadProjetoNorma(params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
     if (!this.projetoNorma || !this.projetoNorma.value) {
-      this.projetoNorma = DOCUMENTO_PADRAO;
+      this.projetoNorma = JSON.parse(JSON.stringify(DOCUMENTO_PADRAO));
       this.projetoNorma.value.metadado.identificacao.urn = this.urn;
     }
 
-    const documento = buildProjetoNormaFromJsonix(this.projetoNorma);
+    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, preservarTextoDocumento);
     documento.urn = this.urn;
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();

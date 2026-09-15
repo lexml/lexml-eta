@@ -41,12 +41,29 @@ A skill global `backup-docs` (`~/.claude/skills/backup-docs/SKILL.md`) sincroniz
 
 ## OpenSpec (`openspec/`)
 
+### Definição
+
 Desde 14/09/2026, o projeto usa o [OpenSpec](https://github.com/Fission-AI/OpenSpec) (`@fission-ai/openspec`, CLI global + skills/comandos `/opsx:*` em `.claude/`) para especificação e rastreamento de mudanças voltado a desenvolvimento colaborativo com IA — é o padrão do projeto para esse tipo de documentação, substituindo o que antes seria `docs/planos/PLANO_X.md`. **`openspec/` é versionado no repositório principal** — é o próprio ponto do OpenSpec (spec revisada junto com o código, no mesmo diff).
 
 - `openspec/specs/<capability>/spec.md` — comportamento atual, em requisitos testáveis (`### Requirement:` + `#### Scenario:` com `WHEN`/`THEN`). **Não é gerado em massa**: só existe para capabilities já pilotadas manualmente (em 14/09/2026: `remissao-interna`, `remissao-externa`) ou criadas via um `changes/` arquivado.
 - `openspec/changes/<slug>/` — toda mudança nova nasce aqui via `/opsx:propose`, com `proposal.md`/`design.md`/`tasks.md`/specs delta (`## ADDED/MODIFIED/REMOVED Requirements`).
 - `openspec/changes/archive/<data>-<slug>/` — mudanças concluídas, com o delta já mesclado nas specs principais.
 - `openspec/config.yaml` — `schema: spec-driven`, `Language: pt-BR` (conteúdo em português; headings estruturais `## Purpose`/`## Requirements`/`### Requirement:` e a palavra `SHALL`/`MUST` ficam em inglês por convenção do próprio OpenSpec — confirmado por leitura do validador: só os headings estruturais são obrigatórios em inglês, `SHALL`/`MUST` é recomendado mas não bloqueia, `WHEN`/`THEN` é livre).
+
+### Convenção de nomes para changes do OpenSpec
+
+As changes do OpenSpec neste projeto seguem o padrão:
+
+```
+<aaaa>-<mm>-<dd>-c<xx>-<nome-da-change>
+```
+
+- `aaaa-mm-dd`: data de criação da change (ano-mês-dia).
+- `c<xx>`: contador sequencial de duas casas (`c01`, `c02`, ...), reiniciado a cada dia diferente — a primeira change criada em um novo dia sempre começa em `c01`, mesmo que o dia anterior tenha chegado a um número maior.
+- `<nome-da-change>`: nome descritivo em kebab-case.
+
+Exemplos: `2026-09-15-c01-salvar-documento-articulado`, `2026-09-15-c02-abrir-documento-articulado`.
+
 
 ## Project Overview
 
@@ -142,29 +159,29 @@ Redux store defined in `src/redux/store.ts`:
 **Core Model Hierarchy** (`src/model/`):
 
 1. **Dispositivo** (`src/model/dispositivo/dispositivo.ts`):
-   - Base interface combining: Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Situacao, Validacao
-   - Represents legal devices (artigo, paragrafo, inciso, alinea, item)
-   - `Articulacao` extends Dispositivo - root container for all articles
+  - Base interface combining: Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Situacao, Validacao
+  - Represents legal devices (artigo, paragrafo, inciso, alinea, item)
+  - `Articulacao` extends Dispositivo - root container for all articles
 
 2. **Elemento** (`src/model/elemento/elemento.ts`):
-   - Lightweight representation of Dispositivo for UI rendering
-   - Contains hierarchy info, state, revision data, and possible actions
-   - Used in Redux state instead of full Dispositivo to reduce complexity
+  - Lightweight representation of Dispositivo for UI rendering
+  - Contains hierarchy info, state, revision data, and possible actions
+  - Used in Redux state instead of full Dispositivo to reduce complexity
 
 3. **Emenda** (`src/model/emenda/emenda.ts`):
-   - Represents an amendment with metadata, authorship, destination, justification
-   - Contains `DispositivosEmenda` with arrays for added/modified/suppressed devices
-   - Modes: EMENDA, EMENDA_ARTIGO_ONDE_COUBER, EMENDA_TEXTO_LIVRE, EMENDA_SUBSTITUICAO_TERMO
+  - Represents an amendment with metadata, authorship, destination, justification
+  - Contains `DispositivosEmenda` with arrays for added/modified/suppressed devices
+  - Modes: EMENDA, EMENDA_ARTIGO_ONDE_COUBER, EMENDA_TEXTO_LIVRE, EMENDA_SUBSTITUICAO_TERMO
 
 4. **LexML Model** (`src/model/lexml/`):
-   - `tipo/` - Device type definitions and hierarchy rules
-   - `hierarquia/` - Parent-child relationship management
-   - `numeracao/` - Automatic numbering logic
-   - `regras/` - Validation rules for each device type
-   - `situacao/` - Device state (original, novo, modificado, suprimido)
-   - `conteudo/` - Text content and omission handling
-   - `documento/` - ProjectNorma (URN parsing) and LexML conversion
-   - `acao/` - Redux action creators (40+ actions)
+  - `tipo/` - Device type definitions and hierarchy rules
+  - `hierarquia/` - Parent-child relationship management
+  - `numeracao/` - Automatic numbering logic
+  - `regras/` - Validation rules for each device type
+  - `situacao/` - Device state (original, novo, modificado, suprimido)
+  - `conteudo/` - Text content and omission handling
+  - `documento/` - ProjectNorma (URN parsing) and LexML conversion
+  - `acao/` - Redux action creators (40+ actions)
 
 ### Rich Text Editing (Quill.js)
 

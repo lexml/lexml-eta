@@ -88,20 +88,29 @@ const montaParteInicial = (projetoNorma: any): any => {
     preambulo: {
       TYPE_NAME: 'br_gov_lexml__1.TextoType',
       id: 'preambulo',
-      p: [
-        {
-          TYPE_NAME: 'br_gov_lexml__1.GenInline',
-          content: projetoNorma.preambulo ? buildStructuredContent(projetoNorma.preambulo, 'texto') : [],
-        },
-      ],
+      p: montaParagrafosPreambulo(projetoNorma.preambulo),
     },
   };
+};
+
+const montaParagrafosPreambulo = (preambulo: any): any[] => {
+  const texto = typeof preambulo === 'string' ? preambulo : preambulo?.texto ?? '';
+  const container = document.createElement('div');
+  container.innerHTML = texto;
+  const paragrafos = Array.from(container.children);
+  if (paragrafos.length && paragrafos.every(p => p.tagName === 'P') && Array.from(container.childNodes).every(n => n.nodeType === Node.ELEMENT_NODE || !n.textContent?.trim())) {
+    return paragrafos.map(p => ({
+      TYPE_NAME: 'br_gov_lexml__1.GenInline',
+      ...(p.innerHTML ? { content: buildStructuredContent({ texto: p.innerHTML } as Dispositivo, 'texto') } : {}),
+    }));
+  }
+  return [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: preambulo ? buildStructuredContent(preambulo, 'texto') : [] }];
 };
 
 const montaArticulacao = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao, remissoes, remissoesExternas),
+    lXhier: buildTree(projetoNorma.articulacao, {}, remissoes, remissoesExternas),
   };
 };
 
@@ -307,7 +316,7 @@ const parseHTMLTags = (html: string): ParsedElement[] => {
     // Texto antes da tag
     if (match.index > lastIndex) {
       const textBefore = html.substring(lastIndex, match.index);
-      if (textBefore.trim()) {
+      if (textBefore.length) {
         result.push({ type: 'text', content: textBefore });
       }
     }
@@ -330,7 +339,7 @@ const parseHTMLTags = (html: string): ParsedElement[] => {
   // Texto restante após todas as tags inline
   if (lastIndex < html.length) {
     const remainingText = html.substring(lastIndex);
-    if (remainingText.trim()) {
+    if (remainingText.length) {
       // Processar links no texto restante
       const linkProcessed = parseContentWithLinks(remainingText);
       result.push(...linkProcessed);
@@ -352,7 +361,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
   while ((match = linkRegex.exec(html)) !== null) {
     if (match.index > lastIndex) {
       const textBefore = html.substring(lastIndex, match.index);
-      if (textBefore.trim()) {
+      if (textBefore.length) {
         result.push({ type: 'text', content: textBefore });
       }
     }
@@ -402,7 +411,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
 
   if (lastIndex < html.length) {
     const remainingText = html.substring(lastIndex);
-    if (remainingText.trim()) {
+    if (remainingText.length) {
       result.push({ type: 'text', content: remainingText });
     }
   } else if (result.length === 0) {
@@ -640,7 +649,7 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
 };
 
 const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any[] => {
-  let raw = dispositivo[campo];
+  let raw = typeof dispositivo === 'string' ? dispositivo : dispositivo[campo];
   if (!raw && raw !== '') {
     return [dispositivo];
   }

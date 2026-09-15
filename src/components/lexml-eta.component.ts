@@ -15,7 +15,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
 import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, OpcoesImpressao } from '../model/emenda/emenda';
-import { buildFakeUrn, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
+import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
@@ -37,6 +37,7 @@ import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
+import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 /**
  * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito. Avaliar se pode ser removido completamente.
@@ -219,6 +220,20 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return prop;
   }
 
+  /** Exporta somente os grupos implementados do documento LexML. */
+  getDocumentoArticulado(): DocumentoArticulado {
+    if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
+    return this._lexmlEta!.getDocumentoArticulado();
+  }
+
+  /** Aceita o objeto Jsonix ou seu texto JSON e valida antes de alterar o editor. */
+  async abrirDocumentoArticulado(entrada: unknown): Promise<void> {
+    const documento = lerDocumentoArticulado(entrada);
+    const params = new LexmlEtaParametrosEdicao();
+    params.projetoNorma = documento as any;
+    await this.inicializarEdicao(params, true);
+  }
+
   getProposicao(): Proposicao {
     if (!this.urn) {
       const proposicao = new Proposicao();
@@ -269,7 +284,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   getEpigrafe(projetoNorma: any): Epigrafe {
     const epigrafe = new Epigrafe();
     const doc = projetoNorma.value.projetoNorma.norma || projetoNorma.value.projetoNorma.projeto;
-    epigrafe.texto = doc.parteInicial?.epigrafe.content[0];
+    epigrafe.texto = buildContent(doc.parteInicial?.epigrafe?.content);
 
     return epigrafe;
   }
@@ -304,7 +319,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return revisoes;
   }
 
-  async inicializarEdicao(params: LexmlEtaParametrosEdicao): Promise<void> {
+  async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
       this.anexoParecer = this.lexmlEmendaConfig.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
@@ -315,7 +330,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
-      this._lexmlEta!.inicializarEdicao(this.urn, params);
+      this._lexmlEta!.inicializarEdicao(this.urn, params, preservarTextoDocumento);
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
 
@@ -348,6 +363,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       setTimeout(() => {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
+      throw err;
     }
   }
 
@@ -372,10 +388,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       }
     } else {
       if (!params.numero) {
-        params.numero = '1';
+        params.numero = NUMERO_PROVISORIO;
       }
       if (!params.ano) {
-        params.ano = new Date().getFullYear().toString();
+        params.ano = ANO_PROVISORIO;
       }
     }
   }
@@ -383,18 +399,20 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private inicializaProposicao(params: LexmlEtaParametrosEdicao): void {
     this.urn = '';
 
-    if (params.proposicao) {
-      this.urn = buildFakeUrn(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
-    } else if (this.projetoNorma) {
-      this.urn = getUrn(params.projetoNorma);
+    const urnRecebida = getUrn(this.projetoNorma) || params.urn || params.proposicao?.urn;
+    if (urnRecebida) {
+      this.urn = urnRecebida;
+    } else if (params.proposicao) {
+      this.urn = buildUrnProposicao(params.proposicao.sigla, params.proposicao.numero, params.proposicao.ano);
     } else {
       this.validarParametrosIdentificacaoProposicao(params);
-      this.urn = buildFakeUrn(params.sigla, params.numero, params.ano);
+      this.urn = buildUrnProposicao(params.sigla, params.numero, params.ano);
     }
   }
 
   getEmentaFromProjetoNorma(projetoNorma: any): string {
-    return buildContent(projetoNorma.value?.projetoNorma?.norma?.parteInicial?.ementa.content);
+    const estrutura = projetoNorma?.value?.projetoNorma;
+    return buildContent((estrutura?.norma ?? estrutura?.projeto)?.parteInicial?.ementa?.content);
   }
 
   stateChanged(state: any): void {

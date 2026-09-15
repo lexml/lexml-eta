@@ -23,7 +23,7 @@ export const getNumero = (urn: string): string => {
   // urn:lex:br:federal:medida.provisoria:2019-11-11;905
   // urn:lex:br:senado.federal:proposta.emenda.constitucional;pec:2019;16@data.evento;leitura;2019-03-19t14.00
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  const anoNumero = partes[2].replace(/@.+$/, '').split(';');
+  const anoNumero = (partes[2] ?? '').replace(/@.+$/, '').split(';');
   return anoNumero.length > 1 ? anoNumero[1] : '';
 };
 
@@ -105,12 +105,19 @@ export const buildFakeUrn = (sigla: string, numero: string, ano: string): string
   throw `Sigla '${sigla}' não encontrada no vocabulário para montagem da urn.`;
 };
 
+export const ANO_PROVISORIO = '9999';
+export const NUMERO_PROVISORIO = '999999';
+
+/** Usa sentinelas somente para os campos ainda não informados. */
+export const buildUrnProposicao = (sigla: string, numero = '', ano = ''): string => buildFakeUrn(sigla, numero.trim() || NUMERO_PROVISORIO, ano.trim() || ANO_PROVISORIO);
+
 export const validaUrn = (urn: string): boolean => {
+  if (typeof urn !== 'string' || !urn.startsWith('urn:lex:br:')) return false;
   const autoridade = getAutoridade(urn)?.urn;
   const tipo = getTipo(urn)?.urn;
-  const numero = /^\d{1,5}$/.test(getNumero(urn));
+  const numero = /^\d{1,5}$/.test(getNumero(urn)) || getNumero(urn) === NUMERO_PROVISORIO;
   const data = /\d{4}[-]/.test(getData(urn)) || /^\d{4}$/.test(getData(urn)) ? getData(urn) : converteDataFormatoBrasileiroParaUrn(getData(urn));
-  return urn?.startsWith('urn:lex:br:') && autoridade && tipo && numero && data;
+  return Boolean(autoridade && tipo && numero && data);
 };
 
 export const getNomeExtenso = (urn: string): string => {

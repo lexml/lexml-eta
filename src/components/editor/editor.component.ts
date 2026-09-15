@@ -1695,7 +1695,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           // move o cursor físico independentemente do source (SILENT só suprime o evento), então sem esse guard o
           // foco automático ainda rouba o cursor de quem já está digitando (ver docs/analises/
           // ANALISE_CORRIDA_ASSENTAMENTO_NOVA_PROPOSICAO.md).
-          if (this.quill.linhaAtual) return;
+          if (!this.quill || !this.isConnected || this.quill.linhaAtual) return;
 
           // No carregamento inicial (não em troca de página), o cursor deve começar na ementa, não no 1º artigo.
           const elementoEmenta = !isMudancaDePagina ? elementos.find(elemento => elemento.tipo === 'Ementa') : undefined;
