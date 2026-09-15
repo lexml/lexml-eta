@@ -71,23 +71,19 @@ O sistema SHALL sincronizar qualquer edição pendente no dispositivo em foco an
 - **WHEN** o usuário aciona salvar sem ter saído do dispositivo que estava editando
 - **THEN** o texto digitado naquele dispositivo é incluído no documento salvo
 
-### Requirement: Seletores de arquivo para salvar
-O sistema SHALL usar o seletor nativo de salvamento quando disponível no navegador, e um download alternativo quando não estiver disponível; SHALL retornar `false` quando o usuário cancelar a operação, e SHALL propagar qualquer erro de escrita para a aplicação consumidora tratar.
+### Requirement: Geração do arquivo ao salvar
+O sistema SHALL sempre gerar o arquivo por download do navegador, sem usar o seletor nativo de salvamento do sistema operacional, sugerindo o nome de arquivo `documento-articulado - <sigla> nº <número>, de <ano>.json` composto a partir da URN do documento sendo salvo — para que a deduplicação de nomes do próprio navegador evite sobrescrever, sem aviso, um arquivo salvo anteriormente com o mesmo nome; SHALL propagar qualquer erro ocorrido ao gerar o arquivo para a aplicação consumidora tratar.
 
-#### Scenario: Navegador com File System Access API
-- **WHEN** o navegador suporta `showSaveFilePicker`
-- **THEN** o sistema abre o diálogo nativo de salvamento sugerindo o nome `documento-articulado.json`
+#### Scenario: Nome do arquivo baixado
+- **WHEN** o usuário aciona salvar com um documento em edição
+- **THEN** o navegador inicia o download do arquivo com o nome `documento-articulado - <sigla> nº <número>, de <ano>.json`, com sigla, número e ano extraídos da URN do documento
 
-#### Scenario: Navegador sem seletor nativo
-- **WHEN** o navegador não suporta `showSaveFilePicker`
-- **THEN** o sistema inicia o download do arquivo com o nome `documento-articulado.json`
+#### Scenario: Número e/ou ano ainda não definidos
+- **WHEN** a URN do documento contém as sentinelas de identificação provisória (`9999` para o ano e/ou `999999` para o número)
+- **THEN** o nome do arquivo usa essas mesmas sentinelas no lugar do ano e/ou do número
 
-#### Scenario: Cancelamento do salvamento
-- **WHEN** o usuário cancela o diálogo nativo de salvamento
-- **THEN** a operação de salvar retorna `false`, sem lançar erro
-
-#### Scenario: Falha ao escrever o arquivo
-- **WHEN** ocorre um erro ao escrever o arquivo, não relacionado a cancelamento
+#### Scenario: Falha ao gerar o arquivo
+- **WHEN** ocorre um erro ao montar ou serializar o documento para download
 - **THEN** o erro é propagado para a aplicação consumidora tratar
 
 ### Requirement: Rejeição de escrita para identificação inválida
