@@ -1,10 +1,8 @@
-# Remissão Externa
-
 ## Purpose
 
 Remissão externa é a detecção, criação, atualização e remoção de referências a normas **fora** do documento sendo editado (ex.: "art. 5º da Lei nº 8.069, de 13 de julho de 1990"), representadas como links navegáveis apontando para a URN LexML da norma citada. Ver também a capability irmã `remissao-interna` (referências dentro do mesmo documento) — mesmo diálogo de criação manual, mesmo gatilho de blur, coordenação mútua na detecção.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Detecção automática de citação a norma externa
 O sistema SHALL detectar automaticamente, no texto de um dispositivo, citações a normas externas (ex.: "Lei nº 8.069, de 13 de julho de 1990" e variantes abreviadas) e criar um link apontando para a URN LexML correspondente, sem diálogo de confirmação.
