@@ -1,3 +1,4 @@
+import { abrirArquivoDocumentoArticulado, lerArquivoDocumentoArticulado, salvarArquivoDocumentoArticulado } from '../../src/util/arquivoDocumentoArticulado';
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
@@ -196,8 +197,6 @@ export class DemoView extends LitElement {
             console.log('projetoNormaArquivo', params.projetoNorma);
           } else {
             params.sigla = 'PL';
-            params.numero = '1';
-            params.ano = new Date().getFullYear().toString();
           }
           // params.casaLegislativa = 'SF';
           this.elLexmlEta.inicializarEdicao(params);
@@ -211,24 +210,31 @@ export class DemoView extends LitElement {
     }
   }
 
-  salvar(): void {
-    const proposicao = this.elLexmlEta.getProposicao();
-    const proposicaoJson = JSON.stringify(proposicao, null, '\t');
-    const blob = new Blob([proposicaoJson], { type: 'application/json' });
-    const fileName = `${this.modo} - ${proposicao.sigla} nº ${proposicao.numero}, de ${proposicao.ano}.json`;
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
+  async salvar(): Promise<void> {
+    try {
+      await salvarArquivoDocumentoArticulado(this.elLexmlEta.getDocumentoArticulado());
+    } catch (erro) {
+      window.alert((erro as Error).message || 'Não foi possível salvar o documento.');
+    }
   }
 
-  abrir(): void {
-    const fileUpload = document.getElementById('fileUpload');
-    if (fileUpload !== null) {
-      fileUpload.click();
+  async abrir(): Promise<void> {
+    try {
+      const documento = await abrirArquivoDocumentoArticulado();
+      if (documento) await this.carregarDocumentoArticulado(documento);
+    } catch (erro) {
+      window.alert((erro as Error).message || 'Não foi possível abrir o documento.');
     }
+  }
+
+  private async carregarDocumentoArticulado(documento: unknown): Promise<void> {
+    await this.elLexmlEta.abrirDocumentoArticulado(documento);
+    this.modo = 'edicao';
+    this.projetoNorma = documento;
+    this.atualizarProposicaoCorrente(this.projetoNorma);
+    this.atualizarSelects(this.projetoNorma);
+    this.elLexmlEta.style.display = 'block';
+    this.onChangeDocumento();
   }
 
   usuario(): void {
@@ -257,7 +263,7 @@ export class DemoView extends LitElement {
           const projetoNormaBase = this.elDocumento.value.indexOf('sem_texto') >= 0 ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
           const proposicao = JSON.parse(e.target.result as string);
-          const projetoNormaArquivo = proposicao.projetoNorma;
+          const projetoNormaArquivo = proposicao;
 
           console.log('projetoNormaBase', projetoNormaBase);
           console.log('projetoNormaArquivo', projetoNormaArquivo);
@@ -270,32 +276,16 @@ export class DemoView extends LitElement {
     }
   }
 
-  selecionaArquivo(event: Event): void {
-    const fileInput = event.target as HTMLInputElement;
-    if (fileInput && fileInput.files) {
-      const fReader = new FileReader();
-      fReader.readAsText(fileInput.files[0]);
-      fReader.onloadend = async (e): Promise<void> => {
-        if (e.target?.result) {
-          this.modo = 'edicao';
-          const proposicao = JSON.parse(e.target.result as string);
-          this.projetoNorma = proposicao.projetoNorma;
-
-          console.log('projetoNormaArquivo', this.projetoNorma);
-
-          const params = new LexmlEtaParametrosEdicao();
-          params.projetoNorma = this.projetoNorma;
-          params.proposicao = proposicao;
-          this.elLexmlEta.inicializarEdicao(params);
-
-          this.atualizarProposicaoCorrente(this.projetoNorma);
-          this.atualizarSelects(this.projetoNorma);
-          // this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
-          this.elLexmlEta.style.display = 'block';
-
-          this.onChangeDocumento();
-        }
-      };
+  async selecionaArquivo(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const arquivo = input.files?.[0];
+    if (!arquivo) return;
+    try {
+      await this.carregarDocumentoArticulado(await lerArquivoDocumentoArticulado(arquivo));
+    } catch (erro) {
+      window.alert((erro as Error).message || 'Não foi possível abrir o documento.');
+    } finally {
+      input.value = '';
     }
   }
 
