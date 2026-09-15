@@ -2,7 +2,7 @@ import { DOCUMENTO_PADRAO } from '../../src/model/lexml/documento/modelo/documen
 
 export const novoDocumentoArticulado = (): any => {
   const documento = JSON.parse(JSON.stringify(DOCUMENTO_PADRAO));
-  documento.value.metadado.identificacao.urn = 'urn:lex:br:senado.federal:projeto.lei:9999;999999';
+  documento.value.metadado.identificacao.urn = 'urn:lex:br:senado.federal:projeto.lei;pls:9999;999999';
   const inicial = documento.value.projetoNorma.norma.parteInicial;
   const inline = (tipo: string, texto: string): any => ({
     name: { namespaceURI: 'http://www.lexml.gov.br/1.0', localPart: tipo },

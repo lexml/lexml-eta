@@ -3,6 +3,7 @@ import { buildContent, buildProjetoNormaFromJsonix } from '../../../src/model/le
 import {
   criarDocumentoArticulado,
   lerDocumentoArticulado,
+  nomeArquivoDocumentoArticulado,
   serializarDocumentoArticulado,
   validarDocumentoArticulado,
 } from '../../../src/model/lexml/documento/documentoArticulado';
@@ -106,5 +107,17 @@ describe('Documento articulado — especificações 00 e 01', () => {
     const entrada = novoDocumentoArticulado();
     entrada.value.projetoNorma.norma.articulacao.lXhier = {};
     expect(() => lerDocumentoArticulado(entrada)).to.throw('articulação');
+  });
+
+  it('compõe o nome do arquivo a partir de sigla, número e ano da URN', () => {
+    const entrada = novoDocumentoArticulado();
+    entrada.value.metadado.identificacao.urn = buildUrnProposicao('MPV', '905', '2019');
+    expect(nomeArquivoDocumentoArticulado(entrada)).to.equal('documento-articulado - MPV nº 905, de 2019.json');
+  });
+
+  it('usa as sentinelas de número e ano provisórios no nome do arquivo', () => {
+    const entrada = novoDocumentoArticulado();
+    entrada.value.metadado.identificacao.urn = buildUrnProposicao('PL', '', '');
+    expect(nomeArquivoDocumentoArticulado(entrada)).to.equal('documento-articulado - PL nº 999999, de 9999.json');
   });
 });
