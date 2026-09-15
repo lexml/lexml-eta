@@ -39,6 +39,11 @@ Este projeto utiliza três arquivos principais para gestão de contexto e contin
 
 A skill global `backup-docs` (`~/.claude/skills/backup-docs/SKILL.md`) sincroniza `docs/sessao/` (e o restante de `docs/`) para um repositório git dedicado e irmão deste projeto (`../bkp-ia/lexml-eta`), acionada dizendo algo como "backup dos docs". A skill `session-handoff` (também global) usa `docs/sessao/` para os arquivos de continuidade. Nenhuma das duas tem override local neste projeto.
 
+### Documentos arquiteturais de referência
+
+- `docs/estrutura-lexml.md` — engenharia reversa completa do formato LexML (mapeamento de tipos/`TYPE_NAME`, hierarquia de dispositivos, sistema de IDs, URN, sistema de remissões externas/internas/via-alteração), com base na documentação oficial (Partes 1-3) e no corpus real de proposições. Consultar antes de mexer em qualquer código de serialização/parsing LexML (`src/model/lexml/documento/`, `buildJsonixFromProjetoNorma.ts`, `buildProjetoNormaFromJsonix.ts`).
+- `docs/guia-cypress.md` — guia de testes E2E Cypress, organizado por tópico (config, Shadow DOM, race conditions com LitElement, menu de contexto dinâmico, seletores, setup de documentos, edição de texto, diagnóstico de falhas). Cada tópico traz cenário de uso e arquivos relacionados (`cypress/support/commands.ts`, `cypress/support/remissao-commands.ts`, specs de exemplo). Consultar antes de escrever ou depurar qualquer spec em `cypress/e2e/`. Versão completa/íntegra com todo o histórico de descobertas: `docs/guias/GUIA_CYPRESS.md`.
+
 ## OpenSpec (`openspec/`)
 
 ### Definição
