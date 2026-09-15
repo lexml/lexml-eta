@@ -22,6 +22,8 @@ Sempre que possível será gerada a representação textual prevista no LexML me
 
 O escopo inicial compreende a identificação provisória do documento, elementos de apresentação e parte final, conteúdo textual enriquecido, anotações, revisões de texto e revisões estruturais.
 
+**O LexEdit poderá abrir um arquivo LexML sem metadados específicos do LexEdit**, caso em que os dados não endereçados pelo LexML aparecerão com os valores padrão do editor.
+
 ### Premissa sobre o arquivo do editor de textos legislativos articulados
 
 O componente lexml-eta será utilizado em um editor de textos legislativos articulados e manipulará uma versão jsonix do arquivo lexml. Esse jsonix será convertido pelo editor em um arquivo 'documento-articulado.xml' que, junto com demais documentos anexos, será embutido em um PDF de apresentação do texto.

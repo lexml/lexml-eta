@@ -79,6 +79,19 @@ O componente vendoriza `src/util/lexml-linker/vendor/lexml-linker.wasm` (parser 
 
 O `.wasm.br` é gerado e mantido em sincronia com o `.wasm` pelo próprio `lexml-eta` (`npm run generate:wasm-br`, verificado automaticamente em `npm test` via `npm run verify:wasm-br`) — ver `docs/referencia/LEXML_LINKER_WASM.md` para detalhes de proveniência e o procedimento de rebuild.
 
+## OpenSpec (documentação de mudanças)
+
+O projeto usa o [OpenSpec](https://github.com/Fission-AI/OpenSpec) para especificar comportamento (`openspec/specs/`) e propor mudanças (`openspec/changes/`) — esses diretórios são versionados normalmente no repositório. Só a integração com o editor (comandos e skills do Claude Code em `.claude/`) não é: cada dev gera a própria localmente.
+
+Para instalar o CLI e gerar essa integração:
+
+```
+npm install -g @fission-ai/openspec@latest
+openspec init --tools claude --language pt-BR
+```
+
+Atenção ao nome do pacote: existe um `openspec` (sem escopo) no npm de outro autor, sem relação com este projeto — o certo é `@fission-ai/openspec`. O `init` detecta o `openspec/config.yaml` já existente e só recria os arquivos em `.claude/`, então é seguro rodar de novo a qualquer momento (ex.: após atualizar a versão do pacote).
+
 ## Teste
 
 Para executar os testes apenas uma vez:
