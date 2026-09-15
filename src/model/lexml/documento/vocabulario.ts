@@ -12,6 +12,10 @@ export const VOCABULARIO = {
       urn: 'congresso.nacional',
       descricao: 'Congresso Nacional',
     },
+    {
+      urn: 'camara.deputados',
+      descricao: 'Câmara dos Deputados',
+    },
   ],
   tiposDocumento: [
     {
@@ -169,6 +173,11 @@ export const VOCABULARIO = {
       descricao: 'Emenda(s) da Câmara dos Deputados',
       genero: 'F',
     },
+    {
+      urn: 'projeto.resolucao;prc',
+      descricao: 'Projeto de Resolução da Câmara dos Deputados',
+      genero: 'M',
+    },
   ],
   fakeUrns: [
     {
@@ -240,6 +249,11 @@ export const VOCABULARIO = {
       sigla: 'PRN',
       urnAutoridade: 'congresso.nacional',
       urnTipoDocumento: 'projeto.resolucao;prn',
+    },
+    {
+      sigla: 'PRC',
+      urnAutoridade: 'camara.deputados',
+      urnTipoDocumento: 'projeto.resolucao;prc',
     },
   ],
   siglas: [

@@ -36,7 +36,8 @@ Lista de strings no elemento `lexedit:Pendencias`, cada uma em um elemento `lexe
         <lexedit:Pendencia>Não foi informado um texto de justificação.</lexedit:Pendencia>
         <lexedit:Pendencia>Corrigir remissões internas inválidas.</lexedit:Pendencia>
         <lexedit:Pendencia>Remover comentários.</lexedit:Pendencia>
-        <lexedit:Pendencia>Resolver marcas de revisão.</lexedit:Pendencia>
+        <lexedit:Pendencia>Resolver marcas de revisão de texto.</lexedit:Pendencia>
+        <lexedit:Pendencia>Resolver marcas de revisão na articulação.</lexedit:Pendencia>
     </lexedit:Pendencias>
 </lexedit:Metadado>
 ```
