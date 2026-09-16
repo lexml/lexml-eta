@@ -330,8 +330,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
 
-      this._lexmlEta!.inicializarEdicao(this.urn, params, preservarTextoDocumento);
-
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
 
       // Deve ser chamado antes do reseta emenda para garantir a autoria padrão e depois da inicialização da casaLegislativa
@@ -346,6 +344,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.atualizaListaComissoes();
 
       this.limparAlertas();
+
+      // Carrega o documento por último, depois de toda limpeza de alertas acima (setProposicao/
+      // resetaProposicao/limparAlertas): documentos com remissão interna inválida persistida
+      // populam alertas globais ao abrir (ABRIR_ARTICULACAO), que seriam apagados se essa chamada
+      // viesse antes das limpezas.
+      this._lexmlEta!.inicializarEdicao(this.urn, params, preservarTextoDocumento);
 
       setTimeout(this.handleResize, 0);
 
