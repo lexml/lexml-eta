@@ -9,10 +9,10 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { MENSAGEM_REMISSAO_INVALIDA, RemissaoInternaValue } from '../../../model/remissao/remissao';
 
-export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEtaParametrosEdicao): State => {
+export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEtaParametrosEdicao, idsRemissoesInvalidas?: string[]): State => {
   const elementos = getElementos(articulacao);
 
-  const { remissoes, alertas, eventosValidacao } = detectarRemissoesInvalidasAoCarregar(articulacao);
+  const { remissoes, alertas, eventosValidacao } = detectarRemissoesInvalidasAoCarregar(articulacao, idsRemissoesInvalidas);
 
   return {
     articulacao,
@@ -34,12 +34,17 @@ export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEtaP
 // Regex para capturar tags <a ...>conteúdo</a> (não aninhadas).
 const REGEX_TAG_A = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
 const REGEX_LEXML_REF = /\bdata-lexml-ref="([^"]+)"/;
+const REGEX_RI_ID = /\bdata-ri-id="([^"]+)"/;
 
-const detectarRemissoesInvalidasAoCarregar = (articulacao: Articulacao): { remissoes: Record<number, RemissaoInternaValue[]>; alertas: Alerta[]; eventosValidacao: any[] } => {
+const detectarRemissoesInvalidasAoCarregar = (
+  articulacao: Articulacao,
+  idsRemissoesInvalidas?: string[]
+): { remissoes: Record<number, RemissaoInternaValue[]>; alertas: Alerta[]; eventosValidacao: any[] } => {
   const remissoes: Record<number, RemissaoInternaValue[]> = {};
   const alertas: Alerta[] = [];
   const eventosValidacao: any[] = [];
 
+  const idsInvalidosConhecidos = new Set(idsRemissoesInvalidas ?? []);
   const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
 
   percorreHierarquiaDispositivos(articulacao as unknown as Dispositivo, dispositivo => {
@@ -57,7 +62,13 @@ const detectarRemissoesInvalidasAoCarregar = (articulacao: Articulacao): { remis
       if (!lexmlRefMatch) continue;
 
       const targetLexmlId = lexmlRefMatch[1];
-      if (buscaDispositivoById(articulacao, targetLexmlId)) continue; // destino existe — válido
+      const riIdMatch = attrs.match(REGEX_RI_ID);
+      const idPersistido = riIdMatch?.[1];
+
+      // Lista de metadados é autoritativa: um id nela consta é inválido mesmo que o destino
+      // textual tenha voltado a resolver (id reaproveitado por outro dispositivo após reestruturação).
+      const invalidoPelaLista = idPersistido !== undefined && idsInvalidosConhecidos.has(idPersistido);
+      if (!invalidoPelaLista && buscaDispositivoById(articulacao, targetLexmlId)) continue; // destino existe — válido
 
       const textoRef = match[2].replace(/<[^>]*>/g, '').trim();
       invalidasDoDispositivo.push({
@@ -68,6 +79,7 @@ const detectarRemissoesInvalidasAoCarregar = (articulacao: Articulacao): { remis
         sourceUuid: dispositivo.uuid,
         sourceLexmlId: dispositivo.id,
         valida: false,
+        ...(idPersistido && { idPersistido }),
       });
     }
 

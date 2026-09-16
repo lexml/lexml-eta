@@ -19,6 +19,7 @@ const resolveCaputSeNecessario = (target: ReturnType<typeof buscaDispositivoById
 
 // Regex para detectar links de remissão interna pelo atributo data-lexml-ref
 const REGEX_REMISSAO_LINK = /<a\b[^>]*data-lexml-ref="([^"]+)"[^>]*>([^<]*)<\/a>/gi;
+const REGEX_RI_ID_ATTR = /data-ri-id="([^"]+)"/i;
 
 // Substitui apenas a primeira ocorrência de `busca` em `texto`
 const substituirPrimeiraOcorrencia = (texto: string, busca: string, substituto: string): string => {
@@ -35,9 +36,10 @@ const substituirPrimeiraOcorrencia = (texto: string, busca: string, substituto: 
  * Deve ser chamado ANTES de load() em abreArticulacao para que
  * a correção do texto seja refletida nos Elementos criados por getElementos().
  */
-export const inicializaRemissoesAoAbrir = (articulacao: Articulacao): Record<number, RemissaoInternaValue[]> => {
+export const inicializaRemissoesAoAbrir = (articulacao: Articulacao, idsRemissoesInvalidas?: string[]): Record<number, RemissaoInternaValue[]> => {
   const remissoes: Record<number, RemissaoInternaValue[]> = {};
   const dispositivos = getDispositivoAndFilhosAsLista(articulacao);
+  const idsInvalidosConhecidos = new Set(idsRemissoesInvalidas ?? []);
 
   for (const dispositivo of dispositivos) {
     const texto = dispositivo.texto;
@@ -50,6 +52,12 @@ export const inicializaRemissoesAoAbrir = (articulacao: Articulacao): Record<num
     while ((match = REGEX_REMISSAO_LINK.exec(texto)) !== null) {
       const rawLexmlId = match[1];
       const textoLink = match[2].trim();
+
+      // Lista de metadados é autoritativa: um id nela consta é tratado como inválido por
+      // detectarRemissoesInvalidasAoCarregar, mesmo que o destino textual resolva (id reaproveitado
+      // por outro dispositivo) — não registrar aqui como válido para não duplicar a entrada.
+      const riIdMatch = match[0].match(REGEX_RI_ID_ATTR);
+      if (riIdMatch && idsInvalidosConhecidos.has(riIdMatch[1])) continue;
 
       const isRevisao = rawLexmlId.endsWith(SUFIXO_REVISAO);
       const targetLexmlId = isRevisao ? rawLexmlId.slice(0, -SUFIXO_REVISAO.length) : rawLexmlId;

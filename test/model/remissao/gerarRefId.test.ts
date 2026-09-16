@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { gerarRefId } from '../../../src/model/remissao/refId';
+import { gerarIdRemissaoInvalida, gerarRefId } from '../../../src/model/remissao/refId';
 
 // m1 — Utilitário centralizado para geração de refId
 // BUG: a mesma lógica existe em 3 locais distintos, dois deles usando substr() (deprecado):
@@ -27,5 +27,11 @@ describe('m1 — gerarRefId: utilitário centralizado', () => {
   it('duas chamadas produzem ids diferentes (unicidade)', () => {
     const ids = new Set(Array.from({ length: 20 }, () => gerarRefId()));
     expect(ids.size).to.equal(20, 'cada chamada deve gerar um id único');
+  });
+});
+
+describe('gerarIdRemissaoInvalida: id estável de remissão interna inválida', () => {
+  it('retorna string no formato _ri<timestamp>', () => {
+    expect(gerarIdRemissaoInvalida()).to.match(/^_ri\d+$/, 'formato esperado: _ri<dígitos>');
   });
 });

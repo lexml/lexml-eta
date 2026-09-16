@@ -236,3 +236,83 @@ describe('Bug: remissão "caput deste artigo" carregada de documento vira "art. 
     expect(entrada.textoRef).to.equal('caput deste artigo');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Lista autoritativa de RemissoesInternasInvalidas (metadadoProprietario) — especificação 10
+// ---------------------------------------------------------------------------
+
+describe('Lista autoritativa de remissões inválidas prevalece sobre id reaproveitado', () => {
+  it('trata como inválida uma remissão cujo id conste na lista, mesmo com destino textual resolvendo', () => {
+    // Cenário: o destino original da remissão foi excluído e, na mesma reestruturação, o id
+    // textual "art4" foi reaproveitado por outro dispositivo — a heurística pura (resolução de
+    // destino) trataria isso como válido silenciosamente; a lista autoritativa deve prevalecer.
+    const articulacao = createArticulacao();
+
+    const art4Reaproveitado = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    articulacao.renumeraFilhos();
+    art4Reaproveitado.id = 'art4';
+    art4Reaproveitado.texto = 'Dispositivo novo, sem relação com a remissão original.';
+    art2.id = 'art2';
+    art2.texto = `Ver o <a href="art4" data-lexml-ref="art4" data-ri-id="_ri1758000000000" class="lexml-remissao-interna" target="_self">art. 4º</a> desta lei.`;
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao,
+      classificacao: ClassificacaoDocumento.PROJETO,
+      idsRemissoesInvalidas: ['_ri1758000000000'],
+    });
+
+    const entradas = estado.remissoes![art2.uuid!];
+    expect(entradas, 'deve haver exatamente uma entrada, sem duplicar como válida').to.have.length(1);
+    expect(entradas[0].valida).to.equal(false);
+    expect(entradas[0].targetLexmlId).to.equal('art4');
+    expect(entradas[0].idPersistido).to.equal('_ri1758000000000');
+  });
+
+  it('sem a lista autoritativa, o mesmo link com id textual reaproveitado é tratado como válido (comportamento de heurística pura, documentado como limitação conhecida)', () => {
+    const articulacao = createArticulacao();
+
+    const art4Reaproveitado = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    articulacao.renumeraFilhos();
+    art4Reaproveitado.id = 'art4';
+    art4Reaproveitado.texto = 'Dispositivo novo, sem relação com a remissão original.';
+    art2.id = 'art2';
+    art2.texto = `Ver o <a href="art4" data-lexml-ref="art4" data-ri-id="_ri1758000000000" class="lexml-remissao-interna" target="_self">art. 4º</a> desta lei.`;
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+
+    const entradas = estado.remissoes![art2.uuid!];
+    expect(entradas).to.have.length(1);
+    expect(entradas[0].valida).to.not.equal(false);
+  });
+
+  it('documento sem metadadoProprietario continua detectando remissão inválida somente pela heurística de resolução de destino (sem regressão)', () => {
+    const articulacao = createArticulacao();
+
+    const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    articulacao.renumeraFilhos();
+    art1.id = 'art1';
+    art1.texto = 'Dispositivo sem relação com a remissão.';
+    art2.id = 'art2';
+    art2.texto = `Ver o <a href="artInexistente" data-lexml-ref="artInexistente" class="lexml-remissao-interna" target="_self">art. 99º</a> desta lei.`;
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao,
+      classificacao: ClassificacaoDocumento.PROJETO,
+      // idsRemissoesInvalidas ausente — documento sem metadados do LexEdit.
+    });
+
+    const entradas = estado.remissoes![art2.uuid!];
+    expect(entradas, 'destino não existe: heurística pura deve continuar detectando como inválida').to.have.length(1);
+    expect(entradas[0].valida).to.equal(false);
+    expect(entradas[0].targetLexmlId).to.equal('artInexistente');
+  });
+});

@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
-import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { NORMA_DEFAULT } from '../../doc/parser/normaDefault';
 import { PROJETO_DEFAULT } from '../../doc/parser/projetoDefault';
@@ -228,6 +228,75 @@ describe('Desserialização de elemento Remissao', () => {
 
     expect(texto).to.include('Conforme o ');
     expect(texto).to.include(' desta lei.');
+  });
+
+  it('deve emitir data-ri-id quando o nó Remissao tem id (remissão inválida persistida)', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art9', id: '_ri1758000000000', content: ['art. 9º'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.include('data-ri-id="_ri1758000000000"');
+  });
+
+  it('não deve emitir data-ri-id quando o nó Remissao não tem id (remissão válida)', () => {
+    const doc = montarDocumentoComRemissao([
+      {
+        name: { localPart: 'Remissao' },
+        value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', href: 'art5_cpt', content: ['art. 5'] },
+      },
+    ]);
+
+    const projeto = buildProjetoNormaFromJsonix(doc);
+    const texto = projeto.articulacao!.filhos![0].texto;
+
+    expect(texto).to.not.include('data-ri-id');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Leitura de MetadadoProprietario/lexedit:Metadado (especificações 00, 10, 13)
+// ---------------------------------------------------------------------------
+
+describe('lerIdsRemissoesInvalidas', () => {
+  it('retorna lista vazia quando não há MetadadoProprietario', () => {
+    const doc = montarDocumentoComRemissao([]);
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal([]);
+  });
+
+  it('lê os ids de RemissoesInternasInvalidas quando presente', () => {
+    const doc = montarDocumentoComRemissao([]);
+    doc.value.metadado.metadadoProprietario = [
+      {
+        TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+        fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+        lexedit: { remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1', '_ri2'] } },
+      },
+    ];
+
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1', '_ri2']);
+  });
+
+  it('grupo suportado convive com grupo do LexEdit ainda não implementado, sem lançar erro', () => {
+    const doc = montarDocumentoComRemissao([]);
+    doc.value.metadado.metadadoProprietario = [
+      {
+        TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+        fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+        lexedit: {
+          remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1'] },
+          grupoAindaNaoImplementado: { qualquerCoisa: true },
+        },
+      },
+    ];
+
+    expect(() => lerIdsRemissoesInvalidas(doc)).to.not.throw();
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1']);
   });
 });
 

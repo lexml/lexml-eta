@@ -184,15 +184,17 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
   });
 });
 
-// Reproduz o bug de assimetria no sentinela @invalido:
+// Reproduz o bug de assimetria (histórico: sentinela @invalido aplicado só a um dos dois casos):
 // Ao excluir Art. 1 (com Art. 2 e Art. 3 tendo remissões para ele), a serialização
-// aplicava @invalido corretamente apenas no Art. 3 (que tinha HTML em caput.texto),
-// mas não no Art. 2 (que tinha texto plain — remissão só existia no DOM do Quill).
+// só corrigia o Art. 3 (que tinha HTML em caput.texto), mas não o Art. 2 (que tinha
+// texto plain — remissão só existia no DOM do Quill).
 // Causa: registry usa artigo.uuid como chave; completarRegistroRemissoes visitava o
 // caput (cujo uuid é diferente), não encontrava entrada, re-detectava do texto plain
 // e criava uma entrada VÁLIDA para o novo Art. 1 (lexmlId reciclado após renumeração).
-describe('Bug: assimetria no sentinela @invalido após exclusão com texto plain', () => {
-  it('ambos os artigos com remissão inválida devem serializar href="@invalido"', () => {
+// Hoje, ambos os caminhos devem preservar o último destino conhecido ('art1') em vez
+// do sentinela — a regressão de assimetria seria os dois caminhos divergirem entre si.
+describe('Preservação simétrica do destino conhecido após exclusão com texto plain e HTML', () => {
+  it('ambos os artigos com remissão inválida devem preservar href="art1"', () => {
     const articulacao = createArticulacao();
 
     const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
@@ -277,10 +279,10 @@ describe('Bug: assimetria no sentinela @invalido após exclusão com texto plain
 
     const remissaoArt2 = getRemissao(0);
     expect(remissaoArt2, 'art2 (texto plain) deve ter nó Remissao').to.exist;
-    expect(remissaoArt2.value.href, 'art2 deve serializar @invalido, não art1 reciclado').to.equal('@invalido');
+    expect(remissaoArt2.value.href, 'art2 deve preservar art1, não o art1 reciclado como se fosse válido').to.equal('art1');
 
     const remissaoArt3 = getRemissao(1);
     expect(remissaoArt3, 'art3 (HTML) deve ter nó Remissao').to.exist;
-    expect(remissaoArt3.value.href).to.equal('@invalido');
+    expect(remissaoArt3.value.href).to.equal('art1');
   });
 });
