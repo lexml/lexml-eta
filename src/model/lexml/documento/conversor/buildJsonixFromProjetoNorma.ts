@@ -22,22 +22,18 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
 
-/**
- * Garante `idPersistido` em toda entrada inválida do registro, mutando-a em memória (mesma
- * referência viva em state.remissoes, preservada por completarRegistroRemissoes) — sem isso,
- * cada "Salvar" sem edição geraria um id novo para o mesmo link. Roda antes de montar o
- * cabeçalho, que precisa da lista completa de ids antes de percorrer a árvore.
- */
+// Gera/reaproveita idPersistido antes de montar o cabeçalho, mutando a entrada em memória
+// (estabilidade entre saves). Set deduplica: artigo e caput podem compartilhar o mesmo array no registro.
 const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
-  const ids: string[] = [];
+  const ids = new Set<string>();
   for (const entries of Object.values(remissoes ?? {})) {
     for (const entry of entries) {
       if (entry.valida !== false) continue;
       if (!entry.idPersistido) entry.idPersistido = gerarIdRemissaoInvalida();
-      ids.push(entry.idPersistido);
+      ids.add(entry.idPersistido);
     }
   }
-  return ids;
+  return Array.from(ids);
 };
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {

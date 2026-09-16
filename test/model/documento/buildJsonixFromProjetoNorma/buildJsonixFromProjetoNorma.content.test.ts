@@ -3,6 +3,7 @@ import { buildJsonixArticulacaoFromProjetoNorma, buildJsonixFromProjetoNorma } f
 import { criaDispositivo, createArticulacao } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
 import { ClassificacaoDocumento } from '../../../../src/model/documento/classificacao';
+import { completarRegistroRemissoes } from '../../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
 
 describe('buildJsonixContent', () => {
   describe('13.1. Sem conteúdo ou sem links', () => {
@@ -1390,5 +1391,26 @@ describe('MetadadoProprietario — remissões internas inválidas', () => {
     };
 
     expect(getRemissaoId(primeiraVez)).to.equal(getRemissaoId(segundaVez));
+  });
+
+  it('não duplica o id na lista quando o registro tem o mesmo array aliasado nas chaves do artigo e do caput', () => {
+    // artigo e caput compartilham o mesmo array no registro (completarRegistroRemissoes) — reproduz o caso real.
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as any;
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const texto = 'Conforme o art. 2º desta lei.';
+    (caput as any).texto = texto;
+    const textoRef = 'art. 2º';
+
+    const registroInicial: Record<number, any[]> = {
+      [artigo.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'art2', textoRef, inicio: texto.indexOf(textoRef), valida: false }],
+    };
+
+    const registroCompleto = completarRegistroRemissoes(articulacao, registroInicial);
+    expect(registroCompleto[(caput as any).uuid!], 'pré-condição: aliasing deve existir para o teste fazer sentido').to.equal(registroCompleto[artigo.uuid!]);
+
+    const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', registroCompleto);
+    const ids = resultado.value.metadado.metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas;
+    expect(ids).to.have.length(1);
   });
 });

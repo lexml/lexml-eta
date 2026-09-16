@@ -31,7 +31,12 @@ describe('m1 — gerarRefId: utilitário centralizado', () => {
 });
 
 describe('gerarIdRemissaoInvalida: id estável de remissão interna inválida', () => {
-  it('retorna string no formato _ri<timestamp>', () => {
+  it('retorna string no formato _ri<dígitos>', () => {
     expect(gerarIdRemissaoInvalida()).to.match(/^_ri\d+$/, 'formato esperado: _ri<dígitos>');
+  });
+
+  it('duas chamadas seguidas produzem ids diferentes mesmo no mesmo milissegundo', () => {
+    const ids = new Set(Array.from({ length: 50 }, () => gerarIdRemissaoInvalida()));
+    expect(ids.size).to.equal(50);
   });
 });
