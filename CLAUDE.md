@@ -69,6 +69,14 @@ As changes do OpenSpec neste projeto seguem o padrão:
 
 Exemplos: `2026-09-15-c01-salvar-documento-articulado`, `2026-09-15-c02-abrir-documento-articulado`.
 
+### Lições aprendidas de changes anteriores (aplicar em toda change nova)
+
+Regras já registradas como enforcement real em `openspec/config.yaml` (`rules.tasks`/`operations.apply.guidance`) — resumo aqui para consulta rápida:
+
+- **Testes E2E**: toda `tasks.md` deve prever explicitamente uma task de E2E (Cypress), avaliando viabilidade à luz de `docs/guia-cypress.md`. Se não for viável/proporcional, não omitir em silêncio — registrar a decisão e propor uma alternativa concreta (ex.: integração, unitário) que cubra o mesmo risco.
+- **Pausa por task ao aplicar**: ao concluir todas as subtasks de uma task numerada (ex.: todas as 2.x), pausar e pedir validação do usuário antes de seguir para a próxima task numerada — nunca encadear tasks sem essa checagem.
+- **Commits ao pausar**: oferecer ao usuário commitar por conta própria ou pedir ajuda para organizar — se ajudar, sempre agrupar os arquivos em commits semanticamente corretos, com descrição sucinta (sem listar arquivos, sem "cara de IA"), apresentar o plano antes de commitar (nunca commitar direto) e nunca se colocar como coautor.
+
 ## Project Overview
 
 **LexML-ETA** (Editor de Texto Articulado - Legislative Text Editor) is a web component-based application for editing legislative documents and amendments (emendas) for the Brazilian Senate. It provides structured editing of legal texts with support for LexML format.
