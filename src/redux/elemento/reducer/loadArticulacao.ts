@@ -1,8 +1,10 @@
 import { configurarPaginacao } from '../util/paginacaoUtil';
 import { LexmlEtaParametrosEdicao } from '../../../components/lexml-eta.component';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { isArtigo, isCaput, isParagrafo } from '../../../model/dispositivo/tipo';
 import { createElementoValidadoComExtras, getElementos } from '../../../model/elemento/elementoUtil';
 import { buscaDispositivoById, percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { State, StateType } from '../../state';
 import { Alerta } from '../../../model/alerta/alerta';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -36,6 +38,33 @@ const REGEX_TAG_A = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
 const REGEX_LEXML_REF = /\bdata-lexml-ref="([^"]+)"/;
 const REGEX_RI_ID = /\bdata-ri-id="([^"]+)"/;
 
+// Remove marcador de fim de rótulo (" –", ".", ")") — sobra da forma inline do texto, não cabe num rótulo isolado.
+const limparRotulo = (rotulo: string): string => rotulo.replace(/[\s.)–-]+$/, '');
+
+// Rótulo do alerta global: sobe a cadeia de pais até o Artigo (inclusive), pulando o Caput
+// (sem rótulo próprio). Art./Parágrafo já se autodescrevem no rótulo ("Art. 2º", "§ 1º");
+// os demais tipos ganham o nome do tipo na frente (ex.: "Inciso I").
+const construirRotuloCompletoParaAlerta = (dispositivo: Dispositivo): string => {
+  const segmentos: string[] = [];
+  let atual: Dispositivo | undefined = dispositivo;
+  while (atual) {
+    if (isCaput(atual)) {
+      atual = atual.pai;
+      continue;
+    }
+    if (!atual.rotulo) {
+      segmentos.push('Dispositivo');
+    } else {
+      const rotulo = limparRotulo(atual.rotulo);
+      const descricao = Object.values(TipoDispositivo).find(t => t.tipo === atual!.tipo)?.descricao;
+      segmentos.push(isArtigo(atual) || isParagrafo(atual) || !descricao ? rotulo : `${descricao} ${rotulo}`);
+    }
+    if (isArtigo(atual)) break;
+    atual = atual.pai;
+  }
+  return segmentos.join(', ');
+};
+
 const detectarRemissoesInvalidasAoCarregar = (
   articulacao: Articulacao,
   idsRemissoesInvalidas?: string[]
@@ -48,6 +77,9 @@ const detectarRemissoesInvalidasAoCarregar = (
   const mensagemInvalida = { tipo: TipoMensagem.ERROR, descricao: MENSAGEM_REMISSAO_INVALIDA };
 
   percorreHierarquiaDispositivos(articulacao as unknown as Dispositivo, dispositivo => {
+    // Caput não é visitado aqui: Artigo.texto já delega para caput.texto (tipoArtigo.ts), então
+    // visitar os dois duplicaria a detecção da mesma remissão (e o Caput não tem rótulo próprio).
+    if (isCaput(dispositivo)) return;
     if (!dispositivo.uuid || !dispositivo.texto || !dispositivo.texto.includes('lexml-remissao-interna')) return;
 
     const invalidasDoDispositivo: RemissaoInternaValue[] = [];
@@ -95,7 +127,7 @@ const detectarRemissoesInvalidasAoCarregar = (
     alertas.push({
       id: `alerta-remissao-invalida-${dispositivo.uuid}`,
       tipo: TipoMensagem.ERROR,
-      mensagem: `${dispositivo.rotulo ?? 'Dispositivo'} contém remissão inválida para dispositivo excluído.`,
+      mensagem: `${construirRotuloCompletoParaAlerta(dispositivo)} contém remissão inválida para dispositivo excluído.`,
       podeFechar: true,
     });
   });

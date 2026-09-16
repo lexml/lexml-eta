@@ -316,3 +316,81 @@ describe('Lista autoritativa de remissões inválidas prevalece sobre id reaprov
     expect(entradas[0].targetLexmlId).to.equal('artInexistente');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Alerta global de remissão inválida — rótulo completo e não duplicação (Artigo/Caput)
+// ---------------------------------------------------------------------------
+
+describe('Alerta de remissão inválida: rótulo completo e sem duplicação Artigo/Caput', () => {
+  it('não duplica o alerta quando a remissão inválida está no caput (Artigo.texto delega para Caput.texto)', () => {
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const artigoFiller = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    articulacao.renumeraFilhos();
+    artigo.id = 'art1';
+    caput.texto = `Ver <a href="artInexistente" data-lexml-ref="artInexistente" class="lexml-remissao-interna">art. 99</a>.`;
+    artigoFiller.texto = 'Dispositivo sem relação com a remissão.';
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+
+    expect(estado.ui?.alertas).to.have.length(1);
+    expect(estado.ui!.alertas![0].mensagem).to.equal('Art. 1º contém remissão inválida para dispositivo excluído.');
+  });
+
+  it('rótulo do alerta inclui a cadeia completa até o artigo (inciso dentro do caput)', () => {
+    const articulacao = createArticulacao();
+    const artigoFiller = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const inciso = criaDispositivo(caput, TipoDispositivo.inciso.tipo);
+    articulacao.renumeraFilhos();
+    (inciso as any).numero = '1';
+    inciso.createRotulo(inciso);
+    artigo.id = 'art2';
+    artigoFiller.texto = 'Dispositivo sem relação com a remissão.';
+    caput.texto = 'Aqui:';
+    inciso.texto = `Ver <a href="artInexistente" data-lexml-ref="artInexistente" class="lexml-remissao-interna">art. 99</a>.`;
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+
+    expect(estado.ui?.alertas).to.have.length(1);
+    expect(estado.ui!.alertas![0].mensagem).to.equal('Inciso I, Art. 2º contém remissão inválida para dispositivo excluído.');
+  });
+
+  it('rótulo do alerta inclui a cadeia completa passando por parágrafo (inciso dentro de parágrafo)', () => {
+    const articulacao = createArticulacao();
+    const artigoFiller = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const paragrafo = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
+    const inciso = criaDispositivo(paragrafo, TipoDispositivo.inciso.tipo);
+    articulacao.renumeraFilhos();
+    (paragrafo as any).numero = '1';
+    paragrafo.createRotulo(paragrafo);
+    (inciso as any).numero = '2';
+    inciso.createRotulo(inciso);
+    artigo.id = 'art2';
+    artigoFiller.texto = 'Dispositivo sem relação com a remissão.';
+    caput.texto = 'Aqui.';
+    paragrafo.texto = 'Aqui é outro parágrafo de teste:';
+    inciso.texto = `Ver <a href="artInexistente" data-lexml-ref="artInexistente" class="lexml-remissao-interna">art. 99</a>.`;
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+
+    expect(estado.ui?.alertas).to.have.length(1);
+    expect(estado.ui!.alertas![0].mensagem).to.equal('Inciso II, Parágrafo único, Art. 2º contém remissão inválida para dispositivo excluído.');
+  });
+});
