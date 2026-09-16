@@ -53,5 +53,5 @@ export { Proposicao } from './model/proposicao/proposicao';
 configurePrivateQuill();
 
 export type { DocumentoArticulado } from './model/lexml/documento/documentoArticulado';
-export { lerDocumentoArticulado, serializarDocumentoArticulado, NOME_ARQUIVO_DOCUMENTO_ARTICULADO } from './model/lexml/documento/documentoArticulado';
+export { lerDocumentoArticulado, nomeArquivoDocumentoArticulado, serializarDocumentoArticulado } from './model/lexml/documento/documentoArticulado';
 export { abrirArquivoDocumentoArticulado, lerArquivoDocumentoArticulado, salvarArquivoDocumentoArticulado } from './util/arquivoDocumentoArticulado';

@@ -1,14 +1,10 @@
-import { DocumentoArticulado, lerDocumentoArticulado, NOME_ARQUIVO_DOCUMENTO_ARTICULADO, serializarDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
+import { DocumentoArticulado, lerDocumentoArticulado, nomeArquivoDocumentoArticulado, serializarDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 interface ArquivoSelecionado {
   getFile(): Promise<File>;
 }
-interface ArquivoParaSalvar {
-  createWritable(): Promise<{ write(blob: Blob): Promise<void>; close(): Promise<void>; abort(): Promise<void> }>;
-}
 interface SeletoresArquivo {
   showOpenFilePicker?: (options: any) => Promise<ArquivoSelecionado[]>;
-  showSaveFilePicker?: (options: any) => Promise<ArquivoParaSalvar>;
 }
 
 const tiposArquivo = [{ description: 'Documento articulado', accept: { 'application/json': ['.json'] } }];
@@ -16,37 +12,20 @@ const foiCancelado = (erro: unknown): boolean => (erro as Error)?.name === 'Abor
 
 export const lerArquivoDocumentoArticulado = async (arquivo: Blob): Promise<DocumentoArticulado> => lerDocumentoArticulado(await arquivo.text());
 
-export const salvarArquivoDocumentoArticulado = async (documento: DocumentoArticulado): Promise<boolean> => {
+/** Sempre baixa pelo navegador (nunca usa o seletor nativo de salvamento): a deduplicação de nomes do
+ * próprio navegador evita sobrescrever, sem aviso, um arquivo salvo anteriormente com o mesmo nome. */
+export const salvarArquivoDocumentoArticulado = async (documento: DocumentoArticulado): Promise<void> => {
   const blob = new Blob([serializarDocumentoArticulado(documento)], { type: 'application/json;charset=utf-8' });
-  const seletores = window as unknown as SeletoresArquivo;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = nomeArquivoDocumentoArticulado(documento);
+  document.body.appendChild(link);
   try {
-    if (seletores.showSaveFilePicker) {
-      const arquivo = await seletores.showSaveFilePicker({ suggestedName: NOME_ARQUIVO_DOCUMENTO_ARTICULADO, types: tiposArquivo });
-      const escrita = await arquivo.createWritable();
-      try {
-        await escrita.write(blob);
-        await escrita.close();
-      } catch (erro) {
-        await escrita.abort().catch(() => undefined);
-        throw erro;
-      }
-    } else {
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = NOME_ARQUIVO_DOCUMENTO_ARTICULADO;
-      document.body.appendChild(link);
-      try {
-        link.click();
-      } finally {
-        link.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-      }
-    }
-    return true;
-  } catch (erro) {
-    if (foiCancelado(erro)) return false;
-    throw erro;
+    link.click();
+  } finally {
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 };
 

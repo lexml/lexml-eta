@@ -4,7 +4,6 @@ import { novoDocumentoArticulado } from '../doc/documentoArticulado';
 
 describe('Arquivos de documento articulado', () => {
   let descritorAbrir: PropertyDescriptor | undefined;
-  let descritorSalvar: PropertyDescriptor | undefined;
   const configurar = (nome: string, value: unknown): Window => Object.defineProperty(window, nome, { configurable: true, value });
   const restaurar = (nome: string, descritor?: PropertyDescriptor): void => {
     if (descritor) Object.defineProperty(window, nome, descritor);
@@ -12,32 +11,38 @@ describe('Arquivos de documento articulado', () => {
   };
   beforeEach(() => {
     descritorAbrir = Object.getOwnPropertyDescriptor(window, 'showOpenFilePicker');
-    descritorSalvar = Object.getOwnPropertyDescriptor(window, 'showSaveFilePicker');
   });
   afterEach(() => {
     restaurar('showOpenFilePicker', descritorAbrir);
-    restaurar('showSaveFilePicker', descritorSalvar);
   });
 
-  it('grava o Jsonix com o nome padrão e fecha o arquivo', async () => {
-    let gravado: Blob | undefined;
-    let fechou = false;
-    configurar('showSaveFilePicker', async options => {
-      expect(options.suggestedName).to.equal('documento-articulado.json');
-      return {
-        createWritable: async (): Promise<any> => ({
-          write: async (blob: Blob): Promise<void> => {
-            gravado = blob;
-          },
-          close: async (): Promise<void> => {
-            fechou = true;
-          },
-        }),
-      };
-    });
-    expect(await salvarArquivoDocumentoArticulado(novoDocumentoArticulado())).to.equal(true);
-    expect(fechou).to.equal(true);
-    expect(JSON.parse(await gravado!.text()).name.localPart).to.equal('LexML');
+  it('baixa o Jsonix com o nome de arquivo composto, sem usar o seletor nativo de salvamento', async () => {
+    const cliques: HTMLAnchorElement[] = [];
+    const clickOriginal = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement): void {
+      cliques.push(this);
+    };
+    try {
+      await salvarArquivoDocumentoArticulado(novoDocumentoArticulado());
+    } finally {
+      HTMLAnchorElement.prototype.click = clickOriginal;
+    }
+    expect(cliques).to.have.length(1);
+    expect(cliques[0].download).to.equal('documento-articulado - PLS nº 999999, de 9999.json');
+    const conteudo = await (await fetch(cliques[0].href)).text();
+    expect(JSON.parse(conteudo).name.localPart).to.equal('LexML');
+  });
+
+  it('propaga o erro ao tentar salvar um documento inválido', async () => {
+    const entrada = novoDocumentoArticulado();
+    entrada.value.projetoNorma.norma.articulacao.lXhier = [];
+    let mensagem = '';
+    try {
+      await salvarArquivoDocumentoArticulado(entrada);
+    } catch (erro) {
+      mensagem = (erro as Error).message;
+    }
+    expect(mensagem).to.include('articulação');
   });
 
   it('lê o arquivo selecionado pelo diálogo', async () => {
@@ -45,37 +50,11 @@ describe('Arquivos de documento articulado', () => {
     expect((await abrirArquivoDocumentoArticulado())?.value.metadado.identificacao.urn).to.include(':9999;999999');
   });
 
-  it('trata cancelamento como operação não realizada', async () => {
-    const cancelar = async (): Promise<never> => {
+  it('trata cancelamento ao abrir como operação não realizada', async () => {
+    configurar('showOpenFilePicker', async (): Promise<never> => {
       throw new DOMException('Cancelado', 'AbortError');
-    };
-    configurar('showSaveFilePicker', cancelar);
-    configurar('showOpenFilePicker', cancelar);
-    expect(await salvarArquivoDocumentoArticulado(novoDocumentoArticulado())).to.equal(false);
+    });
     expect(await abrirArquivoDocumentoArticulado()).to.equal(undefined);
-  });
-
-  it('aborta uma escrita que falha e propaga o erro', async () => {
-    let abortou = false;
-    configurar('showSaveFilePicker', async () => ({
-      createWritable: async (): Promise<any> => ({
-        write: async (): Promise<void> => {
-          throw new Error('Falha de escrita');
-        },
-        close: async (): Promise<void> => undefined,
-        abort: async (): Promise<void> => {
-          abortou = true;
-        },
-      }),
-    }));
-    let mensagem = '';
-    try {
-      await salvarArquivoDocumentoArticulado(novoDocumentoArticulado());
-    } catch (erro) {
-      mensagem = (erro as Error).message;
-    }
-    expect(abortou).to.equal(true);
-    expect(mensagem).to.equal('Falha de escrita');
   });
 
   it('recusa arquivo com JSON inválido', async () => {
