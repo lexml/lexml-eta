@@ -112,3 +112,13 @@ export class Anexo {
   nomeArquivo = '';
   base64 = '';
 }
+
+// Substituição de termo -----------------------------
+export type TipoSubstituicaoTermo = 'Expressão' | 'Palavra' | 'Número';
+export class SubstituicaoTermo {
+  tipo: TipoSubstituicaoTermo = 'Expressão';
+  termo = '';
+  novoTermo = '';
+  flexaoGenero = false;
+  flexaoNumero = false;
+}

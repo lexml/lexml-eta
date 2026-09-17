@@ -1,6 +1,6 @@
 import { LitElement, TemplateResult, css, html } from 'lit';
 import { customElement, query } from 'lit/decorators.js';
-import { SubstituicaoTermo } from '../../model/emenda/emenda';
+import { SubstituicaoTermo } from '../../model/proposicao/proposicao';
 
 @customElement('lexml-substituicao-termo')
 export class SubstituicaoTermoComponent extends LitElement {

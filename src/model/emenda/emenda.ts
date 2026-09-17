@@ -1,5 +1,6 @@
 import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { Revisao } from '../revisao/revisao';
+import { SubstituicaoTermo } from '../proposicao/proposicao';
 
 export class Emenda {
   // Metadados padronizados para o lexml-eta-emenda
@@ -132,13 +133,4 @@ export class OpcoesImpressao {
 export class Anexo {
   nomeArquivo = '';
   base64 = '';
-}
-
-export type TipoSubstituicaoTermo = 'Expressão' | 'Palavra' | 'Número';
-export class SubstituicaoTermo {
-  tipo: TipoSubstituicaoTermo = 'Expressão';
-  termo = '';
-  novoTermo = '';
-  flexaoGenero = false;
-  flexaoNumero = false;
 }
