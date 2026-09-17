@@ -96,7 +96,7 @@ export const buildUrn = (autoridade: string, tipo: string, numero: string, data:
   return `urn:lex:br:${autoridade}:${tipo}:${dataPadrao};${numero}`;
 };
 
-// Para inicialização de edição de emenda sem texto lexml
+// Para inicialização de edição de proposição sem texto lexml
 export const buildFakeUrn = (sigla: string, numero: string, ano: string): string => {
   const fake = VOCABULARIO.fakeUrns.find(f => f.sigla === sigla.toUpperCase());
   if (fake) {

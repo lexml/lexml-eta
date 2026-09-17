@@ -94,10 +94,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params, idsRemissoesInvalidas));
   }
 
-  private _timerLoadEmenda = 0;
+  private _timerLoadRevisoes = 0;
   private loadRevisoes(): void {
-    clearInterval(this._timerLoadEmenda);
-    this._timerLoadEmenda = window.setTimeout(() => {
+    clearInterval(this._timerLoadRevisoes);
+    this._timerLoadRevisoes = window.setTimeout(() => {
       rootStore.dispatch(aplicarRevisoesAction.execute(this.revisoes));
     }, 1000);
   }
