@@ -82,9 +82,9 @@ import { isCaput } from '../../model/dispositivo/tipo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
-import { alertaGlobalEmendaSemPreenchimentoUtil, alertarInfo } from '../../redux/elemento/util/alertaUtil';
+import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { getElementos, createElementoValidadoComExtras, createElemento } from '../../model/elemento/elementoUtil';
+import { createElementoValidadoComExtras, createElemento } from '../../model/elemento/elementoUtil';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
@@ -195,9 +195,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         alertarInfo(state.elementoReducer.ui.message.descricao);
       } else if (state.elementoReducer.ui.events[0]?.stateType !== 'AtualizacaoAlertas') {
         this.processarStateEvents(state.elementoReducer.ui);
-        setTimeout(() => {
-          this.alertaGlobalEmendaSemPreenchimento(state.elementoReducer.articulacao);
-        }, 0);
       }
     }
   }
@@ -1634,17 +1631,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       rootStore.dispatch(adicionarAlerta(alerta));
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
       rootStore.dispatch(removerAlerta(id));
-    }
-  }
-
-  private alertaGlobalEmendaSemPreenchimento(articulacao: any): void {
-    if (articulacao) {
-      const elementos = getElementos(articulacao!).filter(e => e.tipo !== 'Articulacao');
-      if (elementos.length === 0) {
-        alertaGlobalEmendaSemPreenchimentoUtil(true, rootStore, 'Deve ser feita pelo menos uma modificação no texto da proposição para a geração do comando de emenda.');
-      } else {
-        alertaGlobalEmendaSemPreenchimentoUtil(false, rootStore, '');
-      }
     }
   }
 
