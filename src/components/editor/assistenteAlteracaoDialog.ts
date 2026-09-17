@@ -1,5 +1,5 @@
 import { Elemento } from '../../model/elemento';
-import { Norma } from '../../model/emenda/norma';
+import { Norma } from '../../model/proposicao/norma';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 import '../autocomplete/autocomplete-norma';
 

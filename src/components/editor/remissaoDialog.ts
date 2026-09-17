@@ -6,7 +6,7 @@ import { rootStore } from '../../redux/store';
 import { escapeHtml } from '../../util/html-util';
 import { gerarRefId } from '../../model/remissao/refId';
 import { textoParaFragmentoLexmlId } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
-import { Norma } from '../../model/emenda/norma';
+import { Norma } from '../../model/proposicao/norma';
 
 export type TipoRemissao = 'interna' | 'externa';
 
