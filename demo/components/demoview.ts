@@ -4,7 +4,7 @@ import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import { LexmlEtaConfig, LexmlEtaComponent, LexmlEtaParametrosEdicao, Usuario } from '../../src';
-import { RefProposicaoEmendada } from '../../src/model/emenda/emenda';
+import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
@@ -104,7 +104,7 @@ export class DemoView extends LitElement {
   @state() modo = 'edicao';
   @state() anexoParecer = false;
   @state() projetoNorma: any = {};
-  @state() proposicaoCorrente = new RefProposicaoEmendada();
+  @state() proposicaoCorrente = new RefProposicaoReduzida();
 
   private nomeUsuario?: string = 'Fulano';
   emendaConfig: LexmlEtaConfig;

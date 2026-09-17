@@ -4,7 +4,6 @@ import { ajustaHtmlFromEditor, ajustaHtmlToEditor } from '../../../src/component
 import { rootStore } from '../../../src/redux/store';
 import { ativarDesativarRevisaoAction } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { atualizarUsuarioAction } from '../../../src/model/lexml/acao/atualizarUsuarioAction';
-import { ModoEdicaoEmenda } from '../../../src/model/emenda/emenda';
 import { atualizaRevisaoTextoLivre } from '../../../src/redux/elemento/reducer/atualizaRevisaoTextoLivre';
 
 let editorTextoRico: EditorTextoRicoComponent;
@@ -28,13 +27,11 @@ describe('Testando funções de conversão de html', () => {
 
 describe('Testando lexml-eta-editor-texto-rico (EditorTextoRicoComponent)', () => {
   beforeEach(async function () {
-    // const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
-    // state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE });
     editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
 
     rootStore.getState().elementoReducer = {
       articulacao: undefined,
-      modo: ModoEdicaoEmenda.EMENDA_TEXTO_LIVRE,
+      modo: 'emendaTextoLivre',
       past: [],
       present: [],
       future: [],
