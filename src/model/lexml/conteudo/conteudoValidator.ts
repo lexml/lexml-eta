@@ -13,7 +13,6 @@ import {
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
 } from '../hierarquia/hierarquiaUtil';
-import { isBloqueado } from '../regras/regrasUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
@@ -282,14 +281,6 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isSeguidoDeOmissis(dispositivo)
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `Último dispositivo de uma sequência deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_FIM_SEQUENCIA!)}.`);
-  }
-
-  if (isBloqueado(dispositivo) && !isBloqueado(dispositivo.pai!)) {
-    addMensagem(
-      mensagens,
-      TipoMensagem.ERROR,
-      `Dispositivo com estrutura não suportada pelo editor de emendas. Para alterações neste dispositivo, utilize o modo de emenda de texto livre.`
-    );
   }
 
   return [...new Set(mensagens)];
