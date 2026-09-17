@@ -2,7 +2,6 @@ describe('Revisão', () => {
   beforeEach(() => {
     cy.novaEmenda({
       projetoNormaSelectValue: 'mpv_905_2019',
-      modoEmendaSelectValue: 'emenda',
     });
   });
 
