@@ -93,7 +93,7 @@ describe('Bootstrap de remissões ao abrir documento', () => {
 
   it('deve resolver o targetUuid pelo lexmlId da articulação, apontando para o CAPUT (não o Artigo inteiro) quando o id termina em "_cpt"', () => {
     // buscaDispositivoById trata "art{N}_cpt" como sinônimo do próprio Artigo — comportamento
-    // intencional para o fluxo de aplicação de emendas (mod/sup), mas incorreto para remissão: uma
+    // intencional para o fluxo de aplicação de revisões (mod/sup), mas incorreto para remissão: uma
     // remissão para "art1_cpt" refere-se ao CAPUT, não ao artigo inteiro. Sem a correção em
     // inicializaRemissoesAoAbrir.ts (resolveCaputSeNecessario), targetUuid nascia como o uuid do
     // Artigo, e a atualização por renumeração gerava o texto do artigo inteiro (ex.: "art. 4º") em
