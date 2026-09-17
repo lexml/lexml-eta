@@ -704,16 +704,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     rootStore.dispatch(limparAlertas());
   }
 
-  showAlertaEmendaTextoLivre(): void {
-    const alerta = {
-      id: 'alerta-global-emenda-texto-livre',
-      tipo: TipoMensagem.CRITICAL,
-      mensagem: 'O comando de emenda deve ser preenchido.',
-      podeFechar: false,
-    };
-    rootStore.dispatch(adicionarAlerta(alerta));
-  }
-
   mostrarDialogDisclaimerRevisao(): void {
     mostrarDialogDisclaimerRevisao();
   }
