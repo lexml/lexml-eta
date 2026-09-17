@@ -107,16 +107,16 @@ export class DemoView extends LitElement {
   @state() proposicaoCorrente = new RefProposicaoReduzida();
 
   private nomeUsuario?: string = 'Fulano';
-  emendaConfig: LexmlEtaConfig;
+  etaConfig: LexmlEtaConfig;
 
   constructor() {
     super();
     setBasePath('./');
-    this.emendaConfig = new LexmlEtaConfig();
-    this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
-    this.emendaConfig.urlComissoes = '/comissoes';
-    this.emendaConfig.anexoParecer = this.anexoParecer;
-    this.emendaConfig.justificacaoObrigatoria = true;
+    this.etaConfig = new LexmlEtaConfig();
+    this.etaConfig.urlConsultaParlamentares = '/parlamentares';
+    this.etaConfig.urlComissoes = '/comissoes';
+    this.etaConfig.anexoParecer = this.anexoParecer;
+    this.etaConfig.justificacaoObrigatoria = true;
   }
 
   createRenderRoot(): LitElement {
@@ -289,14 +289,6 @@ export class DemoView extends LitElement {
     }
   }
 
-  private async getProjetoNormaJsonixFromEmenda(emenda: any): Promise<any> {
-    let { sigla, numero, ano } = emenda.proposicao;
-    if (!sigla || !numero || !ano) {
-      ({ sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(emenda.proposicao.urn));
-    }
-    return this.getProjetoNormaJsonix(sigla, numero, ano);
-  }
-
   private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
     const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
     const aux = mapProjetosNormas[key] || mapProjetosNormas[`_${key}`];
@@ -411,7 +403,7 @@ export class DemoView extends LitElement {
               .checked=${this.anexoParecer}
               @change=${(event: Event): void => {
                 this.anexoParecer = (event.target as HTMLInputElement).checked;
-                this.emendaConfig.anexoParecer = this.anexoParecer;
+                this.etaConfig.anexoParecer = this.anexoParecer;
               }}
             />
             Anexo de parecer</label
@@ -420,7 +412,7 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-eta .lexmlEmendaConfig=${this.emendaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-eta>
+      <lexml-eta .lexmlEtaConfig=${this.etaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-eta>
     `;
   }
 

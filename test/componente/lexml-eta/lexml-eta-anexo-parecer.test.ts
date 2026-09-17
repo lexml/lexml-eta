@@ -65,7 +65,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
   it('não deveria validar a ausência de justificação no modo anexo de parecer', () => {
     const component = new LexmlEtaComponent() as any;
     component.anexoParecer = true;
-    component.lexmlEmendaConfig.justificacaoObrigatoria = true;
+    component.lexmlEtaConfig.justificacaoObrigatoria = true;
 
     const pendencias = component.getPendenciasPreenchimentoEmenda({ justificativa: '' });
 

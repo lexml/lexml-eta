@@ -103,7 +103,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Array }) comissoes: Comissao[] = [];
-  @property({ type: Object }) lexmlEmendaConfig: LexmlEtaConfig = new LexmlEtaConfig();
+  @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
 
   private urn = '';
 
@@ -153,7 +153,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
-      const _response = await fetch(this.lexmlEmendaConfig.urlConsultaParlamentares);
+      const _response = await fetch(this.lexmlEtaConfig.urlConsultaParlamentares);
       const _parlamentares = await _response.json();
       return _parlamentares
         .filter(p => this.casaLegislativa === 'CN' || p.siglaCasa === this.casaLegislativa)
@@ -177,10 +177,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async getComissoes(siglaCasaLegislativa: string): Promise<Comissao[]> {
     try {
-      if (!this.lexmlEmendaConfig.urlComissoes) {
+      if (!this.lexmlEtaConfig.urlComissoes) {
         return Promise.resolve([]);
       }
-      const _response = await fetch(`${this.lexmlEmendaConfig.urlComissoes}?siglaCasaLegislativa=${siglaCasaLegislativa}`);
+      const _response = await fetch(`${this.lexmlEtaConfig.urlComissoes}?siglaCasaLegislativa=${siglaCasaLegislativa}`);
       const _comissoes = await _response.json();
       return _comissoes
         .filter(c => c.siglaCasaLegislativa === siglaCasaLegislativa)
@@ -320,7 +320,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
-      this.anexoParecer = this.lexmlEmendaConfig.anexoParecer ?? false;
+      this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.proposicao && params.proposicao.colegiadoApreciador?.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
@@ -669,7 +669,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private isJustificacaoObrigatoria(): boolean {
-    return !this.anexoParecer && this.lexmlEmendaConfig?.justificacaoObrigatoria !== false;
+    return !this.anexoParecer && this.lexmlEtaConfig?.justificacaoObrigatoria !== false;
   }
 
   buildAlertaJustificativa(): void {
@@ -896,11 +896,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta-proposicao" class="overflow-hidden">
-              <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
+              <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEtaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden ${this.anexoParecer ? 'painel-anexo-parecer' : ''}">
               <lexml-eta-editor-texto-rico
-                .lexmlEtaConfig=${this.lexmlEmendaConfig}
+                .lexmlEtaConfig=${this.lexmlEtaConfig}
                 modo="justificativa"
                 id="lexml-eta-editor-texto-rico-justificativa"
                 registroEvento="justificativa"
