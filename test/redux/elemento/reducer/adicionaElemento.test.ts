@@ -26,7 +26,7 @@ function criarStateMinimal() {
 
   const state: State = {
     articulacao,
-    modo: 'emenda',
+    modo: 'edicao',
     past: [],
     present: [],
     future: [],
@@ -90,7 +90,7 @@ function criarStateComArtigo(texto: string) {
 
   const state: State = {
     articulacao,
-    modo: 'emenda',
+    modo: 'edicao',
     past: [],
     present: [],
     future: [],

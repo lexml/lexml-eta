@@ -140,7 +140,7 @@ describe('Atualização de Remissões ao Remover Dispositivo', () => {
 
       const state: State = {
         articulacao,
-        modo: 'emenda',
+        modo: 'edicao',
         past: [],
         present: [],
         future: [],

@@ -185,11 +185,11 @@ describe('adicionaRemissaoInterna', () => {
       artigo1!.texto = 'Refere-se ao art. 2º.';
 
       const elemento = createElemento(artigo1!, true);
-      state.modo = 'emenda';
+      state.modo = 'edicao';
       state.emRevisao = true;
       state.revisoes = [{ id: 'rev1' } as any];
       const result = adicionaRemissaoInterna(state, { atual: elemento });
-      expect(result.modo).to.equal('emenda');
+      expect(result.modo).to.equal('edicao');
       expect(result.emRevisao).to.be.true;
       expect(result.revisoes).to.have.length(1);
     });

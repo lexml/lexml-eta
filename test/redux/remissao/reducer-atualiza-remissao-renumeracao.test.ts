@@ -199,7 +199,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, par2, '§ 2º do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: 'edicao',
           past: [],
           present: [],
           future: [],
@@ -243,7 +243,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, inc2, 'inciso II do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: 'edicao',
           past: [],
           present: [],
           future: [],
@@ -291,7 +291,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, ali2, 'alínea b) do inciso I do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: 'edicao',
           past: [],
           present: [],
           future: [],
@@ -342,7 +342,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, item2, 'item 2 da alínea a) do inciso I do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: 'edicao',
           past: [],
           present: [],
           future: [],
@@ -387,7 +387,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, cap2, 'Capítulo II');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: 'edicao',
           past: [],
           present: [],
           future: [],
