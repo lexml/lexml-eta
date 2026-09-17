@@ -65,7 +65,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       }
     }
 
-    private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo, paraComandoEmenda = false): string {
+    private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
       const ordinal = parseInt(num ?? '1', 10) < 10;
@@ -78,7 +78,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
               .join('-')
               .toUpperCase()
           : '') +
-        (!paraComandoEmenda && (!ordinal || remaining.length) ? '.' : '')
+        (!ordinal || remaining.length ? '.' : '')
       );
     }
   };
