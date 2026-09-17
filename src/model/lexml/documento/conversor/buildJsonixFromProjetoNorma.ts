@@ -15,19 +15,36 @@ import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
 import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/lexmlIdUtil';
+import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
 
+// Gera/reaproveita idPersistido antes de montar o cabeçalho, mutando a entrada em memória
+// (estabilidade entre saves). Set deduplica: artigo e caput podem compartilhar o mesmo array no registro.
+const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
+  const ids = new Set<string>();
+  for (const entries of Object.values(remissoes ?? {})) {
+    for (const entry of entries) {
+      if (entry.valida !== false) continue;
+      if (!entry.idPersistido) entry.idPersistido = gerarIdRemissaoInvalida();
+      ids.add(entry.idPersistido);
+    }
+  }
+  return Array.from(ids);
+};
+
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
-  const resultado = montaCabecalho(urn);
+  const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
+  const resultado = montaCabecalho(urn, idsRemissoesInvalidas);
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas);
   return resultado;
 };
 
 export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao, remissoes?: Remissoes): any => {
+  garantirIdsRemissoesInvalidas(remissoes);
   const articulacao = {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
     lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }, remissoes),
@@ -36,7 +53,16 @@ export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: 
   return articulacao;
 };
 
-const montaCabecalho = (urn: string): any => {
+const montaMetadadoProprietario = (idsRemissoesInvalidas: string[]): any => ({
+  TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+  fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+  lexedit: {
+    remissoesInternasInvalidas: { refIdsRemissoesInternas: idsRemissoesInvalidas },
+    pendencias: ['Corrigir remissões internas inválidas.'],
+  },
+});
+
+const montaCabecalho = (urn: string, idsRemissoesInvalidas: string[] = []): any => {
   return {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -53,6 +79,7 @@ const montaCabecalho = (urn: string): any => {
           TYPE_NAME: 'br_gov_lexml__1.Identificacao',
           urn: urn,
         },
+        ...(idsRemissoesInvalidas.length > 0 && { metadadoProprietario: [montaMetadadoProprietario(idsRemissoesInvalidas)] }),
       },
     },
   };
@@ -372,10 +399,11 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
     // Remissão interna: detectar pelo atributo data-lexml-ref
     const dataLexmlRefMatch = openingTag.match(/data-lexml-ref=(["'])([^"']+)\1/i);
     if (dataLexmlRefMatch) {
+      const riIdMatch = openingTag.match(/data-ri-id=(["'])([^"']+)\1/i);
       result.push({
         type: 'element',
         tag: 'Remissao',
-        attributes: { href: dataLexmlRefMatch[2] },
+        attributes: { href: dataLexmlRefMatch[2], ...(riIdMatch && { id: riIdMatch[2] }) },
         content,
       });
     } else {
@@ -421,7 +449,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
   return result;
 };
 
-const buildInlineElement = (tag: string, content: any[], href?: string): any => {
+const buildInlineElement = (tag: string, content: any[], href?: string, id?: string): any => {
   return {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -433,6 +461,7 @@ const buildInlineElement = (tag: string, content: any[], href?: string): any => 
     value: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       ...(href && { href }),
+      ...(id && { id }),
       content,
     },
   };
@@ -447,7 +476,7 @@ const buildStructuredContentWithInlineElements = (html: string): any[] => {
       return item.content;
     } else if (item.type === 'element') {
       if (item.tag === 'span' || item.tag === 'Remissao') {
-        return buildInlineElement(item.tag, [item.content], item.attributes?.href);
+        return buildInlineElement(item.tag, [item.content], item.attributes?.href, item.attributes?.id);
       } else {
         // Tags de formatação (b, i, u, sub, sup)
         let innerContent: any[];
@@ -551,8 +580,8 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
   if (!texto) return texto;
   const faltando = entries.filter(e => {
     if (!e.textoRef) return false;
-    // Entradas inválidas: injetar sentinel @invalido no texto plain; em HTML já corrigido
-    // por corrigirLexmlRefsObsoletosNoTexto, a injeção falhará silenciosamente (posição
+    // Entradas inválidas: injetar link com o último destino conhecido no texto plain; em HTML
+    // já corrigido por corrigirLexmlRefsObsoletosNoTexto, a injeção falhará silenciosamente (posição
     // não coincide com o textoRef dentro do <a>, e substituirTextoRefForaDeLinks é pulado).
     if (e.valida === false) return true;
     if (!e.targetLexmlId) return false;
@@ -567,8 +596,9 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
 
   let resultado = texto;
   for (const entry of ordenados) {
-    const targetId = entry.valida === false ? '@invalido' : entry.targetLexmlId!;
-    const link = `<a href="${targetId}" data-lexml-ref="${targetId}" class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
+    const targetId = entry.targetLexmlId!;
+    const atributoRiId = entry.valida === false ? ` data-ri-id="${entry.idPersistido}"` : '';
+    const link = `<a href="${targetId}" data-lexml-ref="${targetId}"${atributoRiId} class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
     // texto simples — inicio aponta diretamente para a posição no texto
     if (entry.inicio !== undefined && resultado.substring(entry.inicio, entry.inicio + entry.textoRef!.length) === entry.textoRef) {
       resultado = resultado.substring(0, entry.inicio) + link + resultado.substring(entry.inicio + entry.textoRef!.length);
@@ -623,8 +653,12 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
 
     const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, targetUuid, true);
     if (!destino) {
-      // Dispositivo excluído — usar sentinela para evitar confusão com IDs reciclados após renumeração.
-      const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, 'data-lexml-ref="@invalido"').replace(REGEX_HREF_LXETAID, 'href="@invalido"');
+      // Dispositivo excluído — preserva o último destino conhecido (data-lexml-ref já o contém)
+      // em vez de um sentinela sem correspondência real; href sai do formato interno #lxEtaId
+      // para o mesmo destino conhecido, e ganha o id estável se a entrada já tiver sido processada.
+      const entry = entriesParaDispositivo.find(r => r.valida === false && r.targetLexmlId === lexmlIdAntigo);
+      const atributoRiId = entry?.idPersistido ? ` data-ri-id="${entry.idPersistido}"` : '';
+      const novosAtributos = atributos.replace(REGEX_HREF_LXETAID, `href="${lexmlIdAntigo}"`) + atributoRiId;
       return `<a${novosAtributos}>${conteudo}</a>`;
     }
 
@@ -729,7 +763,7 @@ const buildSpan = (m: string): any => {
   };
 };
 
-const buildRemissao = (m: string, lexmlRef: string): any => {
+const buildRemissao = (m: string, lexmlRef: string, id?: string): any => {
   const contentMatch = m.match(/<a[^>]*>(.*?)<\/a>/i);
   const content = contentMatch ? [contentMatch[1]?.trim()] : [''];
 
@@ -744,6 +778,7 @@ const buildRemissao = (m: string, lexmlRef: string): any => {
     value: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       href: lexmlRef,
+      ...(id && { id }),
       content,
     },
   };
@@ -752,7 +787,8 @@ const buildRemissao = (m: string, lexmlRef: string): any => {
 const buildRemissaoOuSpan = (m: string): any => {
   const dataLexmlRefMatch = m.match(/data-lexml-ref="([^"]+)"/i);
   if (dataLexmlRefMatch) {
-    return buildRemissao(m, dataLexmlRefMatch[1]);
+    const riIdMatch = m.match(/data-ri-id="([^"]+)"/i);
+    return buildRemissao(m, dataLexmlRefMatch[1], riIdMatch?.[1]);
   }
   const dataUrnMatch = m.match(/data-urn="([^"]+)"/i);
   if (dataUrnMatch) {

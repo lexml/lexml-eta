@@ -7,12 +7,28 @@ import { getAno, getNumero, getSigla } from './urnUtil';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
+/** Ponto de extensão `MetadadoProprietario` do LexML, ocupado pelo LexEdit — ver especificação 00. */
+export interface MetadadoLexEdit {
+  remissoesInternasInvalidas?: { refIdsRemissoesInternas: string[] };
+  pendencias?: string[];
+}
+
+export interface MetadadoProprietarioLexEdit {
+  TYPE_NAME: string;
+  fonte: string;
+  lexedit: MetadadoLexEdit;
+}
+
 /** Documento de intercâmbio. O modelo de edição ProjetoNorma é um contrato distinto. */
 export interface DocumentoArticulado {
   name: { namespaceURI: string; localPart: string; [key: string]: unknown };
   value: {
     TYPE_NAME: string;
-    metadado: { identificacao: { urn: string; [key: string]: unknown }; [key: string]: unknown };
+    metadado: {
+      identificacao: { urn: string; [key: string]: unknown };
+      metadadoProprietario?: MetadadoProprietarioLexEdit[];
+      [key: string]: unknown;
+    };
     projetoNorma: { norma: { parteInicial?: any; articulacao: any; [key: string]: unknown }; [key: string]: unknown };
     [key: string]: unknown;
   };

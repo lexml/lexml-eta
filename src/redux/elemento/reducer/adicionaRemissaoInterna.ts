@@ -74,10 +74,16 @@ const LOOKAHEAD_IMPL = `(?!(?:[º°])?\\s+d(?:[ao]\\s|este|esta|o\\s+presente|a\
 const P_INC_IMPL_PAT = `(?:inciso\\s+|inc\\.\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
 const P_ALI_IMPL_PAT = `(?:al[ií]nea\\s+|al[ií]\\.\\s+)(?:[a-z]+(?:-[a-z]+)?)\\)?`;
 
-const REGEX_PAR_IMPL = new RegExp(`${P_PARAGRAFO}${LOOKAHEAD_IMPL}`, 'gi');
-const REGEX_INC_IMPL = new RegExp(`${P_INC_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
-const REGEX_ALI_IMPL = new RegExp(`${P_ALI_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
-const REGEX_ITEM_IMPL = new RegExp(`${P_ITEM}${LOOKAHEAD_IMPL}`, 'gi');
+// Grupo atômico emulado (?=(X))\1: sem isso, o quantificador guloso de [MDCLXVI]+/\d+/[a-z]+
+// pode retroceder para uma correspondência mais curta só para satisfazer o LOOKAHEAD_IMPL
+// seguinte — ex. "inciso II do parágrafo único" retrocedendo de "II" para "I" (passa a barreira
+// porque o caractere seguinte deixa de ser espaço), produzindo um match ERRADO ("inciso I") em
+// vez de simplesmente não casar ali. O lookahead captura o trecho no comprimento máximo e a
+// referência \1 o repete literalmente, sem permitir novo backtracking.
+const REGEX_PAR_IMPL = new RegExp(`(?=(${P_PARAGRAFO}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_INC_IMPL = new RegExp(`(?=(${P_INC_IMPL_PAT}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ALI_IMPL = new RegExp(`(?=(${P_ALI_IMPL_PAT}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ITEM_IMPL = new RegExp(`(?=(${P_ITEM}))\\1${LOOKAHEAD_IMPL}`, 'gi');
 
 // Ordem: parágrafo primeiro para evitar matches parciais dentro de padrões maiores.
 // Inciso usa cascata [parágrafo → artigo]: prefere o parágrafo mais próximo, faz fallback para artigo.
@@ -87,6 +93,15 @@ const TIPOS_IMPLICITOS: Array<{ regex: RegExp; tiposAncestral: string[] }> = [
   { regex: REGEX_ALI_IMPL, tiposAncestral: [TipoDispositivo.inciso.tipo] },
   { regex: REGEX_ITEM_IMPL, tiposAncestral: [TipoDispositivo.alinea.tipo] },
 ];
+
+// Cadeia implícita sem âncora de artigo (ex: "inciso II do parágrafo único", "item 1 da alínea
+// b do caput") — mesma forma de REGEX_ABSOLUTA, mas sem exigir "do art. Nº" no final: resolvida
+// contra o artigo do próprio dispositivo de origem, igual às bare implícitas acima, só que
+// cobrindo o trecho qualificador INTEIRO em vez de só o último nível (senão "inciso II do
+// parágrafo único" perderia o prefixo "inciso II" e resolveria só para o parágrafo único, não
+// para o inciso II dentro dele).
+const P_CADEIA_SEM_ARTIGO = `(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?(?:${P_INCISO}${CONECTOR})?(?:${P_CAPUT}|${P_PARAGRAFO})`;
+const REGEX_CADEIA_IMPL = new RegExp(`(?=(${P_CADEIA_SEM_ARTIGO}))\\1${LOOKAHEAD_IMPL}`, 'gi');
 
 export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -252,8 +267,9 @@ const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulaca
   const absolutas = detectarReferenciasAbsolutas(texto, articulacao);
   const agrupadores = detectarReferenciasAgrupadores(texto, articulacao);
   const contextuais = detectarReferenciasContextuais(texto, dispositivo, articulacao);
+  const cadeiasImplicitas = detectarReferenciasCadeiaImplicita(texto, dispositivo, articulacao);
   const implicitas = detectarReferenciasImplicitasSemQualificador(texto, dispositivo, articulacao);
-  const encontradas = deduplicarPorPosicao([...absolutas, ...agrupadores, ...contextuais, ...implicitas]);
+  const encontradas = removerSobrepostos([...absolutas, ...agrupadores, ...contextuais, ...cadeiasImplicitas, ...implicitas]);
   return spansExternos.length === 0 ? encontradas : encontradas.filter(item => !sobrepoeSpanExterno(item, spansExternos));
 };
 
@@ -500,19 +516,44 @@ const detectarReferenciasImplicitasSemQualificador = (texto: string, dispositivo
   return resultado;
 };
 
-// Quando detecção implícita e explícita colidem no mesmo offset, o match mais longo vence
-// (ex: "§ 1º deste artigo" contextual ganha sobre "§ 1º" implícita no mesmo offset).
-const deduplicarPorPosicao = (refs: ReferenciaEncontrada[]): ReferenciaEncontrada[] => {
-  const porPosicao = new Map<number, ReferenciaEncontrada>();
-  for (const ref of refs) {
-    if (ref.inicio === undefined) continue;
-    const existente = porPosicao.get(ref.inicio);
-    if (!existente || ref.texto.length > existente.texto.length) {
-      porPosicao.set(ref.inicio, ref);
-    }
+// Cadeia implícita sem âncora de artigo (ex: "inciso II do parágrafo único") — mesma estrutura
+// de detectarReferenciasImplicitasSemQualificador, mas cobrindo o trecho qualificador inteiro via
+// REGEX_CADEIA_IMPL em vez de um único nível "bare"; a sobreposição com o match bare do último
+// nível sozinho (ex: "parágrafo único" isolado) é resolvida depois por removerSobrepostos.
+const detectarReferenciasCadeiaImplicita = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  if (dispositivo.isDispositivoAlteracao) return [];
+
+  const resultado: ReferenciaEncontrada[] = [];
+  REGEX_CADEIA_IMPL.lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = REGEX_CADEIA_IMPL.exec(texto)) !== null) {
+    const ref = resolverImplicito(match[0], match.index, dispositivo, articulacao, [TipoDispositivo.artigo.tipo]);
+    if (ref) resultado.push(ref);
   }
+
+  return resultado;
+};
+
+// Quando detecções colidem no mesmo offset ou uma está inteiramente contida no intervalo de
+// outra, o match mais longo vence (ex: "§ 1º deste artigo" contextual ganha sobre "§ 1º" implícita
+// no mesmo offset; "inciso II do parágrafo único" ganha sobre "parágrafo único" sozinho, que começa
+// depois mas está contido no intervalo do primeiro).
+const removerSobrepostos = (refs: ReferenciaEncontrada[]): ReferenciaEncontrada[] => {
+  const comPosicao = refs.filter((r): r is ReferenciaEncontrada & { inicio: number } => r.inicio !== undefined);
   const semPosicao = refs.filter(r => r.inicio === undefined);
-  return [...porPosicao.values(), ...semPosicao];
+
+  // Maior primeiro; para empate de tamanho, mantém a ordem original (estabilidade do sort).
+  const ordenados = [...comPosicao].sort((a, b) => b.texto.length - a.texto.length);
+  const aceitos: (ReferenciaEncontrada & { inicio: number })[] = [];
+
+  for (const ref of ordenados) {
+    const fim = ref.inicio + ref.texto.length;
+    const sobrepoeAceito = aceitos.some(a => ref.inicio < a.inicio + a.texto.length && fim > a.inicio);
+    if (!sobrepoeAceito) aceitos.push(ref);
+  }
+
+  return [...aceitos, ...semPosicao];
 };
 
 const buscarDispositivoPorReferencia = (articulacao: Articulacao | undefined, referencias: any[]): Dispositivo | null => {

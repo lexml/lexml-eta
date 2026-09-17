@@ -3,6 +3,7 @@ import { buildJsonixArticulacaoFromProjetoNorma, buildJsonixFromProjetoNorma } f
 import { criaDispositivo, createArticulacao } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
 import { ClassificacaoDocumento } from '../../../../src/model/documento/classificacao';
+import { completarRegistroRemissoes } from '../../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
 
 describe('buildJsonixContent', () => {
   describe('13.1. Sem conteúdo ou sem links', () => {
@@ -997,7 +998,7 @@ describe('Injeção de remissões a partir do registry', () => {
       expect(content[2]).to.equal(' desta lei.');
     });
 
-    it('deve injetar sentinel @invalido para entradas com valida === false (texto plain)', () => {
+    it('deve preservar o destino conhecido para entradas com valida === false (texto plain)', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
@@ -1022,8 +1023,10 @@ describe('Injeção de remissões a partir do registry', () => {
       const content = getCaputContent(resultado);
 
       const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
-      expect(remissao, 'deve existir nó Remissao com sentinel @invalido').to.exist;
-      expect(remissao.value.href).to.equal('@invalido');
+      expect(remissao, 'deve existir nó Remissao preservando o destino conhecido').to.exist;
+      expect(remissao.value.href).to.equal('art5');
+      expect(remissao.value.id).to.match(/^_ri\d+$/);
+      expect(remissoes[uuid][0].idPersistido, 'id gerado deve ser cacheado na entrada para saves sucessivos').to.equal(remissao.value.id);
     });
 
     it('não deve duplicar link já presente no texto', () => {
@@ -1183,7 +1186,7 @@ describe('Injeção de remissões a partir do registry', () => {
       expect(remissao.value.href).to.equal('art2');
     });
 
-    it('deve usar sentinela quando uuid não existe na articulação (dispositivo excluído)', () => {
+    it('deve preservar o destino conhecido quando uuid não existe na articulação (dispositivo excluído)', () => {
       const articulacao = createArticulacao();
       const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
@@ -1192,7 +1195,7 @@ describe('Injeção de remissões a partir do registry', () => {
       const resultado = buildJsonixArticulacaoFromProjetoNorma(articulacao);
       const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
       const remissao = content.find((c: any) => c?.name?.localPart === 'Remissao');
-      expect(remissao.value.href).to.equal('@invalido');
+      expect(remissao.value.href).to.equal('artObsoleto');
     });
   });
 });
@@ -1291,5 +1294,123 @@ describe('corrigirLexmlRefsObsoletosNoTexto — @revisar', () => {
     const content = resultado.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
     const comSpanFim = content.filter((c: any) => typeof c === 'string' && c.endsWith('</span>'));
     expect(comSpanFim).to.have.length(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// MetadadoProprietario / lexedit:Metadado — remissões internas inválidas (especificações 00, 10, 13)
+// ---------------------------------------------------------------------------
+
+describe('MetadadoProprietario — remissões internas inválidas', () => {
+  const criaProjetoNorma = (articulacao: any): any => ({
+    classificacao: ClassificacaoDocumento.NORMA,
+    epigrafe: { texto: 'TESTE' },
+    ementa: { texto: 'Ementa' } as any,
+    preambulo: { texto: '' },
+    articulacao,
+  });
+
+  it('documento sem remissão inválida não inclui MetadadoProprietario', () => {
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    (caput as any).texto = 'Texto sem remissão.';
+    (caput as any).uuid = 201;
+
+    const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste');
+    expect(resultado.value.metadado.metadadoProprietario).to.be.undefined;
+  });
+
+  it('documento com remissão inválida inclui MetadadoProprietario com fonte do LexEdit e Pendencias', () => {
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const texto = 'Texto referenciando art. 9.';
+    (caput as any).texto = texto;
+    const uuid = 202;
+    (caput as any).uuid = uuid;
+
+    const remissoes: Record<number, any[]> = {
+      [uuid]: [{ refId: 'ref_z', targetLexmlId: 'art9', textoRef: 'art. 9', inicio: texto.indexOf('art. 9'), valida: false }],
+    };
+
+    const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', remissoes);
+    const metadadoProprietario = resultado.value.metadado.metadadoProprietario;
+    expect(metadadoProprietario, 'deve existir MetadadoProprietario').to.exist;
+    expect(metadadoProprietario).to.have.length(1);
+    expect(metadadoProprietario[0].fonte).to.equal('http://www.lexml.gov.br/lexedit/1.0');
+    expect(metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas).to.deep.equal([remissoes[uuid][0].idPersistido]);
+    expect(metadadoProprietario[0].lexedit.pendencias).to.deep.equal(['Corrigir remissões internas inválidas.']);
+  });
+
+  it('múltiplas remissões inválidas em dispositivos diferentes produzem a lista completa', () => {
+    const articulacao = createArticulacao();
+    const artigo1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const caput1 = criaDispositivo(artigo1, TipoDispositivo.caput.tipo);
+    const texto1 = 'Ver art. 8.';
+    (caput1 as any).texto = texto1;
+    (caput1 as any).uuid = 301;
+
+    const artigo2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const caput2 = criaDispositivo(artigo2, TipoDispositivo.caput.tipo);
+    const texto2 = 'Ver art. 9.';
+    (caput2 as any).texto = texto2;
+    (caput2 as any).uuid = 302;
+
+    const remissoes: Record<number, any[]> = {
+      301: [{ refId: 'ref_a', targetLexmlId: 'art8', textoRef: 'art. 8', inicio: texto1.indexOf('art. 8'), valida: false }],
+      302: [{ refId: 'ref_b', targetLexmlId: 'art9', textoRef: 'art. 9', inicio: texto2.indexOf('art. 9'), valida: false }],
+    };
+
+    const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', remissoes);
+    const ids = resultado.value.metadado.metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas;
+    expect(ids).to.have.length(2);
+    expect(ids).to.include(remissoes[301][0].idPersistido);
+    expect(ids).to.include(remissoes[302][0].idPersistido);
+  });
+
+  it('salvar duas vezes seguidas sem editar produz o mesmo id (estabilidade entre saves)', () => {
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const texto = 'Texto referenciando art. 9.';
+    (caput as any).texto = texto;
+    const uuid = 203;
+    (caput as any).uuid = uuid;
+
+    const remissoes: Record<number, any[]> = {
+      [uuid]: [{ refId: 'ref_w', targetLexmlId: 'art9', textoRef: 'art. 9', inicio: texto.indexOf('art. 9'), valida: false }],
+    };
+
+    const primeiraVez = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', remissoes);
+    const segundaVez = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', remissoes);
+
+    const getRemissaoId = (resultado: any): string => {
+      const content = resultado.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+      return content.find((c: any) => c?.name?.localPart === 'Remissao').value.id;
+    };
+
+    expect(getRemissaoId(primeiraVez)).to.equal(getRemissaoId(segundaVez));
+  });
+
+  it('não duplica o id na lista quando o registro tem o mesmo array aliasado nas chaves do artigo e do caput', () => {
+    // artigo e caput compartilham o mesmo array no registro (completarRegistroRemissoes) — reproduz o caso real.
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as any;
+    const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+    const texto = 'Conforme o art. 2º desta lei.';
+    (caput as any).texto = texto;
+    const textoRef = 'art. 2º';
+
+    const registroInicial: Record<number, any[]> = {
+      [artigo.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'art2', textoRef, inicio: texto.indexOf(textoRef), valida: false }],
+    };
+
+    const registroCompleto = completarRegistroRemissoes(articulacao, registroInicial);
+    expect(registroCompleto[(caput as any).uuid!], 'pré-condição: aliasing deve existir para o teste fazer sentido').to.equal(registroCompleto[artigo.uuid!]);
+
+    const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', registroCompleto);
+    const ids = resultado.value.metadado.metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas;
+    expect(ids).to.have.length(1);
   });
 });

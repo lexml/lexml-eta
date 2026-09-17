@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { buildContent, buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildContent, buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import {
   criarDocumentoArticulado,
   lerDocumentoArticulado,
@@ -9,6 +9,11 @@ import {
 } from '../../../src/model/lexml/documento/documentoArticulado';
 import { buildUrnProposicao, validaUrn } from '../../../src/model/lexml/documento/urnUtil';
 import { novoDocumentoArticulado, novoDocumentoComTextoLiteral, TEXTO_LITERAL } from '../../doc/documentoArticulado';
+import { Artigo } from '../../../src/model/dispositivo/dispositivo';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
+import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
+import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
+import { completarRegistroRemissoes } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
 
 describe('Documento articulado — especificações 00 e 01', () => {
   for (const [numero, ano, esperado] of [
@@ -119,5 +124,42 @@ describe('Documento articulado — especificações 00 e 01', () => {
     const entrada = novoDocumentoArticulado();
     entrada.value.metadado.identificacao.urn = buildUrnProposicao('PL', '', '');
     expect(nomeArquivoDocumentoArticulado(entrada)).to.equal('documento-articulado - PL nº 999999, de 9999.json');
+  });
+
+  it('abrir e salvar novamente sem editar a remissão inválida preserva o mesmo id "_ri..." (especificação 10)', () => {
+    const entrada = novoDocumentoArticulado();
+    const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(entrada));
+    const caput = (modelo.articulacao!.filhos[0] as Artigo).caput!;
+    const textoRef = 'educação';
+
+    const remissoes: Record<number, any[]> = {
+      [caput.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'artInexistente', textoRef, inicio: caput.texto!.indexOf(textoRef), valida: false }],
+    };
+
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, remissoes);
+    const idOriginal = remissoes[caput.uuid!][0].idPersistido;
+    expect(idOriginal).to.match(/^_ri\d+$/);
+
+    // Reabre o documento do zero, do JSON serializado — sem reaproveitar nenhum estado em memória.
+    const reaberto = lerDocumentoArticulado(serializarDocumentoArticulado(salvo));
+    const modeloReaberto = buildProjetoNormaFromJsonix(reaberto);
+    const idsRemissoesInvalidas = lerIdsRemissoesInvalidas(reaberto);
+
+    const estado = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao: modeloReaberto.articulacao!,
+      classificacao: ClassificacaoDocumento.NORMA,
+      idsRemissoesInvalidas,
+    });
+
+    const registroCompleto = completarRegistroRemissoes(estado.articulacao!, estado.remissoes ?? {});
+    const salvoNovamente = criarDocumentoArticulado(estado.articulacao!.projetoNorma!, modeloReaberto.urn!, registroCompleto);
+
+    const getRemissaoId = (doc: any): string => {
+      const content = doc.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content;
+      return content.find((c: any) => c?.name?.localPart === 'Remissao').value.id;
+    };
+
+    expect(getRemissaoId(salvoNovamente)).to.equal(idOriginal);
   });
 });

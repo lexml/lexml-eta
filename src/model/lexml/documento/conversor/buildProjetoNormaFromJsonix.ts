@@ -89,6 +89,21 @@ export const getUrn = (documento: any): string => {
   return documento?.value?.metadado?.identificacao?.urn;
 };
 
+/**
+ * Lê os ids de remissões internas inválidas de `MetadadoProprietario/lexedit:Metadado`
+ * (especificações 00 e 10) — tolerante a outros grupos do LexEdit ainda não implementados,
+ * que simplesmente são ignorados.
+ */
+export const lerIdsRemissoesInvalidas = (documento: any): string[] => {
+  const grupos: any[] = documento?.value?.metadado?.metadadoProprietario ?? [];
+  const ids = new Set<string>();
+  for (const grupo of grupos) {
+    const refIds = grupo?.lexedit?.remissoesInternasInvalidas?.refIdsRemissoesInternas;
+    if (Array.isArray(refIds)) refIds.forEach((id: string) => ids.add(id));
+  }
+  return Array.from(ids);
+};
+
 const getMetadado = (documento: any): Metadado => {
   return {
     urn: getUrn(documento),
@@ -323,7 +338,8 @@ const montaTag = (name: any, value: any): string => {
       return `<a data-urn="${urn}"${attrFragmento} class="lexml-remissao-externa" href="#" target="_self">${buildContent(value.content)}</a>`;
     }
     const lexmlId = href;
-    return `<a href="${lexmlId}" data-lexml-ref="${lexmlId}" class="lexml-remissao-interna" target="_self">${buildContent(value.content)}</a>`;
+    const atributoRiId = value.id ? ` data-ri-id="${value.id}"` : '';
+    return `<a href="${lexmlId}" data-lexml-ref="${lexmlId}"${atributoRiId} class="lexml-remissao-interna" target="_self">${buildContent(value.content)}</a>`;
   }
   if (localPart === 'span' && value.href) {
     const spanHref = value.href as string;

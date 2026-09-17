@@ -8,7 +8,7 @@ import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { completarRegistroRemissoes } from '../redux/elemento/reducer/adicionaRemissaoInterna';
-import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
 import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
@@ -88,9 +88,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
     const documento = buildProjetoNormaFromJsonix(this.projetoNorma, preservarTextoDocumento);
     documento.urn = this.urn;
+    const idsRemissoesInvalidas = lerIdsRemissoesInvalidas(this.projetoNorma);
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();
-    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params));
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params, idsRemissoesInvalidas));
   }
 
   private _timerLoadEmenda = 0;

@@ -25,6 +25,14 @@ context: |
 #       - Always include a "Non-goals" section
 #     tasks:
 #       - Break tasks into chunks of max 2 hours
+rules:
+  tasks:
+    - |
+      Always include an explicit E2E (Cypress) testing task. Before dropping it, assess
+      feasibility of creating/running it in light of docs/guia-cypress.md (this project's
+      Cypress lessons learned) — if not feasible or not worth the effort, don't silently
+      omit the step: record the decision and propose a concrete alternative (e.g.,
+      integration or unit test) that covers the same risk.
 
 # Per-operation guidance (optional)
 # Add advisory guidance for how apply and archive work should be conducted.
@@ -37,3 +45,16 @@ context: |
 #     archive:
 #       guidance:
 #         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - |
+        After finishing all subtasks of a numbered task (e.g., all of 2.x before moving to
+        3.x), stop and ask the user to validate before moving to the next numbered task —
+        never chain different numbered tasks without that pause.
+      - |
+        When pausing for validation, offer two options: the user commits on their own, or
+        you help organize the commit(s). If helping, always follow this guidance: group
+        edited files into semantically correct commits; give each one a concise description
+        (no file listing, no "AI-sounding" tone); never commit directly — present the commit
+        plan for the user's approval first; never list yourself as a co-author.
