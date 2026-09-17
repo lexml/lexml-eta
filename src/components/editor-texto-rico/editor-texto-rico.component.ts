@@ -8,7 +8,7 @@ import { atualizaQuantidadeRevisaoTextoRico, getQuantidadeRevisoes, getQuantidad
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
-import { Anexo } from '../../model/emenda/emenda';
+import { Anexo } from '../../model/proposicao/proposicao';
 import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';

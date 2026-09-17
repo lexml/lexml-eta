@@ -1,6 +1,6 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { OpcoesImpressao } from '../../model/emenda/emenda';
+import { OpcoesImpressao } from '../../model/proposicao/proposicao';
 import { SlSelect } from '@shoelace-style/shoelace';
 
 @customElement('lexml-eta-opcoes-impressao')

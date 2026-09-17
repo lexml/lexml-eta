@@ -1,5 +1,5 @@
 import { SlButton } from '@shoelace-style/shoelace';
-import { Anexo } from '../../model/emenda/emenda';
+import { Anexo } from '../../model/proposicao/proposicao';
 
 export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any, editorTextoRico: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');

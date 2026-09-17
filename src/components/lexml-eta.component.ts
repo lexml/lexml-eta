@@ -14,7 +14,6 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, OpcoesImpressao } from '../model/emenda/emenda';
 import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
@@ -36,7 +35,7 @@ import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializ
 import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
-import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 /**
@@ -289,11 +288,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return epigrafe;
   }
 
-  private getPendenciasPreenchimentoEmenda(emenda: Emenda | Proposicao): string[] {
+  private getPendenciasPreenchimentoEmenda(proposicao: Proposicao): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
-    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(emenda.justificativa)) {
+    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(proposicao.justificativa)) {
       pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
     }
 

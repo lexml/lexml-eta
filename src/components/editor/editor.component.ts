@@ -89,7 +89,7 @@ import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
-import { Anexo } from '../../model/emenda/emenda';
+import { Anexo } from '../../model/proposicao/proposicao';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
 import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';

@@ -2,7 +2,7 @@ import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state, query, queryAll } from 'lit/decorators.js';
 
 import { REGEX_ACCENTS } from './../../util/string-util';
-import { Parlamentar, Autoria } from '../../model/emenda/emenda';
+import { Parlamentar, Autoria } from '../../model/proposicao/proposicao';
 import { incluirParlamentar, excluirParlamentar, moverParlamentar } from '../../model/autoria/parlamentarUtil';
 import { autoriaCss } from '../../assets/css/autoria.css';
 import { LexmlAutocomplete } from '../lexml-autocomplete';

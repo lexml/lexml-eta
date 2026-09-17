@@ -3,7 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo } from '../model/emenda/emenda';
+import { Anexo } from '../model/proposicao/proposicao';
 import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
