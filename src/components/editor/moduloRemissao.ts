@@ -115,20 +115,23 @@ class ModuloRemissao extends Module {
     this.cacheTextoRemissao.set(refId, texto);
   }
 
+  // Cache paralelo para links inválidos (sem data-ref-id), usando o próprio elemento HTML como chave.
+  // Evita colisões de estado quando múltiplos links apontam para o mesmo destino excluído (data-lexml-ref).
+  private cacheTextoRemissaoInvalida = new WeakMap<HTMLElement, string>();
+
   // Remove o link (preservando o texto) em edições pontuais do usuário; recriação fica a
   // cargo do blur/debounce. Ignora renumerações em massa e eventos 'silent'. Interna e
   // externa compartilham cache/evento — só o nome do formato a limpar difere por blot.
   private _removerRemissaoEditadaEmTempoReal(delta: any, _oldDelta: any, source: string): void {
     const podeSerEdicaoDoUsuario = source === 'user' && this.pareceEdicaoPontual(delta);
-
-    const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id], a.lexml-remissao-externa[data-ref-id]');
-    const refIdsAtuais = new Set<string>();
     const elementosEditados: HTMLElement[] = [];
 
-    links.forEach((link: Element) => {
+    const linksComRefId = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id], a.lexml-remissao-externa[data-ref-id]');
+    const refIdsAtuais = new Set<string>();
+
+    linksComRefId.forEach((link: Element) => {
       const el = link as HTMLElement;
-      const refId = el.getAttribute('data-ref-id');
-      if (!refId) return;
+      const refId = el.getAttribute('data-ref-id')!;
       refIdsAtuais.add(refId);
 
       const textoAtual = el.textContent || '';
@@ -146,6 +149,22 @@ class ModuloRemissao extends Module {
       if (!refIdsAtuais.has(refId)) this.cacheTextoRemissao.delete(refId);
     }
 
+    // Links internos inválidos: sem data-ref-id, então nunca eram considerados por este método
+    // antes — editar/apagar o texto de uma remissão para um dispositivo já excluído nunca
+    // disparava a remoção em tempo real, não importa quanto texto fosse apagado.
+    const linksInvalidos = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-lexml-ref]:not([data-ref-id])');
+    linksInvalidos.forEach((link: Element) => {
+      const el = link as HTMLElement;
+      const textoAtual = el.textContent || '';
+      const textoConhecido = this.cacheTextoRemissaoInvalida.get(el);
+
+      if (podeSerEdicaoDoUsuario && textoConhecido !== undefined && textoConhecido !== textoAtual) {
+        elementosEditados.push(el);
+      } else {
+        this.cacheTextoRemissaoInvalida.set(el, textoAtual);
+      }
+    });
+
     if (elementosEditados.length === 0) return;
 
     setTimeout(() => {
@@ -160,6 +179,7 @@ class ModuloRemissao extends Module {
 
         const refId = el.getAttribute('data-ref-id');
         if (refId) this.cacheTextoRemissao.delete(refId);
+        // Sem refId (link inválido): nada a limpar no WeakMap — o GC cuida disso quando o elemento sai do DOM.
 
         const index = blot.offset(this.quill.scroll);
         const length = blot.length();
