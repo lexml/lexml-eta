@@ -96,9 +96,9 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
       // parent!.addFilho(filho);
       parent!.addFilhoOnPosition(filho, posInsercao++);
     }
-    criaAtributosComuns(filho, state);
+    criaAtributosComuns(filho);
 
-    filho.filhos && criaFilhos(filho, state);
+    filho.filhos && criaFilhos(filho);
     dispositivosAdicionados.push(...getDispositivoAndFilhosAsLista(filho));
   });
 
@@ -142,17 +142,16 @@ export const adicionaElementosFromClipboard = (state: any, action: any): State =
   };
 };
 
-const criaFilhos = (atual: Dispositivo, state: any): void => {
+const criaFilhos = (atual: Dispositivo): void => {
   atual.filhos.forEach(filho => {
-    criaAtributosComuns(filho, state);
-    filho.filhos && criaFilhos(filho, state);
+    criaAtributosComuns(filho);
+    filho.filhos && criaFilhos(filho);
   });
 };
 
-const criaAtributosComuns = (filho: Dispositivo, state: any): void => {
+const criaAtributosComuns = (filho: Dispositivo): void => {
   filho.isDispositivoAlteracao = true;
 
-  filho.classificacaoDocumento = state.modo;
   filho.existeNaNormaAlterada = true;
   filho.id = buildId(filho);
 };
