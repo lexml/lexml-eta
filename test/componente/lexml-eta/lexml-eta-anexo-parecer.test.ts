@@ -67,7 +67,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     component.anexoParecer = true;
     component.lexmlEtaConfig.justificacaoObrigatoria = true;
 
-    const pendencias = component.getPendenciasPreenchimentoEmenda({ justificativa: '' });
+    const pendencias = component.getPendenciasPreenchimento({ justificativa: '' });
 
     expect(pendencias).not.to.include('Não foi informado um texto de justificação.');
   });

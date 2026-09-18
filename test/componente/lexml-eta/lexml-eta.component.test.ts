@@ -125,7 +125,7 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
       component.lexmlEtaConfig = new LexmlEtaConfig();
       component.lexmlEtaConfig.justificacaoObrigatoria = true;
 
-      const pendencias = (component as any).getPendenciasPreenchimentoEmenda({ justificativa: '' });
+      const pendencias = (component as any).getPendenciasPreenchimento({ justificativa: '' });
       expect(pendencias).to.include('Não foi informado um texto de justificação.');
     });
 
@@ -133,7 +133,7 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
       component.lexmlEtaConfig = new LexmlEtaConfig();
       component.lexmlEtaConfig.justificacaoObrigatoria = false;
 
-      const pendencias = (component as any).getPendenciasPreenchimentoEmenda({ justificativa: '' });
+      const pendencias = (component as any).getPendenciasPreenchimento({ justificativa: '' });
       expect(pendencias).to.not.include('Não foi informado um texto de justificação.');
     });
 
