@@ -225,7 +225,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         #lx-eta-editor {
           overflow: var(--lx-eta-editor-overflow);
           display: block;
-          height: var(--heightEmenda);
+          height: var(--heightToolbar);
         }
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);
@@ -1626,7 +1626,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         tipo: TipoMensagem.INFO,
         mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
         podeFechar: true,
-        exibirComandoEmenda: true,
       };
       rootStore.dispatch(adicionarAlerta(alerta));
     } else if (rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === id)) {
