@@ -65,7 +65,7 @@ export class LexmlEtaParametrosEdicao {
   // Indica se é texto substitutivo. Quando true, sigla, numero e ano são obrigatórios.
   substitutivo = false;
 
-  // Indicação de matéria orçamentária. Utilizado inicialmente para definir destino de emenda a MP
+  // Indicação de matéria orçamentária.
   isMateriaOrcamentaria = false;
 
   // Texto json da proposição para edição estruturada
@@ -89,7 +89,7 @@ export class LexmlEtaParametrosEdicao {
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
-  // Configuração de paginação de dispositivos durante a edição da emenda
+  // Configuração de paginação de dispositivos durante a edição da proposição
   configuracaoPaginacao?: ConfiguracaoPaginacao;
 
   // Casa legislativa resposavel pela apreciaçao da matéria
@@ -98,7 +98,6 @@ export class LexmlEtaParametrosEdicao {
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: Boolean }) existeObserverEmenda = false;
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
@@ -257,7 +256,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     proposicao.revisoes = this.getRevisoes();
     proposicao.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
-    proposicao.pendenciasPreenchimento = this.getPendenciasPreenchimentoEmenda(proposicao);
+    proposicao.pendenciasPreenchimento = this.getPendenciasPreenchimento(proposicao);
     proposicao.epigrafe = this.getEpigrafe(this.projetoNorma);
 
     proposicao.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
@@ -288,7 +287,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return epigrafe;
   }
 
-  private getPendenciasPreenchimentoEmenda(proposicao: Proposicao): string[] {
+  private getPendenciasPreenchimento(proposicao: Proposicao): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
@@ -331,7 +330,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
 
-      // Deve ser chamado antes do reseta emenda para garantir a autoria padrão e depois da inicialização da casaLegislativa
+      // Deve ser chamado antes do reset para garantir a autoria padrão e depois da inicialização da casaLegislativa
       this.parlamentares = await this.getParlamentares();
 
       if (params.proposicao) {
@@ -483,7 +482,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   private resetaProposicao(params: LexmlEtaParametrosEdicao): void {
     const proposicao = new Proposicao();
-    // emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
     proposicao.autoria = this.montarAutoriaPadrao(params);
     proposicao.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
     proposicao.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
@@ -616,7 +614,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
     const proposicaoTabPanel = getElement('sl-tab-panel[name="lexml-eta-proposicao"]');
     const qlToolbarJustificativa = getElement('#lexml-eta-editor-texto-rico-justificativa .ql-toolbar');
-    const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
+    const qlToolbar = getElement('#lx-eta-barra-ferramenta');
 
     const estilosOriginais = {
       justificativa: {
@@ -651,13 +649,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
 
     const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 10;
-    const alturaToolBarEmenda = qlToolbarEmenda?.clientHeight + 10;
+    const alturaToolBar = qlToolbar?.clientHeight + 10;
 
     setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
     setTabPanelStyles(proposicaoTabPanel, estilosOriginais.proposicao);
 
     this.style.setProperty('--heightJustificativa', `${alturaElemento - alturaToolBarJustificativa}px`);
-    this.style.setProperty('--heightEmenda', `${alturaElemento - alturaToolBarEmenda}px`);
+    this.style.setProperty('--heightToolbar', `${alturaElemento - alturaToolBar}px`);
     this.style.setProperty('--height', `${alturaElemento}px`);
     this.style.setProperty('--overflow', 'hidden');
 
@@ -736,7 +734,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           --overflow: visible;
           --min-height: 300px;
           --heightJustificativa: 100%;
-          --heightEmenda: 100%;
+          --heightToolbar: 100%;
           --visibilityNotasAcao: hidden;
         }
         sl-tab-panel {
@@ -1121,18 +1119,5 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   getTabFromElement(element: any): any {
     return element.closest('sl-tab-panel');
-  }
-
-  getRestricoesConhecidas(): string[] {
-    return [
-      'Emendamento ou adição de anexos.',
-      'Emendamento ou adição de pena, penalidade etc.',
-      'Emendamento ou adição de especificação temática do dispositivo (usado para nome do tipo penal e outros).',
-      'Alteração de anexo de MP de crédito extraordinário.',
-      'Alteração do texto da proposição e proposta de adição de dispositivos onde couber na mesma emenda.',
-      'Alteração de norma que não segue a LC nº 95 de 98 (ex: norma com alíneas em parágrafos).',
-      'Casos especiais de numeração de parte (PARTE GERAL, PARTE ESPECIAL e uso de numeral ordinal por extenso).',
-      'Tabelas e imagens no texto da proposição.',
-    ];
   }
 }
