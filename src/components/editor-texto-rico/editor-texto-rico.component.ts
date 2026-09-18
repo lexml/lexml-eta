@@ -577,7 +577,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           tipo: TipoMensagem.INFO,
           mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
           podeFechar: true,
-          exibirComandoEmenda: true,
         };
         setTimeout(() => {
           rootStore.dispatch(adicionarAlerta(alerta));
