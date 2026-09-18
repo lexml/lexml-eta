@@ -5,9 +5,7 @@
 /*
 describe('Testando paginação com PLP 68/2024', () => {
   beforeEach(() => {
-    cy.novaEmenda({
-      projetoNormaSelectValue: '_plp_68_2024',
-    });
+    cy.novaProposicao('_plp_68_2024');
 
     cy.get('proposicao-dividida-modal')
       .shadow()

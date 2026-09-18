@@ -1,8 +1,7 @@
 /// <reference types="cypress" />
 
 export type TipoMensagemContainerDispositivo = 'warning' | 'danger';
-export interface NovaEmendaPayloadCypress {
-  projetoNormaSelectValue: string;
+export interface NovaProposicaoOpcoesCypress {
   naoMostrarExplicacaoSufixo?: boolean;
 }
 
@@ -22,18 +21,12 @@ Cypress.Commands.add('irParaPagina', (numeroPagina: number): void => {
   cy.get('#selectPaginaArticulacao').select(numeroPagina + '');
 });
 
-Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.Chainable<any> => {
-  if (payload.naoMostrarExplicacaoSufixo ?? true) {
+Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo', opcoes?: NovaProposicaoOpcoesCypress): Cypress.Chainable<any> => {
+  if (opcoes?.naoMostrarExplicacaoSufixo) {
     cy.window().then(win => {
       win.localStorage.setItem('naoMostrarExplicacaoSufixo', 'true');
     });
   }
-  cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
-  cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
-  return cy.wrap(true);
-});
-
-Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo'): Cypress.Chainable<any> => {
   cy.get('#projetoNorma').select(projetoNormaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
   return cy.wrap(true);
@@ -326,8 +319,7 @@ declare global {
       // configurarInterceptadores(): Chainable<void>;
       ignorarErro(text: string): void;
       irParaPagina(numeroPagina: number): void;
-      novaEmenda(payload: NovaEmendaPayloadCypress): Cypress.Chainable<any>;
-      novaProposicao(projetoNormaSelectValue?: string): Cypress.Chainable<any>;
+      novaProposicao(projetoNormaSelectValue?: string, opcoes?: NovaProposicaoOpcoesCypress): Cypress.Chainable<any>;
       abrirProposicao(fixtureJson: string): Cypress.Chainable<any>;
       checarMensagem(mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
