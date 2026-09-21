@@ -38,15 +38,6 @@ import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
-/**
- * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito. Avaliar se pode ser removido completamente.
- */
-export interface DispositivoBloqueado {
-  lexmlId: string;
-  bloquearFilhos: boolean;
-  motivoBloqueio?: string;
-}
-
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
 /**
@@ -71,12 +62,6 @@ export class LexmlEtaParametrosEdicao {
   // Texto json da proposição para edição estruturada
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
-
-  /**
-   * @deprecated Aceito por compatibilidade, mas ignorado. Bloquear dispositivos só fazia sentido
-   * ao emendar uma proposição existente.
-   */
-  dispositivosBloqueados?: (string | DispositivoBloqueado)[];
 
   // Identificação do usuário para registro de marcas de revisão
   usuario?: Usuario;
