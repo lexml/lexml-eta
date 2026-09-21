@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/02-opcoes-de-impressao.md -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:OpcoesImpressao
+      imprimirBrasao="true"
+      textoCabecalho=""
+      reduzirEspacoEntreLinhas="false"
+      tamanhoFonte="14"/>
+</lexedit:Metadado>

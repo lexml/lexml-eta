@@ -17,7 +17,7 @@ const converterEValidar = async (payload, diretorio) => {
   await writeFile(json, JSON.stringify(payload), 'utf8');
   await executar(resolve(cli), ['toxml', json, '-o', xml], { timeout: 30000 });
   try {
-    await executar('java', [resolve('scripts/ValidarDocumentoLexml.java'), resolve('test/schemas/lexml/lexml-simples.xsd'), xml], { timeout: 30000 });
+    await executar('java', [resolve('scripts/ValidarDocumentoLexml.java'), resolve('schemas/lexml-simples.xsd'), xml], { timeout: 30000 });
   } catch (erro) {
     if (erro.stderr?.includes('SAXParseException')) return { valido: false, erro: erro.stderr, xml: await readFile(xml, 'utf8') };
     throw erro;

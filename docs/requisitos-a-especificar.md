@@ -6,6 +6,3 @@ Tem sentido a configuração de destino do projeto? Talvez apenas para substitut
 
 Quais são os tipos de autoria?
 
-Verificar com equipe LexML:
-- NotaRodape
-

@@ -2,7 +2,7 @@
 
 ## Necessidade informacional
 
-Além dos grupos de elementos já especificados, o LexEdit precisa preservar alguns dados gerais sobre o arquivo e sobre a proposição legislativa que ele representa: quando o arquivo foi modificado pela última vez, qual aplicação (e versão) o gerou, e se a proposição é um substitutivo.
+Além dos grupos de elementos já especificados, o LexEdit precisa preservar alguns dados gerais sobre o arquivo e sobre a proposição legislativa que ele representa: quando o arquivo foi modificado pela última vez, qual aplicação (e versão) o gerou, se a proposição é um substitutivo e se o documento será utilizado como anexo de parecer.
 
 ## Representação adotada
 
@@ -13,12 +13,13 @@ Atributos do próprio elemento `lexedit:Metadado`.
     dataUltimaModificacao='2026-05-12T10:15:00-03:00'
     aplicacao='LexEdit'
     versaoAplicacao='1.0.0'
-    substitutivo='false'>
+    substitutivo='false'
+    anexoParecer='false'>
     ...
 </lexedit:Metadado>
 ```
 
-`dataUltimaModificacao` é do tipo xsd:dateTime. `substitutivo` é do tipo xsd:boolean.
+`dataUltimaModificacao` é do tipo xsd:dateTime. `substitutivo` e `anexoParecer` são do tipo xsd:boolean.
 
 ## Pendências
 

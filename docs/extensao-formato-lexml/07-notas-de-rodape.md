@@ -6,13 +6,13 @@ O editor deve preservar a posição exata da referência e armazenar o conteúdo
 
 ## Representação adotada
 
-No texto rico, será utilizado o elemento `NotaRodape` recém adicionado ao LexML.
+No texto rico, será utilizado o elemento `NotaDeRodape` recém adicionado ao LexML.
 
 Os texto da nota fica inline e a numeração será recalculada na abertura do arquivo.
 
 ```xml
 <p>
-    O conceito é definido em regulamento<NotaRodape>Texto <b>formatado</b> da nota de rodapé.</NotaRodape>.
+    O conceito é definido em regulamento<NotaDeRodape>Texto <b>formatado</b> da nota de rodapé.</NotaDeRodape>.
 </p>
 ```
 

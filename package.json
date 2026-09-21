@@ -40,6 +40,7 @@
     "copy:lexml-linker-wasm-demo": "rimraf ./prod/out-tsc/src/util/lexml-linker/vendor && cp -r ./src/util/lexml-linker/vendor ./prod/out-tsc/src/util/lexml-linker/vendor || xcopy .\\src\\util\\lexml-linker\\vendor .\\prod\\out-tsc\\src\\util\\lexml-linker\\vendor /E /I /Y",
     "generate:wasm-br": "node scripts/gerar-wasm-br.mjs",
     "verify:wasm-br": "node scripts/verificar-wasm-br.mjs",
+    "verify:xsd-lexedit": "node scripts/validar-exemplos-lexedit.mjs",
     "css:concat": "concat -o assets/css/editor.css ./node_modules/quill/dist/quill.snow.css",
     "css:minify": "minify assets/css/editor.css > assets/css/editor.min.css",
     "css:build": "npm run css:concat",

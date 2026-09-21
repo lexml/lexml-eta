@@ -12,7 +12,7 @@ Quando um metadado do LexEdit se refere a um trecho específico do documento, o 
 
 Um documento produzido segundo esta especificação é, sempre, um documento LexML válido e legível por qualquer consumidor do padrão. As informações específicas do LexEdit ficam isoladas em `MetadadoProprietario` e podem ser ignoradas por quem não as conhece.
 
-O LexEdit precisa preservar informações necessárias à edição, revisão e apresentação de uma proposição legislativa estruturada em LexML. Este documento não define um XSD do LexML: registra, por meio de exemplos XML, como o LexEdit pretende ocupar os pontos de extensão identificados, para orientar a implementação do editor e um futuro esquema auxiliar de validação desse uso específico.
+O LexEdit precisa preservar informações necessárias à edição, revisão e apresentação de uma proposição legislativa estruturada em LexML. Este documento não define um XSD do LexML: registra, por meio de exemplos XML, como o LexEdit pretende ocupar os pontos de extensão identificados, para orientar a implementação do editor. O esquema auxiliar que formaliza esses exemplos já existe em [`schemas/lexedit.xsd`](../../schemas/lexedit.xsd) (plano de criação em [plano-xsd-lexedit.md](plano-xsd-lexedit.md)).
 
 A estrutura normativa, os dispositivos e as demais estruturas já previstas pelo LexML continuam sendo representadas exclusivamente pelos elementos LexML existentes; os pontos de extensão armazenam apenas as informações complementares que o padrão não contempla.
 

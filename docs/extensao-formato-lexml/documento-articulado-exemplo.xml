@@ -175,7 +175,7 @@
         <!-- Mecanismo de revisão de texto rico da justificação, não aplicável à articulação -->
         <p>Esta proposição promove a <del id='_rt245245234523'>reforma</del><ins id='_rt879079079778'>modernização</ins> da gestão pública, <span id='_tc1777387565991'>nos termos do art. 1º</span>.</p>
         <!-- Nota de rodapé: fica inline no texto rico, sem entrada correspondente nos metadados -->
-        <p>O detalhamento das ações do Programa consta das diretrizes anexadas a esta proposição<NotaRodape>Anexo I: <i>Diretrizes do programa</i>.</NotaRodape>.</p>
+        <p>O detalhamento das ações do Programa consta das diretrizes anexadas a esta proposição<NotaDeRodape>Anexo I: <i>Diretrizes do programa</i>.</NotaDeRodape>.</p>
       </PartePrincipal>
     </Justificacao>
   </ProjetoNorma>

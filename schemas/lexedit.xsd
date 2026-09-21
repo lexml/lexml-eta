@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Esquema auxiliar do LexEdit — ocupa o ponto de extensão MetadadoProprietario/lexedit:Metadado
+     do LexML. Especificado em docs/extensao-formato-lexml/00 a 13 (ver plano em
+     docs/extensao-formato-lexml/plano-xsd-lexedit.md). Não faz parte do esquema LexML oficial. -->
+
+<xsd:schema targetNamespace="http://www.lexml.gov.br/lexedit/1.0" elementFormDefault="qualified"
+    xmlns="http://www.lexml.gov.br/lexedit/1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:lexml="http://www.lexml.gov.br/1.0">
+
+    <xsd:import schemaLocation="lexml-simples.xsd" namespace="http://www.lexml.gov.br/1.0" />
+
+    <xsd:element name="Metadado">
+        <xsd:complexType>
+            <xsd:all>
+                <xsd:element ref="OpcoesImpressao" minOccurs="0" />
+                <xsd:element ref="Autoria" minOccurs="0" />
+                <xsd:element ref="Anexos" minOccurs="0" />
+                <xsd:element ref="Comentarios" minOccurs="0" />
+                <xsd:element ref="RevisoesTextuais" minOccurs="0" />
+                <xsd:element ref="RemissoesInternasInvalidas" minOccurs="0" />
+                <xsd:element ref="RevisoesArticulacao" minOccurs="0" />
+                <xsd:element ref="Usuarios" minOccurs="0" />
+                <xsd:element ref="Pendencias" minOccurs="0" />
+            </xsd:all>
+            <xsd:attribute type="xsd:dateTime" name="dataUltimaModificacao" />
+            <xsd:attribute type="xsd:string" name="aplicacao" />
+            <xsd:attribute type="xsd:string" name="versaoAplicacao" />
+            <xsd:attribute type="xsd:boolean" name="substitutivo" />
+            <xsd:attribute type="xsd:boolean" name="anexoParecer" />
+            <xsd:attribute type="xsd:string" name="local" />
+            <xsd:attribute type="xsd:date" name="data" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="OpcoesImpressao">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:boolean" name="imprimirBrasao" />
+            <xsd:attribute type="xsd:string" name="textoCabecalho" />
+            <xsd:attribute type="xsd:boolean" name="reduzirEspacoEntreLinhas" />
+            <xsd:attribute type="xsd:positiveInteger" name="tamanhoFonte" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Autoria">
+        <xsd:complexType>
+            <xsd:choice>
+                <xsd:element ref="Parlamentares" />
+                <xsd:element ref="ColegiadoAutor" />
+            </xsd:choice>
+            <xsd:attribute type="TipoAutoria" name="tipo" use="required" />
+            <xsd:attribute type="xsd:boolean" name="imprimirPartidoUF" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Parlamentares">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Parlamentar" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Parlamentar">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="identificacao" use="required" />
+            <xsd:attribute type="xsd:string" name="nome" use="required" />
+            <xsd:attribute type="Sexo" name="sexo" use="required" />
+            <xsd:attribute type="xsd:string" name="siglaPartido" use="required" />
+            <xsd:attribute type="xsd:string" name="siglaUF" use="required" />
+            <xsd:attribute type="SiglaCasaLegislativa" name="siglaCasaLegislativa" use="required" />
+            <xsd:attribute type="xsd:string" name="cargo" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="ColegiadoAutor">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="identificacao" use="required" />
+            <xsd:attribute type="xsd:string" name="nome" use="required" />
+            <xsd:attribute type="xsd:string" name="sigla" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Anexos">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Anexo" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Anexo">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="idArquivo" use="required" />
+            <xsd:attribute type="xsd:string" name="nomeArquivo" use="required" />
+            <xsd:attribute type="xsd:string" name="nomeDocumento" use="required" />
+            <xsd:attribute type="xsd:string" name="tipo" use="required" />
+            <xsd:attribute type="xsd:string" name="mimeType" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Comentarios">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="SequenciaComentario" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- refIdElementoComentado aponta para um id de dispositivo/span fora deste fragmento
+         (na articulação ou na justificação) — xsd:string, não xsd:IDREF, para não depender de o
+         alvo estar no mesmo documento validado. -->
+    <xsd:element name="SequenciaComentario">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Comentario" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:attribute type="xsd:string" name="refIdElementoComentado" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Comentario">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="lexml:p" maxOccurs="unbounded" />
+            </xsd:sequence>
+            <xsd:attribute type="xsd:string" name="refIdUsuario" use="required" />
+            <xsd:attribute type="xsd:dateTime" name="data" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="RevisoesTextuais">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="RevisaoTextual" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- refIdRevisao aponta para o id de um ins/del na justificação, fora deste fragmento —
+         xsd:string pelo mesmo motivo de refIdElementoComentado, acima. -->
+    <xsd:element name="RevisaoTextual">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="refIdRevisao" use="required" />
+            <xsd:attribute type="xsd:string" name="refIdUsuario" use="required" />
+            <xsd:attribute type="xsd:dateTime" name="data" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- refIdsRemissoesInternas aponta para ids de Remissao na articulação/justificação, fora
+         deste fragmento — xsd:string (lista separada por espaço), não xsd:IDREFS. -->
+    <xsd:element name="RemissoesInternasInvalidas">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="refIdsRemissoesInternas" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="RevisoesArticulacao">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="RevisaoArticulacao" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- refIdDispositivo aponta para o id de um dispositivo na articulação, fora deste
+         fragmento — xsd:string, mesmo motivo das demais referências cruzadas acima. Ausente na
+         operação "excluido" (o dispositivo excluído não tem id na articulação atual). -->
+    <xsd:element name="RevisaoArticulacao">
+        <xsd:complexType>
+            <xsd:choice minOccurs="0" maxOccurs="1">
+                <xsd:group ref="lexml:LXhier" />
+                <xsd:group ref="lexml:LXcontainers" />
+                <xsd:element ref="lexml:p" />
+            </xsd:choice>
+            <xsd:attribute type="xsd:string" name="refIdDispositivo" />
+            <xsd:attribute type="xsd:string" name="revisao" use="required" />
+            <xsd:attribute type="xsd:string" name="refIdUsuario" use="required" />
+            <xsd:attribute type="xsd:dateTime" name="data" use="required" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Usuarios">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Usuario" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Usuario">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="idUsuario" use="required" />
+            <xsd:attribute type="xsd:string" name="nome" use="required" />
+            <xsd:attribute type="xsd:string" name="sigla" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="Pendencias">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="Pendencia" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element type="xsd:string" name="Pendencia" />
+
+    <xsd:simpleType name="Sexo">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="M" />
+            <xsd:enumeration value="F" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TipoAutoria">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Parlamentar" />
+            <xsd:enumeration value="Comissão" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="SiglaCasaLegislativa">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="SF" />
+            <xsd:enumeration value="CD" />
+            <xsd:enumeration value="CN" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

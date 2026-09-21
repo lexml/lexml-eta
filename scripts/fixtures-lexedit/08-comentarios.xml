@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/08-comentarios.md.
+     lexedit:Usuarios foi acrescentado por completude (o arquivo de origem mostra só o trecho
+     relevante), refletindo que um documento real sempre traria o usuário referenciado. -->
+<lexedit:Metadado xmlns='http://www.lexml.gov.br/1.0' xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:Comentarios>
+    <lexedit:SequenciaComentario refIdElementoComentado='_tc1777387565991'>
+      <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-11T15:51:00-03:00'>
+        <p>Confirmar a fonte deste dado.</p>
+      </lexedit:Comentario>
+      <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-12T16:10:00-03:00'>
+        <p>Já deveria ter sido confirmada.</p>
+      </lexedit:Comentario>
+    </lexedit:SequenciaComentario>
+  </lexedit:Comentarios>
+  <lexedit:Usuarios>
+    <lexedit:Usuario idUsuario='sf:fulano' nome='Fulano de Tal'/>
+  </lexedit:Usuarios>
+</lexedit:Metadado>

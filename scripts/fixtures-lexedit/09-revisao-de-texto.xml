@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/09-revisao-de-texto.md.
+     lexedit:Usuarios foi acrescentado aqui só para a fixture ficar autocontida (ver nota em
+     08-comentarios.xml). -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:RevisoesTextuais>
+    <lexedit:RevisaoTextual refIdRevisao='_rt245245234523' refIdUsuario='sf:fulano' data='2026-05-11T15:51:00-03:00'/>
+    <lexedit:RevisaoTextual refIdRevisao='_rt879079079778' refIdUsuario='sf:fulano' data='2026-05-11T15:52:00-03:00'/>
+  </lexedit:RevisoesTextuais>
+  <lexedit:Usuarios>
+    <lexedit:Usuario idUsuario='sf:fulano' nome='Fulano de Tal'/>
+  </lexedit:Usuarios>
+</lexedit:Metadado>

@@ -56,7 +56,7 @@ Incluir `lexedit:Pendencias`/`lexedit:Pendencia` no jsonix salvo, com a lista de
 
 ## 7. Salvar e abrir notas de rodapé
 
-Incluir o elemento `NotaRodape` (usado apenas na justificação) no jsonix salvo/aberto, com o texto da nota inline. A numeração das notas é recalculada na abertura do arquivo, não precisando ser persistida. Validar o arquivo convertendo de/para XML com o conversor jsonix e validar o XML gerado contra o esquema LexML.
+Incluir o elemento `NotaDeRodape` (usado apenas na justificação) no jsonix salvo/aberto, com o texto da nota inline. A numeração das notas é recalculada na abertura do arquivo, não precisando ser persistida. Validar o arquivo convertendo de/para XML com o conversor jsonix e validar o XML gerado contra o esquema LexML.
 
 **Especificação:** [07-notas-de-rodape.md](07-notas-de-rodape.md)
 
