@@ -59,7 +59,7 @@ export class SufixosModalComponent extends LitElement {
             Os sufixos na numeração de dispositivos, como -1, -2 e assim por diante, são usados para orientar o posicionamento na redação final. Eles não indicam uma numeração
             definitiva.
           </p>
-          <p>Os dispositivos propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição pela Redação Final.</p>
+          <p>Os dispositivos propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação do texto da proposição pela Redação Final.</p>
         </div>
 
         <div slot="footer" class="footer-container">

@@ -31,7 +31,7 @@ describe('Testando lexml-eta-editor-texto-rico (EditorTextoRicoComponent)', () =
 
     rootStore.getState().elementoReducer = {
       articulacao: undefined,
-      modo: 'emendaTextoLivre',
+      modo: 'proposicao',
       past: [],
       present: [],
       future: [],
