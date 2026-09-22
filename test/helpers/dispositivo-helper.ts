@@ -3,6 +3,7 @@ import { createArticulacao, criaDispositivo } from '../../src/model/lexml/dispos
 import { State } from '../../src/redux/state';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { adicionaRemissaoInterna } from '../../src/redux/elemento/reducer/adicionaRemissaoInterna';
+import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -16,7 +17,7 @@ export function marcaAdicionado(_d: any): void {
 export function montaState(articulacao: any): State {
   return {
     articulacao,
-    modo: 'emenda',
+    modo: ClassificacaoDocumento.PROJETO,
     past: [],
     present: [],
     future: [],
