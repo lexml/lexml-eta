@@ -6,7 +6,7 @@ import { SUFIXO_REVISAO } from '../../../model/remissao/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 
 // buscaDispositivoById trata "art{N}_cpt" como sinônimo do próprio Artigo (comportamento intencional
-// para o fluxo de aplicação de emendas com mod/sup — ver hierarquiaUtil.ts) — mas uma remissão que
+// para o fluxo de aplicação de revisões com mod/sup — ver hierarquiaUtil.ts) — mas uma remissão que
 // aponta para "art{N}_cpt" refere-se ao CAPUT, não ao artigo inteiro. Sem este ajuste, o registro
 // nascia com targetUuid do artigo, e a atualização por renumeração gerava o texto do artigo inteiro
 // (ex.: "art. 4º") em vez de preservar "caput deste artigo".

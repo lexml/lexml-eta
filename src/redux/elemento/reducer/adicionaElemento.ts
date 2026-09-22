@@ -111,8 +111,6 @@ export const adicionaElemento = (state: any, action: any): State => {
     novo.notaAlteracao = 'NR';
   }
 
-  novo.classificacaoDocumento = state.modo;
-
   if (isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && atual.tipo === novo.tipo && hasFilhos(atual)) {
     copiaFilhos(atual, novo);
   }

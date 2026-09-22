@@ -1,4 +1,4 @@
-import { Parlamentar } from '../emenda/emenda';
+import { Parlamentar } from '../proposicao/proposicao';
 
 export const incluirParlamentar = (parlamentares: Parlamentar[], parlamentar: Parlamentar): Parlamentar[] => {
   const novoArray = [...parlamentares];

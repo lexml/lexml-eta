@@ -14,7 +14,6 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { Autoria, ColegiadoApreciador, Emenda, Epigrafe, Parlamentar, OpcoesImpressao } from '../model/emenda/emenda';
 import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
@@ -36,17 +35,8 @@ import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializ
 import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
-import { getRefProposicaoReduzida, Proposicao } from '../model/proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
-
-/**
- * @deprecated Bloqueio de dispositivo era um recurso de emenda e não tem mais efeito. Avaliar se pode ser removido completamente.
- */
-export interface DispositivoBloqueado {
-  lexmlId: string;
-  bloquearFilhos: boolean;
-  motivoBloqueio?: string;
-}
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
@@ -66,18 +56,12 @@ export class LexmlEtaParametrosEdicao {
   // Indica se é texto substitutivo. Quando true, sigla, numero e ano são obrigatórios.
   substitutivo = false;
 
-  // Indicação de matéria orçamentária. Utilizado inicialmente para definir destino de emenda a MP
+  // Indicação de matéria orçamentária.
   isMateriaOrcamentaria = false;
 
   // Texto json da proposição para edição estruturada
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
-
-  /**
-   * @deprecated Aceito por compatibilidade, mas ignorado. Bloquear dispositivos só fazia sentido
-   * ao emendar uma proposição existente.
-   */
-  dispositivosBloqueados?: (string | DispositivoBloqueado)[];
 
   // Identificação do usuário para registro de marcas de revisão
   usuario?: Usuario;
@@ -90,7 +74,7 @@ export class LexmlEtaParametrosEdicao {
   // Opções de impressão padrão
   opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
 
-  // Configuração de paginação de dispositivos durante a edição da emenda
+  // Configuração de paginação de dispositivos durante a edição da proposição
   configuracaoPaginacao?: ConfiguracaoPaginacao;
 
   // Casa legislativa resposavel pela apreciaçao da matéria
@@ -99,12 +83,11 @@ export class LexmlEtaParametrosEdicao {
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
-  @property({ type: Boolean }) existeObserverEmenda = false;
   @property({ type: Number }) totalAlertas = 0;
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Array }) comissoes: Comissao[] = [];
-  @property({ type: Object }) lexmlEmendaConfig: LexmlEtaConfig = new LexmlEtaConfig();
+  @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
 
   private urn = '';
 
@@ -154,7 +137,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async getParlamentares(): Promise<Parlamentar[]> {
     try {
-      const _response = await fetch(this.lexmlEmendaConfig.urlConsultaParlamentares);
+      const _response = await fetch(this.lexmlEtaConfig.urlConsultaParlamentares);
       const _parlamentares = await _response.json();
       return _parlamentares
         .filter(p => this.casaLegislativa === 'CN' || p.siglaCasa === this.casaLegislativa)
@@ -178,10 +161,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async getComissoes(siglaCasaLegislativa: string): Promise<Comissao[]> {
     try {
-      if (!this.lexmlEmendaConfig.urlComissoes) {
+      if (!this.lexmlEtaConfig.urlComissoes) {
         return Promise.resolve([]);
       }
-      const _response = await fetch(`${this.lexmlEmendaConfig.urlComissoes}?siglaCasaLegislativa=${siglaCasaLegislativa}`);
+      const _response = await fetch(`${this.lexmlEtaConfig.urlComissoes}?siglaCasaLegislativa=${siglaCasaLegislativa}`);
       const _comissoes = await _response.json();
       return _comissoes
         .filter(c => c.siglaCasaLegislativa === siglaCasaLegislativa)
@@ -258,7 +241,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     proposicao.revisoes = this.getRevisoes();
     proposicao.justificativaAntesRevisao = this._lexmlJustificativa.textoAntesRevisao;
-    proposicao.pendenciasPreenchimento = this.getPendenciasPreenchimentoEmenda(proposicao);
+    proposicao.pendenciasPreenchimento = this.getPendenciasPreenchimento(proposicao);
     proposicao.epigrafe = this.getEpigrafe(this.projetoNorma);
 
     proposicao.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
@@ -289,11 +272,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return epigrafe;
   }
 
-  private getPendenciasPreenchimentoEmenda(emenda: Emenda | Proposicao): string[] {
+  private getPendenciasPreenchimento(proposicao: Proposicao): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
-    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(emenda.justificativa)) {
+    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(proposicao.justificativa)) {
       pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
     }
 
@@ -321,7 +304,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
-      this.anexoParecer = this.lexmlEmendaConfig.anexoParecer ?? false;
+      this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.proposicao && params.proposicao.colegiadoApreciador?.siglaComissao === 'CMO');
       this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
@@ -332,7 +315,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
 
-      // Deve ser chamado antes do reseta emenda para garantir a autoria padrão e depois da inicialização da casaLegislativa
+      // Deve ser chamado antes do reset para garantir a autoria padrão e depois da inicialização da casaLegislativa
       this.parlamentares = await this.getParlamentares();
 
       if (params.proposicao) {
@@ -484,7 +467,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   private resetaProposicao(params: LexmlEtaParametrosEdicao): void {
     const proposicao = new Proposicao();
-    // emenda.proposicao = this.montarProposicaoPorUrn(this.urn, params.ementa);
     proposicao.autoria = this.montarAutoriaPadrao(params);
     proposicao.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
     proposicao.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
@@ -617,7 +599,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const justificativaTabPanel = getElement('sl-tab-panel[name="justificativa"]');
     const proposicaoTabPanel = getElement('sl-tab-panel[name="lexml-eta-proposicao"]');
     const qlToolbarJustificativa = getElement('#lexml-eta-editor-texto-rico-justificativa .ql-toolbar');
-    const qlToolbarEmenda = getElement('#lx-eta-barra-ferramenta');
+    const qlToolbar = getElement('#lx-eta-barra-ferramenta');
 
     const estilosOriginais = {
       justificativa: {
@@ -652,13 +634,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
 
     const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 10;
-    const alturaToolBarEmenda = qlToolbarEmenda?.clientHeight + 10;
+    const alturaToolBar = qlToolbar?.clientHeight + 10;
 
     setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
     setTabPanelStyles(proposicaoTabPanel, estilosOriginais.proposicao);
 
     this.style.setProperty('--heightJustificativa', `${alturaElemento - alturaToolBarJustificativa}px`);
-    this.style.setProperty('--heightEmenda', `${alturaElemento - alturaToolBarEmenda}px`);
+    this.style.setProperty('--heightToolbar', `${alturaElemento - alturaToolBar}px`);
     this.style.setProperty('--height', `${alturaElemento}px`);
     this.style.setProperty('--overflow', 'hidden');
 
@@ -670,7 +652,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private isJustificacaoObrigatoria(): boolean {
-    return !this.anexoParecer && this.lexmlEmendaConfig?.justificacaoObrigatoria !== false;
+    return !this.anexoParecer && this.lexmlEtaConfig?.justificacaoObrigatoria !== false;
   }
 
   buildAlertaJustificativa(): void {
@@ -702,16 +684,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   limparAlertas(): void {
     rootStore.dispatch(limparAlertas());
-  }
-
-  showAlertaEmendaTextoLivre(): void {
-    const alerta = {
-      id: 'alerta-global-emenda-texto-livre',
-      tipo: TipoMensagem.CRITICAL,
-      mensagem: 'O comando de emenda deve ser preenchido.',
-      podeFechar: false,
-    };
-    rootStore.dispatch(adicionarAlerta(alerta));
   }
 
   mostrarDialogDisclaimerRevisao(): void {
@@ -747,7 +719,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           --overflow: visible;
           --min-height: 300px;
           --heightJustificativa: 100%;
-          --heightEmenda: 100%;
+          --heightToolbar: 100%;
           --visibilityNotasAcao: hidden;
         }
         sl-tab-panel {
@@ -907,11 +879,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta-proposicao" class="overflow-hidden">
-              <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEmendaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
+              <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEtaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden ${this.anexoParecer ? 'painel-anexo-parecer' : ''}">
               <lexml-eta-editor-texto-rico
-                .lexmlEtaConfig=${this.lexmlEmendaConfig}
+                .lexmlEtaConfig=${this.lexmlEtaConfig}
                 modo="justificativa"
                 id="lexml-eta-editor-texto-rico-justificativa"
                 registroEvento="justificativa"
@@ -1132,18 +1104,5 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   getTabFromElement(element: any): any {
     return element.closest('sl-tab-panel');
-  }
-
-  getRestricoesConhecidas(): string[] {
-    return [
-      'Emendamento ou adição de anexos.',
-      'Emendamento ou adição de pena, penalidade etc.',
-      'Emendamento ou adição de especificação temática do dispositivo (usado para nome do tipo penal e outros).',
-      'Alteração de anexo de MP de crédito extraordinário.',
-      'Alteração do texto da proposição e proposta de adição de dispositivos onde couber na mesma emenda.',
-      'Alteração de norma que não segue a LC nº 95 de 98 (ex: norma com alíneas em parágrafos).',
-      'Casos especiais de numeração de parte (PARTE GERAL, PARTE ESPECIAL e uso de numeral ordinal por extenso).',
-      'Tabelas e imagens no texto da proposição.',
-    ];
   }
 }

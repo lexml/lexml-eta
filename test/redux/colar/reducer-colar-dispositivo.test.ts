@@ -28,7 +28,7 @@ describe('Testando carregamento da MPV 905/2019', () => {
     expect(state.articulacao?.artigos.length).to.equal(53);
   });
 
-  describe('Testando aplicação de dispositivos emendados', () => {
+  describe('Testando aplicação de dispositivos alterados', () => {
     beforeEach(function () {
       const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
       const atual = createElemento(disp);
@@ -52,28 +52,4 @@ describe('Testando carregamento da MPV 905/2019', () => {
       expect(state.articulacao?.artigos.length).to.equal(53);
     });
   });
-
-  // describe('Testando aplicação de dispositivos emendados', () => {
-  //   beforeEach(function () {
-  //     state = aplicaAlteracoesEmenda(state, { alteracoesEmenda: EMENDA_001.componentes[0].dispositivos });
-  //     eventos = getEventosQuePossuemElementos(state.ui!.events);
-  //   });
-
-  //   it('Testando se articulação possui apenas 1 filho (Capítulo I) ', () => {
-  //     const d = state.articulacao!.filhos[0];
-  //     expect(d.tipo).equal('Capitulo');
-  //     expect(d.id).equal('cap1');
-  //     expect(d.texto).equal('CAP 1');
-  //     expect(d.rotulo).equal('CAPÍTULO ÚNICO');
-  //     expect(d.pai).equal(state.articulacao);
-  //     expect(d.filhos.length).equal(1);
-  //     expect(d.filhos[0].id).equal('cap1_sec1');
-  //     expect(state.articulacao?.filhos.length).equal(1);
-
-  //     const incluidos = getEvento(eventos, StateType.ElementoIncluido);
-  //     expect(incluidos.elementos?.length).equal(1);
-  //     expect(incluidos.referencia?.tipo).equal('Ementa');
-  //     expect(incluidos.referencia?.lexmlId ?? '').equal('');
-  //   });
-  // });
 });

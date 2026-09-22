@@ -1,7 +1,5 @@
-import { Artigo } from './../../dispositivo/dispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
-import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { createAlteracao, createArticulacao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../dispositivo/dispositivoValidator';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
@@ -19,7 +17,7 @@ regex.set('Inciso', /(inciso|inc.?\s)\s*([uú]nico|[MDCLXVI]+[)]?(?:-[a-z])?).*/
 regex.set('Item', /(item)\s*([uú]nico\s*|\d+(?:-[a-z])?).*/i);
 regex.set('Paragrafo', /(§|par[aá]grafo|par.?\s)\s*([uú]nico\s*|\d+(?:-[a-z])?).*/i);
 
-const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDispositivo[], modo?: ClassificacaoDocumento): void => {
+const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDispositivo[]): void => {
   let parent = dispositivo;
   referencias?.forEach(referencia => {
     if (!parent.tiposPermitidosFilhos?.includes(referencia.tipo?.tipo)) {
@@ -39,37 +37,25 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
     parent.isDispositivoAlteracao = true;
     parent.existeNaNormaAlterada = true;
     parent.id = buildId(parent);
-
-    if (isArtigo(parent)) {
-      if (modo) {
-        (parent as Artigo).caput!.classificacaoDocumento = modo;
-      }
-    }
     parent.mensagens = validaDispositivo(parent);
   });
 };
 
-const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo, modo): Dispositivo => {
+const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo): Dispositivo => {
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
-    dispositivo.alteracoes!.classificacaoDocumento = modo;
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
   cabeca.isDispositivoAlteracao = true;
-  cabeca.classificacaoDocumento = modo;
   cabeca.existeNaNormaAlterada = true;
   referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
   cabeca.createRotulo(cabeca);
   cabeca.id = buildId(cabeca);
 
-  if (isArtigo(cabeca)) {
-    (cabeca as Artigo).caput!.classificacaoDocumento = modo;
-  }
-
   return cabeca;
 };
 
-export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo, modo = ClassificacaoDocumento.PROJETO): Dispositivo => {
+export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo): Dispositivo => {
   const referencias = identificaReferencias(texto);
   let artigoInformado = true;
 
@@ -83,9 +69,9 @@ export const buildDispositivosAssistente = (texto: string, dispositivo: Disposit
     }
   }
   const c = artigoInformado ? referencias.shift() : undefined;
-  const cabeca = buildCabecaAlteracao(dispositivo, c ?? { tipo: TipoDispositivo.artigo }, modo);
+  const cabeca = buildCabecaAlteracao(dispositivo, c ?? { tipo: TipoDispositivo.artigo });
 
-  processaFilhos(cabeca, referencias, modo);
+  processaFilhos(cabeca, referencias);
 
   return cabeca;
 };

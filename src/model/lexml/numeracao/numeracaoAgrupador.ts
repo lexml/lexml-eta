@@ -1,7 +1,6 @@
 import { addSpaceRegex } from '../../../util/string-util';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { irmaosMesmoTipo, isDispositivoCabecaAlteracao } from '../hierarquia/hierarquiaUtil';
 import {
   converteLetrasComplementoParaNumero,
@@ -57,7 +56,7 @@ export function NumeracaoAgrupador<TBase extends Constructor>(Base: TBase): any 
           ? dispositivo.descricao
           : dispositivo.descricao.toLocaleUpperCase();
 
-      if (this.numero === undefined || (dispositivo.classificacaoDocumento === ClassificacaoDocumento.PROJETO && dispositivo.pai?.tipo === 'Articulacao')) {
+      if (this.numero === undefined) {
         this.rotulo = prefixo; //TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toUpperCase() ?? dispositivo.tipo;
       } else if (this.numero !== undefined && !isNumeracaoValida(this.numero)) {
         this.rotulo = prefixo + ' ' + this.numero;
