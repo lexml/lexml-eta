@@ -1,0 +1,26 @@
+## 1. Modelo e formatação do fecho
+
+- [x] 1.1 Em `documentoArticulado.ts`, acrescentar `local?: string` e `data?: string` a `MetadadoLexEdit` e a `DadosLexEdit`, e verificar que `npx tsc` compila sem erros.
+- [x] 1.2 Criar o formatador `formatarLocalDataFecho(local, data?)` (design.md, Decisão 3), sem usar `Date`, e verificar com testes unitários: data comum (`2026-04-24` → "Sala das sessões, 24 de abril de 2026."), dia 1 (`1º de maio`), dia de um dígito (`5 de março`), todos os 12 meses, e sem data ("Sala das sessões,").
+
+## 2. Salvar local e data do fecho
+
+- [x] 2.1 Implementar o montador do fecho em `buildJsonixFromProjetoNorma.ts`: `lexedit.local`/`lexedit.data` compostos em `montaMetadadoLexEdit` (data omitida quando vazia) e `norma.parteFinal.localDataFecho` montado em `montaProjetoNorma` a partir dos mesmos `dados`. Verificar com testes unitários: com local e data; com local e sem data (sem atributo `data`, texto "<local>,"); sem `local` (sem `ParteFinal`, e sem `MetadadoProprietario` se não houver outro grupo); convivência com opções de impressão e remissões inválidas no mesmo `lexedit`; o documento gerado passa em `validarDocumentoArticulado`.
+- [x] 2.2 No componente raiz, calcular o local efetivo (local do arquivo se o destino atual tiver o mesmo `tipoColegiado`/`siglaComissao` da cópia feita ao abrir; senão o derivado do destino) e a data (`_lexmlData.data`), repassando-os em `getDocumentoArticulado` junto com as opções de impressão. No modo anexo de parecer, não repassar nenhum dos dois. Verificar com testes de componente: data informada e "Não informar"; destino Comissão gera "Sala da comissão"; modo anexo de parecer não gera fecho.
+- [x] 2.3 Normalizar a data do campo "Data" no caminho de salvar (design.md, Decisão 7): `AAAA-MM-DD` é usada como está; um timestamp ISO (o padrão `new Proposicao().dataUltimaModificacao`, copiado para o campo por `setProposicao`) vira a data **local**; qualquer outro valor conta como não informada. `setProposicao`/`getProposicao` não mudam. Verificar com testes unitários da normalização (incluindo um timestamp perto da meia-noite UTC) e com o teste de componente que abre, salva, reabre e compara, que passa a ter data determinística no mesmo dia.
+
+## 3. Abrir local e data do fecho
+
+- [x] 3.1 Implementar o leitor do fecho em `buildProjetoNormaFromJsonix.ts`, composto em `lerMetadadoLexEdit`: `local` quando for texto não vazio; `data` só no formato `AAAA-MM-DD`. Verificar com testes unitários: com os dois; data ausente; data vazia; data "24/04/2026"; sem `MetadadoProprietario`, mesmo com `LocalDataFecho` presente; convivência com opções de impressão, remissões inválidas e um grupo desconhecido.
+- [x] 3.2 Em `abrirDocumentoArticulado`, depois de `inicializarEdicao`: aplicar a data ao campo "Data" (`''` quando ausente, ou sempre no modo anexo de parecer) e guardar `localDoArquivo` e a cópia do destino; `inicializarEdicao` descarta os dois antes. Verificar com testes de componente: abrir com data exibe a data; abrir sem data exibe "Não informar"; abrir com local "Sala da comissão" e salvar sem mudar o destino mantém o local; mudar o destino exibido após a abertura (ex.: para "Plenário via Comissão") e salvar gera "Sala das sessões"; abrir outro documento em seguida não herda o local anterior.
+- [x] 3.3 Verificar com teste unitário a ida e volta pelo código do editor: criar com local e data → serializar → ler → `lerMetadadoLexEdit` devolve o mesmo local e a mesma data, e criar de novo produz o mesmo `ParteFinal`.
+
+## 4. Testes de integração e E2E
+
+- [x] 4.1 Em `documentoArticulado.integration.ts`, adicionar um cenário que cria o documento com local e data e faz a ida e volta pelo CLI real (`toxml` + XSD + `tojson`), verificando que `<ParteFinal><LocalDataFecho><p>...</p></LocalDataFecho></ParteFinal>` está no XML e volta igual no JSON, e comparando todo o resto sem o `lexedit` (design.md, Decisão 6). Repetir para o caso sem data. Verificar rodando a suíte com `JSONIX_LEXML_CLI` apontando para o `jsonix-lexml` disponível.
+- [x] 4.2 Gerar via `criarDocumentoArticulado` (não à mão) as fixtures `demo/doc/teste_fecho_com_data.json` e `demo/doc/teste_fecho_sem_data.json`, e adicionar o spec Cypress `cypress/e2e/documento-articulado/abertura-local-data-fecho.cy.ts`. Ele abre cada fixture pela UI real (`cy.get('#fileUpload').selectFile(...)`) e verifica no `lexml-eta-data` o valor do campo de data ou a opção "Não informar" selecionada; abrir a fixture sem data depois da com data também deve mostrar "Não informar". Consultar `docs/guia-cypress.md`. O local não aparece na UI, então fica coberto pelos testes de componente da 3.2; o lado de salvar segue sem E2E (sem infraestrutura de download, mesma decisão da c01), coberto por 2.1, 2.2, 3.3 e 4.1. Verificar rodando o spec contra um servidor que sirva o build atual.
+
+## 5. Regressão e fechamento
+
+- [x] 5.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/documento-articulado/` e `abertura-remissao-invalida-persistida.cy.ts`, e confirmar que nada regrediu.
+- [x] 5.2 Atualizar a tabela de status de `docs/extensao-formato-lexml/plano-xsd-lexedit.md` (grupo `03` passa a Implementado) e o item 13 do `CLAUDE.md` com o que for específico do fecho (local preservado por cópia do destino, `ParteFinal` com ida e volta real pelo CLI).
