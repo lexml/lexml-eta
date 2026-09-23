@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Esquema auxiliar do LexEdit — ocupa o ponto de extensão MetadadoProprietario/lexedit:Metadado
-     do LexML. Especificado em docs/extensao-formato-lexml/00 a 13 (ver plano em
-     docs/extensao-formato-lexml/plano-xsd-lexedit.md). Não faz parte do esquema LexML oficial. -->
+     do LexML. Não faz parte do esquema LexML oficial. -->
 
 <xsd:schema targetNamespace="http://www.lexml.gov.br/lexedit/1.0" elementFormDefault="qualified"
     xmlns="http://www.lexml.gov.br/lexedit/1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -165,12 +164,30 @@
 
     <!-- refIdDispositivo aponta para o id de um dispositivo na articulação, fora deste
          fragmento — xsd:string, mesmo motivo das demais referências cruzadas acima. Ausente na
-         operação "excluido" (o dispositivo excluído não tem id na articulação atual). -->
+         operação "excluido" (o dispositivo excluído não tem id na articulação atual).
+         O choice lista diretamente os elementos dos grupos lexml:LXhier e lexml:LXcontainers
+         (mais lexml:p), para não depender da definição desses grupos em lexml-simples.xsd.
+         Revisar esta lista se a hierarquia do LexML mudar. O mapping Jsonix gerado é o mesmo
+         nas duas formas: uma propriedade por elemento, das quais só uma pode ser preenchida. -->
     <xsd:element name="RevisaoArticulacao">
         <xsd:complexType>
             <xsd:choice minOccurs="0" maxOccurs="1">
-                <xsd:group ref="lexml:LXhier" />
-                <xsd:group ref="lexml:LXcontainers" />
+                <xsd:element ref="lexml:Parte" />
+                <xsd:element ref="lexml:Livro" />
+                <xsd:element ref="lexml:Titulo" />
+                <xsd:element ref="lexml:Subtitulo" />
+                <xsd:element ref="lexml:Capitulo" />
+                <xsd:element ref="lexml:Secao" />
+                <xsd:element ref="lexml:Artigo" />
+                <xsd:element ref="lexml:Omissis" />
+                <xsd:element ref="lexml:Subsecao" />
+                <xsd:element ref="lexml:AgrupamentoHierarquico" />
+                <xsd:element ref="lexml:Caput" />
+                <xsd:element ref="lexml:Paragrafo" />
+                <xsd:element ref="lexml:Inciso" />
+                <xsd:element ref="lexml:Alinea" />
+                <xsd:element ref="lexml:Item" />
+                <xsd:element ref="lexml:DispositivoGenerico" />
                 <xsd:element ref="lexml:p" />
             </xsd:choice>
             <xsd:attribute type="xsd:string" name="refIdDispositivo" />

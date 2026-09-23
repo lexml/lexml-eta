@@ -43,6 +43,7 @@
 
     <xsd:element type="genInline" name="Bloco" />
     <xsd:element type="genInline" name="EmLinha" />
+    <xsd:element type="genInline" name="NotaDeRodape" />
     <xsd:element type="genInline" name="Remissao" />
     <xsd:element type="genInline" name="span" />
     <xsd:element type="genInline" name="RemissaoMultipla" />
@@ -50,6 +51,7 @@
     <xsd:element type="genInline" name="NomeAgrupador" />
     <xsd:element type="genInline" name="TituloDispositivo" />
     <xsd:element type="genInline" name="b" />
+    <xsd:element type="genInline" name="u" />
     <xsd:element type="genInline" name="del" />
     <xsd:element type="genInline" name="dfn" />
     <xsd:element type="genInline" name="i" />
@@ -88,16 +90,16 @@
 
     <xsd:element type="textoType" name="Preambulo" />
 
-    <xsd:element type="xsd:date" name="DataJulgamento" />
+    <xsd:element type="dateComIdType" name="DataJulgamento" />
 
-    <xsd:element type="xsd:string" name="AutorProjeto" />
-    <xsd:element type="xsd:string" name="Cargo" />
-    <xsd:element type="xsd:string" name="NomeAgente" />
-    <xsd:element type="xsd:string" name="NomeGrupo" />
-    <xsd:element type="xsd:string" name="NomePessoa" />
-    <xsd:element type="xsd:string" name="OrgaoJulgador" />
-    <xsd:element type="xsd:string" name="Rotulo" />
-    <xsd:element type="xsd:string" name="Tratamento" />
+    <xsd:element type="stringComIdType" name="AutorProjeto" />
+    <xsd:element type="stringComIdType" name="Cargo" />
+    <xsd:element type="stringComIdType" name="NomeAgente" />
+    <xsd:element type="stringComIdType" name="NomeGrupo" />
+    <xsd:element type="stringComIdType" name="NomePessoa" />
+    <xsd:element type="stringComIdType" name="OrgaoJulgador" />
+    <xsd:element type="stringComIdType" name="Rotulo" />
+    <xsd:element type="stringComIdType" name="Tratamento" />
 
     <xsd:element type="HTMLlist" name="ol" />
     <xsd:element type="HTMLlist" name="ul" />
@@ -120,6 +122,7 @@
                 <xsd:element ref="DebateTexto" minOccurs="0" maxOccurs="1" />
                 <xsd:element ref="ExtratoAtaTexto" minOccurs="1" maxOccurs="1" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -139,6 +142,7 @@
     <xsd:element name="Anexo">
         <xsd:complexType>
             <xsd:group ref="AnexoElement" minOccurs="1" />
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -164,6 +168,7 @@
                 <xsd:element ref="NomePessoa" minOccurs="1" maxOccurs="unbounded" />
                 <xsd:element ref="Cargo" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -173,6 +178,7 @@
                 <xsd:element ref="NomeGrupo" />
                 <xsd:group ref="AssinaturaGrupoChoice" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -181,6 +187,7 @@
             <xsd:sequence>
                 <xsd:element ref="Assinatura" minOccurs="1" maxOccurs="unbounded" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
     
@@ -195,6 +202,7 @@
                 <xsd:element ref="Relator" minOccurs="1" maxOccurs="1" />
                 <xsd:element ref="PartesProcesso" minOccurs="2" maxOccurs="unbounded" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -203,6 +211,7 @@
             <xsd:choice>
                 <xsd:any namespace="##other" />
             </xsd:choice>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -231,6 +240,7 @@
             </xsd:sequence>
             <xsd:attribute type="xsd:string" name="fonte" />
             <xsd:attribute type="xsd:string" name="tipo" />
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -243,6 +253,7 @@
     <xsd:element name="Jurisprudencia">
         <xsd:complexType>
             <xsd:group ref="JurisprudenciaElement" />
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -278,7 +289,11 @@
     <xsd:element name="MetadadoProprietario">
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded" />
+                <!-- Desvio intencional do esquema LexML oficial, que usa processContents="skip".
+                     Com "lax", o Jsonix converte metadados de namespaces conhecidos (ex.:
+                     lexedit:Metadado, de lexedit.xsd) em objetos tipados, em vez de DOM cru.
+                     Manter esta alteração se o esquema for atualizado a partir do oficial. -->
+                <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
             <xsd:attribute type="xsd:anyURI" name="fonte" use="required" />
         </xsd:complexType>
@@ -325,6 +340,7 @@
                 <xsd:element ref="LocalDataFecho" minOccurs="0" maxOccurs="1" />
                 <xsd:group ref="ParteFinalAssinatura" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -336,6 +352,7 @@
                 <xsd:element ref="Ementa" minOccurs="0" maxOccurs="1" />
                 <xsd:element ref="Preambulo" minOccurs="0" maxOccurs="1" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -357,6 +374,7 @@
                 <xsd:element ref="ParteProcesso" minOccurs="1" maxOccurs="unbounded" />
                 <xsd:element ref="AdvogadosParte" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -368,6 +386,7 @@
                 <xsd:element ref="Justificacao" minOccurs="0" maxOccurs="unbounded" />
                 <xsd:element ref="AutorProjeto" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -437,6 +456,7 @@
         <xsd:complexType>
             <xsd:group ref="tableCellElement" minOccurs="1" maxOccurs="unbounded" />
             <xsd:attributeGroup ref="HTMLattrs" />
+            <xsd:attribute type="xsd:ID" name="id" />
         </xsd:complexType>
     </xsd:element>
 
@@ -584,6 +604,7 @@
             <xsd:element ref="Formula" />
             <xsd:element ref="span" />
             <xsd:element ref="b" />
+            <xsd:element ref="u" />
             <xsd:element ref="i" />
             <xsd:element ref="a" />
             <xsd:element ref="sub" />
@@ -595,6 +616,7 @@
             <xsd:element ref="EmLinha" />
             <xsd:element ref="img" />
             <xsd:element ref="Marcador" />
+            <xsd:element ref="NotaDeRodape" />
         </xsd:choice>
     </xsd:group>
 
@@ -663,6 +685,7 @@
             <xsd:element ref="Anexos" minOccurs="0" maxOccurs="1" />
         </xsd:sequence>
         <xsd:attribute ref="xml:lang" />
+        <xsd:attribute type="xsd:ID" name="id" />
     </xsd:complexType>
 
     <xsd:complexType name="OpenStructure">
@@ -698,6 +721,7 @@
             <xsd:element ref="Tratamento" minOccurs="0" maxOccurs="1" />
             <xsd:element ref="NomeAgente" minOccurs="1" maxOccurs="1" />
         </xsd:sequence>
+        <xsd:attribute type="xsd:ID" name="id" />
     </xsd:complexType>
 
 
@@ -739,7 +763,24 @@
     <xsd:complexType name="parsType">
         <xsd:sequence>
             <xsd:element ref="p" minOccurs="1" maxOccurs="unbounded" />
-        </xsd:sequence>        
+        </xsd:sequence>
+        <xsd:attribute type="xsd:ID" name="id" />
+    </xsd:complexType>
+
+    <xsd:complexType name="stringComIdType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute type="xsd:ID" name="id" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="dateComIdType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:date">
+                <xsd:attribute type="xsd:ID" name="id" />
+            </xsd:extension>
+        </xsd:simpleContent>
     </xsd:complexType>
     
 
