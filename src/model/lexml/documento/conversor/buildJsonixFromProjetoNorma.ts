@@ -20,6 +20,7 @@ import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit } from '../documentoArticulado';
 import { OpcoesImpressao } from '../../../proposicao/proposicao';
+import { formatarLocalDataFecho } from '../urnUtil';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -41,7 +42,7 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
   const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas));
-  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas);
+  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
   return resultado;
 };
 
@@ -67,6 +68,11 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): OpcoesImpressao => ({
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = {};
   const pendencias: string[] = [];
+  // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
+  if (dados?.local) {
+    lexedit.local = dados.local;
+    if (dados.data) lexedit.data = dados.data;
+  }
   if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
   if (idsRemissoesInvalidas.length > 0) {
     lexedit.remissoesInternasInvalidas = { refIdsRemissoesInternas: idsRemissoesInvalidas };
@@ -105,19 +111,33 @@ const montaCabecalho = (urn: string, lexedit?: MetadadoLexEdit): any => {
   };
 };
 
-const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
+const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const p = {
     TYPE_NAME: 'br_gov_lexml__1.ProjetoNorma',
   };
 
+  const parteFinal = montaParteFinal(dados);
   p[isNorma(projetoNorma) ? 'norma' : 'projeto'] = {
     TYPE_NAME: 'br_gov_lexml__1.HierarchicalStructure',
     parteInicial: montaParteInicial(projetoNorma),
     articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
+    ...(parteFinal && { parteFinal }),
   };
 
   return p;
 };
+
+// Representação textual do fecho prevista no LexML; os dados estruturados ficam em `lexedit` (especificação 03).
+const montaParteFinal = (dados?: DadosLexEdit): any =>
+  dados?.local
+    ? {
+        TYPE_NAME: 'br_gov_lexml__1.ParteFinal',
+        localDataFecho: {
+          TYPE_NAME: 'br_gov_lexml__1.ParsType',
+          p: [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [formatarLocalDataFecho(dados.local, dados.data)] }],
+        },
+      }
+    : undefined;
 
 const montaParteInicial = (projetoNorma: any): any => {
   return {

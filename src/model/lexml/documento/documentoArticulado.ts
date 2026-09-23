@@ -10,6 +10,9 @@ const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
 /** Ponto de extensão `MetadadoProprietario` do LexML, ocupado pelo LexEdit — ver especificação 00. */
 export interface MetadadoLexEdit {
+  // Local e data do fecho são atributos do próprio lexedit:Metadado (especificação 03); `data` é xsd:date.
+  local?: string;
+  data?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao>;
   remissoesInternasInvalidas?: { refIdsRemissoesInternas: string[] };
@@ -18,6 +21,9 @@ export interface MetadadoLexEdit {
 
 /** Dados de formulário do editor gravados em `lexedit` — um campo por grupo de metadados. */
 export interface DadosLexEdit {
+  local?: string;
+  // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
+  data?: string;
   opcoesImpressao?: OpcoesImpressao;
 }
 

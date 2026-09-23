@@ -117,12 +117,18 @@ export const lerOpcoesImpressao = (lido: any): OpcoesImpressao | undefined => {
   return opcoes;
 };
 
+// Data fora de AAAA-MM-DD (inclusive vazia) equivale a data não informada (especificação 03).
+export const lerFecho = (lexedit: any): Pick<DadosLexEdit, 'local' | 'data'> => ({
+  ...(typeof lexedit?.local === 'string' && lexedit.local.trim() && { local: lexedit.local }),
+  ...(typeof lexedit?.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(lexedit.data) && { data: lexedit.data }),
+});
+
 /** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
 export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const grupos: any[] = documento?.value?.metadado?.metadadoProprietario ?? [];
-  const lexedit = grupos.find(grupo => grupo?.lexedit?.opcoesImpressao)?.lexedit;
+  const lexedit = grupos.find(grupo => grupo?.lexedit && typeof grupo.lexedit === 'object')?.lexedit;
   const opcoesImpressao = lerOpcoesImpressao(lexedit?.opcoesImpressao);
-  return { ...(opcoesImpressao && { opcoesImpressao }) };
+  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }) };
 };
 
 const getMetadado = (documento: any): Metadado => {

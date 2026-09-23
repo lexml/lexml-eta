@@ -80,4 +80,26 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     // Limitação do CLI atual: quando ele passar a transportar `lexedit`, trocar por deep.equal com as opções salvas.
     expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({});
   });
+
+  // ParteFinal/LocalDataFecho é LexML e volta íntegro pelo CLI; local/data em `lexedit` seguem a limitação acima.
+  for (const [caso, data, texto] of [
+    ['com data', '2026-04-24', 'Sala da comissão, 24 de abril de 2026.'],
+    ['sem data', undefined, 'Sala da comissão,'],
+  ] as const) {
+    it(`valida e reabre um documento com local e data do fecho (${caso})`, async () => {
+      const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+      const dados = { local: 'Sala da comissão', ...(data && { data }) };
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, dados);
+
+      const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+      expect(retorno.valido, retorno.erro).to.equal(true);
+      expect(retorno.xml).to.include(`<ParteFinal><LocalDataFecho><p>${texto}</p></LocalDataFecho></ParteFinal>`);
+      expect(retorno.jsonix.value.projetoNorma.norma.parteFinal).to.deep.equal((salvo.value.projetoNorma.norma as any).parteFinal);
+
+      const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+      expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+      expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({});
+    });
+  }
 });
