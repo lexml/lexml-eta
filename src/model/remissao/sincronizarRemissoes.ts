@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../dispositivo/dispositivo';
-import { buscaNaHierarquiaDispositivos, findDispositivoByUuid } from '../lexml/hierarquia/hierarquiaUtil';
+import { buscaNaHierarquiaDispositivos } from '../lexml/hierarquia/hierarquiaUtil';
 import { RemissaoInternaValue } from './remissao';
 import {
   compartilhamAncestralDoTipo,
@@ -20,10 +20,21 @@ export const sincronizarRemissoesComEstadoAtual = (articulacao: Articulacao, reg
   const atualizado: Record<number, RemissaoInternaValue[]> = {};
 
   for (const [uuidStr, entries] of Object.entries(registro)) {
-    atualizado[Number(uuidStr)] = entries.map(entry => sincronizarEntrada(articulacao, entry));
+    const sincronizadas = entries.map(entry => sincronizarEntrada(articulacao, entry));
+    const origem = resolverOrigemDaChave(articulacao, Number(uuidStr), sincronizadas);
+    if (!origem?.uuid || origem.uuid === Number(uuidStr)) {
+      atualizado[Number(uuidStr)] = sincronizadas;
+      continue;
+    }
+    // Origem movida: a chave acompanha o uuid atual, inclusive nas entradas inválidas, que não passam pela reancoragem.
+    atualizado[origem.uuid] = sincronizadas.map(e => (e.sourceUuid === origem.uuid ? e : { ...e, sourceUuid: origem.uuid, sourceUuid2: origem.uuid2 }));
   }
 
   return atualizado;
+};
+
+const resolverOrigemDaChave = (articulacao: Articulacao, uuid: number, entries: RemissaoInternaValue[]): Dispositivo | undefined => {
+  return resolverDispositivo(articulacao, uuid, entries.find(e => e.sourceUuid2)?.sourceUuid2);
 };
 
 // Duas representações possíveis de "onde está o texto do link dentro de origem.texto":
@@ -41,13 +52,17 @@ interface LocalizacaoTexto {
 
 const construirRegexLinkPorRefId = (refId: string): RegExp => new RegExp(`(<a\\b[^>]*data-ref-id="${refId}"[^>]*>)([^<]*)(</a>)`, 'i');
 
-// Não usa findDispositivoByUuid2 (hierarquiaUtil): ela ignora o caput e os filhos próprios de artigo com alteração.
+// Não usam findDispositivoByUuid/findDispositivoByUuid2 (hierarquiaUtil), que ignoram os filhos próprios de artigo com
+// alteração (e a segunda, também o caput) — docs/sessao/ACHADO_GETDISPOSITIVO_ARTIGO_COM_ALTERACAO.md.
+export const buscarDispositivoPorUuid = (articulacao: Articulacao, uuid: number): Dispositivo | undefined =>
+  buscaNaHierarquiaDispositivos(articulacao as unknown as Dispositivo, d => (d.uuid === uuid ? d : undefined));
+
 export const buscarDispositivoPorUuid2 = (articulacao: Articulacao, uuid2: string): Dispositivo | undefined =>
   buscaNaHierarquiaDispositivos(articulacao as unknown as Dispositivo, d => (d.uuid2 === uuid2 ? d : undefined));
 
 // Mover e undo/redo trocam o uuid da subárvore; o uuid2 é preservado nesses fluxos.
 const resolverDispositivo = (articulacao: Articulacao, uuid: number, uuid2: string | undefined): Dispositivo | undefined =>
-  findDispositivoByUuid(articulacao as unknown as Dispositivo, uuid, true) ?? (uuid2 ? buscarDispositivoPorUuid2(articulacao, uuid2) : undefined);
+  buscarDispositivoPorUuid(articulacao, uuid) ?? (uuid2 ? buscarDispositivoPorUuid2(articulacao, uuid2) : undefined);
 
 const reancorar = (entry: RemissaoInternaValue, destino: Dispositivo, origem: Dispositivo | undefined): RemissaoInternaValue => {
   // Completar uuid2 é in-place (mesmo contrato de preencherUuid2DasRemissoes): sem troca de uuid, a entrada mantém a identidade.

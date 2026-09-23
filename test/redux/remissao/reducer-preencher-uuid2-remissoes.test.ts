@@ -33,12 +33,13 @@ describe('preencherUuid2DasRemissoes', () => {
     expect(entry.sourceUuid2).to.be.undefined;
   });
 
-  it('não toca entrada inválida', () => {
-    const { state, entry } = montaCenario();
+  it('entrada inválida recebe só o sourceUuid2, para acompanhar a origem movida', () => {
+    const { state, entry, art1 } = montaCenario();
     entry.valida = false;
 
     preencherUuid2DasRemissoes(state, ADICIONAR_ELEMENTO);
 
     expect(entry.targetUuid2).to.be.undefined;
+    expect(entry.sourceUuid2).to.equal(art1.uuid2);
   });
 });

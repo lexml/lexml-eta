@@ -30,8 +30,9 @@ const entradaEmTextoPuro = (origem: Dispositivo, destino: Dispositivo, comUuid2 
   };
 };
 
+// A chave acompanha a origem reancorada, então lê a única chave do resultado.
 const sincroniza = (articulacao: any, entry: RemissaoInternaValue): RemissaoInternaValue =>
-  sincronizarRemissoesComEstadoAtual(articulacao, { [entry.sourceUuid!]: [entry] })[entry.sourceUuid!][0];
+  Object.values(sincronizarRemissoesComEstadoAtual(articulacao, { [entry.sourceUuid!]: [entry] }))[0][0];
 
 describe('sincronizarRemissoes — identidade por uuid2', () => {
   let articulacao: any;
@@ -112,6 +113,29 @@ describe('sincronizarRemissoes — identidade por uuid2', () => {
 
       expect(resultado.sourceUuid).to.equal(uuidNovo);
       expect(resultado.sourceUuid2).to.equal(art2.uuid2);
+    });
+  });
+
+  describe('Chave do registry com origem movida (D3)', () => {
+    it('lista passa para a chave do uuid atual da origem, inclusive entradas inválidas', () => {
+      const entry = entradaEmTextoPuro(art2, art1);
+      const invalida: RemissaoInternaValue = { refId: 'ref2', sourceUuid: art2.uuid, sourceUuid2: art2.uuid2, targetLexmlId: 'art9', valida: false };
+      const uuidAntigo = art2.uuid!;
+      const uuidNovo = trocaUuid(art2);
+
+      const resultado = sincronizarRemissoesComEstadoAtual(articulacao, { [uuidAntigo]: [entry, invalida] });
+
+      expect(Object.keys(resultado)).to.deep.equal([String(uuidNovo)]);
+      expect(resultado[uuidNovo].map(e => e.sourceUuid)).to.deep.equal([uuidNovo, uuidNovo]);
+      expect(resultado[uuidNovo][1].valida).to.be.false;
+    });
+
+    it('origem inalterada mantém a chave', () => {
+      const entry = entradaEmTextoPuro(art1, art2);
+
+      const resultado = sincronizarRemissoesComEstadoAtual(articulacao, { [art1.uuid!]: [entry] });
+
+      expect(Object.keys(resultado)).to.deep.equal([String(art1.uuid)]);
     });
   });
 
