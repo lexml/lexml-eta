@@ -20,6 +20,28 @@ import { REDO } from '../../../model/lexml/acao/redoAction';
 // toda ação (inclusive digitação) custaria O(remissões × tamanho da árvore) sem necessidade.
 const ACOES_ESTRUTURAIS = new Set([ADICIONAR_ELEMENTO, REMOVER_ELEMENTO, RENUMERAR_ELEMENTO, ADICIONAR_AGRUPADOR_ARTIGO, TRANSFORMAR_TIPO_ELEMENTO, TAB, SHIFT_TAB, UNDO, REDO]);
 
+// D5 (change 2026-09-23-c01): grava uuid2 enquanto os uuids ainda resolvem — mover/undo trocam o uuid
+// da subárvore e o fallback de sincronizarEntrada depende do uuid2 já estar na entrada. Mutação in-place:
+// só acrescenta identidade, não altera nada que a UI ou o save leiam.
+export const preencherUuid2DasRemissoes = (state: State, actionType: string | undefined): void => {
+  if (!actionType || !ACOES_ESTRUTURAIS.has(actionType) || !state?.articulacao || !state.remissoes) {
+    return;
+  }
+
+  const raiz = state.articulacao as unknown as Dispositivo;
+  for (const entries of Object.values(state.remissoes)) {
+    for (const entry of entries) {
+      if (entry.valida === false) continue;
+      if (!entry.targetUuid2 && entry.targetUuid !== undefined) {
+        entry.targetUuid2 = findDispositivoByUuid(raiz, entry.targetUuid, true)?.uuid2;
+      }
+      if (!entry.sourceUuid2 && entry.sourceUuid !== undefined) {
+        entry.sourceUuid2 = findDispositivoByUuid(raiz, entry.sourceUuid, true)?.uuid2;
+      }
+    }
+  }
+};
+
 const entradaMudou = (antiga: RemissaoInternaValue | undefined, nova: RemissaoInternaValue): boolean =>
   !antiga || antiga.targetLexmlId !== nova.targetLexmlId || antiga.textoRef !== nova.textoRef || antiga.revisao !== nova.revisao;
 
