@@ -23,7 +23,9 @@
 
 ## 4. Repintura no editor
 
-- [ ] 4.1 Em `renderizarRemissoesDoState` (`moduloRemissao.ts`), reformatar link existente também quando o `href` divergir do `targetUuid` da entrada (D4); verificar pelo E2E da task 6.1 (caso de artigo que troca de agrupador mantendo o número) ou por inspeção manual do `href` após mover
+- [x] 4.1 Em `renderizarRemissoesDoState` (`moduloRemissao.ts`), reformatar link existente também quando o `href` divergir do `targetUuid` da entrada (D4); verificar pelo E2E da task 6.1 (caso de artigo que troca de agrupador mantendo o número) ou por inspeção manual do `href` após mover
+
+> Nota de implementação (4.1): a divergência de `href` só é considerada quando a entrada tem `targetLexmlId`, preservando a guarda existente contra entradas incompletas. Coberta por teste unitário em `moduloRemissao.test.ts`; a verificação no editor real é o CT-K-04 da 6.1.
 
 ## 5. Rejeição de revisão de movimentação
 
@@ -32,7 +34,7 @@
 
 ## 6. E2E e regressão
 
-- [ ] 6.1 Criar `cypress/e2e/remissao-interna/grupo-k-mover-dispositivo.cy.ts` (consultar `docs/guia-cypress.md` antes; não há helper de mover em `cypress/support/` — criar um ou acionar pelo menu de contexto) com: CT-K-01 mover o destino atualiza texto e link; CT-K-02 mover a origem mantém o link funcional (popup abre e navega para o destino); CT-K-03 undo do movimento restaura o texto; verificar com `npm run cy:run:local` restrito ao spec. Se algum caso se mostrar inviável, registrar a decisão aqui e cobrir o risco com teste unitário equivalente
+- [ ] 6.1 Criar `cypress/e2e/remissao-interna/grupo-k-mover-dispositivo.cy.ts` (consultar `docs/guia-cypress.md` antes; não há helper de mover em `cypress/support/` — criar um ou acionar pelo menu de contexto) com: CT-K-01 mover o destino atualiza texto e link; CT-K-02 mover a origem mantém o link funcional (popup abre e navega para o destino); CT-K-03 undo do movimento restaura o texto; CT-K-04 artigo movido para outro agrupador mantendo o número tem o `href` do link atualizado (verificação da 4.1); verificar com `npm run cy:run:local` restrito ao spec. Se algum caso se mostrar inviável, registrar a decisão aqui e cobrir o risco com teste unitário equivalente
 - [ ] 6.2 Rodar `npm test` completo e as suítes E2E de remissão interna (`grupo-g-atualizacao`, `grupo-h-referencia-enxuta`, `grupo-j-deteccao-blur`, `grupo-i-proposicao-grande`) e verificar ausência de regressões
 
 ## 7. Documentação
