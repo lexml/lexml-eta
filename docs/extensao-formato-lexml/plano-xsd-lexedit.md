@@ -31,14 +31,14 @@ Criar `lexedit.xsd`, um esquema auxiliar (mencionado como pendência em [00-espe
 
 ## Panorama do que precisa ser modelado
 
-Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indica se o grupo já está implementado no salvar/abrir (`src/model/lexml/documento/documentoArticulado.ts` hoje tem `opcoesImpressao`, `remissoesInternasInvalidas` e `pendencias`).
+Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indica se o grupo já está implementado no salvar/abrir (`src/model/lexml/documento/documentoArticulado.ts` hoje tem `local`, `data`, `opcoesImpressao`, `remissoesInternasInvalidas` e `pendencias`).
 
 | Grupo (arquivo) | Elemento(s)/atributo(s) principais | Status no código |
 | --- | --- | --- |
 | `00` | `lexedit:Metadado` (elemento-raiz do namespace) | — |
 | `01` | URN provisória (`Identificacao/@URN`, já no namespace LexML, fora do escopo do XSD lexedit) | Implementado |
 | `02` | `lexedit:OpcoesImpressao` (todos os atributos opcionais) | **Implementado** |
-| `03` | `lexedit:Metadado/@local`, `@data` | Não implementado |
+| `03` | `lexedit:Metadado/@local`, `@data` | **Implementado** (+ `ParteFinal/LocalDataFecho` no LexML) |
 | `04` | `lexedit:Autoria` > `lexedit:Parlamentares`/`lexedit:Parlamentar` ou `lexedit:ColegiadoAutor` | Não implementado |
 | `05` | `lexedit:Anexos` > `lexedit:Anexo` | Não implementado |
 | `06` | `Justificacao`/`PartePrincipal` (namespace LexML, fora do escopo do XSD lexedit) | Parcial (verificar) |
