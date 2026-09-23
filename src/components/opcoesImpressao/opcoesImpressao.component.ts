@@ -1,6 +1,6 @@
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
-import { OpcoesImpressao } from '../../model/emenda/emenda';
+import { OpcoesImpressao } from '../../model/proposicao/proposicao';
 import { SlSelect } from '@shoelace-style/shoelace';
 
 @customElement('lexml-eta-opcoes-impressao')
@@ -20,9 +20,14 @@ export class OpcoesImpressaoComponent extends LitElement {
   }
 
   private timerEmitirEventoOnChange = 0;
+  private tamanhoFonteExibido?: number;
 
   protected firstUpdated(): void {
     this.tamanhoFonte.addEventListener('sl-change', (ev: Event) => this._atualizarTamanhoFonte(ev));
+  }
+
+  protected updated(): void {
+    this.tamanhoFonteExibido = this._opcoesImpressao?.tamanhoFonte;
   }
   render(): TemplateResult {
     return html`
@@ -121,6 +126,8 @@ export class OpcoesImpressaoComponent extends LitElement {
 
   private _atualizarTamanhoFonte(ev: Event): void {
     const valorFonte = parseInt((ev.target as SlSelect).value as string);
+    // O sl-select também emite sl-change (assíncrono) quando o valor muda por código; esse eco não é escolha do usuário.
+    if (valorFonte === this.tamanhoFonteExibido) return;
     this._opcoesImpressao.tamanhoFonte = valorFonte;
     this.requestUpdate();
   }

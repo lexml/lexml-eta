@@ -1,6 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { removerElementoAction } from '../../../src/model/lexml/acao/removerElementoAction';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State } from '../../../src/redux/state';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
@@ -140,7 +141,7 @@ describe('Atualização de Remissões ao Remover Dispositivo', () => {
 
       const state: State = {
         articulacao,
-        modo: 'emenda',
+        modo: ClassificacaoDocumento.PROJETO,
         past: [],
         present: [],
         future: [],

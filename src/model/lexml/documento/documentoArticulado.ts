@@ -4,13 +4,27 @@ import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoN
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
+import { OpcoesImpressao } from '../../proposicao/proposicao';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
 /** Ponto de extensão `MetadadoProprietario` do LexML, ocupado pelo LexEdit — ver especificação 00. */
 export interface MetadadoLexEdit {
+  // Local e data do fecho são atributos do próprio lexedit:Metadado (especificação 03); `data` é xsd:date.
+  local?: string;
+  data?: string;
+  // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
+  opcoesImpressao?: Partial<OpcoesImpressao>;
   remissoesInternasInvalidas?: { refIdsRemissoesInternas: string[] };
   pendencias?: string[];
+}
+
+/** Dados de formulário do editor gravados em `lexedit` — um campo por grupo de metadados. */
+export interface DadosLexEdit {
+  local?: string;
+  // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
+  data?: string;
+  opcoesImpressao?: OpcoesImpressao;
 }
 
 export interface MetadadoProprietarioLexEdit {
@@ -126,12 +140,13 @@ export const criarDocumentoArticulado = (
   projetoNorma: ProjetoNorma,
   urn: string,
   remissoes?: Record<number, RemissaoInternaValue[]>,
-  remissoesExternas?: Record<string, RemissaoExternaValue>
+  remissoesExternas?: Record<string, RemissaoExternaValue>,
+  dados?: DadosLexEdit
 ): DocumentoArticulado => {
   validarIdentificacaoDocumento(urn);
   // No XSD LexML, ProjetoNorma contém Norma, inclusive para proposições em elaboração.
   const modelo = { ...projetoNorma, classificacao: ClassificacaoDocumento.NORMA } as ProjetoNorma;
-  const documento = buildJsonixFromProjetoNorma(modelo, urn, remissoes, remissoesExternas);
+  const documento = buildJsonixFromProjetoNorma(modelo, urn, remissoes, remissoesExternas, dados);
   decodificarTextoJsonix(documento);
   preservarEspacosJsonix(documento);
   validarDocumentoArticulado(documento);

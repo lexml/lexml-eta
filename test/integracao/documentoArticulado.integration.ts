@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { executeServerCommand } from '@web/test-runner-commands';
 import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../src/model/lexml/documento/documentoArticulado';
-import { buildProjetoNormaFromJsonix } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerMetadadoLexEdit } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/documentoArticulado';
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
@@ -56,4 +56,50 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     // real descarta esse conteúdo ao converter para XML (achado empírico, design.md Decisão 5) —
     // não é possível comprovar aqui, apenas que o elemento-contêiner em si é válido pelo XSD.
   });
+
+  // O CLI atual devolve MetadadoProprietario sem o conteúdo `lexedit` (xsd:any com allowTypedObject: false):
+  // compara-se todo o resto (design.md da change de opções de impressão, Decisão 6).
+  it('valida e reabre um documento com opções de impressão, exceto o conteúdo lexedit', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const opcoesImpressao = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 16 };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { opcoesImpressao });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<MetadadoProprietario fonte="http://www.lexml.gov.br/lexedit/1.0"');
+    const { lexedit, ...semLexedit } = salvo.value.metadado.metadadoProprietario![0];
+    expect(lexedit.opcoesImpressao).to.deep.equal(opcoesImpressao);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal([semLexedit]);
+
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    const esperado = JSON.parse(JSON.stringify(salvo));
+    delete esperado.value.metadado.metadadoProprietario;
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!)).to.deep.equal(esperado);
+
+    // Limitação do CLI atual: quando ele passar a transportar `lexedit`, trocar por deep.equal com as opções salvas.
+    expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({});
+  });
+
+  // ParteFinal/LocalDataFecho é LexML e volta íntegro pelo CLI; local/data em `lexedit` seguem a limitação acima.
+  for (const [caso, data, texto] of [
+    ['com data', '2026-04-24', 'Sala da comissão, 24 de abril de 2026.'],
+    ['sem data', undefined, 'Sala da comissão,'],
+  ] as const) {
+    it(`valida e reabre um documento com local e data do fecho (${caso})`, async () => {
+      const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+      const dados = { local: 'Sala da comissão', ...(data && { data }) };
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, dados);
+
+      const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+      expect(retorno.valido, retorno.erro).to.equal(true);
+      expect(retorno.xml).to.include(`<ParteFinal><LocalDataFecho><p>${texto}</p></LocalDataFecho></ParteFinal>`);
+      expect(retorno.jsonix.value.projetoNorma.norma.parteFinal).to.deep.equal((salvo.value.projetoNorma.norma as any).parteFinal);
+
+      const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+      expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+      expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({});
+    });
+  }
 });

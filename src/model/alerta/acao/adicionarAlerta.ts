@@ -10,7 +10,6 @@ export function adicionarAlerta(alerta: Alerta): any {
       tipo: alerta.tipo,
       mensagem: alerta.mensagem,
       podeFechar: alerta.podeFechar,
-      exibirComandoEmenda: alerta.exibirComandoEmenda,
     },
   };
 }

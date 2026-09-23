@@ -322,7 +322,7 @@ const getNumeracao = (d: Dispositivo): string => {
     return '1';
   }
 
-  const seqDispEmenda = contaIrmaosNaoOriginaisConsecutivosAte(d);
+  const seqDisp = contaIrmaosNaoOriginaisConsecutivosAte(d);
 
-  return '' + seqDispEmenda;
+  return '' + seqDisp;
 };

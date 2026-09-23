@@ -49,14 +49,14 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   const descricaoTipo = TipoDispositivo[action.novo.tipo.toLowerCase()].descricao;
 
-  if (!action.isAbrindoEmenda && action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
+  if (action.novo.posicao === 'antes' && !getTiposAgrupadoresQuePodemSerInseridosAntes(atual).includes(action.novo.tipo)) {
     return retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.ERROR,
       descricao: `Não é permitido adicionar agrupador "${descricaoTipo}" antes do dispositivo selecionado [${atual.rotulo}]`,
     });
   }
 
-  if (!action.isAbrindoEmenda && action.novo.posicao === 'depois' && !getTiposAgrupadoresQuePodemSerInseridosDepois(atual).includes(action.novo.tipo)) {
+  if (action.novo.posicao === 'depois' && !getTiposAgrupadoresQuePodemSerInseridosDepois(atual).includes(action.novo.tipo)) {
     return retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.ERROR,
       descricao: `Não é permitido adicionar agrupador "${descricaoTipo}" após o dispositivo selecionado [${atual.rotulo}]`,
@@ -130,7 +130,6 @@ export const agrupaElemento = (state: any, action: any): State => {
   // Reutiliza "uuid" quando o agrupador é criado por ação de undo ou redo
   novo.uuid = action.novo.uuid ?? novo.uuid;
 
-  novo.classificacaoDocumento = state.modo;
   novo.texto = action.novo.texto ?? '';
   novo.createRotulo(novo);
   novo.rotulo = action.novo.rotulo ?? novo.rotulo;

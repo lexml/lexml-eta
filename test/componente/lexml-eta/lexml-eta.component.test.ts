@@ -122,24 +122,24 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
 
   describe('Validação de justificação via LexmlEtaConfig.justificacaoObrigatoria', () => {
     it('deve incluir pendência de justificação quando obrigatória e vazia', () => {
-      component.lexmlEmendaConfig = new LexmlEtaConfig();
-      component.lexmlEmendaConfig.justificacaoObrigatoria = true;
+      component.lexmlEtaConfig = new LexmlEtaConfig();
+      component.lexmlEtaConfig.justificacaoObrigatoria = true;
 
-      const pendencias = (component as any).getPendenciasPreenchimentoEmenda({ justificativa: '' });
+      const pendencias = (component as any).getPendenciasPreenchimento({ justificativa: '' });
       expect(pendencias).to.include('Não foi informado um texto de justificação.');
     });
 
     it('não deve incluir pendência de justificação quando não obrigatória e vazia', () => {
-      component.lexmlEmendaConfig = new LexmlEtaConfig();
-      component.lexmlEmendaConfig.justificacaoObrigatoria = false;
+      component.lexmlEtaConfig = new LexmlEtaConfig();
+      component.lexmlEtaConfig.justificacaoObrigatoria = false;
 
-      const pendencias = (component as any).getPendenciasPreenchimentoEmenda({ justificativa: '' });
+      const pendencias = (component as any).getPendenciasPreenchimento({ justificativa: '' });
       expect(pendencias).to.not.include('Não foi informado um texto de justificação.');
     });
 
     it('não deve disparar alerta global de justificação quando não obrigatória', () => {
-      component.lexmlEmendaConfig = new LexmlEtaConfig();
-      component.lexmlEmendaConfig.justificacaoObrigatoria = false;
+      component.lexmlEtaConfig = new LexmlEtaConfig();
+      component.lexmlEtaConfig.justificacaoObrigatoria = false;
       Object.defineProperty(component, '_lexmlJustificativa', { value: { isEditorVazio: () => true } });
 
       (component as any).buildAlertaJustificativa();

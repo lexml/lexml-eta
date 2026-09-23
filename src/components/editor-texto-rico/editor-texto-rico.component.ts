@@ -8,7 +8,7 @@ import { atualizaQuantidadeRevisaoTextoRico, getQuantidadeRevisoes, getQuantidad
 import { connect } from 'pwa-helpers';
 import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
-import { Anexo } from '../../model/emenda/emenda';
+import { Anexo } from '../../model/proposicao/proposicao';
 import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
@@ -577,7 +577,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           tipo: TipoMensagem.INFO,
           mensagem: 'Este documento contém marcas de revisão e não deve ser protocolado até que estas sejam removidas.',
           podeFechar: true,
-          exibirComandoEmenda: true,
         };
         setTimeout(() => {
           rootStore.dispatch(adicionarAlerta(alerta));

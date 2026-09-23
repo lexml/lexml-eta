@@ -1,7 +1,7 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 import { Option, AutocompleteAsync } from './autocomplete-async';
-import { Norma } from '../../model/emenda/norma';
+import { Norma } from '../../model/proposicao/norma';
 
 @customElement('lexml-eta-autocomplete-norma')
 export class AutocompleteNorma extends LitElement {

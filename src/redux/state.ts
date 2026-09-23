@@ -9,7 +9,6 @@ import { RemissaoExternaValue, RemissaoInternaValue } from '../model/remissao';
 
 export enum StateType {
   ArticulacaoAtualizada = 'ArticulacaoAtualizada',
-  ComandoEmendaGerado = 'ComandoEmendaGerado',
   DocumentoCarregado = 'DocumentoCarregado',
   InformarDadosAssistente = 'InformarDadosAssistente',
   InformarNorma = 'InformarNorma',

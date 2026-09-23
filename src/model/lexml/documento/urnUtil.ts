@@ -56,8 +56,29 @@ export const getData = (urn: string): string => {
   return d ? d.join('/') : '';
 };
 
+export const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+// Sem Date: new Date('AAAA-MM-DD') é UTC e, em fuso negativo, vira o dia anterior.
+export const formatarLocalDataFecho = (local: string, data?: string): string => {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data ?? '');
+  const [, ano, mes, dia] = partes ?? [];
+  if (!partes || !MESES[+mes - 1] || +dia < 1 || +dia > 31) return `${local},`;
+  const diaTexto = +dia === 1 ? '1º' : String(+dia);
+  return `${local}, ${diaTexto} de ${MESES[+mes - 1]} de ${ano}.`;
+};
+
+// O campo "Data" pode trazer o timestamp ISO de new Proposicao().dataUltimaModificacao; vale a data local dele.
+export const normalizarDataFecho = (valor?: string): string | undefined => {
+  if (!valor) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;
+  if (!/^\d{4}-\d{2}-\d{2}T/.test(valor) || isNaN(Date.parse(valor))) return undefined;
+  const data = new Date(valor);
+  const doisDigitos = (n: number): string => String(n).padStart(2, '0');
+  return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`;
+};
+
 export const getDataPorExtenso = (urn: string): string => {
-  const mes = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  const mes = MESES;
 
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
 
@@ -96,7 +117,7 @@ export const buildUrn = (autoridade: string, tipo: string, numero: string, data:
   return `urn:lex:br:${autoridade}:${tipo}:${dataPadrao};${numero}`;
 };
 
-// Para inicialização de edição de emenda sem texto lexml
+// Para inicialização de edição de proposição sem texto lexml
 export const buildFakeUrn = (sigla: string, numero: string, ano: string): string => {
   const fake = VOCABULARIO.fakeUrns.find(f => f.sigla === sigla.toUpperCase());
   if (fake) {

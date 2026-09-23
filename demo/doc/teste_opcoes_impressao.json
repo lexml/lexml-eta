@@ -1,0 +1,215 @@
+{
+  "name": {
+    "namespaceURI": "http://www.lexml.gov.br/1.0",
+    "localPart": "LexML",
+    "prefix": "",
+    "key": "{http://www.lexml.gov.br/1.0}LexML",
+    "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+    "TYPE_NAME": "br_gov_lexml__1.LexML",
+    "metadado": {
+      "TYPE_NAME": "br_gov_lexml__1.Metadado",
+      "identificacao": {
+        "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+        "urn": "urn:lex:br:senado.federal:projeto.lei;pls:9999;999999"
+      },
+      "metadadoProprietario": [
+        {
+          "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
+          "fonte": "http://www.lexml.gov.br/lexedit/1.0",
+          "lexedit": {
+            "opcoesImpressao": {
+              "imprimirBrasao": false,
+              "textoCabecalho": "Gabinete do Senador",
+              "reduzirEspacoEntreLinhas": true,
+              "tamanhoFonte": 18
+            }
+          }
+        }
+      ]
+    },
+    "projetoNorma": {
+      "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+      "norma": {
+        "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+        "parteInicial": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+          "epigrafe": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "id": "epigrafe",
+            "content": [
+              "PROJETO ",
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "b",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}b",
+                  "string": "{http://www.lexml.gov.br/1.0}b"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "DE LEI"
+                  ]
+                }
+              }
+            ]
+          },
+          "ementa": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "id": "ementa",
+            "content": [
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "b",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}b",
+                  "string": "{http://www.lexml.gov.br/1.0}b"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "Dispõe "
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "i",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}i",
+                  "string": "{http://www.lexml.gov.br/1.0}i"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "sobre"
+                  ]
+                }
+              },
+              " educação e saúde."
+            ]
+          },
+          "preambulo": {
+            "TYPE_NAME": "br_gov_lexml__1.TextoType",
+            "id": "preambulo",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "O Congresso Nacional ",
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "b",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}b",
+                      "string": "{http://www.lexml.gov.br/1.0}b"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "content": [
+                        "decreta"
+                      ]
+                    }
+                  },
+                  ":"
+                ]
+              },
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "Segundo parágrafo ",
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "i",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}i",
+                      "string": "{http://www.lexml.gov.br/1.0}i"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "content": [
+                        "do preâmbulo"
+                      ]
+                    }
+                  },
+                  "."
+                ]
+              }
+            ]
+          }
+        },
+        "articulacao": {
+          "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+          "lXhier": [
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "localPart": "Artigo",
+                "prefix": "",
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art1",
+                "rotulo": "Art. 1º",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "Caput",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Esta lei dispõe sobre educação e saúde."
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "Paragrafo",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_par1u",
+                      "rotulo": "Parágrafo único.",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Aplica-se em todo o território nacional."
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

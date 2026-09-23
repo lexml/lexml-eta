@@ -5,7 +5,7 @@
     <!-- Identificação provisória e URN -->
     <Identificacao URN="urn:lex:br:senado.federal:projeto.lei:999999;9999"/>
 
-    <MetadadoProprietario>
+    <MetadadoProprietario fonte="http://www.lexml.gov.br/lexedit/1.0">
       <lexedit:Metadado
           xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'
           dataUltimaModificacao='2026-05-12T10:15:00-03:00'
@@ -131,28 +131,28 @@
         <Preambulo id="preambulo">
           <p>O CONGRESSO NACIONAL decreta:</p>
         </Preambulo>
-        <Articulacao>
-          <!-- Estado atual da articulação: o art. 4º original não aparece mais -->
-          <Artigo id="art1">
-            <Rotulo>Art. 1º</Rotulo>
-            <Caput id="art1_cpt">
-              <p>Fica instituído o Programa de Modernização da Gestão Pública, de que trata esta Lei.</p>
-            </Caput>
-          </Artigo>
-          <Artigo id="art2">
-            <Rotulo>Art. 2º</Rotulo>
-            <Caput id="art2_cpt">
-              <p>Compete ao órgão gestor do Programa, observado o disposto no <Remissao xlink:href='art4' id='_ri13481093417'>art. 4º</Remissao> desta Lei, editar os atos complementares necessários à sua execução.</p>
-            </Caput>
-          </Artigo>
-          <Artigo id="art3">
-            <Rotulo>Art. 3º</Rotulo>
-            <Caput id="art3_cpt">
-              <p>Esta Lei entra em vigor na data de sua publicação.</p>
-            </Caput>
-          </Artigo>
-        </Articulacao>
       </ParteInicial>
+      <Articulacao>
+        <!-- Estado atual da articulação: o art. 4º original não aparece mais -->
+        <Artigo id="art1">
+          <Rotulo>Art. 1º</Rotulo>
+          <Caput id="art1_cpt">
+            <p>Fica instituído o Programa de Modernização da Gestão Pública, de que trata esta Lei.</p>
+          </Caput>
+        </Artigo>
+        <Artigo id="art2">
+          <Rotulo>Art. 2º</Rotulo>
+          <Caput id="art2_cpt">
+            <p>Compete ao órgão gestor do Programa, observado o disposto no <Remissao xlink:href='art4' id='_ri13481093417'>art. 4º</Remissao> desta Lei, editar os atos complementares necessários à sua execução.</p>
+          </Caput>
+        </Artigo>
+        <Artigo id="art3">
+          <Rotulo>Art. 3º</Rotulo>
+          <Caput id="art3_cpt">
+            <p>Esta Lei entra em vigor na data de sua publicação.</p>
+          </Caput>
+        </Artigo>
+      </Articulacao>
       <ParteFinal>
         <!-- Representação textual do fecho e das assinaturas -->
         <LocalDataFecho>

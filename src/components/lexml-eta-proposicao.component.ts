@@ -3,7 +3,7 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo } from '../model/emenda/emenda';
+import { Anexo } from '../model/proposicao/proposicao';
 import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -15,7 +15,7 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
-import { criarDocumentoArticulado, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
+import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -64,12 +64,12 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     return out;
   }
 
-  getDocumentoArticulado(): DocumentoArticulado {
+  getDocumentoArticulado(dados?: DadosLexEdit): DocumentoArticulado {
     this.editorComponent.flushEdicaoPendente();
     const state = rootStore.getState().elementoReducer;
     const externas = state.remissoesExternas ?? {};
     const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
-    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas);
+    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, dados);
   }
 
   getAnexos() {
@@ -94,10 +94,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params, idsRemissoesInvalidas));
   }
 
-  private _timerLoadEmenda = 0;
+  private _timerLoadRevisoes = 0;
   private loadRevisoes(): void {
-    clearInterval(this._timerLoadEmenda);
-    this._timerLoadEmenda = window.setTimeout(() => {
+    clearInterval(this._timerLoadRevisoes);
+    this._timerLoadRevisoes = window.setTimeout(() => {
       rootStore.dispatch(aplicarRevisoesAction.execute(this.revisoes));
     }, 1000);
   }

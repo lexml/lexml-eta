@@ -28,7 +28,7 @@ describe('Carregando texto da MPV 905/2019', () => {
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
-  describe('Abrindo emenda com revisão de exclusão do inciso "III - Teste D:", aceitando a revisão e fazendo UNDO do aceite', () => {
+  describe('Abrindo proposicao com revisão de exclusão do inciso "III - Teste D:", aceitando a revisão e fazendo UNDO do aceite', () => {
     beforeEach(function () {
       // adiciona dispositivos
       const disp = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!;

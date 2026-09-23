@@ -104,11 +104,11 @@ describe('redirecionaRemissao', () => {
       const artigo = dispositivos.find(d => d.tipo === 'Artigo');
       expect(artigo).to.not.be.undefined;
       const uuid = artigo!.uuid;
-      state.modo = 'emenda';
+      state.modo = ClassificacaoDocumento.PROJETO;
       state.emRevisao = true;
       state.revisoes = [{ id: 'rev1' } as any];
       const result = redirecionaRemissao(state, { uuid });
-      expect(result.modo).to.equal('emenda');
+      expect(result.modo).to.equal(ClassificacaoDocumento.PROJETO);
       expect(result.emRevisao).to.be.true;
       expect(result.revisoes).to.have.length(1);
     });

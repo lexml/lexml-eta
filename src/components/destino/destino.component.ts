@@ -1,13 +1,12 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { AutocompleteAsync, Option } from '../autocomplete/autocomplete-async';
-import { ColegiadoApreciador } from '../../model/emenda/emenda';
 import { Comissao } from './comissao';
 import { rootStore } from '../../redux/store';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { TipoMensagem } from '../../model/lexml/util/mensagem';
-import { RefProposicaoReduzida } from '../../model/proposicao/proposicao';
+import { ColegiadoApreciador, RefProposicaoReduzida } from '../../model/proposicao/proposicao';
 
 @customElement('lexml-eta-destino')
 export class DestinoComponent extends LitElement {

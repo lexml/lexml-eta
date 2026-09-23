@@ -5,5 +5,4 @@ export interface Alerta {
   tipo: TipoMensagem;
   mensagem: string;
   podeFechar: boolean;
-  exibirComandoEmenda?: boolean;
 }
