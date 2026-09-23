@@ -4,7 +4,7 @@ import { moverElementoAbaixoAction } from '../../../src/model/lexml/acao/moverEl
 import { adicionarArtigoAntes } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
-import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { createAlteracao, createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State } from '../../../src/redux/state';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
@@ -119,6 +119,28 @@ describe('Atualização de remissões ao mover dispositivo', () => {
       expect(destino, 'destino deve continuar resolvível').to.exist;
       expect(destino!.pai!.pai!.texto).to.equal('Artigo 3.');
       expect(entrada.targetLexmlId).to.equal('art2_cpt_inc1');
+      expect(entrada.textoRef).to.equal(textoCanonicoDoDispositivo(destino!));
+    });
+
+    it('parágrafo de artigo com bloco de alteração acompanha a nova numeração', () => {
+      const par = criaDispositivo(art3, 'Paragrafo');
+      par.texto = 'parágrafo.';
+      art3.renumeraFilhos();
+      par.createRotulo(par);
+      createAlteracao(art3);
+      art3.alteracoes!.addFilho(criaDispositivo(art3, 'Artigo'));
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      expect(art3.hasAlteracao()).to.be.true;
+      state.remissoes = { [art1.uuid!]: [criaEntrada(art1, par)] };
+
+      const result = mover(state, art3, 'acima');
+
+      const { entrada } = unicaEntrada(result);
+      const destino = destinoDe(result, entrada);
+      expect(destino, 'destino deve continuar resolvível').to.exist;
+      expect(destino!.texto).to.equal('parágrafo.');
+      expect(entrada.targetLexmlId).to.equal(destino!.id);
+      expect(destino!.id!.startsWith('art2')).to.be.true;
       expect(entrada.textoRef).to.equal(textoCanonicoDoDispositivo(destino!));
     });
 
