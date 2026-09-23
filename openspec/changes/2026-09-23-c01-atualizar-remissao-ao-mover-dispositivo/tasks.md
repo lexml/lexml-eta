@@ -29,8 +29,10 @@
 
 ## 5. Rejeição de revisão de movimentação
 
-- [ ] 5.1 Adicionar ao arquivo da task 1.1 casos em modo revisão: mover atualiza remissões sem gerar revisão própria; rejeitar a movimentação restaura texto/destino, mantém o registry válido e não emite `RemissaoInvalidada` nem mensagem de remissão inválida; verificar que o caso de rejeição falha hoje
-- [ ] 5.2 Implementar o sinalizador de supressão de eventos de remissão em `removeElemento` e enviá-lo em `rejeitaInclusao` apenas para revisão de movimentação (D7); verificar que os testes da task 5.1 passam (exceto rejeição com alvo no caput, marcada como pendente com referência a `docs/sessao/PROMPT_BUG_CAPUT_UNDO.md`) e que `reducer-invalida-restaura-remissao.test.ts` continua passando
+- [x] 5.1 Adicionar ao arquivo da task 1.1 casos em modo revisão: mover atualiza remissões sem gerar revisão própria; rejeitar a movimentação restaura texto/destino, mantém o registry válido e não emite `RemissaoInvalidada` nem mensagem de remissão inválida; verificar que o caso de rejeição falha hoje
+- [x] 5.2 Implementar o sinalizador de supressão de eventos de remissão em `removeElemento` e enviá-lo em `rejeitaInclusao` apenas para revisão de movimentação (D7); verificar que os testes da task 5.1 passam (exceto rejeição com alvo no caput, marcada como pendente com referência a `docs/sessao/PROMPT_BUG_CAPUT_UNDO.md`) e que `reducer-invalida-restaura-remissao.test.ts` continua passando
+
+> Evidência (grupo 5): antes da 5.2, a rejeição já restaurava o texto e mantinha a entrada válida, mas emitia `RemissaoInvalidada` para o editor. Depois do sinalizador (`suprimirInvalidacaoRemissao`, enviado quando a revisão tem `elementoAntesRevisao`), nenhum evento de invalidação é emitido. As suítes de revisão, remissão, mover e histórico passam; só falham os 4 casos `[TEMP]` da c02, que já falhavam antes.
 
 ## 6. E2E e regressão
 
