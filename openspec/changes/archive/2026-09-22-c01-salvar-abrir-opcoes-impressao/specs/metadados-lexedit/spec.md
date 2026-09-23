@@ -1,10 +1,4 @@
-# Metadados do LexEdit
-
-## Purpose
-
-Metadados do LexEdit é o ponto de extensão `MetadadoProprietario`/`lexedit:Metadado` do documento articulado, onde o LexEdit registra, sem alterar o esquema LexML, informações próprias que o padrão não contempla.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Emissão condicional do ponto de extensão
 O sistema SHALL incluir `MetadadoProprietario` no documento salvo somente quando existir ao menos um grupo de metadados do LexEdit a serializar, com o atributo `fonte` fixo em `http://www.lexml.gov.br/lexedit/1.0`. Como as opções de impressão são sempre serializadas, todo documento salvo pelo editor contém `MetadadoProprietario`. A ausência do elemento só ocorre quando o documento é criado sem dados de nenhum grupo.
@@ -21,12 +15,7 @@ O sistema SHALL incluir `MetadadoProprietario` no documento salvo somente quando
 - **WHEN** o usuário salva um documento pelo editor, com ou sem remissões internas inválidas
 - **THEN** o arquivo salvo contém `MetadadoProprietario`, com ao menos o grupo de opções de impressão
 
-### Requirement: Isolamento entre grupos de metadados do LexEdit
-A leitura do ponto de extensão SHALL processar cada grupo de metadados do LexEdit de forma independente, sem que a ausência ou a presença de um grupo ainda não suportado pelo sistema impeça a leitura de um grupo suportado.
-
-#### Scenario: Grupo suportado convive com dado de grupo não implementado
-- **WHEN** um documento aberto contém, dentro de `MetadadoProprietario`, tanto o grupo de remissões internas inválidas quanto dados de outro grupo do LexEdit ainda não implementado pelo sistema
-- **THEN** o sistema reconstrói normalmente o estado correspondente ao grupo de remissões internas inválidas, sem lançar erro por causa do grupo não reconhecido
+## ADDED Requirements
 
 ### Requirement: Coexistência de grupos no mesmo ponto de extensão
 Quando houver mais de um grupo de metadados do LexEdit a serializar, o sistema SHALL registrá-los todos no mesmo `MetadadoProprietario`, sem que a presença de um grupo altere o conteúdo registrado de outro.
