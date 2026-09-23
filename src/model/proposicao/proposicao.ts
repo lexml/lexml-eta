@@ -52,7 +52,7 @@ export class RefProposicaoReduzida {
   ementa = '';
 }
 
-// Colegiado apreciador da emenda ----------------------------
+// Colegiado apreciador da proposição ----------------------------
 export class ColegiadoApreciador {
   siglaCasaLegislativa?: 'CN' | 'SF' | 'CD' = 'CN';
   tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão' = 'Plenário';
@@ -111,4 +111,14 @@ export class OpcoesImpressao {
 export class Anexo {
   nomeArquivo = '';
   base64 = '';
+}
+
+// Substituição de termo -----------------------------
+export type TipoSubstituicaoTermo = 'Expressão' | 'Palavra' | 'Número';
+export class SubstituicaoTermo {
+  tipo: TipoSubstituicaoTermo = 'Expressão';
+  termo = '';
+  novoTermo = '';
+  flexaoGenero = false;
+  flexaoNumero = false;
 }

@@ -2,6 +2,7 @@ import { expect } from '@open-wc/testing';
 import { createArticulacao, criaDispositivo } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { createElemento } from '../../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../../src/model/lexml/util/idUtil';
+import { ClassificacaoDocumento } from '../../../../src/model/documento/classificacao';
 import { adicionaElemento } from '../../../../src/redux/elemento/reducer/adicionaElemento';
 import { State } from '../../../../src/redux/state';
 
@@ -26,7 +27,7 @@ function criarStateMinimal() {
 
   const state: State = {
     articulacao,
-    modo: 'emenda',
+    modo: ClassificacaoDocumento.PROJETO,
     past: [],
     present: [],
     future: [],
@@ -90,7 +91,7 @@ function criarStateComArtigo(texto: string) {
 
   const state: State = {
     articulacao,
-    modo: 'emenda',
+    modo: ClassificacaoDocumento.PROJETO,
     past: [],
     present: [],
     future: [],

@@ -2,7 +2,6 @@ import { ProjetoNorma } from './../lexml/documento/projetoNorma';
 import { Regras } from '../lexml/regras/regras';
 import { ElementoAction } from '../lexml/acao';
 import { BlocoAlteracao } from './blocoAlteracao';
-import { ClassificacaoDocumento } from '../documento/classificacao';
 import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';
@@ -22,7 +21,6 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
   bloqueado?: boolean;
   tituloDispositivo?: string;
   existeNaNormaAlterada?: boolean;
-  classificacaoDocumento?: ClassificacaoDocumento;
   getAcoesPermitidas(dispositivo: Dispositivo, acoes: ElementoAction[]): ElementoAction[];
 }
 

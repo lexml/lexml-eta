@@ -1,6 +1,5 @@
 import { validaDispositivo } from './../../../model/lexml/dispositivo/dispositivoValidator';
 import { InfoTextoColado } from './../util/colarUtil';
-import { ClassificacaoDocumento } from './../../../model/documento/classificacao';
 import { isArtigo, isOmissis, isInciso, isParagrafo } from './../../../model/dispositivo/tipo';
 import {
   buscaDispositivoById,
@@ -59,7 +58,6 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
     action.posicao,
     action.isColarSubstituindo,
     action.isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao,
-    state.modo,
     infoTextoColado.infoElementos.tiposColados[0]
   );
 
@@ -99,7 +97,6 @@ const colarDispositivos = (
   posicao: string,
   isColarSubstituindo: boolean,
   _isUsarDispositivoDeMesmoRotuloComoReferenciaDuranteAdicao: boolean,
-  modo: ClassificacaoDocumento,
   tipoColado: string
 ): StateEvent[] => {
   const isColandoEmAlteracaoDeNorma = isDispositivoAlteracao(atual);
@@ -119,7 +116,7 @@ const colarDispositivos = (
 
       refAux = d && isColarSubstituindo ? d : refAux;
       const auxPosicao = d && isColarSubstituindo ? 'antes' : posicao === 'antes' && refAux === referencia ? posicao : undefined;
-      const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, modo, auxPosicao);
+      const d2 = colarDispositivoAdicionando(refAux, f, isColandoEmAlteracaoDeNorma, false, auxPosicao);
       refAux = d2;
 
       if (d && isColarSubstituindo) {
@@ -259,7 +256,6 @@ const colarDispositivoAdicionando = (
   dColado: Dispositivo,
   isColandoEmAlteracaoDeNorma: boolean,
   isPrecedidoPorOmissis: boolean,
-  _modo: ClassificacaoDocumento,
   posicao?: string
 ): Dispositivo => {
   if (!isOmissis(referencia) && referencia.tiposPermitidosFilhos?.includes(dColado.tipo)) {

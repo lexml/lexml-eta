@@ -6,7 +6,8 @@ import { rootStore } from '../../redux/store';
 import { escapeHtml } from '../../util/html-util';
 import { gerarRefId } from '../../model/remissao/refId';
 import { textoParaFragmentoLexmlId } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
-import { Norma } from '../../model/emenda/norma';
+import { Norma } from '../../model/proposicao/norma';
+import '../autocomplete/autocomplete-norma';
 
 export type TipoRemissao = 'interna' | 'externa';
 
@@ -217,7 +218,7 @@ export async function remissaoDialog(
       ${textoSelecionadoHtml}
       ${semSelecaoAvisoHtml}
       ${resumoExternaHtml}
-      <autocomplete-norma id="auto-norma-ext" urnInicial="${escapeHtml(urnParaLookup)}" urlAutocomplete="${urlAutocomplete}"></autocomplete-norma>
+      <lexml-eta-autocomplete-norma id="auto-norma-ext" urnInicial="${escapeHtml(urnParaLookup)}" urlAutocomplete="${urlAutocomplete}"></lexml-eta-autocomplete-norma>
       <sl-input id="dispositivo-ext"
         label="Dispositivo (opcional)"
         placeholder="ex: art. 5º, inciso I do § 3º do art. 12"

@@ -1,24 +1,8 @@
 /// <reference types="cypress" />
-import { Emenda } from '../../src/model/emenda/emenda';
 
 export type TipoMensagemContainerDispositivo = 'warning' | 'danger';
-export interface AbrirEmendaPayloadCypress {
-  fixtureEmendaJson: string;
-}
-export interface NovaEmendaPayloadCypress {
-  projetoNormaSelectValue: string;
-  modoEmendaSelectValue: string;
+export interface NovaProposicaoOpcoesCypress {
   naoMostrarExplicacaoSufixo?: boolean;
-}
-
-export interface ChecarDadosAposAbrirEmendaPayloadCypress {
-  emenda: Emenda;
-  checarMensagemRenumeracao?: boolean;
-}
-
-export interface ChecarEstadoInicialAoCriarNovaEmenda {
-  nomeProposicao: string;
-  totalElementos?: number;
 }
 
 const tempoDeEsperaPadrao = 100;
@@ -37,26 +21,12 @@ Cypress.Commands.add('irParaPagina', (numeroPagina: number): void => {
   cy.get('#selectPaginaArticulacao').select(numeroPagina + '');
 });
 
-Cypress.Commands.add('abrirEmenda', (payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda> => {
-  const baseFolder = 'cypress/fixtures/';
-  return cy.fixture(payload.fixtureEmendaJson).then((emenda: Emenda) => {
-    cy.get('#fileUpload').selectFile(baseFolder + payload.fixtureEmendaJson, { force: true });
-    return cy.wrap(emenda);
-  });
-});
-
-Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.Chainable<any> => {
-  if (payload.naoMostrarExplicacaoSufixo ?? true) {
+Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo', opcoes?: NovaProposicaoOpcoesCypress): Cypress.Chainable<any> => {
+  if (opcoes?.naoMostrarExplicacaoSufixo) {
     cy.window().then(win => {
       win.localStorage.setItem('naoMostrarExplicacaoSufixo', 'true');
     });
   }
-  cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
-  cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
-  return cy.wrap(true);
-});
-
-Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo'): Cypress.Chainable<any> => {
   cy.get('#projetoNorma').select(projetoNormaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
   return cy.wrap(true);
@@ -342,38 +312,6 @@ Cypress.Commands.add(
   }
 );
 
-Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaEstruturada', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
-  // Título da proposição
-  cy.get('div.nome-proposicao').contains(payload.nomeProposicao).should('exist');
-
-  cy.get('lexml-eta').should('exist');
-
-  // lexml-eta deve existir e estar visível
-  cy.get('lexml-eta-proposicao').should('exist').should('have.attr', 'style', 'display: block');
-
-  // lexml-eta-editor-texto-rico deve existir e estar oculto
-  cy.get('lexml-eta-editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: none');
-
-  if (payload.totalElementos) cy.get('div.container__elemento').should('have.length', payload.totalElementos);
-});
-
-Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaOndeCouber', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
-  cy.checarEstadoInicialAoCriarNovaEmendaEstruturada(payload);
-
-  // Dispositivo "ementa" não deveria existir
-  cy.get('div.ementa.container__elemento--ativo').should('not.exist');
-
-  // Rótulo do artigo
-  cy.get('div.container__elemento.elemento-tipo-artigo').get('label').contains('Art.');
-});
-
-Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaPadrao', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
-  cy.checarEstadoInicialAoCriarNovaEmendaEstruturada(payload);
-
-  // Dispositivo "ementa" deve estar "ativo"
-  cy.get('div.ementa.container__elemento--ativo').should('exist');
-});
-
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -381,17 +319,9 @@ declare global {
       // configurarInterceptadores(): Chainable<void>;
       ignorarErro(text: string): void;
       irParaPagina(numeroPagina: number): void;
-      abrirEmenda(payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda>;
-      novaEmenda(payload: NovaEmendaPayloadCypress): Cypress.Chainable<any>;
-      novaProposicao(projetoNormaSelectValue?: string): Cypress.Chainable<any>;
+      novaProposicao(projetoNormaSelectValue?: string, opcoes?: NovaProposicaoOpcoesCypress): Cypress.Chainable<any>;
       abrirProposicao(fixtureJson: string): Cypress.Chainable<any>;
       checarMensagem(mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>>;
-      checarEstadoInicialAoCriarNovaEmendaEstruturada(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
-      checarEstadoInicialAoCriarNovaEmendaPadrao(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
-      checarEstadoInicialAoCriarNovaEmendaOndeCouber(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
-      checarComandoEmenda(emenda?: Emenda): void;
-      checarTextoPresenteEmComandoEmenda(texto: string): void;
-      checarDadosAposAbrirEmenda(payload: ChecarDadosAposAbrirEmendaPayloadCypress): Chainable<void>;
       getContainerArtigoByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoNormaByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;

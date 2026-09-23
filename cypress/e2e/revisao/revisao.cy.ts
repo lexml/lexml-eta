@@ -1,9 +1,6 @@
 describe('Revisão', () => {
   beforeEach(() => {
-    cy.novaEmenda({
-      projetoNormaSelectValue: 'mpv_905_2019',
-      modoEmendaSelectValue: 'emenda',
-    });
+    cy.novaProposicao('mpv_905_2019', { naoMostrarExplicacaoSufixo: true });
   });
 
   it('Ativa e desativa revisão', () => {

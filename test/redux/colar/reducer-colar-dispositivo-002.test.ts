@@ -30,7 +30,7 @@ describe('Testando carregamento da MPV 885/2019', () => {
     expect(state.articulacao?.filhos[3].alteracoes?.filhos.length).to.equal(1);
   });
 
-  describe('Testando aplicação de dispositivos emendados', () => {
+  describe('Testando aplicação de dispositivos alterados', () => {
     beforeEach(function () {
       const disp = buscaDispositivoById(state.articulacao!, 'art4_cpt_alt1_art27-2')!;
       const atual = createElemento(disp);

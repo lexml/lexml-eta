@@ -2,6 +2,7 @@ import { expect } from '@open-wc/testing';
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { renumerarElementoAction } from '../../../src/model/lexml/acao/renumerarElementoAction';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State } from '../../../src/redux/state';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
@@ -199,7 +200,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, par2, '§ 2º do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -243,7 +244,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, inc2, 'inciso II do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -291,7 +292,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, ali2, 'alínea b) do inciso I do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -342,7 +343,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, item2, 'item 2 da alínea a) do inciso I do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -387,7 +388,7 @@ describe('Atualização de Remissões na Renumeração', () => {
         const entrada = criaEntradaRemissao(origem, cap2, 'Capítulo II');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],

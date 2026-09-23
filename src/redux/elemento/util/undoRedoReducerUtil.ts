@@ -60,7 +60,7 @@ const isOmissisCaput = (elemento: Elemento): boolean => {
   return elemento.tipo === TipoDispositivo.omissis.tipo && elemento.tipoOmissis === 'inciso-caput';
 };
 
-const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: string | undefined): Dispositivo => {
+const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
@@ -75,25 +75,21 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo, modo: st
   novo.rotulo = elemento?.rotulo;
   novo.mensagens = elemento?.mensagens;
   novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
-  if (modo) {
-    novo.classificacaoDocumento = modo as any;
-  }
   if (isArtigo(novo)) {
     if (elemento.norma) {
       createAlteracao(novo);
       (novo as Artigo).alteracoes!.base = elemento.norma;
-      novo.alteracoes!.classificacaoDocumento = modo as any;
       novo.alteracoes!.id = buildId(novo.alteracoes!);
     }
   }
   return novo;
 };
 
-const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo: string | undefined): Dispositivo[] => {
+const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dispositivo[] => {
   const primeiroElemento = elementos.shift();
 
   const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!) || buscaDispositivoById(articulacao, primeiroElemento!.hierarquia!.pai!.lexmlId!);
-  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!, modo);
+  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
   const idPrimeiroDispositivo = primeiro.id!;
 
   const novos: Dispositivo[] = [primeiro];
@@ -103,7 +99,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[], modo
         ? primeiro.pai!
         : getDispositivoPaiFromElemento(articulacao, filho) || buscaDispositivoById(articulacao, idPrimeiroDispositivo);
 
-    const novo = redodDispositivoExcluido(filho, parent!, modo);
+    const novo = redodDispositivoExcluido(filho, parent!);
     novos.push(novo);
   });
 
@@ -117,7 +113,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
 
     const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
-    const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos, state.modo);
+    const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos);
     pai?.renumeraFilhos();
     // renumeraFilhos só atualiza .numero/.rotulo — sem isto, .id (buildId) fica obsoleto para os
     // dispositivos deslocados pela reinclusão, quebrando qualquer recálculo que dependa do id atual

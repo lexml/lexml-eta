@@ -1,4 +1,4 @@
-import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo } from '../../../model/dispositivo/tipo';
 import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
@@ -23,21 +23,16 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   }
 
   const novo = criaDispositivo(atual.pai!, atual.tipo, atual);
-  novo.classificacaoDocumento = state.modo;
   novo.isDispositivoAlteracao = false;
   novo.existeNaNormaAlterada = undefined;
   novo.pai?.renumeraFilhos();
   novo.id = buildId(novo);
 
-  (novo as Artigo).caput!.classificacaoDocumento = state.modo;
-
   createAlteracao(novo);
-
-  novo.alteracoes!.classificacaoDocumento = state.modo;
 
   if (action.dispositivos) {
     try {
-      buildDispositivosAssistente(action.dispositivos, novo, state.modo);
+      buildDispositivosAssistente(action.dispositivos, novo);
     } catch (e) {
       return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: (e as Error).message });
     }

@@ -48,7 +48,7 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
 
     const state: State = {
       articulacao,
-      modo: 'emenda',
+      modo: ClassificacaoDocumento.PROJETO,
       past: [],
       present: [],
       future: [],
@@ -128,7 +128,7 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
     // Estado inicial sem remissões — vamos disparar adicionaRemissaoInterna em seguida.
     const stateInicial: State = {
       articulacao,
-      modo: 'emenda',
+      modo: ClassificacaoDocumento.PROJETO,
       past: [],
       present: [],
       future: [],
@@ -225,7 +225,7 @@ describe('Preservação simétrica do destino conhecido após exclusão com text
     const elementoArt2 = createElemento(art2, true);
     const stateInicial: State = {
       articulacao,
-      modo: 'emenda',
+      modo: ClassificacaoDocumento.PROJETO,
       past: [],
       present: [],
       future: [],

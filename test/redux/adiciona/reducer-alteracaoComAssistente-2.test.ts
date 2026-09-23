@@ -27,9 +27,7 @@ describe('Testando a "sincronização" de ids em alteração de norma', () => {
     artigo.id = 'art1';
     artigo.texto = 'Teste 1.';
     artigo.caput!.texto = 'Teste 1.';
-    artigo.classificacaoDocumento = ClassificacaoDocumento.PROJETO;
 
-    // state = openArticulacaoAction(projetoNorma.articulacao!, ClassificacaoDocumento.PROJETO_ARTIGO_ONDE_COUBER);
     state = abreArticulacao(state, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
     // state.ui = {} as any;
   });
