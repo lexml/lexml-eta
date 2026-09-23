@@ -6,7 +6,11 @@ import { UNDO } from '../../../src/model/lexml/acao/undoAction';
 import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
-import { State } from '../../../src/redux/state';
+import { State, StateType } from '../../../src/redux/state';
+import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
+import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
+import { RevisaoElemento } from '../../../src/model/revisao/revisao';
+import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { Artigo, Dispositivo } from '../../../src/model/dispositivo/dispositivo';
@@ -257,6 +261,60 @@ describe('Atualização de remissões ao mover dispositivo', () => {
 
       let result = mover(state, art3, 'acima');
       result = elementoReducer(result, { type: UNDO });
+
+      const { entrada } = unicaEntrada(result);
+      expect(destinoDe(result, entrada), 'caput deve continuar resolvível').to.exist;
+      expect(entrada.targetLexmlId).to.equal('art3_cpt');
+    });
+  });
+
+  describe('Modo revisão', () => {
+    const MENSAGEM_REMISSAO_INVALIDA = 'referência para dispositivo que foi excluído';
+
+    const moverEmRevisao = (): State => {
+      state.remissoes = { [art1.uuid!]: [criaEntrada(art1, art3)] };
+      const s = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+      return mover(s, art3, 'acima');
+    };
+
+    it('mover atualiza a remissão sem gerar revisão própria para a origem', () => {
+      const result = moverEmRevisao();
+
+      const { entrada } = unicaEntrada(result);
+      expect(entrada.targetLexmlId).to.equal('art2');
+      expect(entrada.textoRef).to.equal('art. 2º');
+      expect((result.revisoes ?? []).filter(r => (r as RevisaoElemento).elementoAposRevisao?.uuid === art1.uuid)).to.be.empty;
+    });
+
+    it('rejeitar a movimentação restaura a remissão sem invalidá-la', () => {
+      let result = moverEmRevisao();
+      const principal = (result.revisoes ?? []).filter(isRevisaoPrincipal)[0];
+      expect(principal, 'mover em revisão deveria gerar revisão principal').to.exist;
+
+      result = elementoReducer(result, { type: REJEITAR_REVISAO, revisao: principal });
+
+      const { entrada } = unicaEntrada(result);
+      expect(entrada.valida).to.not.equal(false);
+      expect(entrada.targetLexmlId).to.equal('art3');
+      expect(entrada.textoRef).to.equal('art. 3º');
+      expect(destinoDe(result, entrada)?.texto).to.equal('Artigo 3.');
+      const eventos = result.ui?.events ?? [];
+      expect(
+        eventos.filter(e => e.stateType === StateType.RemissaoInvalidada),
+        'sem RemissaoInvalidada'
+      ).to.be.empty;
+      const mensagens = eventos.flatMap(e => e.elementos ?? []).flatMap(e => e.mensagens ?? []);
+      expect(
+        mensagens.filter(m => m.descricao?.includes(MENSAGEM_REMISSAO_INVALIDA)),
+        'sem mensagem de remissão inválida'
+      ).to.be.empty;
+    });
+
+    // Pendente: a rejeição recria o artigo com caput novo — ver docs/sessao/PROMPT_BUG_CAPUT_UNDO.md.
+    it.skip('rejeitar a movimentação com alvo no caput', () => {
+      state.remissoes = { [art1.uuid!]: [criaEntrada(art1, art3.caput!)] };
+      let result = mover(elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO }), art3, 'acima');
+      result = elementoReducer(result, { type: REJEITAR_REVISAO, revisao: (result.revisoes ?? []).filter(isRevisaoPrincipal)[0] });
 
       const { entrada } = unicaEntrada(result);
       expect(destinoDe(result, entrada), 'caput deve continuar resolvível').to.exist;

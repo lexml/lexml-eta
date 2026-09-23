@@ -42,7 +42,10 @@ export const removeElemento = (state: any, action: any): State => {
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
+  // Rejeitar uma movimentação remove e reinclui o mesmo dispositivo: o destino continua existindo.
+  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = action.suprimirInvalidacaoRemissao
+    ? { novoRegistroRemissoes: state.remissoes, eventosRemissao: [], novosAlertas: [] }
+    : construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
   events.push(...eventosRemissao);
 
   if (elPrimeiroFilhoDoAgrupador) {
