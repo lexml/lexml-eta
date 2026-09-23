@@ -36,8 +36,12 @@
 
 ## 6. E2E e regressão
 
-- [ ] 6.1 Criar `cypress/e2e/remissao-interna/grupo-k-mover-dispositivo.cy.ts` (consultar `docs/guia-cypress.md` antes; não há helper de mover em `cypress/support/` — criar um ou acionar pelo menu de contexto) com: CT-K-01 mover o destino atualiza texto e link; CT-K-02 mover a origem mantém o link funcional (popup abre e navega para o destino); CT-K-03 undo do movimento restaura o texto; CT-K-04 artigo movido para outro agrupador mantendo o número tem o `href` do link atualizado (verificação da 4.1); verificar com `npm run cy:run:local` restrito ao spec. Se algum caso se mostrar inviável, registrar a decisão aqui e cobrir o risco com teste unitário equivalente
-- [ ] 6.2 Rodar `npm test` completo e as suítes E2E de remissão interna (`grupo-g-atualizacao`, `grupo-h-referencia-enxuta`, `grupo-j-deteccao-blur`, `grupo-i-proposicao-grande`) e verificar ausência de regressões
+- [x] 6.1 Criar `cypress/e2e/remissao-interna/grupo-k-mover-dispositivo.cy.ts` (consultar `docs/guia-cypress.md` antes; não há helper de mover em `cypress/support/` — criar um ou acionar pelo menu de contexto) com: CT-K-01 mover o destino atualiza texto e link; CT-K-02 mover a origem mantém o link funcional (popup abre e navega para o destino); CT-K-03 undo do movimento restaura o texto; CT-K-04 artigo movido para outro agrupador mantendo o número tem o `href` do link atualizado (verificação da 4.1); verificar com `npm run cy:run:local` restrito ao spec. Se algum caso se mostrar inviável, registrar a decisão aqui e cobrir o risco com teste unitário equivalente
+> Decisão (6.1): CT-K-04 não foi implementado. Não há comando Cypress para criar agrupadores (limitação já registrada em `grupo-g-atualizacao.cy.ts`), e o fixture JSON existente não tem gerador versionado. O ramo que ele verificaria (mesmo id, `href` divergente) está coberto por `moduloRemissao.test.ts` (repintura) e por `reducer-atualiza-remissao-mover.test.ts` (troca de agrupador). CT-K-01/02/03 verificam, no editor real, que o `href` do link aponta para o container atual do destino depois de mover e depois do undo.
+
+- [x] 6.2 Rodar `npm test` completo e as suítes E2E de remissão interna (`grupo-g-atualizacao`, `grupo-h-referencia-enxuta`, `grupo-j-deteccao-blur`, `grupo-i-proposicao-grande`) e verificar ausência de regressões
+
+> Evidência (6.2, 23/09/2026): E2E G/H/J/I/K, 23 casos passando e 1 pendente (CT-J-07, `it.skip` anterior à change). Grupo K passou em duas execuções. Suíte unitária em lotes (mesmo fluxo do `npm test`, incluindo `verify:wasm-br`): 171 arquivos; só falham os 4 casos `[TEMP]` de `reducer-undo-remissao-caput.test.ts` (c02, não versionado), que já falhavam antes da c01.
 
 ## 7. Documentação
 
