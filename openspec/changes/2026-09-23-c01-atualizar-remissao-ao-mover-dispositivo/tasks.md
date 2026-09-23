@@ -45,4 +45,6 @@
 
 ## 7. Documentação
 
-- [ ] 7.1 Atualizar `docs/referencia/REMISSAO_INTERNA.md` e `docs/guias/TREINAMENTO_REMISSAO_INTERNA.md` com o comportamento ao mover e ao rejeitar revisão de movimentação, e o invariante de identidade por `uuid2`; verificar por leitura que as seções de atualização por renumeração citam mover
+- [x] 7.1 ~~Atualizar `docs/referencia/REMISSAO_INTERNA.md` e `docs/guias/TREINAMENTO_REMISSAO_INTERNA.md` com o comportamento ao mover e ao rejeitar revisão de movimentação, e o invariante de identidade por `uuid2`~~ Descartada por decisão do usuário (23/09/2026)
+
+> Decisão (7.1): esses documentos serão descontinuados; a spec do OpenSpec (`openspec/specs/remissao-interna/spec.md`, atualizada no archive desta change) é a única fonte de verdade do comportamento. Nada foi alterado em `docs/`.
