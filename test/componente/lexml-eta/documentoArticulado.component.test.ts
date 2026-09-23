@@ -74,4 +74,47 @@ describe('ETA — salvar e abrir documento articulado', () => {
     await component.abrirDocumentoArticulado(entrada);
     expect(component.getDocumentoArticulado().value.metadado.identificacao.urn).to.equal(urn);
   });
+
+  it('exporta as opções de impressão do formulário', () => {
+    const formulario = component.querySelector('lexml-eta-opcoes-impressao') as any;
+    formulario.opcoesImpressao = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 16 };
+
+    const salvo = component.getDocumentoArticulado();
+
+    expect(salvo.value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao).to.deep.equal({
+      imprimirBrasao: false,
+      textoCabecalho: 'Gabinete do Senador',
+      reduzirEspacoEntreLinhas: true,
+      tamanhoFonte: 16,
+    });
+  });
+
+  it('abre as opções de impressão do arquivo no formulário e volta ao padrão quando o arquivo não as tem', async () => {
+    const formulario = component.querySelector('lexml-eta-opcoes-impressao') as any;
+    const opcoes = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 };
+    const entrada = novoDocumentoArticulado();
+    entrada.value.metadado.metadadoProprietario = [
+      { TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario', fonte: 'http://www.lexml.gov.br/lexedit/1.0', lexedit: { opcoesImpressao: opcoes } },
+    ];
+
+    await component.abrirDocumentoArticulado(entrada);
+    expect({ ...formulario.opcoesImpressao }).to.deep.equal(opcoes);
+    expect(component.getDocumentoArticulado().value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao).to.deep.equal(opcoes);
+
+    await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+    expect({ ...formulario.opcoesImpressao }).to.deep.equal({ imprimirBrasao: true, textoCabecalho: '', reduzirEspacoEntreLinhas: false, tamanhoFonte: 14 });
+  });
+
+  it('o tamanho de letra escolhido no formulário é gravado ao salvar', async () => {
+    const formulario = component.querySelector('lexml-eta-opcoes-impressao') as any;
+    await formulario.updateComplete;
+    const select = formulario.shadowRoot.querySelector('#select-tamanho-fonte');
+    const mudou = new Promise(resolve => select.addEventListener('sl-change', resolve, { once: true }));
+
+    select.value = '16';
+    await mudou;
+
+    expect(formulario.opcoesImpressao.tamanhoFonte).to.equal(16);
+    expect(component.getDocumentoArticulado().value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao!.tamanhoFonte).to.equal(16);
+  });
 });

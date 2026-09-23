@@ -18,6 +18,8 @@ import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/l
 import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
+import { DadosLexEdit, MetadadoLexEdit } from '../documentoArticulado';
+import { OpcoesImpressao } from '../../../proposicao/proposicao';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -36,9 +38,9 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
   return Array.from(ids);
 };
 
-export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
+export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
-  const resultado = montaCabecalho(urn, idsRemissoesInvalidas);
+  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas));
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas);
   return resultado;
 };
@@ -53,16 +55,34 @@ export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: 
   return articulacao;
 };
 
-const montaMetadadoProprietario = (idsRemissoesInvalidas: string[]): any => ({
-  TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
-  fonte: 'http://www.lexml.gov.br/lexedit/1.0',
-  lexedit: {
-    remissoesInternasInvalidas: { refIdsRemissoesInternas: idsRemissoesInvalidas },
-    pendencias: ['Corrigir remissões internas inválidas.'],
-  },
+// Sempre os quatro atributos: omitir valores "padrão" dependeria do padrão de cada host (design.md, Decisão 2).
+const montaOpcoesImpressao = (opcoes: OpcoesImpressao): OpcoesImpressao => ({
+  imprimirBrasao: opcoes.imprimirBrasao,
+  textoCabecalho: opcoes.textoCabecalho,
+  reduzirEspacoEntreLinhas: opcoes.reduzirEspacoEntreLinhas,
+  tamanhoFonte: opcoes.tamanhoFonte,
 });
 
-const montaCabecalho = (urn: string, idsRemissoesInvalidas: string[] = []): any => {
+// Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
+const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
+  const lexedit: MetadadoLexEdit = {};
+  const pendencias: string[] = [];
+  if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
+  if (idsRemissoesInvalidas.length > 0) {
+    lexedit.remissoesInternasInvalidas = { refIdsRemissoesInternas: idsRemissoesInvalidas };
+    pendencias.push('Corrigir remissões internas inválidas.');
+  }
+  if (pendencias.length > 0) lexedit.pendencias = pendencias;
+  return Object.keys(lexedit).length > 0 ? lexedit : undefined;
+};
+
+const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): any => ({
+  TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+  fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+  lexedit,
+});
+
+const montaCabecalho = (urn: string, lexedit?: MetadadoLexEdit): any => {
   return {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -79,7 +99,7 @@ const montaCabecalho = (urn: string, idsRemissoesInvalidas: string[] = []): any 
           TYPE_NAME: 'br_gov_lexml__1.Identificacao',
           urn: urn,
         },
-        ...(idsRemissoesInvalidas.length > 0 && { metadadoProprietario: [montaMetadadoProprietario(idsRemissoesInvalidas)] }),
+        ...(lexedit && { metadadoProprietario: [montaMetadadoProprietario(lexedit)] }),
       },
     },
   };
