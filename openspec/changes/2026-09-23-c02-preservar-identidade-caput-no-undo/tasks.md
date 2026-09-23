@@ -7,8 +7,8 @@
 
 ## 2. Identidade do caput na recriação (D1, D2)
 
-- [ ] 2.1 Adicionar o campo opcional de identidade do caput em `Elemento` (`src/model/elemento/elemento.ts`) e preenchê-lo em `createElemento` quando o dispositivo é artigo; verificar com `npm run build` sem erros e com teste unitário de `createElemento` (artigo carrega `uuid`/`uuid2` do caput; outros tipos não carregam)
-- [ ] 2.2 Em `redodDispositivoExcluido`, reaplicar `uuid`/`uuid2` ao caput recriado quando o campo existir e `buscarDispositivoPorUuid` não encontrar dispositivo com aquele `uuid` (D2); verificar que os casos de undo/redo/rejeição/colar-substituindo das tasks 1.1 e 1.2 passam
+- [x] 2.1 Adicionar o campo opcional de identidade do caput em `Elemento` (`src/model/elemento/elemento.ts`) e preenchê-lo em `createElemento` quando o dispositivo é artigo; verificar com `npm run build` sem erros e com teste unitário de `createElemento` (artigo carrega `uuid`/`uuid2` do caput; outros tipos não carregam)
+- [x] 2.2 Em `redodDispositivoExcluido`, reaplicar `uuid`/`uuid2` ao caput recriado quando o campo existir e `buscarDispositivoPorUuid` não encontrar dispositivo com aquele `uuid` (D2); verificar que os casos de undo/redo/rejeição/colar-substituindo das tasks 1.1 e 1.2 passam
 
 ## 3. Invalidação e restauração (D3, D4)
 
