@@ -2,7 +2,17 @@ import { expect, fixture } from '@open-wc/testing';
 import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
-import { novoDocumentoArticulado, novoDocumentoComTextoLiteral, TEXTO_LITERAL } from '../../doc/documentoArticulado';
+import { Artigo } from '../../../src/model/dispositivo/dispositivo';
+import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
+import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import {
+  lexeditSalvo,
+  metadadoProprietarioLexEdit,
+  novoDocumentoArticulado,
+  novoDocumentoComTextoLiteral,
+  TEXTO_LITERAL,
+  TYPE_NAME_OPCOES_IMPRESSAO,
+} from '../../doc/documentoArticulado';
 
 describe('ETA — salvar e abrir documento articulado', () => {
   let component: LexmlEtaComponent;
@@ -81,7 +91,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
     const salvo = component.getDocumentoArticulado();
 
-    expect(salvo.value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao).to.deep.equal({
+    expect(lexeditSalvo(salvo).opcoesImpressao).to.deep.equal({
+      TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO,
       imprimirBrasao: false,
       textoCabecalho: 'Gabinete do Senador',
       reduzirEspacoEntreLinhas: true,
@@ -93,13 +104,11 @@ describe('ETA — salvar e abrir documento articulado', () => {
     const formulario = component.querySelector('lexml-eta-opcoes-impressao') as any;
     const opcoes = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 };
     const entrada = novoDocumentoArticulado();
-    entrada.value.metadado.metadadoProprietario = [
-      { TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario', fonte: 'http://www.lexml.gov.br/lexedit/1.0', lexedit: { opcoesImpressao: opcoes } },
-    ];
+    entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...opcoes } })];
 
     await component.abrirDocumentoArticulado(entrada);
     expect({ ...formulario.opcoesImpressao }).to.deep.equal(opcoes);
-    expect(component.getDocumentoArticulado().value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao).to.deep.equal(opcoes);
+    expect(lexeditSalvo(component.getDocumentoArticulado()).opcoesImpressao).to.deep.equal({ TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...opcoes });
 
     await component.abrirDocumentoArticulado(novoDocumentoArticulado());
     expect({ ...formulario.opcoesImpressao }).to.deep.equal({ imprimirBrasao: true, textoCabecalho: '', reduzirEspacoEntreLinhas: false, tamanhoFonte: 14 });
@@ -115,7 +124,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     await mudou;
 
     expect(formulario.opcoesImpressao.tamanhoFonte).to.equal(16);
-    expect(component.getDocumentoArticulado().value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao!.tamanhoFonte).to.equal(16);
+    expect(lexeditSalvo(component.getDocumentoArticulado()).opcoesImpressao.tamanhoFonte).to.equal(16);
   });
 
   describe('local e data do fecho — salvar', () => {
@@ -126,7 +135,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       const salvo = component.getDocumentoArticulado();
 
-      const lexedit = salvo.value.metadado.metadadoProprietario![0].lexedit;
+      const lexedit = lexeditSalvo(salvo);
       expect(lexedit.local).to.equal('Sala das sessões');
       expect(lexedit.data).to.equal('2026-04-24');
       expect(textoFecho(salvo)).to.equal('Sala das sessões, 24 de abril de 2026.');
@@ -137,7 +146,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       const salvo = component.getDocumentoArticulado();
 
-      expect(salvo.value.metadado.metadadoProprietario![0].lexedit).to.not.have.property('data');
+      expect(lexeditSalvo(salvo)).to.not.have.property('data');
       expect(textoFecho(salvo)).to.equal('Sala das sessões,');
     });
 
@@ -146,7 +155,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       const salvo = component.getDocumentoArticulado();
 
-      expect(salvo.value.metadado.metadadoProprietario![0].lexedit.local).to.equal('Sala da comissão');
+      expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
     });
 
     it('no modo anexo de parecer não exporta fecho', () => {
@@ -155,7 +164,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       const salvo = component.getDocumentoArticulado();
 
-      const lexedit = salvo.value.metadado.metadadoProprietario![0].lexedit;
+      const lexedit = lexeditSalvo(salvo);
       expect(lexedit).to.not.have.property('local');
       expect(lexedit).to.not.have.property('data');
       expect(salvo.value.projetoNorma.norma).to.not.have.property('parteFinal');
@@ -165,11 +174,11 @@ describe('ETA — salvar e abrir documento articulado', () => {
   describe('local e data do fecho — abrir', () => {
     const entradaComFecho = (lexedit: Record<string, unknown>): any => {
       const entrada = novoDocumentoArticulado();
-      entrada.value.metadado.metadadoProprietario = [{ TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario', fonte: 'http://www.lexml.gov.br/lexedit/1.0', lexedit }];
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit(lexedit)];
       return entrada;
     };
     const campoData = (): any => component.querySelector('lexml-eta-data');
-    const localSalvo = (): string | undefined => component.getDocumentoArticulado().value.metadado.metadadoProprietario![0].lexedit.local;
+    const localSalvo = (): string | undefined => lexeditSalvo(component.getDocumentoArticulado()).local;
 
     it('aplica a data lida ao campo "Data"', async () => {
       await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões', data: '2026-04-24' }));
@@ -220,6 +229,62 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
       expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+    });
+  });
+
+  describe('arquivo no formato provisório dos metadados do LexEdit', () => {
+    const OPCOES = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 };
+
+    // Documento com remissão inválida, opções de impressão e fecho, com MetadadoProprietario reescrito na chave `lexedit`.
+    const entradaProvisoria = (): { entrada: any; idRemissao: string } => {
+      const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(novoDocumentoArticulado()), true);
+      const caput = (modelo.articulacao!.filhos[0] as Artigo).caput!;
+      const textoRef = 'educação';
+      const remissoes: Record<number, any[]> = {
+        [caput.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'artInexistente', textoRef, inicio: caput.texto!.indexOf(textoRef), valida: false }],
+      };
+      const entrada: any = criarDocumentoArticulado(modelo, modelo.urn!, remissoes, undefined, { local: 'Sala da comissão', data: '2026-04-24', opcoesImpressao: OPCOES });
+      const idRemissao = remissoes[caput.uuid!][0].idPersistido;
+      entrada.value.metadado.metadadoProprietario = [
+        {
+          TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+          fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+          lexedit: {
+            local: 'Sala da comissão',
+            data: '2026-04-24',
+            opcoesImpressao: OPCOES,
+            remissoesInternasInvalidas: { refIdsRemissoesInternas: [idRemissao] },
+            pendencias: ['Corrigir remissões internas inválidas.'],
+          },
+        },
+      ];
+      return { entrada, idRemissao };
+    };
+
+    it('abre os grupos do formato provisório e salva somente no formato novo, com os mesmos valores', async () => {
+      const { entrada, idRemissao } = entradaProvisoria();
+
+      await component.abrirDocumentoArticulado(entrada);
+
+      const formulario = component.querySelector('lexml-eta-opcoes-impressao') as any;
+      expect({ ...formulario.opcoesImpressao }).to.deep.equal(OPCOES);
+      const campoData = component.querySelector('lexml-eta-data') as any;
+      await campoData.updateComplete;
+      expect(campoData.data).to.equal('2026-04-24');
+      const alertas = rootStore.getState().elementoReducer.ui?.alertas || [];
+      expect(alertas.some((a: any) => String(a.id).startsWith('alerta-remissao-invalida-'))).to.equal(true);
+
+      const salvo = component.getDocumentoArticulado();
+      const [metadado] = salvo.value.metadado.metadadoProprietario!;
+      expect(metadado).to.not.have.property('lexedit');
+      expect(lexeditSalvo(salvo)).to.deep.equal({
+        TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado',
+        local: 'Sala da comissão',
+        data: '2026-04-24',
+        opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
+        remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
+        pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
+      });
     });
   });
 });

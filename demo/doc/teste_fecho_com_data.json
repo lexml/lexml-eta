@@ -18,16 +18,29 @@
         {
           "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
           "fonte": "http://www.lexml.gov.br/lexedit/1.0",
-          "lexedit": {
-            "local": "Sala da comissão",
-            "data": "2026-04-24",
-            "opcoesImpressao": {
-              "imprimirBrasao": true,
-              "textoCabecalho": "",
-              "reduzirEspacoEntreLinhas": false,
-              "tamanhoFonte": 14
+          "any": [
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
+                "localPart": "Metadado",
+                "prefix": "lexedit",
+                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
+                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
+                "local": "Sala da comissão",
+                "data": "2026-04-24",
+                "opcoesImpressao": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
+                  "imprimirBrasao": true,
+                  "textoCabecalho": "",
+                  "reduzirEspacoEntreLinhas": false,
+                  "tamanhoFonte": 14
+                }
+              }
             }
-          }
+          ]
         }
       ]
     },

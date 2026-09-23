@@ -8,12 +8,23 @@ import { OpcoesImpressao } from '../../proposicao/proposicao';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
-/** Ponto de extensão `MetadadoProprietario` do LexML, ocupado pelo LexEdit — ver especificação 00. */
+/** Valor tipado de `lexedit:Metadado` (schemas/lexedit.xsd), no formato do conversor jsonix-lexml 2.0.0 — ver especificação 00. */
 export interface MetadadoLexEdit {
+  TYPE_NAME: string;
   // Local e data do fecho são atributos do próprio lexedit:Metadado (especificação 03); `data` é xsd:date.
   local?: string;
   data?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
+  opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
+  // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
+  remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
+  pendencias?: { TYPE_NAME: string; pendencia: string[] };
+}
+
+/** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
+export interface MetadadoLexEditProvisorio {
+  local?: string;
+  data?: string;
   opcoesImpressao?: Partial<OpcoesImpressao>;
   remissoesInternasInvalidas?: { refIdsRemissoesInternas: string[] };
   pendencias?: string[];
@@ -27,10 +38,15 @@ export interface DadosLexEdit {
   opcoesImpressao?: OpcoesImpressao;
 }
 
+export interface ElementoMetadadoLexEdit {
+  name: { namespaceURI: string; localPart: string; prefix: string; key: string; string: string };
+  value: MetadadoLexEdit;
+}
+
 export interface MetadadoProprietarioLexEdit {
   TYPE_NAME: string;
   fonte: string;
-  lexedit: MetadadoLexEdit;
+  any: ElementoMetadadoLexEdit[];
 }
 
 /** Documento de intercâmbio. O modelo de edição ProjetoNorma é um contrato distinto. */
