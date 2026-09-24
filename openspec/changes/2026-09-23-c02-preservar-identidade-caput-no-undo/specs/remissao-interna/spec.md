@@ -27,6 +27,14 @@ Quando um dispositivo referenciado por uma remissão é removido, o sistema SHAL
 - **WHEN** o usuário desfaz (undo) a remoção de um dispositivo cujos descendentes (inclusive o caput, se for artigo) eram alvo de remissões invalidadas pela remoção
 - **THEN** todas essas remissões deixam de estar marcadas como inválidas e voltam a apontar para o descendente restaurado correspondente
 
+#### Scenario: Redo da remoção invalida de novo as remissões
+- **WHEN** o usuário remove um dispositivo que é alvo de remissões (ou cujos descendentes são), desfaz (undo) e em seguida refaz (redo) a remoção
+- **THEN** as remissões para o dispositivo removido e seus descendentes voltam a ser marcadas como inválidas, com a mesma marcação visual, mensagem de erro e alerta da remoção original, e um novo undo as restaura
+
+#### Scenario: Salvar após o redo da remoção
+- **WHEN** após o redo de uma remoção o usuário salva o documento
+- **THEN** as remissões para os dispositivos removidos são persistidas como inválidas, e nenhuma é gravada como remissão válida para outro dispositivo que tenha herdado o número do removido
+
 ## ADDED Requirements
 
 ### Requirement: Preservação do vínculo de remissões para o caput em ações que recriam o artigo

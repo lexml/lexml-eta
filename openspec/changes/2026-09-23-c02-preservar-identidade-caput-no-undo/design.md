@@ -15,9 +15,9 @@ Ver proposal.md — Why. Estado atual relevante (confirmado por teste de caracte
 - Caput recriado com o mesmo `uuid` e `uuid2` que tinha, em toda recriação que passa por `redodDispositivoExcluido`.
 - Remoção invalida remissões para o caput; undo restaura remissões para qualquer descendente do removido.
 - Um único "Desfazer" por ação do usuário, sem passos fantasmas criados pela marcação de links de remissão (D5).
+- Refazer uma remoção invalida de novo as remissões para o removido e seus descendentes (D6). Antes tratado como Non-Goal; incluído após o teste manual de 24/09/2026 mostrar que o save grava a remissão como válida, apontando para outro dispositivo.
 
 **Non-Goals:**
-- **Redo não reinvalida remissões** (remover → undo → redo deixa as remissões válidas apontando para dispositivo removido). Pré-existente e independente de caput — `redo.ts` não trata remissões para nenhum alvo. Registrar como issue à parte.
 - Lacunas de `getDispositivoByUuid2` (caput e artigo com bloco de alteração) — ver `docs/sessao/ACHADO_BUSCA_UUID2_C02.md`. Esta correção não busca por `uuid2`, e a c01 já usa busca própria (`buscarDispositivoPorUuid2`). O possível bug latente em `aplicaRevisoes.ts:109` fica para issue da revisão (hoje mascarado pelo fallback por `lexmlId` na linha seguinte).
 - Capturar como removidos os dispositivos dentro de blocos de alteração (`alteracoes`) do artigo removido — a captura atual já não os inclui; fora do escopo.
 - Alterar o modelo de remissão (`RemissaoInternaValue`) ou as regras de atualização de texto.
@@ -58,6 +58,16 @@ Alternativas consideradas:
 - **Não despachar no editor quando só a formatação mudou:** mais localizada, mas o texto do Redux deixaria de receber o `<a>` dos links, alterando o que o save e a sincronização recebem hoje. Descartada.
 - **Ignorar qualquer mudança de formatação:** o editor tem negrito, itálico e sobrescrito, que o usuário espera desfazer. Descartada; a regra se limita à marcação de remissão.
 
+### D6 — Redo reaplica a invalidação a partir do lote, simétrico ao undo
+
+**Contexto:** o redo refaz a remoção por `remover()` (`undoRedoReducerUtil.ts`), que só tira o dispositivo da árvore; `redo.ts` não trata remissões (e não copia `remissoes` para o retorno, que o `elementoReducer` preenche com o registro anterior). As entradas continuam sem `valida:false`, o DOM não recebe `RemissaoInvalidada` e não há mensagem nem alerta. No save, o link cujo `uuid` não resolve é gravado com o último id conhecido e, sem `valida:false`, como remissão válida: se a remoção renumerou os seguintes, esse id passa a ser de outro dispositivo.
+
+**Decisão:** no caminho genérico de `redo.ts`, depois de reaplicar a remoção, ler os `RemissaoInvalidada` do lote (é o lote original da remoção, devolvido pelo `future`) e chamar `construirEventosRemissaoParaRemocao` (`removeElemento.ts`) com esses `{ lexmlId, uuid }`: ela marca as entradas, emite `RemissaoInvalidada` e `ElementoValidado` com a mensagem e devolve os alertas, como na remoção original. O lote volta ao `past` com os mesmos eventos, então um undo seguinte continua restaurando (D4). O caminho de agrupador do redo já usa `removeElemento` e não muda.
+
+Alternativas consideradas:
+- **Autocorreção no pós-processamento** (`sincronizarRemissoesPosAcao` invalidar toda entrada cujo destino não resolva): cobre qualquer caminho, mas não gera o evento que o undo usa para restaurar e pode invalidar em estados intermediários (colar substituindo, agrupadores). Descartada.
+- **Redo chamar `removeElemento`:** recalcularia eventos, histórico e validações que o redo reaproveita do lote, com efeitos em revisão e renumeração. Descartada.
+
 ## Risks / Trade-offs
 
 - [Elementos antigos em `past`/`future` sem o campo novo] → campo opcional; ausência degrada para o comportamento atual, sem erro.
@@ -66,6 +76,7 @@ Alternativas consideradas:
 - [D4 mudar o comportamento de alertas/eventos no undo de remoções com muitos descendentes] → os alertas já são removidos por `sourceUuid`; teste com remissões para raiz, inciso e caput do mesmo artigo removido.
 - [Guarda de D2 custa uma busca em profundidade por artigo recriado] → só em undo/redo/rejeição de artigos, não em digitação.
 - [D5 ocultar do histórico uma edição real que só mexa em links, ex.: o usuário remove um link pelo botão "Remover remissão"] → essas ações têm reducers próprios, fora do `ATUALIZAR_TEXTO_ELEMENTO`; a regra só afeta a sincronização de texto. Um link removido por edição de texto muda o texto e continua gerando passo.
+- [D6 invalidar no redo de uma rejeição de movimentação, que a c01 protege com `suprimirInvalidacaoRemissao`] → o lote dessa rejeição não contém `RemissaoInvalidada` (a supressão impede a emissão), então o redo não tem o que reaplicar; teste de regressão com os casos de rejeição da c01.
 - [Regex de marcação de remissão não reconhecer alguma variante do `<a>`] → a comparação cai no comportamento atual (gera passo), nunca no oposto; testes unitários com as variantes de link interno, externo e inválido.
 
 ## Migration Plan
