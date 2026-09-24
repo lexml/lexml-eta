@@ -52,7 +52,8 @@ describe('Invalidação e Restauração de Remissões', () => {
       const action = { atual: { uuid: artigo3.uuid } };
       const newState = removeElemento(state, action);
 
-      const eventoRemissaoInvalidada = newState.ui?.events.find(ev => ev.stateType === StateType.RemissaoInvalidada);
+      // O caput do artigo mantém o id e continua gerando evento próprio; só o dispositivo sem id fica de fora.
+      const eventoRemissaoInvalidada = newState.ui?.events.find(ev => ev.stateType === StateType.RemissaoInvalidada && ev.remissaoInvalidacao?.uuid === artigo3.uuid);
 
       expect(eventoRemissaoInvalidada).to.not.exist;
     });

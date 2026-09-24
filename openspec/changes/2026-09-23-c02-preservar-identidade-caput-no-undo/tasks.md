@@ -12,8 +12,10 @@
 
 ## 3. Invalidação e restauração (D3, D4)
 
-- [ ] 3.1 Em `capturarRemovidosEDescendentes` (`removeElemento.ts`), incluir o caput de cada artigo visitado, sem descer em `alteracoes` (D3); verificar que o caso "remover artigo invalida remissão ao caput" passa e que `reducer-invalida-restaura-remissao.test.ts`, `reducer-mensagem-remissao-invalida.test.ts` e os casos de rejeição de movimentação de `reducer-atualiza-remissao-mover.test.ts` (sinalizador `suprimirInvalidacaoRemissao` da c01) continuam passando
-- [ ] 3.2 Em `undo.ts`, processar todos os `RemissaoInvalidada` do lote, casando por `targetUuid` (fallback `targetLexmlId` só sem `targetUuid`) e emitindo `RemissaoRestaurada` por dispositivo restaurado (D4); verificar que os casos de inciso/caput/raiz simultâneos passam, que os alertas de remissão inválida das origens afetadas são removidos, e que a invariante preserve-invalids se mantém (entrada invalidada por outra ação não é restaurada)
+- [x] 3.1 Em `capturarRemovidosEDescendentes` (`removeElemento.ts`), incluir o caput de cada artigo visitado, sem descer em `alteracoes` (D3); verificar que o caso "remover artigo invalida remissão ao caput" passa e que `reducer-invalida-restaura-remissao.test.ts`, `reducer-mensagem-remissao-invalida.test.ts` e os casos de rejeição de movimentação de `reducer-atualiza-remissao-mover.test.ts` (sinalizador `suprimirInvalidacaoRemissao` da c01) continuam passando
+- [x] 3.2 Em `undo.ts`, processar todos os `RemissaoInvalidada` do lote, casando por `targetUuid` (fallback `targetLexmlId` só sem `targetUuid`) e emitindo `RemissaoRestaurada` por dispositivo restaurado (D4); verificar que os casos de inciso/caput/raiz simultâneos passam, que os alertas de remissão inválida das origens afetadas são removidos, e que a invariante preserve-invalids se mantém (entrada invalidada por outra ação não é restaurada)
+
+> Nota (grupo 3): com o caput na captura, o teste "não deve emitir evento RemissaoInvalidada se dispositivo não tem id" (`reducer-invalida-restaura-remissao.test.ts`) passou a receber o evento do caput, que mantém o id. A asserção foi restrita ao dispositivo sem id (por `uuid`), preservando a intenção original do teste. Suítes `test/redux/remissao` e `test/redux/undo`: 28 arquivos, 316 casos passando, 3 pendentes, todos `it.skip` da c01 em `reducer-atualiza-remissao-mover.test.ts`: os dois com alvo no caput (tratados na 4.3) e o de artigo com alteração (achado próprio da c01, fora desta change).
 
 ## 4. E2E e regressão
 
