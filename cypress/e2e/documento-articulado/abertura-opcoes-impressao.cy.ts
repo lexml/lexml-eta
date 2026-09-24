@@ -4,6 +4,8 @@
  * Cobre, pela UI real, o lado "abrir" da change 2026-09-22-c01-salvar-abrir-opcoes-impressao.
  * Fixture: demo/doc/teste_opcoes_impressao.json, gerado por criarDocumentoArticulado() (mesmo código
  * de produção usado ao salvar), não escrito à mão.
+ * demo/doc/teste_metadado_lexedit_provisorio.json preserva o formato provisório (chave `lexedit`),
+ * anterior ao jsonix-lexml 2.0.0 — change 2026-09-23-c01-migrar-metadado-lexedit-formato-cli.
  */
 
 const SEL_FORM_OPCOES_IMPRESSAO = 'lexml-eta-opcoes-impressao';
@@ -41,10 +43,17 @@ describe('Abertura de opções de impressão persistidas', () => {
     cy.getContainerArtigoByNumero(1).should('exist');
     verificarOpcoesImpressao({ imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 });
 
-    // Arquivo com MetadadoProprietario, mas sem o grupo de opções de impressão.
+    // Arquivo com as opções de impressão nos valores padrão.
     cy.get('#fileUpload').selectFile('demo/doc/teste_remissao_invalida.json', { force: true });
     cy.get('lexml-eta-alertas').shadow().find('sl-alert').should('contain.text', 'contém remissão inválida');
 
     verificarOpcoesImpressao({ imprimirBrasao: true, textoCabecalho: '', reduzirEspacoEntreLinhas: false, tamanhoFonte: 14 });
+  });
+
+  it('exibe as opções de impressão de um arquivo no formato provisório dos metadados do LexEdit', () => {
+    cy.get('#fileUpload').selectFile('demo/doc/teste_metadado_lexedit_provisorio.json', { force: true });
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    verificarOpcoesImpressao({ imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 });
   });
 });

@@ -18,9 +18,11 @@ import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/l
 import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
-import { DadosLexEdit, MetadadoLexEdit } from '../documentoArticulado';
+import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { OpcoesImpressao } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
+
+export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -57,7 +59,8 @@ export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: 
 };
 
 // Sempre os quatro atributos: omitir valores "padrão" dependeria do padrão de cada host (design.md, Decisão 2).
-const montaOpcoesImpressao = (opcoes: OpcoesImpressao): OpcoesImpressao => ({
+const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesImpressao'] => ({
+  TYPE_NAME: 'br_gov_lexml_lexedit__1.OpcoesImpressao',
   imprimirBrasao: opcoes.imprimirBrasao,
   textoCabecalho: opcoes.textoCabecalho,
   reduzirEspacoEntreLinhas: opcoes.reduzirEspacoEntreLinhas,
@@ -66,7 +69,7 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): OpcoesImpressao => ({
 
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
-  const lexedit: MetadadoLexEdit = {};
+  const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   const pendencias: string[] = [];
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
   if (dados?.local) {
@@ -75,17 +78,30 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   }
   if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
   if (idsRemissoesInvalidas.length > 0) {
-    lexedit.remissoesInternasInvalidas = { refIdsRemissoesInternas: idsRemissoesInvalidas };
+    lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
   }
-  if (pendencias.length > 0) lexedit.pendencias = pendencias;
-  return Object.keys(lexedit).length > 0 ? lexedit : undefined;
+  if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
+  // > 1 porque TYPE_NAME está sempre presente.
+  return Object.keys(lexedit).length > 1 ? lexedit : undefined;
 };
 
-const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): any => ({
+// Mesmo formato que o conversor jsonix-lexml 2.0.0 devolve no tojson, para a ida e volta comparar por igualdade.
+const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): MetadadoProprietarioLexEdit => ({
   TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
-  fonte: 'http://www.lexml.gov.br/lexedit/1.0',
-  lexedit,
+  fonte: NAMESPACE_LEXEDIT,
+  any: [
+    {
+      name: {
+        namespaceURI: NAMESPACE_LEXEDIT,
+        localPart: 'Metadado',
+        prefix: 'lexedit',
+        key: `{${NAMESPACE_LEXEDIT}}Metadado`,
+        string: `{${NAMESPACE_LEXEDIT}}lexedit:Metadado`,
+      },
+      value: lexedit,
+    },
+  ],
 });
 
 const montaCabecalho = (urn: string, lexedit?: MetadadoLexEdit): any => {

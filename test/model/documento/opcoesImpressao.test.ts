@@ -3,7 +3,7 @@ import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas, lerMetadadoLexEd
 import { criarDocumentoArticulado, lerDocumentoArticulado, serializarDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { OpcoesImpressao } from '../../../src/model/proposicao/proposicao';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
+import { lexeditSalvo, metadadoProprietarioLexEdit, novoDocumentoArticulado, TYPE_NAME_OPCOES_IMPRESSAO } from '../../doc/documentoArticulado';
 
 const FONTE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 
@@ -24,14 +24,15 @@ describe('Opções de impressão — salvar (especificação 02)', () => {
     const metadadoProprietario = documento.value.metadado.metadadoProprietario!;
     expect(metadadoProprietario).to.have.length(1);
     expect(metadadoProprietario[0].fonte).to.equal(FONTE_LEXEDIT);
-    expect(metadadoProprietario[0].lexedit.opcoesImpressao).to.deep.equal(opcoesAlteradas());
+    expect(lexeditSalvo(documento).opcoesImpressao).to.deep.equal({ TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...opcoesAlteradas() });
   });
 
   it('grava os quatro atributos também quando são os valores padrão', () => {
     const modelo = novoModelo();
     const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { opcoesImpressao: new OpcoesImpressao() });
 
-    expect(documento.value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao).to.deep.equal({
+    expect(lexeditSalvo(documento).opcoesImpressao).to.deep.equal({
+      TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO,
       imprimirBrasao: true,
       textoCabecalho: '',
       reduzirEspacoEntreLinhas: false,
@@ -58,10 +59,10 @@ describe('Opções de impressão — salvar (especificação 02)', () => {
 
     const metadadoProprietario = documento.value.metadado.metadadoProprietario!;
     expect(metadadoProprietario).to.have.length(1);
-    const lexedit = metadadoProprietario[0].lexedit;
-    expect(lexedit.opcoesImpressao).to.deep.equal(opcoesAlteradas());
-    expect(lexedit.remissoesInternasInvalidas!.refIdsRemissoesInternas).to.deep.equal([remissoes[caput.uuid!][0].idPersistido]);
-    expect(lexedit.pendencias).to.deep.equal(['Corrigir remissões internas inválidas.']);
+    const lexedit = lexeditSalvo(documento);
+    expect(lexedit.opcoesImpressao).to.deep.equal({ TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...opcoesAlteradas() });
+    expect(lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas).to.equal(remissoes[caput.uuid!][0].idPersistido);
+    expect(lexedit.pendencias).to.deep.equal({ TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] });
   });
 
   it('alterar as opções de origem depois de criar o documento não altera o documento', () => {
@@ -72,7 +73,7 @@ describe('Opções de impressão — salvar (especificação 02)', () => {
     opcoes.textoCabecalho = 'Outro cabeçalho';
     opcoes.tamanhoFonte = 18;
 
-    expect(documento.value.metadado.metadadoProprietario![0].lexedit.opcoesImpressao).to.deep.equal(opcoesAlteradas());
+    expect(lexeditSalvo(documento).opcoesImpressao).to.deep.equal({ TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...opcoesAlteradas() });
   });
 });
 
@@ -82,7 +83,7 @@ describe('Opções de impressão — abrir (especificação 02)', () => {
   const documentoCom = (...lexedits: any[]): any => ({
     value: {
       metadado: {
-        metadadoProprietario: lexedits.map(lexedit => ({ TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario', fonte: FONTE_LEXEDIT, lexedit })),
+        metadadoProprietario: lexedits.map(lexedit => metadadoProprietarioLexEdit({ ...lexedit })),
       },
     },
   });
@@ -125,16 +126,16 @@ describe('Opções de impressão — abrir (especificação 02)', () => {
   });
 
   it('MetadadoProprietario sem o grupo não traz opções de impressão', () => {
-    expect(lerMetadadoLexEdit(documentoCom({ pendencias: ['x'] }))).to.deep.equal({});
+    expect(lerMetadadoLexEdit(documentoCom({ pendencias: { pendencia: ['x'] } }))).to.deep.equal({});
     expect(lerMetadadoLexEdit(documentoCom(undefined))).to.deep.equal({});
   });
 
   it('lê o grupo junto com remissões inválidas e um grupo desconhecido', () => {
     const documento = documentoCom({
       grupoFuturo: { qualquer: [1, 2] },
-      remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1'] },
+      remissoesInternasInvalidas: { refIdsRemissoesInternas: '_ri1' },
       opcoesImpressao: { tamanhoFonte: 16 },
-      pendencias: ['Corrigir remissões internas inválidas.'],
+      pendencias: { pendencia: ['Corrigir remissões internas inválidas.'] },
     });
     expect(lerMetadadoLexEdit(documento).opcoesImpressao).to.deep.equal({ ...PADRAO, tamanhoFonte: 16 });
     expect(lerIdsRemissoesInvalidas(documento)).to.deep.equal(['_ri1']);

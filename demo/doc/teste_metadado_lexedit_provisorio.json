@@ -18,28 +18,14 @@
         {
           "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
           "fonte": "http://www.lexml.gov.br/lexedit/1.0",
-          "any": [
-            {
-              "name": {
-                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
-                "localPart": "Metadado",
-                "prefix": "lexedit",
-                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
-                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
-              },
-              "value": {
-                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
-                "local": "Sala das sessões",
-                "opcoesImpressao": {
-                  "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
-                  "imprimirBrasao": true,
-                  "textoCabecalho": "",
-                  "reduzirEspacoEntreLinhas": false,
-                  "tamanhoFonte": 14
-                }
-              }
+          "lexedit": {
+            "opcoesImpressao": {
+              "imprimirBrasao": false,
+              "textoCabecalho": "Gabinete do Senador",
+              "reduzirEspacoEntreLinhas": true,
+              "tamanhoFonte": 18
             }
-          ]
+          }
         }
       ]
     },
@@ -222,20 +208,6 @@
               }
             }
           ]
-        },
-        "parteFinal": {
-          "TYPE_NAME": "br_gov_lexml__1.ParteFinal",
-          "localDataFecho": {
-            "TYPE_NAME": "br_gov_lexml__1.ParsType",
-            "p": [
-              {
-                "TYPE_NAME": "br_gov_lexml__1.GenInline",
-                "content": [
-                  "Sala das sessões,"
-                ]
-              }
-            ]
-          }
         }
       }
     }

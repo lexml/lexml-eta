@@ -1339,8 +1339,13 @@ describe('MetadadoProprietario — remissões internas inválidas', () => {
     expect(metadadoProprietario, 'deve existir MetadadoProprietario').to.exist;
     expect(metadadoProprietario).to.have.length(1);
     expect(metadadoProprietario[0].fonte).to.equal('http://www.lexml.gov.br/lexedit/1.0');
-    expect(metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas).to.deep.equal([remissoes[uuid][0].idPersistido]);
-    expect(metadadoProprietario[0].lexedit.pendencias).to.deep.equal(['Corrigir remissões internas inválidas.']);
+    expect(metadadoProprietario[0]).to.not.have.property('lexedit');
+    const lexedit = metadadoProprietario[0].any[0].value;
+    expect(lexedit.remissoesInternasInvalidas).to.deep.equal({
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas',
+      refIdsRemissoesInternas: remissoes[uuid][0].idPersistido,
+    });
+    expect(lexedit.pendencias).to.deep.equal({ TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] });
   });
 
   it('múltiplas remissões inválidas em dispositivos diferentes produzem a lista completa', () => {
@@ -1363,7 +1368,10 @@ describe('MetadadoProprietario — remissões internas inválidas', () => {
     };
 
     const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', remissoes);
-    const ids = resultado.value.metadado.metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas;
+    // Um único texto com os ids separados por espaço: o conversor jsonix-lexml rejeita array.
+    const refIds = resultado.value.metadado.metadadoProprietario[0].any[0].value.remissoesInternasInvalidas.refIdsRemissoesInternas;
+    expect(refIds).to.be.a('string');
+    const ids = refIds.split(' ');
     expect(ids).to.have.length(2);
     expect(ids).to.include(remissoes[301][0].idPersistido);
     expect(ids).to.include(remissoes[302][0].idPersistido);
@@ -1410,7 +1418,7 @@ describe('MetadadoProprietario — remissões internas inválidas', () => {
     expect(registroCompleto[(caput as any).uuid!], 'pré-condição: aliasing deve existir para o teste fazer sentido').to.equal(registroCompleto[artigo.uuid!]);
 
     const resultado = buildJsonixFromProjetoNorma(criaProjetoNorma(articulacao), 'urn:teste', registroCompleto);
-    const ids = resultado.value.metadado.metadadoProprietario[0].lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas;
+    const ids = resultado.value.metadado.metadadoProprietario[0].any[0].value.remissoesInternasInvalidas.refIdsRemissoesInternas.split(' ');
     expect(ids).to.have.length(1);
   });
 });

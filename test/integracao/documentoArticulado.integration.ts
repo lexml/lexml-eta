@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { executeServerCommand } from '@web/test-runner-commands';
-import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../src/model/lexml/documento/documentoArticulado';
-import { buildProjetoNormaFromJsonix, lerMetadadoLexEdit } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, lerDocumentoArticulado } from '../../src/model/lexml/documento/documentoArticulado';
+import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas, lerMetadadoLexEdit } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/documentoArticulado';
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
@@ -30,36 +30,32 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(retorno.erro).to.include('Identificacao');
   });
 
-  // Round-trip completo (tojson + deep.equal) não é exigido aqui: o CLI real não transporta
-  // MetadadoProprietario (xsd:any) de volta a JSON — ver design.md, Decisão 5.
-  it('valida contra o XSD real um documento com remissão interna inválida e MetadadoProprietario', async () => {
-    const entrada = novoDocumentoArticulado();
-    const modelo = buildProjetoNormaFromJsonix(entrada, true);
+  // Documento com uma remissão interna inválida no caput do art. 1º; devolve também o id persistido.
+  const documentoComRemissaoInvalida = (dados?: DadosLexEdit): { salvo: DocumentoArticulado; idPersistido: string } => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const caput = (modelo.articulacao!.filhos[0] as Artigo).caput!;
     const textoRef = 'educação';
-
     const remissoes: Record<number, any[]> = {
       [caput.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'artInexistente', textoRef, inicio: caput.texto!.indexOf(textoRef), valida: false }],
     };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, remissoes, undefined, dados);
+    return { salvo, idPersistido: remissoes[caput.uuid!][0].idPersistido };
+  };
 
-    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, remissoes);
-    const idPersistido = remissoes[caput.uuid!][0].idPersistido;
+  it('remissão interna inválida: RemissoesInternasInvalidas e Pendencias vão e voltam pelo CLI', async () => {
+    const { salvo, idPersistido } = documentoComRemissaoInvalida();
 
-    const retorno = await executeServerCommand<{ valido: boolean; xml: string; erro?: string }, unknown>('toxml-e-validar-lexml', salvo);
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
     expect(retorno.valido, retorno.erro).to.equal(true);
-    // O elemento em si (fora do wildcard xsd:any) o CLI real emite normalmente.
-    expect(retorno.xml).to.include('<MetadadoProprietario fonte="http://www.lexml.gov.br/lexedit/1.0"');
-    // O id do <Remissao> é um atributo LexML comum (fora do wildcard) — sobrevive ao CLI real.
     expect(retorno.xml).to.match(new RegExp(`<Remissao[^>]*xlink:href="artInexistente"[^>]*id="${idPersistido}"`));
-    // RemissoesInternasInvalidas fica DENTRO do wildcard xsd:any de MetadadoProprietario: o CLI
-    // real descarta esse conteúdo ao converter para XML (achado empírico, design.md Decisão 5) —
-    // não é possível comprovar aqui, apenas que o elemento-contêiner em si é válido pelo XSD.
+    expect(retorno.xml).to.include(`<lexedit:RemissoesInternasInvalidas refIdsRemissoesInternas="${idPersistido}"/>`);
+    expect(retorno.xml).to.include('<lexedit:Pendencias><lexedit:Pendencia>Corrigir remissões internas inválidas.</lexedit:Pendencia></lexedit:Pendencias>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
   });
 
-  // O CLI atual devolve MetadadoProprietario sem o conteúdo `lexedit` (xsd:any com allowTypedObject: false):
-  // compara-se todo o resto (design.md da change de opções de impressão, Decisão 6).
-  it('valida e reabre um documento com opções de impressão, exceto o conteúdo lexedit', async () => {
+  it('valida e reabre um documento com opções de impressão', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const opcoesImpressao = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 16 };
     const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { opcoesImpressao });
@@ -67,39 +63,54 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
     expect(retorno.valido, retorno.erro).to.equal(true);
-    expect(retorno.xml).to.include('<MetadadoProprietario fonte="http://www.lexml.gov.br/lexedit/1.0"');
-    const { lexedit, ...semLexedit } = salvo.value.metadado.metadadoProprietario![0];
-    expect(lexedit.opcoesImpressao).to.deep.equal(opcoesImpressao);
-    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal([semLexedit]);
-
+    expect(retorno.xml).to.include('<lexedit:OpcoesImpressao imprimirBrasao="false" textoCabecalho="Gabinete do Senador" reduzirEspacoEntreLinhas="true" tamanhoFonte="16"/>');
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados).to.deep.equal({ opcoesImpressao });
     const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
-    const esperado = JSON.parse(JSON.stringify(salvo));
-    delete esperado.value.metadado.metadadoProprietario;
-    expect(criarDocumentoArticulado(reaberto, reaberto.urn!)).to.deep.equal(esperado);
-
-    // Limitação do CLI atual: quando ele passar a transportar `lexedit`, trocar por deep.equal com as opções salvas.
-    expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({});
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
 
-  // ParteFinal/LocalDataFecho é LexML e volta íntegro pelo CLI; local/data em `lexedit` seguem a limitação acima.
   for (const [caso, data, texto] of [
     ['com data', '2026-04-24', 'Sala da comissão, 24 de abril de 2026.'],
     ['sem data', undefined, 'Sala da comissão,'],
   ] as const) {
     it(`valida e reabre um documento com local e data do fecho (${caso})`, async () => {
       const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
-      const dados = { local: 'Sala da comissão', ...(data && { data }) };
-      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, dados);
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { local: 'Sala da comissão', ...(data && { data }) });
 
       const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
       expect(retorno.valido, retorno.erro).to.equal(true);
       expect(retorno.xml).to.include(`<ParteFinal><LocalDataFecho><p>${texto}</p></LocalDataFecho></ParteFinal>`);
-      expect(retorno.jsonix.value.projetoNorma.norma.parteFinal).to.deep.equal((salvo.value.projetoNorma.norma as any).parteFinal);
-
+      const dados = lerMetadadoLexEdit(retorno.jsonix);
+      expect(dados).to.deep.equal({ local: 'Sala da comissão', ...(data && { data }) });
       const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
       expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
-      expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({});
     });
   }
+
+  it('os quatro grupos do LexEdit no mesmo documento vão e voltam pelo CLI', async () => {
+    const opcoesImpressao = { imprimirBrasao: true, textoCabecalho: 'Liderança', reduzirEspacoEntreLinhas: false, tamanhoFonte: 12 };
+    const { salvo, idPersistido } = documentoComRemissaoInvalida({ local: 'Sala das sessões', data: '2026-05-01', opcoesImpressao });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:Metadado local="Sala das sessões" data="2026-05-01">');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({ local: 'Sala das sessões', data: '2026-05-01', opcoesImpressao });
+    expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
+  });
+
+  // Com lexml-simples.xsd sozinho este valor passaria: o conteúdo do xsd:any lax não seria checado.
+  it('o XSD detecta valor inválido dentro de lexedit:Metadado', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const opcoesImpressao = { imprimirBrasao: true, textoCabecalho: '', reduzirEspacoEntreLinhas: false, tamanhoFonte: 0 };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { opcoesImpressao });
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('positiveInteger');
+  });
 });

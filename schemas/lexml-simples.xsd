@@ -98,7 +98,11 @@
     <xsd:element type="stringComIdType" name="NomeGrupo" />
     <xsd:element type="stringComIdType" name="NomePessoa" />
     <xsd:element type="stringComIdType" name="OrgaoJulgador" />
-    <xsd:element type="stringComIdType" name="Rotulo" />
+    <!-- Desvio intencional do esquema LexML oficial, que usa stringComIdType. Com xsd:string,
+         o JSON de "rotulo" continua sendo uma string simples (e não {value, id}), mantendo a
+         compatibilidade com as aplicações que já consomem essa estrutura.
+         Manter esta alteração se o esquema for atualizado a partir do oficial. -->
+    <xsd:element type="xsd:string" name="Rotulo" />
     <xsd:element type="stringComIdType" name="Tratamento" />
 
     <xsd:element type="HTMLlist" name="ol" />

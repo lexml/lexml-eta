@@ -1,7 +1,8 @@
 import { expect } from '@open-wc/testing';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
-import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas, lerMetadadoLexEdit } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { metadadoProprietarioLexEdit } from '../../doc/documentoArticulado';
 import { ProjetoNorma } from '../../../src/model/lexml/documento/projetoNorma';
 import { NORMA_DEFAULT } from '../../doc/parser/normaDefault';
 import { PROJETO_DEFAULT } from '../../doc/parser/projetoDefault';
@@ -263,40 +264,114 @@ describe('Desserialização de elemento Remissao', () => {
 // Leitura de MetadadoProprietario/lexedit:Metadado (especificações 00, 10, 13)
 // ---------------------------------------------------------------------------
 
+// Formato provisório (anterior ao jsonix-lexml 2.0.0): chave `lexedit` direto em MetadadoProprietario.
+const metadadoProprietarioProvisorio = (lexedit: Record<string, unknown>): any => ({
+  TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+  fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+  lexedit,
+});
+
+const documentoComMetadado = (...metadadoProprietario: any[]): any => {
+  const doc = montarDocumentoComRemissao([]);
+  doc.value.metadado.metadadoProprietario = metadadoProprietario;
+  return doc;
+};
+
 describe('lerIdsRemissoesInvalidas', () => {
   it('retorna lista vazia quando não há MetadadoProprietario', () => {
     const doc = montarDocumentoComRemissao([]);
     expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal([]);
   });
 
-  it('lê os ids de RemissoesInternasInvalidas quando presente', () => {
-    const doc = montarDocumentoComRemissao([]);
-    doc.value.metadado.metadadoProprietario = [
-      {
-        TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
-        fonte: 'http://www.lexml.gov.br/lexedit/1.0',
-        lexedit: { remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1', '_ri2'] } },
-      },
-    ];
+  it('lê os ids separados por espaço do formato novo', () => {
+    const doc = documentoComMetadado(
+      metadadoProprietarioLexEdit({
+        remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: '_ri1 _ri2' },
+      })
+    );
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1', '_ri2']);
+  });
 
+  it('descarta espaços extras e ids repetidos', () => {
+    const doc = documentoComMetadado(metadadoProprietarioLexEdit({ remissoesInternasInvalidas: { refIdsRemissoesInternas: '  _ri1   _ri2 _ri1\n' } }));
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1', '_ri2']);
+  });
+
+  it('lê os ids em lista do formato provisório', () => {
+    const doc = documentoComMetadado(metadadoProprietarioProvisorio({ remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1', '_ri2'] } }));
     expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1', '_ri2']);
   });
 
   it('grupo suportado convive com grupo do LexEdit ainda não implementado, sem lançar erro', () => {
-    const doc = montarDocumentoComRemissao([]);
-    doc.value.metadado.metadadoProprietario = [
-      {
-        TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
-        fonte: 'http://www.lexml.gov.br/lexedit/1.0',
-        lexedit: {
-          remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1'] },
-          grupoAindaNaoImplementado: { qualquerCoisa: true },
-        },
-      },
-    ];
+    const doc = documentoComMetadado(
+      metadadoProprietarioLexEdit({
+        remissoesInternasInvalidas: { refIdsRemissoesInternas: '_ri1' },
+        autoria: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Autoria', tipo: 'Parlamentar' },
+      })
+    );
 
     expect(() => lerIdsRemissoesInvalidas(doc)).to.not.throw();
     expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1']);
+  });
+});
+
+describe('lerMetadadoLexEdit — formatos do ponto de extensão', () => {
+  const OPCOES = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 };
+  const DADOS = { local: 'Sala da comissão', data: '2026-04-24', opcoesImpressao: OPCOES };
+
+  it('lê todos os grupos do formato novo', () => {
+    const doc = documentoComMetadado(
+      metadadoProprietarioLexEdit({
+        local: 'Sala da comissão',
+        data: '2026-04-24',
+        opcoesImpressao: { TYPE_NAME: 'br_gov_lexml_lexedit__1.OpcoesImpressao', ...OPCOES },
+        remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: '_ri1' },
+        pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
+      })
+    );
+    expect(lerMetadadoLexEdit(doc)).to.deep.equal(DADOS);
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1']);
+  });
+
+  it('lê todos os grupos do formato provisório', () => {
+    const doc = documentoComMetadado(
+      metadadoProprietarioProvisorio({
+        local: 'Sala da comissão',
+        data: '2026-04-24',
+        opcoesImpressao: OPCOES,
+        remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1'] },
+        pendencias: ['Corrigir remissões internas inválidas.'],
+      })
+    );
+    expect(lerMetadadoLexEdit(doc)).to.deep.equal(DADOS);
+    expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_ri1']);
+  });
+
+  it('com os dois formatos no mesmo arquivo, vale o novo', () => {
+    const novo = metadadoProprietarioLexEdit({ local: 'Sala da comissão', remissoesInternasInvalidas: { refIdsRemissoesInternas: '_riNovo' } });
+    const provisorio = { local: 'Sala das sessões', data: '2026-01-01', remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_riAntigo'] } };
+
+    // Nos dois arranjos: chave `lexedit` no mesmo MetadadoProprietario e em outro, antes do novo.
+    for (const doc of [documentoComMetadado({ ...novo, lexedit: provisorio }), documentoComMetadado(metadadoProprietarioProvisorio(provisorio), novo)]) {
+      expect(lerMetadadoLexEdit(doc)).to.deep.equal({ local: 'Sala da comissão' });
+      expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_riNovo']);
+    }
+  });
+
+  it('lê o formato novo sem TYPE_NAME', () => {
+    const doc = documentoComMetadado({
+      fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+      any: [{ name: { namespaceURI: 'http://www.lexml.gov.br/lexedit/1.0', localPart: 'Metadado' }, value: { local: 'Sala das sessões', opcoesImpressao: OPCOES } }],
+    });
+    expect(lerMetadadoLexEdit(doc)).to.deep.equal({ local: 'Sala das sessões', opcoesImpressao: OPCOES });
+  });
+
+  it('ignora elemento de outro namespace em any', () => {
+    const doc = documentoComMetadado({
+      fonte: 'http://exemplo.gov.br/outro',
+      any: [{ name: { namespaceURI: 'http://exemplo.gov.br/outro', localPart: 'Metadado' }, value: { local: 'Outro' } }],
+    });
+    expect(lerMetadadoLexEdit(doc)).to.deep.equal({});
   });
 });
 

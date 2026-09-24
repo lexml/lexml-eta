@@ -9,7 +9,7 @@ import {
 } from '../../../src/model/lexml/documento/documentoArticulado';
 import { OpcoesImpressao } from '../../../src/model/proposicao/proposicao';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
-import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
+import { lexeditSalvo, metadadoProprietarioLexEdit, novoDocumentoArticulado, TYPE_NAME_OPCOES_IMPRESSAO } from '../../doc/documentoArticulado';
 
 const novoModelo = (): any => buildProjetoNormaFromJsonix(lerDocumentoArticulado(novoDocumentoArticulado()), true);
 
@@ -54,7 +54,7 @@ describe('Local e data do fecho — salvar (especificação 03)', () => {
     const modelo = novoModelo();
     const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala das sessões', data: '2026-04-24' });
 
-    const lexedit = documento.value.metadado.metadadoProprietario![0].lexedit;
+    const lexedit = lexeditSalvo(documento);
     expect(lexedit.local).to.equal('Sala das sessões');
     expect(lexedit.data).to.equal('2026-04-24');
     expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala das sessões, 24 de abril de 2026.'));
@@ -65,7 +65,7 @@ describe('Local e data do fecho — salvar (especificação 03)', () => {
       const modelo = novoModelo();
       const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala da comissão', data });
 
-      const lexedit = documento.value.metadado.metadadoProprietario![0].lexedit;
+      const lexedit = lexeditSalvo(documento);
       expect(lexedit.local).to.equal('Sala da comissão');
       expect(lexedit).to.not.have.property('data');
       expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala da comissão,'));
@@ -96,13 +96,61 @@ describe('Local e data do fecho — salvar (especificação 03)', () => {
 
     const metadadoProprietario = documento.value.metadado.metadadoProprietario!;
     expect(metadadoProprietario).to.have.length(1);
-    const lexedit = metadadoProprietario[0].lexedit;
+    const lexedit = lexeditSalvo(documento);
     expect(lexedit.local).to.equal('Sala das sessões');
     expect(lexedit.data).to.equal('2026-05-01');
-    expect(lexedit.opcoesImpressao).to.deep.equal({ ...new OpcoesImpressao() });
-    expect(lexedit.remissoesInternasInvalidas!.refIdsRemissoesInternas).to.have.length(1);
-    expect(lexedit.pendencias).to.deep.equal(['Corrigir remissões internas inválidas.']);
+    expect(lexedit.opcoesImpressao).to.deep.equal({ TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...new OpcoesImpressao() });
+    expect(lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas).to.match(/^_ri\d+$/);
+    expect(lexedit.pendencias.pendencia).to.deep.equal(['Corrigir remissões internas inválidas.']);
     expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala das sessões, 1º de maio de 2026.'));
+  });
+
+  // Valores copiados de docs/extensao-formato-lexml/documento-articulado-exemplo.json (formato do jsonix-lexml 2.0.0).
+  it('grava o MetadadoProprietario no mesmo formato do exemplo de referência', () => {
+    const modelo = novoModelo();
+    const caput = (modelo.articulacao.filhos[0] as Artigo).caput!;
+    const textoRef = 'educação';
+    const remissoes: Record<number, any[]> = {
+      [caput.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'artInexistente', textoRef, inicio: caput.texto!.indexOf(textoRef), valida: false, idPersistido: '_ri13481093417' }],
+    };
+
+    const documento = criarDocumentoArticulado(modelo, modelo.urn, remissoes, undefined, {
+      local: 'Sala das Sessões',
+      data: '2026-04-24',
+      opcoesImpressao: new OpcoesImpressao(),
+    });
+
+    expect(documento.value.metadado.metadadoProprietario).to.deep.equal([
+      {
+        TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+        fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+        any: [
+          {
+            name: {
+              namespaceURI: 'http://www.lexml.gov.br/lexedit/1.0',
+              localPart: 'Metadado',
+              prefix: 'lexedit',
+              key: '{http://www.lexml.gov.br/lexedit/1.0}Metadado',
+              string: '{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado',
+            },
+            value: {
+              TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado',
+              local: 'Sala das Sessões',
+              data: '2026-04-24',
+              opcoesImpressao: {
+                TYPE_NAME: 'br_gov_lexml_lexedit__1.OpcoesImpressao',
+                imprimirBrasao: true,
+                textoCabecalho: '',
+                reduzirEspacoEntreLinhas: false,
+                tamanhoFonte: 14,
+              },
+              remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: '_ri13481093417' },
+              pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
+            },
+          },
+        ],
+      },
+    ]);
   });
 
   it('o documento com fecho passa na validação estrutural', () => {
@@ -147,7 +195,7 @@ describe('Local e data do fecho — abrir (especificação 03)', () => {
     value: {
       metadado: {
         ...(lexedit !== undefined && {
-          metadadoProprietario: [{ TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario', fonte: 'http://www.lexml.gov.br/lexedit/1.0', lexedit }],
+          metadadoProprietario: [metadadoProprietarioLexEdit(lexedit)],
         }),
       },
       projetoNorma: { norma: { ...(parteFinal && { parteFinal }) } },
@@ -184,8 +232,8 @@ describe('Local e data do fecho — abrir (especificação 03)', () => {
       data: '2026-05-01',
       grupoFuturo: { qualquer: true },
       opcoesImpressao: { tamanhoFonte: 16 },
-      remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1'] },
-      pendencias: ['Corrigir remissões internas inválidas.'],
+      remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: '_ri1' },
+      pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
     });
 
     const dados = lerMetadadoLexEdit(documento);

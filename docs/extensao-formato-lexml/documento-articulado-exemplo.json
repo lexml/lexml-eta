@@ -194,10 +194,7 @@
                                             "artigo": {
                                                 "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
                                                 "id": "_art4-exc1",
-                                                "rotulo": {
-                                                    "TYPE_NAME": "br_gov_lexml__1.StringComIdType",
-                                                    "value": "Art. 4º"
-                                                },
+                                                "rotulo": "Art. 4º",
                                                 "lXcontainersOmissis": [
                                                     {
                                                         "name": {
@@ -295,10 +292,7 @@
                             "value": {
                                 "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
                                 "id": "art1",
-                                "rotulo": {
-                                    "TYPE_NAME": "br_gov_lexml__1.StringComIdType",
-                                    "value": "Art. 1º"
-                                },
+                                "rotulo": "Art. 1º",
                                 "lXcontainersOmissis": [
                                     {
                                         "name": {
@@ -335,10 +329,7 @@
                             "value": {
                                 "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
                                 "id": "art2",
-                                "rotulo": {
-                                    "TYPE_NAME": "br_gov_lexml__1.StringComIdType",
-                                    "value": "Art. 2º"
-                                },
+                                "rotulo": "Art. 2º",
                                 "lXcontainersOmissis": [
                                     {
                                         "name": {
@@ -393,10 +384,7 @@
                             "value": {
                                 "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
                                 "id": "art3",
-                                "rotulo": {
-                                    "TYPE_NAME": "br_gov_lexml__1.StringComIdType",
-                                    "value": "Art. 3º"
-                                },
+                                "rotulo": "Art. 3º",
                                 "lXcontainersOmissis": [
                                     {
                                         "name": {
