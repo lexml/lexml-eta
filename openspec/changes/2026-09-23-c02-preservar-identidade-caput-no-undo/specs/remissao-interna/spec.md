@@ -51,3 +51,18 @@ Toda ação que recria um artigo a partir do histórico ou de uma revisão — d
 #### Scenario: Salvar após desfazer
 - **WHEN** após qualquer uma das ações acima o usuário salva o documento
 - **THEN** a remissão para o caput é persistida apontando para o caput do artigo, não como remissão para dispositivo excluído
+
+### Requirement: Marcação de links de remissão não cria passos no histórico de desfazer
+Mudanças que alteram apenas a marcação de links de remissão no texto de um dispositivo — criação do link por detecção, marcação ou desmarcação de inválido — SHALL NOT criar passos próprios no histórico de desfazer/refazer nem descartar os passos que podem ser refeitos. Cada ação do usuário (ex.: remover um dispositivo) é desfeita com um único comando de desfazer, independentemente de onde estava o foco. Mudanças de formatação feitas pelo usuário (negrito, itálico, sobrescrito) continuam sendo passos desfazíveis.
+
+#### Scenario: Desfazer uma remoção com o foco no dispositivo de origem
+- **WHEN** o foco está no dispositivo de origem de uma remissão, o usuário remove o dispositivo de destino (o link passa a ser marcado como inválido) e clica em "Desfazer"
+- **THEN** um único "Desfazer" restaura o dispositivo removido e o link volta a ser válido
+
+#### Scenario: Criação de link por detecção não é um passo de desfazer
+- **WHEN** o usuário digita uma referência, sai do dispositivo (o link é criado) e em seguida clica em "Desfazer"
+- **THEN** o "Desfazer" reverte a digitação, e não apenas a criação do link
+
+#### Scenario: Formatação do usuário continua desfazível
+- **WHEN** o usuário aplica negrito a um trecho de um dispositivo e clica em "Desfazer"
+- **THEN** o negrito é desfeito

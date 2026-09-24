@@ -14,6 +14,7 @@ Ver proposal.md — Why. Estado atual relevante (confirmado por teste de caracte
 **Goals:**
 - Caput recriado com o mesmo `uuid` e `uuid2` que tinha, em toda recriação que passa por `redodDispositivoExcluido`.
 - Remoção invalida remissões para o caput; undo restaura remissões para qualquer descendente do removido.
+- Um único "Desfazer" por ação do usuário, sem passos fantasmas criados pela marcação de links de remissão (D5).
 
 **Non-Goals:**
 - **Redo não reinvalida remissões** (remover → undo → redo deixa as remissões válidas apontando para dispositivo removido). Pré-existente e independente de caput — `redo.ts` não trata remissões para nenhum alvo. Registrar como issue à parte.
@@ -47,6 +48,16 @@ A reaplicação só ocorre se nenhum dispositivo da articulação já tiver aque
 
 `undo.ts` passa a processar **todos** os eventos `RemissaoInvalidada` do lote (não só o primeiro), restaurando entradas `valida:false` cujo destino está entre os dispositivos restaurados. O casamento usa `targetUuid` quando presente (identidade estável, agora preservada também para o caput por D1) e cai para `targetLexmlId` apenas quando `targetUuid` é indefinido — mesma regra de `marcarRemissoesComoInvalidas`. Isso evita restaurar uma entrada invalidada por outra ação com id textual coincidente, preservando a invariante preserve-invalids. Um único `RemissaoRestaurada` por dispositivo restaurado continua sendo emitido, como hoje é emitido para o raiz.
 
+### D5 — Sincronização só de marcação de remissão não entra no histórico
+
+**Contexto (achado no teste manual, 24/09/2026):** o editor considera uma linha "alterada" quando o HTML difere do `htmlAnt`, que é redefinido quando a linha passa a ser a atual. A marcação de links de remissão muda esse HTML sem edição do usuário: o link criado pela detecção, a classe `lexml-remissao-invalida` aplicada na remoção do destino. Se a origem é a linha atual nesse momento, o próximo flush (troca de linha ou perda de foco, inclusive o clique no botão "Desfazer") despacha `ATUALIZAR_TEXTO_ELEMENTO`, e o reducer grava uma entrada no histórico e zera o `future`. Resultado: o primeiro "Desfazer" consome essa entrada fantasma. Reproduzido em Cypress emulando o tempo do uso manual; os E2E existentes não pegam porque clicam em "Desfazer" sem tirar o foco do editor.
+
+**Decisão:** em `atualizaTextoElemento`, quando o texto novo e o atual são iguais depois de remover a marcação dos links de remissão (`<a class="lexml-remissao-…">`, preservando o conteúdo, e o `<span>` do Parchment já tratado por `removerSpanParchmentRemissao`), o texto do Redux é atualizado normalmente, mas `past` e `future` são mantidos como estavam.
+
+Alternativas consideradas:
+- **Não despachar no editor quando só a formatação mudou:** mais localizada, mas o texto do Redux deixaria de receber o `<a>` dos links, alterando o que o save e a sincronização recebem hoje. Descartada.
+- **Ignorar qualquer mudança de formatação:** o editor tem negrito, itálico e sobrescrito, que o usuário espera desfazer. Descartada; a regra se limita à marcação de remissão.
+
 ## Risks / Trade-offs
 
 - [Elementos antigos em `past`/`future` sem o campo novo] → campo opcional; ausência degrada para o comportamento atual, sem erro.
@@ -54,6 +65,8 @@ A reaplicação só ocorre se nenhum dispositivo da articulação já tiver aque
 - [D3 alterar o comportamento da rejeição de movimentação da c01] → com `suprimirInvalidacaoRemissao`, a rejeição de movimentação não emite invalidação, independentemente de quais dispositivos são coletados; D3 só amplia a coleta. Verificar com `reducer-atualiza-remissao-mover.test.ts` e `reducer-invalida-restaura-remissao.test.ts`.
 - [D4 mudar o comportamento de alertas/eventos no undo de remoções com muitos descendentes] → os alertas já são removidos por `sourceUuid`; teste com remissões para raiz, inciso e caput do mesmo artigo removido.
 - [Guarda de D2 custa uma busca em profundidade por artigo recriado] → só em undo/redo/rejeição de artigos, não em digitação.
+- [D5 ocultar do histórico uma edição real que só mexa em links, ex.: o usuário remove um link pelo botão "Remover remissão"] → essas ações têm reducers próprios, fora do `ATUALIZAR_TEXTO_ELEMENTO`; a regra só afeta a sincronização de texto. Um link removido por edição de texto muda o texto e continua gerando passo.
+- [Regex de marcação de remissão não reconhecer alguma variante do `<a>`] → a comparação cai no comportamento atual (gera passo), nunca no oposto; testes unitários com as variantes de link interno, externo e inválido.
 
 ## Migration Plan
 
