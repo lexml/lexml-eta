@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { removerSpanParchmentRemissao } from '../../src/util/html-util';
+import { removerMarcacaoRemissao, removerSpanParchmentRemissao } from '../../src/util/html-util';
 
 describe('removerSpanParchmentRemissao', () => {
   it('remove <span data-lexml-ref> em volta de <a>', () => {
@@ -52,5 +52,33 @@ describe('removerSpanParchmentRemissao', () => {
       'No <span data-ref-id="ref_1"><a href="art2" data-lexml-ref="art2">art. 2</a></span> e ' +
       'no <span data-lexml-ref="art3"><a href="art3" data-lexml-ref="art3">art. 3</a></span> desta lei.';
     expect(removerSpanParchmentRemissao(html)).to.equal('No <a href="art2" data-lexml-ref="art2">art. 2</a> e ' + 'no <a href="art3" data-lexml-ref="art3">art. 3</a> desta lei.');
+  });
+});
+
+describe('removerMarcacaoRemissao', () => {
+  it('reduz link de remissão interna ao texto', () => {
+    const html = 'Conforme o <a class="lexml-remissao-interna" href="#lxEtaId7" data-lexml-ref="art2" data-ref-id="ref_1" target="_self">art. 2º</a>, aplica-se.';
+    expect(removerMarcacaoRemissao(html)).to.equal('Conforme o art. 2º, aplica-se.');
+  });
+
+  it('reduz link inválido ao mesmo texto do válido', () => {
+    const valido = 'Ver o <a class="lexml-remissao-interna" href="#lxEtaId7" data-lexml-ref="art2">art. 2º</a>.';
+    const invalido = 'Ver o <a class="lexml-remissao-interna lexml-remissao-invalida" href="#lxEtaId7" data-lexml-ref="art2">art. 2º</a>.';
+    expect(removerMarcacaoRemissao(invalido)).to.equal(removerMarcacaoRemissao(valido));
+  });
+
+  it('reduz link de remissão externa ao texto', () => {
+    const html = 'Nos termos da <a class="lexml-remissao-externa" href="urn:lex:br:federal:lei:1966-10-25;5172" data-ref-id="ref_2">Lei nº 5.172</a>.';
+    expect(removerMarcacaoRemissao(html)).to.equal('Nos termos da Lei nº 5.172.');
+  });
+
+  it('remove também o span do Parchment em volta do link', () => {
+    const html = 'Ver o <span data-lexml-ref="art2"><a href="art2" data-lexml-ref="art2">art. 2º</a></span>.';
+    expect(removerMarcacaoRemissao(html)).to.equal('Ver o art. 2º.');
+  });
+
+  it('preserva outras marcações e texto sem link', () => {
+    expect(removerMarcacaoRemissao('<strong>Conforme</strong> o disposto.')).to.equal('<strong>Conforme</strong> o disposto.');
+    expect(removerMarcacaoRemissao('<a href="https://www.senado.leg.br">site</a>')).to.equal('<a href="https://www.senado.leg.br">site</a>');
   });
 });
