@@ -31,4 +31,6 @@
 
 ## 5. Documentação
 
-- [ ] 5.1 Atualizar `docs/referencia/REMISSAO_INTERNA.md` e `docs/guias/TREINAMENTO_REMISSAO_INTERNA.md` com: identidade do caput preservada na recriação, invalidação/restauração cobrindo descendentes e caput; registrar como débito conhecido que o redo não reinvalida remissões; verificar por leitura que as seções de invalidação/undo citam o caput
+- [x] 5.1 ~~Atualizar `docs/referencia/REMISSAO_INTERNA.md` e `docs/guias/TREINAMENTO_REMISSAO_INTERNA.md` com: identidade do caput preservada na recriação, invalidação/restauração cobrindo descendentes e caput; registrar como débito conhecido que o redo não reinvalida remissões; verificar por leitura que as seções de invalidação/undo citam o caput~~ Descartada por decisão do usuário (24/09/2026)
+
+> Decisão (5.1): mesma decisão da c01 (task 7.1). Esses documentos serão descontinuados, e a spec do OpenSpec (`openspec/specs/remissao-interna/spec.md`, atualizada no archive desta change) é a única fonte de verdade do comportamento. Nada foi alterado em `docs/`. O débito de o redo não reinvalidar remissões fica registrado nos Non-Goals do `design.md`.
