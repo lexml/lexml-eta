@@ -437,6 +437,7 @@ describe('Detecção de Remissões Compostas', () => {
       // art3: 2 parágrafos
       const par1art3 = criaDispositivo(art3, 'Paragrafo');
       par1art3.texto = 'Par.';
+      criaDispositivo(art3, 'Paragrafo'); // segundo parágrafo: par1art3 não vira "único"
       art3.renumeraFilhos();
       par1art3.createRotulo(par1art3);
       updateIdDispositivoAndFilhos(state.articulacao!);
