@@ -8,6 +8,7 @@
  *   CT-L-02 — mover o artigo e desfazer mantém o link para o caput, com o texto da posição restaurada
  *   CT-L-03 — com o foco na origem, um único desfazer restaura o artigo removido (a marcação de inválido
  *             sincronizada ao perder o foco não vira passo de desfazer)
+ *   CT-L-04 — refazer a remoção invalida de novo o link para o caput; desfazer o torna válido de novo
  *
  * Fixture: demo/doc/teste_remissao_caput.json, gerado por criarDocumentoArticulado() — três artigos, o
  * art. 1º com remissão para o caput do art. 2º. A detecção automática não reconhece a forma absoluta
@@ -21,6 +22,9 @@
 const SEL_LINK_L = 'a.lexml-remissao-interna';
 const SEL_LINK_INVALIDO_L = 'a.lexml-remissao-interna.lexml-remissao-invalida';
 const SEL_BTN_DESFAZER_L = '.lx-eta-btn-desfazer';
+// O botão de refazer não tem classe própria; o title sozinho colide com o do editor-texto-rico (ql-redo).
+const SEL_BTN_REFAZER_L = 'button.lx-eta-ql-button[title="Refazer (Ctrl+y)"]';
+const SEL_MENSAGEM_INVALIDA_L = '.container__texto--mensagem .mensagem--danger';
 
 describe('Remissão para o caput ao desfazer ações que recriam o artigo', () => {
   beforeEach(() => {
@@ -69,6 +73,25 @@ describe('Remissão para o caput ao desfazer ações que recriam o artigo', () =
     });
 
     // cy.get reconsulta até o art. 2º voltar; getContainerArtigoByNumero resolve uma única vez e não serve de âncora aqui.
+    cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 3);
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt');
+  });
+
+  it('CT-L-04: refazer a remoção invalida de novo o link para o caput, e desfazer o torna válido', () => {
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Remover');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('have.length', 1);
+
+    cy.get(SEL_BTN_DESFAZER_L).click();
+    cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 3);
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
+
+    cy.get(SEL_BTN_REFAZER_L).click();
+    cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 2);
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('have.length', 1);
+    cy.getContainerArtigoByNumero(1).find(SEL_MENSAGEM_INVALIDA_L).should('exist');
+
+    cy.get(SEL_BTN_DESFAZER_L).click();
     cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 3);
     cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
     cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt');
