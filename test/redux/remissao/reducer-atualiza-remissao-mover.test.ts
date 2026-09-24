@@ -255,8 +255,7 @@ describe('Atualização de remissões ao mover dispositivo', () => {
       expect(destinoDe(result, entrada)?.texto).to.equal('Artigo 3.');
     });
 
-    // Pendente: o undo recria o artigo com caput novo (novos uuid e uuid2) — ver docs/sessao/PROMPT_BUG_CAPUT_UNDO.md.
-    it.skip('undo/redo com alvo no caput do artigo movido', () => {
+    it('undo/redo com alvo no caput do artigo movido', () => {
       state.remissoes = { [art1.uuid!]: [criaEntrada(art1, art3.caput!)] };
 
       let result = mover(state, art3, 'acima');
@@ -310,8 +309,7 @@ describe('Atualização de remissões ao mover dispositivo', () => {
       ).to.be.empty;
     });
 
-    // Pendente: a rejeição recria o artigo com caput novo — ver docs/sessao/PROMPT_BUG_CAPUT_UNDO.md.
-    it.skip('rejeitar a movimentação com alvo no caput', () => {
+    it('rejeitar a movimentação com alvo no caput', () => {
       state.remissoes = { [art1.uuid!]: [criaEntrada(art1, art3.caput!)] };
       let result = mover(elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO }), art3, 'acima');
       result = elementoReducer(result, { type: REJEITAR_REVISAO, revisao: (result.revisoes ?? []).filter(isRevisaoPrincipal)[0] });

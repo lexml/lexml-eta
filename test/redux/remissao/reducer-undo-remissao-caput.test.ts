@@ -21,6 +21,11 @@ import { criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositiv
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
 import { buscarDispositivoPorUuid } from '../../../src/model/remissao/sincronizarRemissoes';
 import { RemissaoInternaValue } from '../../../src/model/remissao/remissao';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
+import { adicionarArtigoAntes } from '../../../src/model/lexml/acao/adicionarElementoAction';
+import { inicializaRemissoesAoAbrir } from '../../../src/redux/elemento/reducer/inicializaRemissoesAoAbrir';
+import { completarRegistroRemissoes } from '../../../src/redux/elemento/reducer/adicionaRemissaoInterna';
+import { buildJsonixFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 
 const PREFIXO = 'Conforme o ';
 
@@ -183,6 +188,33 @@ describe('Remissão para o caput em ações que recriam o artigo', () => {
 
     expect(contaDispositivosComUuid(result.articulacao!, uuidCaput)).to.be.at.most(1);
     expect(destinoDe(result, entradaDe(result, artigo3)), 'caput deve continuar resolvível').to.exist;
+  });
+
+  it('salvar após remover + undo + renumeração grava a remissão apontando para o caput', () => {
+    art1.texto = `Ver o <a href="art2_cpt" data-lexml-ref="art2_cpt" class="lexml-remissao-interna" target="_self">caput do art. 2º</a> desta lei.`;
+    state.remissoes = inicializaRemissoesAoAbrir(state.articulacao!);
+    expect(entradaDe(state, art1).targetUuid).to.equal(art2.caput!.uuid);
+
+    let result = remover(state, art2);
+    result = elementoReducer(result, { type: UNDO });
+    // Sem renumeração o save manteria o último id conhecido (art2_cpt) mesmo com o caput perdido; ela expõe a diferença.
+    result = elementoReducer(result, adicionarArtigoAntes.execute(createElemento(art1, true)));
+
+    const registroCompleto = completarRegistroRemissoes(result.articulacao!, result.remissoes ?? {});
+    const projetoNorma = {
+      classificacao: ClassificacaoDocumento.NORMA,
+      epigrafe: { texto: 'TESTE' },
+      ementa: { texto: 'Ementa' } as any,
+      preambulo: { texto: '' },
+      articulacao: result.articulacao!,
+    };
+    const jsonix = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', registroCompleto);
+
+    // Após inserir antes: [novo art. 1º, art. 2º (origem), art. 3º (destino)].
+    const caputOrigem = jsonix.value.projetoNorma.norma.articulacao.lXhier[1].value.lXcontainersOmissis[0].value.p[0].content;
+    const remissao = caputOrigem.find((c: any) => c?.name?.localPart === 'Remissao');
+    expect(remissao, 'a serialização deve conter um nó Remissao').to.exist;
+    expect(remissao.value.href).to.equal('art3_cpt');
   });
 
   describe('Remissões simultâneas para o artigo removido, seu inciso e seu caput', () => {
