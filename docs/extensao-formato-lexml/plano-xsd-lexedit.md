@@ -31,14 +31,14 @@ Criar `lexedit.xsd`, um esquema auxiliar (mencionado como pendência em [00-espe
 
 ## Panorama do que precisa ser modelado
 
-Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indica se o grupo já está implementado no salvar/abrir (`src/model/lexml/documento/documentoArticulado.ts` hoje só tem `remissoesInternasInvalidas` e `pendencias`).
+Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indica se o grupo já está implementado no salvar/abrir (`src/model/lexml/documento/documentoArticulado.ts` hoje tem `local`, `data`, `opcoesImpressao`, `remissoesInternasInvalidas` e `pendencias`).
 
 | Grupo (arquivo) | Elemento(s)/atributo(s) principais | Status no código |
 | --- | --- | --- |
 | `00` | `lexedit:Metadado` (elemento-raiz do namespace) | — |
 | `01` | URN provisória (`Identificacao/@URN`, já no namespace LexML, fora do escopo do XSD lexedit) | Implementado |
-| `02` | `lexedit:OpcoesImpressao` (todos os atributos opcionais) | Não implementado |
-| `03` | `lexedit:Metadado/@local`, `@data` | Não implementado |
+| `02` | `lexedit:OpcoesImpressao` (todos os atributos opcionais) | **Implementado** |
+| `03` | `lexedit:Metadado/@local`, `@data` | **Implementado** (+ `ParteFinal/LocalDataFecho` no LexML) |
 | `04` | `lexedit:Autoria` > `lexedit:Parlamentares`/`lexedit:Parlamentar` ou `lexedit:ColegiadoAutor` | Não implementado |
 | `05` | `lexedit:Anexos` > `lexedit:Anexo` | Não implementado |
 | `06` | `Justificacao`/`PartePrincipal` (namespace LexML, fora do escopo do XSD lexedit) | Parcial (verificar) |
@@ -89,5 +89,5 @@ No `package.json`, o script `verify:xsd-lexedit` já foi adicionado, seguindo o 
 
 ## Riscos conhecidos
 
-- O achado empírico já registrado no `CLAUDE.md` (item sobre persistência de remissão interna inválida) mostra que o CLI real `jsonix-lexml` descarta o conteúdo de `MetadadoProprietario` (dentro do `xsd:any`) ao converter para XML — por isso este XSD só pode ser exercitado contra XML gerado diretamente (fixtures manuais, `buildJsonixFromProjetoNorma` + serialização própria), nunca contra a saída do CLI real.
+- ~~O CLI real `jsonix-lexml` descarta o conteúdo de `MetadadoProprietario` (dentro do `xsd:any`) ao converter para XML.~~ **Resolvido no `jsonix-lexml` 2.0.0** (revisão `9c02a3d`), que inclui os mapeamentos gerados deste `lexedit.xsd`. O editor passou a gravar o conteúdo no formato do conversor (`any[{ name: lexedit:Metadado, value }]`, change `2026-09-23-c01-migrar-metadado-lexedit-formato-cli`). Agora o XSD também é exercitado contra a saída do CLI real: a suíte de integração (`npm run test:documento-articulado:xml`) valida com `lexedit.xsd` como entrada o XML gerado pelo CLI.
 - Boa parte dos grupos ainda não tem implementação em código (tabela acima) — o XSD, ao cobrir tudo de uma vez, corre o risco de fixar um contrato que precise mudar quando a implementação de fato acontecer. Mitigação: tratar o XSD como uma primeira versão, revisável a cada issue de `issues.md` que for implementada.

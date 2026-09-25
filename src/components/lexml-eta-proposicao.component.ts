@@ -15,7 +15,7 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
-import { criarDocumentoArticulado, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
+import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -64,12 +64,12 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     return out;
   }
 
-  getDocumentoArticulado(): DocumentoArticulado {
+  getDocumentoArticulado(dados?: DadosLexEdit): DocumentoArticulado {
     this.editorComponent.flushEdicaoPendente();
     const state = rootStore.getState().elementoReducer;
     const externas = state.remissoesExternas ?? {};
     const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
-    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas);
+    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, dados);
   }
 
   getAnexos() {

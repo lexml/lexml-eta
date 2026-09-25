@@ -8,6 +8,9 @@ import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil'
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
+import { OpcoesImpressao } from '../../../proposicao/proposicao';
+import { DadosLexEdit } from '../documentoArticulado';
+import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
 
 let ultimoDispositivoCriado: Dispositivo;
 
@@ -89,19 +92,57 @@ export const getUrn = (documento: any): string => {
   return documento?.value?.metadado?.identificacao?.urn;
 };
 
+const isObjeto = (valor: any): boolean => !!valor && typeof valor === 'object';
+
+/**
+ * Conteúdo de `lexedit:Metadado` em `MetadadoProprietario`: primeiro o formato do conversor
+ * jsonix-lexml 2.0.0 (`any[]`), depois a chave `lexedit` do formato provisório (design.md, Decisão 4).
+ */
+const lerConteudoLexEdit = (documento: any): any => {
+  const grupos: any[] = documento?.value?.metadado?.metadadoProprietario ?? [];
+  for (const grupo of grupos) {
+    const elemento = (Array.isArray(grupo?.any) ? grupo.any : []).find(
+      (item: any) => item?.name?.namespaceURI === NAMESPACE_LEXEDIT && item?.name?.localPart === 'Metadado' && isObjeto(item.value)
+    );
+    if (elemento) return elemento.value;
+  }
+  return grupos.find(grupo => isObjeto(grupo?.lexedit))?.lexedit;
+};
+
 /**
  * Lê os ids de remissões internas inválidas de `MetadadoProprietario/lexedit:Metadado`
  * (especificações 00 e 10) — tolerante a outros grupos do LexEdit ainda não implementados,
  * que simplesmente são ignorados.
  */
 export const lerIdsRemissoesInvalidas = (documento: any): string[] => {
-  const grupos: any[] = documento?.value?.metadado?.metadadoProprietario ?? [];
-  const ids = new Set<string>();
-  for (const grupo of grupos) {
-    const refIds = grupo?.lexedit?.remissoesInternasInvalidas?.refIdsRemissoesInternas;
-    if (Array.isArray(refIds)) refIds.forEach((id: string) => ids.add(id));
-  }
-  return Array.from(ids);
+  const refIds = lerConteudoLexEdit(documento)?.remissoesInternasInvalidas?.refIdsRemissoesInternas;
+  // Texto separado por espaço no formato novo; array no provisório.
+  const ids = typeof refIds === 'string' ? refIds.split(/\s+/) : Array.isArray(refIds) ? refIds : [];
+  return Array.from(new Set<string>(ids.filter((id: unknown) => typeof id === 'string' && id)));
+};
+
+// Atributo ausente ou com tipo inesperado assume o padrão da classe, sem invalidar os demais (design.md, Decisão 3).
+export const lerOpcoesImpressao = (lido: any): OpcoesImpressao | undefined => {
+  if (!lido || typeof lido !== 'object') return undefined;
+  const opcoes = new OpcoesImpressao();
+  if (typeof lido.imprimirBrasao === 'boolean') opcoes.imprimirBrasao = lido.imprimirBrasao;
+  if (typeof lido.textoCabecalho === 'string') opcoes.textoCabecalho = lido.textoCabecalho;
+  if (typeof lido.reduzirEspacoEntreLinhas === 'boolean') opcoes.reduzirEspacoEntreLinhas = lido.reduzirEspacoEntreLinhas;
+  if (Number.isInteger(lido.tamanhoFonte) && lido.tamanhoFonte > 0) opcoes.tamanhoFonte = lido.tamanhoFonte;
+  return opcoes;
+};
+
+// Data fora de AAAA-MM-DD (inclusive vazia) equivale a data não informada (especificação 03).
+export const lerFecho = (lexedit: any): Pick<DadosLexEdit, 'local' | 'data'> => ({
+  ...(typeof lexedit?.local === 'string' && lexedit.local.trim() && { local: lexedit.local }),
+  ...(typeof lexedit?.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(lexedit.data) && { data: lexedit.data }),
+});
+
+/** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
+export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
+  const lexedit = lerConteudoLexEdit(documento);
+  const opcoesImpressao = lerOpcoesImpressao(lexedit?.opcoesImpressao);
+  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }) };
 };
 
 const getMetadado = (documento: any): Metadado => {

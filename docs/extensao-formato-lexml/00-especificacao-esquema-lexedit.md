@@ -41,7 +41,7 @@ Os elementos e atributos específicos do LexEdit usam um namespace próprio, que
 ```xml
 <Metadado>
   <!-- demais metadados LexML -->
-  <MetadadoProprietario>
+  <MetadadoProprietario fonte="http://www.lexml.gov.br/lexedit/1.0">
     <lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
       <!-- dados globais do Lexedit -->
     </lexedit:Metadado>

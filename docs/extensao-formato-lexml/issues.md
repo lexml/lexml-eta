@@ -6,9 +6,9 @@ Cada issue acrescenta um grupo de elementos aos anteriores. Em todas elas, salva
 
 ---
 
-## 1. Salvar e abrir identificação e articulação
+## 1. Salvar e abrir identificação, epígrafe, ementa, preâmbulo e articulação
 
-Salvar e abrir `documento-articulado.json` com a representação jsonix do LexML contendo apenas a identificação da proposição (inclusive a URN provisória, quando aplicável) e a articulação. Esta issue estabelece a infraestrutura de leitura/escrita do arquivo (diálogos de salvar/abrir, serialização jsonix) que as demais issues reaproveitam. Validar o arquivo convertendo de/para XML com o conversor jsonix e validar o XML gerado contra o esquema LexML.
+Salvar e abrir `documento-articulado.json` com a representação jsonix do LexML contendo apenas a identificação da proposição (inclusive a URN provisória, quando aplicável), epígrafe, ementa, preâmbulo e a articulação. Esta issue estabelece a infraestrutura de leitura/escrita do arquivo (diálogos de salvar/abrir, serialização jsonix) que as demais issues reaproveitam. Validar o arquivo convertendo de/para XML com o conversor jsonix e validar o XML gerado contra o esquema LexML.
 
 **Especificação:** [00-especificacao-esquema-lexedit.md](00-especificacao-esquema-lexedit.md), [01-identificacao-provisoria-e-urn.md](01-identificacao-provisoria-e-urn.md)
 

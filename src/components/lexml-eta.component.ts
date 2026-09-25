@@ -14,7 +14,7 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla } from '../model/lexml/documento/urnUtil';
+import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla, normalizarDataFecho } from '../model/lexml/documento/urnUtil';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
@@ -26,7 +26,7 @@ import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
-import { buildContent, getUrn } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildContent, getUrn, lerMetadadoLexEdit } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { Comissao } from './destino/comissao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
@@ -101,6 +101,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private comissoesCarregadas = false;
 
   private substitutivo = false;
+
+  // O destino não é salvo: o local lido do arquivo vale enquanto o destino for o mesmo da abertura.
+  private localDoArquivo?: string;
+  private destinoAoAbrir?: ColegiadoApreciador;
 
   @state()
   private anexoParecer = false;
@@ -203,18 +207,33 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return prop;
   }
 
+  private getLocalFecho(): string {
+    const destino = this._lexmlDestino?.colegiadoApreciador ?? new ColegiadoApreciador();
+    const destinoInalterado =
+      !!this.destinoAoAbrir && destino.tipoColegiado === this.destinoAoAbrir.tipoColegiado && (destino.siglaComissao ?? '') === (this.destinoAoAbrir.siglaComissao ?? '');
+    return this.localDoArquivo && destinoInalterado ? this.localDoArquivo : this.montarLocalFromColegiadoApreciador(destino);
+  }
+
   /** Exporta somente os grupos implementados do documento LexML. */
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
-    return this._lexmlEta!.getDocumentoArticulado();
+    // Anexo de parecer não tem fecho, como em removerDadosNaoAplicaveisAoAnexoParecer.
+    const fecho = this.anexoParecer ? {} : { local: this.getLocalFecho(), data: normalizarDataFecho(this._lexmlData.data) };
+    return this._lexmlEta!.getDocumentoArticulado({ ...fecho, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao });
   }
 
   /** Aceita o objeto Jsonix ou seu texto JSON e valida antes de alterar o editor. */
   async abrirDocumentoArticulado(entrada: unknown): Promise<void> {
     const documento = lerDocumentoArticulado(entrada);
+    const dados = lerMetadadoLexEdit(documento);
     const params = new LexmlEtaParametrosEdicao();
     params.projetoNorma = documento as any;
     await this.inicializarEdicao(params, true);
+    // Depois de inicializarEdicao: resetaProposicao sobrescreve o formulário com os valores padrão.
+    if (dados.opcoesImpressao) this._lexmlOpcoesImpressao.opcoesImpressao = dados.opcoesImpressao;
+    this._lexmlData.data = this.anexoParecer ? '' : dados.data ?? '';
+    this.localDoArquivo = dados.local;
+    this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
   }
 
   getProposicao(): Proposicao {
@@ -304,6 +323,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
+      this.localDoArquivo = undefined;
+      this.destinoAoAbrir = undefined;
       this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
       this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.proposicao && params.proposicao.colegiadoApreciador?.siglaComissao === 'CMO');

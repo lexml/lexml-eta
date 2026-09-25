@@ -39,3 +39,26 @@ export const novoDocumentoComTextoLiteral = (): any => {
   norma.articulacao.lXhier[0].value.lXcontainersOmissis[0].value.p[0].content = [TEXTO_LITERAL];
   return documento;
 };
+
+export const TYPE_NAME_OPCOES_IMPRESSAO = 'br_gov_lexml_lexedit__1.OpcoesImpressao';
+
+/** Valor de `lexedit:Metadado` gravado no documento (formato do conversor jsonix-lexml 2.0.0). */
+export const lexeditSalvo = (documento: any): any => documento.value.metadado.metadadoProprietario[0].any[0].value;
+
+/** `MetadadoProprietario` no formato novo, com os grupos informados, para montar documentos de entrada. */
+export const metadadoProprietarioLexEdit = (grupos: Record<string, unknown>): any => ({
+  TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+  fonte: 'http://www.lexml.gov.br/lexedit/1.0',
+  any: [
+    {
+      name: {
+        namespaceURI: 'http://www.lexml.gov.br/lexedit/1.0',
+        localPart: 'Metadado',
+        prefix: 'lexedit',
+        key: '{http://www.lexml.gov.br/lexedit/1.0}Metadado',
+        string: '{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado',
+      },
+      value: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado', ...grupos },
+    },
+  ],
+});

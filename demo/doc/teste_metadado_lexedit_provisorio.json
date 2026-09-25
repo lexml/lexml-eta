@@ -12,44 +12,20 @@
       "TYPE_NAME": "br_gov_lexml__1.Metadado",
       "identificacao": {
         "TYPE_NAME": "br_gov_lexml__1.Identificacao",
-        "urn": "urn:lex:br:senado.federal:projeto.lei;pl:2026;1234"
+        "urn": "urn:lex:br:senado.federal:projeto.lei;pls:9999;999999"
       },
       "metadadoProprietario": [
         {
           "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
           "fonte": "http://www.lexml.gov.br/lexedit/1.0",
-          "any": [
-            {
-              "name": {
-                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
-                "localPart": "Metadado",
-                "prefix": "lexedit",
-                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
-                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
-              },
-              "value": {
-                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
-                "local": "Sala das sessões",
-                "opcoesImpressao": {
-                  "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
-                  "imprimirBrasao": true,
-                  "textoCabecalho": "",
-                  "reduzirEspacoEntreLinhas": false,
-                  "tamanhoFonte": 14
-                },
-                "remissoesInternasInvalidas": {
-                  "TYPE_NAME": "br_gov_lexml_lexedit__1.RemissoesInternasInvalidas",
-                  "refIdsRemissoesInternas": "_ri1789595341283"
-                },
-                "pendencias": {
-                  "TYPE_NAME": "br_gov_lexml_lexedit__1.Pendencias",
-                  "pendencia": [
-                    "Corrigir remissões internas inválidas."
-                  ]
-                }
-              }
+          "lexedit": {
+            "opcoesImpressao": {
+              "imprimirBrasao": false,
+              "textoCabecalho": "Gabinete do Senador",
+              "reduzirEspacoEntreLinhas": true,
+              "tamanhoFonte": 18
             }
-          ]
+          }
         }
       ]
     },
@@ -200,25 +176,7 @@
                         {
                           "TYPE_NAME": "br_gov_lexml__1.GenInline",
                           "content": [
-                            "Esta lei dispõe sobre educação e saúde, nos termos do ",
-                            {
-                              "name": {
-                                "namespaceURI": "http://www.lexml.gov.br/1.0",
-                                "localPart": "Remissao",
-                                "prefix": "",
-                                "key": "{http://www.lexml.gov.br/1.0}Remissao",
-                                "string": "{http://www.lexml.gov.br/1.0}Remissao"
-                              },
-                              "value": {
-                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
-                                "href": "art99",
-                                "id": "_ri1789595341283",
-                                "content": [
-                                  "art. 99"
-                                ]
-                              }
-                            },
-                            " desta Lei."
+                            "Esta lei dispõe sobre educação e saúde."
                           ]
                         }
                       ]
@@ -250,20 +208,6 @@
               }
             }
           ]
-        },
-        "parteFinal": {
-          "TYPE_NAME": "br_gov_lexml__1.ParteFinal",
-          "localDataFecho": {
-            "TYPE_NAME": "br_gov_lexml__1.ParsType",
-            "p": [
-              {
-                "TYPE_NAME": "br_gov_lexml__1.GenInline",
-                "content": [
-                  "Sala das sessões,"
-                ]
-              }
-            ]
-          }
         }
       }
     }
