@@ -55,6 +55,7 @@ describe('sincronizarRemissoesComEstadoAtual', () => {
       const par = criaDispositivo(art, 'Paragrafo');
       const incDestino = criaDispositivo(par, 'Inciso');
       const incOrigem = criaDispositivo(par, 'Inciso');
+      criaDispositivo(art, 'Paragrafo'); // segundo parágrafo: par não vira "único"
 
       articulacao.renumeraFilhos();
       art.renumeraFilhos();
@@ -392,6 +393,7 @@ describe('sincronizarRemissoesComEstadoAtual', () => {
       const par = criaDispositivo(art, 'Paragrafo');
       const incDestino = criaDispositivo(par, 'Inciso');
       const incOrigem = criaDispositivo(par, 'Inciso');
+      criaDispositivo(art, 'Paragrafo'); // segundo parágrafo: par não vira "único"
       articulacao.renumeraFilhos();
       art.renumeraFilhos();
       par.renumeraFilhos();
