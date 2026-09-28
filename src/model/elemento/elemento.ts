@@ -45,4 +45,6 @@ export class Elemento extends Referencia {
   revisao?: Revisao;
   ultimoFilhoDireto?: Referencia;
   bloqueado?: boolean;
+  // Só em artigos: o caput não tem Elemento próprio, e sem isto o undo/redo o recriaria com nova identidade.
+  caput?: Pick<Referencia, 'uuid' | 'uuid2'>;
 }

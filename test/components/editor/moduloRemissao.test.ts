@@ -799,6 +799,21 @@ describe('renderizarRemissoesDoState — reconciliação de metadata', () => {
     expect(adicionarRemissaoCalls.length).to.equal(0);
   });
 
+  // Change 2026-09-23-c01 (D4): mover troca o uuid do destino sem necessariamente mudar o lexmlId.
+  it('mesmo lexmlId, uuid do href divergente — reatribui os atributos do link', () => {
+    rootElement.innerHTML = `
+      <a class="lexml-remissao-interna" data-lexml-ref="art2" data-ref-id="ref_X" href="#lxEtaId200">art. 2º</a>
+    `;
+    const linkEl = rootElement.querySelector('a.lexml-remissao-interna[data-ref-id="ref_X"]') as any;
+    const formatCalls: any[] = [];
+    linkEl['__blot'] = { blot: { statics: { blotName: 'remissao-interna' }, format: (_nome: string, valor: any): number => formatCalls.push(valor) } };
+
+    const entrada: RemissaoInternaValue = { refId: 'ref_X', targetLexmlId: 'art2', targetUuid: 250, textoRef: 'art. 2º' };
+    moduloRemissao.renderizarRemissoesDoState({ 42: [entrada] }, 42);
+
+    expect(formatCalls).to.deep.equal([entrada]);
+  });
+
   it('link sem targetLexmlId no registry — não chama adicionarRemissao (guarda contra entrada incompleta)', () => {
     rootElement.innerHTML = `
       <a class="lexml-remissao-interna" data-lexml-ref="art2_par1_inc2" data-ref-id="ref_X" href="#lxEtaId200">inciso I deste parágrafo</a>

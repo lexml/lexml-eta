@@ -27,6 +27,11 @@ export function removerSpanParchmentRemissao(html: string): string {
   return resultado;
 }
 
+// Links de remissão (interna ou externa, válidos ou inválidos) reduzidos ao texto: compara textos ignorando só essa marcação.
+export function removerMarcacaoRemissao(html: string): string {
+  return removerSpanParchmentRemissao(html).replace(/<a\b[^>]*\b(?:class="[^"]*\blexml-remissao-[^"]*"|data-lexml-ref=)[^>]*>([\s\S]*?)<\/a>/gi, '$1');
+}
+
 /**
  * Substitui textoRef por um link de remissão interna no trecho de html que está fora de
  * elementos <a> já existentes. Só substitui a primeira ocorrência encontrada.

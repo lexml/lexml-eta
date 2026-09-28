@@ -127,7 +127,9 @@ const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   const dispositivoASerRemovido = getDispositivoFromElemento(state.articulacao!, revisao.elementoAposRevisao)!;
   const dispositivoAnterior = getDispositivoAnteriorNaSequenciaDeLeitura(dispositivoASerRemovido, d => !isCaput(d));
 
-  const result = removeElemento(state, { atual: revisao.elementoAposRevisao, isRejeitandoRevisao: true }).ui?.events || [];
+  // Com elementoAntesRevisao é movimentação: o dispositivo é reincluído logo abaixo, então não há remissão a invalidar.
+  const result =
+    removeElemento(state, { atual: revisao.elementoAposRevisao, isRejeitandoRevisao: true, suprimirInvalidacaoRemissao: !!revisao.elementoAntesRevisao }).ui?.events || [];
 
   // Se existe elemento antes da revisão, então reinclui elemento (havia sido excluído por se tratar de uma movimentação)
   if (revisao.elementoAntesRevisao) {

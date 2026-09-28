@@ -31,6 +31,7 @@ import {
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
+import { buscarDispositivoPorUuid } from '../../../model/remissao/sincronizarRemissoes';
 
 const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
@@ -60,7 +61,17 @@ const isOmissisCaput = (elemento: Elemento): boolean => {
   return elemento.tipo === TipoDispositivo.omissis.tipo && elemento.tipoOmissis === 'inciso-caput';
 };
 
-const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
+// A guarda evita uuid duplicado quando o caput original ainda está na árvore (ex.: colar substituindo inclui antes de remover).
+const restauraIdentidadeCaput = (articulacao: Articulacao, artigo: Artigo, elemento: Elemento): void => {
+  const { uuid, uuid2 } = elemento.caput ?? {};
+  if (!artigo.caput || uuid === undefined || buscarDispositivoPorUuid(articulacao, uuid)) {
+    return;
+  }
+  artigo.caput.uuid = uuid;
+  artigo.caput.uuid2 = uuid2;
+};
+
+const redodDispositivoExcluido = (articulacao: Articulacao, elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
@@ -76,6 +87,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   novo.mensagens = elemento?.mensagens;
   novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   if (isArtigo(novo)) {
+    restauraIdentidadeCaput(articulacao, novo as Artigo, elemento);
     if (elemento.norma) {
       createAlteracao(novo);
       (novo as Artigo).alteracoes!.base = elemento.norma;
@@ -89,7 +101,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
   const primeiroElemento = elementos.shift();
 
   const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!) || buscaDispositivoById(articulacao, primeiroElemento!.hierarquia!.pai!.lexmlId!);
-  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
+  const primeiro = redodDispositivoExcluido(articulacao, primeiroElemento!, pai!);
   const idPrimeiroDispositivo = primeiro.id!;
 
   const novos: Dispositivo[] = [primeiro];
@@ -99,7 +111,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
         ? primeiro.pai!
         : getDispositivoPaiFromElemento(articulacao, filho) || buscaDispositivoById(articulacao, idPrimeiroDispositivo);
 
-    const novo = redodDispositivoExcluido(filho, parent!);
+    const novo = redodDispositivoExcluido(articulacao, filho, parent!);
     novos.push(novo);
   });
 

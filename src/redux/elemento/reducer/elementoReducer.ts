@@ -60,7 +60,7 @@ import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosN
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
-import { sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
+import { preencherUuid2DasRemissoes, sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
 import { State, StateType } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
@@ -106,6 +106,8 @@ export const elementoReducer = (state = {}, action: any): any => {
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
   const paginacao = (state as State).ui?.paginacao;
   const remissoes = (state as State).remissoes;
+
+  preencherUuid2DasRemissoes(state as State, action.type);
 
   switch (action.type) {
     case NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS:

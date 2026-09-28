@@ -134,6 +134,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     ultimoFilhoDireto:
       isAgrupador(dispositivo) && isDispositivoAlteracao(dispositivo) && dispositivo.filhos.length ? createElemento(dispositivo.filhos[dispositivo.filhos.length - 1]) : undefined,
     bloqueado: dispositivo.bloqueado,
+    caput: isArtigo(dispositivo) && (dispositivo as Artigo).caput ? { uuid: (dispositivo as Artigo).caput!.uuid, uuid2: (dispositivo as Artigo).caput!.uuid2 } : undefined,
   };
 };
 

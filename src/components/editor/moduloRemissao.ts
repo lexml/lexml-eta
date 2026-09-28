@@ -715,6 +715,15 @@ class ModuloRemissao extends Module {
     }
   }
 
+  // O href carrega o uuid do destino; mover troca o uuid sem necessariamente mudar o lexmlId.
+  // Entrada sem targetLexmlId é incompleta e nunca reatribui o link.
+  private atributosDoLinkDivergem(link: Element, remissao: RemissaoInternaValue): boolean {
+    if (!remissao.targetLexmlId) return false;
+    const lexmlIdDiverge = link.getAttribute('data-lexml-ref') !== remissao.targetLexmlId;
+    const uuidDiverge = remissao.targetUuid !== undefined && RemissaoInternaBlot.extractUuidFromHref(link.getAttribute('href') || '') !== remissao.targetUuid;
+    return lexmlIdDiverge || uuidDiverge;
+  }
+
   renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {
     const remissoesDoDispositivo = remissoesDoState[uuidDispositivoAtual] || [];
 
@@ -747,7 +756,7 @@ class ModuloRemissao extends Module {
           const textoNovo = (remissao.textoRef || '').trim();
           if (remissao.revisao) {
             // Marcada para revisão: textoRef é um baseline antigo, não sobrescrever texto do usuário.
-            if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
+            if (this.atributosDoLinkDivergem(linkExistente, remissao)) {
               blot.format('remissao-interna', remissao);
             }
           } else if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
@@ -767,8 +776,8 @@ class ModuloRemissao extends Module {
             const delta = new Delta().retain(blotIdx).delete(blotLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
             this.seedCacheRemissao(remissao.refId, textoNovo);
-          } else if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
-            // Caso 3: texto igual, só o lexmlId do destino mudou — reatribui só os atributos.
+          } else if (this.atributosDoLinkDivergem(linkExistente, remissao)) {
+            // Caso 3: texto igual, só o destino mudou (lexmlId ou uuid) — reatribui só os atributos.
             blot.format('remissao-interna', remissao);
           }
           continue;

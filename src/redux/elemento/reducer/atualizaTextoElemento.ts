@@ -9,6 +9,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { removerMarcacaoRemissao } from '../../../util/html-util';
 
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -24,6 +25,8 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   }
 
   const original = createElemento(dispositivo);
+  // Criar o link ou marcá-lo como inválido não é edição do usuário: não vira passo de desfazer nem descarta o refazer.
+  const somenteMarcacaoRemissao = removerMarcacaoRemissao(dispositivo.texto ?? '') === removerMarcacaoRemissao(textoAtual ?? '');
 
   dispositivo.texto = !isDispositivoAlteracao(dispositivo) ? textoAtual : normalizaSeForOmissis(textoAtual ?? '');
 
@@ -59,9 +62,9 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   return {
     articulacao: state.articulacao,
     modo: state.modo,
-    past: buildPast(state, buildUpdateEvent(dispositivo, original)),
+    past: somenteMarcacaoRemissao ? state.past : buildPast(state, buildUpdateEvent(dispositivo, original)),
     present: eventos.build(),
-    future: [],
+    future: somenteMarcacaoRemissao ? state.future : [],
     ui: {
       events: eventosUi.build(),
       alertas: state.ui?.alertas,
