@@ -8,7 +8,7 @@ import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil'
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
-import { OpcoesImpressao } from '../../../proposicao/proposicao';
+import { Autoria, OpcoesImpressao, Parlamentar } from '../../../proposicao/proposicao';
 import { DadosLexEdit } from '../documentoArticulado';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
 
@@ -138,11 +138,41 @@ export const lerFecho = (lexedit: any): Pick<DadosLexEdit, 'local' | 'data'> => 
   ...(typeof lexedit?.data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(lexedit.data) && { data: lexedit.data }),
 });
 
+const textoNaoVazio = (valor: any): boolean => typeof valor === 'string' && !!valor.trim();
+
+// Sem identificação ou nome o parlamentar é descartado; os demais atributos assumem o padrão da classe.
+const lerParlamentar = (lido: any): Parlamentar | undefined => {
+  if (!isObjeto(lido) || !textoNaoVazio(lido.identificacao) || !textoNaoVazio(lido.nome)) return undefined;
+  const parlamentar = new Parlamentar();
+  parlamentar.identificacao = lido.identificacao;
+  parlamentar.nome = lido.nome;
+  if (['M', 'F'].includes(lido.sexo)) parlamentar.sexo = lido.sexo;
+  if (typeof lido.siglaPartido === 'string') parlamentar.siglaPartido = lido.siglaPartido;
+  if (typeof lido.siglaUF === 'string') parlamentar.siglaUF = lido.siglaUF;
+  if (['SF', 'CD'].includes(lido.siglaCasaLegislativa)) parlamentar.siglaCasaLegislativa = lido.siglaCasaLegislativa;
+  if (typeof lido.cargo === 'string') parlamentar.cargo = lido.cargo;
+  return parlamentar;
+};
+
+// Só autoria de parlamentares (especificação 04); comissão ou nenhum parlamentar válido mantém a autoria padrão.
+export const lerAutoria = (lido: any): Autoria | undefined => {
+  if (!isObjeto(lido) || lido.tipo !== 'Parlamentar') return undefined;
+  // O Jsonix pode entregar uma lista de um só elemento como objeto.
+  const lista = lido.parlamentares?.parlamentar;
+  const parlamentares = (Array.isArray(lista) ? lista : [lista]).map(lerParlamentar).filter((p): p is Parlamentar => !!p);
+  if (!parlamentares.length) return undefined;
+  const autoria = new Autoria();
+  autoria.parlamentares = parlamentares;
+  if (typeof lido.imprimirPartidoUF === 'boolean') autoria.imprimirPartidoUF = lido.imprimirPartidoUF;
+  return autoria;
+};
+
 /** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
 export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const lexedit = lerConteudoLexEdit(documento);
   const opcoesImpressao = lerOpcoesImpressao(lexedit?.opcoesImpressao);
-  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }) };
+  const autoria = lerAutoria(lexedit?.autoria);
+  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }), ...(autoria && { autoria }) };
 };
 
 const getMetadado = (documento: any): Metadado => {

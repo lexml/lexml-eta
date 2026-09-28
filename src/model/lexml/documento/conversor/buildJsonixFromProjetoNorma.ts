@@ -19,7 +19,7 @@ import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
-import { OpcoesImpressao } from '../../../proposicao/proposicao';
+import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
@@ -67,6 +67,31 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesI
   tamanhoFonte: opcoes.tamanhoFonte,
 });
 
+// Só os sete atributos do XSD: objetos vindos do host podem trazer campos extras.
+// Sem parlamentar identificado não há autoria, pois o XSD exige ao menos um Parlamentar.
+const montaAutoria = (autoria?: Autoria): MetadadoLexEdit['autoria'] => {
+  const parlamentares = (autoria?.parlamentares ?? []).filter(p => p?.identificacao);
+  if (!autoria || !parlamentares.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.Autoria',
+    tipo: 'Parlamentar',
+    imprimirPartidoUF: autoria.imprimirPartidoUF,
+    parlamentares: {
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Parlamentares',
+      parlamentar: parlamentares.map(p => ({
+        TYPE_NAME: 'br_gov_lexml_lexedit__1.Parlamentar',
+        identificacao: p.identificacao,
+        nome: p.nome,
+        sexo: p.sexo,
+        siglaPartido: p.siglaPartido,
+        siglaUF: p.siglaUF,
+        siglaCasaLegislativa: p.siglaCasaLegislativa,
+        cargo: p.cargo ?? '',
+      })),
+    },
+  };
+};
+
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
@@ -77,6 +102,8 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
     if (dados.data) lexedit.data = dados.data;
   }
   if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
+  const autoria = montaAutoria(dados?.autoria);
+  if (autoria) lexedit.autoria = autoria;
   if (idsRemissoesInvalidas.length > 0) {
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
@@ -143,17 +170,36 @@ const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesEx
   return p;
 };
 
-// Representação textual do fecho prevista no LexML; os dados estruturados ficam em `lexedit` (especificação 03).
-const montaParteFinal = (dados?: DadosLexEdit): any =>
-  dados?.local
-    ? {
-        TYPE_NAME: 'br_gov_lexml__1.ParteFinal',
-        localDataFecho: {
-          TYPE_NAME: 'br_gov_lexml__1.ParsType',
-          p: [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [formatarLocalDataFecho(dados.local, dados.data)] }],
-        },
-      }
-    : undefined;
+const paragrafo = (...content: any[]): any => ({ TYPE_NAME: 'br_gov_lexml__1.GenInline', content });
+
+const negrito = (texto: string): any => ({
+  name: { namespaceURI: 'http://www.lexml.gov.br/1.0', localPart: 'b', prefix: '', key: '{http://www.lexml.gov.br/1.0}b', string: '{http://www.lexml.gov.br/1.0}b' },
+  value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [texto] },
+});
+
+// Gerado a partir da autoria já montada, para o texto nunca divergir do `lexedit` (especificação 04).
+const montaAssinaturasTexto = (autoria: MetadadoLexEdit['autoria']): any[] =>
+  (autoria?.parlamentares.parlamentar ?? []).map(p => ({
+    TYPE_NAME: 'br_gov_lexml__1.ParsType',
+    p: [
+      paragrafo(negrito(`${tratamentoParlamentar(p.sexo, p.siglaCasaLegislativa)} ${p.nome}`)),
+      ...(autoria!.imprimirPartidoUF ? [paragrafo(`(${p.siglaPartido} - ${p.siglaUF})`)] : []),
+      ...(p.cargo.trim() ? [paragrafo(p.cargo)] : []),
+    ],
+  }));
+
+// Representação textual do fecho e das assinaturas prevista no LexML; os dados estruturados ficam em `lexedit` (especificações 03 e 04).
+const montaParteFinal = (dados?: DadosLexEdit): any => {
+  const assinaturaTexto = montaAssinaturasTexto(montaAutoria(dados?.autoria));
+  if (!dados?.local && !assinaturaTexto.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml__1.ParteFinal',
+    ...(dados?.local && {
+      localDataFecho: { TYPE_NAME: 'br_gov_lexml__1.ParsType', p: [paragrafo(formatarLocalDataFecho(dados.local, dados.data))] },
+    }),
+    ...(assinaturaTexto.length > 0 && { assinaturaTexto }),
+  };
+};
 
 const montaParteInicial = (projetoNorma: any): any => {
   return {

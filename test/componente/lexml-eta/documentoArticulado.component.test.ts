@@ -5,6 +5,7 @@ import { rootStore } from '../../../src/redux/store';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { Autoria, Parlamentar } from '../../../src/model/proposicao/proposicao';
 import {
   lexeditSalvo,
   metadadoProprietarioLexEdit,
@@ -229,6 +230,100 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
       expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+    });
+  });
+
+  describe('autoria de parlamentares — salvar', () => {
+    const davi = { identificacao: '1111', nome: 'Davi Alcolumbre', sexo: 'M', siglaPartido: 'UNIÃO', siglaUF: 'AP', siglaCasaLegislativa: 'SF', cargo: '' };
+    const soraya = { identificacao: '2222', nome: 'Soraya Thronicke', sexo: 'F', siglaPartido: 'PSB', siglaUF: 'MS', siglaCasaLegislativa: 'SF', cargo: '' };
+    const campoAutoria = (): any => component.querySelector('lexml-eta-autoria');
+    const identificacoesSalvas = (documento: any): string[] => lexeditSalvo(documento).autoria.parlamentares.parlamentar.map((p: any) => p.identificacao);
+
+    it('exporta os parlamentares da aba de autoria e as assinaturas', () => {
+      campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi, soraya] };
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(identificacoesSalvas(salvo)).to.deep.equal(['1111', '2222']);
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.assinaturaTexto).to.have.length(2);
+    });
+
+    it('descarta a linha de parlamentar em branco', () => {
+      campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi, { ...new Parlamentar() }] };
+
+      expect(identificacoesSalvas(component.getDocumentoArticulado())).to.deep.equal(['1111']);
+    });
+
+    it('no modo anexo de parecer não exporta autoria nem assinaturas', () => {
+      campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi] };
+      (component as any).anexoParecer = true;
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(salvo.value.metadado.metadadoProprietario?.[0].any[0].value).to.not.have.property('autoria');
+      expect(salvo.value.projetoNorma.norma).to.not.have.property('parteFinal');
+    });
+  });
+
+  describe('autoria de parlamentares — abrir', () => {
+    const davi = {
+      identificacao: '1111',
+      nome: 'Davi Alcolumbre',
+      sexo: 'M',
+      siglaPartido: 'UNIÃO',
+      siglaUF: 'AP',
+      siglaCasaLegislativa: 'SF',
+      cargo: 'Presidente do Senado Federal',
+    };
+    const soraya = { identificacao: '2222', nome: 'Soraya Thronicke', sexo: 'F', siglaPartido: 'PSB', siglaUF: 'MS', siglaCasaLegislativa: 'SF', cargo: '' };
+    const campoAutoria = (): any => component.querySelector('lexml-eta-autoria');
+    const entradaComAutoria = (parlamentares: any[], imprimirPartidoUF = true): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [
+        metadadoProprietarioLexEdit({
+          autoria: {
+            TYPE_NAME: 'br_gov_lexml_lexedit__1.Autoria',
+            tipo: 'Parlamentar',
+            imprimirPartidoUF,
+            parlamentares: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Parlamentares', parlamentar: parlamentares },
+          },
+        }),
+      ];
+      return entrada;
+    };
+
+    it('exibe os parlamentares do arquivo, na ordem, e a opção de partido e UF', async () => {
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi, soraya], false));
+      await campoAutoria().updateComplete;
+
+      expect(campoAutoria().getAutoriaAtualizada().parlamentares).to.deep.equal([davi, soraya]);
+      expect(campoAutoria().shadowRoot.querySelector('#chk-exibir-partido-uf').checked).to.be.false;
+    });
+
+    it('mantém o partido do arquivo mesmo quando a lista do host tem outro', async () => {
+      (component as any).getParlamentares = async (): Promise<any[]> => [{ ...davi, siglaPartido: 'PSD' }];
+
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi]));
+
+      expect(campoAutoria().getAutoriaAtualizada().parlamentares[0].siglaPartido).to.equal('UNIÃO');
+    });
+
+    it('sem autoria no arquivo mantém a autoria padrão do editor, sem herdar a do documento anterior', async () => {
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi]));
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(campoAutoria().getAutoriaAtualizada().parlamentares).to.deep.equal([]);
+      expect(lexeditSalvo(component.getDocumentoArticulado())).to.not.have.property('autoria');
+    });
+
+    it('salvar e reabrir preserva a autoria e as assinaturas', async () => {
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi, soraya]));
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.assinaturaTexto).to.have.length(2);
     });
   });
 

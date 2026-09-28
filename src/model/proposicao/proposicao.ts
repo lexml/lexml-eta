@@ -94,6 +94,13 @@ export class Parlamentar {
   cargo = '';
 }
 
+// Casa diferente de SF recebe o tratamento da Câmara.
+export const tratamentoParlamentar = (sexo: string, siglaCasaLegislativa: string): string => {
+  const feminino = sexo === 'F';
+  if (siglaCasaLegislativa === 'SF') return feminino ? 'Senadora' : 'Senador';
+  return feminino ? 'Deputada' : 'Deputado';
+};
+
 export class ColegiadoAutor {
   identificacao = '';
   nome = '';

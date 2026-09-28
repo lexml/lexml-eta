@@ -4,7 +4,7 @@ import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoN
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
-import { OpcoesImpressao } from '../../proposicao/proposicao';
+import { Autoria, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -16,6 +16,13 @@ export interface MetadadoLexEdit {
   data?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
+  // Só autoria de parlamentares por enquanto (especificação 04).
+  autoria?: {
+    TYPE_NAME: string;
+    tipo: string;
+    imprimirPartidoUF: boolean;
+    parlamentares: { TYPE_NAME: string; parlamentar: Array<Parlamentar & { TYPE_NAME: string }> };
+  };
   // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
   remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
   pendencias?: { TYPE_NAME: string; pendencia: string[] };
@@ -36,6 +43,7 @@ export interface DadosLexEdit {
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
   data?: string;
   opcoesImpressao?: OpcoesImpressao;
+  autoria?: Autoria;
 }
 
 export interface ElementoMetadadoLexEdit {
