@@ -5,6 +5,7 @@ import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas, lerMetadadoLexEd
 import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/documentoArticulado';
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
+import { Autoria } from '../../src/model/proposicao/proposicao';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   for (const [nome, entrada] of [
@@ -101,6 +102,34 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({ local: 'Sala das sessões', data: '2026-05-01', opcoesImpressao });
     expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
   });
+
+  for (const imprimirPartidoUF of [true, false]) {
+    it(`valida e reabre um documento com autoria de parlamentares (imprimirPartidoUF ${imprimirPartidoUF})`, async () => {
+      const parlamentares: any[] = [
+        { identificacao: '1111', nome: 'Davi Alcolumbre', sexo: 'M', siglaPartido: 'UNIÃO', siglaUF: 'AP', siglaCasaLegislativa: 'SF', cargo: 'Presidente do Senado Federal' },
+        { identificacao: '2222', nome: 'Soraya Thronicke', sexo: 'F', siglaPartido: 'PSB', siglaUF: 'MS', siglaCasaLegislativa: 'SF', cargo: '' },
+        { identificacao: '3333', nome: 'Maria Silva', sexo: 'F', siglaPartido: 'PT', siglaUF: 'SP', siglaCasaLegislativa: 'CD', cargo: '' },
+        { identificacao: '4444', nome: 'João Souza', sexo: 'M', siglaPartido: 'PL', siglaUF: 'RJ', siglaCasaLegislativa: 'CD', cargo: 'Líder do Partido' },
+      ];
+      const autoria = { ...new Autoria(), imprimirPartidoUF, parlamentares };
+      const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { local: 'Sala das sessões', data: '2026-04-24', autoria });
+
+      const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+      expect(retorno.valido, retorno.erro).to.equal(true);
+      expect(retorno.xml).to.include(`<lexedit:Autoria tipo="Parlamentar" imprimirPartidoUF="${imprimirPartidoUF}">`);
+      const partidoUF = imprimirPartidoUF ? '<p>(UNIÃO - AP)</p>' : '';
+      expect(retorno.xml).to.include(`<AssinaturaTexto><p><b>Senador Davi Alcolumbre</b></p>${partidoUF}<p>Presidente do Senado Federal</p></AssinaturaTexto>`);
+      expect(retorno.xml).to.include('<p><b>Deputada Maria Silva</b></p>');
+      expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+      expect(retorno.jsonix.value.projetoNorma.norma.parteFinal).to.deep.equal((salvo.value.projetoNorma.norma as any).parteFinal);
+      const dados = lerMetadadoLexEdit(retorno.jsonix);
+      expect(dados.autoria).to.deep.equal(autoria);
+      const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+      expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+    });
+  }
 
   // Com lexml-simples.xsd sozinho este valor passaria: o conteúdo do xsd:any lax não seria checado.
   it('o XSD detecta valor inválido dentro de lexedit:Metadado', async () => {
