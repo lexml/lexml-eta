@@ -79,6 +79,8 @@ function isPrimeiroParagrafo(dispositivo: Dispositivo): boolean {
   return isArtigo(dispositivo.pai!) && getParagrafosEOmissis(dispositivo.pai! as Artigo).indexOf(dispositivo) === 0;
 }
 
+export const MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS = 'Artigo de alteração de norma não pode ter incisos ou parágrafos próprios.';
+
 export const naoPodeCriarFilho = (pDispositivo: Dispositivo): boolean => {
   const dispositivo = isCaput(pDispositivo) ? pDispositivo.pai! : pDispositivo;
 
