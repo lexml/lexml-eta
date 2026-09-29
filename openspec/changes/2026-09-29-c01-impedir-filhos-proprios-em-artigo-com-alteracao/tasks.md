@@ -23,5 +23,9 @@
 
 ## 4. E2E e regressão
 
-- [ ] 4.1 Avaliar à luz de `docs/guia-cypress.md` um spec E2E: artigo com bloco de alteração (menu "Adicionar alteração de norma") e verificação de que o menu do artigo não oferece "Adicionar inciso" nem "Adicionar parágrafo"; se inviável, registrar a decisão aqui e manter a cobertura pelos testes de regras
-- [ ] 4.2 Rodar `npm test` completo e os E2E de remissão interna (`grupo-k-mover-dispositivo`, `grupo-g-atualizacao`); verificar ausência de regressões
+- [x] 4.1 Avaliar à luz de `docs/guia-cypress.md` um spec E2E: artigo com bloco de alteração (menu "Adicionar alteração de norma") e verificação de que o menu do artigo não oferece "Adicionar inciso" nem "Adicionar parágrafo"; se inviável, registrar a decisão aqui e manter a cobertura pelos testes de regras
+
+> Resultado (4.1): spec `cypress/e2e/alteracao-norma/menu-artigo-alteracao.cy.ts` — cria o bloco pelo menu "Adicionar alteração de norma" (sem diálogo) e verifica que o menu do artigo com bloco não oferece as duas ações e que o de um artigo comum oferece; 2 casos passando. Achado ao escrever o spec: o comando `getOpcoesDeMenuDoDispositivo` devolve o botão do menu (`⋮`), não os itens — os itens são os `sl-menu-item` do mesmo container. Uma primeira versão do spec passava à toa por isso; a versão final lê os itens e exige a presença de "Remover (Ctrl+D)" para garantir que o menu foi de fato lido.
+- [x] 4.2 Rodar `npm test` completo e os E2E de remissão interna (`grupo-k-mover-dispositivo`, `grupo-g-atualizacao`); verificar ausência de regressões
+
+> Resultado (4.2, 29/09/2026): suíte unitária completa em lotes (176 arquivos): todos os lotes passando. E2E: `menu-artigo-alteracao` 2/2 e `grupo-k-mover-dispositivo` 3/3 passando. `grupo-g-atualizacao`: 5/9 — as 4 falhas (CT-G-02/05/06/08) são no `beforeEach`, esperando `art1_par1…` onde o documento agora gera `art1_par1u…` (parágrafo único). Causa atribuída pelo histórico à correção da #264016 (`b59344ac`, `numeracaoParagrafo.ts`, 24/09), que não atualizou este spec; esta change não toca numeração nem ids. Não confirmado por reversão do commit.
