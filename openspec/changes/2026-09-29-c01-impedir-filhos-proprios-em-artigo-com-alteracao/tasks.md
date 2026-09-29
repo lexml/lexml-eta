@@ -17,7 +17,9 @@
 
 ## 3. Limpeza da change anterior
 
-- [ ] 3.1 Remover de `test/redux/remissao/reducer-atualiza-remissao-mover.test.ts` o bloco "parágrafo de artigo com bloco de alteração" (um caso ativo e um `it.skip`), que monta estrutura inválida; verificar que o arquivo segue passando
+- [x] 3.1 Remover de `test/redux/remissao/reducer-atualiza-remissao-mover.test.ts` o bloco "parágrafo de artigo com bloco de alteração" (um caso ativo e um `it.skip`), que monta estrutura inválida; verificar que o arquivo segue passando
+
+> Resultado (3.1): bloco removido (1 caso ativo e 1 `it.skip`) junto com os imports que ficaram sem uso (`createAlteracao`, `buscarDispositivoPorUuid2`). O arquivo segue com 14 casos passando e nenhum pulado.
 
 ## 4. E2E e regressão
 
