@@ -9,9 +9,11 @@
 
 ## 2. Correção
 
-- [ ] 2.1 Em `regrasArtigo.ts`, não oferecer `adicionarIncisoFilho` nem `adicionarParagrafoFilho` quando o artigo tem bloco de alteração (D1, D2); verificar com os testes de regras da 1.2 (artigo com bloco: ausentes; sem bloco: presentes)
-- [ ] 2.2 Em `adicionaElemento`, recusar criar inciso/parágrafo filho em artigo com bloco de alteração quando a ação chegar sem passar pelo menu (D3); verificar com o teste de reducer da 1.2 (estrutura inalterada)
-- [ ] 2.3 Colar incisos ou parágrafos sobre artigo com bloco de alteração: recusar com mensagem, devolvendo o estado sem alteração, em vez de lançar `TypeError` (decisão do usuário após a 1.1); verificar com caso de teste de colar no arquivo da 1.2 (sem exceção, sem filho próprio, com mensagem) e que o colar em artigo sem bloco continua funcionando
+- [x] 2.1 Em `regrasArtigo.ts`, não oferecer `adicionarIncisoFilho` nem `adicionarParagrafoFilho` quando o artigo tem bloco de alteração (D1, D2); verificar com os testes de regras da 1.2 (artigo com bloco: ausentes; sem bloco: presentes)
+- [x] 2.2 Em `adicionaElemento`, recusar criar inciso/parágrafo filho em artigo com bloco de alteração quando a ação chegar sem passar pelo menu (D3); verificar com o teste de reducer da 1.2 (estrutura inalterada)
+- [x] 2.3 Colar incisos ou parágrafos sobre artigo com bloco de alteração: recusar com mensagem, devolvendo o estado sem alteração, em vez de lançar `TypeError` (decisão do usuário após a 1.1); verificar com caso de teste de colar no arquivo da 1.2 (sem exceção, sem filho próprio, com mensagem) e que o colar em artigo sem bloco continua funcionando
+
+> Resultado (grupo 2): `regrasArtigo.ts` deixa de oferecer "Adicionar inciso"/"Adicionar parágrafo" a artigo com bloco; `adicionaElemento` e `adicionaElementosNaProposicaoFromClipboard` recusam com a mensagem `MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS` (em `reducerUtil.ts`) em vez de criar filho próprio ou lançar `TypeError`. Teste da 1.2 ampliado com os casos de colar: 8 casos passando. Suíte unitária completa em lotes: todos os lotes passando.
 
 ## 3. Limpeza da change anterior
 
