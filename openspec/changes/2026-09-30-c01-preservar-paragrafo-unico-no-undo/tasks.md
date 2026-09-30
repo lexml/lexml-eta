@@ -7,8 +7,10 @@
 
 ## 2. Correção (D1, D2)
 
-- [ ] 2.1 Em `incluir()` (`src/redux/elemento/util/undoRedoReducerUtil.ts`), depois de `pai.renumeraFilhos()` e antes de `updateIdDispositivoAndFilhos`, reaplicar a cada parágrafo recriado cujo artigo tenha exatamente um parágrafo o flag derivado de `elemento.rotulo` e o rótulo regerado a partir dele, sem recontagem; verificar que todos os casos das tasks 1.1 e 1.2 passam
-- [ ] 2.2 Rodar as suítes `test/redux/remissao` e `test/redux/undo` e os testes da #1003 (arquivo(s) de teste da change `2026-09-22-c01-corrigir-remissao-paragrafo-unico` e `buildJsonixFromProjetoNorma.integracao.test.ts`) e verificar ausência de regressões
+- [x] 2.1 Em `incluir()` (`src/redux/elemento/util/undoRedoReducerUtil.ts`), depois de `pai.renumeraFilhos()` e antes de `updateIdDispositivoAndFilhos`, reaplicar a cada parágrafo recriado cujo artigo tenha exatamente um parágrafo o flag derivado de `elemento.rotulo` e o rótulo regerado a partir dele, sem recontagem; verificar que todos os casos das tasks 1.1 e 1.2 passam
+- [x] 2.2 Rodar as suítes `test/redux/remissao` e `test/redux/undo` e os testes da #1003 (arquivo(s) de teste da change `2026-09-22-c01-corrigir-remissao-paragrafo-unico` e `buildJsonixFromProjetoNorma.integracao.test.ts`) e verificar ausência de regressões
+
+> Evidência (grupo 2, 30/09/2026): os 11 casos de `reducer-undo-remissao-paragrafo-unico.test.ts` passam (6 falhavam antes). A correção é a função `restauraFormaParagrafoUnico` chamada em `incluir()`; ela copia `registrados = [...evento.elementos]` antes de `redoDispositivosExcluidos`, que consome o primeiro elemento com `shift()`. Suítes: `test/redux/remissao` (28 arquivos, 305 casos) e `test/redux/undo` (3 arquivos, 33 casos) sem falhas; `buildJsonixFromProjetoNorma.integracao.test.ts` (19), `lexmlIdUtil.test.ts` (200), `sincronizarRemissoes-referenciaEnxuta.test.ts` (29) e `reducer-deteccao-contextual.test.ts` (42), que exercitam `informouParagrafoUnico`, também passam.
 
 ## 3. E2E e regressão
 
