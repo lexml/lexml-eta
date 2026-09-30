@@ -10,7 +10,7 @@
 
 ## 3. Renumeração
 
-- [ ] 3.1 Teste unitário em `sincronizarRemissoes`: remissão detectada por "caput do art. 2º" vira "caput do art. 3º" quando um artigo é inserido antes; verificar que passa sem alterar `src/`
+- [x] 3.1 Teste unitário em `sincronizarRemissoes`: remissão detectada por "caput do art. 2º" vira "caput do art. 3º" quando um artigo é inserido antes; verificar que passa sem alterar `src/`
 
 ## 4. E2E (Cypress)
 
