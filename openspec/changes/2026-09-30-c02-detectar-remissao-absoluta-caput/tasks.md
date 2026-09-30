@@ -14,9 +14,9 @@
 
 ## 4. E2E (Cypress)
 
-- [ ] 4.1 Consultar `docs/guia-cypress.md` (digitação, `digitarTextoRemissao`, `dispararDeteccaoRemissao`, invariantes j-m) e registrar a viabilidade
-- [ ] 4.2 Novo caso em `cypress/e2e/remissao-interna/grupo-l-caput-undo.cy.ts`: digitar "caput do art. 2º", sair da linha, verificar que o link foi criado para o caput; manter a fixture `teste_remissao_caput.json` nos casos existentes; rodar o spec do grupo L e verificar que passa
-- [ ] 4.3 Se o caso digitado não for viável no Cypress, registrar a decisão e cobrir o mesmo risco por teste de integração, sem omitir em silêncio
+- [x] 4.1 Consultar `docs/guia-cypress.md` (digitação, `digitarTextoRemissao`, `dispararDeteccaoRemissao`, invariantes j-m) e registrar a viabilidade
+- [x] 4.2 Novo caso em `cypress/e2e/remissao-interna/grupo-l-caput-undo.cy.ts`: digitar "caput do art. 2º", sair da linha, verificar que o link foi criado para o caput; manter a fixture `teste_remissao_caput.json` nos casos existentes; rodar o spec do grupo L e verificar que passa
+- [x] 4.3 (não aplicável: o caso digitado foi viável, via `digitarTextoRemissao` + `dispararDeteccaoRemissao`) Se o caso digitado não for viável no Cypress, registrar a decisão e cobrir o mesmo risco por teste de integração, sem omitir em silêncio
 
 ## 5. Spec e regressão
 
