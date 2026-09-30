@@ -1,0 +1,1 @@
+Os documentos em ./referencias são apenas referências para a formulação dos requisitos e não devem ser alterados pela IA.
