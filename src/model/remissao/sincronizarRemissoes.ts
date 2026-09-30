@@ -52,8 +52,7 @@ interface LocalizacaoTexto {
 
 const construirRegexLinkPorRefId = (refId: string): RegExp => new RegExp(`(<a\\b[^>]*data-ref-id="${refId}"[^>]*>)([^<]*)(</a>)`, 'i');
 
-// Não usam findDispositivoByUuid/findDispositivoByUuid2 (hierarquiaUtil), que ignoram os filhos próprios de artigo com
-// alteração (e a segunda, também o caput) — docs/sessao/ACHADO_GETDISPOSITIVO_ARTIGO_COM_ALTERACAO.md.
+// Não usam findDispositivoByUuid2 (hierarquiaUtil), que não desce no caput — docs/sessao/ACHADO_BUSCA_UUID2_C02.md.
 export const buscarDispositivoPorUuid = (articulacao: Articulacao, uuid: number): Dispositivo | undefined =>
   buscaNaHierarquiaDispositivos(articulacao as unknown as Dispositivo, d => (d.uuid === uuid ? d : undefined));
 
