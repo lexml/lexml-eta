@@ -1,12 +1,12 @@
 ## 1. Caracterização (antes de corrigir)
 
-- [ ] 1.1 Conferir `test/redux/remissao/reducer-detecta-caput-absoluto.test.ts` (7 cenários: parser, controle "art. 2º", "caput do art. 2º", sem º, misto, composto) e verificar que, sem a correção, os 4 cenários de caput falham e os 3 de controle passam
-- [ ] 1.2 Acrescentar cenários: caixa ("CAPUT DO ART. 2º"), artigo inexistente ("caput do art. 9º" não cria remissão), "caput do art. 2º" com artigo único, e "caput deste artigo" ainda resolvendo para o caput; verificar que passam ou falham pelo motivo esperado
+- [x] 1.1 Conferir `test/redux/remissao/reducer-detecta-caput-absoluto.test.ts` (7 cenários: parser, controle "art. 2º", "caput do art. 2º", sem º, misto, composto) e verificar que, sem a correção, os 4 cenários de caput falham e os 3 de controle passam
+- [x] 1.2 Acrescentar cenários: caixa ("CAPUT DO ART. 2º"), artigo inexistente ("caput do art. 9º" não cria remissão), "caput do art. 2º" com artigo único, e "caput deste artigo" ainda resolvendo para o caput; verificar que passam ou falham pelo motivo esperado
 
 ## 2. Correção
 
-- [ ] 2.1 Em `detectarReferenciasAbsolutas` (`adicionaRemissaoInterna.ts`), resolver o trecho exato `caput do art. N` para `artigo.caput`, sem passar pelo parser; verificar que o arquivo do grupo 1 passa por inteiro
-- [ ] 2.2 Rodar `adicionaRemissaoInterna`/`remissao` existentes (`test/redux/remissao/`, `test/model/remissao/`) e verificar que nenhuma falha nova aparece
+- [x] 2.1 Em `detectarReferenciasAbsolutas` (`adicionaRemissaoInterna.ts`), resolver o trecho exato `caput do art. N` para `artigo.caput`, sem passar pelo parser; verificar que o arquivo do grupo 1 passa por inteiro
+- [x] 2.2 Rodar `adicionaRemissaoInterna`/`remissao` existentes (`test/redux/remissao/`, `test/model/remissao/`) e verificar que nenhuma falha nova aparece
 
 ## 3. Renumeração
 
