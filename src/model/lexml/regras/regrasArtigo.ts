@@ -73,7 +73,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       acoes.push(adicionarArtigoAntes);
       acoes.push(adicionarArtigoDepois);
 
-      if (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo)) {
+      // Artigo de alteração só tem o bloco de alteração, nunca inciso ou parágrafo próprio.
+      if (!dispositivo.hasAlteracao() && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarParagrafoFilho);
         acoes.push(adicionarIncisoFilho);
       }
