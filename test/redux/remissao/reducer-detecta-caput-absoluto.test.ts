@@ -15,11 +15,7 @@ describe('detecção de remissão absoluta para o caput ("caput do art. N")', ()
   });
 
   describe('parser', () => {
-    it('reconhece "caput do art. 2º" como referência válida', () => {
-      const parser = new ReferenciaDispositivoParser('caput do art. 2º');
-      expect(parser.valido).to.be.true;
-    });
-
+    // A forma nua "caput do art. N" não passa pelo parser: a detecção a resolve direto para o caput.
     it('reconhece "inciso I do caput do art. 2º" como referência válida (controle)', () => {
       const parser = new ReferenciaDispositivoParser('inciso I do caput do art. 2º');
       expect(parser.valido).to.be.true;
@@ -53,6 +49,35 @@ describe('detecção de remissão absoluta para o caput ("caput do art. N")', ()
       const alvos = r.map(x => x.targetUuid);
       expect(alvos).to.include((artigos[1] as Artigo).caput!.uuid);
       expect(alvos).to.include(artigos[2].uuid);
+    });
+
+    it('"CAPUT DO ART. 2º" (caixa alta) vira remissão para o caput', () => {
+      const r = detectaRemissoes(state, artigos[0], 'Conforme o CAPUT DO ART. 2º, aplica-se.');
+      expect(r).to.have.length(1);
+      expect(r[0].targetUuid).to.equal((artigos[1] as Artigo).caput!.uuid);
+    });
+
+    it('"caput do art. 9º" (artigo inexistente) não cria remissão', () => {
+      const r = detectaRemissoes(state, artigos[0], 'Conforme o caput do art. 9º, aplica-se.');
+      expect(r).to.have.length(0);
+    });
+
+    it('"caput do artigo único" vira remissão para o caput do artigo único', () => {
+      const unico = criaStateComNArtigos(1);
+      const r = detectaRemissoes(unico.state, unico.artigos[0], 'Conforme o caput do artigo único, aplica-se.');
+      expect(r).to.have.length(1);
+      expect(r[0].targetUuid).to.equal((unico.artigos[0] as Artigo).caput!.uuid);
+    });
+
+    it('controle: "caput deste artigo" continua resolvendo para o caput do próprio artigo', () => {
+      const paragrafo = criaDispositivo(artigos[1], 'Paragrafo');
+      artigos[1].renumeraFilhos();
+      paragrafo.createRotulo(paragrafo);
+      updateIdDispositivoAndFilhos(state.articulacao);
+
+      const r = detectaRemissoes(state, paragrafo, 'Conforme o caput deste artigo, aplica-se.');
+      expect(r).to.have.length(1);
+      expect(r[0].targetUuid).to.equal((artigos[1] as Artigo).caput!.uuid);
     });
 
     it('"inciso I do caput do art. 2º" vira remissão para o inciso (controle da forma composta)', () => {

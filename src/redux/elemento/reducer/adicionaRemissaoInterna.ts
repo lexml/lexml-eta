@@ -45,6 +45,9 @@ const REGEX_ABSOLUTA = new RegExp(
   'gi'
 );
 
+// Forma exata "caput do art. N" (caput como nível mais específico); captura o número do artigo sem o ordinal.
+const REGEX_CAPUT_DO_ARTIGO = new RegExp(`^${P_CAPUT}${CONECTOR}(?:art\\.?\\s*|artigo\\s+)([uú]nico|\\d+(?:-[a-z]+)?)[º°]?$`, 'i');
+
 const REGEX_AGRUPADOR = new RegExp(`${P_QUALQUER_AGRUPADOR}(?:${CONECTOR}${P_QUALQUER_AGRUPADOR})*`, 'gi');
 
 const REGEX_CONTEXTUAL = new RegExp(
@@ -281,6 +284,15 @@ const detectarReferenciasAbsolutas = (texto: string, articulacao: Articulacao): 
   REGEX_ABSOLUTA.lastIndex = 0;
   while ((match = REGEX_ABSOLUTA.exec(texto)) !== null) {
     const textoReferencia = match[0];
+
+    // O parser descarta "caput" (e o ignora se estiver no início); por isso "caput do art. N" é resolvido aqui, direto para o caput.
+    const numeroArtigoDoCaput = REGEX_CAPUT_DO_ARTIGO.exec(textoReferencia)?.[1];
+    if (numeroArtigoDoCaput !== undefined) {
+      const caput = (buscarArtigo(articulacao, numeroArtigoDoCaput) as Artigo | null)?.caput;
+      if (caput) resultado.push({ texto: textoReferencia, dispositivoDestino: caput, inicio: match.index });
+      continue;
+    }
+
     const parser = new ReferenciaDispositivoParser(textoReferencia);
     if (parser.valido && parser.referencias.length > 0) {
       const dispositivoDestino = buscarDispositivoPorReferencia(articulacao, parser.referencias);
