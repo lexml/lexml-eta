@@ -20,6 +20,6 @@
 
 ## 5. Spec e regressão
 
-- [ ] 5.1 Validar a change (`openspec validate 2026-09-30-c02-detectar-remissao-absoluta-caput --strict`) e verificar que não há erros
-- [ ] 5.2 Rodar `npm test` completo (Node 22), incluindo o round-trip com corpus real `buildJsonixFromProjetoNorma.integracao.test.ts`, e verificar que a suíte passa
-- [ ] 5.3 Rodar `npm run lint` e verificar que não há erros nos arquivos alterados
+- [x] 5.1 Validar a change (`openspec validate 2026-09-30-c02-detectar-remissao-absoluta-caput --strict`) e verificar que não há erros
+- [x] 5.2 Rodar `npm test` completo (Node 22), incluindo o round-trip com corpus real `buildJsonixFromProjetoNorma.integracao.test.ts`, e verificar que a suíte passa
+- [x] 5.3 Rodar `npm run lint` e verificar que não há erros nos arquivos alterados (o lint global já acusa erros pré-existentes em outros arquivos, nenhum dos alterados aqui)
