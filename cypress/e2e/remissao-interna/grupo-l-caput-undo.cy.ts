@@ -10,9 +10,12 @@
  *             sincronizada ao perder o foco não vira passo de desfazer)
  *   CT-L-04 — refazer a remoção invalida de novo o link para o caput; desfazer o torna válido de novo
  *
+ *   CT-L-05 — digitar "caput do art. 2º" cria o link para o caput (change 2026-09-30-c02), que acompanha a
+ *             remoção e o desfazer como o link vindo do arquivo
+ *
  * Fixture: demo/doc/teste_remissao_caput.json, gerado por criarDocumentoArticulado() — três artigos, o
- * art. 1º com remissão para o caput do art. 2º. A detecção automática não reconhece a forma absoluta
- * "caput do art. Nº" (só a contextual "caput deste artigo"), por isso a remissão vem do arquivo.
+ * art. 1º com remissão para o caput do art. 2º. Os CT-L-01 a 04 usam o arquivo, que cobre o caminho de abrir;
+ * o CT-L-05 digita o texto, que cobre a detecção ao vivo.
  *
  * O caput não tem container próprio no DOM, então o href não é comparado com o id de um container
  * (como no grupo K): a verificação é que o href depois do undo é o mesmo de antes da ação, isto é,
@@ -112,5 +115,34 @@ describe('Remissão para o caput ao desfazer ações que recriam o artigo', () =
         cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
         cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.attr', 'href', hrefOriginal);
       });
+  });
+});
+
+describe('Remissão para o caput digitada no texto', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao();
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(2).should('exist');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(3).should('exist');
+  });
+
+  it('CT-L-05: "caput do art. 2º" digitado vira link para o caput e acompanha remover e desfazer', () => {
+    cy.getContainerArtigoByNumero(1).digitarTextoRemissao('Conforme o caput do art. 2º, aplica-se o seguinte.');
+    cy.getContainerArtigoByNumero(1).dispararDeteccaoRemissao();
+
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt').and('contain.text', 'caput do art. 2º');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Remover');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('have.length', 1);
+
+    cy.get(SEL_BTN_DESFAZER_L).click();
+    cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 3);
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt');
   });
 });
