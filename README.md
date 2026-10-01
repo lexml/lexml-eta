@@ -52,7 +52,7 @@ Trata-se de uma proposta inicial, a ser discutida com todos os interessados em s
 
 ## Versão para uso em produção
 
-Somente a partir do segundo semestre de 2022
+Somente a partir do primeiro semestre de 2027
 
 ## Executando o demo localmente
 
@@ -65,7 +65,9 @@ npm start
 ```
 Será aberta uma janela do browser com uma aplicação exemplo que permite testar o componente. Em breve, iremos disponibilizar um link aqui para testar a aplicação sem necessidade de baixar o projeto.
 
-Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
+## Como usar o componente
+
+A referência da API do `<lexml-eta>` (propriedades, métodos, eventos, configuração, tipos e receitas) está em [`docs/api-componente-lexml-eta.md`](docs/api-componente-lexml-eta.md). A biblioteca não é publicada em um registro: cada editor consumidor gera o pacote com um script de build e referencia o arquivo `.tgz` localmente, como descrito na seção 1 desse documento.
 
 ## Requisito de integração — artefato WASM do `lexml-linker`
 
