@@ -96,12 +96,19 @@ assert.deepEqual(declarationRuntimeExports, [...publicRuntimeValues].sort(), 'A 
 const declarationTypeExports = [...declarations.matchAll(/^export type\s*\{([^}]*)\}\s*from\s*['"][^'"]+['"];?$/gm)].flatMap(match => parseExportedNames(match[1])).sort();
 assert.deepEqual(declarationTypeExports, [...publicTypes].sort(), 'A API pública de tipos divergiu da allowlist.');
 
-const javascriptExportMatch = [...javascript.matchAll(/^export\s*\{([^}]*)\};$/gm)].at(-1);
+// Com code-split o entry reexporta de um chunk compartilhado (`export { ... } from './chunk.js'`).
+const javascriptExportMatch = [...javascript.matchAll(/^export\s*\{([^}]*)\}(?:\s*from\s*['"][^'"]+['"])?;$/gm)].at(-1);
 assert.ok(javascriptExportMatch, 'A lista de exports do bundle não foi encontrada.');
 assert.deepEqual(parseExportedNames(javascriptExportMatch[1]).sort(), [...publicRuntimeValues].sort(), 'A API pública de runtime do JavaScript divergiu da allowlist.');
 
+// Os componentes ficam nos chunks compartilhados do code-split, não só no entry.
+const bundleJavascript = readdirSync('dist')
+  .filter(name => name.endsWith('.js') && !name.endsWith('.min.js'))
+  .map(name => readFileSync(join('dist', name), 'utf8'))
+  .join('\n');
+
 for (const tag of registeredCustomElements) {
-  assert.ok(javascript.includes(`customElement('${tag}')`), `O bundle não registra o componente <${tag}>.`);
+  assert.ok(bundleJavascript.includes(`customElement('${tag}')`), `O bundle não registra o componente <${tag}>.`);
 }
 
 for (const declarationFile of collectDeclarationFiles('dist/types')) {
