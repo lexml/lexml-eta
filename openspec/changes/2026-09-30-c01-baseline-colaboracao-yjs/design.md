@@ -2,7 +2,7 @@
 
 ## Context
 
-A colaboração foi implementada antes do OpenSpec; este documento registra a arquitetura que as 7 specs da change assumem, a partir do plano `docs/planos/PLANO_EDITOR_COLABORATIVO_YJS.md` (§2–§3 e §9) e do código em `src/collab/`. Motivação e escopo estão em `proposal.md`.
+A colaboração foi implementada antes do OpenSpec; este documento registra a arquitetura que as 7 specs da change assumem, a partir do plano `docs/plano-editor-colaborativo-yjs.md` (§2–§3 e §9) e do código em `src/collab/`. Motivação e escopo estão em `proposal.md`.
 
 Restrições do código que moldam a abordagem:
 
@@ -32,7 +32,7 @@ Restrições do código que moldam a abordagem:
 
 **Non-Goals:**
 - Não altera código de produção.
-- Não especifica o sidecar, a ACL, o token, a persistência durável nem a Fase 6; vivem no `lexeditweb` ou são changes futuras.
+- Não especifica o sidecar, o controle de acesso, a persistência durável nem a Fase 6; vivem no host ou são changes futuras.
 - Não especifica a detecção de remissão externa (WASM) sob colaboração: ela roda por cliente e não é sincronizada (ver Riscos).
 
 ## Decisions
